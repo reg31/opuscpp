@@ -147,7 +147,9 @@ Measured result for this repository snapshot:
 
 | Suite | Result |
 |---|---:|
-| Encode oracle validation cases | 96/96 passed |
+| RFC 6716 encode oracle cases | 48/48 passed |
+| RFC 8251 encode oracle cases | 96/96 passed |
+| Total encode oracle validation cases | 144/144 passed |
 
 ## Perceptual and memory harness
 
@@ -169,15 +171,15 @@ Matched setup: official Opus built at `-O2`, intrinsics disabled. Positive decod
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode vs official |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.33x | 41.37 | 42.24 | +26.7% |
-| 24 kbps | 1.42x | 61.15 | 62.52 | +9.7% |
-| 32 kbps | 1.41x | 81.20 | 83.25 | +9.3% |
-| 48 kbps | 1.29x | 121.30 | 121.28 | +9.1% |
-| 64 kbps | 1.38x | 161.40 | 161.39 | +1.8% |
-| 96 kbps | 1.48x | 241.00 | 241.56 | +0.1% |
-| 128 kbps | 1.57x | 321.00 | 321.75 | +0.4% |
-| 192 kbps | 1.50x | 481.00 | 482.13 | +0.3% |
-| 256 kbps | 1.48x | 641.00 | 642.12 | +0.3% |
+| 16 kbps | 1.29x | 41.37 | 42.24 | +27.6% |
+| 24 kbps | 1.43x | 61.15 | 62.52 | +10.6% |
+| 32 kbps | 1.31x | 81.20 | 83.25 | +9.1% |
+| 48 kbps | 1.23x | 121.30 | 121.28 | +4.0% |
+| 64 kbps | 1.25x | 161.40 | 161.39 | +4.3% |
+| 96 kbps | 1.47x | 241.00 | 241.56 | +2.0% |
+| 128 kbps | 1.60x | 321.00 | 321.75 | -1.6% |
+| 192 kbps | 1.50x | 481.00 | 482.13 | +1.2% |
+| 256 kbps | 1.50x | 641.00 | 642.12 | -6.7% |
 
 Source CSVs:
 
@@ -219,7 +221,7 @@ Representative AUDIO-mode results at 32 kbps mono:
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 17,200 B | 31,632 B | -45.6% |
+| Encoder mono | 17,184 B | 31,648 B | -45.7% |
 | Encoder stereo | 32,448 B | 48,880 B | -33.6% |
 | Decoder mono | 14,192 B | 18,272 B | -22.3% |
 | Decoder stereo | 21,376 B | 27,408 B | -22.0% |
@@ -232,8 +234,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 227,096 B | 0 B | 227,096 B |
-| Android arm64 Clang `-O2` | 252,219 B | 800 B | 253,019 B |
+| Host MinGW GCC `-O2` | 227,592 B | 0 B | 227,592 B |
+| Android arm64 Clang `-O2` | 252,627 B | 800 B | 253,427 B |
 
 ## Toolchains checked
 
