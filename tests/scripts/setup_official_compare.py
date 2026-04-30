@@ -164,7 +164,6 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
         "|---|---|",
         "| MinGW GCC C++23 | Builds with zero warnings in measured configuration. |",
         "| Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |",
-        "| Apple Clang via Xcode (macOS / iOS) | Intended Apple-platform toolchain path; verify with local Xcode builds on macOS and iOS targets. |",
     ]
 
     md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -458,10 +457,6 @@ def run_toolchain_checks(repo_root: pathlib.Path, cxx: str, report_dir: pathlib.
             cmd = [str(clang), "--target=aarch64-linux-android21", "-std=c++23", "-c", str(repo_root / "src" / "opus_codec.cpp"), "-I", str(repo_root / "src"), "-o", str(out)]
             run(cmd)
             lines.append("Android arm64 Clang C++23: build check passed")
-    if sys.platform == "darwin":
-        lines.append("Apple Clang via Xcode: run locally on macOS/iOS targets")
-    else:
-        lines.append("Apple Clang via Xcode: not available on this host")
     return lines
 
 

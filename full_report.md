@@ -76,4 +76,3 @@ It records what the script prepared locally and summarizes the published benchma
 |---|---|
 | MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
-| Apple Clang via Xcode (macOS / iOS) | Intended Apple-platform toolchain path; verify with local Xcode builds on macOS and iOS targets. |

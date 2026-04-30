@@ -239,5 +239,4 @@ Source CSV:
 |---|---|
 | MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
-| Apple Clang via Xcode (macOS / iOS) | Intended Apple-platform toolchain path; verify with local Xcode builds on macOS and iOS targets. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` for a quick local check. |
