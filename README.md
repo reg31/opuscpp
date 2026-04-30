@@ -45,6 +45,7 @@ int err = OPUS_OK;
 OpusEncoder* enc = opus_encoder_create(48000, 2, OPUS_APPLICATION_AUDIO, &err);
 opus_encoder_ctl(enc, OPUS_SET_BITRATE(48000));
 
+opus_int16 pcm_i16[960 * 2] = {};
 unsigned char packet[1500];
 int bytes = opus_encode(enc, pcm_i16, 960, packet, sizeof(packet));
 
