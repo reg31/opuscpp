@@ -3431,7 +3431,7 @@ static int run_prefilter(CeltEncoderInternal *st, celt_sig *in, celt_sig *prefil
   std::array<opus_val32, 2> before{}, after{};
   int cancel_pitch = 0;
   constexpr auto max_period = 1024, min_period = 15; mode = st->mode; overlap = mode->overlap;
-  // Complexity 0 never performs pitch search; when no old prefilter is active,
+  // Complexity <5 never performs pitch search; when no old prefilter is active,
   // keep only the histories instead of building the full scratch/filter path.
   if (__builtin_expect(complexity < 5, 0) && (!enabled || toneishness <= (.60f)) && st->prefilter_gain == 0) {
     for (c = 0; c < CC; ++c) {
