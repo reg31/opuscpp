@@ -112,9 +112,10 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
     decode_by_rate = {row.get("bitrate", ""): row for row in sections["decode_speed_vs_official"]}
     for row in sections["encode_speed_vs_official"]:
         bitrate = row.get("bitrate", "")
+        bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         decode_row = decode_by_rate.get(bitrate, {})
         lines.append(
-            f"| {bitrate} kbps | {row.get('encode_speedx', '')}x | {decode_row.get('current_faster_pct', '')}% |"
+            f"| {bitrate_kbps} kbps | {row.get('encode_speedx', '')}x | {decode_row.get('current_faster_pct', '')}% |"
         )
 
     lines += [
@@ -125,8 +126,10 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
         "|---:|---:|---:|---:|",
     ]
     for row in sections["quality_vs_official"]:
+        bitrate = row.get("bitrate", "")
+        bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         lines.append(
-            f"| {row.get('bitrate', '')} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} |"
+            f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} |"
         )
 
     lines += [
