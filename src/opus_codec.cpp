@@ -1288,7 +1288,8 @@ struct ref_OpusEncoder {
   int application, channels, delay_compensation, force_channels; opus_int32 Fs;
   int use_vbr, vbr_constraint; opus_int32 bitrate_bps, user_bitrate_bps; int encoder_buffer;
   int stream_channels; opus_int16 hybrid_stereo_width_Q14; opus_int32 variable_HP_smth2_Q15; opus_val16 prev_HB_gain; opus_val32 hp_mem[4];
-  int mode, prev_mode, prev_channels, prev_framesize, bandwidth, auto_bandwidth, silk_bw_switch, first, lightweight_voice_score_Q7, lightweight_music_score_Q7, lightweight_analysis_frames; StereoWidthState width_mem;
+  int mode, prev_mode, prev_channels, prev_framesize, bandwidth, auto_bandwidth, silk_bw_switch, first, lightweight_voice_score_Q7, lightweight_music_score_Q7, lightweight_analysis_frames;
+  int lightweight_prev_pitch_lag, lightweight_pitch_stability_Q7, lightweight_harmonic_music_Q7; StereoWidthState width_mem;
   opus_val32 peak_signal_energy; int nonfinal_frame; opus_uint32 rangeFinal; opus_res delay_buffer[480 * 2];
 };
 constexpr std::array<opus_int32, 8> voice_bandwidth_thresholds_common = numeric_blob_array<opus_int32, 8>(R"blob(00002328000002BC00002328000002BC000034BC000003E8000036B0000007D0)blob");
@@ -1542,7 +1543,7 @@ static int tone_lpc(const opus_val16 *x, int len, int delay, opus_val32 *lpc);
   for (; delay <= 16 && (fail || (lpc[0] > 1.f && lpc[1] < 0)); delay *= 2) fail = tone_lpc(mono, frame_size, delay, lpc);
   return !fail && lpc[0] * lpc[0] + 3.999999f * lpc[1] < 0 && -lpc[1] > .24f;
 }
-struct audio_content_markers { int speech, music; };
+struct audio_content_markers { int speech, music, harmonic_music, pitch_lag; opus_val32 pitch_corr, diff_ratio, zcr, envelope_cv; };
 [[nodiscard]] static audio_content_markers detect_audio_content_markers(const opus_res *pcm, int frame_size, int channels) {
   audio_content_markers markers{};
   if (frame_size < 16) return markers;
@@ -1567,9 +1568,10 @@ struct audio_content_markers { int speech, music; };
   const int lpc_music = audio_music_marker_from_mono(mono, frame_size);
   const auto diff_ratio = static_cast<opus_val32>(diff_energy / (energy + 1e-12f));
   const auto zcr = static_cast<opus_val32>(zc) / frame_size;
+  markers.diff_ratio = diff_ratio;
+  markers.zcr = zcr;
   if (lpc_music) {
     markers.music = 1;
-    return markers;
   }
 
   constexpr int envelope_blocks = 10;
@@ -1592,9 +1594,11 @@ struct audio_content_markers { int speech, music; };
     envelope_var += static_cast<opus_val64>(d) * d;
   }
   const auto envelope_cv = static_cast<opus_val32>(std::sqrt(envelope_var / envelope_blocks) / (envelope_mean + 1e-12f));
+  markers.envelope_cv = envelope_cv;
   if (!(diff_ratio > .006f && diff_ratio < .12f && zcr > .018f && zcr < .16f && envelope_cv > .08f)) return markers;
   opus_val64 best_num = 0;
   opus_val64 best_den_a = 1e-12, best_den_b = 1e-12;
+  int best_lag = 0;
   const int max_lag = std::min(frame_size / 2, 480);
   for (int lag = 48; lag <= max_lag; lag += 8) {
     opus_val64 num = 0, den_a = 0, den_b = 0;
@@ -1609,10 +1613,14 @@ struct audio_content_markers { int speech, music; };
       best_num = num;
       best_den_a = den_a;
       best_den_b = den_b;
+      best_lag = lag;
     }
   }
   const auto pitch_corr = static_cast<opus_val32>(best_num / std::sqrt(best_den_a * best_den_b + 1e-18));
-  markers.speech = pitch_corr > .78f;
+  markers.pitch_corr = pitch_corr;
+  markers.pitch_lag = best_lag;
+  markers.harmonic_music = pitch_corr > .86f && diff_ratio < .018f && zcr < .055f && envelope_cv < .25f;
+  markers.speech = pitch_corr > .78f && !markers.harmonic_music;
   return markers;
 }
 static int update_lightweight_voice_estimate(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, opus_val16 stereo_width) noexcept {
@@ -1621,19 +1629,43 @@ static int update_lightweight_voice_estimate(ref_OpusEncoder *st, const opus_res
   st->lightweight_analysis_frames = std::min(st->lightweight_analysis_frames + 1, 127);
   if (st->channels == 2 && stereo_width > .05f) {
     st->lightweight_voice_score_Q7 = 0;
+    st->lightweight_pitch_stability_Q7 = 0;
+    st->lightweight_harmonic_music_Q7 = std::max(st->lightweight_harmonic_music_Q7, 48);
+    st->lightweight_prev_pitch_lag = 0;
     music_score += std::max(1, (115 - music_score) >> 3);
     st->lightweight_music_score_Q7 = clamp_value(music_score, 0, 115);
     return 0;
   }
   const auto markers = detect_audio_content_markers(pcm, frame_size, st->channels);
-  if (markers.speech) voice_score += std::max(1, (115 - voice_score) / 5);
-  else voice_score = (voice_score * 126) >> 7;
-  if (markers.music) music_score += std::max(1, (115 - music_score) >> 3);
+  auto pitch_stability = st->lightweight_pitch_stability_Q7;
+  if (markers.pitch_lag > 0 && markers.pitch_corr > .72f) {
+    const auto lag_delta = st->lightweight_prev_pitch_lag > 0 ? std::abs(markers.pitch_lag - st->lightweight_prev_pitch_lag) : 999;
+    if (lag_delta <= 8) pitch_stability += std::max(1, (115 - pitch_stability) >> 3);
+    else pitch_stability = (pitch_stability * 92) >> 7;
+    st->lightweight_prev_pitch_lag = markers.pitch_lag;
+  } else {
+    pitch_stability = (pitch_stability * 80) >> 7;
+    st->lightweight_prev_pitch_lag = 0;
+  }
+  pitch_stability = clamp_value(pitch_stability, 0, 115);
+  const bool sustained_harmonic = markers.harmonic_music
+      || (pitch_stability > 34 && markers.pitch_corr > .82f && markers.diff_ratio < .025f && markers.zcr < .075f && markers.envelope_cv < .25f);
+  auto harmonic_music = st->lightweight_harmonic_music_Q7;
+  if (sustained_harmonic) harmonic_music += std::max(1, (115 - harmonic_music) >> 3);
+  else harmonic_music = (harmonic_music * 104) >> 7;
+  harmonic_music = clamp_value(harmonic_music, 0, 115);
+  if (markers.speech && !sustained_harmonic) voice_score += std::max(1, (115 - voice_score) / 5);
+  else voice_score = (voice_score * (sustained_harmonic ? 112 : 126)) >> 7;
+  if (markers.music || sustained_harmonic) music_score += std::max(1, (115 - music_score) >> 3);
   else music_score = (music_score * 112) >> 7;
   voice_score = clamp_value(voice_score, 0, 115);
   music_score = clamp_value(music_score, 0, 115);
   st->lightweight_voice_score_Q7 = voice_score;
   st->lightweight_music_score_Q7 = music_score;
+  st->lightweight_pitch_stability_Q7 = pitch_stability;
+  st->lightweight_harmonic_music_Q7 = harmonic_music;
+  if (voice_score > 60 && harmonic_music < 80) return 115;
+  if (harmonic_music > 52 && music_score >= voice_score + 8) return 0;
   if (voice_score > 44 && voice_score + 16 >= music_score) return 115;
   if (music_score >= voice_score + 8 && music_score > 36) return 0;
   return 48;

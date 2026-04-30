@@ -72,23 +72,23 @@ Measured result for this repository snapshot:
 - Encode time.
 - Optional process memory measurements.
 
-These proxy scores are useful for regression tracking, but they are not substitutes for PESQ/ViSQOL official tooling or listening tests.
+These proxy scores are useful for regression tracking, but they are not substitutes for official PESQ/ViSQOL tooling or listening tests.
 
 ## Speed metrics vs official Opus
 
-Matched setup: official Opus built at `-O2`, intrinsics disabled. Positive decode percent means `opuscpp` is faster; negative means slower. Encode speed is a multiplicative speedup over official Opus.
+Matched setup: official Opus built at `-O2`, intrinsics disabled. Positive decode percent means `opuscpp` is faster; encode speed is a multiplicative speedup over official Opus.
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode vs official |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 2.40x | 39.99 | 39.63 | -1.5% |
-| 24 kbps | 3.73x | 60.91 | 57.66 | -9.0% |
-| 32 kbps | 4.87x | 81.02 | 75.72 | -5.4% |
-| 48 kbps | 3.40x | 121.21 | 113.15 | -8.0% |
-| 64 kbps | 2.16x | 160.74 | 160.74 | +5.4% |
-| 96 kbps | 2.10x | 240.66 | 240.61 | +24.6% |
-| 128 kbps | 2.01x | 320.54 | 320.48 | +24.5% |
-| 192 kbps | 2.14x | 480.30 | 480.22 | +12.4% |
-| 256 kbps | 2.03x | 640.04 | 639.95 | -5.5% |
+| 16 kbps | 1.39x | 41.81 | 40.99 | +36.8% |
+| 24 kbps | 1.79x | 61.45 | 60.96 | +17.7% |
+| 32 kbps | 1.78x | 82.52 | 80.95 | +8.6% |
+| 48 kbps | 1.64x | 122.85 | 120.76 | +7.2% |
+| 64 kbps | 2.02x | 160.70 | 160.68 | +7.9% |
+| 96 kbps | 2.29x | 240.52 | 240.52 | +6.9% |
+| 128 kbps | 2.06x | 320.36 | 320.36 | +11.1% |
+| 192 kbps | 2.40x | 480.04 | 480.04 | +3.8% |
+| 256 kbps | 2.32x | 639.72 | 639.72 | +7.5% |
 
 Source CSVs:
 
@@ -101,35 +101,52 @@ Quality proxy metrics were measured on the validation corpus used during develop
 
 | Bitrate | Current PESQ-style | Official PESQ-style | PESQ delta | Current ViSQOL-style | Official ViSQOL-style | ViSQOL delta | Current CELT proxy | Official CELT proxy | CELT delta |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.5068 | 1.4601 | +0.0466 | 4.5805 | 4.6154 | -0.0349 | 1.2828 | 0.4768 | +0.8060 |
-| 24 kbps | 1.4867 | 1.4566 | +0.0302 | 4.6132 | 4.6267 | -0.0135 | 87.8095 | 0.0882 | +87.7214 |
-| 32 kbps | 1.4795 | 1.4567 | +0.0228 | 4.6337 | 4.6296 | +0.0041 | 87.4363 | 0.0882 | +87.3481 |
-| 48 kbps | 1.4744 | 1.4568 | +0.0176 | 4.6361 | 4.6361 | +0.0000 | 90.4999 | 96.9481 | -6.4482 |
-| 64 kbps | 1.4582 | 1.4575 | +0.0008 | 4.6371 | 4.6366 | +0.0005 | 91.1172 | 96.8792 | -5.7620 |
-| 96 kbps | 1.4588 | 1.4578 | +0.0010 | 4.6392 | 4.6404 | -0.0012 | 92.6484 | 96.8992 | -4.2508 |
-| 128 kbps | 1.4589 | 1.4580 | +0.0009 | 4.6386 | 4.6391 | -0.0005 | 93.2536 | 96.9260 | -3.6724 |
-| 192 kbps | 1.4591 | 1.4583 | +0.0009 | 4.6406 | 4.6406 | +0.0000 | 96.3118 | 96.9277 | -0.6159 |
-| 256 kbps | 1.4592 | 1.4583 | +0.0010 | 4.6408 | 4.6407 | +0.0001 | 96.8805 | 96.9322 | -0.0517 |
+| 16 kbps | 1.4694 | 1.4487 | +0.0207 | 4.6367 | 4.6407 | -0.0040 | 0.6784 | 0.2182 | +0.4602 |
+| 24 kbps | 1.4506 | 1.4367 | +0.0139 | 4.6480 | 4.6450 | +0.0030 | 85.8556 | 0.0315 | +85.8241 |
+| 32 kbps | 1.4452 | 1.4365 | +0.0087 | 4.6545 | 4.6464 | +0.0081 | 88.8000 | 0.0315 | +88.7685 |
+| 48 kbps | 1.4425 | 1.4360 | +0.0065 | 4.6541 | 4.6534 | +0.0007 | 90.5330 | 96.6402 | -6.1072 |
+| 64 kbps | 1.4355 | 1.4360 | -0.0005 | 4.6546 | 4.6544 | +0.0002 | 89.8912 | 96.5798 | -6.6886 |
+| 96 kbps | 1.4360 | 1.4361 | -0.0001 | 4.6572 | 4.6572 | +0.0000 | 91.6229 | 96.6386 | -5.0157 |
+| 128 kbps | 1.4361 | 1.4363 | -0.0002 | 4.6591 | 4.6580 | +0.0011 | 92.3059 | 96.6286 | -4.3227 |
+| 192 kbps | 1.4364 | 1.4366 | -0.0002 | 4.6597 | 4.6601 | -0.0004 | 95.7972 | 96.6216 | -0.8244 |
+| 256 kbps | 1.4365 | 1.4363 | +0.0002 | 4.6600 | 4.6598 | +0.0002 | 96.5173 | 96.6373 | -0.1200 |
 
 Source CSV:
 
 - `metrics/quality_vs_official.csv`
 
+## Detector mode-balance spot check
+
+The lightweight detector added for this snapshot distinguishes spoken pitch from sustained harmonic/music pitch using pitch stability, envelope stability, zero-crossing rate, and low-order tonal markers before updating the voice estimate.
+
+Representative AUDIO-mode results at 32 kbps mono:
+
+| Material class | Hybrid | CELT |
+|---|---:|---:|
+| Speech-like | 99.2% | 0.8% |
+| Acoustic harmonic music | 39.2% | 60.8% |
+| Synthetic sustained harmonic | 0.0% | 100.0% |
+| Full-song music | 27.3% | 72.7% |
+
 ## Memory metrics
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,848 B | 31,648 B | -46.8% |
+| Encoder mono | 16,864 B | 31,648 B | -46.7% |
 | Encoder stereo | 32,448 B | 48,880 B | -33.6% |
 | Decoder mono | 14,112 B | 18,336 B | -23.0% |
 | Decoder stereo | 21,376 B | 27,408 B | -22.0% |
+
+Source CSV:
+
+- `metrics/memory_vs_official.csv`
 
 ## Binary size
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 226,380 B | 0 B | 226,380 B |
-| Android arm64 Clang `-O2` | 251,815 B | 800 B | 252,615 B |
+| Host MinGW GCC `-O2` | 227,216 B | 0 B | 227,216 B |
+| Android arm64 Clang `-O2` | 252,387 B | 800 B | 253,187 B |
 
 ## Toolchains checked
 

@@ -1,8 +1,8 @@
 # opuscpp
 
-`opuscpp` is a pure portable C++23 implementation of the Opus codec API, derived from Opus 1.6.1. It is designed for source embedding: add the source file to your build, include the header, and ship no separate DLL or static library.
+`opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from Opus 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-The project targets standard Opus packets. Existing code that uses the supported Opus API can use this implementation without packet-format changes. Custom Opus is intentionally unsupported.
+The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes. Custom Opus is intentionally unsupported.
 
 ## Highlights
 
@@ -12,6 +12,7 @@ The project targets standard Opus packets. Existing code that uses the supported
 - Encode oracle conformance: 96/96 cases passed.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
+- Lightweight speech/music detector keeps speech-biased content in hybrid while moving sustained harmonic/music content toward CELT.
 - Lower memory footprint than official Opus in the measured configurations.
 
 ## Quick start
@@ -55,26 +56,27 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below are from a matched `-O2` official Opus build with intrinsics disabled. Positive decode values mean this implementation decoded faster; encode speed is shown as a multiplicative speedup over official Opus. Quality metrics are synthetic objective scores from the validation harness, not a replacement for listening tests.
+Measurements below are from a matched `-O2` official Opus build with intrinsics disabled. Positive decode values mean this implementation decoded faster; encode speed is shown as a multiplicative speedup over official Opus. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed | Decode vs official | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 2.40x | -1.5% | +0.0466 | -0.0349 | +0.9% |
-| 24 kbps | 3.73x | -9.0% | +0.0302 | -0.0135 | +5.6% |
-| 32 kbps | 4.87x | -5.4% | +0.0228 | +0.0041 | +7.0% |
-| 48 kbps | 3.40x | -8.0% | +0.0176 | +0.0000 | +3.2% |
-| 96 kbps | 2.10x | +24.6% | +0.0010 | -0.0012 | +0.0% |
-| 128 kbps | 2.01x | +24.5% | +0.0009 | -0.0005 | +0.0% |
-| 192 kbps | 2.14x | +12.4% | +0.0008 | +0.0000 | -0.0% |
-| 256 kbps | 2.03x | -5.5% | +0.0009 | +0.0001 | +0.0% |
+| 16 kbps | 1.39x | +36.8% | +0.0207 | -0.0040 | +2.0% |
+| 24 kbps | 1.79x | +17.7% | +0.0139 | +0.0030 | +0.8% |
+| 32 kbps | 1.78x | +8.6% | +0.0087 | +0.0081 | +1.9% |
+| 48 kbps | 1.64x | +7.2% | +0.0065 | +0.0007 | +1.7% |
+| 64 kbps | 2.02x | +7.9% | -0.0005 | +0.0002 | +0.0% |
+| 96 kbps | 2.29x | +6.9% | -0.0001 | +0.0000 | +0.0% |
+| 128 kbps | 2.06x | +11.1% | -0.0002 | +0.0011 | +0.0% |
+| 192 kbps | 2.40x | +3.8% | -0.0002 | -0.0004 | +0.0% |
+| 256 kbps | 2.32x | +7.5% | +0.0002 | +0.0002 | +0.0% |
 
-Interpretation: encode is consistently much faster in this benchmark. Decode is parity-class overall but 24/32/48 kbps remain the known tuning focus because mode balance differs from official Opus on some content.
+Detector validation on representative material: speech-like content stays about 99% hybrid, sustained harmonic/music material moves mostly to CELT, and restricted-lowdelay remains CELT-only as expected.
 
 ## Memory snapshot
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,848 B | 31,648 B | -46.8% |
+| Encoder mono | 16,864 B | 31,648 B | -46.7% |
 | Encoder stereo | 32,448 B | 48,880 B | -33.6% |
 | Decoder mono | 14,112 B | 18,336 B | -23.0% |
 | Decoder stereo | 21,376 B | 27,408 B | -22.0% |

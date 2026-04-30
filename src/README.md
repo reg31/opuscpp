@@ -2,8 +2,8 @@
 
 `src/` contains only the embeddable library:
 
-- `opus_codec.h` ? public API declarations and constants.
-- `opus_codec.cpp` ? self-contained C++23 implementation.
+- `opus_codec.h` - public API declarations and constants.
+- `opus_codec.cpp` - self-contained C++23 implementation.
 
 Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
 
