@@ -24,36 +24,6 @@ powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw
 
 These one-liners expect Python 3 and a C++23 compiler to already be installed and available on your PATH.
 
-### Option 2 - Check prerequisites first
-
-If you want to verify your local toolchain before running the smoke test, use the environment check helper below.
-
-## Prerequisites
-
-### Option 1 - Run the environment check script (recommended)
-
-Use the helper script for your platform. It verifies the basic tools needed for the portable smoke test (Python 3 and a C++23 compiler), and it can also check the extra tools commonly used to reproduce official Opus comparison builds (`git`, `cmake`, and either `ninja` or `make`).
-
-macOS / Linux:
-
-```bash
-python3 tests/scripts/check_env.py
-python3 tests/scripts/check_env.py --official
-```
-
-Windows:
-
-```powershell
-py tests\scripts\check_env.py
-py tests\scripts\check_env.py --official
-```
-
-Notes:
-
-- The basic smoke test needs Python and a C++23 compiler.
-- CMake is not required for the basic smoke test in this repository.
-- CMake is only needed if you want to reproduce the official-opus comparison builds.
-
 ### Option 2 - Manual prerequisites
 
 Install the following yourself:
@@ -129,6 +99,8 @@ Permalinks for these wrapper scripts:
 When run from a local checkout, these wrappers call `tests/run_smoke.py` from the repository root. When run via the raw permalinks above, they download the current repository snapshot to a temporary directory and run the same smoke harness from there.
 
 The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
+
+If Python 3 or your C++23 compiler is missing, the smoke script will fail early and show the missing command.
 
 Generate optional local listening samples:
 
