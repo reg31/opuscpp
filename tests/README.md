@@ -38,6 +38,43 @@ Install the following yourself:
 - A C++23 compiler (`g++`, `clang++`, or equivalent)
 - Optional for official-opus comparison runs: `git`, `cmake`, and either `ninja` or `make`
 
+## Official comparison setup
+
+### Option 1 - Run the setup script (recommended)
+
+This script can:
+
+- clone official Opus 1.6.1,
+- build it as a static comparison build with intrinsics disabled,
+- build the `opuscpp` decoder conformance harness,
+- and download the RFC vector bundles into `tests/external/testvectors`.
+
+macOS / Linux:
+
+```bash
+python3 tests/scripts/setup_official_compare.py --cxx c++
+```
+
+Windows:
+
+```powershell
+py tests\scripts\setup_official_compare.py --cxx g++
+```
+
+By default it downloads the RFC 6716 vector bundle. To fetch both the RFC 6716 and RFC 8251 bundles:
+
+```bash
+python3 tests/scripts/setup_official_compare.py --download-vectors both
+```
+
+### Option 2 - Manual setup
+
+If you prefer to do it yourself, the equivalent manual steps are:
+
+1. Obtain the official Opus RFC test vector set.
+2. Build official Opus 1.6.1 as a static library with intrinsics disabled if you want a matched portable-C comparison.
+3. Build the `opuscpp` decoder harness.
+
 ## Quick smoke test
 
 From the repository root:
@@ -72,11 +109,7 @@ The generated files are ignored by git.
 
 ## RFC decode conformance
 
-The RFC vector files are not committed to this repository. To run full decode conformance:
-
-1. Obtain the official Opus RFC test vector set.
-2. Build official Opus 1.6.1 as a static library with intrinsics disabled if you want matched portable-C comparison.
-3. Build the decoder harness:
+The RFC vector files are not committed to this repository. If you used `tests/scripts/setup_official_compare.py`, you already have the recommended directory layout and build outputs. To run full decode conformance manually, build the decoder harness with:
 
 ```bash
 c++ -std=c++23 -O2 -I src \
