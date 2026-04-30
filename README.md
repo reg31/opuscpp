@@ -72,15 +72,15 @@ Measurements below are from a matched `-O2` official Opus 1.6.1 comparison build
 
 | Bitrate | Encode speed | Decode vs official | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.21x | +23.2% | -0.0003 | -0.0153 | -2.1% |
-| 24 kbps | 1.37x | +5.2% | -0.0085 | +0.0279 | -2.2% |
-| 32 kbps | 1.33x | +9.8% | -0.0005 | +0.0239 | -2.5% |
-| 48 kbps | 1.25x | +7.2% | +0.0001 | +0.0029 | +0.0% |
-| 64 kbps | 1.30x | -4.1% | +0.0011 | -0.0028 | +0.0% |
-| 96 kbps | 1.50x | +2.4% | -0.0004 | -0.0011 | -0.2% |
-| 128 kbps | 1.56x | -0.3% | +0.0005 | +0.0009 | -0.2% |
-| 192 kbps | 1.54x | +0.4% | +0.0001 | -0.0009 | -0.2% |
-| 256 kbps | 1.49x | +1.4% | +0.0001 | -0.0017 | -0.2% |
+| 16 kbps | 1.33x | +26.7% | -0.0003 | -0.0153 | -2.1% |
+| 24 kbps | 1.42x | +9.7% | -0.0085 | +0.0279 | -2.2% |
+| 32 kbps | 1.41x | +9.3% | -0.0005 | +0.0239 | -2.5% |
+| 48 kbps | 1.29x | +9.1% | +0.0001 | +0.0029 | +0.0% |
+| 64 kbps | 1.38x | +1.8% | +0.0011 | -0.0028 | +0.0% |
+| 96 kbps | 1.48x | +0.1% | -0.0004 | -0.0011 | -0.2% |
+| 128 kbps | 1.57x | +0.4% | +0.0005 | +0.0009 | -0.2% |
+| 192 kbps | 1.50x | +0.3% | +0.0001 | -0.0009 | -0.2% |
+| 256 kbps | 1.48x | +0.3% | +0.0001 | -0.0017 | -0.2% |
 
 Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

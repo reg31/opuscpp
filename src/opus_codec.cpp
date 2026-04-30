@@ -3437,7 +3437,7 @@ static int run_prefilter(CeltEncoderInternal *st, celt_sig *in, celt_sig *prefil
     copy_n_items(prefilter_mem + c * max_period, static_cast<std::size_t>(max_period), pre[c]);
     copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), pre[c] + max_period);
 }
-  if (enabled && toneishness > (.99f)) {
+  if (enabled && toneishness > (.60f)) {
     int multiple = 1;
     if ((tone_freq) >= (3.1416f)) tone_freq = (3.141593f) - tone_freq;
     for (; (tone_freq) >= multiple * (0.39f); ++multiple) {}

@@ -167,15 +167,15 @@ Matched setup: official Opus built at `-O2`, intrinsics disabled. Positive decod
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode vs official |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.21x | 41.37 | 42.24 | +23.2% |
-| 24 kbps | 1.37x | 61.15 | 62.52 | +5.2% |
-| 32 kbps | 1.33x | 81.20 | 83.25 | +9.8% |
-| 48 kbps | 1.25x | 121.30 | 121.28 | +7.2% |
-| 64 kbps | 1.30x | 161.40 | 161.39 | -4.1% |
-| 96 kbps | 1.50x | 241.00 | 241.56 | +2.4% |
-| 128 kbps | 1.56x | 321.00 | 321.75 | -0.3% |
-| 192 kbps | 1.54x | 481.00 | 482.13 | +0.4% |
-| 256 kbps | 1.49x | 641.00 | 642.12 | +1.4% |
+| 16 kbps | 1.33x | 41.37 | 42.24 | +26.7% |
+| 24 kbps | 1.42x | 61.15 | 62.52 | +9.7% |
+| 32 kbps | 1.41x | 81.20 | 83.25 | +9.3% |
+| 48 kbps | 1.29x | 121.30 | 121.28 | +9.1% |
+| 64 kbps | 1.38x | 161.40 | 161.39 | +1.8% |
+| 96 kbps | 1.48x | 241.00 | 241.56 | +0.1% |
+| 128 kbps | 1.57x | 321.00 | 321.75 | +0.4% |
+| 192 kbps | 1.50x | 481.00 | 482.13 | +0.3% |
+| 256 kbps | 1.48x | 641.00 | 642.12 | +0.3% |
 
 Source CSVs:
 
@@ -230,7 +230,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 227,064 B | 0 B | 227,064 B |
+| Host MinGW GCC `-O2` | 227,096 B | 0 B | 227,096 B |
 | Android arm64 Clang `-O2` | 252,219 B | 800 B | 253,019 B |
 
 ## Toolchains checked
