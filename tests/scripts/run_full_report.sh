@@ -6,7 +6,7 @@ CXX_BIN="${1:-c++}"
 
 if [ -f "$SCRIPT_DIR/setup_official_compare.py" ]; then
     ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
-    python3 "$ROOT_DIR/tests/scripts/setup_official_compare.py" --cxx "$CXX_BIN" --download-vectors both
+    python3 "$ROOT_DIR/tests/scripts/setup_official_compare.py" --cxx "$CXX_BIN" --download-vectors both --report-out "$ROOT_DIR/full_report.md"
     exit 0
 fi
 
@@ -36,8 +36,18 @@ with zipfile.ZipFile(zip_path) as zf:
     zf.extractall(extract_root)
 
 subprocess.run(
-    [sys.executable, str(repo_root / "tests" / "scripts" / "setup_official_compare.py"), "--cxx", cxx, "--download-vectors", "both"],
+    [
+        sys.executable,
+        str(repo_root / "tests" / "scripts" / "setup_official_compare.py"),
+        "--cxx",
+        cxx,
+        "--download-vectors",
+        "both",
+        "--report-out",
+        str(work_dir / "full_report.md"),
+    ],
     check=True,
 )
 PY
 echo "Report artifacts kept in: $WORK_DIR"
+echo "Report saved to: $WORK_DIR/full_report.md"

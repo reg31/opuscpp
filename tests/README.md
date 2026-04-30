@@ -8,6 +8,7 @@ This directory contains portable test harnesses and benchmark documentation for 
 
 The commands below download the current `opuscpp` test bundle and run the full official-comparison/report flow automatically.
 You can run them from any folder: they create an `opuscpp-report` workspace in your current folder, run the report workflow there, and keep the downloaded checkout and generated artifacts so you can inspect them afterward.
+The final Markdown report is saved at `./opuscpp-report/full_report.md`.
 
 macOS / Linux:
 

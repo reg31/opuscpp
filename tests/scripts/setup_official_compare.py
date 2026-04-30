@@ -553,6 +553,11 @@ def main() -> int:
         default="rfc6716",
         help="Download RFC vector bundles into tests/external/testvectors.",
     )
+    parser.add_argument(
+        "--report-out",
+        default=None,
+        help="Optional path where the final Markdown report should also be copied.",
+    )
     args = parser.parse_args()
 
     repo_root = pathlib.Path(__file__).resolve().parents[2]
@@ -595,6 +600,11 @@ def main() -> int:
     binary_size = run_binary_size(args.cxx, repo_root, report_dir)
     toolchains = run_toolchain_checks(repo_root, args.cxx, report_dir)
     metrics_report = emit_metrics_report(repo_root, report_dir)
+    if args.report_out:
+        report_out = pathlib.Path(args.report_out)
+        report_out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(metrics_report, report_out)
+        metrics_report = report_out
 
     print()
     print("Setup complete.")
