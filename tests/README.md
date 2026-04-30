@@ -97,6 +97,13 @@ Windows PowerShell:
 ./tests/scripts/run_smoke.ps1 -Cxx g++
 ```
 
+Permalinks for these wrapper scripts:
+
+- [run_smoke.ps1](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1)
+- [run_smoke.sh](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)
+
+These wrappers are intended to be used from a local checkout of this repository. They call `tests/run_smoke.py` from the repository root; they are not standalone remote installers.
+
 The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
 
 Generate optional local listening samples:
