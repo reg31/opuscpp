@@ -6,6 +6,7 @@
 - `opus_codec.cpp` - self-contained C++23 implementation.
 
 Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
+This repository intentionally omits a packaged build-system wrapper; the expected integration model is to compile `opus_codec.cpp` directly inside your project.
 
 ## Compatibility goal
 

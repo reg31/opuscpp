@@ -1,13 +1,14 @@
 # opuscpp
 
-`opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from Opus 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
+`opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` aims at a practical tradeoff: full standards compatibility, substantially lower memory use, and about 2x faster encoding than official Opus in our measured configurations, while keeping decode and quality metrics close to upstream. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes. Custom Opus is intentionally unsupported.
 
 ## Highlights
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
+- About 2x faster encoding than official Opus in the published benchmark set.
 - RFC decode conformance: 24/24 vectors passed.
 - Encode oracle conformance: 96/96 cases passed.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
@@ -42,6 +43,7 @@ opus_encoder_destroy(enc);
 ```
 
 No prebuilt DLL or static library is required; this repository is intended to be embedded from source.
+The repository intentionally does not ship a top-level `CMakeLists.txt`; consumers are expected to add `src/opus_codec.cpp` to their own build.
 
 ## Supported API surface
 
