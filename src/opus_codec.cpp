@@ -3431,6 +3431,22 @@ static int run_prefilter(CeltEncoderInternal *st, celt_sig *in, celt_sig *prefil
   std::array<opus_val32, 2> before{}, after{};
   int cancel_pitch = 0;
   constexpr auto max_period = 1024, min_period = 15; mode = st->mode; overlap = mode->overlap;
+  // Complexity 0 never performs pitch search; when no old prefilter is active,
+  // keep only the histories instead of building the full scratch/filter path.
+  if (__builtin_expect(complexity < 5, 0) && (!enabled || toneishness <= (.60f)) && st->prefilter_gain == 0) {
+    for (c = 0; c < CC; ++c) {
+      copy_n_items(st->in_mem + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
+      copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), st->in_mem + c * overlap);
+      if (N > max_period) {
+        copy_n_items(in + c * (N + overlap) + overlap + N - max_period, static_cast<std::size_t>(max_period), prefilter_mem + c * max_period);
+      } else {
+        move_n_items(prefilter_mem + c * max_period + N, static_cast<std::size_t>(max_period - N), prefilter_mem + c * max_period);
+        copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), prefilter_mem + c * max_period + max_period - N);
+      }
+    }
+    *gain = 0; *pitch = 15; *qgain = 0;
+    return 0;
+  }
   auto *_pre = OPUS_SCRATCH(celt_sig, CC * (N + max_period));
   pre[0] = _pre; pre[1] = _pre + (N + max_period);
   for (c = 0; c < CC; ++c) {
