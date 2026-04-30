@@ -2,28 +2,26 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-No audio assets are required by the smoke tests. Synthetic samples can be generated locally with `generate_synthetic_wav.py` if you want listening material.
-
 ## Quick start
 
-### Option 1 - Run the smoke test in one command (recommended)
+### Option 1 - Run the full conformance and benchmark report in one command (recommended)
 
-The commands below download the current `opuscpp` test bundle and run the portable smoke test automatically.
-You can run them from any folder: they create an `opuscpp-smoke` workspace in your current folder, run the smoke test there, and keep the downloaded checkout and build artifacts so you can inspect them afterward.
+The commands below download the current `opuscpp` test bundle and run the full official-comparison/report flow automatically.
+You can run them from any folder: they create an `opuscpp-report` workspace in your current folder, run the report workflow there, and keep the downloaded checkout and generated artifacts so you can inspect them afterward.
 
 macOS / Linux:
 
 ```bash
-/bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)"
+/bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_full_report.sh)"
 ```
 
 Windows PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1' -OutFile run_smoke.ps1; ./run_smoke.ps1"
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_full_report.ps1' -OutFile run_full_report.ps1; ./run_full_report.ps1"
 ```
 
-These one-liners expect Python 3 and a C++23 compiler to already be installed and available on your PATH.
+These one-liners expect Python 3, a C++23 compiler, `git`, and `cmake` to already be installed and available on your PATH.
 On Windows, add `-Cleanup` if you want the helper workspace removed at the end.
 
 ### Option 2 - Manual prerequisites
@@ -32,7 +30,9 @@ Install the following yourself:
 
 - Python 3
 - A C++23 compiler (`g++`, `clang++`, or equivalent)
-- Optional for official-opus comparison runs: `git`, `cmake`, and either `ninja` or `make`
+- `git`
+- `cmake`
+- either `ninja` or `make`
 
 ## Official comparison setup
 
@@ -71,7 +71,7 @@ If you prefer to do it yourself, the equivalent manual steps are:
 2. Build official Opus 1.6.1 as a static library with intrinsics disabled if you want a matched portable-C comparison.
 3. Build the `opuscpp` decoder harness.
 
-## Quick smoke test from a local checkout
+## Optional quick local smoke test
 
 From the repository root:
 
