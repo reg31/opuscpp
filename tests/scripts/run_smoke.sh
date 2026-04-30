@@ -10,28 +10,29 @@ if [ -f "$SCRIPT_DIR/../run_smoke.py" ]; then
     exit 0
 fi
 
-TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/opuscpp-smoke.XXXXXX")
+WORK_DIR="$PWD/opuscpp-smoke"
 cleanup() {
-    rm -rf "$TMP_DIR"
+    rm -rf "$WORK_DIR"
 }
-trap cleanup EXIT INT TERM
 
+mkdir -p "$WORK_DIR"
+echo "Using workspace: $WORK_DIR"
 echo "Downloading opuscpp smoke test bundle..."
-python3 - "$TMP_DIR" "$CXX_BIN" <<'PY'
+python3 - "$WORK_DIR" "$CXX_BIN" <<'PY'
 import pathlib
 import sys
 import urllib.request
 import zipfile
 import subprocess
 
-tmp_dir = pathlib.Path(sys.argv[1])
+work_dir = pathlib.Path(sys.argv[1])
 cxx = sys.argv[2]
-zip_path = tmp_dir / "opuscpp-main.zip"
-extract_root = tmp_dir / "extract"
+zip_path = work_dir / "opuscpp-main.zip"
+extract_root = work_dir / "extract"
 repo_root = extract_root / "opuscpp-main"
 
 urllib.request.urlretrieve(
-    "https://github.com/reg31/opuscpp/archive/refs/heads/main.zip",
+    "https://codeload.github.com/reg31/opuscpp/zip/refs/heads/main",
     zip_path,
 )
 
@@ -43,3 +44,4 @@ subprocess.run(
     check=True,
 )
 PY
+echo "Artifacts kept in: $WORK_DIR"

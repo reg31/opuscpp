@@ -40,9 +40,12 @@ def main() -> int:
     if os.name != "nt":
         cmd.append("-lm")
 
-    print("+", " ".join(cmd))
+    print("Compiling smoke test harness...", flush=True)
+    print("+", " ".join(cmd), flush=True)
     subprocess.run(cmd, check=True)
+    print("Running smoke test...", flush=True)
     subprocess.run([str(exe)], check=True)
+    print("Smoke test passed: mono and stereo completed at 16/24/32/48/96/128/192/256 kbps.", flush=True)
     if not args.keep_build and args.build_dir:
         shutil.rmtree(tmp, ignore_errors=True)
     return 0

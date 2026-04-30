@@ -9,7 +9,7 @@ No audio assets are required by the smoke tests. Synthetic samples can be genera
 ### Option 1 - Run the smoke test in one command (recommended)
 
 The commands below download the current `opuscpp` test bundle and run the portable smoke test automatically.
-You can run them from any folder: they download a temporary checkout, run the smoke test there, and clean up afterward.
+You can run them from any folder: they create an `opuscpp-smoke` workspace in your current folder, run the smoke test there, and keep the downloaded checkout and build artifacts so you can inspect them afterward.
 
 macOS / Linux:
 
@@ -24,6 +24,7 @@ powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw
 ```
 
 These one-liners expect Python 3 and a C++23 compiler to already be installed and available on your PATH.
+On Windows, add `-Cleanup` if you want the helper workspace removed at the end.
 
 ### Option 2 - Manual prerequisites
 
@@ -97,7 +98,7 @@ Permalinks for these wrapper scripts:
 - [run_smoke.ps1](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1)
 - [run_smoke.sh](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)
 
-When run from a local checkout, these wrappers call `tests/run_smoke.py` from the repository root. When run via the raw permalinks above, they download the current repository snapshot to a temporary directory and run the same smoke harness from there.
+When run from a local checkout, these wrappers call `tests/run_smoke.py` from the repository root. When run via the raw permalinks above, they download the current repository snapshot into `./opuscpp-smoke` and run the same smoke harness from there.
 
 The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
 

@@ -1,6 +1,6 @@
 param(
     [string]$Cxx = "c++",
-    [switch]$KeepCheckout
+    [switch]$Cleanup
 )
 
 $localSmoke = Join-Path $PSScriptRoot "..\run_smoke.py"
@@ -11,22 +11,26 @@ if (Test-Path $localSmoke) {
     exit $LASTEXITCODE
 }
 
-$tempRoot = Join-Path $env:TEMP ("opuscpp-smoke-" + [guid]::NewGuid().ToString("N"))
-$zipPath = Join-Path $tempRoot "opuscpp-main.zip"
-$extractRoot = Join-Path $tempRoot "extract"
+$workspaceRoot = Join-Path (Get-Location) "opuscpp-smoke"
+$zipPath = Join-Path $workspaceRoot "opuscpp-main.zip"
+$extractRoot = Join-Path $workspaceRoot "extract"
 $repoRoot = Join-Path $extractRoot "opuscpp-main"
 
-New-Item -ItemType Directory -Path $tempRoot | Out-Null
+New-Item -ItemType Directory -Path $workspaceRoot -Force | Out-Null
 
 try {
+    Write-Host "Using workspace: $workspaceRoot"
     Write-Host "Downloading opuscpp smoke test bundle..."
-    Invoke-WebRequest -Uri "https://github.com/reg31/opuscpp/archive/refs/heads/main.zip" -OutFile $zipPath
+    Invoke-WebRequest -Uri "https://codeload.github.com/reg31/opuscpp/zip/refs/heads/main" -OutFile $zipPath
     Expand-Archive -Path $zipPath -DestinationPath $extractRoot -Force
     python "$repoRoot\tests\run_smoke.py" --cxx $Cxx
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Artifacts kept in: $workspaceRoot"
+    }
     exit $LASTEXITCODE
 }
 finally {
-    if (-not $KeepCheckout -and (Test-Path $tempRoot)) {
-        Remove-Item -Recurse -Force $tempRoot
+    if ($Cleanup -and (Test-Path $workspaceRoot)) {
+        Remove-Item -Recurse -Force $workspaceRoot
     }
 }
