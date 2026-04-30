@@ -4,6 +4,30 @@ This directory contains portable test harnesses and benchmark documentation for 
 
 No audio assets are required by the smoke tests. Synthetic samples can be generated locally with `generate_synthetic_wav.py` if you want listening material.
 
+## Quick start
+
+### Option 1 - Run the smoke test in one command (recommended)
+
+The commands below download the current `opuscpp` test bundle and run the portable smoke test automatically.
+
+macOS / Linux:
+
+```bash
+/bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)"
+```
+
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1' -OutFile run_smoke.ps1; ./run_smoke.ps1"
+```
+
+These one-liners expect Python 3 and a C++23 compiler to already be installed and available on your PATH.
+
+### Option 2 - Check prerequisites first
+
+If you want to verify your local toolchain before running the smoke test, use the environment check helper below.
+
 ## Prerequisites
 
 ### Option 1 - Run the environment check script (recommended)
@@ -75,7 +99,7 @@ If you prefer to do it yourself, the equivalent manual steps are:
 2. Build official Opus 1.6.1 as a static library with intrinsics disabled if you want a matched portable-C comparison.
 3. Build the `opuscpp` decoder harness.
 
-## Quick smoke test
+## Quick smoke test from a local checkout
 
 From the repository root:
 
@@ -102,7 +126,7 @@ Permalinks for these wrapper scripts:
 - [run_smoke.ps1](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1)
 - [run_smoke.sh](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)
 
-These wrappers are intended to be used from a local checkout of this repository. They call `tests/run_smoke.py` from the repository root; they are not standalone remote installers.
+When run from a local checkout, these wrappers call `tests/run_smoke.py` from the repository root. When run via the raw permalinks above, they download the current repository snapshot to a temporary directory and run the same smoke harness from there.
 
 The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
 
