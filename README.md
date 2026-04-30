@@ -20,7 +20,7 @@ Minimal integration looks like:
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
 - Lightweight speech/music detector keeps speech-biased content in hybrid while moving sustained harmonic/music content toward CELT.
-- Lower memory footprint than official Opus in the measured configurations.
+- Lower memory footprint than official Opus in the measured configurations (`-22.0%` to `-46.7%` in the current memory snapshot).
 
 ## Pros and cons
 
@@ -28,8 +28,8 @@ Minimal integration looks like:
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
 | About 2x faster encoding in the published benchmark set. | Supports a documented subset of the full Opus CTL/API surface. |
-| Faster decode in the published benchmark set. | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
-| Lower encoder and decoder memory use in the measured configurations. | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
+| Faster decode in the published benchmark set (`+3.8%` to `+36.8%` in the current table). | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
+| Lower encoder and decoder memory use in the measured configurations (`-22.0%` to `-46.7%` in the current memory snapshot). | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Benchmark results are measured and reproducible, but still workload-dependent like any codec comparison. |
 
 ## Quick start
