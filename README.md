@@ -2,7 +2,7 @@
 
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, and about 2x faster encoding than official Opus in our measured configurations, while keeping decode and quality metrics close to upstream. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, about 2x faster encoding than official Opus in our measured configurations, and faster decode in the published benchmark set, while keeping quality metrics close to upstream. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 Minimal integration looks like:
 
@@ -75,6 +75,8 @@ Measurements below are from a matched `-O2` official Opus build with intrinsics 
 Detector validation on representative material: speech-like content stays about 99% hybrid, sustained harmonic/music material moves mostly to CELT, and restricted-lowdelay remains CELT-only as expected.
 
 ## Memory snapshot
+
+In the published memory snapshot, `opuscpp` uses less encoder and decoder state than official Opus in every listed mono and stereo configuration.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
