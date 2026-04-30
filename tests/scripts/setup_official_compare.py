@@ -241,7 +241,9 @@ def link_executable(cxx: str, sources: list[pathlib.Path], objects: list[pathlib
 
 def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path, vector_dir: pathlib.Path, report_dir: pathlib.Path) -> dict[str, str]:
     out_dir = report_dir / "rfc_decode"
+    log_dir = out_dir / "logs"
     out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
     passed = 0
     total = 24
     for channels in (1, 2):
@@ -256,14 +258,27 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
             compare_args.extend(["-r", "48000"])
             dec_candidates = [vector_dir / f"{stem}.dec", vector_dir / f"{stem}m.dec"]
             matched = False
+            matched_reference = ""
+            compare_logs: list[tuple[pathlib.Path, int]] = []
             for dec_path in dec_candidates:
-                result = subprocess.run(compare_args + [str(dec_path), str(out_path)])
+                result = subprocess.run(
+                    compare_args + [str(dec_path), str(out_path)],
+                    text=True,
+                    capture_output=True,
+                )
+                log_path = log_dir / f"{stem}_{channels}ch_vs_{dec_path.stem}.log"
+                log_path.write_text((result.stdout or "") + (result.stderr or ""), encoding="utf-8")
+                compare_logs.append((log_path, result.returncode))
                 if result.returncode == 0:
                     matched = True
+                    matched_reference = dec_path.name
                     break
             if not matched:
+                for log_path, return_code in compare_logs:
+                    print(f"  compare failed rc={return_code}: {log_path}")
                 raise RuntimeError(f"RFC decode mismatch for {stem} channels={channels}")
             passed += 1
+            print(f"RFC vector PASS {stem} channels={channels} reference={matched_reference}")
     return {"passed": str(passed), "total": str(total)}
 
 
