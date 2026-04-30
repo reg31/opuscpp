@@ -24,13 +24,7 @@ Minimal integration looks like:
 
 ## Quick start
 
-Copy or vendor the `src` directory, then add the implementation file to your target:
-
-```bash
-c++ -std=c++23 -O2 -I path/to/opuscpp/src \
-    your_app.cpp path/to/opuscpp/src/opus_codec.cpp \
-    -o your_app
-```
+Put `src/opus_codec.h` and `src/opus_codec.cpp` in your project. Include `opus_codec.h` where you use the API, and compile `opus_codec.cpp` as part of your normal application build.
 
 Use the normal supported Opus-style API:
 
