@@ -10,7 +10,7 @@ This repository intentionally omits a packaged build-system wrapper; the expecte
 
 ## Compatibility goal
 
-The supported API mirrors the commonly used single-stream Opus API. It produces and consumes standard Opus packets, so decoder/encoder interoperability does not require custom packet handling.
+The supported API mirrors the commonly used single-stream Opus API. It produces and consumes standard Opus packets, so decoder/encoder interoperability does not require custom packet handling. Existing user code can usually keep the same include-and-call pattern as official Opus, provided it stays within the supported CTL subset documented here.
 
 Custom Opus is unsupported.
 
