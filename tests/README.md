@@ -8,7 +8,7 @@ No audio assets are required by the smoke tests. Synthetic samples can be genera
 
 ### Option 1 - Run the environment check script (recommended)
 
-Use the helper script for your platform. It verifies the basic tools needed for the portable smoke test, and it can also check the extra tools commonly used to reproduce official Opus comparison builds.
+Use the helper script for your platform. It verifies the basic tools needed for the portable smoke test (Python 3 and a C++23 compiler), and it can also check the extra tools commonly used to reproduce official Opus comparison builds (`git`, `cmake`, and either `ninja` or `make`).
 
 macOS / Linux:
 
