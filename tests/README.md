@@ -115,6 +115,8 @@ The generated files are ignored by git.
 
 ## RFC decode conformance
 
+`RFC decode conformance` means the standard Opus decoder-vector check: decode the official RFC 6716 test vectors and the RFC 8251 update vectors, then compare the output against the reference PCM with the official `opus_compare` acceptance criteria.
+
 The RFC vector files are not committed to this repository. If you used `tests/scripts/setup_official_compare.py`, you already have the recommended directory layout and build outputs. To run full decode conformance manually, build the decoder harness with:
 
 ```bash
@@ -133,9 +135,9 @@ Measured result for this repository snapshot:
 | Mono/stereo coverage | Passed |
 | Final range check mode | Supported by harness |
 
-## Encode oracle conformance
+## Encode oracle validation
 
-Encode conformance is checked by encoding the same validation cases with `opuscpp`, decoding with official Opus, and comparing against an official-oracle path. The relevant files are:
+`Encode oracle validation` is the project's encoder regression gate, not a separate IETF RFC test. Opus encoders are not required to emit identical packets, so byte-for-byte packet comparison would be the wrong test. Instead, the harness encodes the same generated validation cases with `opuscpp` and with official Opus 1.6.1, decodes both paths with the official decoder, and compares the decoded audio. The relevant files are:
 
 - `conformance_encode.cpp`
 - `official_encode_oracle.cpp`
@@ -145,7 +147,7 @@ Measured result for this repository snapshot:
 
 | Suite | Result |
 |---|---:|
-| Encode oracle cases | 96/96 passed |
+| Encode oracle validation cases | 96/96 passed |
 
 ## Perceptual and memory harness
 

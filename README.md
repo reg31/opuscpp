@@ -15,8 +15,8 @@ Minimal integration looks like:
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
 - Faster encoding than official Opus in the published benchmark set (`1.21x` to `1.56x` at complexity 10).
-- RFC decode conformance: 24/24 vectors passed.
-- Encode oracle conformance: 96/96 cases passed.
+- RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
+- Encode oracle validation: 96/96 encode regression cases passed against the official Opus reference path.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
 - Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is tracked by a mode-balance harness.
@@ -99,10 +99,15 @@ In the published memory snapshot, `opuscpp` uses less encoder and decoder state 
 
 The implementation is standard Opus compatible. The measured conformance gates are:
 
-- RFC decode conformance: 24/24 mono+stereo vectors passed.
-- Encode oracle conformance: 96/96 validation cases passed.
+- RFC decode conformance: 24/24 mono+stereo RFC 6716/RFC 8251 vector checks passed.
+- Encode oracle validation: 96/96 encode regression cases passed against the official Opus reference path.
 - Android arm64 Clang build: zero warnings in the measured configuration.
 - MinGW GCC build: zero warnings in the measured configuration.
+
+Terminology used here:
+
+- **RFC decode conformance** means decoding the official IETF Opus test-vector bitstreams from RFC 6716 and the RFC 8251 update set, then passing the official `opus_compare` acceptance test against the reference PCM.
+- **Encode oracle validation** is not an IETF term. Opus encoders are allowed to produce different valid packets, so this project checks encoding by comparing `opuscpp` against an official Opus 1.6.1 oracle path on the same generated inputs and CTL settings: encode, decode with official Opus, then compare the decoded audio with the oracle output.
 
 The test harnesses and detailed metrics are in `tests/`.
 
