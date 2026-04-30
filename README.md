@@ -2,7 +2,7 @@
 
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, about 2x faster encoding than official Opus in our measured configurations, and faster decode in the published benchmark set, while keeping quality metrics close to upstream. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in our measured configurations, and decode performance that is mostly at parity or faster, while keeping quality metrics close to upstream. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 Minimal integration looks like:
 
@@ -14,22 +14,22 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- About 2x faster encoding than official Opus in the published benchmark set.
+- Faster encoding than official Opus in the published benchmark set (`1.21x` to `1.56x` at complexity 10).
 - RFC decode conformance: 24/24 vectors passed.
 - Encode oracle conformance: 96/96 cases passed.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
-- Lightweight speech/music detector keeps speech-biased content in hybrid while moving sustained harmonic/music content toward CELT.
-- Lower memory footprint than official Opus in the measured configurations (`-22.0%` to `-46.7%` in the current memory snapshot).
+- Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is tracked by a mode-balance harness.
+- Lower memory footprint than official Opus in the measured configurations (`-22.0%` to `-45.6%` in the current memory snapshot).
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| About 2x faster encoding in the published benchmark set. | Supports a documented subset of the full Opus CTL/API surface. |
-| Faster decode in the published benchmark set (`+3.8%` to `+36.8%` in the current table). | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
-| Lower encoder and decoder memory use in the measured configurations (`-22.0%` to `-46.7%` in the current memory snapshot). | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
+| Faster encoding in the published benchmark set (`1.21x` to `1.56x` at complexity 10). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode performance is mostly at parity or faster (`-4.1%` to `+23.2%` in the current table). | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
+| Lower encoder and decoder memory use in the measured configurations (`-22.0%` to `-45.6%` in the current memory snapshot). | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Benchmark results are measured and reproducible, but still workload-dependent like any codec comparison. |
 
 ## Quick start
@@ -68,21 +68,21 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below are from a matched `-O2` official Opus build with intrinsics disabled. Positive decode values mean this implementation decoded faster; encode speed is shown as a multiplicative speedup over official Opus. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below are from a matched `-O2` official Opus 1.6.1 comparison build with the public encoder complexity set to 10. Positive decode values mean this implementation decoded faster; encode speed is shown as a multiplicative speedup over official Opus. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed | Decode vs official | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.39x | +36.8% | +0.0207 | -0.0040 | +2.0% |
-| 24 kbps | 1.79x | +17.7% | +0.0139 | +0.0030 | +0.8% |
-| 32 kbps | 1.78x | +8.6% | +0.0087 | +0.0081 | +1.9% |
-| 48 kbps | 1.64x | +7.2% | +0.0065 | +0.0007 | +1.7% |
-| 64 kbps | 2.02x | +7.9% | -0.0005 | +0.0002 | +0.0% |
-| 96 kbps | 2.29x | +6.9% | -0.0001 | +0.0000 | +0.0% |
-| 128 kbps | 2.06x | +11.1% | -0.0002 | +0.0011 | +0.0% |
-| 192 kbps | 2.40x | +3.8% | -0.0002 | -0.0004 | +0.0% |
-| 256 kbps | 2.32x | +7.5% | +0.0002 | +0.0002 | +0.0% |
+| 16 kbps | 1.21x | +23.2% | -0.0003 | -0.0153 | -2.1% |
+| 24 kbps | 1.37x | +5.2% | -0.0085 | +0.0279 | -2.2% |
+| 32 kbps | 1.33x | +9.8% | -0.0005 | +0.0239 | -2.5% |
+| 48 kbps | 1.25x | +7.2% | +0.0001 | +0.0029 | +0.0% |
+| 64 kbps | 1.30x | -4.1% | +0.0011 | -0.0028 | +0.0% |
+| 96 kbps | 1.50x | +2.4% | -0.0004 | -0.0011 | -0.2% |
+| 128 kbps | 1.56x | -0.3% | +0.0005 | +0.0009 | -0.2% |
+| 192 kbps | 1.54x | +0.4% | +0.0001 | -0.0009 | -0.2% |
+| 256 kbps | 1.49x | +1.4% | +0.0001 | -0.0017 | -0.2% |
 
-Detector validation on representative material: speech-like content stays about 99% hybrid, sustained harmonic/music material moves mostly to CELT, and restricted-lowdelay remains CELT-only as expected.
+Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 
 ## Memory snapshot
 
@@ -90,9 +90,9 @@ In the published memory snapshot, `opuscpp` uses less encoder and decoder state 
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,864 B | 31,648 B | -46.7% |
+| Encoder mono | 17,200 B | 31,632 B | -45.6% |
 | Encoder stereo | 32,448 B | 48,880 B | -33.6% |
-| Decoder mono | 14,112 B | 18,336 B | -23.0% |
+| Decoder mono | 14,192 B | 18,272 B | -22.3% |
 | Decoder stereo | 21,376 B | 27,408 B | -22.0% |
 
 ## Conformance

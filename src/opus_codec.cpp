@@ -1511,7 +1511,6 @@ static opus_int32 compute_equiv_rate(opus_int32 bitrate, int channels, int frame
 }
   return equiv;
 }
-constexpr auto audio_fast_path_complexity_cap = 0;
 constexpr auto hybrid_celt_residual_rate_floor_bps = 0;
 constexpr auto hybrid_celt_residual_margin_bps = 2000;
 constexpr auto hybrid_silk_lowrate_boost_min_bps = 28000;
@@ -9815,9 +9814,8 @@ void assign_error(int *error, int value) noexcept {
     const auto value = __builtin_va_arg(ap, opus_int32);
     if (value < 0 || value > 10) { return OPUS_BAD_ARG;
 }
-    const auto effective_complexity = st->application == opus_application_audio ? std::min<opus_int32>(value, audio_fast_path_complexity_cap) : value;
-    st->silk_mode.complexity = effective_complexity;
-    if (celt_enc != nullptr) { celt_encoder_set_complexity(celt_enc, static_cast<opus_int32>(effective_complexity));
+    st->silk_mode.complexity = value;
+    if (celt_enc != nullptr) { celt_encoder_set_complexity(celt_enc, static_cast<opus_int32>(value));
 }
     return OPUS_OK;
 }
@@ -9920,4 +9918,3 @@ int opus_packet_get_nb_samples(const unsigned char *data, int len, int Fs) noexc
 }
 [[nodiscard]] auto opus_strerror(int error) noexcept -> const char * { return ref_opus_strerror(error);
 }
-
