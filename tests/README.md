@@ -4,12 +4,60 @@ This directory contains portable test harnesses and benchmark documentation for 
 
 No audio assets are required by the smoke tests. Synthetic samples can be generated locally with `generate_synthetic_wav.py` if you want listening material.
 
+## Prerequisites
+
+### Option 1 - Run the environment check script (recommended)
+
+Use the helper script for your platform. It verifies the basic tools needed for the portable smoke test, and it can also check the extra tools commonly used to reproduce official Opus comparison builds.
+
+macOS / Linux:
+
+```bash
+python3 tests/scripts/check_env.py
+python3 tests/scripts/check_env.py --official
+```
+
+Windows:
+
+```powershell
+py tests\scripts\check_env.py
+py tests\scripts\check_env.py --official
+```
+
+Notes:
+
+- The basic smoke test needs Python and a C++23 compiler.
+- CMake is not required for the basic smoke test in this repository.
+- CMake is only needed if you want to reproduce the official-opus comparison builds.
+
+### Option 2 - Manual prerequisites
+
+Install the following yourself:
+
+- Python 3
+- A C++23 compiler (`g++`, `clang++`, or equivalent)
+- Optional for official-opus comparison runs: `git`, `cmake`, and either `ninja` or `make`
+
 ## Quick smoke test
 
 From the repository root:
 
 ```bash
 python3 tests/run_smoke.py --cxx c++
+```
+
+Or use the tiny wrappers:
+
+macOS / Linux:
+
+```bash
+sh tests/scripts/run_smoke.sh c++
+```
+
+Windows PowerShell:
+
+```powershell
+./tests/scripts/run_smoke.ps1 -Cxx g++
 ```
 
 The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
