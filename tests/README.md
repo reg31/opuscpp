@@ -9,6 +9,7 @@ No audio assets are required by the smoke tests. Synthetic samples can be genera
 ### Option 1 - Run the smoke test in one command (recommended)
 
 The commands below download the current `opuscpp` test bundle and run the portable smoke test automatically.
+You can run them from any folder: they download a temporary checkout, run the smoke test there, and clean up afterward.
 
 macOS / Linux:
 
