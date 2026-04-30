@@ -7,6 +7,7 @@ import csv
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -17,11 +18,28 @@ OFFICIAL_OPUS_REPO = "https://github.com/xiph/opus.git"
 OFFICIAL_OPUS_TAG = "v1.6.1"
 RFC6716_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors.tar.gz"
 RFC8251_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors-rfc8251.tar.gz"
+BITRATES = (16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000)
 
 
 def run(cmd: list[str], cwd: pathlib.Path | None = None) -> None:
     print("+", " ".join(cmd))
     subprocess.run(cmd, cwd=str(cwd) if cwd else None, check=True)
+
+
+def capture(cmd: list[str], cwd: pathlib.Path | None = None) -> str:
+    print("+", " ".join(cmd))
+    result = subprocess.run(
+        cmd,
+        cwd=str(cwd) if cwd else None,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, end="", file=sys.stderr)
+    return result.stdout
 
 
 def load_csv_rows(path: pathlib.Path) -> list[dict[str, str]]:
@@ -152,6 +170,285 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
     return md_path
 
 
+def find_vector_dir(vector_root: pathlib.Path) -> pathlib.Path:
+    for candidate in vector_root.rglob("testvector01.bit"):
+        return candidate.parent
+    raise FileNotFoundError(f"Could not find extracted RFC vector files under {vector_root}")
+
+
+def find_official_library(build_dir: pathlib.Path) -> pathlib.Path:
+    candidates = [
+        *build_dir.rglob("libopus.a"),
+        *build_dir.rglob("opus.lib"),
+        *build_dir.rglob("libopus.lib"),
+    ]
+    if not candidates:
+        raise FileNotFoundError(f"Could not find official Opus static library under {build_dir}")
+    return candidates[0]
+
+
+def current_alias_macros(prefix: str) -> list[str]:
+    names = [
+        "OpusEncoder",
+        "OpusDecoder",
+        "opus_encoder_create",
+        "opus_encoder_destroy",
+        "opus_encoder_ctl",
+        "opus_encode",
+        "opus_encode_float",
+        "opus_decoder_create",
+        "opus_decoder_destroy",
+        "opus_decoder_ctl",
+        "opus_decode",
+        "opus_decode_float",
+        "opus_packet_get_nb_samples",
+        "opus_strerror",
+    ]
+    macros: list[str] = []
+    for name in names:
+        if name in ("OpusEncoder", "OpusDecoder"):
+            macros.append(f"-D{name}={prefix}_{name}")
+        else:
+            macros.append(f"-D{name}={prefix}_{name}")
+    return macros
+
+
+def compile_object(cxx: str, source: pathlib.Path, output: pathlib.Path, includes: list[pathlib.Path], extra_args: list[str]) -> pathlib.Path:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [cxx, "-std=c++23", "-O2", "-DNDEBUG"]
+    for include in includes:
+        cmd.extend(["-I", str(include)])
+    cmd.extend(extra_args)
+    cmd.extend(["-c", str(source), "-o", str(output)])
+    run(cmd)
+    return output
+
+
+def link_executable(cxx: str, sources: list[pathlib.Path], objects: list[pathlib.Path], includes: list[pathlib.Path], output: pathlib.Path, libs: list[pathlib.Path]) -> pathlib.Path:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [cxx, "-std=c++23", "-O2", "-DNDEBUG"]
+    for include in includes:
+        cmd.extend(["-I", str(include)])
+    cmd.extend(str(src) for src in sources)
+    cmd.extend(str(obj) for obj in objects)
+    cmd.extend(str(lib) for lib in libs)
+    if os.name != "nt":
+        cmd.append("-lm")
+    cmd.extend(["-o", str(output)])
+    run(cmd)
+    return output
+
+
+def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path, vector_dir: pathlib.Path, report_dir: pathlib.Path) -> dict[str, str]:
+    out_dir = report_dir / "rfc_decode"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    passed = 0
+    total = 24
+    for channels in (1, 2):
+        for index in range(1, 13):
+            stem = f"testvector{index:02d}"
+            bit_path = vector_dir / f"{stem}.bit"
+            out_path = out_dir / f"{stem}_{channels}ch.pcm"
+            capture([str(harness), "48000", str(channels), str(bit_path), str(out_path), "1"])
+            compare_args = [str(opus_compare)]
+            if channels == 2:
+                compare_args.append("-s")
+            compare_args.extend(["-r", "48000"])
+            dec_candidates = [vector_dir / f"{stem}.dec", vector_dir / f"{stem}m.dec"]
+            matched = False
+            for dec_path in dec_candidates:
+                result = subprocess.run(compare_args + [str(dec_path), str(out_path)])
+                if result.returncode == 0:
+                    matched = True
+                    break
+            if not matched:
+                raise RuntimeError(f"RFC decode mismatch for {stem} channels={channels}")
+            passed += 1
+    return {"passed": str(passed), "total": str(total)}
+
+
+def run_encode_oracle_conformance(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_include: pathlib.Path,
+    official_lib: pathlib.Path,
+    vector_dir: pathlib.Path,
+    report_dir: pathlib.Path,
+) -> dict[str, str]:
+    build_dir = report_dir / "encode_oracle"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    oracle_exe = build_dir / ("official_encode_oracle.exe" if os.name == "nt" else "official_encode_oracle")
+    conformance_exe = build_dir / ("conformance_encode.exe" if os.name == "nt" else "conformance_encode")
+    codex_obj = compile_object(
+        cxx,
+        repo_root / "src" / "opus_codec.cpp",
+        build_dir / "codex_opus_codec.o",
+        [repo_root / "src"],
+        current_alias_macros("codex"),
+    )
+    link_executable(
+        cxx,
+        [repo_root / "tests" / "official_encode_oracle.cpp"],
+        [],
+        [official_include, repo_root / "tests"],
+        oracle_exe,
+        [official_lib],
+    )
+    link_executable(
+        cxx,
+        [repo_root / "tests" / "conformance_encode.cpp"],
+        [codex_obj],
+        [official_include, repo_root / "src", repo_root / "tests"],
+        conformance_exe,
+        [official_lib],
+    )
+    oracle_path = build_dir / "encode_oracle.bin"
+    capture([str(oracle_exe), str(vector_dir), str(oracle_path)])
+    output = capture([str(conformance_exe), str(vector_dir), str(oracle_path)])
+    match = re.search(r"Encode conformance completed \((\d+) case checks passed\)", output)
+    return {"passed": match.group(1) if match else "0"}
+
+
+def run_perceptual_and_memory(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_include: pathlib.Path,
+    official_lib: pathlib.Path,
+    report_dir: pathlib.Path,
+) -> dict[str, object]:
+    build_dir = report_dir / "perceptual"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    curr_obj = compile_object(
+        cxx,
+        repo_root / "src" / "opus_codec.cpp",
+        build_dir / "curr_opus_codec.o",
+        [repo_root / "src"],
+        current_alias_macros("curr"),
+    )
+    exe = link_executable(
+        cxx,
+        [repo_root / "tests" / "perceptual_memory_validation.cpp"],
+        [curr_obj],
+        [official_include, repo_root / "tests"],
+        build_dir / ("perceptual_memory_validation.exe" if os.name == "nt" else "perceptual_memory_validation"),
+        [official_lib],
+    )
+    generated_audio = report_dir / "generated_audio"
+    run([sys.executable, str(repo_root / "tests" / "generate_synthetic_wav.py"), "--out", str(generated_audio), "--seconds", "6"])
+    rows: list[dict[str, str]] = []
+    memory_output = ""
+    for bitrate in BITRATES:
+        args = [str(exe), "--input", str(generated_audio / "synthetic_music_like_stereo.wav"), "--bitrate", str(bitrate)]
+        if bitrate != BITRATES[0]:
+            args.append("--skip-memory")
+        output = capture(args)
+        if bitrate == BITRATES[0]:
+            memory_output = output
+        delta_match = re.search(
+            r"delta current_minus_official.*?pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?packet_bytes_pct=([^\s]+).*?encode_speed_ratio_current_vs_official=([^\s]+)",
+            output,
+        )
+        if not delta_match:
+            raise RuntimeError(f"Could not parse perceptual output for bitrate {bitrate}")
+        rows.append(
+            {
+                "bitrate": str(bitrate),
+                "pesq_delta": delta_match.group(1),
+                "visqol_delta": delta_match.group(2),
+                "celt_delta": delta_match.group(3),
+                "packet_delta_pct": delta_match.group(4),
+                "encode_speed_ratio": delta_match.group(5),
+            }
+        )
+    return {"rows": rows, "memory_output": memory_output}
+
+
+def run_benchmark_vs_official(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_include: pathlib.Path,
+    official_lib: pathlib.Path,
+    report_dir: pathlib.Path,
+) -> list[dict[str, str]]:
+    build_dir = report_dir / "benchmark"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    curr_obj = compile_object(
+        cxx,
+        repo_root / "src" / "opus_codec.cpp",
+        build_dir / "curr_opus_codec.o",
+        [repo_root / "src"],
+        current_alias_macros("curr"),
+    )
+    exe = link_executable(
+        cxx,
+        [repo_root / "tests" / "benchmark_vs_official.cpp"],
+        [curr_obj],
+        [official_include, repo_root / "tests"],
+        build_dir / ("benchmark_vs_official.exe" if os.name == "nt" else "benchmark_vs_official"),
+        [official_lib],
+    )
+    output = capture([str(exe)])
+    rows = list(csv.DictReader(output.splitlines()))
+    return rows
+
+
+def run_detector_mode_balance(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_include: pathlib.Path,
+    report_dir: pathlib.Path,
+) -> list[str]:
+    build_dir = report_dir / "detector"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    curr_obj = compile_object(
+        cxx,
+        repo_root / "src" / "opus_codec.cpp",
+        build_dir / "curr_opus_codec.o",
+        [repo_root / "src"],
+        current_alias_macros("curr"),
+    )
+    exe = link_executable(
+        cxx,
+        [repo_root / "tests" / "detector_mode_balance.cpp"],
+        [curr_obj],
+        [official_include, repo_root / "tests"],
+        build_dir / ("detector_mode_balance.exe" if os.name == "nt" else "detector_mode_balance"),
+        [],
+    )
+    output = capture([str(exe)])
+    return [line for line in output.splitlines() if line.strip()]
+
+
+def run_binary_size(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path) -> dict[str, str]:
+    build_dir = report_dir / "binary_size"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    obj = compile_object(cxx, repo_root / "src" / "opus_codec.cpp", build_dir / "opus_codec.o", [repo_root / "src"], [])
+    size_tool = shutil.which("size")
+    if not size_tool:
+        return {"status": "size tool unavailable"}
+    output = capture([size_tool, str(obj)])
+    return {"output": output}
+
+
+def run_toolchain_checks(repo_root: pathlib.Path, cxx: str, report_dir: pathlib.Path) -> list[str]:
+    lines = [f"MinGW/current C++23 compiler: {cxx}"]
+    ndk_root = os.environ.get("ANDROID_NDK_ROOT")
+    if ndk_root:
+        clang = pathlib.Path(ndk_root) / "toolchains" / "llvm" / "prebuilt" / "windows-x86_64" / "bin" / "aarch64-linux-android21-clang++.cmd"
+        if not clang.exists():
+            clang = clang.with_suffix("")
+        if clang.exists():
+            out = report_dir / "toolchain_android.o"
+            cmd = [str(clang), "--target=aarch64-linux-android21", "-std=c++23", "-c", str(repo_root / "src" / "opus_codec.cpp"), "-I", str(repo_root / "src"), "-o", str(out)]
+            run(cmd)
+            lines.append("Android arm64 Clang C++23: build check passed")
+    if sys.platform == "darwin":
+        lines.append("Apple Clang via Xcode: run locally on macOS/iOS targets")
+    else:
+        lines.append("Apple Clang via Xcode: not available on this host")
+    return lines
+
+
 def download(url: str, destination: pathlib.Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
@@ -270,6 +567,18 @@ def main() -> int:
     print(f"Built official Opus comparison tools in: {official_build_dir}")
     harness_path = build_conformance_harness(repo_root, harness_build_dir, args.cxx)
     print(f"Built opuscpp decoder conformance harness: {harness_path}")
+    official_include = official_repo_dir / "include"
+    official_lib = find_official_library(official_build_dir)
+    opus_compare = official_build_dir / ("opus_compare.exe" if os.name == "nt" else "opus_compare")
+    vector_dir = find_vector_dir(vector_root)
+
+    rfc = run_rfc_decode_conformance(harness_path, opus_compare, vector_dir, report_dir)
+    encode = run_encode_oracle_conformance(args.cxx, repo_root, official_include, official_lib, vector_dir, report_dir)
+    perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_include, official_lib, report_dir)
+    benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_include, official_lib, report_dir)
+    detector_rows = run_detector_mode_balance(args.cxx, repo_root, official_include, report_dir)
+    binary_size = run_binary_size(args.cxx, repo_root, report_dir)
+    toolchains = run_toolchain_checks(repo_root, args.cxx, report_dir)
     metrics_report = emit_metrics_report(repo_root, report_dir)
 
     print()
@@ -280,25 +589,25 @@ def main() -> int:
     print(f"- Vector root        : {vector_root}")
     print(f"- Metrics report     : {metrics_report}")
     print()
-    print("Published metrics snapshot:")
-    for row in load_csv_rows(repo_root / "tests" / "metrics" / "decode_speed_vs_official.csv"):
-        print(f"  decode {row.get('bitrate', '')} kbps: {row.get('current_faster_pct', '')}% vs official")
-    for row in load_csv_rows(repo_root / "tests" / "metrics" / "encode_speed_vs_official.csv"):
-        print(f"  encode {row.get('bitrate', '')} kbps: {row.get('encode_speedx', '')}x official")
-    print(f"  report saved to: {metrics_report}")
-    print()
-    print("Next steps:")
-    print("1. Pick a vector bundle under tests/external/testvectors.")
-    print("2. Run the built harness against the .bit files you want to check.")
-    print("3. Compare the produced PCM with official opus_compare from the official build directory.")
-    print()
-    print("Example (adjust paths for the vector you want):")
-    print(
-        f'  "{harness_path}" 48000 2 <vector.bit> <decoded.pcm> 1'
-    )
-    print(
-        f'  "{official_build_dir / ("opus_compare" + (".exe" if os.name == "nt" else ""))}" -s -r 48000 <reference.dec> <decoded.pcm>'
-    )
+    print("RFC decode conformance:")
+    print(f"  passed={rfc['passed']}/{rfc['total']}")
+    print("Encode oracle conformance:")
+    print(f"  passed_cases={encode['passed']}")
+    print("Perceptual and memory harness:")
+    for row in perceptual["rows"]:
+      print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} packet_delta_pct={row['packet_delta_pct']} encode_speed_ratio={row['encode_speed_ratio']}")
+    print("Speed metrics vs official Opus:")
+    for row in benchmark_rows:
+      print(f"  bitrate={row['bitrate']} encode_speedx={row['encode_speedx']} decode_faster_pct={row['decode_faster_pct']} packet_delta_pct={row['packet_delta_pct']}")
+    print("Detector mode-balance spot check:")
+    for row in detector_rows:
+      print(f"  {row}")
+    print("Binary size:")
+    print(f"  {binary_size.get('output', binary_size.get('status', 'unavailable')).strip()}")
+    print("Toolchains checked:")
+    for line in toolchains:
+      print(f"  {line}")
+    print(f"report saved to: {metrics_report}")
     return 0
 
 
