@@ -12,7 +12,7 @@ It records what the script prepared locally and summarizes the published benchma
 
 ## Encode oracle conformance
 
-- Published repository result: 96/96 encode oracle cases passed.
+- Fresh local result: 144/144 encode oracle cases passed.
 
 ## Perceptual and memory harness
 
@@ -23,15 +23,15 @@ It records what the script prepared locally and summarizes the published benchma
 
 | Bitrate | Encode speedup | Decode vs official |
 |---:|---:|---:|
-| 16 kbps | 1.209294x | 23.209164% |
-| 24 kbps | 1.367411x | 5.211951% |
-| 32 kbps | 1.331097x | 9.753976% |
-| 48 kbps | 1.251764x | 7.213995% |
-| 64 kbps | 1.298097x | -4.054833% |
-| 96 kbps | 1.495081x | 2.429931% |
-| 128 kbps | 1.558687x | -0.266677% |
-| 192 kbps | 1.542553x | 0.443917% |
-| 256 kbps | 1.494431x | 1.399637% |
+| 16 kbps | 1.299064x | 26.726697% |
+| 24 kbps | 1.365116x | 9.745427% |
+| 32 kbps | 1.358802x | 9.291934% |
+| 48 kbps | 1.137647x | 9.061954% |
+| 64 kbps | 1.328512x | 1.811479% |
+| 96 kbps | 1.486415x | 0.124602% |
+| 128 kbps | 1.520986x | 0.409981% |
+| 192 kbps | 1.515024x | 0.268145% |
+| 256 kbps | 1.493259x | 0.289173% |
 
 ## Quality metrics vs official Opus
 
@@ -58,17 +58,17 @@ It records what the script prepared locally and summarizes the published benchma
 
 | State | Difference |
 |---|---:|
-| Encoder mono | -45.6% |
+| Encoder mono | -45.7% |
 | Encoder stereo | -33.6% |
-| Decoder mono | -22.3% |
-| Decoder stereo | -22.0% |
+| Decoder mono | -22.9% |
+| Decoder stereo | -22.1% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 227,216 B | 0 B | 227,216 B |
-| Android arm64 Clang `-O2` | 252,387 B | 800 B | 253,187 B |
+| Host MinGW GCC `-O2` | 227,064 B | 0 B | 227,064 B |
+| Android arm64 Clang `-O2` | 252,219 B | 800 B | 253,019 B |
 
 ## Toolchains checked
 
