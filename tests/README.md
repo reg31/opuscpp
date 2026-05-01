@@ -188,19 +188,19 @@ Source CSVs:
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC on an AMD Ryzen 7 8845HS, using 60 seconds of stereo synthetic music-like audio.
+This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC on an AMD Ryzen 7 8845HS, using 60 seconds of stereo synthetic music-like audio. A value above `1.00x` means `opuscpp` is faster than the optimized official build. The gap is intentionally shown this way because it is much narrower than the portable-C-only comparison.
 
 | Bitrate | Encode vs official intrinsics | Decode vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.00x | +20.3% | 312x | 314x | 1723x | 1374x |
-| 24 kbps | 1.22x | +6.3% | 267x | 219x | 912x | 855x |
-| 32 kbps | 0.83x | +12.1% | 232x | 278x | 1189x | 1045x |
-| 48 kbps | 0.98x | +17.2% | 257x | 263x | 947x | 784x |
-| 64 kbps | 1.01x | +2.5% | 160x | 158x | 572x | 558x |
-| 96 kbps | 1.13x | +8.6% | 151x | 133x | 380x | 347x |
-| 128 kbps | 1.06x | -9.0% | 122x | 115x | 313x | 341x |
-| 192 kbps | 1.15x | -8.5% | 126x | 109x | 301x | 327x |
-| 256 kbps | 1.18x | -7.3% | 111x | 94x | 261x | 280x |
+| 16 kbps | 1.00x | 1.25x | 312x | 314x | 1723x | 1374x |
+| 24 kbps | 1.22x | 1.07x | 267x | 219x | 912x | 855x |
+| 32 kbps | 0.83x | 1.14x | 232x | 278x | 1189x | 1045x |
+| 48 kbps | 0.98x | 1.21x | 257x | 263x | 947x | 784x |
+| 64 kbps | 1.01x | 1.03x | 160x | 158x | 572x | 558x |
+| 96 kbps | 1.13x | 1.09x | 151x | 133x | 380x | 347x |
+| 128 kbps | 1.06x | 0.92x | 122x | 115x | 313x | 341x |
+| 192 kbps | 1.15x | 0.92x | 126x | 109x | 301x | 327x |
+| 256 kbps | 1.18x | 0.93x | 111x | 94x | 261x | 280x |
 
 Source CSV:
 
