@@ -113,3 +113,9 @@ The test harnesses and detailed metrics are in `tests/`.
 ## License
 
 This project is derived from Opus 1.6.1 and retains the upstream Opus license text in `LICENSE`.
+
+## Real-world use: Melo
+
+`opuscpp` powers the voice path in Melo, an ultra-lightweight translator built for fast, natural conversations across languages. The goal is the same as this codec: no bloat, no lag, just clear human connection.
+
+Available on [Android](https://play.google.com/store/apps/details?id=dands.technologies.melo), [Windows](https://storage.googleapis.com/dnstech-release/executables/Melo.exe), [iOS](https://apps.apple.com/us/app/melo/id1037721120), and [macOS](https://apps.apple.com/us/app/melo/id1037721124?mt=12).
