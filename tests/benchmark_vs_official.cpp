@@ -146,7 +146,7 @@ int main() {
   try {
     constexpr int channels = 2;
     const auto pcm = make_music_like_pcm(channels, 8.0);
-    std::cout << "bitrate,encode_speedx,current_encode_ms,official_encode_ms,current_avg_bytes,official_avg_bytes,packet_delta_pct,decode_faster_pct,current_decode_ms,official_decode_ms\n";
+    std::cout << "bitrate,encode_speedx,current_encode_ms,official_encode_ms,current_avg_bytes,official_avg_bytes,packet_delta_pct,decode_speedx,current_decode_ms,official_decode_ms\n";
     for (const auto bitrate : bitrates) {
       auto current_enc = make_current_encoder(channels, bitrate);
       auto official_enc = make_official_encoder(channels, bitrate);
@@ -162,7 +162,7 @@ int main() {
       const auto current_avg_bytes = static_cast<double>(current_packets.bytes) / frame_count;
       const auto official_avg_bytes = static_cast<double>(official_packets.bytes) / frame_count;
       const auto encode_speedx = official_packets.encode_ms / std::max(1e-9, current_packets.encode_ms);
-      const auto decode_faster_pct = 100.0 * (official_decode_ms - current_decode_ms) / std::max(1e-9, official_decode_ms);
+      const auto decode_speedx = official_decode_ms / std::max(1e-9, current_decode_ms);
       const auto packet_delta_pct = 100.0 * (current_avg_bytes - official_avg_bytes) / std::max(1e-9, official_avg_bytes);
 
       std::cout << bitrate << ','
@@ -172,7 +172,7 @@ int main() {
                 << current_avg_bytes << ','
                 << official_avg_bytes << ','
                 << packet_delta_pct << ','
-                << decode_faster_pct << ','
+                << decode_speedx << ','
                 << current_decode_ms << ','
                 << official_decode_ms << '\n';
     }

@@ -28,7 +28,7 @@ Minimal integration looks like:
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
 | Faster encoding in the published benchmark set (`1.23x` to `1.60x` at complexity 10). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode performance is mostly at parity or faster (`-6.7%` to `+27.6%` in the current table). | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
+| Decode performance is mostly at parity or faster (`0.94x` to `1.38x` in the current table). | Quality is close to official Opus, but not uniformly better in every metric at every bitrate. |
 | Lower encoder and decoder memory use in the measured configurations (`-22.0%` to `-45.7%` in the current memory snapshot). | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Benchmark results are measured and reproducible, but still workload-dependent like any codec comparison. |
 
@@ -68,19 +68,19 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below are from a matched `-O2` official Opus 1.6.1 comparison build with the public encoder complexity set to 10. Positive decode values mean this implementation decoded faster; encode speed is shown as a multiplicative speedup over official Opus. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below are from a matched `-O2` official Opus 1.6.1 comparison build with the public encoder complexity set to 10. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean this implementation is faster. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
-| Bitrate | Encode speed | Decode vs official | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
+| Bitrate | Encode speed | Decode speed | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.29x | +27.6% | -0.0003 | -0.0153 | -2.1% |
-| 24 kbps | 1.43x | +10.6% | -0.0085 | +0.0279 | -2.2% |
-| 32 kbps | 1.31x | +9.1% | -0.0005 | +0.0239 | -2.5% |
-| 48 kbps | 1.23x | +4.0% | +0.0001 | +0.0029 | +0.0% |
-| 64 kbps | 1.25x | +4.3% | +0.0011 | -0.0028 | +0.0% |
-| 96 kbps | 1.47x | +2.0% | -0.0004 | -0.0011 | -0.2% |
-| 128 kbps | 1.60x | -1.6% | +0.0005 | +0.0009 | -0.2% |
-| 192 kbps | 1.50x | +1.2% | +0.0001 | -0.0009 | -0.2% |
-| 256 kbps | 1.50x | -6.7% | +0.0001 | -0.0017 | -0.2% |
+| 16 kbps | 1.29x | 1.38x | -0.0003 | -0.0153 | -2.1% |
+| 24 kbps | 1.43x | 1.12x | -0.0085 | +0.0279 | -2.2% |
+| 32 kbps | 1.31x | 1.10x | -0.0005 | +0.0239 | -2.5% |
+| 48 kbps | 1.23x | 1.04x | +0.0001 | +0.0029 | +0.0% |
+| 64 kbps | 1.25x | 1.05x | +0.0011 | -0.0028 | +0.0% |
+| 96 kbps | 1.47x | 1.02x | -0.0004 | -0.0011 | -0.2% |
+| 128 kbps | 1.60x | 0.98x | +0.0005 | +0.0009 | -0.2% |
+| 192 kbps | 1.50x | 1.01x | +0.0001 | -0.0009 | -0.2% |
+| 256 kbps | 1.50x | 0.94x | +0.0001 | -0.0017 | -0.2% |
 
 Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

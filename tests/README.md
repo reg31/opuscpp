@@ -167,19 +167,19 @@ These proxy scores are useful for regression tracking, but they are not substitu
 
 ## Speed metrics vs official Opus
 
-Matched setup: official Opus built at `-O2`, intrinsics disabled. Positive decode percent means `opuscpp` is faster; encode speed is a multiplicative speedup over official Opus.
+Matched setup: official Opus built at `-O2`, intrinsics disabled. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
 
-| Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode vs official |
+| Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.29x | 41.37 | 42.24 | +27.6% |
-| 24 kbps | 1.43x | 61.15 | 62.52 | +10.6% |
-| 32 kbps | 1.31x | 81.20 | 83.25 | +9.1% |
-| 48 kbps | 1.23x | 121.30 | 121.28 | +4.0% |
-| 64 kbps | 1.25x | 161.40 | 161.39 | +4.3% |
-| 96 kbps | 1.47x | 241.00 | 241.56 | +2.0% |
-| 128 kbps | 1.60x | 321.00 | 321.75 | -1.6% |
-| 192 kbps | 1.50x | 481.00 | 482.13 | +1.2% |
-| 256 kbps | 1.50x | 641.00 | 642.12 | -6.7% |
+| 16 kbps | 1.29x | 41.37 | 42.24 | 1.38x |
+| 24 kbps | 1.43x | 61.15 | 62.52 | 1.12x |
+| 32 kbps | 1.31x | 81.20 | 83.25 | 1.10x |
+| 48 kbps | 1.23x | 121.30 | 121.28 | 1.04x |
+| 64 kbps | 1.25x | 161.40 | 161.39 | 1.05x |
+| 96 kbps | 1.47x | 241.00 | 241.56 | 1.02x |
+| 128 kbps | 1.60x | 321.00 | 321.75 | 0.98x |
+| 192 kbps | 1.50x | 481.00 | 482.13 | 1.01x |
+| 256 kbps | 1.50x | 641.00 | 642.12 | 0.94x |
 
 Source CSVs:
 
@@ -190,7 +190,7 @@ Source CSVs:
 
 This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC on an AMD Ryzen 7 8845HS, using 60 seconds of stereo synthetic music-like audio. A value above `1.00x` means `opuscpp` is faster than the optimized official build. The gap is intentionally shown this way because it is much narrower than the portable-C-only comparison.
 
-| Bitrate | Encode vs official intrinsics | Decode vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
+| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 1.00x | 1.25x | 312x | 314x | 1723x | 1374x |
 | 24 kbps | 1.22x | 1.07x | 267x | 219x | 912x | 855x |

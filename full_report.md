@@ -21,17 +21,17 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 ## Speed metrics vs official Opus
 
-| Bitrate | Encode speedup | Decode vs official |
+| Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.285610x | 27.554574% |
-| 24 kbps | 1.426038x | 10.633522% |
-| 32 kbps | 1.308942x | 9.087086% |
-| 48 kbps | 1.229498x | 4.001325% |
-| 64 kbps | 1.248527x | 4.327647% |
-| 96 kbps | 1.473938x | 2.032775% |
-| 128 kbps | 1.600741x | -1.636452% |
-| 192 kbps | 1.501439x | 1.182721% |
-| 256 kbps | 1.500865x | -6.724882% |
+| 16 kbps | 1.285610x | 1.380349x |
+| 24 kbps | 1.426038x | 1.118988x |
+| 32 kbps | 1.308942x | 1.099954x |
+| 48 kbps | 1.229498x | 1.041681x |
+| 64 kbps | 1.248527x | 1.045234x |
+| 96 kbps | 1.473938x | 1.020750x |
+| 128 kbps | 1.600741x | 0.983899x |
+| 192 kbps | 1.501439x | 1.011969x |
+| 256 kbps | 1.500865x | 0.936989x |
 
 ## Quality metrics vs official Opus
 

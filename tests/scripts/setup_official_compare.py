@@ -106,7 +106,7 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
         "",
         "## Speed metrics vs official Opus",
         "",
-        "| Bitrate | Encode speedup | Decode vs official |",
+        "| Bitrate | Encode speedup | Decode speedup |",
         "|---:|---:|---:|",
     ]
     decode_by_rate = {row.get("bitrate", ""): row for row in sections["decode_speed_vs_official"]}
@@ -115,7 +115,7 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
         bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         decode_row = decode_by_rate.get(bitrate, {})
         lines.append(
-            f"| {bitrate_kbps} kbps | {row.get('encode_speedx', '')}x | {decode_row.get('current_faster_pct', '')}% |"
+            f"| {bitrate_kbps} kbps | {row.get('encode_speedx', '')}x | {decode_row.get('decode_speedx', '')}x |"
         )
 
     lines += [
@@ -619,7 +619,7 @@ def main() -> int:
       print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} packet_delta_pct={row['packet_delta_pct']} encode_speed_ratio={row['encode_speed_ratio']}")
     print("Speed metrics vs official Opus:")
     for row in benchmark_rows:
-      print(f"  bitrate={row['bitrate']} encode_speedx={row['encode_speedx']} decode_faster_pct={row['decode_faster_pct']} packet_delta_pct={row['packet_delta_pct']}")
+      print(f"  bitrate={row['bitrate']} encode_speedx={row['encode_speedx']} decode_speedx={row['decode_speedx']} packet_delta_pct={row['packet_delta_pct']}")
     print("Detector mode-balance spot check:")
     for row in detector_rows:
       print(f"  {row}")
