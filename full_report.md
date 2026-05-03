@@ -38,9 +38,9 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta |
 |---:|---:|---:|---:|
 | 16 kbps | -0.0003 | -0.0153 | 1.3037 |
-| 24 kbps | -0.0085 | 0.0279 | 22.0159 |
-| 32 kbps | -0.0005 | 0.0239 | 16.8861 |
-| 48 kbps | 0.0001 | 0.0029 | 0.3869 |
+| 24 kbps | -0.0071 | 0.0386 | 22.0159 |
+| 32 kbps | 0.0004 | 0.0339 | 16.8861 |
+| 48 kbps | 0.0002 | 0.0111 | 0.3869 |
 | 64 kbps | 0.0011 | -0.0028 | 0.1908 |
 | 96 kbps | -0.0004 | -0.0011 | -0.2133 |
 | 128 kbps | 0.0005 | 0.0009 | -0.2383 |
@@ -67,8 +67,8 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 228,040 B | 0 B | 228,040 B |
-| Android arm64 Clang `-O2` | 253,095 B | 800 B | 253,895 B |
+| Host MinGW GCC `-O2` | 228,248 B | 0 B | 228,248 B |
+| Android arm64 Clang `-O2` | 253,335 B | 800 B | 254,135 B |
 
 ## Toolchains checked
 

@@ -3354,6 +3354,22 @@ static celt_glog dynalloc_analysis(const celt_glog *bandLogE, const celt_glog *b
 }
       if (freq_bin >= eBands[end]) { follower[end - 1] += (2.f); follower[end - 2] += (1.f); }
 }
+    // Reclaim a little low-band detail only when dynalloc already sees LF need;
+    // veto narrow harmonic peaks so tonal material keeps its bits.
+    if (start == 0 && end > 1 && effectiveBytes >= (30 + 5 * LM) && effectiveBytes < 160 && toneishness > (.30f)) {
+      celt_glog dyn_peak = -1.f;
+      int dyn_peak_i = -1;
+      for (int guard_i = start; guard_i < end; ++guard_i) {
+        if (follower[guard_i] > dyn_peak) { dyn_peak = follower[guard_i]; dyn_peak_i = guard_i; }
+      }
+      const celt_glog low_need = std::max(follower[0], follower[1]);
+      const bool harmonic_veto = dyn_peak_i >= 3 && dyn_peak > low_need + (1.f);
+      if (low_need > (.5f) && !harmonic_veto) {
+        const auto low_rate_lf_boost = std::min<celt_glog>(1.f, (.025f) * (effectiveBytes - (30 + 5 * LM)));
+        follower[0] += low_rate_lf_boost;
+        follower[1] += (.5f) * low_rate_lf_boost;
+      }
+    }
     if (effectiveBytes > 320) follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     for (i = start; i < end; i++) {
       int width, boost, boost_bits;

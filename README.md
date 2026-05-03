@@ -72,9 +72,9 @@ Measurements below use `opuscpp` at `-O2 -DNDEBUG` against an official Opus 1.6.
 | Bitrate | Encode speed | Decode speed | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
 | 16 kbps | 1.36x | 1.20x | -0.0003 | -0.0153 | -2.1% |
-| 24 kbps | 1.34x | 0.98x | -0.0085 | +0.0279 | -2.2% |
-| 32 kbps | 1.35x | 0.98x | -0.0005 | +0.0239 | -2.5% |
-| 48 kbps | 1.23x | 0.98x | +0.0001 | +0.0029 | +0.0% |
+| 24 kbps | 1.34x | 0.98x | -0.0071 | +0.0386 | -2.2% |
+| 32 kbps | 1.35x | 0.98x | +0.0004 | +0.0339 | -2.5% |
+| 48 kbps | 1.23x | 0.98x | +0.0002 | +0.0111 | +0.0% |
 | 64 kbps | 1.31x | 0.98x | +0.0011 | -0.0028 | +0.0% |
 | 96 kbps | 1.41x | 0.93x | -0.0004 | -0.0011 | -0.2% |
 | 128 kbps | 1.51x | 0.90x | +0.0005 | +0.0009 | -0.2% |
