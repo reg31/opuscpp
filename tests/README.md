@@ -167,19 +167,19 @@ These proxy scores are useful for regression tracking, but they are not substitu
 
 ## Speed metrics vs official Opus
 
-Matched setup: official Opus built at `-O2`, intrinsics disabled. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
+Portable comparison setup: `opuscpp` is built at `-O2 -DNDEBUG`; official Opus 1.6.1 is built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.29x | 41.37 | 42.24 | 1.38x |
-| 24 kbps | 1.43x | 61.15 | 62.52 | 1.12x |
-| 32 kbps | 1.31x | 81.20 | 83.25 | 1.10x |
-| 48 kbps | 1.23x | 121.30 | 121.28 | 1.04x |
-| 64 kbps | 1.25x | 161.40 | 161.39 | 1.05x |
-| 96 kbps | 1.47x | 241.00 | 241.56 | 1.02x |
-| 128 kbps | 1.60x | 321.00 | 321.75 | 0.98x |
-| 192 kbps | 1.50x | 481.00 | 482.13 | 1.01x |
-| 256 kbps | 1.50x | 641.00 | 642.12 | 0.94x |
+| 16 kbps | 1.36x | 41.37 | 42.24 | 1.20x |
+| 24 kbps | 1.34x | 61.15 | 62.52 | 0.98x |
+| 32 kbps | 1.35x | 81.20 | 83.25 | 0.98x |
+| 48 kbps | 1.23x | 121.30 | 121.28 | 0.98x |
+| 64 kbps | 1.31x | 161.40 | 161.39 | 0.98x |
+| 96 kbps | 1.41x | 241.00 | 241.56 | 0.93x |
+| 128 kbps | 1.51x | 321.00 | 321.75 | 0.90x |
+| 192 kbps | 1.47x | 481.00 | 482.13 | 0.92x |
+| 256 kbps | 1.47x | 641.00 | 642.12 | 0.95x |
 
 Source CSVs:
 
@@ -254,8 +254,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 227,592 B | 0 B | 227,592 B |
-| Android arm64 Clang `-O2` | 252,627 B | 800 B | 253,427 B |
+| Host MinGW GCC `-O2` | 228,040 B | 0 B | 228,040 B |
+| Android arm64 Clang `-O2` | 253,095 B | 800 B | 253,895 B |
 
 ## Toolchains checked
 

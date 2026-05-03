@@ -12,7 +12,7 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 ## Encode oracle conformance
 
-- Fresh local result: 144/144 encode oracle cases passed.
+- Fresh local result: 96/96 RFC 8251 encode oracle cases passed; the broader documented gate remains 144/144 across RFC 6716 + RFC 8251 cases.
 
 ## Perceptual and memory harness
 
@@ -23,15 +23,15 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.285610x | 1.380349x |
-| 24 kbps | 1.426038x | 1.118988x |
-| 32 kbps | 1.308942x | 1.099954x |
-| 48 kbps | 1.229498x | 1.041681x |
-| 64 kbps | 1.248527x | 1.045234x |
-| 96 kbps | 1.473938x | 1.020750x |
-| 128 kbps | 1.600741x | 0.983899x |
-| 192 kbps | 1.501439x | 1.011969x |
-| 256 kbps | 1.500865x | 0.936989x |
+| 16 kbps | 1.356050x | 1.201277x |
+| 24 kbps | 1.344907x | 0.984250x |
+| 32 kbps | 1.350392x | 0.983717x |
+| 48 kbps | 1.227675x | 0.980783x |
+| 64 kbps | 1.313250x | 0.981243x |
+| 96 kbps | 1.410520x | 0.934501x |
+| 128 kbps | 1.511734x | 0.895410x |
+| 192 kbps | 1.468819x | 0.919786x |
+| 256 kbps | 1.471334x | 0.951877x |
 
 ## Quality metrics vs official Opus
 
@@ -67,8 +67,8 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 227,592 B | 0 B | 227,592 B |
-| Android arm64 Clang `-O2` | 252,627 B | 800 B | 253,427 B |
+| Host MinGW GCC `-O2` | 228,040 B | 0 B | 228,040 B |
+| Android arm64 Clang `-O2` | 253,095 B | 800 B | 253,895 B |
 
 ## Toolchains checked
 

@@ -3354,6 +3354,7 @@ static celt_glog dynalloc_analysis(const celt_glog *bandLogE, const celt_glog *b
 }
       if (freq_bin >= eBands[end]) { follower[end - 1] += (2.f); follower[end - 2] += (1.f); }
 }
+    if (effectiveBytes > 320) follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     for (i = start; i < end; i++) {
       int width, boost, boost_bits;
       follower[i] = ((follower[i]) < ((4)) ? (follower[i]) : ((4))); follower[i] = (follower[i]);
@@ -5166,6 +5167,16 @@ static opus_val16 remove_doubling(opus_val16 *x, int maxperiod, int minperiod, i
     else if (T1 < 2 * minperiod) thresh = (((.5f)) > ((((.9f)) * (g0)) - cont) ? ((.5f)) : ((((.9f)) * (g0)) - cont));
     if (g1 > thresh) { best_xy = xy; best_yy = yy; T = T1; g = g1; }
 }
+  if (T < minperiod * 2) {
+    opus_val16 g1, g2;
+    int T1, T2;
+    T1 = T * 5 / 8;
+    T2 = T * 6 / 8;
+    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, &xy, &xy2);
+    g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);
+    g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);
+    if (g1 >= g || g2 >= g) g = 0;
+  }
   best_xy = std::max(0.f, best_xy);
   if (best_yy <= best_xy) pg = 1.0f;
   else pg = (((float)(best_xy) / (best_yy + 1)));
