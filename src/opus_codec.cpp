@@ -1,3 +1,6 @@
+// opuscpp: source-embeddable C++23 implementation of the standard Opus
+// single-stream API. This translation unit intentionally has no platform
+// intrinsics, generated tables, external runtime data, or link-time helpers.
 #include "opus_codec.h"
 #include <math.h>
 #include <stdarg.h>
@@ -3280,6 +3283,41 @@ static celt_glog median_of_3(const celt_glog *x) {
   if (t1 < t2) return t1;
   else if (t0 < t2) return t2; else return t0;
 }
+static inline void apply_tone_dynalloc_boost(celt_glog *follower, int start, int end, const opus_int16 *eBands, opus_val16 tone_freq, opus_val32 toneishness) noexcept {
+  if (toneishness <= (.98f)) return;
+  const int freq_bin = static_cast<int>(floor(.5 + tone_freq * 120 / 3.141592653));
+  for (int i = start; i < end; ++i) {
+    if (freq_bin >= eBands[i] && freq_bin <= eBands[i + 1]) follower[i] += (2.f);
+    if (freq_bin >= eBands[i] - 1 && freq_bin <= eBands[i + 1] + 1) follower[i] += (1.f);
+    if (freq_bin >= eBands[i] - 2 && freq_bin <= eBands[i + 1] + 2) follower[i] += (1.f);
+    if (freq_bin >= eBands[i] - 3 && freq_bin <= eBands[i + 1] + 3) follower[i] += (.5f);
+  }
+  if (freq_bin >= eBands[end]) {
+    follower[end - 1] += (2.f);
+    follower[end - 2] += (1.f);
+  }
+}
+static inline void apply_low_rate_lf_dynalloc_boost(celt_glog *follower, int start, int end, int LM, int effectiveBytes, opus_val32 toneishness) noexcept {
+  const int low_rate_start = 30 + 5 * LM;
+  if (start != 0 || end <= 1 || effectiveBytes < low_rate_start || effectiveBytes >= 160 || toneishness <= (.30f)) return;
+
+  celt_glog dyn_peak = -1.f;
+  int dyn_peak_i = -1;
+  for (int i = start; i < end; ++i) {
+    if (follower[i] > dyn_peak) {
+      dyn_peak = follower[i];
+      dyn_peak_i = i;
+    }
+  }
+
+  const celt_glog low_need = std::max(follower[0], follower[1]);
+  const bool harmonic_veto = dyn_peak_i >= 3 && dyn_peak > low_need + (1.f);
+  if (!(low_need > (.5f)) || harmonic_veto) return;
+
+  const auto low_rate_lf_boost = std::min<celt_glog>(1.f, (.025f) * (effectiveBytes - low_rate_start));
+  follower[0] += low_rate_lf_boost;
+  follower[1] += (.5f) * low_rate_lf_boost;
+}
 static celt_glog dynalloc_analysis(const celt_glog *bandLogE, const celt_glog *bandLogE2, const celt_glog *oldBandE, int nbEBands, int start, int end, int C, int *offsets, int lsb_depth, const opus_int16 *logN, int isTransient, int vbr, int constrained_vbr, const opus_int16 *eBands, int LM, int effectiveBytes, opus_int32 *tot_boost_, celt_glog *surround_dynalloc, int *importance, int *spread_weight, opus_val16 tone_freq, opus_val32 toneishness) {
   int i, c;
   opus_int32 tot_boost = 0; celt_glog maxDepth;
@@ -3344,32 +3382,8 @@ static celt_glog dynalloc_analysis(const celt_glog *bandLogE, const celt_glog *b
       if (i < 8) follower[i] *= 2;
       if (i >= 12) follower[i] = (.5f * (follower[i]));
 }
-    if (toneishness > (.98f)) {
-      int freq_bin = (int)floor(.5 + (tone_freq) * 120 / 3.141592653);
-      for (i = start; i < end; i++) {
-        if (freq_bin >= eBands[i] && freq_bin <= eBands[i + 1]) follower[i] += (2.f);
-        if (freq_bin >= eBands[i] - 1 && freq_bin <= eBands[i + 1] + 1) follower[i] += (1.f);
-        if (freq_bin >= eBands[i] - 2 && freq_bin <= eBands[i + 1] + 2) follower[i] += (1.f);
-        if (freq_bin >= eBands[i] - 3 && freq_bin <= eBands[i + 1] + 3) follower[i] += (.5f);
-}
-      if (freq_bin >= eBands[end]) { follower[end - 1] += (2.f); follower[end - 2] += (1.f); }
-}
-    // Reclaim a little low-band detail only when dynalloc already sees LF need;
-    // veto narrow harmonic peaks so tonal material keeps its bits.
-    if (start == 0 && end > 1 && effectiveBytes >= (30 + 5 * LM) && effectiveBytes < 160 && toneishness > (.30f)) {
-      celt_glog dyn_peak = -1.f;
-      int dyn_peak_i = -1;
-      for (int guard_i = start; guard_i < end; ++guard_i) {
-        if (follower[guard_i] > dyn_peak) { dyn_peak = follower[guard_i]; dyn_peak_i = guard_i; }
-      }
-      const celt_glog low_need = std::max(follower[0], follower[1]);
-      const bool harmonic_veto = dyn_peak_i >= 3 && dyn_peak > low_need + (1.f);
-      if (low_need > (.5f) && !harmonic_veto) {
-        const auto low_rate_lf_boost = std::min<celt_glog>(1.f, (.025f) * (effectiveBytes - (30 + 5 * LM)));
-        follower[0] += low_rate_lf_boost;
-        follower[1] += (.5f) * low_rate_lf_boost;
-      }
-    }
+    apply_tone_dynalloc_boost(follower, start, end, eBands, tone_freq, toneishness);
+    apply_low_rate_lf_dynalloc_boost(follower, start, end, LM, effectiveBytes, toneishness);
     if (effectiveBytes > 320) follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     for (i = start; i < end; i++) {
       int width, boost, boost_bits;
@@ -9939,40 +9953,49 @@ void assign_error(int *error, int value) noexcept {
   return ref_opus_decode_float(reinterpret_cast<ref_OpusDecoder *>(st), data, len, pcm, frame_size, decode_fec);
 }
 } // namespace
-OpusEncoder *opus_encoder_create(int Fs, int channels, int application, int *error) noexcept { return create_encoder_state(Fs, channels, application, error);
+OpusEncoder *opus_encoder_create(int Fs, int channels, int application, int *error) noexcept {
+  return create_encoder_state(Fs, channels, application, error);
 }
-void opus_encoder_destroy(OpusEncoder *st) noexcept { opus_free(st);
+void opus_encoder_destroy(OpusEncoder *st) noexcept {
+  opus_free(st);
 }
 int opus_encoder_ctl(OpusEncoder *st, int request, ...) noexcept {
-  va_list ap; __builtin_va_start(ap, request);
+  va_list ap;
+  __builtin_va_start(ap, request);
   const int ret = st == nullptr ? OPUS_BAD_ARG : dispatch_encoder_control(reinterpret_cast<ref_OpusEncoder *>(st), request, ap);
   __builtin_va_end(ap);
   return ret;
 }
-int opus_encode(OpusEncoder *st, const int16_t *pcm, int frame_size, unsigned char *data, int max_data_bytes) noexcept { return encode_int16_frame(st, pcm, frame_size, data, max_data_bytes);
+int opus_encode(OpusEncoder *st, const int16_t *pcm, int frame_size, unsigned char *data, int max_data_bytes) noexcept {
+  return encode_int16_frame(st, pcm, frame_size, data, max_data_bytes);
 }
-int opus_encode_float(OpusEncoder *st, const float *pcm, int frame_size, unsigned char *data, int max_data_bytes) noexcept { return encode_float_frame(st, pcm, frame_size, data, max_data_bytes);
+int opus_encode_float(OpusEncoder *st, const float *pcm, int frame_size, unsigned char *data, int max_data_bytes) noexcept {
+  return encode_float_frame(st, pcm, frame_size, data, max_data_bytes);
 }
-OpusDecoder *opus_decoder_create(int Fs, int channels, int *error) noexcept { return create_decoder_state(Fs, channels, error);
+OpusDecoder *opus_decoder_create(int Fs, int channels, int *error) noexcept {
+  return create_decoder_state(Fs, channels, error);
 }
 void opus_decoder_destroy(OpusDecoder *st) noexcept {
   destroy_ref_decoder_state(reinterpret_cast<ref_OpusDecoder *>(st));
   opus_free(st);
 }
 int opus_decoder_ctl(OpusDecoder *st, int request, ...) noexcept {
-  va_list ap; __builtin_va_start(ap, request);
+  va_list ap;
+  __builtin_va_start(ap, request);
   const int ret = st == nullptr ? OPUS_BAD_ARG : dispatch_decoder_control(reinterpret_cast<ref_OpusDecoder *>(st), request, ap);
   __builtin_va_end(ap);
   return ret;
 }
-int opus_decode(OpusDecoder *st, const unsigned char *data, int len, int16_t *pcm, int frame_size, int decode_fec) noexcept { return decode_int16_frame(st, data, len, pcm, frame_size, decode_fec);
+int opus_decode(OpusDecoder *st, const unsigned char *data, int len, int16_t *pcm, int frame_size, int decode_fec) noexcept {
+  return decode_int16_frame(st, data, len, pcm, frame_size, decode_fec);
 }
-int opus_decode_float(OpusDecoder *st, const unsigned char *data, int len, float *pcm, int frame_size, int decode_fec) noexcept { return decode_float_frame(st, data, len, pcm, frame_size, decode_fec);
+int opus_decode_float(OpusDecoder *st, const unsigned char *data, int len, float *pcm, int frame_size, int decode_fec) noexcept {
+  return decode_float_frame(st, data, len, pcm, frame_size, decode_fec);
 }
 int opus_packet_get_nb_samples(const unsigned char *data, int len, int Fs) noexcept {
-  if (!has_required_storage(data, len)) { return OPUS_BAD_ARG;
-}
+  if (!has_required_storage(data, len)) return OPUS_BAD_ARG;
   return ref_opus_packet_get_nb_samples(data, len, Fs);
 }
-[[nodiscard]] auto opus_strerror(int error) noexcept -> const char * { return ref_opus_strerror(error);
+[[nodiscard]] auto opus_strerror(int error) noexcept -> const char * {
+  return ref_opus_strerror(error);
 }
