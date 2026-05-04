@@ -226,22 +226,16 @@ Source CSV:
 
 - `metrics/quality_vs_official.csv`
 
-## Detector mode-balance and cost spot check
+## Detector mode-balance spot check
 
-The lightweight detector distinguishes spoken pitch from sustained harmonic/music pitch using pitch stability, envelope stability, zero-crossing rate, and low-order tonal markers before updating the voice estimate. The full report script now also times the detector-only path and reports `non_celt_pct`, which is the share of frames routed to SILK or hybrid instead of CELT in AUDIO mode.
+The lightweight detector added for this snapshot distinguishes spoken pitch from sustained harmonic/music pitch using pitch stability, envelope stability, zero-crossing rate, and low-order tonal markers before updating the voice estimate.
 
-Representative AUDIO-mode results at 24/32/48 kbps mono:
+Representative AUDIO-mode results at 32 kbps mono:
 
-| Material class | Bitrate | SILK | Hybrid | CELT | Non-CELT |
-|---|---:|---:|---:|---:|---:|
-| Speech-like | 24 kbps | 0.0% | 8.0% | 92.0% | 8.0% |
-| Harmonic music | 24 kbps | 0.0% | 0.0% | 100.0% | 0.0% |
-| Speech-like | 32 kbps | 0.0% | 8.0% | 92.0% | 8.0% |
-| Harmonic music | 32 kbps | 0.0% | 0.0% | 100.0% | 0.0% |
-| Speech-like | 48 kbps | 0.0% | 8.0% | 92.0% | 8.0% |
-| Harmonic music | 48 kbps | 0.0% | 0.0% | 100.0% | 0.0% |
-
-Latest detector-only timing from the full report run: speech mono `12.429 us/frame`, music mono `7.363 us/frame`, speech stereo `12.551 us/frame`, music stereo `8.053 us/frame`.
+| Material class | SILK | Hybrid | CELT |
+|---|---:|---:|---:|
+| Speech-like | 0.0% | 8.0% | 92.0% |
+| Harmonic music | 0.0% | 0.0% | 100.0% |
 
 ## Memory metrics
 

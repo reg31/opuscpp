@@ -1673,28 +1673,6 @@ static int update_lightweight_voice_estimate(ref_OpusEncoder *st, const opus_res
   if (music_score >= voice_score + 8 && music_score > 36) return 0;
   return 48;
 }
-#if defined(OPUSCPP_DETECTOR_BENCH_HOOK)
-extern "C" int opuscpp_detector_bench_run(const opus_res *pcm, int frame_count, int frame_size, int channels, int include_stereo_width, int iterations, int *accumulator) noexcept {
-  if (pcm == nullptr || accumulator == nullptr || frame_count <= 0 || frame_size <= 0 || (channels != 1 && channels != 2) || iterations <= 0) return OPUS_BAD_ARG;
-  const int state_size = ref_opus_encoder_get_size(channels);
-  if (state_size <= 0) return OPUS_BAD_ARG;
-  int total = 0;
-  auto *storage = OPUS_SCRATCH(unsigned char, static_cast<std::size_t>(state_size));
-  auto *st = reinterpret_cast<ref_OpusEncoder *>(storage);
-  for (int iteration = 0; iteration < iterations; ++iteration) {
-    const int init_ret = ref_opus_encoder_init(st, 48000, channels, opus_application_audio);
-    if (init_ret != OPUS_OK) return init_ret;
-    for (int frame = 0; frame < frame_count; ++frame) {
-      const auto *frame_pcm = pcm + static_cast<std::size_t>(frame) * frame_size * channels;
-      opus_val16 stereo_width = 0;
-      if (include_stereo_width && channels == 2) stereo_width = compute_stereo_width(frame_pcm, frame_size, 48000, &st->width_mem);
-      total += update_lightweight_voice_estimate(st, frame_pcm, frame_size, stereo_width);
-    }
-  }
-  *accumulator = total;
-  return OPUS_OK;
-}
-#endif
 static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrate_bps, int frame_rate, int channels) {
   int redundancy_bytes_cap, redundancy_bytes;
   opus_int32 redundancy_rate, available_bits;
@@ -1898,10 +1876,6 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   if (st->application == opus_application_voip || st->application == opus_application_audio) {
     voice_est = update_lightweight_voice_estimate(st, pcm, frame_size, stereo_width);
     if (voip_style) voice_est = voice_est > 48 ? 115 : 0;
-    else if (st->bitrate_bps >= 24000 && st->bitrate_bps <= 48000 && st->lightweight_analysis_frames <= 4) {
-      if (voice_est <= 16) voice_est = 32;
-      else if (voice_est >= 100) voice_est = 80;
-    }
   } else voice_est = 48;
   if (st->force_channels != -1000 && st->channels == 2) {
     st->stream_channels = st->force_channels;
@@ -1965,11 +1939,11 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     const auto music_bandwidth_thresholds = std::span<const opus_int32>{music_bandwidth_thresholds_common};
     for (int threshold_index = 0; threshold_index < 8; ++threshold_index) bandwidth_thresholds[threshold_index] = music_bandwidth_thresholds[threshold_index] + ((voice_est * voice_est * (voice_bandwidth_thresholds[threshold_index] - music_bandwidth_thresholds[threshold_index])) >> 14);
     for (; bandwidth > 1101; --bandwidth) {
-      int bandwidth_threshold, hysteresis;
-      bandwidth_threshold = bandwidth_thresholds[2 * (bandwidth - 1102)]; hysteresis = bandwidth_thresholds[2 * (bandwidth - 1102) + 1];
-      if (!st->first) { if (st->auto_bandwidth >= bandwidth) bandwidth_threshold -= hysteresis; else bandwidth_threshold += hysteresis;
+      int threshold, hysteresis;
+      threshold = bandwidth_thresholds[2 * (bandwidth - 1102)]; hysteresis = bandwidth_thresholds[2 * (bandwidth - 1102) + 1];
+      if (!st->first) { if (st->auto_bandwidth >= bandwidth) threshold -= hysteresis; else threshold += hysteresis;
 }
-      if (equiv_rate >= bandwidth_threshold) break;
+      if (equiv_rate >= threshold) break;
 }
     if (bandwidth == 1102) bandwidth = 1103;
     st->bandwidth = st->auto_bandwidth = bandwidth;
@@ -5925,7 +5899,7 @@ void silk_decode_core(silk_decoder_state *psDec, silk_decoder_control *psDecCtrl
     Gain_Q10 = ((psDecCtrl->Gains_Q16[k]) >> (6)); inv_gain_Q31 = silk_INVERSE32_varQ(psDecCtrl->Gains_Q16[k], 47);
     if (psDecCtrl->Gains_Q16[k] != psDec->prev_gain_Q16) {
       gain_adj_Q16 = silk_DIV32_varQ(psDec->prev_gain_Q16, psDecCtrl->Gains_Q16[k], 16);
-      for (int lpc_index = 0; lpc_index < 16; ++lpc_index) sLPC_Q14[lpc_index] = (opus_int32)(((opus_int64)gain_adj_Q16 * sLPC_Q14[lpc_index]) >> 16);
+      for (int i = 0; i < 16; ++i) sLPC_Q14[i] = (opus_int32)(((opus_int64)gain_adj_Q16 * sLPC_Q14[i]) >> 16);
     } else { gain_adj_Q16 = (opus_int32)1 << 16;
 }
     opus_assume(inv_gain_Q31 != 0); psDec->prev_gain_Q16 = psDecCtrl->Gains_Q16[k];
