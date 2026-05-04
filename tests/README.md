@@ -69,7 +69,7 @@ python3 tests/scripts/setup_official_compare.py --download-vectors both
 If you prefer to do it yourself, the equivalent manual steps are:
 
 1. Obtain the official Opus RFC test vector set.
-2. Build official Opus 1.6.1 as a static library with intrinsics disabled if you want a matched portable-C comparison.
+2. Build official Opus 1.6.1 as a static library with intrinsics disabled for a portable-C comparison. For a strict matched-global-flag comparison, override the official build flags manually.
 3. Build the `opuscpp` decoder harness.
 
 ## Optional quick local smoke test
@@ -167,7 +167,7 @@ These proxy scores are useful for regression tracking, but they are not substitu
 
 ## Speed metrics vs official Opus
 
-Portable comparison setup: `opuscpp` is built at `-O2 -DNDEBUG`; official Opus 1.6.1 is built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
+Portable comparison setup: `opuscpp` is compiled globally with `-O2 -DNDEBUG`, with selected GCC function-level attributes inside the source for hot integer paths (`O3`) and cold/size-sensitive paths (`Os`). Official Opus 1.6.1 is built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled. This is not a strict matched-global-flag comparison; it reflects the intended source-embedded `opuscpp` build versus official Opus' normal portable Release build. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
 |---:|---:|---:|---:|---:|

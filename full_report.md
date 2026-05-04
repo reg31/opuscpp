@@ -21,6 +21,8 @@ The full official-comparison setup lives in `tests/scripts/setup_official_compar
 
 ## Speed metrics vs official Opus
 
+`opuscpp` is compiled globally with `-O2 -DNDEBUG`, with selected GCC function-level `O3`/`Os` attributes in the source. Official Opus 1.6.1 is built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled, so these numbers compare the intended `opuscpp` source-embedded optimization profile against official Opus' normal portable Release build.
+
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
 | 16 kbps | 1.356050x | 1.201277x |

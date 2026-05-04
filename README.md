@@ -67,7 +67,7 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below use `opuscpp` at `-O2 -DNDEBUG` against an official Opus 1.6.1 Release comparison build (`-O3 -DNDEBUG`) with intrinsics disabled, with the public encoder complexity set to 10. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean this implementation is faster. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with selected GCC function-level attributes inside the source for hot integer paths (`O3`) and cold/size-sensitive paths (`Os`). This is intentional: users do not need to compile the whole translation unit at global `-O3` to get the measured source-level tuning. The comparison target is official Opus 1.6.1 built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled, with the public encoder complexity set to 10. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean this implementation is faster. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed | Decode speed | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
