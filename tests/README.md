@@ -147,9 +147,8 @@ Measured result for this repository snapshot:
 
 | Suite | Result |
 |---|---:|
-| RFC 6716 encode oracle cases | 48/48 passed |
 | RFC 8251 encode oracle cases | 96/96 passed |
-| Total encode oracle validation cases | 144/144 passed |
+| Total encode oracle validation cases | 96/96 passed |
 
 ## Perceptual and memory harness
 
@@ -171,15 +170,15 @@ Portable comparison setup: `opuscpp` is compiled globally with `-O2 -DNDEBUG`, w
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.33x | 41.37 | 42.24 | 1.19x |
-| 24 kbps | 1.35x | 61.15 | 62.52 | 1.19x |
-| 32 kbps | 1.38x | 81.20 | 83.25 | 0.97x |
-| 48 kbps | 1.16x | 121.30 | 121.28 | 0.97x |
-| 64 kbps | 1.24x | 161.40 | 161.39 | 1.08x |
-| 96 kbps | 1.46x | 241.00 | 241.56 | 0.92x |
-| 128 kbps | 1.50x | 321.00 | 321.75 | 0.90x |
-| 192 kbps | 1.44x | 481.00 | 482.13 | 0.92x |
-| 256 kbps | 1.44x | 641.00 | 642.12 | 0.94x |
+| 16 kbps | 1.36x | 41.37 | 42.24 | 1.21x |
+| 24 kbps | 1.36x | 61.15 | 62.52 | 0.99x |
+| 32 kbps | 1.40x | 81.20 | 83.25 | 0.98x |
+| 48 kbps | 1.17x | 121.30 | 121.28 | 1.03x |
+| 64 kbps | 1.49x | 161.40 | 161.39 | 0.98x |
+| 96 kbps | 1.38x | 241.00 | 241.56 | 0.92x |
+| 128 kbps | 1.40x | 321.00 | 321.75 | 0.91x |
+| 192 kbps | 1.50x | 481.00 | 482.13 | 0.94x |
+| 256 kbps | 1.46x | 641.00 | 642.12 | 0.96x |
 
 Source CSVs:
 
@@ -254,8 +253,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 228,216 B | 0 B | 228,216 B |
-| Android arm64 Clang `-O2` | 253,311 B | 800 B | 254,111 B |
+| Host MinGW GCC `-O2` | 228,292 B | 0 B | 228,292 B |
+| Android arm64 Clang `-O2` | 253,339 B | 800 B | 254,139 B |
 
 ## Toolchains checked
 
@@ -264,3 +263,4 @@ Source CSV:
 | MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` for a quick local check. |
+

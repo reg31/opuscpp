@@ -16,7 +16,6 @@
 #include <cstring>
 #include <limits>
 #include <memory>
-#include <ranges>
 #include <span>
 #include <string_view>
 #include <type_traits>
@@ -296,29 +295,29 @@ static int celt_decoder_set_start_band(CeltDecoderInternal *st, opus_int32 value
 [[nodiscard]] static opus_uint32 celt_decoder_final_range(const CeltDecoderInternal *st) noexcept;
 [[nodiscard]] static const CeltModeInternal *celt_decoder_mode(const CeltDecoderInternal *st) noexcept;
 template <std::size_t Size> consteval bool icdf_is_descending(const std::array<unsigned char, Size> &table) {
-  for (const auto index : std::views::iota(std::size_t{1}, Size)) {
+  for (std::size_t index = 1; index < Size; ++index) {
     if (table[index - 1] < table[index]) return false;
   }
   return true;
 }
 template <typename T, std::size_t Size> consteval bool array_is_strictly_increasing(const std::array<T, Size> &table) {
-  for (const auto index : std::views::iota(std::size_t{1}, Size)) {
+  for (std::size_t index = 1; index < Size; ++index) {
     if (!(table[index - 1] < table[index])) { return false; }
-}
+  }
   return true;
 }
 template <typename T, std::size_t Size> consteval bool array_is_non_decreasing(const std::array<T, Size> &table) {
-  for (const auto index : std::views::iota(std::size_t{1}, Size)) {
+  for (std::size_t index = 1; index < Size; ++index) {
     if (table[index] < table[index - 1]) { return false; }
-}
+  }
   return true;
 }
 template <typename T, std::size_t Rows, std::size_t Columns> consteval bool every_row_is_descending(const std::array<std::array<T, Columns>, Rows> &table) {
   for (const auto &row : table) {
-    for (const auto index : std::views::iota(std::size_t{1}, Columns)) {
+    for (std::size_t index = 1; index < Columns; ++index) {
       if (row[index - 1] < row[index]) return false;
     }
-}
+  }
   return true;
 }
 consteval void numeric_blob_fail() {
@@ -361,7 +360,7 @@ template <typename T, std::size_t Count> consteval auto numeric_blob_array(std::
   constexpr auto hex_digits_per_value = sizeof(T) * 2;
   std::array<T, Count> values{};
   auto position = std::size_t{0};
-  for (const auto index : std::views::iota(std::size_t{0}, Count)) {
+  for (std::size_t index = 0; index < Count; ++index) {
     for (; position < blob.size() && numeric_blob_is_whitespace(blob[position]); ++position) {}
     auto bits = storage_t{};
     for (auto digits_left = hex_digits_per_value; digits_left != 0; --digits_left) {
@@ -382,8 +381,8 @@ template <typename T, std::size_t Rows, std::size_t Columns> consteval auto nume
   const auto flat = numeric_blob_array<T, Rows * Columns>(blob);
   std::array<std::array<T, Columns>, Rows> values{};
   auto index = std::size_t{0};
-  for (const auto row : std::views::iota(std::size_t{0}, Rows)) {
-    for (const auto column : std::views::iota(std::size_t{0}, Columns)) {
+  for (std::size_t row = 0; row < Rows; ++row) {
+    for (std::size_t column = 0; column < Columns; ++column) {
       values[row][column] = flat[index++];
     }
   }
@@ -393,9 +392,9 @@ template <typename T, std::size_t Depth0, std::size_t Depth1, std::size_t Depth2
   const auto flat = numeric_blob_array<T, Depth0 * Depth1 * Depth2>(blob);
   std::array<std::array<std::array<T, Depth2>, Depth1>, Depth0> values{};
   auto index = std::size_t{0};
-  for (const auto outer : std::views::iota(std::size_t{0}, Depth0)) {
-    for (const auto middle : std::views::iota(std::size_t{0}, Depth1)) {
-      for (const auto inner : std::views::iota(std::size_t{0}, Depth2)) {
+  for (std::size_t outer = 0; outer < Depth0; ++outer) {
+    for (std::size_t middle = 0; middle < Depth1; ++middle) {
+      for (std::size_t inner = 0; inner < Depth2; ++inner) {
         values[outer][middle][inner] = flat[index++];
       }
     }
@@ -405,7 +404,7 @@ template <typename T, std::size_t Depth0, std::size_t Depth1, std::size_t Depth2
 template <typename Pair, typename Scalar, std::size_t Count> consteval auto numeric_blob_pair_array(std::string_view blob) -> std::array<Pair, Count> {
   const auto flat = numeric_blob_matrix<Scalar, Count, 2>(blob);
   std::array<Pair, Count> values{};
-  for (const auto index : std::views::iota(std::size_t{0}, Count)) {
+  for (std::size_t index = 0; index < Count; ++index) {
     values[index] = Pair{flat[index][0], flat[index][1]};
   }
   return values;
@@ -2257,10 +2256,17 @@ static OPUS_COLD OPUS_NOINLINE void reset_ref_encoder_state(ref_OpusEncoder *st,
   st->stream_channels = st->channels; st->hybrid_stereo_width_Q14 = 1 << 14; st->prev_HB_gain = 1.0f; st->first = 1;
   st->mode = opus_mode_hybrid; st->bandwidth = 1105; st->variable_HP_smth2_Q15 = ((opus_int32)((opus_uint32)(silk_lin2log(60)) << (8)));
 }
-struct packet_frame_block { std::span<const opus_int16> lengths; std::span<const unsigned char *const> frames; };
+struct packet_frame_block {
+  std::span<const opus_int16> lengths;
+  std::span<const unsigned char *const> frames;
+};
+
 [[nodiscard]] static inline auto packet_frame_block_view(const packet_frame_set *packet_frames, const int begin, const int count) -> packet_frame_block {
   const auto frame_count = static_cast<std::size_t>(count);
-  return {std::span<const opus_int16>{packet_frames->len}.subspan(static_cast<std::size_t>(begin), frame_count), std::span<const unsigned char *const>{packet_frames->frames}.subspan(static_cast<std::size_t>(begin), frame_count)};
+  return {
+      std::span<const opus_int16>{packet_frames->len}.subspan(static_cast<std::size_t>(begin), frame_count),
+      std::span<const unsigned char *const>{packet_frames->frames}.subspan(static_cast<std::size_t>(begin), frame_count),
+  };
 }
 static OPUS_COLD OPUS_NOINLINE int append_packet_frames(packet_frame_set *packet_frames, const unsigned char *data, opus_int32 len, int self_delimited) {
   unsigned char tmp_toc;
@@ -2279,8 +2285,10 @@ static OPUS_COLD OPUS_NOINLINE int append_packet_frames(packet_frame_set *packet
   packet_frames->nb_frames += curr_nb_frames;
   return 0;
 }
-[[nodiscard]] static constexpr auto packet_output_base_size(const std::span<const opus_int16> lengths, const int self_delimited) noexcept -> opus_int32 { return self_delimited ? 1 + (lengths.back() >= 252) : 0;
+[[nodiscard]] static constexpr auto packet_output_base_size(const std::span<const opus_int16> lengths, const int self_delimited) noexcept -> opus_int32 {
+  return self_delimited ? 1 + (lengths.back() >= 252) : 0;
 }
+
 [[nodiscard]] static inline auto packet_output_is_vbr(const std::span<const opus_int16> lengths) noexcept -> bool {
   if (lengths.empty()) return false;
   const auto first = lengths.front();
@@ -2290,7 +2298,10 @@ static OPUS_COLD OPUS_NOINLINE int append_packet_frames(packet_frame_set *packet
   return false;
 }
 static inline void copy_packet_frames(unsigned char *&ptr, const std::span<const unsigned char *const> frames, const std::span<const opus_int16> lengths) {
-  for (std::size_t index = 0; index < lengths.size(); ++index) { move_n_items(frames[index], static_cast<std::size_t>(lengths[index]), ptr); ptr += lengths[index]; }
+  for (std::size_t index = 0; index < lengths.size(); ++index) {
+    move_n_items(frames[index], static_cast<std::size_t>(lengths[index]), ptr);
+    ptr += lengths[index];
+  }
 }
 static OPUS_COLD OPUS_NOINLINE opus_int32 write_packet_frames(packet_frame_set *packet_frames, int begin, int end, unsigned char *data, opus_int32 maxlen, int self_delimited, int pad) {
   int i, count;
@@ -4188,10 +4199,10 @@ static void celt_plc_extrapolate_channel(celt_sig *buf, opus_val16 *lpc, const c
     }
   }
 }
-static int celt_plc_pitch_search(CeltDecoderInternal *st, std::span<celt_sig *const> decode_mem) {
+static int celt_plc_pitch_search(std::span<celt_sig *const> decode_mem) {
   int pitch_index;
   std::array<opus_val16, (2048 >> 1)> lp_pitch_buf;
-  (void)st; pitch_downsample(decode_mem, lp_pitch_buf.data(), 2048 >> 1, 2);
+  pitch_downsample(decode_mem, lp_pitch_buf.data(), 2048 >> 1, 2);
   pitch_search(lp_pitch_buf.data() + ((720) >> 1), lp_pitch_buf.data(), 2048 - (720), (720) - (100), &pitch_index);
   pitch_index = (720) - pitch_index;
   return (pitch_index);
@@ -4244,7 +4255,7 @@ static void celt_decode_lost(CeltDecoderInternal *st, int N, int LM) {
     int pitch_index, curr_neural, last_neural;
     curr_neural = curr_frame_type == 4 || curr_frame_type == 5; last_neural = st->last_frame_type == 4 || st->last_frame_type == 5;
     if (st->last_frame_type != 3 && !(last_neural && curr_neural)) {
-      st->last_pitch_index = pitch_index = celt_plc_pitch_search(st, std::span<celt_sig *const>{decode_mem.data(), static_cast<std::size_t>(C)});
+      st->last_pitch_index = pitch_index = celt_plc_pitch_search(std::span<celt_sig *const>{decode_mem.data(), static_cast<std::size_t>(C)});
     } else { pitch_index = st->last_pitch_index; fade = (.8f); }
     const auto exc_length = std::min(2 * pitch_index, celt_plc_max_period); const auto update_lpc = st->last_frame_type != 3 && !(last_neural && curr_neural);
     for (c = 0; c < C; ++c) celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, mode->window, overlap, N, pitch_index, exc_length, fade, update_lpc);
@@ -4457,6 +4468,29 @@ static_assert(celt_pvq_u_data.size() == 551);
   return celt_pvq_u_entry_raw(row, column);
 }
 
+struct celt_pvq_u_row_ref {
+  int row{};
+  unsigned max_column{};
+  const opus_uint32 *base{};
+
+  [[nodiscard]] OPUS_ALWAYS_INLINE auto get(const int column) const noexcept -> opus_uint32 {
+    if (row == 0) { return 0U; }
+    const auto row_index = static_cast<unsigned>(row);
+    const auto column_index = static_cast<unsigned>(column);
+    if (row_index < celt_pvq_table_first_stored_row) { return celt_pvq_u_small_row_formula(row_index, column_index); }
+    if (base != nullptr && column_index <= max_column) { return base[column_index]; }
+    return celt_pvq_u_entry_slow(row, column);
+  }
+};
+
+[[nodiscard]] static OPUS_ALWAYS_INLINE auto celt_pvq_u_row(int row) noexcept -> celt_pvq_u_row_ref {
+  const auto row_index = static_cast<unsigned>(row);
+  if (row_index >= celt_pvq_table_first_stored_row && row_index < celt_pvq_u_row_max.size()) {
+    return {row, celt_pvq_u_row_max[row_index], celt_pvq_u_data.data() + celt_pvq_u_row_offsets[row_index] - row_index};
+  }
+  return {row, 0U, nullptr};
+}
+
 [[nodiscard]] static OPUS_ALWAYS_INLINE auto celt_pvq_u_entry_ordered(int row, int column) noexcept -> opus_uint32 {
   if (row == 0) { return column == 0 ? 1U : 0U; }
   if (column == 0) { return 0U; }
@@ -4503,28 +4537,29 @@ static void encode_pulses(const int *_y, int _n, int _k, ec_enc *_enc) {
   ec_enc_uint(_enc, icwrs(_n, _y), celt_pvq_u_total(_n, _k));
 }
 
-static OPUS_ALWAYS_INLINE opus_val32 cwrsi(int _n, int _k, opus_uint32 _i, int *_y) {
+static OPUS_INT_HOT OPUS_ALWAYS_INLINE opus_val32 cwrsi(int _n, int _k, opus_uint32 _i, int *_y) {
   opus_uint32 p;
   int s, k0;
   opus_int16 val; opus_val32 yy = 0;
   for (; _n > 2; --_n) {
     opus_uint32 q;
     if (_k >= _n) {
-      p = celt_pvq_u_entry_cwrs(_n, _k + 1); s = -(_i >= p); _i -= p & s; k0 = _k; q = celt_pvq_u_entry_cwrs(_n, _n);
+      const auto row = celt_pvq_u_row(_n);
+      p = row.get(_k + 1); s = -(_i >= p); _i -= p & s; k0 = _k; q = row.get(_n);
       if (q > _i) {
         _k = _n;
         for (p = celt_pvq_u_entry_cwrs(--_k, _n); p > _i; p = celt_pvq_u_entry_cwrs(--_k, _n)) {}
       } else {
-        for (p = celt_pvq_u_entry_cwrs(_n, _k); p > _i; p = celt_pvq_u_entry_cwrs(_n, _k)) { --_k; }
+        for (p = row.get(_k); p > _i; p = row.get(_k)) { --_k; }
       }
       _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
     } else {
-      p = celt_pvq_u_entry_cwrs(_k, _n); q = celt_pvq_u_entry_cwrs(_k + 1, _n);
+      p = celt_pvq_u_row(_k).get(_n); q = celt_pvq_u_row(_k + 1).get(_n);
       if (p <= _i && _i < q) {
         _i -= p; *_y++ = 0;
       } else {
         s = -(_i >= q); _i -= q & s; k0 = _k;
-        for (p = celt_pvq_u_entry_cwrs(--_k, _n); p > _i; p = celt_pvq_u_entry_cwrs(--_k, _n)) {}
+        for (p = celt_pvq_u_row(--_k).get(_n); p > _i; p = celt_pvq_u_row(--_k).get(_n)) {}
         _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
       }
     }
@@ -4570,7 +4605,7 @@ static OPUS_ALWAYS_INLINE auto celt_decode_two_pulses_zeroed(int *_y, int _n, op
   }
 }
 
-static OPUS_ALWAYS_INLINE opus_val32 decode_pulses(int *_y, int _n, int _k, ec_dec *_dec) {
+static OPUS_INT_HOT OPUS_ALWAYS_INLINE opus_val32 decode_pulses(int *_y, int _n, int _k, ec_dec *_dec) {
   if (_k == 1) {
     const auto index = ec_dec_uint(_dec, static_cast<opus_uint32>(_n << 1));
     zero_n_items(_y, static_cast<std::size_t>(_n));
@@ -4775,13 +4810,11 @@ void ec_enc_done(ec_enc *_this) {
     }
   }
 }
-static void kf_bfly2(kiss_fft_cpx *Fout, int m, int N) {
+static void kf_bfly2(kiss_fft_cpx *Fout, int N) {
   kiss_fft_cpx *Fout2;
   int i;
-  (void)m;
   {
     celt_coef tw; tw = (0.7071067812f);
-    opus_assume(m == 4);
     for (i = 0; i < N; i++) {
       kiss_fft_cpx t; Fout2 = Fout + 4; t = Fout2[0];
       { (Fout2[0]).r = (Fout[0]).r - (t).r; (Fout2[0]).i = (Fout[0]).i - (t).i;
@@ -4844,7 +4877,7 @@ static void kf_bfly5(kiss_fft_cpx *Fout, const size_t fstride, const kiss_fft_st
 }
 static void fft_impl_480(kiss_fft_cpx *fout, const kiss_fft_state *st) {
   kf_bfly4(fout, 120, st, 1, 120, 4);
-  kf_bfly2(fout, 4, 60);
+  kf_bfly2(fout, 60);
   kf_bfly4(fout, 15, st, 8, 15, 32);
   kf_bfly3(fout, 5, st, 32, 5, 96);
   kf_bfly5(fout, 1, st, 96, 1, 1);
@@ -4857,7 +4890,7 @@ static void fft_impl_240(kiss_fft_cpx *fout, const kiss_fft_state *st) {
 }
 static void fft_impl_120(kiss_fft_cpx *fout, const kiss_fft_state *st) {
   kf_bfly4(fout, 120, st, 1, 30, 4);
-  kf_bfly2(fout, 4, 15);
+  kf_bfly2(fout, 15);
   kf_bfly3(fout, 20, st, 8, 5, 24);
   kf_bfly5(fout, 4, st, 24, 1, 1);
 }
@@ -4974,8 +5007,8 @@ static void clt_mdct_backward_transform_c(const mdct_lookup *l, float *in, float
   int i;
   int N, N2, N4;
   const float *trig;
-  const auto *__restrict in_base = in;
-  auto *__restrict out_base = out;
+  const auto *in_base = in;
+  auto *out_base = out;
   N = l->n; trig = l->trig;
   for (i = 0; i < shift; i++) { N >>= 1; trig += N;
 }

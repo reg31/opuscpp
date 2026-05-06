@@ -26,6 +26,7 @@ namespace {
 
 constexpr int sample_rate = 48000;
 constexpr int frame_size = 960;
+constexpr double benchmark_seconds = 8.0;
 constexpr double pi = 3.141592653589793238462643383279502884;
 constexpr std::array bitrates{16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000};
 
@@ -140,12 +141,17 @@ auto decode_stream(Decoder *dec, DecodeFn decode, const packet_stream &stream, i
   return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
 }
 
+auto median_ms(std::vector<double> values) -> double {
+  std::ranges::sort(values);
+  return values[values.size() / 2];
+}
+
 } // namespace
 
 int main() {
   try {
     constexpr int channels = 2;
-    const auto pcm = make_music_like_pcm(channels, 8.0);
+    const auto pcm = make_music_like_pcm(channels, benchmark_seconds);
     std::cout << "bitrate,encode_speedx,current_encode_ms,official_encode_ms,current_avg_bytes,official_avg_bytes,packet_delta_pct,decode_speedx,current_decode_ms,official_decode_ms\n";
     for (const auto bitrate : bitrates) {
       auto current_enc = make_current_encoder(channels, bitrate);
@@ -153,10 +159,24 @@ int main() {
       const auto current_packets = encode_stream(current_enc.ptr, curr_opus_encode, pcm, channels);
       const auto official_packets = encode_stream(official_enc.ptr, opus_encode, pcm, channels);
 
-      auto current_dec = make_current_decoder(channels);
-      auto official_dec = make_official_decoder(channels);
-      const auto current_decode_ms = decode_stream(current_dec.ptr, curr_opus_decode, official_packets, channels);
-      const auto official_decode_ms = decode_stream(official_dec.ptr, opus_decode, official_packets, channels);
+      std::vector<double> current_decode_runs, official_decode_runs;
+      current_decode_runs.reserve(5);
+      official_decode_runs.reserve(5);
+      for (int run = 0; run < 5; ++run) {
+        if ((run & 1) == 0) {
+          auto current_dec = make_current_decoder(channels);
+          current_decode_runs.push_back(decode_stream(current_dec.ptr, curr_opus_decode, official_packets, channels));
+          auto official_dec = make_official_decoder(channels);
+          official_decode_runs.push_back(decode_stream(official_dec.ptr, opus_decode, official_packets, channels));
+        } else {
+          auto official_dec = make_official_decoder(channels);
+          official_decode_runs.push_back(decode_stream(official_dec.ptr, opus_decode, official_packets, channels));
+          auto current_dec = make_current_decoder(channels);
+          current_decode_runs.push_back(decode_stream(current_dec.ptr, curr_opus_decode, official_packets, channels));
+        }
+      }
+      const auto current_decode_ms = median_ms(std::move(current_decode_runs));
+      const auto official_decode_ms = median_ms(std::move(official_decode_runs));
 
       const auto frame_count = static_cast<double>(official_packets.packets.size());
       const auto current_avg_bytes = static_cast<double>(current_packets.bytes) / frame_count;

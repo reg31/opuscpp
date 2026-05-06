@@ -5,7 +5,6 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <ranges>
 #include <span>
 #include <stdexcept>
 #include <string>

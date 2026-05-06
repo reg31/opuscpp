@@ -23,15 +23,15 @@ It records what the script prepared locally and summarizes the published benchma
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.327331x | 1.189486x |
-| 24 kbps | 1.346823x | 1.188494x |
-| 32 kbps | 1.380203x | 0.969183x |
-| 48 kbps | 1.164604x | 0.973553x |
-| 64 kbps | 1.236177x | 1.076160x |
-| 96 kbps | 1.464176x | 0.918050x |
-| 128 kbps | 1.498194x | 0.902355x |
-| 192 kbps | 1.441373x | 0.916533x |
-| 256 kbps | 1.443407x | 0.939188x |
+| 16 kbps | 1.362777x | 1.206812x |
+| 24 kbps | 1.359762x | 0.989006x |
+| 32 kbps | 1.399306x | 0.983140x |
+| 48 kbps | 1.170825x | 1.027752x |
+| 64 kbps | 1.489111x | 0.979129x |
+| 96 kbps | 1.380656x | 0.917906x |
+| 128 kbps | 1.398048x | 0.910929x |
+| 192 kbps | 1.496652x | 0.938232x |
+| 256 kbps | 1.457907x | 0.957761x |
 
 ## Quality metrics vs official Opus
 
@@ -67,8 +67,8 @@ It records what the script prepared locally and summarizes the published benchma
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 228,216 B | 0 B | 228,216 B |
-| Android arm64 Clang `-O2` | 253,311 B | 800 B | 254,111 B |
+| Host MinGW GCC `-O2` | 228,292 B | 0 B | 228,292 B |
+| Android arm64 Clang `-O2` | 253,339 B | 800 B | 254,139 B |
 
 ## Toolchains checked
 
@@ -76,3 +76,4 @@ It records what the script prepared locally and summarizes the published benchma
 |---|---|
 | MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
+
