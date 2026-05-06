@@ -2,7 +2,7 @@
 
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in our measured configurations, and quality metrics close to upstream. `opuscpp` is generally faster to encode than official Opus in the measured configurations, while decode performance is competitive with the portable official build (`0.90x` to `1.20x` in the published benchmark set) and close to the optimized x86-intrinsics build. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in our measured configurations, and quality metrics close to upstream. `opuscpp` is generally faster to encode than official Opus in the measured configurations, while decode performance is competitive with the portable official build (`0.90x` to `1.19x` in the published benchmark set) and close to the optimized x86-intrinsics build. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 Minimal integration looks like:
 
@@ -71,15 +71,15 @@ Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with sel
 
 | Bitrate | Encode speed | Decode speed | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.36x | 1.20x | -0.0003 | -0.0153 | -2.1% |
-| 24 kbps | 1.34x | 0.98x | -0.0071 | +0.0386 | -2.2% |
-| 32 kbps | 1.35x | 0.98x | +0.0004 | +0.0339 | -2.5% |
-| 48 kbps | 1.23x | 0.98x | +0.0002 | +0.0111 | +0.0% |
-| 64 kbps | 1.31x | 0.98x | +0.0011 | -0.0028 | +0.0% |
-| 96 kbps | 1.41x | 0.93x | -0.0004 | -0.0011 | -0.2% |
-| 128 kbps | 1.51x | 0.90x | +0.0005 | +0.0009 | -0.2% |
-| 192 kbps | 1.47x | 0.92x | +0.0001 | -0.0009 | -0.2% |
-| 256 kbps | 1.47x | 0.95x | +0.0001 | -0.0017 | -0.2% |
+| 16 kbps | 1.33x | 1.19x | -0.0003 | -0.0153 | -2.1% |
+| 24 kbps | 1.35x | 1.19x | -0.0071 | +0.0386 | -2.2% |
+| 32 kbps | 1.38x | 0.97x | +0.0004 | +0.0339 | -2.5% |
+| 48 kbps | 1.16x | 0.97x | +0.0002 | +0.0111 | +0.0% |
+| 64 kbps | 1.24x | 1.08x | +0.0011 | -0.0028 | +0.0% |
+| 96 kbps | 1.46x | 0.92x | -0.0004 | -0.0011 | -0.2% |
+| 128 kbps | 1.50x | 0.90x | +0.0005 | +0.0009 | -0.2% |
+| 192 kbps | 1.44x | 0.92x | +0.0001 | -0.0009 | -0.2% |
+| 256 kbps | 1.44x | 0.94x | +0.0001 | -0.0017 | -0.2% |
 
 Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

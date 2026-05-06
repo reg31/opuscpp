@@ -364,7 +364,7 @@ template <typename T, std::size_t Count> consteval auto numeric_blob_array(std::
   for (const auto index : std::views::iota(std::size_t{0}, Count)) {
     for (; position < blob.size() && numeric_blob_is_whitespace(blob[position]); ++position) {}
     auto bits = storage_t{};
-    for ([[maybe_unused]] const auto digit : std::views::iota(std::size_t{0}, hex_digits_per_value)) {
+    for (auto digits_left = hex_digits_per_value; digits_left != 0; --digits_left) {
       if (position >= blob.size() || !numeric_blob_is_hex(blob[position])) {
         numeric_blob_fail();
       }
@@ -1276,7 +1276,7 @@ static opus_int32 silk_stereo_find_predictor(opus_int32 *ratio_Q14, const opus_i
 struct silk_shape_state_FLP { opus_int8 LastGainIndex; float HarmShapeGain_smth, Tilt_smth; };
 struct silk_encoder_state_FLP { silk_encoder_state sCmn; silk_shape_state_FLP sShape; float x_buf[2 * ((5 * 4) * 16) + (5 * 16)], LTPCorr; };
 struct silk_encoder_control_FLP {
-  float Gains[4], PredCoef[2][16], LTPCoef[5 * 4], LTP_scale, AR[4 * 24], LF_MA_shp[4], LF_AR_shp[4], Tilt[4], HarmShapeGain[4], Lambda, input_quality, coding_quality, predGain, LTPredCodGain, ResNrg[4];
+  float Gains[4], PredCoef[2][16], LTPCoef[5 * 4], AR[4 * 24], LF_MA_shp[4], LF_AR_shp[4], Tilt[4], HarmShapeGain[4], Lambda, input_quality, coding_quality, predGain, LTPredCodGain, ResNrg[4];
   int pitchL[4];
   opus_int32 GainsUnq_Q16[4]; opus_int8 lastGainIndexPrev;
 };
@@ -3440,7 +3440,7 @@ static opus_val16 tone_detect(const celt_sig *in, int CC, int N, opus_val32 *ton
   const opus_val16 *x = in;
   if (CC == 2) {
     auto *x_sum = OPUS_SCRATCH(opus_val16, N);
-    for (i = 0; i < N; i++) x_sum[i] = ((((in[i])) + ((in[i + N]))));
+    for (i = 0; i < N; i++) x_sum[i] = 0.5f * (in[i] + in[i + N]);
     x = x_sum;
 }
   fail = tone_lpc(x, N, delay, lpc);
@@ -3754,7 +3754,10 @@ static OPUS_ENCODER_HUB_SIZE_OPT int celt_encode_with_ec(CeltEncoderInternal *st
   const auto tone = celt_analyse_tone(in, layout, tf_estimate);
   tone_freq = tone.frequency; toneishness = tone.toneishness; isTransient = 0;
   const auto prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, layout, nbAvailableBytes, total_bits, tell, silence, tf_estimate, tone_freq, toneishness);
-  [[maybe_unused]] const int pf_on = prefilter.enabled; pitch_index = prefilter.pitch_index; prefilter_tapset = prefilter.tapset; gain1 = prefilter.gain;
+#if defined(OPUS_CODEC_TRACE_RATE)
+  const int pf_on = prefilter.enabled;
+#endif
+  pitch_index = prefilter.pitch_index; prefilter_tapset = prefilter.tapset; gain1 = prefilter.gain;
   shortBlocks = celt_choose_short_blocks(enc, LM, total_bits, isTransient, &transient_got_disabled);
   // Frequency-domain analysis creates the band energies and scratch workset
   // used by dynalloc, TF signalling, trim, and pulse allocation.
@@ -6064,7 +6067,7 @@ void silk_decode_pulses(ec_dec *psRangeDec, std::span<opus_int16> pulses, const 
   opus_int16 *pulses_ptr;
   const opus_uint8 *cdf_ptr;
   RateLevelIndex = ec_dec_icdf(psRangeDec, silk_rate_levels_iCDF[signalType >> 1].data(), 8);
-  opus_assume(1 << 4 == 16); iter = ((frame_length) >> (4));
+  iter = ((frame_length) >> (4));
   if (iter * 16 < frame_length) { opus_assume(frame_length == 12 * 10); iter++;
 }
   cdf_ptr = silk_pulses_per_block_iCDF[RateLevelIndex].data();
@@ -6671,7 +6674,7 @@ void silk_encode_pulses(ec_enc *psRangeEnc, const int signalType, const int quan
   int *abs_pulses_ptr;
   const opus_int8 *pulses_ptr;
   const opus_uint8 *cdf_ptr, *nBits_ptr;
-  opus_assume(1 << 4 == 16); iter = ((frame_length) >> (4));
+  iter = ((frame_length) >> (4));
   if (iter * 16 < frame_length) {
     opus_assume(frame_length == 12 * 10); iter++;
     zero_n_bytes(&pulses[static_cast<std::size_t>(frame_length)], static_cast<std::size_t>(16 * sizeof(opus_int8)));
@@ -6813,7 +6816,6 @@ void silk_LP_variable_cutoff(silk_LP_state *psLP, opus_int16 *frame, const int f
     opus_assume(ind >= 0); opus_assume(ind < 5);
     silk_LP_interpolate_filter_taps(B_Q28, A_Q28, ind, fac_Q16);
     psLP->transition_frame_no = ((0) > ((5120 / (5 * 4))) ? ((psLP->transition_frame_no + psLP->mode) > (0) ? (0) : ((psLP->transition_frame_no + psLP->mode) < ((5120 / (5 * 4))) ? ((5120 / (5 * 4))) : (psLP->transition_frame_no + psLP->mode))) : ((psLP->transition_frame_no + psLP->mode) > ((5120 / (5 * 4))) ? ((5120 / (5 * 4))) : ((psLP->transition_frame_no + psLP->mode) < (0) ? (0) : (psLP->transition_frame_no + psLP->mode))));
-    opus_assume(3 == 3 && 2 == 2);
     silk_biquad_alt_stride1(frame, B_Q28, A_Q28, psLP->In_LP_State, frame, frame_length); }
 }
 static void silk_NLSF_residual_dequant(opus_int16 x_Q10[], const opus_int8 indices[], const opus_uint8 pred_coef_Q8[], const int quant_step_size_Q16, const opus_int16 order) {
@@ -7469,7 +7471,7 @@ int silk_VAD_GetSA_Q8_c(silk_encoder_state *psEncC, const opus_int16 pIn[]) {
   opus_int32 speech_nrg, x_tmp;
   int X_offset[4];
   int ret = 0;
-  silk_VAD_state *psSilk_VAD = &psEncC->sVAD; opus_assume(4 == 4);
+  silk_VAD_state *psSilk_VAD = &psEncC->sVAD;
   opus_assume(((5 * 4) * 16) >= psEncC->frame_length); opus_assume(psEncC->frame_length <= 512);
   opus_assume(psEncC->frame_length == 8 * ((psEncC->frame_length) >> (3)));
   decimated_framelength1 = ((psEncC->frame_length) >> (1)); decimated_framelength2 = ((psEncC->frame_length) >> (2));
@@ -8347,7 +8349,7 @@ void silk_NLSF2A(opus_int16 *a_Q12, const opus_int16 *NLSF, const int d) {
   int k, i, dd;
   opus_int32 cos_LSF_QA[24]{}; opus_int32 P[24 / 2 + 1], Q[24 / 2 + 1];
   opus_int32 Ptmp, Qtmp, f_int, f_frac, cos_val, delta; opus_int32 a32_QA1[24];
-  opus_assume(128 == 128); opus_assume(d == 10 || d == 16);
+  opus_assume(d == 10 || d == 16);
   ordering = d == 16 ? ordering16.data() : ordering10.data();
   for (k = 0; k < d; k++) {
     opus_assume(NLSF[k] >= 0); f_int = ((NLSF[k]) >> (15 - 7));
@@ -9218,7 +9220,6 @@ void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP *psEnc, silk_encoder_control
   } else {
     psEnc->sCmn.indices.LTP_scaleIndex = 0;
   }
-  psEncCtrl->LTP_scale = (float)silk_LTPScales_table_Q14[psEnc->sCmn.indices.LTP_scaleIndex] / 16384.0f;
 }
 [[nodiscard]] constexpr auto warped_gain(std::span<const float> coefs, float lambda) noexcept -> float {
   lambda = -lambda;
@@ -9331,7 +9332,7 @@ fill_n_items(psEncCtrl->LF_MA_shp + 1, static_cast<std::size_t>(psEnc->sCmn.nb_s
 fill_n_items(psEncCtrl->LF_AR_shp + 1, static_cast<std::size_t>(psEnc->sCmn.nb_subfr - 1), psEncCtrl->LF_AR_shp[0]);
     Tilt = -0.25f;
 }
-  if (1 && psEnc->sCmn.indices.signalType == 2) {
+  if (psEnc->sCmn.indices.signalType == 2) {
     HarmShapeGain = 0.3f; HarmShapeGain += 0.2f * (1.0f - (1.0f - psEncCtrl->coding_quality) * psEncCtrl->input_quality);
     HarmShapeGain *= silk_sqrt_reference(psEnc->LTPCorr);
   } else { HarmShapeGain = 0.0f;

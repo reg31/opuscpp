@@ -155,8 +155,8 @@ def emit_metrics_report(repo_root: pathlib.Path, output_dir: pathlib.Path) -> pa
         "",
         "| Build | Text | Data | Total measured text+data |",
         "|---|---:|---:|---:|",
-        "| Host MinGW GCC `-O2` | 227,216 B | 0 B | 227,216 B |",
-        "| Android arm64 Clang `-O2` | 252,387 B | 800 B | 253,187 B |",
+        "| Host MinGW GCC `-O2` | 228,216 B | 0 B | 228,216 B |",
+        "| Android arm64 Clang `-O2` | 253,311 B | 800 B | 254,111 B |",
         "",
         "## Toolchains checked",
         "",
@@ -540,7 +540,7 @@ def main() -> int:
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"), help="C++23 compiler to use for our harness.")
     parser.add_argument(
         "--generator",
-        default="Ninja" if shutil.which("ninja") else None,
+        default=None,
         help="Optional CMake generator for the official-opus build.",
     )
     parser.add_argument(

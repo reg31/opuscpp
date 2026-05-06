@@ -8,36 +8,36 @@ using opus_int32 = std::int32_t;
 using opus_uint32 = std::uint32_t;
 
 // Status codes.
-static constexpr int OPUS_OK = 0;
-static constexpr int OPUS_BAD_ARG = -1;
-static constexpr int OPUS_BUFFER_TOO_SMALL = -2;
-static constexpr int OPUS_INTERNAL_ERROR = -3;
-static constexpr int OPUS_INVALID_PACKET = -4;
-static constexpr int OPUS_UNIMPLEMENTED = -5;
-static constexpr int OPUS_INVALID_STATE = -6;
-static constexpr int OPUS_ALLOC_FAIL = -7;
+inline constexpr int OPUS_OK = 0;
+inline constexpr int OPUS_BAD_ARG = -1;
+inline constexpr int OPUS_BUFFER_TOO_SMALL = -2;
+inline constexpr int OPUS_INTERNAL_ERROR = -3;
+inline constexpr int OPUS_INVALID_PACKET = -4;
+inline constexpr int OPUS_UNIMPLEMENTED = -5;
+inline constexpr int OPUS_INVALID_STATE = -6;
+inline constexpr int OPUS_ALLOC_FAIL = -7;
 
 // Application modes supported by the single-stream encoder.
-static constexpr int OPUS_APPLICATION_VOIP = 2048;
-static constexpr int OPUS_APPLICATION_AUDIO = 2049;
-static constexpr int OPUS_APPLICATION_RESTRICTED_LOWDELAY = 2051;
+inline constexpr int OPUS_APPLICATION_VOIP = 2048;
+inline constexpr int OPUS_APPLICATION_AUDIO = 2049;
+inline constexpr int OPUS_APPLICATION_RESTRICTED_LOWDELAY = 2051;
 
 // Bitrate helpers.
-static constexpr int OPUS_AUTO = -1000;
-static constexpr int OPUS_BITRATE_MAX = -1;
+inline constexpr int OPUS_AUTO = -1000;
+inline constexpr int OPUS_BITRATE_MAX = -1;
 
 // CTL request identifiers.
-static constexpr int OPUS_SET_BITRATE_REQUEST = 4002;
-static constexpr int OPUS_GET_BITRATE_REQUEST = 4003;
-static constexpr int OPUS_SET_VBR_REQUEST = 4006;
-static constexpr int OPUS_GET_VBR_REQUEST = 4007;
-static constexpr int OPUS_SET_COMPLEXITY_REQUEST = 4010;
-static constexpr int OPUS_GET_COMPLEXITY_REQUEST = 4011;
-static constexpr int OPUS_SET_VBR_CONSTRAINT_REQUEST = 4020;
-static constexpr int OPUS_GET_VBR_CONSTRAINT_REQUEST = 4021;
-static constexpr int OPUS_RESET_STATE = 4028;
-static constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
-static constexpr int OPUS_GET_LAST_PACKET_DURATION_REQUEST = 4039;
+inline constexpr int OPUS_SET_BITRATE_REQUEST = 4002;
+inline constexpr int OPUS_GET_BITRATE_REQUEST = 4003;
+inline constexpr int OPUS_SET_VBR_REQUEST = 4006;
+inline constexpr int OPUS_GET_VBR_REQUEST = 4007;
+inline constexpr int OPUS_SET_COMPLEXITY_REQUEST = 4010;
+inline constexpr int OPUS_GET_COMPLEXITY_REQUEST = 4011;
+inline constexpr int OPUS_SET_VBR_CONSTRAINT_REQUEST = 4020;
+inline constexpr int OPUS_GET_VBR_CONSTRAINT_REQUEST = 4021;
+inline constexpr int OPUS_RESET_STATE = 4028;
+inline constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
+inline constexpr int OPUS_GET_LAST_PACKET_DURATION_REQUEST = 4039;
 
 #define OPUS_SET_BITRATE(x) OPUS_SET_BITRATE_REQUEST, static_cast<int>(x)
 #define OPUS_GET_BITRATE(x) OPUS_GET_BITRATE_REQUEST, (x)
@@ -51,10 +51,10 @@ static constexpr int OPUS_GET_LAST_PACKET_DURATION_REQUEST = 4039;
 #define OPUS_GET_LAST_PACKET_DURATION(x) OPUS_GET_LAST_PACKET_DURATION_REQUEST, (x)
 
 // 48 kHz frame sizes used by the public API.
-static constexpr int OPUS_FRAME_SIZE_2MS5 = 120;
-static constexpr int OPUS_FRAME_SIZE_5MS = 240;
-static constexpr int OPUS_FRAME_SIZE_10MS = 480;
-static constexpr int OPUS_FRAME_SIZE_20MS = 960;
+inline constexpr int OPUS_FRAME_SIZE_2MS5 = 120;
+inline constexpr int OPUS_FRAME_SIZE_5MS = 240;
+inline constexpr int OPUS_FRAME_SIZE_10MS = 480;
+inline constexpr int OPUS_FRAME_SIZE_20MS = 960;
 
 struct OpusEncoder;
 struct OpusDecoder;
