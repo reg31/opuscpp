@@ -41,11 +41,11 @@ It records what the script prepared locally and summarizes the published benchma
 | 24 kbps | -0.0071 | 0.0386 | 22.0159 |
 | 32 kbps | 0.0004 | 0.0339 | 16.8861 |
 | 48 kbps | 0.0002 | 0.0111 | 0.3869 |
-| 64 kbps | 0.0011 | -0.0028 | 0.1908 |
-| 96 kbps | -0.0004 | -0.0011 | -0.2133 |
-| 128 kbps | 0.0005 | 0.0009 | -0.2383 |
-| 192 kbps | 0.0001 | -0.0009 | -0.2936 |
-| 256 kbps | 0.0001 | -0.0017 | -0.2176 |
+| 64 kbps | 0.0001 | 0.0024 | 0.2398 |
+| 96 kbps | -0.0001 | 0.0012 | -0.1375 |
+| 128 kbps | 0.0004 | 0.0013 | -0.2896 |
+| 192 kbps | 0.0002 | 0.0000 | -0.2220 |
+| 256 kbps | 0.0002 | -0.0010 | -0.1256 |
 
 ## Detector mode-balance spot check
 
@@ -67,7 +67,7 @@ It records what the script prepared locally and summarizes the published benchma
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 228,292 B | 0 B | 228,292 B |
+| Host MinGW GCC `-O2` | 228,308 B | 0 B | 228,308 B |
 | Android arm64 Clang `-O2` | 253,339 B | 800 B | 254,139 B |
 
 ## Toolchains checked
@@ -76,4 +76,3 @@ It records what the script prepared locally and summarizes the published benchma
 |---|---|
 | MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
-

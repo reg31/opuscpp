@@ -79,11 +79,11 @@ Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with sel
 | 24 kbps | 1.36x | 0.99x | -0.0071 | +0.0386 | -2.2% |
 | 32 kbps | 1.40x | 0.98x | +0.0004 | +0.0339 | -2.5% |
 | 48 kbps | 1.17x | 1.03x | +0.0002 | +0.0111 | +0.0% |
-| 64 kbps | 1.49x | 0.98x | +0.0011 | -0.0028 | +0.0% |
-| 96 kbps | 1.38x | 0.92x | -0.0004 | -0.0011 | -0.2% |
-| 128 kbps | 1.40x | 0.91x | +0.0005 | +0.0009 | -0.2% |
-| 192 kbps | 1.50x | 0.94x | +0.0001 | -0.0009 | -0.2% |
-| 256 kbps | 1.46x | 0.96x | +0.0001 | -0.0017 | -0.2% |
+| 64 kbps | 1.49x | 0.98x | +0.0001 | +0.0024 | +0.0% |
+| 96 kbps | 1.38x | 0.92x | -0.0001 | +0.0012 | -0.3% |
+| 128 kbps | 1.40x | 0.91x | +0.0004 | +0.0013 | -0.3% |
+| 192 kbps | 1.50x | 0.94x | +0.0002 | +0.0000 | -0.3% |
+| 256 kbps | 1.46x | 0.96x | +0.0002 | -0.0010 | -0.1% |
 
 Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

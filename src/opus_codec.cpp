@@ -3241,6 +3241,7 @@ static int alloc_trim_analysis(const CeltModeInternal *m, const celt_norm *X, co
   const opus_val16 trim_adjust = (diff + (1.f)) / 6;
   trim -= std::max(-(2.f), std::min(2.f, trim_adjust));
   trim -= 2 * (tf_estimate);
+  if (equiv_rate >= 64000) trim += (1.f);
   trim_index = (int)floor(.5f + trim); trim_index = std::max(0, std::min(10, trim_index));
   return trim_index;
 }
