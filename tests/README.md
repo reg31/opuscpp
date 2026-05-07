@@ -253,7 +253,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 228,308 B | 0 B | 228,308 B |
+| Host MinGW GCC `-O2` | 228,260 B | 0 B | 228,260 B |
 | Android arm64 Clang `-O2` | 253,339 B | 800 B | 254,139 B |
 
 ## Toolchains checked

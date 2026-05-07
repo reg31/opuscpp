@@ -6960,6 +6960,9 @@ static void silk_noise_shape_quantizer(silk_nsq_state *NSQ, int signalType, std:
   opus_int32 *psLPC_Q14, *shp_lag_ptr, *pred_lag_ptr;
   const auto length = static_cast<int>(x_sc_Q10.size()); const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
   const auto b_q14_coefficients = b_Q14.first<5>();
+  const auto tilt_Q14_i16 = static_cast<opus_int16>(Tilt_Q14);
+  const auto lf_shp_Q14_i16 = static_cast<opus_int16>(LF_shp_Q14);
+  const auto lf_shp_Q14_high = static_cast<opus_int64>(LF_shp_Q14) >> 16;
   shp_lag_ptr = &NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - lag + 3 / 2];
   pred_lag_ptr = &sLTP_Q15[NSQ->sLTP_buf_idx - lag + 5 / 2]; Gain_Q10 = ((Gain_Q16) >> (6)); psLPC_Q14 = &NSQ->sLPC_Q14[16 - 1];
   for (i = 0; i < length; i++) {
@@ -6969,9 +6972,9 @@ static void silk_noise_shape_quantizer(silk_nsq_state *NSQ, int signalType, std:
 }
     opus_assume((shapingLPCOrder & 1) == 0);
     n_AR_Q12 = silk_NSQ_noise_shape_feedback_loop_c(&NSQ->sDiff_shp_Q14, NSQ->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder);
-    n_AR_Q12 = ((opus_int32)((n_AR_Q12) + (((NSQ->sLF_AR_shp_Q14) * (opus_int64)((opus_int16)(Tilt_Q14))) >> 16)));
-    n_LF_Q12 = ((opus_int32)(((NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - 1]) * (opus_int64)((opus_int16)(LF_shp_Q14))) >> 16));
-    n_LF_Q12 = ((opus_int32)((n_LF_Q12) + (((NSQ->sLF_AR_shp_Q14) * ((opus_int64)(LF_shp_Q14) >> 16)) >> 16)));
+    n_AR_Q12 = ((opus_int32)((n_AR_Q12) + (((NSQ->sLF_AR_shp_Q14) * (opus_int64)tilt_Q14_i16) >> 16)));
+    n_LF_Q12 = ((opus_int32)(((NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - 1]) * (opus_int64)lf_shp_Q14_i16) >> 16));
+    n_LF_Q12 = ((opus_int32)((n_LF_Q12) + (((NSQ->sLF_AR_shp_Q14) * lf_shp_Q14_high) >> 16)));
     opus_assume(lag > 0 || signalType != 2);
     tmp1 = ((opus_int32)((opus_uint32)(((opus_int32)((opus_uint32)(LPC_pred_Q10) << (2)))) - (opus_uint32)(n_AR_Q12)));
     tmp1 = ((opus_int32)((opus_uint32)(tmp1) - (opus_uint32)(n_LF_Q12)));
@@ -7156,6 +7159,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state *NSQ, std::span<NS
   NSQ_sample_struct *psSS; const auto length = static_cast<int>(x_Q10.size()); const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size()); const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size()); opus_assume(nStatesDelayedDecision > 0); opus_assume(nStatesDelayedDecision <= silk_max_delayed_decision_states);
   std::array<NSQ_sample_pair, silk_max_delayed_decision_states> psSampleState;
   const auto b_q14_coefficients = b_Q14.first<5>();
+  const auto tilt_Q14_i16 = static_cast<opus_int16>(Tilt_Q14);
+  const auto lf_shp_Q14_i16 = static_cast<opus_int16>(LF_shp_Q14);
+  const auto lf_shp_Q14_high = static_cast<opus_int64>(LF_shp_Q14) >> 16;
   shp_lag_ptr = &NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - lag + 3 / 2];
   pred_lag_ptr = &sLTP_Q15[NSQ->sLTP_buf_idx - lag + 5 / 2]; Gain_Q10 = ((Gain_Q16) >> (6));
   for (i = 0; i < length; i++) {
@@ -7177,10 +7183,10 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state *NSQ, std::span<NS
       psDD->sAR2_Q14[shapingLPCOrder - 1] = tmp1;
       n_AR_Q14 = ((opus_int32)((n_AR_Q14) + (((tmp1) * (opus_int64)((opus_int16)(AR_shp_Q13[shapingLPCOrder - 1]))) >> 16)));
       n_AR_Q14 = ((opus_int32)((opus_uint32)(n_AR_Q14) << (1)));
-      n_AR_Q14 = ((opus_int32)((n_AR_Q14) + (((psDD->LF_AR_Q14) * (opus_int64)((opus_int16)(Tilt_Q14))) >> 16)));
+      n_AR_Q14 = ((opus_int32)((n_AR_Q14) + (((psDD->LF_AR_Q14) * (opus_int64)tilt_Q14_i16) >> 16)));
       n_AR_Q14 = ((opus_int32)((opus_uint32)(n_AR_Q14) << (2)));
-      n_LF_Q14 = ((opus_int32)(((psDD->Shape_Q14[*smpl_buf_idx]) * (opus_int64)((opus_int16)(LF_shp_Q14))) >> 16));
-      n_LF_Q14 = ((opus_int32)((n_LF_Q14) + (((psDD->LF_AR_Q14) * ((opus_int64)(LF_shp_Q14) >> 16)) >> 16)));
+      n_LF_Q14 = ((opus_int32)(((psDD->Shape_Q14[*smpl_buf_idx]) * (opus_int64)lf_shp_Q14_i16) >> 16));
+      n_LF_Q14 = ((opus_int32)((n_LF_Q14) + (((psDD->LF_AR_Q14) * lf_shp_Q14_high) >> 16)));
       n_LF_Q14 = ((opus_int32)((opus_uint32)(n_LF_Q14) << (2)));
       tmp1 = ((((opus_uint32)(n_AR_Q14) + (opus_uint32)(n_LF_Q14)) & 0x80000000) == 0 ? ((((n_AR_Q14) & (n_LF_Q14)) & 0x80000000) != 0 ? ((opus_int32)0x80000000) : (n_AR_Q14) + (n_LF_Q14)) : ((((n_AR_Q14) | (n_LF_Q14)) & 0x80000000) == 0 ? 0x7FFFFFFF : (n_AR_Q14) + (n_LF_Q14)));
       tmp2 = ((opus_int32)((opus_uint32)(n_LTP_Q14) + (opus_uint32)(LPC_pred_Q14)));
