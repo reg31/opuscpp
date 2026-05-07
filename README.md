@@ -2,7 +2,7 @@
 
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in our measured configurations, and quality metrics close to upstream. `opuscpp` is generally faster to encode than official Opus in the measured configurations, while decode performance is competitive with the portable official build (`0.91x` to `1.21x` in the published benchmark set) and close to the optimized x86-intrinsics build. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in our measured configurations, and quality metrics close to upstream. `opuscpp` is generally faster to encode than official Opus in the measured configurations; decode is usually faster than the matched portable official build in this benchmark set (`1.00x` to `1.53x`) and remains close to the optimized x86-intrinsics build. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 Minimal integration looks like:
 
@@ -14,8 +14,8 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Faster encoding than official Opus in the published benchmark set (`1.17x` to `1.50x` at complexity 10).
-- Competitive decode speed versus official portable Release (`0.91x` to `1.21x` in the current table).
+- Faster encoding than official Opus in the published benchmark set (`1.23x` to `1.57x` at complexity 10).
+- Competitive decode speed versus official portable `-O2` in the current table (`1.00x` to `1.53x`).
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32 kbps in the current harness.
 - Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%`).
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
@@ -30,8 +30,8 @@ Minimal integration looks like:
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Faster encoding in the published benchmark set (`1.17x` to `1.50x` at complexity 10). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is competitive with official portable Release (`0.91x` to `1.21x`) and sometimes faster at low/mid rates. | Decode is not uniformly faster, especially on high-rate CELT-heavy packets. |
+| Faster encoding in the published benchmark set (`1.23x` to `1.57x` at complexity 10). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is usually faster than official portable `-O2` in the published set (`1.00x` to `1.53x`). | High-rate CELT-heavy decode wins are modest, so official Opus with platform intrinsics remains a strong baseline. |
 | Lower encoder and decoder memory use in the measured configurations (`-22.0%` to `-45.7%` in the current memory snapshot). | Official Opus remains the more mature default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -71,19 +71,19 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with selected GCC function-level attributes inside the source for hot integer paths (`O3`) and cold/size-sensitive paths (`Os`). This is intentional: users do not need to compile the whole translation unit at global `-O3` to get the measured source-level tuning. The comparison target is official Opus 1.6.1 built in Release mode (`-O3 -DNDEBUG`) with intrinsics disabled, with the public encoder complexity set to 10. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean this implementation is faster. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with selected source-level attributes for hot integer paths and cold/size-sensitive paths. The portable comparison target is official Opus 1.6.1 built with matching `-O2 -DNDEBUG` flags and intrinsics disabled, with the public encoder complexity set to 10. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean this implementation is faster. Quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed | Decode speed | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.36x | 1.21x | -0.0003 | -0.0153 | -2.1% |
-| 24 kbps | 1.36x | 0.99x | -0.0071 | +0.0386 | -2.2% |
-| 32 kbps | 1.40x | 0.98x | +0.0004 | +0.0339 | -2.5% |
-| 48 kbps | 1.17x | 1.03x | +0.0002 | +0.0111 | +0.0% |
-| 64 kbps | 1.49x | 0.98x | +0.0001 | +0.0024 | +0.0% |
-| 96 kbps | 1.38x | 0.92x | -0.0001 | +0.0012 | -0.3% |
-| 128 kbps | 1.40x | 0.91x | +0.0004 | +0.0013 | -0.3% |
-| 192 kbps | 1.50x | 0.94x | +0.0002 | +0.0000 | -0.3% |
-| 256 kbps | 1.46x | 0.96x | +0.0002 | -0.0010 | -0.1% |
+| 16 kbps | 1.31x | 1.53x | -0.0003 | -0.0153 | -2.1% |
+| 24 kbps | 1.35x | 1.16x | -0.0071 | +0.0386 | -2.2% |
+| 32 kbps | 1.29x | 1.15x | +0.0004 | +0.0339 | -2.5% |
+| 48 kbps | 1.23x | 1.11x | +0.0002 | +0.0111 | +0.0% |
+| 64 kbps | 1.30x | 1.08x | +0.0001 | +0.0024 | +0.0% |
+| 96 kbps | 1.46x | 1.01x | -0.0001 | +0.0012 | -0.2% |
+| 128 kbps | 1.57x | 1.03x | +0.0004 | +0.0013 | -0.2% |
+| 192 kbps | 1.36x | 1.00x | +0.0002 | +0.0000 | -0.2% |
+| 256 kbps | 1.41x | 1.01x | +0.0002 | -0.0010 | -0.2% |
 
 Detector validation on representative material: at 32 kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

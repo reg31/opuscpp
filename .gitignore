@@ -22,3 +22,6 @@ Thumbs.db
 .idea/
 __pycache__/
 *.pyc
+
+# Downloaded official Opus sources and RFC vectors
+/tests/external/
