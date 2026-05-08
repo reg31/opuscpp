@@ -42,7 +42,7 @@ Install the following yourself:
 This script can:
 
 - clone official Opus 1.6.1,
-- build it as a static comparison build with intrinsics disabled,
+- build it as a static comparison build with intrinsics enabled,
 - build the `opuscpp` decoder conformance harness,
 - and download the RFC vector bundles into `tests/external/testvectors`.
 
@@ -69,7 +69,7 @@ python3 tests/scripts/setup_official_compare.py --download-vectors both
 If you prefer to do it yourself, the equivalent manual steps are:
 
 1. Obtain the official Opus RFC test vector set.
-2. Build official Opus 1.6.1 as a static library with intrinsics disabled and matching `-O2 -DNDEBUG` flags for a portable-C comparison.
+2. Build official Opus 1.6.1 as a static library with intrinsics enabled and matching `-O2 -DNDEBUG` flags for the public benchmark comparison.
 3. Build the `opuscpp` decoder harness.
 
 ## Optional quick local smoke test
@@ -164,46 +164,29 @@ Measured result for this repository snapshot:
 
 These proxy scores are useful for regression tracking, but they are not substitutes for official PESQ/ViSQOL tooling or listening tests.
 
-## Speed metrics vs official Opus
-
-Portable comparison setup: `opuscpp` is compiled globally with `-O2 -DNDEBUG`, with selected source-level attributes for hot integer paths and cold/size-sensitive paths. Official Opus 1.6.1 is built with matching `-O2 -DNDEBUG` flags and intrinsics disabled. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster.
-
-| Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
-|---:|---:|---:|---:|---:|
-| 16 kbps | 1.29x | 41.37 | 42.24 | 1.54x |
-| 24 kbps | 1.37x | 61.15 | 62.52 | 1.17x |
-| 32 kbps | 1.37x | 81.20 | 83.25 | 1.17x |
-| 48 kbps | 1.22x | 121.30 | 121.28 | 1.12x |
-| 64 kbps | 1.30x | 161.40 | 161.39 | 1.09x |
-| 96 kbps | 1.42x | 241.00 | 241.56 | 1.05x |
-| 128 kbps | 1.50x | 321.00 | 321.75 | 1.05x |
-| 192 kbps | 1.37x | 481.00 | 482.13 | 1.02x |
-| 256 kbps | 1.32x | 641.00 | 642.12 | 1.01x |
-
-Source CSVs:
-
-- `metrics/encode_speed_vs_official.csv`
-- `metrics/decode_speed_vs_official.csv`
-
 ## Speed metrics vs official Opus with x86 intrinsics
 
-This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo synthetic music-like benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized official build. It is shown as a separate practical reference point because many desktop official-Opus builds enable these paths.
+This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 -DNDEBUG` and x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo synthetic music-like benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized official build. This keeps optimization level and `NDEBUG` matched while comparing against the optimized official desktop path most users would actually get.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.98x | 1.48x | 328x | 335x | 1878x | 1269x |
-| 24 kbps | 1.03x | 1.14x | 306x | 297x | 1203x | 1059x |
-| 32 kbps | 1.05x | 1.10x | 299x | 283x | 1162x | 1056x |
-| 48 kbps | 0.96x | 1.07x | 282x | 293x | 1041x | 971x |
-| 64 kbps | 1.02x | 1.03x | 270x | 266x | 878x | 849x |
-| 96 kbps | 1.06x | 1.02x | 220x | 208x | 693x | 676x |
-| 128 kbps | 1.12x | 0.99x | 225x | 200x | 592x | 598x |
-| 192 kbps | 1.05x | 1.01x | 187x | 178x | 505x | 502x |
-| 256 kbps | 1.09x | 1.00x | 185x | 169x | 460x | 460x |
+| 16&nbsp;kbps | 0.98x | 1.48x | 328x | 335x | 1878x | 1269x |
+| 24&nbsp;kbps | 1.03x | 1.14x | 306x | 297x | 1203x | 1059x |
+| 32&nbsp;kbps | 1.05x | 1.10x | 299x | 283x | 1162x | 1056x |
+| 48&nbsp;kbps | 0.96x | 1.07x | 282x | 293x | 1041x | 971x |
+| 64&nbsp;kbps | 1.02x | 1.03x | 270x | 266x | 878x | 849x |
+| 96&nbsp;kbps | 1.06x | 1.02x | 220x | 208x | 693x | 676x |
+| 128&nbsp;kbps | 1.12x | 0.99x | 225x | 200x | 592x | 598x |
+| 192&nbsp;kbps | 1.05x | 1.01x | 187x | 178x | 505x | 502x |
+| 256&nbsp;kbps | 1.09x | 1.00x | 185x | 169x | 460x | 460x |
+
+The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
 Source CSV:
 
 - `metrics/speed_vs_official_intrinsics_60s.csv`
+- `metrics/encode_speed_vs_official.csv`
+- `metrics/decode_speed_vs_official.csv`
 
 ## Quality metrics vs official Opus
 
@@ -211,15 +194,15 @@ Quality proxy metrics were measured on the validation corpus used during develop
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|
-| 16 kbps | +0.0003 | -0.0162 | +1.3037 | -2.8% |
-| 24 kbps | -0.0071 | +0.0385 | +22.0159 | -2.9% |
-| 32 kbps | +0.0006 | +0.0348 | +16.8861 | -3.3% |
-| 48 kbps | +0.0005 | +0.0109 | +0.3921 | +0.0% |
-| 64 kbps | +0.0001 | +0.0026 | +0.2358 | +0.0% |
-| 96 kbps | -0.0001 | +0.0012 | -0.1403 | -0.3% |
-| 128 kbps | +0.0004 | +0.0013 | -0.2914 | -0.3% |
-| 192 kbps | +0.0002 | -0.0002 | -0.2242 | -0.3% |
-| 256 kbps | +0.0003 | -0.0004 | -0.1322 | -0.1% |
+| 16&nbsp;kbps | +0.0003 | -0.0162 | +1.3037 | -2.8% |
+| 24&nbsp;kbps | -0.0071 | +0.0385 | +22.0159 | -2.9% |
+| 32&nbsp;kbps | +0.0006 | +0.0348 | +16.8861 | -3.3% |
+| 48&nbsp;kbps | +0.0005 | +0.0109 | +0.3921 | +0.0% |
+| 64&nbsp;kbps | +0.0001 | +0.0026 | +0.2358 | +0.0% |
+| 96&nbsp;kbps | -0.0001 | +0.0012 | -0.1403 | -0.3% |
+| 128&nbsp;kbps | +0.0004 | +0.0013 | -0.2914 | -0.3% |
+| 192&nbsp;kbps | +0.0002 | -0.0002 | -0.2242 | -0.3% |
+| 256&nbsp;kbps | +0.0003 | -0.0004 | -0.1322 | -0.1% |
 
 Source CSV:
 
@@ -254,12 +237,11 @@ Source CSV:
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
 | Host MinGW GCC `-O2` | 254,580 B | 0 B | 254,580 B |
-| Android arm64 Clang `-O2` | 252,845 B | 800 B | 253,645 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
 | MinGW GCC 16.1 C++23 | Builds with zero warnings in measured configuration. |
-| Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
+| Android arm64 Clang C++23 | Build check passed in the latest full report. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` or `tests/scripts/run_smoke.sh` for a quick local check. |
