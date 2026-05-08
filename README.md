@@ -14,8 +14,8 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Faster encoding than official Opus with x86 intrinsics in 7/9 fresh speed cases; 16&nbsp;kbps and 48&nbsp;kbps are slight losses in the current run.
-- Decode is faster than official Opus with x86 intrinsics in 7/9 fresh speed cases; 128&nbsp;kbps and 256&nbsp;kbps are tiny parity-level dips (~1.0% and ~0.2%).
+- Faster encoding than official Opus with x86 intrinsics in 6/9 fresh speed cases; 16&nbsp;kbps, 48&nbsp;kbps, and 64&nbsp;kbps are losses in the current run.
+- Decode is faster than official Opus with x86 intrinsics in 6/9 fresh speed cases; 96&nbsp;kbps, 192&nbsp;kbps, and 256&nbsp;kbps are losses in the current run.
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%` in the speed harness; down to `-3.3%` in the quality harness).
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
@@ -30,8 +30,8 @@ Minimal integration looks like:
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Faster encoding than official Opus with x86 intrinsics in 7/9 fresh speed cases. | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 7/9 fresh speed cases and within about 1% at the remaining points. | A few speed points are still within measurement noise, and official Opus remains extremely mature. |
+| Faster encoding than official Opus with x86 intrinsics in 6/9 fresh speed cases. | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 6/9 fresh speed cases, and remains competitive at the remaining points. | A few speed points are still within measurement noise, and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -75,16 +75,15 @@ Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with sel
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.98x | 1.48x | +0.0003 | -0.0162 | -2.1% |
-| 24&nbsp;kbps | 1.03x | 1.14x | -0.0071 | +0.0385 | -2.2% |
-| 32&nbsp;kbps | 1.05x | 1.10x | +0.0006 | +0.0348 | -2.5% |
+| 16&nbsp;kbps | 0.95x | 1.47x | +0.0003 | -0.0162 | -2.1% |
+| 24&nbsp;kbps | 1.10x | 1.10x | -0.0071 | +0.0385 | -2.2% |
+| 32&nbsp;kbps | 1.03x | 1.10x | +0.0006 | +0.0348 | -2.5% |
 | 48&nbsp;kbps | 0.96x | 1.07x | +0.0005 | +0.0109 | +0.0% |
-| 64&nbsp;kbps | 1.02x | 1.03x | +0.0001 | +0.0026 | +0.0% |
-| 96&nbsp;kbps | 1.06x | 1.02x | -0.0001 | +0.0012 | -0.2% |
-| 128&nbsp;kbps | 1.12x | 0.99x | +0.0004 | +0.0013 | -0.2% |
-| 192&nbsp;kbps | 1.05x | 1.01x | +0.0002 | -0.0002 | -0.2% |
-| 256&nbsp;kbps | 1.09x | 1.00x | +0.0003 | -0.0004 | -0.2% |
-
+| 64&nbsp;kbps | 0.97x | 1.05x | +0.0001 | +0.0026 | +0.0% |
+| 96&nbsp;kbps | 1.10x | 0.99x | -0.0001 | +0.0012 | -0.2% |
+| 128&nbsp;kbps | 1.12x | 1.00x | +0.0004 | +0.0013 | -0.2% |
+| 192&nbsp;kbps | 1.22x | 0.94x | +0.0002 | -0.0002 | -0.2% |
+| 256&nbsp;kbps | 1.05x | 0.97x | +0.0003 | -0.0004 | -0.2% |
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 
