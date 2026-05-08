@@ -14,8 +14,8 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Faster encoding than official Opus with x86 intrinsics in 7/9 fresh speed cases; 16&nbsp;kbps and 48&nbsp;kbps are losses in the current run.
-- Decode is faster than official Opus with x86 intrinsics in 5/9 fresh speed cases; 96&nbsp;kbps, 128&nbsp;kbps, 192&nbsp;kbps, and 256&nbsp;kbps are losses in the current run.
+- Encode is generally faster at mid-to-high bitrates and remains close at the few points where official Opus wins in the current run.
+- Decode is faster at low-to-mid bitrates and near parity at high bitrates versus official Opus with x86 intrinsics.
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%` in the speed harness; down to `-3.3%` in the quality harness).
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
@@ -30,8 +30,8 @@ Minimal integration looks like:
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Faster encoding than official Opus with x86 intrinsics in 7/9 fresh speed cases. | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 5/9 fresh speed cases, and remains competitive at the remaining points. | A few speed points are still within measurement noise, and official Opus remains extremely mature. |
+| Encode is generally faster at mid-to-high bitrates and close at the few points where official Opus wins. | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster at low-to-mid bitrates and near parity at high bitrates versus official Opus with x86 intrinsics. | A few speed points are still within measurement noise, and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
