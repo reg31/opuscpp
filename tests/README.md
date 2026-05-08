@@ -170,15 +170,15 @@ Portable comparison setup: `opuscpp` is compiled globally with `-O2 -DNDEBUG`, w
 
 | Bitrate | Encode speed | Current avg bytes | Official avg bytes | Decode speed |
 |---:|---:|---:|---:|---:|
-| 16 kbps | 1.31x | 41.37 | 42.24 | 1.53x |
-| 24 kbps | 1.35x | 61.15 | 62.52 | 1.16x |
-| 32 kbps | 1.29x | 81.20 | 83.25 | 1.15x |
-| 48 kbps | 1.23x | 121.30 | 121.28 | 1.11x |
-| 64 kbps | 1.30x | 161.40 | 161.39 | 1.08x |
-| 96 kbps | 1.46x | 241.00 | 241.56 | 1.01x |
-| 128 kbps | 1.57x | 321.00 | 321.75 | 1.03x |
-| 192 kbps | 1.36x | 481.00 | 482.13 | 1.00x |
-| 256 kbps | 1.41x | 641.00 | 642.12 | 1.01x |
+| 16 kbps | 1.29x | 41.37 | 42.24 | 1.54x |
+| 24 kbps | 1.37x | 61.15 | 62.52 | 1.17x |
+| 32 kbps | 1.37x | 81.20 | 83.25 | 1.17x |
+| 48 kbps | 1.22x | 121.30 | 121.28 | 1.12x |
+| 64 kbps | 1.30x | 161.40 | 161.39 | 1.09x |
+| 96 kbps | 1.42x | 241.00 | 241.56 | 1.05x |
+| 128 kbps | 1.50x | 321.00 | 321.75 | 1.05x |
+| 192 kbps | 1.37x | 481.00 | 482.13 | 1.02x |
+| 256 kbps | 1.32x | 641.00 | 642.12 | 1.01x |
 
 Source CSVs:
 
@@ -187,19 +187,19 @@ Source CSVs:
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC on an AMD Ryzen 7 8845HS, using 60 seconds of stereo synthetic music-like audio. A value above `1.00x` means `opuscpp` is faster than the optimized official build. It is shown as a separate practical reference point because many desktop official-Opus builds enable these paths.
+This is the more practical Windows desktop comparison: official Opus 1.6.1 is built at `-O2` with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo synthetic music-like benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized official build. It is shown as a separate practical reference point because many desktop official-Opus builds enable these paths.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.00x | 1.25x | 312x | 314x | 1723x | 1374x |
-| 24 kbps | 1.22x | 1.07x | 267x | 219x | 912x | 855x |
-| 32 kbps | 0.83x | 1.14x | 232x | 278x | 1189x | 1045x |
-| 48 kbps | 0.98x | 1.21x | 257x | 263x | 947x | 784x |
-| 64 kbps | 1.01x | 1.03x | 160x | 158x | 572x | 558x |
-| 96 kbps | 1.13x | 1.09x | 151x | 133x | 380x | 347x |
-| 128 kbps | 1.06x | 0.92x | 122x | 115x | 313x | 341x |
-| 192 kbps | 1.15x | 0.92x | 126x | 109x | 301x | 327x |
-| 256 kbps | 1.18x | 0.93x | 111x | 94x | 261x | 280x |
+| 16 kbps | 0.98x | 1.48x | 328x | 335x | 1878x | 1269x |
+| 24 kbps | 1.03x | 1.14x | 306x | 297x | 1203x | 1059x |
+| 32 kbps | 1.05x | 1.10x | 299x | 283x | 1162x | 1056x |
+| 48 kbps | 0.96x | 1.07x | 282x | 293x | 1041x | 971x |
+| 64 kbps | 1.02x | 1.03x | 270x | 266x | 878x | 849x |
+| 96 kbps | 1.06x | 1.02x | 220x | 208x | 693x | 676x |
+| 128 kbps | 1.12x | 0.99x | 225x | 200x | 592x | 598x |
+| 192 kbps | 1.05x | 1.01x | 187x | 178x | 505x | 502x |
+| 256 kbps | 1.09x | 1.00x | 185x | 169x | 460x | 460x |
 
 Source CSV:
 
@@ -207,19 +207,19 @@ Source CSV:
 
 ## Quality metrics vs official Opus
 
-Quality proxy metrics were measured on the validation corpus used during development. Deltas are `opuscpp - official`.
+Quality proxy metrics were measured on the validation corpus used during development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns and negative means smaller packets.
 
-| Bitrate | Current PESQ-style | Official PESQ-style | PESQ delta | Current ViSQOL-style | Official ViSQOL-style | ViSQOL delta | Current CELT proxy | Official CELT proxy | CELT delta |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.5557 | 1.5560 | -0.0003 | 4.7626 | 4.7780 | -0.0153 | 14.8028 | 13.4990 | +1.3037 |
-| 24 kbps | 1.4558 | 1.4629 | -0.0071 | 4.7644 | 4.7259 | +0.0386 | 25.4104 | 3.3945 | +22.0159 |
-| 32 kbps | 1.4351 | 1.4347 | +0.0004 | 4.7787 | 4.7449 | +0.0339 | 24.1309 | 7.2448 | +16.8861 |
-| 48 kbps | 1.4345 | 1.4343 | +0.0002 | 4.7884 | 4.7773 | +0.0111 | 19.3872 | 19.0003 | +0.3869 |
-| 64 kbps | 1.4345 | 1.4344 | +0.0001 | 4.7895 | 4.7871 | +0.0024 | 18.8901 | 18.6503 | +0.2398 |
-| 96 kbps | 1.4347 | 1.4348 | -0.0001 | 4.7967 | 4.7955 | +0.0012 | 18.5382 | 18.6757 | -0.1375 |
-| 128 kbps | 1.4348 | 1.4344 | +0.0004 | 4.7982 | 4.7969 | +0.0013 | 18.4274 | 18.7170 | -0.2896 |
-| 192 kbps | 1.4347 | 1.4345 | +0.0002 | 4.8000 | 4.8000 | +0.0000 | 18.4616 | 18.6836 | -0.2220 |
-| 256 kbps | 1.4347 | 1.4345 | +0.0002 | 4.8009 | 4.8019 | -0.0010 | 18.4648 | 18.5904 | -0.1256 |
+| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | Packet bytes vs official |
+|---:|---:|---:|---:|---:|
+| 16 kbps | +0.0003 | -0.0162 | +1.3037 | -2.8% |
+| 24 kbps | -0.0071 | +0.0385 | +22.0159 | -2.9% |
+| 32 kbps | +0.0006 | +0.0348 | +16.8861 | -3.3% |
+| 48 kbps | +0.0005 | +0.0109 | +0.3921 | +0.0% |
+| 64 kbps | +0.0001 | +0.0026 | +0.2358 | +0.0% |
+| 96 kbps | -0.0001 | +0.0012 | -0.1403 | -0.3% |
+| 128 kbps | +0.0004 | +0.0013 | -0.2914 | -0.3% |
+| 192 kbps | +0.0002 | -0.0002 | -0.2242 | -0.3% |
+| 256 kbps | +0.0003 | -0.0004 | -0.1322 | -0.1% |
 
 Source CSV:
 
@@ -240,10 +240,10 @@ Representative AUDIO-mode results at 32 kbps mono:
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 17,184 B | 31,648 B | -45.7% |
-| Encoder stereo | 32,448 B | 48,880 B | -33.6% |
-| Decoder mono | 14,192 B | 18,272 B | -22.3% |
-| Decoder stereo | 21,376 B | 27,408 B | -22.0% |
+| Encoder mono | 16,224 B | 31,824 B | -49.0% |
+| Encoder stereo | 32,448 B | 48,944 B | -33.7% |
+| Decoder mono | 14,192 B | 18,352 B | -22.7% |
+| Decoder stereo | 21,344 B | 27,312 B | -21.9% |
 
 Source CSV:
 
@@ -253,13 +253,13 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 253,340 B | 0 B | 253,340 B |
+| Host MinGW GCC `-O2` | 254,580 B | 0 B | 254,580 B |
 | Android arm64 Clang `-O2` | 252,845 B | 800 B | 253,645 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW GCC C++23 | Builds with zero warnings in measured configuration. |
+| MinGW GCC 16.1 C++23 | Builds with zero warnings in measured configuration. |
 | Android arm64 Clang C++23 | Builds with zero warnings in measured configuration. |
-| Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` for a quick local check. |
+| Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` or `tests/scripts/run_smoke.sh` for a quick local check. |
