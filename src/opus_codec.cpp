@@ -1584,7 +1584,6 @@ OPUS_SIZE_OPT static opus_int32 compute_equiv_rate(opus_int32 bitrate, int chann
 }
   return equiv;
 }
-constexpr auto hybrid_celt_residual_margin_bps = 2000;
 constexpr auto hybrid_silk_lowrate_boost_min_bps = 28000;
 constexpr auto hybrid_silk_lowrate_boost_max_bps = 36000;
 constexpr auto hybrid_silk_lowrate_target_bps = 35000;
@@ -2299,8 +2298,6 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEnc
     if (st->mode == opus_mode_hybrid) {
       if (st->use_vbr) {
         opus_int32 celt_vbr_bps = st->bitrate_bps - st->silk_mode.bitRate;
-        const auto actual_silk_bps = bits_to_bitrate(static_cast<int>(nBytes) * 8, st->Fs, frame_size);
-        celt_vbr_bps = std::max(celt_vbr_bps, st->bitrate_bps - actual_silk_bps - hybrid_celt_residual_margin_bps);
         celt_set_bitrate(static_cast<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps)));
         celt_encoder_set_constrained_vbr(celt_enc, 0);
       }
