@@ -125,7 +125,7 @@ c++ -std=c++23 -O2 -I src \
     -o build/conformance_decode
 ```
 
-4. Run each vector through `conformance_decode` and compare the generated PCM with the reference decoded PCM using the official `opus_compare` tool from the Opus source tree.
+Then run each vector through `conformance_decode` and compare the generated PCM with the reference decoded PCM using the official `opus_compare` tool from the Opus source tree.
 
 Measured result for this repository snapshot:
 
