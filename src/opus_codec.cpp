@@ -4324,6 +4324,18 @@ static int celt_decode_with_ec(CeltDecoderInternal *st, const unsigned char *dat
   return static_cast<opus_uint32>(total);
 }
 
+static constexpr auto celt_pvq_fast_row_count = 14;
+static constexpr auto celt_pvq_fast_column_count = 177;
+
+[[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
+  std::array<std::array<opus_uint32, celt_pvq_fast_column_count>, celt_pvq_fast_row_count> rows{};
+  for (int row = 0; row < celt_pvq_fast_row_count; ++row) {
+    for (int column = 0; column < celt_pvq_fast_column_count; ++column) rows[row][column] = celt_pvq_u_entry_raw(row, column);
+  }
+  return rows;
+}
+
+static constexpr auto celt_pvq_u_fast_rows = make_celt_pvq_fast_rows();
 static constexpr auto celt_pvq_table_row_count = 14U;
 static constexpr auto celt_pvq_table_first_stored_row = 4U;
 static constexpr std::array<unsigned char, celt_pvq_table_row_count> celt_pvq_u_row_max{0, 174, 173, 172, 171, 170, 96, 48, 37, 27, 24, 19, 18, 16};
@@ -4449,28 +4461,51 @@ static OPUS_INT_HOT OPUS_ALWAYS_INLINE opus_val32 cwrsi(int _n, int _k, opus_uin
   for (; _n > 2; --_n) {
     opus_uint32 q;
     if (_k >= _n) {
-      const auto row = celt_pvq_u_row(_n);
-      p = row.get(_k + 1); s = -(_i >= p); _i -= p & s; k0 = _k; q = row.get(_n);
-      if (q > _i) {
-        _k = _n;
-        for (p = celt_pvq_u_entry_cwrs(--_k, _n); p > _i; p = celt_pvq_u_entry_cwrs(--_k, _n)) {}
-      } else {
-        if (row.base != nullptr && static_cast<unsigned>(_k) <= row.max_column) {
-          const auto *entry = row.base + _k;
-          for (p = *entry; p > _i; p = *--entry) { --_k; }
+      if (_n < celt_pvq_fast_row_count && _k + 1 < celt_pvq_fast_column_count) {
+        const auto *row = celt_pvq_u_fast_rows[static_cast<std::size_t>(_n)].data();
+        p = row[_k + 1]; s = -(_i >= p); _i -= p & s; k0 = _k; q = row[_n];
+        if (q > _i) {
+          _k = _n;
+          do { p = celt_pvq_u_fast_rows[static_cast<std::size_t>(--_k)][static_cast<std::size_t>(_n)]; } while (p > _i);
         } else {
-          for (p = row.get(_k); p > _i; p = row.get(_k)) { --_k; }
+          for (p = row[_k]; p > _i; p = row[_k]) --_k;
+        }
+      } else {
+        const auto row = celt_pvq_u_row(_n);
+        p = row.get(_k + 1); s = -(_i >= p); _i -= p & s; k0 = _k; q = row.get(_n);
+        if (q > _i) {
+          _k = _n;
+          for (p = celt_pvq_u_entry_cwrs(--_k, _n); p > _i; p = celt_pvq_u_entry_cwrs(--_k, _n)) {}
+        } else {
+          if (row.base != nullptr && static_cast<unsigned>(_k) <= row.max_column) {
+            const auto *entry = row.base + _k;
+            for (p = *entry; p > _i; p = *--entry) { --_k; }
+          } else {
+            for (p = row.get(_k); p > _i; p = row.get(_k)) { --_k; }
+          }
         }
       }
       _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
     } else {
-      p = celt_pvq_u_row(_k).get(_n); q = celt_pvq_u_row(_k + 1).get(_n);
-      if (p <= _i && _i < q) {
-        _i -= p; *_y++ = 0;
+      if (_k + 1 < celt_pvq_fast_row_count && _n < celt_pvq_fast_column_count) {
+        p = celt_pvq_u_fast_rows[static_cast<std::size_t>(_k)][static_cast<std::size_t>(_n)];
+        q = celt_pvq_u_fast_rows[static_cast<std::size_t>(_k + 1)][static_cast<std::size_t>(_n)];
+        if (p <= _i && _i < q) {
+          _i -= p; *_y++ = 0;
+        } else {
+          s = -(_i >= q); _i -= q & s; k0 = _k;
+          do { p = celt_pvq_u_fast_rows[static_cast<std::size_t>(--_k)][static_cast<std::size_t>(_n)]; } while (p > _i);
+          _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
+        }
       } else {
-        s = -(_i >= q); _i -= q & s; k0 = _k;
-        for (p = celt_pvq_u_row(--_k).get(_n); p > _i; p = celt_pvq_u_row(--_k).get(_n)) {}
-        _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
+        p = celt_pvq_u_row(_k).get(_n); q = celt_pvq_u_row(_k + 1).get(_n);
+        if (p <= _i && _i < q) {
+          _i -= p; *_y++ = 0;
+        } else {
+          s = -(_i >= q); _i -= q & s; k0 = _k;
+          for (p = celt_pvq_u_row(--_k).get(_n); p > _i; p = celt_pvq_u_row(--_k).get(_n)) {}
+          _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
+        }
       }
     }
   }
