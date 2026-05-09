@@ -1528,9 +1528,10 @@ OPUS_SIZE_OPT static opus_val16 compute_stereo_width(const opus_res *pcm, int fr
     pxx += (((opus_val32)(x) * (opus_val32)(x))); pxy += (((opus_val32)(x) * (opus_val32)(y)));
     pyy += (((opus_val32)(y) * (opus_val32)(y))); x = (pcm[2 * i + 6]); y = (pcm[2 * i + 7]); pxx += (((opus_val32)(x) * (opus_val32)(x)));
     pxy += (((opus_val32)(x) * (opus_val32)(y))); pyy += (((opus_val32)(y) * (opus_val32)(y))); xx += (pxx); xy += (pxy); yy += (pyy);
-}
-  if (!(xx < 1e9f) || ((xx) != (xx)) || !(yy < 1e9f) || ((yy) != (yy))) { xy = xx = yy = 0;
-}
+  }
+  if (!(xx < 1e9f) || ((xx) != (xx)) || !(yy < 1e9f) || ((yy) != (yy))) {
+    xy = xx = yy = 0;
+  }
   mem->XX += ((short_alpha) * (xx - mem->XX)); mem->XY = ((1.0f - short_alpha) * (mem->XY)) + ((short_alpha) * (xy));
   mem->YY += ((short_alpha) * (yy - mem->YY)); mem->XX = std::max(0.f, mem->XX);
   mem->XY = std::max(0.f, mem->XY); mem->YY = std::max(0.f, mem->YY);
@@ -1544,27 +1545,35 @@ OPUS_SIZE_OPT static opus_val16 compute_stereo_width(const opus_res *pcm, int fr
     width = std::min(1.0f, decorrelation) * ldiff;
     mem->smoothed_width += (width - mem->smoothed_width) / frame_rate;
     mem->max_follower = ((mem->max_follower - (.02f) / frame_rate) > (mem->smoothed_width) ? (mem->max_follower - (.02f) / frame_rate) : (mem->smoothed_width));
-}
+  }
   return (((1.0f) < (((opus_val32)(20) * (opus_val32)(mem->max_follower))) ? (1.0f) : (((opus_val32)(20) * (opus_val32)(mem->max_follower)))));
 }
 static OPUS_NOINLINE OPUS_SIZE_OPT int compute_silk_rate_for_hybrid(int rate, int bandwidth, int frame20ms, int vbr, int channels) {
-  int i, N, silk_rate;
   const auto rate_index = frame20ms;
-  rate /= channels; N = static_cast<int>(hybrid_rate_table.size());
-  for (i = 1; i < N; i++) { if (hybrid_rate_table[static_cast<std::size_t>(i)].threshold > rate) break;
-}
-  if (i == N) {
-    silk_rate = hybrid_rate_table[static_cast<std::size_t>(i - 1)].rates[static_cast<std::size_t>(rate_index)];
-    silk_rate += (rate - hybrid_rate_table[static_cast<std::size_t>(i - 1)].threshold) / 2;
+  rate /= channels;
+
+  const auto table_size = static_cast<int>(hybrid_rate_table.size());
+  auto table_index = 1;
+  for (; table_index < table_size; ++table_index) {
+    if (hybrid_rate_table[static_cast<std::size_t>(table_index)].threshold > rate) break;
+  }
+
+  int silk_rate;
+  if (table_index == table_size) {
+    const auto &last_entry = hybrid_rate_table[static_cast<std::size_t>(table_index - 1)];
+    silk_rate = last_entry.rates[static_cast<std::size_t>(rate_index)];
+    silk_rate += (rate - last_entry.threshold) / 2;
   } else {
-    opus_int32 lo, hi, x0, x1;
-    lo = hybrid_rate_table[static_cast<std::size_t>(i - 1)].rates[static_cast<std::size_t>(rate_index)];
-    hi = hybrid_rate_table[static_cast<std::size_t>(i)].rates[static_cast<std::size_t>(rate_index)];
-    x0 = hybrid_rate_table[static_cast<std::size_t>(i - 1)].threshold; x1 = hybrid_rate_table[static_cast<std::size_t>(i)].threshold;
+    const auto &lo_entry = hybrid_rate_table[static_cast<std::size_t>(table_index - 1)];
+    const auto &hi_entry = hybrid_rate_table[static_cast<std::size_t>(table_index)];
+    const auto lo = lo_entry.rates[static_cast<std::size_t>(rate_index)];
+    const auto hi = hi_entry.rates[static_cast<std::size_t>(rate_index)];
+    const auto x0 = lo_entry.threshold;
+    const auto x1 = hi_entry.threshold;
     silk_rate = (lo * (x1 - rate) + hi * (rate - x0)) / (x1 - x0);
-}
-  if (!vbr) { silk_rate += 100;
-}
+  }
+
+  if (!vbr) silk_rate += 100;
   if (bandwidth == 1104) silk_rate += 300;
   silk_rate *= channels;
   if (channels == 2 && rate >= 12000) silk_rate -= 1000;
@@ -1579,7 +1588,7 @@ OPUS_SIZE_OPT static opus_int32 compute_equiv_rate(opus_int32 bitrate, int chann
     if (complexity < 2) equiv = equiv * 4 / 5;
   } else if (mode == opus_mode_celt_only) {
     if (complexity < 5) equiv = equiv * 9 / 10;
-}
+  }
   return equiv;
 }
 constexpr auto hybrid_silk_lowrate_boost_min_bps = 28000;
@@ -1762,8 +1771,10 @@ struct encoder_quality_decision {
   return {voice_est, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_analysis_frames};
 }
 [[nodiscard]] static opus_int32 quality_mode_threshold(const encoder_quality_decision &quality, opus_val16 stereo_width, bool voip_style, int prev_mode) noexcept {
-  const auto mode_voice = static_cast<opus_int32>(((1.0f - stereo_width) * mode_thresholds[0][0]) + (stereo_width * mode_thresholds[1][0]));
-  const auto mode_music = static_cast<opus_int32>(((1.0f - stereo_width) * mode_thresholds[1][1]) + (stereo_width * mode_thresholds[1][1]));
+  const auto mode_voice = static_cast<opus_int32>(
+      ((1.0f - stereo_width) * mode_thresholds[0][0]) + (stereo_width * mode_thresholds[1][0]));
+  const auto mode_music = static_cast<opus_int32>(
+      ((1.0f - stereo_width) * mode_thresholds[1][1]) + (stereo_width * mode_thresholds[1][1]));
   auto threshold = mode_music + ((quality.voice_weight_Q14() * (mode_voice - mode_music)) >> 14);
   if (voip_style) threshold += 8000;
   if (prev_mode == opus_mode_celt_only) threshold -= 4000;
@@ -1780,8 +1791,9 @@ struct encoder_quality_decision {
   }
   int next_mode = st->audio_preprocess_mode;
   if (st->lightweight_analysis_frames >= audio_preprocess_warmup_frames) {
-    const auto quality = encoder_quality_decision{0, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_analysis_frames};
-    const bool speech_like = st->channels == 1 && quality.voice_score_Q7 > 88 && quality.harmonic_music_Q7 < 32 && quality.music_score_Q7 < 32;
+    const auto quality = make_encoder_quality_decision(st, 0);
+    const bool speech_like = st->channels == 1 && quality.voice_score_Q7 > 88 && quality.harmonic_music_Q7 < 32 &&
+                             quality.music_score_Q7 < 32;
     const bool music_like = quality.harmonic_music_Q7 > 48 || quality.music_confident();
     if (speech_like) next_mode = audio_preprocess_speech;
     else if (music_like) next_mode = audio_preprocess_music;
@@ -1794,75 +1806,76 @@ struct encoder_quality_decision {
   return st->audio_preprocess_mode;
 }
 static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrate_bps, int frame_rate, int channels) {
-  int redundancy_bytes_cap, redundancy_bytes;
-  opus_int32 redundancy_rate, available_bits;
-  int base_bits = (40 * channels + 20);
-  redundancy_rate = bitrate_bps + base_bits * (200 - frame_rate); redundancy_rate = 3 * redundancy_rate / 2;
-  redundancy_bytes = redundancy_rate / 1600; available_bits = max_data_bytes * 8 - 2 * base_bits;
-  redundancy_bytes_cap = (available_bits * 240 / (240 + 48000 / frame_rate) + base_bits) / 8;
+  const int base_bits = 40 * channels + 20;
+  auto redundancy_rate = bitrate_bps + base_bits * (200 - frame_rate);
+  redundancy_rate = 3 * redundancy_rate / 2;
+
+  auto redundancy_bytes = redundancy_rate / 1600;
+  const opus_int32 available_bits = max_data_bytes * 8 - 2 * base_bits;
+  const int redundancy_bytes_cap = (available_bits * 240 / (240 + 48000 / frame_rate) + base_bits) / 8;
   redundancy_bytes = std::min(redundancy_bytes, redundancy_bytes_cap);
   if (redundancy_bytes > 4 + 8 * channels) redundancy_bytes = std::min(257, redundancy_bytes);
   else redundancy_bytes = 0;
   return redundancy_bytes;
 }
 [[nodiscard]] constexpr auto encoder_delay_compensation(const ref_OpusEncoder *st) noexcept -> int {
-  return (st->application == opus_application_restricted_lowdelay || st->application == opus_application_celt_only || st->application == opus_application_silk_only) ? 0 : st->delay_compensation;
+  return (st->application == opus_application_restricted_lowdelay || st->application == opus_application_celt_only || st->application == opus_application_silk_only)
+             ? 0
+             : st->delay_compensation;
 }
 namespace {
 struct encoder_stage_storage {
   std::span<opus_res> storage;
   int active_window, encoder_buffer, total_buffer, frame_size, channels;
-  [[nodiscard]] auto window_sample_count() const noexcept -> std::size_t { return static_cast<std::size_t>((encoder_buffer + frame_size) * channels);
-}
-  [[nodiscard]] auto history_sample_count() const noexcept -> std::size_t { return static_cast<std::size_t>(encoder_buffer * channels);
-}
-  [[nodiscard]] auto frame_sample_count() const noexcept -> std::size_t { return static_cast<std::size_t>(frame_size * channels);
-}
-  [[nodiscard]] auto celt_window_offset() const noexcept -> std::size_t { return static_cast<std::size_t>((encoder_buffer - total_buffer) * channels);
-}
-  [[nodiscard]] auto celt_window_sample_count() const noexcept -> std::size_t { return static_cast<std::size_t>((total_buffer + frame_size) * channels);
-}
-  [[nodiscard]] auto window(const int index) noexcept -> std::span<opus_res> { return storage.subspan(static_cast<std::size_t>(index) * window_sample_count(), window_sample_count());
-}
-  [[nodiscard]] auto window(const int index) const noexcept -> std::span<const opus_res> { return storage.subspan(static_cast<std::size_t>(index) * window_sample_count(), window_sample_count());
-}
-  [[nodiscard]] auto active() noexcept -> std::span<opus_res> { return window(active_window);
-}
-  [[nodiscard]] auto inactive() noexcept -> std::span<opus_res> { return window(active_window ^ 1);
-}
-  [[nodiscard]] auto active() const noexcept -> std::span<const opus_res> { return window(active_window);
-}
-  [[nodiscard]] auto inactive() const noexcept -> std::span<const opus_res> { return window(active_window ^ 1);
-}
-  [[nodiscard]] auto active_history() noexcept -> std::span<opus_res> { return active().first(history_sample_count());
-}
-  [[nodiscard]] auto next_history() noexcept -> std::span<opus_res> { return inactive().first(history_sample_count());
-}
-  [[nodiscard]] auto next_history() const noexcept -> std::span<const opus_res> { return inactive().first(history_sample_count());
-}
-  [[nodiscard]] auto active_frame() noexcept -> std::span<opus_res> { return active().subspan(history_sample_count(), frame_sample_count());
-}
-  [[nodiscard]] auto active_celt_window() noexcept -> std::span<opus_res> { return active().subspan(celt_window_offset(), celt_window_sample_count());
-}
-  [[nodiscard]] auto active_celt_prefill(const ref_OpusEncoder *st) noexcept -> std::span<opus_res> { return active().subspan(static_cast<std::size_t>((encoder_buffer - total_buffer - st->Fs / 400) * channels), static_cast<std::size_t>(st->channels * st->Fs / 400));
-}
+
+  [[nodiscard]] auto window_sample_count() const noexcept -> std::size_t {
+    return static_cast<std::size_t>((encoder_buffer + frame_size) * channels);
+  }
+  [[nodiscard]] auto history_sample_count() const noexcept -> std::size_t {
+    return static_cast<std::size_t>(encoder_buffer * channels);
+  }
+  [[nodiscard]] auto frame_sample_count() const noexcept -> std::size_t {
+    return static_cast<std::size_t>(frame_size * channels);
+  }
+  [[nodiscard]] auto celt_window_offset() const noexcept -> std::size_t {
+    return static_cast<std::size_t>((encoder_buffer - total_buffer) * channels);
+  }
+  [[nodiscard]] auto celt_window_sample_count() const noexcept -> std::size_t {
+    return static_cast<std::size_t>((total_buffer + frame_size) * channels);
+  }
+  [[nodiscard]] auto window(const int index) noexcept -> std::span<opus_res> {
+    return storage.subspan(static_cast<std::size_t>(index) * window_sample_count(), window_sample_count());
+  }
+  [[nodiscard]] auto window(const int index) const noexcept -> std::span<const opus_res> {
+    return storage.subspan(static_cast<std::size_t>(index) * window_sample_count(), window_sample_count());
+  }
+  [[nodiscard]] auto active() noexcept -> std::span<opus_res> { return window(active_window); }
+  [[nodiscard]] auto inactive() noexcept -> std::span<opus_res> { return window(active_window ^ 1); }
+  [[nodiscard]] auto active() const noexcept -> std::span<const opus_res> { return window(active_window); }
+  [[nodiscard]] auto inactive() const noexcept -> std::span<const opus_res> { return window(active_window ^ 1); }
+  [[nodiscard]] auto active_history() noexcept -> std::span<opus_res> { return active().first(history_sample_count()); }
+  [[nodiscard]] auto next_history() noexcept -> std::span<opus_res> { return inactive().first(history_sample_count()); }
+  [[nodiscard]] auto next_history() const noexcept -> std::span<const opus_res> { return inactive().first(history_sample_count()); }
+  [[nodiscard]] auto active_frame() noexcept -> std::span<opus_res> { return active().subspan(history_sample_count(), frame_sample_count()); }
+  [[nodiscard]] auto active_celt_window() noexcept -> std::span<opus_res> { return active().subspan(celt_window_offset(), celt_window_sample_count()); }
+  [[nodiscard]] auto active_celt_prefill(const ref_OpusEncoder *st) noexcept -> std::span<opus_res> {
+    return active().subspan(
+        static_cast<std::size_t>((encoder_buffer - total_buffer - st->Fs / 400) * channels),
+        static_cast<std::size_t>(st->channels * st->Fs / 400));
+  }
   auto prime_from_encoder(const ref_OpusEncoder *st) noexcept -> void {
-    if (history_sample_count() == 0) { return;
-}
+    if (history_sample_count() == 0) return;
     copy_n_items(st->delay_buffer, history_sample_count(), active_history().data());
-}
+  }
   auto snapshot_next_history() noexcept -> void {
-    if (history_sample_count() == 0) { return;
-}
+    if (history_sample_count() == 0) return;
     copy_n_items(active().data() + frame_sample_count(), history_sample_count(), next_history().data());
-}
+  }
   auto commit_to_encoder(ref_OpusEncoder *st) const noexcept -> void {
-    if (history_sample_count() == 0) { return;
-}
+    if (history_sample_count() == 0) return;
     copy_n_items(next_history().data(), history_sample_count(), st->delay_buffer);
-}
-  auto advance() noexcept -> void { active_window ^= 1;
-}
+  }
+  auto advance() noexcept -> void { active_window ^= 1; }
 };
 [[nodiscard]] constexpr auto encoder_stage_storage_size(const ref_OpusEncoder *st, const int frame_size) noexcept -> std::size_t {
   const auto window_samples = static_cast<std::size_t>((st->encoder_buffer + frame_size) * st->channels);
@@ -2023,13 +2036,12 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     }
   }
   equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, st->Fs / frame_size, st->use_vbr, 0, st->silk_mode.complexity);
-  auto threshold = opus_int32{0};
   if (st->application == opus_application_silk_only) {
     st->mode = opus_mode_silk_only;
   } else if (st->application == opus_application_restricted_lowdelay || st->application == opus_application_celt_only) {
     st->mode = opus_mode_celt_only;
   } else {
-    threshold = quality_mode_threshold(quality, stereo_width, voip_style, st->prev_mode);
+    const auto threshold = quality_mode_threshold(quality, stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
@@ -2095,8 +2107,9 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     st->bandwidth = st->auto_bandwidth = bandwidth;
     if (!st->first && st->mode != opus_mode_celt_only && !st->silk_mode.inWBmodeWithoutVariableLP && st->bandwidth > 1103) st->bandwidth = 1103;
   }
-  if (st->mode != opus_mode_celt_only && max_rate < 15000) { st->bandwidth = std::min(st->bandwidth, 1103);
-}
+  if (st->mode != opus_mode_celt_only && max_rate < 15000) {
+    st->bandwidth = std::min(st->bandwidth, 1103);
+  }
   if (st->Fs <= 24000 && st->bandwidth > 1104) st->bandwidth = 1104;
   if (st->Fs <= 16000 && st->bandwidth > 1103) st->bandwidth = 1103;
   if (st->Fs <= 12000 && st->bandwidth > 1102) st->bandwidth = 1102;
@@ -2126,7 +2139,8 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   return ret;
 }
 static OPUS_NOINLINE void opus_prepare_frame_highpass(ref_OpusEncoder *st, void *silk_enc, const opus_res *pcm, opus_res *frame_pcm, int frame_size) {
-  const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? ((opus_int32)((opus_uint32)(silk_lin2log(60)) << (8))) : ((silk_encoder *)silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
+  const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? ((opus_int32)((opus_uint32)(silk_lin2log(60)) << (8)))
+                                                            : ((silk_encoder *)silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
   st->variable_HP_smth2_Q15 = ((opus_int32)((st->variable_HP_smth2_Q15) + (((hp_freq_smth1 - st->variable_HP_smth2_Q15) * (opus_int64)((opus_int16)(((opus_int32)((0.015f) * ((opus_int64)1 << (16)) + 0.5))))) >> 16)));
   const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
   if (st->application == opus_application_voip) {
@@ -2137,7 +2151,9 @@ static OPUS_NOINLINE void opus_prepare_frame_highpass(ref_OpusEncoder *st, void 
     } else {
       hp_cutoff(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_music_hp_mem, frame_size, st->channels, st->Fs);
       if (st->channels == 1 && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
-        for (int i = 0; i < frame_size; ++i) frame_pcm[i] += mono_voice_low_band_keep * (pcm[i] - frame_pcm[i]);
+        for (int i = 0; i < frame_size; ++i) {
+          frame_pcm[i] += mono_voice_low_band_keep * (pcm[i] - frame_pcm[i]);
+        }
       }
     }
   } else {

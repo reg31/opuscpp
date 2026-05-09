@@ -170,15 +170,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.548x | 1.481x | 510x | 330x | 1884x | 1272x |
-| 24&nbsp;kbps | 1.749x | 1.122x | 521x | 298x | 1199x | 1069x |
-| 32&nbsp;kbps | 1.751x | 1.117x | 484x | 276x | 1137x | 1018x |
-| 48&nbsp;kbps | 1.532x | 1.079x | 446x | 291x | 1048x | 972x |
-| 64&nbsp;kbps | 1.560x | 1.047x | 416x | 267x | 888x | 849x |
-| 96&nbsp;kbps | 1.585x | 1.049x | 342x | 216x | 679x | 648x |
-| 128&nbsp;kbps | 1.541x | 1.007x | 306x | 198x | 593x | 589x |
-| 192&nbsp;kbps | 1.605x | 1.001x | 255x | 159x | 477x | 476x |
-| 256&nbsp;kbps | 1.407x | 1.002x | 239x | 170x | 453x | 452x |
+| 16&nbsp;kbps | 1.491x | 1.455x | 436x | 293x | 1778x | 1222x |
+| 24&nbsp;kbps | 1.701x | 1.160x | 513x | 301x | 1193x | 1028x |
+| 32&nbsp;kbps | 1.691x | 1.112x | 478x | 282x | 1147x | 1032x |
+| 48&nbsp;kbps | 1.524x | 1.076x | 456x | 299x | 1050x | 976x |
+| 64&nbsp;kbps | 1.566x | 1.046x | 413x | 264x | 888x | 850x |
+| 96&nbsp;kbps | 1.591x | 1.017x | 344x | 216x | 681x | 670x |
+| 128&nbsp;kbps | 1.510x | 1.014x | 297x | 197x | 590x | 582x |
+| 192&nbsp;kbps | 1.506x | 1.009x | 245x | 163x | 409x | 405x |
+| 256&nbsp;kbps | 1.388x | 1.013x | 193x | 139x | 381x | 376x |
 
 
 
