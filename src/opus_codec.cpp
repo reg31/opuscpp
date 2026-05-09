@@ -268,7 +268,7 @@ struct SILKInfo {
 }
 static int celt_encoder_get_size(int channels), celt_encoder_init(CeltEncoderInternal *st, opus_int32 sampling_rate, int channels);
 static OPUS_ENCODER_HUB_SIZE_OPT int celt_encode_with_ec(CeltEncoderInternal *st, const opus_res *pcm, int frame_size, unsigned char *compressed, int nbCompressedBytes, ec_enc *enc);
-static void celt_encoder_reset_state(CeltEncoderInternal *st), celt_encoder_set_vbr(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_constrained_vbr(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_silk_info(CeltEncoderInternal *st, const SILKInfo *info);
+static void celt_encoder_reset_state(CeltEncoderInternal *st), celt_encoder_set_vbr(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_constrained_vbr(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_silk_info(CeltEncoderInternal *st, const SILKInfo *info), celt_encoder_set_high_z_tonal(CeltEncoderInternal *st, opus_int32 value);
 static int celt_encoder_set_complexity(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_start_band(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_end_band(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_stream_channels(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_lsb_depth(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_prediction(CeltEncoderInternal *st, opus_int32 value), celt_encoder_set_bitrate(CeltEncoderInternal *st, opus_int32 value);
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal *st) noexcept;
 [[nodiscard]] static const CeltModeInternal *celt_encoder_mode(const CeltEncoderInternal *st) noexcept;
@@ -1221,7 +1221,7 @@ struct ref_OpusEncoder {
   int stream_channels; opus_int16 hybrid_stereo_width_Q14; opus_int32 variable_HP_smth2_Q15; opus_val16 prev_HB_gain; opus_val32 hp_mem[4];
   opus_val32 audio_speech_hp_mem[4], audio_music_hp_mem[4];
   int mode, prev_mode, prev_channels, prev_framesize, bandwidth, auto_bandwidth, silk_bw_switch, first, lightweight_voice_score_Q7, lightweight_music_score_Q7, lightweight_analysis_frames;
-  int lightweight_prev_pitch_lag, lightweight_pitch_stability_Q7, lightweight_harmonic_music_Q7, audio_preprocess_mode, audio_preprocess_hold; StereoWidthState width_mem;
+  int lightweight_prev_pitch_lag, lightweight_pitch_stability_Q7, lightweight_harmonic_music_Q7, lightweight_high_z_tonal_Q7, audio_preprocess_mode, audio_preprocess_hold; StereoWidthState width_mem;
   opus_val32 peak_signal_energy; int nonfinal_frame; opus_uint32 rangeFinal; opus_res delay_buffer[480 * 2];
 };
 constexpr std::array<opus_uint16, 8> voice_bandwidth_thresholds_common{9000, 700, 9000, 700, 13500, 1000, 14000, 2000};
@@ -1507,7 +1507,7 @@ OPUS_SIZE_OPT [[nodiscard]] static int audio_music_marker_from_mono(const opus_v
   return sample * (1.f / channels);
 }
 struct audio_content_markers {
-  int speech, music, harmonic_music, pitch_lag;
+  int speech, music, harmonic_music, high_z_tonal, pitch_lag;
   opus_val32 pitch_corr, diff_ratio, zcr, envelope_cv;
 };
 OPUS_SIZE_OPT [[nodiscard]] static audio_content_markers detect_audio_content_markers(const opus_res *pcm, int frame_size, int channels) {
@@ -1557,6 +1557,7 @@ OPUS_SIZE_OPT [[nodiscard]] static audio_content_markers detect_audio_content_ma
   }
   const auto envelope_cv = static_cast<opus_val32>(std::sqrt(envelope_var / envelope_blocks) / (envelope_mean + 1e-12f));
   markers.envelope_cv = envelope_cv;
+  markers.high_z_tonal = lpc_music && envelope_cv < .20f && (diff_ratio > .25f || zcr > .20f);
   if (!(diff_ratio > .006f && diff_ratio < .12f && zcr > .018f && zcr < .16f && envelope_cv > .08f)) return markers;
   opus_val64 best_num = 0;
   opus_val64 best_den_a = 1e-12, best_den_b = 1e-12;
@@ -1616,6 +1617,10 @@ OPUS_SIZE_OPT static int update_lightweight_voice_estimate(ref_OpusEncoder *st, 
   if (sustained_harmonic) harmonic_music += std::max(1, (115 - harmonic_music) >> 3);
   else harmonic_music = (harmonic_music * 104) >> 7;
   harmonic_music = clamp_value(harmonic_music, 0, 115);
+  auto high_z_tonal = st->lightweight_high_z_tonal_Q7;
+  if (markers.high_z_tonal) high_z_tonal += std::max(1, (115 - high_z_tonal) >> 2);
+  else high_z_tonal = (high_z_tonal * 104) >> 7;
+  high_z_tonal = clamp_value(high_z_tonal, 0, 115);
   if (markers.speech && !sustained_harmonic) voice_score += std::max(1, (115 - voice_score) / 5);
   else voice_score = (voice_score * (sustained_harmonic ? 112 : 126)) >> 7;
   if (markers.music || sustained_harmonic) music_score += std::max(1, (115 - music_score) >> 3);
@@ -1626,6 +1631,7 @@ OPUS_SIZE_OPT static int update_lightweight_voice_estimate(ref_OpusEncoder *st, 
   st->lightweight_music_score_Q7 = music_score;
   st->lightweight_pitch_stability_Q7 = pitch_stability;
   st->lightweight_harmonic_music_Q7 = harmonic_music;
+  st->lightweight_high_z_tonal_Q7 = high_z_tonal;
   if (voice_score > 60 && harmonic_music < 80) return 115;
   if (harmonic_music > 52 && music_score >= voice_score + 8) return 0;
   if (voice_score > 44 && voice_score + 16 >= music_score) return 115;
@@ -1633,15 +1639,16 @@ OPUS_SIZE_OPT static int update_lightweight_voice_estimate(ref_OpusEncoder *st, 
   return 48;
 }
 struct encoder_quality_decision {
-  int voice_est, voice_score_Q7, music_score_Q7, harmonic_music_Q7, analysis_frames;
+  int voice_est, voice_score_Q7, music_score_Q7, harmonic_music_Q7, high_z_tonal_Q7, analysis_frames;
 
   [[nodiscard]] auto voice_weight_Q14() const noexcept -> opus_int32 { return voice_est * voice_est; }
   [[nodiscard]] auto strong_speech() const noexcept -> bool { return voice_est >= 100 && harmonic_music_Q7 < 80; }
   [[nodiscard]] auto strong_music() const noexcept -> bool { return voice_est <= 16 && analysis_frames >= audio_preprocess_warmup_frames; }
   [[nodiscard]] auto music_confident() const noexcept -> bool { return harmonic_music_Q7 > 52 && music_score_Q7 >= voice_score_Q7 + 8; }
+  [[nodiscard]] auto high_z_tonal_confident() const noexcept -> bool { return high_z_tonal_Q7 > 64; }
 };
 [[nodiscard]] static encoder_quality_decision make_encoder_quality_decision(const ref_OpusEncoder *st, int voice_est) noexcept {
-  return {voice_est, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_analysis_frames};
+  return {voice_est, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_high_z_tonal_Q7, st->lightweight_analysis_frames};
 }
 [[nodiscard]] static opus_int32 quality_mode_threshold(const encoder_quality_decision &quality, opus_val16 stereo_width, bool voip_style, int prev_mode) noexcept {
   const auto mode_voice = static_cast<opus_int32>(
@@ -1887,6 +1894,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     if (voip_style) voice_est = voice_est > 48 ? 115 : 0;
   } else voice_est = 48;
   const auto quality = make_encoder_quality_decision(st, voice_est);
+  celt_encoder_set_high_z_tonal(celt_enc, quality.high_z_tonal_Q7);
   if (st->force_channels != -1000 && st->channels == 2) {
     st->stream_channels = st->force_channels;
   } else {
@@ -1915,6 +1923,9 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
+      if (!voip_style && st->bitrate_bps >= 22000 && st->bitrate_bps < 28000 && quality.high_z_tonal_confident()) {
+        st->mode = opus_mode_silk_only;
+      }
     } else if (quality.strong_speech()) {
       const opus_int32 speech_celt_switch_bps = 54000;
       if (st->bitrate_bps < speech_celt_switch_bps) st->mode = opus_mode_silk_only;
@@ -3093,7 +3104,7 @@ static auto celt_decode_dynalloc(ec_dec *dec, std::span<const opus_int16> eBands
 }
 struct CeltEncoderInternal {
   const CeltModeInternal *mode; int channels, stream_channels, force_intra, disable_pf, complexity, upsample, start, end; opus_int32 bitrate;
-  int vbr, constrained_vbr, lsb_depth, disable_inv; opus_uint32 rng; int spread_decision; opus_val32 delayedIntra;
+  int vbr, constrained_vbr, lsb_depth, disable_inv; opus_uint32 rng; int spread_decision, high_z_tonal_Q7; opus_val32 delayedIntra;
   int lastCodedBands, prefilter_period; opus_val16 prefilter_gain; int prefilter_tapset, consec_transient; SILKInfo silk_info;
   opus_val32 preemph_memE[2], preemph_memD[2]; opus_int32 vbr_reservoir, vbr_drift, vbr_offset, vbr_count; opus_val32 overlap_max; opus_val16 stereo_saving; int intensity; celt_glog spec_avg; celt_sig in_mem[1];
 };
@@ -3798,6 +3809,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT int celt_encode_with_ec(CeltEncoderInternal *st
     if (start > 0) { st->stereo_saving = 0; alloc_trim = 5;
 }
     else alloc_trim = alloc_trim_analysis(mode, X, bandLogE, end, LM, C, N, &st->stereo_saving, tf_estimate, st->intensity, equiv_rate);
+    if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
     {
       ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
 }
@@ -3896,6 +3908,7 @@ static void celt_encoder_set_constrained_vbr(CeltEncoderInternal *st, opus_int32
 static int celt_encoder_set_prediction(CeltEncoderInternal *st, opus_int32 value) { st->disable_pf = value <= 1; st->force_intra = value == 0; return OPUS_OK; }
 static int celt_encoder_set_bitrate(CeltEncoderInternal *st, opus_int32 value) { st->bitrate = std::min(value, static_cast<opus_int32>(750000 * st->channels)); return OPUS_OK; }
 static void celt_encoder_set_silk_info(CeltEncoderInternal *st, const SILKInfo *info) { if (info) copy_n_items(info, std::size_t{1}, &st->silk_info); }
+static void celt_encoder_set_high_z_tonal(CeltEncoderInternal *st, opus_int32 value) { st->high_z_tonal_Q7 = static_cast<int>(value); }
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal *st) noexcept { return st->rng; }
 [[nodiscard]] static const CeltModeInternal *celt_encoder_mode(const CeltEncoderInternal *st) noexcept { return st->mode; }
 struct CeltDecoderInternal {
