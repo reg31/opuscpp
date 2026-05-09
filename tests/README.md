@@ -240,7 +240,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 253,824 B | 0 B | 253,824 B |
+| Host MinGW GCC `-O2` | 253,888 B | 0 B | 253,888 B |
 
 ## Toolchains checked
 

@@ -1750,6 +1750,29 @@ OPUS_SIZE_OPT static int update_lightweight_voice_estimate(ref_OpusEncoder *st, 
   if (music_score >= voice_score + 8 && music_score > 36) return 0;
   return 48;
 }
+struct encoder_quality_decision {
+  int voice_est, voice_score_Q7, music_score_Q7, harmonic_music_Q7, analysis_frames;
+
+  [[nodiscard]] auto voice_weight_Q14() const noexcept -> opus_int32 { return voice_est * voice_est; }
+  [[nodiscard]] auto strong_speech() const noexcept -> bool { return voice_est >= 100 && harmonic_music_Q7 < 80; }
+  [[nodiscard]] auto strong_music() const noexcept -> bool { return voice_est <= 16 && analysis_frames >= audio_preprocess_warmup_frames; }
+  [[nodiscard]] auto music_confident() const noexcept -> bool { return harmonic_music_Q7 > 52 && music_score_Q7 >= voice_score_Q7 + 8; }
+};
+[[nodiscard]] static encoder_quality_decision make_encoder_quality_decision(const ref_OpusEncoder *st, int voice_est) noexcept {
+  return {voice_est, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_analysis_frames};
+}
+[[nodiscard]] static opus_int32 quality_mode_threshold(const encoder_quality_decision &quality, opus_val16 stereo_width, bool voip_style, int prev_mode) noexcept {
+  const auto mode_voice = static_cast<opus_int32>(((1.0f - stereo_width) * mode_thresholds[0][0]) + (stereo_width * mode_thresholds[1][0]));
+  const auto mode_music = static_cast<opus_int32>(((1.0f - stereo_width) * mode_thresholds[1][1]) + (stereo_width * mode_thresholds[1][1]));
+  auto threshold = mode_music + ((quality.voice_weight_Q14() * (mode_voice - mode_music)) >> 14);
+  if (voip_style) threshold += 8000;
+  if (prev_mode == opus_mode_celt_only) threshold -= 4000;
+  else if (prev_mode > 0) threshold += 4000;
+  return std::max<opus_int32>(threshold, voip_style ? 23000 : 15000);
+}
+[[nodiscard]] static opus_int32 quality_bandwidth_threshold(const encoder_quality_decision &quality, opus_int32 music_threshold, opus_int32 voice_threshold) noexcept {
+  return music_threshold + ((quality.voice_weight_Q14() * (voice_threshold - music_threshold)) >> 14);
+}
 [[nodiscard]] static int choose_audio_preprocess_mode(ref_OpusEncoder *st) noexcept {
   if (st->audio_preprocess_hold > 0) {
     --st->audio_preprocess_hold;
@@ -1757,8 +1780,9 @@ OPUS_SIZE_OPT static int update_lightweight_voice_estimate(ref_OpusEncoder *st, 
   }
   int next_mode = st->audio_preprocess_mode;
   if (st->lightweight_analysis_frames >= audio_preprocess_warmup_frames) {
-    const bool speech_like = st->channels == 1 && st->lightweight_voice_score_Q7 > 88 && st->lightweight_harmonic_music_Q7 < 32 && st->lightweight_music_score_Q7 < 32;
-    const bool music_like = st->lightweight_harmonic_music_Q7 > 48 || st->lightweight_music_score_Q7 >= st->lightweight_voice_score_Q7 + 8;
+    const auto quality = encoder_quality_decision{0, st->lightweight_voice_score_Q7, st->lightweight_music_score_Q7, st->lightweight_harmonic_music_Q7, st->lightweight_analysis_frames};
+    const bool speech_like = st->channels == 1 && quality.voice_score_Q7 > 88 && quality.harmonic_music_Q7 < 32 && quality.music_score_Q7 < 32;
+    const bool music_like = quality.harmonic_music_Q7 > 48 || quality.music_confident();
     if (speech_like) next_mode = audio_preprocess_speech;
     else if (music_like) next_mode = audio_preprocess_music;
   }
@@ -1978,11 +2002,12 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     voice_est = update_lightweight_voice_estimate(st, pcm, frame_size, stereo_width);
     if (voip_style) voice_est = voice_est > 48 ? 115 : 0;
   } else voice_est = 48;
+  const auto quality = make_encoder_quality_decision(st, voice_est);
   if (st->force_channels != -1000 && st->channels == 2) {
     st->stream_channels = st->force_channels;
   } else {
     if (st->channels == 2) {
-      opus_int32 stereo_threshold = stereo_music_threshold + ((voice_est * voice_est * (stereo_voice_threshold - stereo_music_threshold)) >> 14);
+      opus_int32 stereo_threshold = quality_bandwidth_threshold(quality, stereo_music_threshold, stereo_voice_threshold);
       if (stereo_width < .015f && equiv_rate < 32000) {
         st->stream_channels = 1;
       } else {
@@ -2004,18 +2029,12 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   } else if (st->application == opus_application_restricted_lowdelay || st->application == opus_application_celt_only) {
     st->mode = opus_mode_celt_only;
   } else {
-    opus_int32 mode_voice, mode_music;
-    mode_voice = (opus_int32)(((1.0f - stereo_width) * (mode_thresholds[0][0])) + ((stereo_width) * (mode_thresholds[1][0])));
-    mode_music = (opus_int32)(((1.0f - stereo_width) * (mode_thresholds[1][1])) + ((stereo_width) * (mode_thresholds[1][1])));
-    threshold = mode_music + ((voice_est * voice_est * (mode_voice - mode_music)) >> 14);
-    if (voip_style) threshold += 8000;
-    if (st->prev_mode == opus_mode_celt_only) { threshold -= 4000; } else if (st->prev_mode > 0) { threshold += 4000; }
-    threshold = std::max<opus_int32>(threshold, voip_style ? 23000 : 15000);
+    threshold = quality_mode_threshold(quality, stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
-    if (voice_est <= 16 && st->lightweight_analysis_frames >= 12) {
+    if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
-    } else if (voice_est >= 100) {
+    } else if (quality.strong_speech()) {
       const opus_int32 speech_celt_switch_bps = 54000;
       if (st->bitrate_bps < speech_celt_switch_bps) st->mode = opus_mode_silk_only;
     }
@@ -2057,7 +2076,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     const auto voice_bandwidth_thresholds = std::span<const opus_uint16>{voice_bandwidth_thresholds_common};
     const auto music_bandwidth_thresholds = std::span<const opus_uint16>{music_bandwidth_thresholds_common};
     for (int threshold_index = 0; threshold_index < 8; ++threshold_index) {
-      bandwidth_thresholds[threshold_index] = music_bandwidth_thresholds[threshold_index] + ((voice_est * voice_est * (voice_bandwidth_thresholds[threshold_index] - music_bandwidth_thresholds[threshold_index])) >> 14);
+      bandwidth_thresholds[threshold_index] = quality_bandwidth_threshold(quality, music_bandwidth_thresholds[threshold_index], voice_bandwidth_thresholds[threshold_index]);
     }
     for (; bandwidth > 1101; --bandwidth) {
       int threshold, hysteresis;
@@ -2083,7 +2102,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   if (st->Fs <= 12000 && st->bandwidth > 1102) st->bandwidth = 1102;
   if (st->Fs <= 8000 && st->bandwidth > 1101) st->bandwidth = 1101;
   if (st->mode != opus_mode_celt_only && st->Fs >= 24000 && (st->application == opus_application_voip || st->application == opus_application_audio)) {
-    const opus_int32 hybrid_floor_bps = voice_est >= 100 ? 14000 : st->channels == 2 ? 12000 : 13000;
+    const opus_int32 hybrid_floor_bps = quality.strong_speech() ? 14000 : st->channels == 2 ? 12000 : 13000;
     if (st->bitrate_bps < hybrid_floor_bps) st->bandwidth = std::min(st->bandwidth, 1103);
     else if (st->bandwidth <= 1103) st->bandwidth = 1104;
     const opus_int32 hybrid_fullband_floor_bps = st->stream_channels == 2 ? 32000 : 24000;

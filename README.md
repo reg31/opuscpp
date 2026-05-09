@@ -26,7 +26,7 @@ Minimal integration looks like:
 - Tested with MinGW GCC and Android arm64 Clang.
 - Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is tracked by a mode-balance harness.
 - Lower memory footprint than official Opus in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot).
-- Host MinGW GCC `-O2` binary text in the current measured snapshot: `253,824 B`.
+- Host MinGW GCC `-O2` binary text in the current measured snapshot: `253,888 B`.
 
 ## Pros and cons
 
