@@ -135,9 +135,9 @@ Measured result for this repository snapshot:
 | Mono/stereo coverage | Passed |
 | Final range check mode | Supported by harness |
 
-## Encode oracle validation
+## Encode interoperability validation
 
-`Encode oracle validation` is the project's encoder regression gate, not a separate IETF RFC test. Opus encoders are not required to emit identical packets, so byte-for-byte packet comparison would be the wrong test. Instead, the harness encodes the same generated validation cases with `opuscpp` and with official Opus 1.6.1, decodes both paths with the official decoder, and compares the decoded audio. The relevant files are:
+`Encode interoperability validation` is the project's encoder regression gate, not a separate IETF RFC test. Opus encoders are not required to emit identical packets, so byte-for-byte packet comparison would be the wrong test. Instead, the harness encodes generated validation cases with `opuscpp` and verifies that official Opus 1.6.1 accepts and decodes those packets for the supported scenarios. The relevant files are:
 
 - `conformance_encode.cpp`
 - `official_encode_oracle.cpp`
@@ -147,8 +147,8 @@ Measured result for this repository snapshot:
 
 | Suite | Result |
 |---|---:|
-| RFC 8251 encode oracle cases | 96/96 passed |
-| Total encode oracle validation cases | 96/96 passed |
+| RFC 8251 encode interoperability cases | 96/96 passed |
+| Total encode interoperability cases | 96/96 passed |
 
 ## Perceptual and memory harness
 

@@ -21,7 +21,7 @@ Minimal integration looks like:
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%` in the speed harness; down to `-3.3%` in the quality harness).
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
-- Encode oracle validation: 96/96 encode regression cases passed against the official Opus reference path.
+- Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the official Opus decoder.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
 - Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is tracked by a mode-balance harness.
@@ -105,14 +105,14 @@ In the published memory snapshot, `opuscpp` uses less encoder and decoder state 
 The implementation is standard Opus compatible. The measured conformance gates are:
 
 - RFC decode conformance: 24/24 mono+stereo RFC 6716/RFC 8251 vector checks passed.
-- Encode oracle validation: 96/96 encode regression cases passed against the official Opus reference path.
+- Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the official Opus decoder.
 - Android arm64 Clang build: C++23 build check passed in the measured configuration.
 - MinGW GCC build: C++23 build check passed in the measured configuration.
 
 Terminology used here:
 
 - **RFC decode conformance** means decoding the official IETF Opus test-vector bitstreams from RFC 6716 and the RFC 8251 update set, then passing the official `opus_compare` acceptance test against the reference PCM.
-- **Encode oracle validation** is not an IETF term. Opus encoders are allowed to produce different valid packets, so this project checks encoding by comparing `opuscpp` against an official Opus 1.6.1 oracle path on the same generated inputs and CTL settings: encode, decode with official Opus, then compare the decoded audio with the oracle output.
+- **Encode interoperability validation** is the encoder regression gate. Opus encoders are allowed to produce different valid packets, so byte-for-byte packet identity is not the right public claim. The test encodes generated cases with `opuscpp`, decodes the packets with official Opus 1.6.1, and checks that the official decoder accepts the output for the supported scenarios.
 
 The test harnesses and detailed metrics are in `tests/`.
 
