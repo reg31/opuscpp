@@ -170,15 +170,17 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.530x | 1.487x | 508x | 332x | 1899x | 1277x |
-| 24&nbsp;kbps | 1.641x | 1.130x | 503x | 307x | 1249x | 1105x |
-| 32&nbsp;kbps | 1.617x | 1.074x | 470x | 290x | 1068x | 994x |
-| 48&nbsp;kbps | 1.444x | 1.066x | 409x | 283x | 997x | 935x |
-| 64&nbsp;kbps | 1.475x | 1.056x | 361x | 245x | 857x | 812x |
-| 96&nbsp;kbps | 1.542x | 1.012x | 326x | 211x | 615x | 607x |
-| 128&nbsp;kbps | 1.410x | 1.021x | 261x | 185x | 590x | 578x |
-| 192&nbsp;kbps | 1.403x | 1.002x | 244x | 174x | 509x | 508x |
-| 256&nbsp;kbps | 1.366x | 1.011x | 233x | 171x | 454x | 449x |
+| 16&nbsp;kbps | 1.548x | 1.481x | 510x | 330x | 1884x | 1272x |
+| 24&nbsp;kbps | 1.749x | 1.122x | 521x | 298x | 1199x | 1069x |
+| 32&nbsp;kbps | 1.751x | 1.117x | 484x | 276x | 1137x | 1018x |
+| 48&nbsp;kbps | 1.532x | 1.079x | 446x | 291x | 1048x | 972x |
+| 64&nbsp;kbps | 1.560x | 1.047x | 416x | 267x | 888x | 849x |
+| 96&nbsp;kbps | 1.585x | 1.049x | 342x | 216x | 679x | 648x |
+| 128&nbsp;kbps | 1.541x | 1.007x | 306x | 198x | 593x | 589x |
+| 192&nbsp;kbps | 1.605x | 1.001x | 255x | 159x | 477x | 476x |
+| 256&nbsp;kbps | 1.407x | 1.002x | 239x | 170x | 453x | 452x |
+
+
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
@@ -203,6 +205,8 @@ Quality proxy metrics were measured on the validation corpus used during develop
 | 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | -0.3% |
 | 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | -0.3% |
 | 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | -0.1% |
+
+
 
 Source CSV:
 
@@ -236,7 +240,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 253,816 B | 0 B | 253,816 B |
+| Host MinGW GCC `-O2` | 253,824 B | 0 B | 253,824 B |
 
 ## Toolchains checked
 

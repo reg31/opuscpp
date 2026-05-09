@@ -1595,13 +1595,19 @@ constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
 }
 constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
-static int is_digital_silence(const opus_res *pcm, int frame_size, int channels, int lsb_depth) {
-  const auto sample_max = celt_maxabs16(pcm, frame_size * channels);
-  return sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth);
-}
-static OPUS_NOINLINE OPUS_SIZE_OPT opus_val32 compute_frame_energy(const opus_val16 *pcm, int frame_size, int channels) {
+struct frame_activity_metrics {
+  int is_silence;
+  opus_val32 energy;
+};
+static OPUS_NOINLINE OPUS_SIZE_OPT frame_activity_metrics measure_frame_activity(const opus_res *pcm, int frame_size, int channels, int lsb_depth) {
   const int len = frame_size * channels;
-  return celt_inner_prod_c(pcm, pcm, len) / len;
+  opus_val32 energy = 0, sample_max = 0;
+  for (int i = 0; i < len; ++i) {
+    const auto sample = pcm[i];
+    energy += sample * sample;
+    sample_max = std::max(sample_max, std::abs(sample));
+  }
+  return {sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth), energy / len};
 }
 static int tone_lpc(const opus_val16 *x, int len, int delay, opus_val32 *lpc);
 OPUS_SIZE_OPT [[nodiscard]] static int audio_music_marker_from_mono(const opus_val16 *mono, int frame_size) {
@@ -1886,7 +1892,7 @@ struct multiframe_encode_params final {
   int redundancy, celt_to_silk, to_celt, prefill;
   opus_int32 equiv_rate, cbr_bytes;
 };
-static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, unsigned char *data, opus_int32 max_data_bytes, bool float_api, int is_silence, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, encoder_stage_storage &stage_storage);
+static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, unsigned char *data, opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics &metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, encoder_stage_storage &stage_storage);
 [[nodiscard]] static OPUS_COLD OPUS_NOINLINE auto encode_multiframe_packet(ref_OpusEncoder *st, const opus_res *pcm, const int frame_size, unsigned char *data, const opus_int32 out_data_bytes, const multiframe_encode_params &params) -> opus_int32 {
   const int enc_frame_size = multiframe_encoder_frame_size(st, frame_size);
   const int nb_frames = frame_size / enc_frame_size;
@@ -1911,8 +1917,8 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEnc
     opus_int32 curr_max = ((bitrate_to_bits(st->bitrate_bps, st->Fs, enc_frame_size) / 8) < (max_len_sum / nb_frames) ? (bitrate_to_bits(st->bitrate_bps, st->Fs, enc_frame_size) / 8) : (max_len_sum / nb_frames));
     curr_max = std::min(max_len_sum - tot_size, curr_max);
     const auto *frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
-    const int frame_is_silence = is_digital_silence(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
-    const int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_is_silence, frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt, stage_storage);
+    const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
+    const int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_metrics, frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt, stage_storage);
     if (tmp_len < 0) {
       stage_storage.commit_to_encoder(st); st->silk_mode.toMono = bak_to_mono;
       return -3;
@@ -1939,7 +1945,6 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   int voice_est, frame_rate, curr_bandwidth;
   opus_int32 equiv_rate, max_rate, max_data_bytes, cbr_bytes = -1; opus_val16 stereo_width;
   int packet_size_cap = 1276;
-  int is_silence = 0;
   max_data_bytes = std::min(packet_size_cap * 6, out_data_bytes); st->rangeFinal = 0;
   if (frame_size <= 0 || max_data_bytes <= 0) { return -1;
 }
@@ -1947,9 +1952,9 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
 }
   if (encoder_uses_silk(st->application)) silk_enc = (char *)st + st->silk_enc_offset;
   if (encoder_uses_celt(st->application)) celt_enc = (CeltEncoderInternal *)((char *)st + st->celt_enc_offset);
-  is_silence = is_digital_silence(pcm, frame_size, st->channels, lsb_depth);
-  if (!is_silence) {
-    st->peak_signal_energy = std::max<opus_val32>(0.999f * st->peak_signal_energy, compute_frame_energy(pcm, frame_size, st->channels));
+  const auto frame_metrics = measure_frame_activity(pcm, frame_size, st->channels, lsb_depth);
+  if (!frame_metrics.is_silence) {
+    st->peak_signal_energy = std::max<opus_val32>(0.999f * st->peak_signal_energy, frame_metrics.energy);
   }
   if (st->channels == 2 && st->force_channels != 1) {
     stereo_width = compute_stereo_width(pcm, frame_size, st->Fs, &st->width_mem);
@@ -2097,7 +2102,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   auto *stage_buffer = OPUS_SCRATCH(opus_res, encoder_stage_storage_size(st, frame_size));
   auto stage_storage = make_encoder_stage_storage(stage_buffer, st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
-  ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, is_silence, redundancy, celt_to_silk, prefill, equiv_rate, to_celt, stage_storage);
+  ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, frame_metrics, redundancy, celt_to_silk, prefill, equiv_rate, to_celt, stage_storage);
   stage_storage.commit_to_encoder(st);
   return ret;
 }
@@ -2120,7 +2125,7 @@ static OPUS_NOINLINE void opus_prepare_frame_highpass(ref_OpusEncoder *st, void 
     dc_reject(pcm, 3, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
 }
-static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, unsigned char *data, opus_int32 orig_max_data_bytes, bool float_api, int is_silence, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, encoder_stage_storage &stage_storage) {
+static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, unsigned char *data, opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics &metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, encoder_stage_storage &stage_storage) {
   void *silk_enc = nullptr;
   CeltEncoderInternal *celt_enc = nullptr;
   const CeltModeInternal *celt_mode = nullptr;
@@ -2158,9 +2163,9 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEnc
   };
   curr_bandwidth = st->bandwidth;
   frame_rate = st->Fs / frame_size;
-  if (is_silence) { activity = !is_silence;
+  if (metrics.is_silence) { activity = !metrics.is_silence;
 }
-  else if (st->mode == opus_mode_celt_only) { opus_val32 noise_energy = compute_frame_energy(pcm, frame_size, st->channels); activity = st->peak_signal_energy < ((316.23f) * (opus_val64)(.5f * (noise_energy)));
+  else if (st->mode == opus_mode_celt_only) { activity = st->peak_signal_energy < ((316.23f) * (opus_val64)(.5f * metrics.energy));
 }
   if (st->silk_bw_switch) { redundancy = 1; celt_to_silk = 1; st->silk_bw_switch = 0; prefill = 2;
 }

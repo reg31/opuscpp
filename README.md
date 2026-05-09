@@ -77,15 +77,17 @@ Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The offi
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.530x | 1.487x | +0.0000 | -0.0185 | -2.1% |
-| 24&nbsp;kbps | 1.641x | 1.130x | -0.0072 | +0.0411 | -2.2% |
-| 32&nbsp;kbps | 1.617x | 1.074x | +0.0007 | +0.0351 | -2.5% |
-| 48&nbsp;kbps | 1.444x | 1.066x | +0.0010 | +0.0131 | +0.0% |
-| 64&nbsp;kbps | 1.475x | 1.056x | +0.0010 | +0.0057 | +0.0% |
-| 96&nbsp;kbps | 1.542x | 1.012x | +0.0002 | +0.0015 | -0.2% |
-| 128&nbsp;kbps | 1.410x | 1.021x | +0.0006 | +0.0022 | -0.2% |
-| 192&nbsp;kbps | 1.403x | 1.002x | +0.0003 | -0.0001 | -0.2% |
-| 256&nbsp;kbps | 1.366x | 1.011x | +0.0005 | -0.0005 | -0.2% |
+| 16&nbsp;kbps | 1.548x | 1.481x | +0.0000 | -0.0185 | -2.1% |
+| 24&nbsp;kbps | 1.749x | 1.122x | -0.0072 | +0.0411 | -2.2% |
+| 32&nbsp;kbps | 1.751x | 1.117x | +0.0007 | +0.0351 | -2.5% |
+| 48&nbsp;kbps | 1.532x | 1.079x | +0.0010 | +0.0131 | +0.0% |
+| 64&nbsp;kbps | 1.560x | 1.047x | +0.0010 | +0.0057 | +0.0% |
+| 96&nbsp;kbps | 1.585x | 1.049x | +0.0002 | +0.0015 | -0.2% |
+| 128&nbsp;kbps | 1.541x | 1.007x | +0.0006 | +0.0022 | -0.2% |
+| 192&nbsp;kbps | 1.605x | 1.001x | +0.0003 | -0.0001 | -0.2% |
+| 256&nbsp;kbps | 1.407x | 1.002x | +0.0005 | -0.0005 | -0.2% |
+
+
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 
