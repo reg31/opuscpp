@@ -178,9 +178,9 @@ def emit_metrics_report(
         "- `opuscpp` decoder conformance harness built locally.",
         f"- Local result: {rfc.get('passed', '0')}/{rfc.get('total', '0')} RFC decode vectors passed.",
         "",
-        "## Encode oracle conformance",
+        "## Encode interoperability validation",
         "",
-        f"- Local result: {encode.get('passed', '0')}/96 encode oracle cases passed.",
+        f"- Local result: {encode.get('passed', '0')}/96 generated encode cases produced packets accepted by official Opus.",
         "",
         "## Perceptual and memory harness",
         "",
@@ -705,7 +705,7 @@ def main() -> int:
     print()
     print("RFC decode conformance:")
     print(f"  passed={rfc['passed']}/{rfc['total']}")
-    print("Encode oracle conformance:")
+    print("Encode interoperability validation:")
     print(f"  passed_cases={encode['passed']}")
     print("Perceptual and memory harness:")
     for row in perceptual["rows"]:

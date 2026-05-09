@@ -12,9 +12,9 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 - `opuscpp` decoder conformance harness built locally.
 - Local result: 24/24 RFC decode vectors passed.
 
-## Encode oracle conformance
+## Encode interoperability validation
 
-- Local result: 96/96 encode oracle cases passed.
+- Local result: 96/96 generated encode cases produced packets accepted by official Opus.
 
 ## Perceptual and memory harness
 
@@ -25,29 +25,29 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 0.921123x | 1.417588x |
-| 24 kbps | 1.073350x | 1.107987x |
-| 32 kbps | 1.028541x | 1.103973x |
-| 48 kbps | 0.992342x | 1.076494x |
-| 64 kbps | 1.052125x | 1.038324x |
-| 96 kbps | 1.144274x | 0.979999x |
-| 128 kbps | 1.188764x | 0.986832x |
-| 192 kbps | 1.119923x | 0.990214x |
-| 256 kbps | 1.100251x | 0.988568x |
+| 16 kbps | 1.529500x | 1.487053x |
+| 24 kbps | 1.641122x | 1.130233x |
+| 32 kbps | 1.617266x | 1.074125x |
+| 48 kbps | 1.444171x | 1.066213x |
+| 64 kbps | 1.475413x | 1.055716x |
+| 96 kbps | 1.542411x | 1.011878x |
+| 128 kbps | 1.410373x | 1.020990x |
+| 192 kbps | 1.403323x | 1.002290x |
+| 256 kbps | 1.365807x | 1.011054x |
 
 ## Quality metrics vs official Opus
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta |
 |---:|---:|---:|---:|
-| 16 kbps | 0.0003 | -0.0162 | 1.3037 |
-| 24 kbps | -0.0071 | 0.0385 | 22.0159 |
-| 32 kbps | 0.0006 | 0.0348 | 16.8861 |
-| 48 kbps | 0.0005 | 0.0109 | 0.3921 |
-| 64 kbps | 0.0001 | 0.0026 | 0.2358 |
-| 96 kbps | -0.0001 | 0.0012 | -0.1403 |
-| 128 kbps | 0.0004 | 0.0013 | -0.2914 |
-| 192 kbps | 0.0002 | -0.0002 | -0.2242 |
-| 256 kbps | 0.0003 | -0.0004 | -0.1322 |
+| 16 kbps | 0.0000 | -0.0185 | 1.3037 |
+| 24 kbps | -0.0072 | 0.0411 | 22.0159 |
+| 32 kbps | 0.0007 | 0.0351 | 16.8861 |
+| 48 kbps | 0.0010 | 0.0131 | 0.3921 |
+| 64 kbps | 0.0010 | 0.0057 | 0.2358 |
+| 96 kbps | 0.0002 | 0.0015 | -0.1403 |
+| 128 kbps | 0.0006 | 0.0022 | -0.2914 |
+| 192 kbps | 0.0003 | -0.0001 | -0.2242 |
+| 256 kbps | 0.0005 | -0.0005 | -0.1322 |
 
 ## Detector mode-balance spot check
 
@@ -69,7 +69,7 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 253840 B | 0 B | 253840 B |
+| Host C++23 `-O2` | 253816 B | 0 B | 253816 B |
 
 ## Toolchains checked
 

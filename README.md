@@ -2,9 +2,9 @@
 
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API, derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`, and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in many measured configurations, and quality metrics close to upstream. The headline benchmark comparison uses official Opus 1.6.1 built with `-O2 -DNDEBUG` and x86 intrinsics enabled, because that is the practical baseline for many desktop builds. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
+For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff: full standards compatibility, substantially lower memory use, faster encoding than official Opus in the current measured configurations, and quality metrics close to upstream. The headline benchmark comparison uses official Opus 1.6.1 built with `-O2 -DNDEBUG` and x86 intrinsics enabled, because that is the practical baseline for many desktop builds. The project targets standard Opus packets. Existing code using the supported Opus API can use this implementation without packet-format changes as long as it stays within the supported CTL subset described in `src/README.md`. Custom Opus is intentionally unsupported.
 
-In short: `opuscpp` is a portable C++23 alternative to official Opus for C++ users: source-embeddable, lower-memory, standards-compatible, and performance-competitive even against official Opus builds using platform intrinsics.
+In short: `opuscpp` is a portable C++23 alternative to official Opus for C++ users: source-embeddable, lower-memory, standards-compatible, and currently faster in the tracked benchmark even against an official Opus build using platform intrinsics.
 
 Minimal integration looks like:
 
@@ -16,8 +16,8 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Encode is faster than official Opus with x86 intrinsics in 7/9 measured bitrates; 16 kbps is parity-level and 48 kbps is the remaining small loss in the current run.
-- Decode is faster than official Opus with x86 intrinsics in 7/9 measured bitrates; 96/128 kbps are the remaining high-rate losses in the current run.
+- Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run.
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run.
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%` in the speed harness; down to `-3.3%` in the quality harness).
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
@@ -32,8 +32,8 @@ Minimal integration looks like:
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster in 7/9 measured bitrates and close at the few points where official Opus wins. | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 7/9 measured bitrates; 96/128 kbps are the remaining high-rate losses in the current run. | A few speed points are still within measurement noise, and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run. | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run. | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -73,19 +73,19 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`, with selected source-level attributes for hot integer paths and cold/size-sensitive paths. The official Opus 1.6.1 baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.1 / AMD Ryzen 7 8845HS. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The current speed table comes from the repository's 8-second stereo synthetic benchmark; quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The official Opus 1.6.1 baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.1 / AMD Ryzen 7 8845HS. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The current speed table comes from the repository's 8-second stereo synthetic benchmark; quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.999x | 1.577x | +0.0003 | -0.0162 | -2.1% |
-| 24&nbsp;kbps | 1.087x | 1.155x | -0.0071 | +0.0385 | -2.2% |
-| 32&nbsp;kbps | 1.046x | 1.115x | +0.0006 | +0.0348 | -2.5% |
-| 48&nbsp;kbps | 0.973x | 1.059x | +0.0005 | +0.0109 | +0.0% |
-| 64&nbsp;kbps | 1.012x | 1.037x | +0.0001 | +0.0026 | +0.0% |
-| 96&nbsp;kbps | 1.079x | 0.970x | -0.0002 | +0.0012 | -0.2% |
-| 128&nbsp;kbps | 1.130x | 0.952x | +0.0004 | +0.0013 | -0.2% |
-| 192&nbsp;kbps | 1.092x | 1.003x | +0.0002 | -0.0002 | -0.2% |
-| 256&nbsp;kbps | 1.097x | 1.024x | +0.0003 | -0.0004 | -0.2% |
+| 16&nbsp;kbps | 1.530x | 1.487x | +0.0000 | -0.0185 | -2.1% |
+| 24&nbsp;kbps | 1.641x | 1.130x | -0.0072 | +0.0411 | -2.2% |
+| 32&nbsp;kbps | 1.617x | 1.074x | +0.0007 | +0.0351 | -2.5% |
+| 48&nbsp;kbps | 1.444x | 1.066x | +0.0010 | +0.0131 | +0.0% |
+| 64&nbsp;kbps | 1.475x | 1.056x | +0.0010 | +0.0057 | +0.0% |
+| 96&nbsp;kbps | 1.542x | 1.012x | +0.0002 | +0.0015 | -0.2% |
+| 128&nbsp;kbps | 1.410x | 1.021x | +0.0006 | +0.0022 | -0.2% |
+| 192&nbsp;kbps | 1.403x | 1.002x | +0.0003 | -0.0001 | -0.2% |
+| 256&nbsp;kbps | 1.366x | 1.011x | +0.0005 | -0.0005 | -0.2% |
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

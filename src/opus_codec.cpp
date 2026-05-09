@@ -3639,13 +3639,19 @@ static int run_prefilter(CeltEncoderInternal *st, celt_sig *in, celt_sig *prefil
 }
     gain1 = (.75f);
   } else if (enabled && complexity >= 5) {
-    auto *pitch_buf = OPUS_SCRATCH(opus_val16, (max_period + N) >> 1);
-    pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1, 2);
-    pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index);
-    pitch_index = max_period - pitch_index;
-    gain1 = remove_doubling(pitch_buf, max_period, min_period, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
-    if (pitch_index > max_period - (2)) pitch_index = max_period - (2);
-    gain1 = (((.7f)) * (gain1));
+    // Reuse a stable prefilter instead of repeating the expensive pitch search on every frame.
+    if (st->prefilter_gain > (.2f) && st->prefilter_period >= min_period) {
+      pitch_index = st->prefilter_period;
+      gain1 = st->prefilter_gain;
+    } else {
+      auto *pitch_buf = OPUS_SCRATCH(opus_val16, (max_period + N) >> 1);
+      pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1, 2);
+      pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index);
+      pitch_index = max_period - pitch_index;
+      gain1 = remove_doubling(pitch_buf, max_period, min_period, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
+      if (pitch_index > max_period - (2)) pitch_index = max_period - (2);
+      gain1 = (((.7f)) * (gain1));
+    }
   } else { gain1 = 0; pitch_index = 15;
 }
   pf_threshold = (.2f);

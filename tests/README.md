@@ -170,15 +170,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.999x | 1.577x | 163x | 163x | 965x | 612x |
-| 24&nbsp;kbps | 1.087x | 1.155x | 155x | 142x | 641x | 555x |
-| 32&nbsp;kbps | 1.046x | 1.115x | 157x | 150x | 615x | 552x |
-| 48&nbsp;kbps | 0.973x | 1.059x | 148x | 152x | 517x | 489x |
-| 64&nbsp;kbps | 1.012x | 1.037x | 130x | 129x | 417x | 402x |
-| 96&nbsp;kbps | 1.079x | 0.970x | 112x | 104x | 325x | 335x |
-| 128&nbsp;kbps | 1.130x | 0.952x | 111x | 98x | 281x | 295x |
-| 192&nbsp;kbps | 1.092x | 1.003x | 94x | 86x | 241x | 240x |
-| 256&nbsp;kbps | 1.097x | 1.024x | 95x | 86x | 234x | 229x |
+| 16&nbsp;kbps | 1.530x | 1.487x | 508x | 332x | 1899x | 1277x |
+| 24&nbsp;kbps | 1.641x | 1.130x | 503x | 307x | 1249x | 1105x |
+| 32&nbsp;kbps | 1.617x | 1.074x | 470x | 290x | 1068x | 994x |
+| 48&nbsp;kbps | 1.444x | 1.066x | 409x | 283x | 997x | 935x |
+| 64&nbsp;kbps | 1.475x | 1.056x | 361x | 245x | 857x | 812x |
+| 96&nbsp;kbps | 1.542x | 1.012x | 326x | 211x | 615x | 607x |
+| 128&nbsp;kbps | 1.410x | 1.021x | 261x | 185x | 590x | 578x |
+| 192&nbsp;kbps | 1.403x | 1.002x | 244x | 174x | 509x | 508x |
+| 256&nbsp;kbps | 1.366x | 1.011x | 233x | 171x | 454x | 449x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
@@ -194,15 +194,15 @@ Quality proxy metrics were measured on the validation corpus used during develop
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | Packet bytes vs official |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0003 | -0.0162 | +1.3037 | -2.8% |
-| 24&nbsp;kbps | -0.0071 | +0.0385 | +22.0159 | -2.9% |
-| 32&nbsp;kbps | +0.0006 | +0.0348 | +16.8861 | -3.3% |
-| 48&nbsp;kbps | +0.0005 | +0.0109 | +0.3921 | +0.0% |
-| 64&nbsp;kbps | +0.0001 | +0.0026 | +0.2358 | +0.0% |
-| 96&nbsp;kbps | -0.0002 | +0.0012 | -0.1403 | -0.3% |
-| 128&nbsp;kbps | +0.0004 | +0.0013 | -0.2914 | -0.3% |
-| 192&nbsp;kbps | +0.0002 | -0.0002 | -0.2242 | -0.3% |
-| 256&nbsp;kbps | +0.0003 | -0.0004 | -0.1322 | -0.1% |
+| 16&nbsp;kbps | +0.0000 | -0.0185 | +1.3037 | -2.8% |
+| 24&nbsp;kbps | -0.0072 | +0.0411 | +22.0159 | -2.9% |
+| 32&nbsp;kbps | +0.0007 | +0.0351 | +16.8861 | -3.3% |
+| 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | +0.0% |
+| 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | +0.0% |
+| 96&nbsp;kbps | +0.0002 | +0.0015 | -0.1403 | -0.3% |
+| 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | -0.3% |
+| 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | -0.3% |
+| 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | -0.1% |
 
 Source CSV:
 
