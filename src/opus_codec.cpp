@@ -3810,6 +3810,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT int celt_encode_with_ec(CeltEncoderInternal *st
 }
     else alloc_trim = alloc_trim_analysis(mode, X, bandLogE, end, LM, C, N, &st->stereo_saving, tf_estimate, st->intensity, equiv_rate);
     if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
+    if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 16000 && st->bitrate < 24000) alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
     {
       ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
 }
