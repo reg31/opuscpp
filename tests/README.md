@@ -170,15 +170,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.92x | 1.42x | 267x | 290x | 1563x | 1103x |
-| 24&nbsp;kbps | 1.07x | 1.11x | 259x | 241x | 1012x | 914x |
-| 32&nbsp;kbps | 1.03x | 1.10x | 259x | 252x | 1056x | 957x |
-| 48&nbsp;kbps | 0.99x | 1.08x | 263x | 265x | 941x | 874x |
-| 64&nbsp;kbps | 1.05x | 1.04x | 239x | 227x | 784x | 755x |
-| 96&nbsp;kbps | 1.14x | 0.98x | 207x | 181x | 496x | 506x |
-| 128&nbsp;kbps | 1.19x | 0.99x | 194x | 163x | 503x | 510x |
-| 192&nbsp;kbps | 1.12x | 0.99x | 172x | 154x | 417x | 421x |
-| 256&nbsp;kbps | 1.10x | 0.99x | 163x | 148x | 404x | 408x |
+| 16&nbsp;kbps | 0.999x | 1.577x | 163x | 163x | 965x | 612x |
+| 24&nbsp;kbps | 1.087x | 1.155x | 155x | 142x | 641x | 555x |
+| 32&nbsp;kbps | 1.046x | 1.115x | 157x | 150x | 615x | 552x |
+| 48&nbsp;kbps | 0.973x | 1.059x | 148x | 152x | 517x | 489x |
+| 64&nbsp;kbps | 1.012x | 1.037x | 130x | 129x | 417x | 402x |
+| 96&nbsp;kbps | 1.079x | 0.970x | 112x | 104x | 325x | 335x |
+| 128&nbsp;kbps | 1.130x | 0.952x | 111x | 98x | 281x | 295x |
+| 192&nbsp;kbps | 1.092x | 1.003x | 94x | 86x | 241x | 240x |
+| 256&nbsp;kbps | 1.097x | 1.024x | 95x | 86x | 234x | 229x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
@@ -199,7 +199,7 @@ Quality proxy metrics were measured on the validation corpus used during develop
 | 32&nbsp;kbps | +0.0006 | +0.0348 | +16.8861 | -3.3% |
 | 48&nbsp;kbps | +0.0005 | +0.0109 | +0.3921 | +0.0% |
 | 64&nbsp;kbps | +0.0001 | +0.0026 | +0.2358 | +0.0% |
-| 96&nbsp;kbps | -0.0001 | +0.0012 | -0.1403 | -0.3% |
+| 96&nbsp;kbps | -0.0002 | +0.0012 | -0.1403 | -0.3% |
 | 128&nbsp;kbps | +0.0004 | +0.0013 | -0.2914 | -0.3% |
 | 192&nbsp;kbps | +0.0002 | -0.0002 | -0.2242 | -0.3% |
 | 256&nbsp;kbps | +0.0003 | -0.0004 | -0.1322 | -0.1% |
@@ -236,12 +236,12 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 253,840 B | 0 B | 253,840 B |
+| Host MinGW GCC `-O2` | 253,816 B | 0 B | 253,816 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW GCC 16.1 C++23 | Builds with zero warnings in measured configuration. |
+| MinGW GCC 16.1 C++23 | Build check passed in the latest full report. |
 | Android arm64 Clang C++23 | Build check passed in the latest full report. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` or `tests/scripts/run_smoke.sh` for a quick local check. |

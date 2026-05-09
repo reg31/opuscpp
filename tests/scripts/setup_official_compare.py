@@ -47,6 +47,34 @@ def load_csv_rows(path: pathlib.Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def resolve_tool_path(tool: str) -> pathlib.Path | None:
+    resolved = shutil.which(tool)
+    if resolved:
+        return pathlib.Path(resolved)
+    candidate = pathlib.Path(tool)
+    return candidate if candidate.exists() else None
+
+
+def prepend_tool_directory_to_path(tool: str) -> None:
+    tool_path = resolve_tool_path(tool)
+    if tool_path is None:
+        return
+    tool_dir = str(tool_path.parent)
+    current_path = os.environ.get("PATH", "")
+    if tool_dir not in current_path.split(os.pathsep):
+        os.environ["PATH"] = tool_dir + os.pathsep + current_path
+
+
+def find_size_tool(cxx: str) -> str | None:
+    cxx_path = resolve_tool_path(cxx)
+    if cxx_path is not None:
+        for name in ("size.exe", "size"):
+            candidate = cxx_path.parent / name
+            if candidate.exists():
+                return str(candidate)
+    return shutil.which("size")
+
+
 
 def parse_size_output(output: str) -> dict[str, str]:
     lines = [line.strip() for line in output.splitlines() if line.strip()]
@@ -488,7 +516,7 @@ def run_binary_size(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path)
     build_dir = report_dir / "binary_size"
     build_dir.mkdir(parents=True, exist_ok=True)
     obj = compile_object(cxx, repo_root / "src" / "opus_codec.cpp", build_dir / "opus_codec.o", [repo_root / "src"], [])
-    size_tool = shutil.which("size")
+    size_tool = find_size_tool(cxx)
     if not size_tool:
         return {"status": "size tool unavailable"}
     output = capture([size_tool, str(obj)])
@@ -609,6 +637,7 @@ def main() -> int:
         help="Optional path where the final Markdown report should also be copied.",
     )
     args = parser.parse_args()
+    prepend_tool_directory_to_path(args.cxx)
 
     repo_root = pathlib.Path(__file__).resolve().parents[2]
     external_root = repo_root / "tests" / "external"
