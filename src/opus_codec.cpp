@@ -1698,6 +1698,18 @@ static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrat
   else redundancy_bytes = 0;
   return redundancy_bytes;
 }
+static OPUS_ALWAYS_INLINE void apply_audio_presence_shelf(ref_OpusEncoder *st, opus_res *frame_pcm, int frame_size) noexcept {
+  if (st->application != opus_application_audio || st->channels != 1) return;
+  if (st->bitrate_bps < 28000 || st->bitrate_bps > 40000) return;
+  if (st->lightweight_high_z_tonal_Q7 >= 64) return;
+
+  opus_res previous = frame_pcm[0];
+  for (int i = 1; i < frame_size; ++i) {
+    const opus_res current = frame_pcm[i];
+    frame_pcm[i] = current + (.025f) * (current - previous);
+    previous = current;
+  }
+}
 [[nodiscard]] constexpr auto encoder_delay_compensation(const ref_OpusEncoder *st) noexcept -> int {
   return st->application == opus_application_restricted_lowdelay ? 0 : st->delay_compensation;
 }
@@ -2036,6 +2048,7 @@ static OPUS_NOINLINE void opus_prepare_frame_highpass(ref_OpusEncoder *st, void 
   } else {
     dc_reject(pcm, 3, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
+  apply_audio_presence_shelf(st, frame_pcm, frame_size);
 }
 static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 opus_encode_frame_native(ref_OpusEncoder *st, const opus_res *pcm, int frame_size, unsigned char *data, opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics &metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, encoder_stage_storage &stage_storage) {
   void *silk_enc = nullptr;
