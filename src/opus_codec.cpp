@@ -1470,7 +1470,7 @@ constexpr auto hybrid_silk_lowrate_target_bps = 24000;
 constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
 constexpr auto audio_vbr_quality_headroom_min_bps = 28000;
 constexpr auto audio_vbr_quality_headroom_max_bps = 36000;
-constexpr auto audio_vbr_quality_headroom_bps = 3900;
+constexpr auto audio_vbr_quality_headroom_bps = 2000;
 
 [[nodiscard]] static constexpr opus_int32 hybrid_silk_lowrate_boost_bps(opus_int32 user_bitrate_bps, opus_int32 silk_bitrate_bps) noexcept {
   if (user_bitrate_bps < hybrid_silk_lowrate_boost_min_bps || user_bitrate_bps > hybrid_silk_lowrate_boost_max_bps) return silk_bitrate_bps;
