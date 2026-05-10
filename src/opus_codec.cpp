@@ -1936,6 +1936,11 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     if (st->lightweight_analysis_frames < audio_preprocess_warmup_frames && st->channels == 1 &&
         st->bitrate_bps >= 22000 && st->bitrate_bps < 28000) {
       st->mode = opus_mode_silk_only;
+    // Real-clip tests prefer SILK/hybrid for mono non-tonal AUDIO at 64-96 kbps;
+    // keep confident high-Z tones on CELT.
+    } else if (!voip_style && st->channels == 1 && st->bitrate_bps >= 56000 && st->bitrate_bps < 128000 &&
+               !quality.high_z_tonal_confident() && quality.harmonic_music_Q7 < 32) {
+      st->mode = opus_mode_silk_only;
     } else if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
