@@ -1932,7 +1932,11 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   } else {
     const auto threshold = quality_mode_threshold(quality, stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
-    if (quality.strong_music()) {
+    // Avoid over-trusting a cold speech/music classifier in the sensitive mono 24 kbps region.
+    if (st->lightweight_analysis_frames < audio_preprocess_warmup_frames && st->channels == 1 &&
+        st->bitrate_bps >= 22000 && st->bitrate_bps < 28000) {
+      st->mode = opus_mode_silk_only;
+    } else if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
       if (!voip_style && st->bitrate_bps >= 22000 && st->bitrate_bps < 28000 && quality.high_z_tonal_confident()) {
