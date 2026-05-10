@@ -170,15 +170,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.651x | 1.490x | 549x | 332x | 1876x | 1259x |
-| 24&nbsp;kbps | 1.724x | 1.127x | 517x | 300x | 1225x | 1087x |
-| 32&nbsp;kbps | 1.811x | 1.142x | 502x | 277x | 1127x | 988x |
-| 48&nbsp;kbps | 1.424x | 1.118x | 395x | 277x | 988x | 884x |
-| 64&nbsp;kbps | 1.531x | 1.079x | 383x | 250x | 872x | 807x |
-| 96&nbsp;kbps | 1.586x | 1.044x | 334x | 210x | 676x | 648x |
-| 128&nbsp;kbps | 1.522x | 1.031x | 303x | 199x | 574x | 557x |
-| 192&nbsp;kbps | 1.451x | 1.040x | 246x | 169x | 522x | 502x |
-| 256&nbsp;kbps | 1.413x | 1.049x | 237x | 168x | 471x | 449x |
+| 16&nbsp;kbps | 1.598x | 1.483x | 507x | 317x | 1780x | 1200x |
+| 24&nbsp;kbps | 1.722x | 1.139x | 492x | 286x | 1169x | 1026x |
+| 32&nbsp;kbps | 1.733x | 1.121x | 480x | 277x | 1137x | 1014x |
+| 48&nbsp;kbps | 1.544x | 1.100x | 437x | 283x | 1014x | 922x |
+| 64&nbsp;kbps | 1.577x | 1.066x | 393x | 249x | 841x | 789x |
+| 96&nbsp;kbps | 1.804x | 1.045x | 301x | 167x | 656x | 628x |
+| 128&nbsp;kbps | 1.557x | 1.042x | 283x | 182x | 505x | 485x |
+| 192&nbsp;kbps | 1.433x | 1.045x | 229x | 159x | 493x | 472x |
+| 256&nbsp;kbps | 1.402x | 1.036x | 226x | 161x | 443x | 427x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
