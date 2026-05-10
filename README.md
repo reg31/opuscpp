@@ -16,25 +16,25 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.316x to 1.731x).
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.036x to 1.491x).
+- Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.413x to 1.811x).
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.031x to 1.490x).
 - Quality proxy deltas stay close to official Opus, with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
-- Packet sizes are close to or smaller than official Opus in the measured set (`-2.5%` to `+0.0%` in the speed harness; down to `-3.3%` in the quality harness).
+- Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at several low/mid rates.
 - RFC decode conformance: 24/24 RFC 6716/RFC 8251 vector checks passed.
 - Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the official Opus decoder.
 - No assembly, no SIMD intrinsics, no PGO, no LTO requirement.
 - Tested with MinGW GCC and Android arm64 Clang.
 - Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is tracked by a mode-balance harness.
 - Lower memory footprint than official Opus in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot).
-- Host MinGW GCC `-O2` binary text in the current measured snapshot: `264,040 B`.
+- Host MinGW GCC `-O2` binary text in the current measured snapshot: `264,168 B`.
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.316x to 1.731x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.036x to 1.491x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.413x to 1.811x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.031x to 1.490x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -74,19 +74,19 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 
 ## Current benchmark snapshot vs official Opus
 
-Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The official Opus 1.6.1 baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.1 / AMD Ryzen 7 8845HS. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The current speed ratios and packet-byte deltas come from the repository's 8-second stereo synthetic benchmark; quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
+Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The official Opus 1.6.1 baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.1 / AMD Ryzen 7 8845HS. Encode and decode speed are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The current speed ratios and effective-bitrate columns come from the repository's 8-second stereo synthetic benchmark; quality metrics are synthetic objective proxy scores from the validation harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
-| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | Packet bytes vs official |
-|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.453x | 1.491x | +0.0000 | -0.0185 | -2.1% |
-| 24&nbsp;kbps | 1.710x | 1.129x | -0.0072 | +0.0411 | -2.2% |
-| 32&nbsp;kbps | 1.731x | 1.104x | +0.0007 | +0.0351 | -2.5% |
-| 48&nbsp;kbps | 1.541x | 1.111x | +0.0010 | +0.0131 | +0.0% |
-| 64&nbsp;kbps | 1.549x | 1.064x | +0.0010 | +0.0057 | +0.0% |
-| 96&nbsp;kbps | 1.593x | 1.037x | +0.0002 | +0.0015 | -0.2% |
-| 128&nbsp;kbps | 1.555x | 1.036x | +0.0006 | +0.0022 | -0.2% |
-| 192&nbsp;kbps | 1.316x | 1.061x | +0.0003 | -0.0001 | -0.2% |
-| 256&nbsp;kbps | 1.412x | 1.037x | +0.0005 | -0.0005 | -0.2% |
+| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|---:|
+| 16&nbsp;kbps | 1.651x | 1.490x | +0.0000 | -0.0185 | 16.5 kbps | 16.9 kbps |
+| 24&nbsp;kbps | 1.724x | 1.127x | -0.0072 | +0.0411 | 24.5 kbps | 25.0 kbps |
+| 32&nbsp;kbps | 1.811x | 1.142x | +0.0007 | +0.0351 | 32.5 kbps | 33.3 kbps |
+| 48&nbsp;kbps | 1.424x | 1.118x | +0.0010 | +0.0131 | 48.5 kbps | 48.5 kbps |
+| 64&nbsp;kbps | 1.531x | 1.079x | +0.0010 | +0.0057 | 64.6 kbps | 64.6 kbps |
+| 96&nbsp;kbps | 1.586x | 1.044x | +0.0002 | +0.0015 | 96.4 kbps | 96.6 kbps |
+| 128&nbsp;kbps | 1.522x | 1.031x | +0.0006 | +0.0022 | 128.4 kbps | 128.7 kbps |
+| 192&nbsp;kbps | 1.451x | 1.040x | +0.0003 | -0.0001 | 192.4 kbps | 192.9 kbps |
+| 256&nbsp;kbps | 1.413x | 1.049x | +0.0005 | -0.0005 | 256.4 kbps | 256.8 kbps |
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely to CELT; restricted-lowdelay remains CELT-only as expected.
 

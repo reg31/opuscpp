@@ -1466,14 +1466,22 @@ OPUS_SIZE_OPT static opus_int32 compute_equiv_rate(opus_int32 bitrate, int chann
 }
 constexpr auto hybrid_silk_lowrate_boost_min_bps = 28000;
 constexpr auto hybrid_silk_lowrate_boost_max_bps = 36000;
-constexpr auto hybrid_silk_lowrate_target_bps = 35000;
+constexpr auto hybrid_silk_lowrate_target_bps = 24000;
 constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
+constexpr auto audio_vbr_quality_headroom_min_bps = 28000;
+constexpr auto audio_vbr_quality_headroom_max_bps = 36000;
+constexpr auto audio_vbr_quality_headroom_bps = 3900;
 
 [[nodiscard]] static constexpr opus_int32 hybrid_silk_lowrate_boost_bps(opus_int32 user_bitrate_bps, opus_int32 silk_bitrate_bps) noexcept {
   if (user_bitrate_bps < hybrid_silk_lowrate_boost_min_bps || user_bitrate_bps > hybrid_silk_lowrate_boost_max_bps) return silk_bitrate_bps;
   const auto payload_limit_bps = std::max<opus_int32>(500, user_bitrate_bps - hybrid_silk_lowrate_reserve_bps);
   const auto target_bps = std::min<opus_int32>(hybrid_silk_lowrate_target_bps, payload_limit_bps);
   return std::min<opus_int32>(payload_limit_bps, std::max<opus_int32>(silk_bitrate_bps, target_bps));
+}
+[[nodiscard]] static constexpr opus_int32 audio_vbr_quality_bitrate_bps(int application, int channels, int use_vbr, opus_int32 bitrate_bps) noexcept {
+  if (!use_vbr || application != opus_application_audio || channels != 1) return bitrate_bps;
+  if (bitrate_bps < audio_vbr_quality_headroom_min_bps || bitrate_bps > audio_vbr_quality_headroom_max_bps) return bitrate_bps;
+  return bitrate_bps + audio_vbr_quality_headroom_bps;
 }
 constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
@@ -1876,7 +1884,8 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
   } else {
     stereo_width = 0;
   }
-  st->bitrate_bps = user_bitrate_to_bitrate(st, frame_size, max_data_bytes);
+  st->bitrate_bps = audio_vbr_quality_bitrate_bps(st->application, st->channels, st->use_vbr,
+                                                  user_bitrate_to_bitrate(st, frame_size, max_data_bytes));
   const bool voip_style = st->application == opus_application_voip;
   frame_rate = st->Fs / frame_size;
   if (!st->use_vbr) {

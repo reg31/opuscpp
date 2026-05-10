@@ -86,6 +86,11 @@ def parse_size_output(output: str) -> dict[str, str]:
     return {"text": parts[0], "data": parts[1], "bss": parts[2], "total": parts[3]}
 
 
+def effective_kbps(avg_packet_bytes: str) -> str:
+    """Convert 20 ms Opus frame bytes to payload kbps."""
+    return f"{float(avg_packet_bytes) * 0.4:.3f}"
+
+
 def emit_metrics_report(
     repo_root: pathlib.Path,
     output_dir: pathlib.Path,
@@ -184,7 +189,7 @@ def emit_metrics_report(
         "",
         "## Perceptual and memory harness",
         "",
-        "- Local run includes perceptual proxy metrics, packet-byte deltas, encode timing, and memory figures.",
+        "- Local run includes perceptual proxy metrics, effective-bitrate measurements, encode timing, and memory figures.",
         "- Source harness: `tests/perceptual_memory_validation.cpp`.",
         "",
         "## Speed metrics vs official Opus",
@@ -201,13 +206,16 @@ def emit_metrics_report(
         "",
         "## Quality metrics vs official Opus",
         "",
-        "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta |",
-        "|---:|---:|---:|---:|",
+        "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
+        "|---:|---:|---:|---:|---:|---:|",
     ]
     for row in perceptual_rows:
         bitrate = row.get("bitrate", "")
         bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
-        lines.append(f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} |")
+        lines.append(
+            f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} | "
+            f"{row.get('opuscpp_effective_kbps', '')} kbps | {row.get('official_effective_kbps', '')} kbps |"
+        )
 
     lines += [
         "",
@@ -438,19 +446,24 @@ def run_perceptual_and_memory(
         if bitrate == BITRATES[0]:
             memory_output = output
         delta_match = re.search(
-            r"delta current_minus_official.*?pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?packet_bytes_pct=([^\s]+).*?encode_speed_ratio_current_vs_official=([^\s]+)",
+            r"delta current_minus_official.*?pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?packet_bytes_pct=[^\s]+.*?encode_speed_ratio_current_vs_official=([^\s]+)",
             output,
         )
         if not delta_match:
             raise RuntimeError(f"Could not parse perceptual output for bitrate {bitrate}")
+        current_match = re.search(r"^\s*current\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
+        official_match = re.search(r"^\s*official\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
+        if not current_match or not official_match:
+            raise RuntimeError(f"Could not parse effective bitrate for bitrate {bitrate}")
         rows.append(
             {
                 "bitrate": str(bitrate),
                 "pesq_delta": delta_match.group(1),
                 "visqol_delta": delta_match.group(2),
                 "celt_delta": delta_match.group(3),
-                "packet_delta_pct": delta_match.group(4),
-                "encode_speed_ratio": delta_match.group(5),
+                "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
+                "official_effective_kbps": effective_kbps(official_match.group(1)),
+                "encode_speed_ratio": delta_match.group(4),
             }
         )
     return {"rows": rows, "memory_output": memory_output}
@@ -709,10 +722,10 @@ def main() -> int:
     print(f"  passed_cases={encode['passed']}")
     print("Perceptual and memory harness:")
     for row in perceptual["rows"]:
-      print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} packet_delta_pct={row['packet_delta_pct']} encode_speed_ratio={row['encode_speed_ratio']}")
+      print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} opuscpp_effective_kbps={row['opuscpp_effective_kbps']} official_effective_kbps={row['official_effective_kbps']} encode_speed_ratio={row['encode_speed_ratio']}")
     print("Speed metrics vs official Opus:")
     for row in benchmark_rows:
-      print(f"  bitrate={row['bitrate']} encode_speedx={row['encode_speedx']} decode_speedx={row['decode_speedx']} packet_delta_pct={row['packet_delta_pct']}")
+      print(f"  bitrate={row['bitrate']} encode_speedx={row['encode_speedx']} decode_speedx={row['decode_speedx']} opuscpp_effective_kbps={row.get('opuscpp_effective_kbps', '')} official_effective_kbps={row.get('official_effective_kbps', '')}")
     print("Detector mode-balance spot check:")
     for row in detector_rows:
       print(f"  {row}")

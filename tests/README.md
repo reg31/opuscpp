@@ -158,7 +158,7 @@ Measured result for this repository snapshot:
 - PESQ-style proxy score.
 - ViSQOL-style proxy score.
 - CELT-style high-band proxy score.
-- Average packet bytes.
+- Average payload bytes, reported publicly as effective bitrate.
 - Encode time.
 - Optional process memory measurements.
 
@@ -170,15 +170,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.453x | 1.491x | 380x | 262x | 1539x | 1033x |
-| 24&nbsp;kbps | 1.710x | 1.129x | 465x | 272x | 1121x | 992x |
-| 32&nbsp;kbps | 1.731x | 1.104x | 464x | 268x | 1103x | 999x |
-| 48&nbsp;kbps | 1.541x | 1.111x | 431x | 280x | 1002x | 901x |
-| 64&nbsp;kbps | 1.549x | 1.064x | 383x | 247x | 841x | 790x |
-| 96&nbsp;kbps | 1.593x | 1.037x | 318x | 200x | 642x | 619x |
-| 128&nbsp;kbps | 1.555x | 1.036x | 285x | 183x | 563x | 543x |
-| 192&nbsp;kbps | 1.316x | 1.061x | 215x | 163x | 471x | 444x |
-| 256&nbsp;kbps | 1.412x | 1.037x | 227x | 161x | 442x | 426x |
+| 16&nbsp;kbps | 1.651x | 1.490x | 549x | 332x | 1876x | 1259x |
+| 24&nbsp;kbps | 1.724x | 1.127x | 517x | 300x | 1225x | 1087x |
+| 32&nbsp;kbps | 1.811x | 1.142x | 502x | 277x | 1127x | 988x |
+| 48&nbsp;kbps | 1.424x | 1.118x | 395x | 277x | 988x | 884x |
+| 64&nbsp;kbps | 1.531x | 1.079x | 383x | 250x | 872x | 807x |
+| 96&nbsp;kbps | 1.586x | 1.044x | 334x | 210x | 676x | 648x |
+| 128&nbsp;kbps | 1.522x | 1.031x | 303x | 199x | 574x | 557x |
+| 192&nbsp;kbps | 1.451x | 1.040x | 246x | 169x | 522x | 502x |
+| 256&nbsp;kbps | 1.413x | 1.049x | 237x | 168x | 471x | 449x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
@@ -190,19 +190,19 @@ Source CSV:
 
 ## Quality metrics vs official Opus
 
-Quality proxy metrics were measured on the validation corpus used during development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns and negative means smaller packets.
+Quality proxy metrics were measured on the validation corpus used during development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns. Effective bitrate columns show measured payload bitrate for the same validation run.
 
-| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | Packet bytes vs official |
-|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0000 | -0.0185 | +1.3037 | -2.8% |
-| 24&nbsp;kbps | -0.0072 | +0.0411 | +22.0159 | -2.9% |
-| 32&nbsp;kbps | +0.0007 | +0.0351 | +16.8861 | -3.3% |
-| 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | +0.0% |
-| 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | +0.0% |
-| 96&nbsp;kbps | +0.0002 | +0.0015 | -0.1403 | -0.3% |
-| 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | -0.3% |
-| 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | -0.3% |
-| 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | -0.1% |
+| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|
+| 16&nbsp;kbps | +0.0000 | -0.0185 | +1.3037 | 16.6 kbps | 17.1 kbps |
+| 24&nbsp;kbps | -0.0072 | +0.0411 | +22.0159 | 24.5 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0007 | +0.0351 | +16.8861 | 32.5 kbps | 33.6 kbps |
+| 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0002 | +0.0015 | -0.1403 | 96.4 kbps | 96.7 kbps |
+| 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | 128.4 kbps | 128.8 kbps |
+| 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | 192.4 kbps | 192.9 kbps |
+| 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | 256.4 kbps | 256.7 kbps |
 
 Source CSV:
 
@@ -236,7 +236,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 264,040 B | 0 B | 264,040 B |
+| Host MinGW GCC `-O2` | 264,168 B | 0 B | 264,168 B |
 
 ## Toolchains checked
 

@@ -18,36 +18,36 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 ## Perceptual and memory harness
 
-- Local run includes perceptual proxy metrics, packet-byte deltas, encode timing, and memory figures.
+- Local run includes perceptual proxy metrics, effective-bitrate measurements, encode timing, and memory figures.
 - Source harness: `tests/perceptual_memory_validation.cpp`.
 
 ## Speed metrics vs official Opus
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.453033x | 1.490869x |
-| 24 kbps | 1.709841x | 1.129366x |
-| 32 kbps | 1.730816x | 1.104072x |
-| 48 kbps | 1.540609x | 1.111030x |
-| 64 kbps | 1.549090x | 1.063933x |
-| 96 kbps | 1.593385x | 1.037122x |
-| 128 kbps | 1.554848x | 1.035888x |
-| 192 kbps | 1.316136x | 1.060543x |
-| 256 kbps | 1.411588x | 1.037063x |
+| 16 kbps | 1.650735x | 1.489752x |
+| 24 kbps | 1.724168x | 1.127041x |
+| 32 kbps | 1.810796x | 1.141538x |
+| 48 kbps | 1.423725x | 1.117601x |
+| 64 kbps | 1.531352x | 1.079427x |
+| 96 kbps | 1.586076x | 1.043833x |
+| 128 kbps | 1.521635x | 1.030697x |
+| 192 kbps | 1.450765x | 1.040132x |
+| 256 kbps | 1.412525x | 1.048646x |
 
 ## Quality metrics vs official Opus
 
-| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta |
-|---:|---:|---:|---:|
-| 16 kbps | 0.0000 | -0.0185 | 1.3037 |
-| 24 kbps | -0.0072 | 0.0411 | 22.0159 |
-| 32 kbps | 0.0007 | 0.0351 | 16.8861 |
-| 48 kbps | 0.0010 | 0.0131 | 0.3921 |
-| 64 kbps | 0.0010 | 0.0057 | 0.2358 |
-| 96 kbps | 0.0002 | 0.0015 | -0.1403 |
-| 128 kbps | 0.0006 | 0.0022 | -0.2914 |
-| 192 kbps | 0.0003 | -0.0001 | -0.2242 |
-| 256 kbps | 0.0005 | -0.0005 | -0.1322 |
+| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|
+| 16 kbps | 0.0000 | -0.0185 | 1.3037 | 16.592 kbps | 17.065 kbps |
+| 24 kbps | -0.0072 | 0.0411 | 22.0159 | 24.480 kbps | 25.220 kbps |
+| 32 kbps | 0.0007 | 0.0351 | 16.8861 | 32.507 kbps | 33.613 kbps |
+| 48 kbps | 0.0010 | 0.0131 | 0.3921 | 48.560 kbps | 48.560 kbps |
+| 64 kbps | 0.0010 | 0.0057 | 0.2358 | 64.613 kbps | 64.613 kbps |
+| 96 kbps | 0.0002 | 0.0015 | -0.1403 | 96.417 kbps | 96.697 kbps |
+| 128 kbps | 0.0006 | 0.0022 | -0.2914 | 128.400 kbps | 128.759 kbps |
+| 192 kbps | 0.0003 | -0.0001 | -0.2242 | 192.400 kbps | 192.900 kbps |
+| 256 kbps | 0.0005 | -0.0005 | -0.1322 | 256.400 kbps | 256.736 kbps |
 
 ## Detector mode-balance spot check
 
@@ -69,7 +69,7 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 264040 B | 0 B | 264040 B |
+| Host C++23 `-O2` | 264168 B | 0 B | 264168 B |
 
 ## Toolchains checked
 
