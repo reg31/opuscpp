@@ -25,23 +25,23 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.625462x | 1.491527x |
-| 24 kbps | 1.726150x | 1.137975x |
-| 32 kbps | 1.720635x | 1.115032x |
-| 48 kbps | 1.515229x | 1.088805x |
-| 64 kbps | 1.564629x | 1.072451x |
-| 96 kbps | 1.610362x | 1.036148x |
-| 128 kbps | 1.573130x | 1.035720x |
-| 192 kbps | 1.447775x | 1.043059x |
-| 256 kbps | 1.407493x | 1.036532x |
+| 16 kbps | 1.619747x | 1.509380x |
+| 24 kbps | 1.730492x | 1.149811x |
+| 32 kbps | 1.716198x | 1.134844x |
+| 48 kbps | 1.490379x | 1.097253x |
+| 64 kbps | 1.520049x | 1.067855x |
+| 96 kbps | 1.534394x | 1.019689x |
+| 128 kbps | 1.594428x | 1.029472x |
+| 192 kbps | 1.450924x | 1.040690x |
+| 256 kbps | 1.426666x | 1.138886x |
 
 ## Quality metrics vs official Opus
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.0000 | -0.0185 | 1.3037 | 16.592 kbps | 17.065 kbps |
-| 24 kbps | -0.0072 | 0.0411 | 22.0159 | 24.480 kbps | 25.220 kbps |
-| 32 kbps | 0.0007 | 0.0351 | 16.8861 | 32.507 kbps | 33.613 kbps |
+| 24 kbps | -0.0071 | 0.0438 | 21.7351 | 24.480 kbps | 25.220 kbps |
+| 32 kbps | 0.0018 | 0.0383 | 16.5793 | 32.507 kbps | 33.613 kbps |
 | 48 kbps | 0.0010 | 0.0131 | 0.3921 | 48.560 kbps | 48.560 kbps |
 | 64 kbps | 0.0010 | 0.0057 | 0.2358 | 64.613 kbps | 64.613 kbps |
 | 96 kbps | 0.0002 | 0.0015 | -0.1403 | 96.417 kbps | 96.697 kbps |
@@ -53,7 +53,7 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Material class | SILK | Hybrid | CELT |
 |---|---:|---:|---:|
-| speech like | 0.0% | 8.0% | 92.0% |
+| speech like | 0.0% | 8.7% | 91.3% |
 | harmonic music | 0.0% | 0.0% | 100.0% |
 
 ## Memory metrics
@@ -69,7 +69,7 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 264296 B | 0 B | 264296 B |
+| Host C++23 `-O2` | 267412 B | 0 B | 267412 B |
 
 ## Toolchains checked
 

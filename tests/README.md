@@ -72,40 +72,9 @@ If you prefer to do it yourself, the equivalent manual steps are:
 2. Build official Opus 1.6.1 as a static library with intrinsics enabled and matching `-O2 -DNDEBUG` flags for the public benchmark comparison.
 3. Build the `opuscpp` decoder harness.
 
-## Optional quick local smoke test
+## Optional local listening samples
 
-From the repository root:
-
-```bash
-python3 tests/run_smoke.py --cxx c++
-```
-
-Or use the tiny wrappers:
-
-macOS / Linux:
-
-```bash
-sh tests/scripts/run_smoke.sh c++
-```
-
-Windows PowerShell:
-
-```powershell
-./tests/scripts/run_smoke.ps1 -Cxx g++
-```
-
-Permalinks for these wrapper scripts:
-
-- [run_smoke.ps1](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.ps1)
-- [run_smoke.sh](https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_smoke.sh)
-
-When run from a local checkout, these wrappers call `tests/run_smoke.py` from the repository root. When run via the raw permalinks above, they download the current repository snapshot into `./opuscpp-smoke` and run the same smoke harness from there.
-
-The smoke test compiles `src/opus_codec.cpp`, generates PCM in-process, encodes and decodes mono/stereo frames at 16/24/32/48/96/128/192/256 kbps, and checks packet duration/round-trip success.
-
-If Python 3 or your C++23 compiler is missing, the smoke script will fail early and show the missing command.
-
-Generate optional local listening samples:
+Generate local listening samples:
 
 ```bash
 python3 tests/generate_synthetic_wav.py --out tests/generated_audio
@@ -170,15 +139,15 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.625x | 1.492x | 529x | 301x | 1787x | 1190x |
-| 24&nbsp;kbps | 1.726x | 1.138x | 488x | 277x | 1158x | 1021x |
-| 32&nbsp;kbps | 1.721x | 1.115x | 479x | 273x | 1118x | 988x |
-| 48&nbsp;kbps | 1.515x | 1.089x | 420x | 279x | 993x | 911x |
-| 64&nbsp;kbps | 1.565x | 1.072x | 392x | 254x | 836x | 781x |
-| 96&nbsp;kbps | 1.610x | 1.036x | 329x | 203x | 652x | 623x |
-| 128&nbsp;kbps | 1.573x | 1.036x | 287x | 191x | 577x | 556x |
-| 192&nbsp;kbps | 1.448x | 1.043x | 254x | 175x | 517x | 496x |
-| 256&nbsp;kbps | 1.407x | 1.037x | 232x | 166x | 462x | 446x |
+| 16&nbsp;kbps | 1.620x | 1.509x | 497x | 307x | 1787x | 1184x |
+| 24&nbsp;kbps | 1.730x | 1.150x | 475x | 274x | 1166x | 1014x |
+| 32&nbsp;kbps | 1.716x | 1.135x | 474x | 276x | 1123x | 990x |
+| 48&nbsp;kbps | 1.490x | 1.097x | 418x | 280x | 1003x | 914x |
+| 64&nbsp;kbps | 1.520x | 1.068x | 379x | 250x | 833x | 780x |
+| 96&nbsp;kbps | 1.534x | 1.020x | 309x | 201x | 639x | 627x |
+| 128&nbsp;kbps | 1.594x | 1.029x | 249x | 156x | 573x | 556x |
+| 192&nbsp;kbps | 1.451x | 1.041x | 240x | 166x | 490x | 471x |
+| 256&nbsp;kbps | 1.427x | 1.139x | 222x | 155x | 370x | 325x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
@@ -195,8 +164,8 @@ Quality proxy metrics were measured on the validation corpus used during develop
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0000 | -0.0185 | +1.3037 | 16.6 kbps | 17.1 kbps |
-| 24&nbsp;kbps | -0.0072 | +0.0411 | +22.0159 | 24.5 kbps | 25.2 kbps |
-| 32&nbsp;kbps | +0.0007 | +0.0351 | +16.8861 | 32.5 kbps | 33.6 kbps |
+| 24&nbsp;kbps | -0.0071 | +0.0438 | +21.7351 | 24.5 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0018 | +0.0383 | +16.5793 | 32.5 kbps | 33.6 kbps |
 | 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
 | 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
 | 96&nbsp;kbps | +0.0002 | +0.0015 | -0.1403 | 96.4 kbps | 96.7 kbps |
@@ -216,7 +185,7 @@ Representative AUDIO-mode results at 32 kbps mono:
 
 | Material class | SILK | Hybrid | CELT |
 |---|---:|---:|---:|
-| Speech-like | 0.0% | 8.0% | 92.0% |
+| Speech-like | 0.0% | 8.7% | 91.3% |
 | Harmonic music | 0.0% | 0.0% | 100.0% |
 
 ## Memory metrics
@@ -236,7 +205,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 264,296 B | 0 B | 264,296 B |
+| Host MinGW GCC `-O2` | 267,412 B | 0 B | 267,412 B |
 
 ## Toolchains checked
 
@@ -244,4 +213,4 @@ Source CSV:
 |---|---|
 | MinGW GCC 16.1 C++23 | Build check passed in the latest full report. |
 | Android arm64 Clang C++23 | Build check passed in the latest full report. |
-| Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use `tests/run_smoke.py` or `tests/scripts/run_smoke.sh` for a quick local check. |
+| Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
