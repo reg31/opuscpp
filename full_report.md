@@ -25,15 +25,15 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.487419x | 1.544199x |
-| 24 kbps | 1.507552x | 1.127755x |
-| 32 kbps | 1.575687x | 1.119349x |
-| 48 kbps | 1.429827x | 1.098863x |
-| 64 kbps | 1.520918x | 1.072570x |
-| 96 kbps | 1.712414x | 1.006201x |
-| 128 kbps | 1.496365x | 1.039957x |
-| 192 kbps | 1.482151x | 1.039457x |
-| 256 kbps | 1.373892x | 1.041316x |
+| 16 kbps | 1.509964x | 1.574976x |
+| 24 kbps | 1.686225x | 1.165234x |
+| 32 kbps | 1.632253x | 1.165212x |
+| 48 kbps | 1.449959x | 1.147359x |
+| 64 kbps | 1.516335x | 1.054820x |
+| 96 kbps | 1.646124x | 1.080485x |
+| 128 kbps | 1.486876x | 1.054923x |
+| 192 kbps | 1.394301x | 1.060260x |
+| 256 kbps | 1.438357x | 1.048934x |
 
 ## Quality metrics vs official Opus
 
@@ -44,7 +44,7 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 | 32 kbps | 0.0018 | 0.0383 | 16.5793 | 32.507 kbps | 33.613 kbps |
 | 48 kbps | 0.0010 | 0.0131 | 0.3921 | 48.560 kbps | 48.560 kbps |
 | 64 kbps | 0.0010 | 0.0057 | 0.2358 | 64.613 kbps | 64.613 kbps |
-| 96 kbps | 0.0002 | 0.0015 | -0.1403 | 96.417 kbps | 96.697 kbps |
+| 96 kbps | 0.0005 | 0.0037 | -0.0504 | 96.429 kbps | 96.697 kbps |
 | 128 kbps | 0.0006 | 0.0022 | -0.2914 | 128.400 kbps | 128.759 kbps |
 | 192 kbps | 0.0003 | -0.0001 | -0.2242 | 192.400 kbps | 192.900 kbps |
 | 256 kbps | 0.0005 | -0.0005 | -0.1322 | 256.400 kbps | 256.736 kbps |
@@ -69,11 +69,11 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 267540 B | 0 B | 267540 B |
+| Host C++23 `-O2` | 268632 B | 0 B | 268632 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
+| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\c++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |

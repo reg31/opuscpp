@@ -139,23 +139,24 @@ This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.487x | 1.544x | 416x | 280x | 1595x | 1033x |
-| 24&nbsp;kbps | 1.508x | 1.128x | 336x | 223x | 1018x | 903x |
-| 32&nbsp;kbps | 1.576x | 1.119x | 365x | 231x | 1007x | 900x |
-| 48&nbsp;kbps | 1.430x | 1.099x | 397x | 278x | 1000x | 910x |
-| 64&nbsp;kbps | 1.521x | 1.073x | 373x | 245x | 839x | 782x |
-| 96&nbsp;kbps | 1.712x | 1.006x | 300x | 175x | 501x | 498x |
-| 128&nbsp;kbps | 1.496x | 1.040x | 237x | 159x | 587x | 564x |
-| 192&nbsp;kbps | 1.482x | 1.039x | 238x | 160x | 488x | 470x |
-| 256&nbsp;kbps | 1.374x | 1.041x | 222x | 161x | 449x | 431x |
+| 16&nbsp;kbps | 1.510x | 1.575x | 470x | 311x | 1876x | 1191x |
+| 24&nbsp;kbps | 1.686x | 1.165x | 468x | 277x | 1192x | 1023x |
+| 32&nbsp;kbps | 1.632x | 1.165x | 442x | 271x | 1152x | 989x |
+| 48&nbsp;kbps | 1.450x | 1.147x | 404x | 279x | 1019x | 888x |
+| 64&nbsp;kbps | 1.516x | 1.055x | 365x | 241x | 781x | 741x |
+| 96&nbsp;kbps | 1.646x | 1.080x | 310x | 188x | 586x | 542x |
+| 128&nbsp;kbps | 1.487x | 1.055x | 254x | 171x | 577x | 547x |
+| 192&nbsp;kbps | 1.394x | 1.060x | 230x | 165x | 492x | 464x |
+| 256&nbsp;kbps | 1.438x | 1.049x | 212x | 147x | 434x | 414x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local refresh runs may also write temporary Markdown reports under `build/` or the working directory.
 
 Source CSV:
 
-- `metrics/speed_vs_official_intrinsics_60s.csv`
 - `metrics/encode_speed_vs_official.csv`
 - `metrics/decode_speed_vs_official.csv`
+
+A supplemental 60-second real-time snapshot is also tracked in `metrics/speed_vs_official_intrinsics_60s.csv`.
 
 ## Quality metrics vs official Opus
 
@@ -168,7 +169,7 @@ Quality proxy metrics were measured on the validation corpus used during develop
 | 32&nbsp;kbps | +0.0018 | +0.0383 | +16.5793 | 32.5 kbps | 33.6 kbps |
 | 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
 | 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0002 | +0.0015 | -0.1403 | 96.4 kbps | 96.7 kbps |
+| 96&nbsp;kbps | +0.0005 | +0.0037 | -0.0504 | 96.4 kbps | 96.7 kbps |
 | 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | 128.4 kbps | 128.8 kbps |
 | 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | 192.4 kbps | 192.9 kbps |
 | 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | 256.4 kbps | 256.7 kbps |
@@ -205,7 +206,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured text+data |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 267,540 B | 0 B | 267,540 B |
+| Host MinGW GCC `-O2` | 268,632 B | 0 B | 268,632 B |
 
 ## Toolchains checked
 
