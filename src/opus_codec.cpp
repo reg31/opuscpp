@@ -147,7 +147,7 @@ template <typename T> [[nodiscard]] constexpr auto optional_span(T *data, const 
 template <typename T> [[nodiscard]] constexpr auto optional_span(const T *data, const std::size_t size) noexcept -> std::span<const T> {
   return data == nullptr ? std::span<const T>{} : std::span<const T>{data, size};
 }
-template <typename T, std::size_t Rows, std::size_t Columns> [[nodiscard]] constexpr auto flat_matrix_view(const std::array<std::array<T, Columns>, Rows> &matrix) noexcept -> std::span<const T> {
+template <typename T, std::size_t Rows, std::size_t Columns> [[nodiscard]] consteval auto flat_matrix_view(const std::array<std::array<T, Columns>, Rows> &matrix) noexcept -> std::span<const T> {
   return {matrix.front().data(), Rows * Columns};
 }
 template <typename T> struct matrix_ref {
@@ -378,15 +378,61 @@ constexpr std::array<unsigned char, 4> spread_icdf = numeric_blob_array<unsigned
 constexpr std::array<unsigned char, 3> shared_three_step_icdf = numeric_blob_array<unsigned char, 3>(R"blob(020100)blob");
 struct hybrid_rate_entry { opus_uint16 threshold; std::array<opus_uint16, 4> rates; };
 struct stereo_intensity_tables { std::array<opus_val16, 21> thresholds; std::array<opus_val16, 21> hysteresis; };
-constexpr std::array<unsigned char, 16> bit_interleave_table = numeric_blob_array<unsigned char, 16>(R"blob(00010101020303030203030302030303)blob");
-constexpr std::array<unsigned char, 16> bit_deinterleave_table = numeric_blob_array<unsigned char, 16>(R"blob(00030C0F30333C3FC0C3CCCFF0F3FCFF)blob");
-constexpr std::array<hybrid_rate_entry, 7> hybrid_rate_table{{{0, {0, 0, 0, 0}}, {12000, {10000, 10000, 11000, 11000}}, {16000, {13500, 13500, 15000, 15000}}, {20000, {16000, 16000, 18000, 18000}}, {24000, {18000, 18000, 21000, 21000}}, {32000, {22000, 22000, 28000, 28000}}, {40000, {38000, 38000, 50000, 50000}}}};
+[[nodiscard]] consteval auto make_bit_interleave_table() noexcept {
+  std::array<unsigned char, 16> table{};
+  for (auto value = 0U; value < table.size(); ++value) {
+    const auto lower_pair = (value & 0x3U) != 0U ? 1U : 0U;
+    const auto upper_pair = (value & 0xCU) != 0U ? 2U : 0U;
+    table[value] = static_cast<unsigned char>(lower_pair | upper_pair);
+  }
+  return table;
+}
+[[nodiscard]] consteval auto make_bit_deinterleave_table() noexcept {
+  std::array<unsigned char, 16> table{};
+  for (auto value = 0U; value < table.size(); ++value) {
+    auto expanded = 0U;
+    if ((value & 0x1U) != 0U) expanded |= 0x03U;
+    if ((value & 0x2U) != 0U) expanded |= 0x0CU;
+    if ((value & 0x4U) != 0U) expanded |= 0x30U;
+    if ((value & 0x8U) != 0U) expanded |= 0xC0U;
+    table[value] = static_cast<unsigned char>(expanded);
+  }
+  return table;
+}
+template <int Levels> [[nodiscard]] consteval auto make_uniform_icdf() noexcept {
+  std::array<opus_uint8, Levels> table{};
+  for (int index = 0; index < Levels - 1; ++index) table[static_cast<std::size_t>(index)] = static_cast<opus_uint8>((256 * (Levels - index - 1) + (Levels >> 1)) / Levels);
+  return table;
+}
+[[nodiscard]] consteval auto q14_from_float(float value) noexcept -> opus_int16 {
+  return static_cast<opus_int16>(value * static_cast<float>(1 << 14) + 0.5f);
+}
+[[nodiscard]] consteval auto q15_to_float(opus_int16 value) noexcept -> opus_val16 {
+  return static_cast<opus_val16>(static_cast<float>(value) * (1.0f / 32768.0f));
+}
+[[nodiscard]] consteval auto make_hybrid_rate_table() noexcept {
+  return std::array<hybrid_rate_entry, 7>{{{0, {0, 0, 0, 0}}, {12000, {10000, 10000, 11000, 11000}}, {16000, {13500, 13500, 15000, 15000}}, {20000, {16000, 16000, 18000, 18000}}, {24000, {18000, 18000, 21000, 21000}}, {32000, {22000, 22000, 28000, 28000}}, {40000, {38000, 38000, 50000, 50000}}}};
+}
+[[nodiscard]] consteval auto make_comb_filter_tapset_gains() noexcept {
+  return std::array<std::array<opus_val16, 3>, 3>{{{{q15_to_float(10048), q15_to_float(7112), q15_to_float(4248)}}, {{q15_to_float(15200), q15_to_float(8784), 0.0f}}, {{q15_to_float(26208), q15_to_float(3280), 0.0f}}}};
+}
+[[nodiscard]] consteval auto make_stereo_intensity_thresholds() noexcept {
+  return std::array<opus_val16, 21>{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 16.0f, 24.0f, 36.0f, 44.0f, 50.0f, 56.0f, 62.0f, 67.0f, 72.0f, 79.0f, 88.0f, 106.0f, 134.0f};
+}
+[[nodiscard]] consteval auto make_stereo_intensity_hysteresis() noexcept {
+  return std::array<opus_val16, 21>{1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 3.0f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f, 8.0f};
+}
+[[nodiscard]] consteval auto make_stereo_intensity_table() noexcept -> stereo_intensity_tables {
+  return {make_stereo_intensity_thresholds(), make_stereo_intensity_hysteresis()};
+}
+constexpr std::array<unsigned char, 16> bit_interleave_table = make_bit_interleave_table();
+constexpr std::array<unsigned char, 16> bit_deinterleave_table = make_bit_deinterleave_table();
+constexpr std::array<hybrid_rate_entry, 7> hybrid_rate_table = make_hybrid_rate_table();
 constexpr opus_int32 low_rate_tonal_celt_max_bps = 20000;
 constexpr opus_int32 low_rate_tonal_celt_boost_bps = 4000;
 constexpr opus_val32 low_rate_tonal_celt_min_tone = .45f;
-constexpr std::array<std::array<opus_val16, 3>, 3> comb_filter_tapset_gains{{{{0.3066406250f, 0.2170410156f, 0.1296386719f}}, {{0.4638671875f, 0.2680664062f, 0.0f}}, {{0.7998046875f, 0.1000976562f, 0.0f}}}};
-constexpr stereo_intensity_tables stereo_intensity_table{{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 16.0f, 24.0f, 36.0f, 44.0f, 50.0f, 56.0f, 62.0f, 67.0f, 72.0f, 79.0f, 88.0f, 106.0f, 134.0f},
-                                                {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 2.0f, 3.0f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f, 8.0f}};
+constexpr std::array<std::array<opus_val16, 3>, 3> comb_filter_tapset_gains = make_comb_filter_tapset_gains();
+constexpr stereo_intensity_tables stereo_intensity_table = make_stereo_intensity_table();
 constexpr std::array<opus_val16, 16> celt_anti_collapse_thresh_by_depth = numeric_blob_array<opus_val16, 16>(R"blob(3F0000003EEAC0C73ED744FD3EC5672A3EB504F33EA5FED73E9837F03E8B95C23E8000003E6AC0C73E5744FD3E45672A3E3504F33E25FED73E1837F03E0B95C2)blob");
 static int resampling_factor(opus_int32 rate);
 static void celt_preemphasis(const opus_res *pcmp, celt_sig *inp, int N, int CC, int upsample, const opus_val16 *coef, celt_sig *mem, int clip), comb_filter(opus_val32 *y, opus_val32 *x, int T0, int T1, int N, opus_val16 g0, opus_val16 g1, int tapset0, int tapset1, const celt_coef *window, int overlap), init_caps(const CeltModeInternal *m, std::span<int> cap, int LM, int C);
@@ -422,6 +468,8 @@ static int ref_opus_decoder_init(ref_OpusDecoder *st, opus_int32 Fs, int channel
 [[nodiscard]] static constexpr int ref_opus_decoder_get_nb_samples(const ref_OpusDecoder *dec, const unsigned char packet[], opus_int32 len);
 [[nodiscard]] inline auto opus_alloc(std::size_t size) noexcept -> void * { return std::malloc(size);
 }
+[[nodiscard]] inline auto opus_zalloc(std::size_t size) noexcept -> void * { return std::calloc(1, size);
+}
 inline auto opus_free(void *ptr) noexcept -> void { std::free(ptr);
 }
 // Stack scratch buffer. Lives until the enclosing function returns. No heap alloc, no zero-init, no destructor.
@@ -437,7 +485,8 @@ struct opus_free_deleter { inline void operator()(void *ptr) const noexcept { op
 template <typename T> using opus_owned_ptr = std::unique_ptr<T, opus_free_deleter>;
 template <typename T> [[nodiscard]] inline auto make_opus_owned(const std::size_t size) noexcept -> opus_owned_ptr<T> { return opus_owned_ptr<T>(reinterpret_cast<T *>(opus_alloc(size)));
 }
-static unsigned isqrt32(opus_uint32 _val);
+template <typename T> [[nodiscard]] inline auto make_zeroed_opus_owned() noexcept -> opus_owned_ptr<T> { return opus_owned_ptr<T>(reinterpret_cast<T *>(opus_zalloc(sizeof(T))));
+}
 [[nodiscard]] static inline auto celt_maxabs16(const opus_val16 *x, int len) noexcept -> opus_val32 {
   if (len <= 0) { return 0;
 }
@@ -715,9 +764,8 @@ static void silk_release_cng(silk_decoder_state *psDec) noexcept {
 }
 [[nodiscard]] static auto silk_ensure_cng(silk_decoder_state *psDec) noexcept -> silk_CNG_struct * {
   if (psDec->sCNG == nullptr) {
-    auto cng = make_opus_owned<silk_CNG_struct>(sizeof(silk_CNG_struct));
+    auto cng = make_zeroed_opus_owned<silk_CNG_struct>();
     if (!cng) return nullptr;
-    zero_n_bytes(cng.get(), sizeof(silk_CNG_struct));
     psDec->sCNG = cng.release();
     silk_CNG_Reset(psDec);
     psDec->sCNG->fs_kHz = psDec->fs_kHz;
@@ -2034,7 +2082,7 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     // Avoid over-trusting a cold speech/music classifier in the sensitive mono 24 kbps region.
     if (st->lightweight_analysis_frames < audio_preprocess_warmup_frames && st->channels == 1 &&
-        st->bitrate_bps >= 22000 && st->bitrate_bps < 28000) {
+        st->bitrate_bps >= 22000 && st->bitrate_bps < 28000 && !quality.high_z_tonal_confident()) {
       st->mode = opus_mode_silk_only;
     // Real-clip tests prefer SILK/hybrid for mono non-tonal AUDIO at 64-96 kbps;
     // keep confident high-Z tones on CELT.
@@ -2044,9 +2092,6 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     } else if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
-      if (!voip_style && st->bitrate_bps >= 22000 && st->bitrate_bps < 28000 && quality.high_z_tonal_confident()) {
-        st->mode = opus_mode_silk_only;
-      }
     } else if (quality.strong_speech()) {
       const opus_int32 speech_celt_switch_bps = 54000;
       if (st->bitrate_bps < speech_celt_switch_bps) st->mode = opus_mode_silk_only;
@@ -2720,21 +2765,45 @@ void haar1(celt_norm *X, int N0, int stride) {
     }
   }
 }
-static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
+[[nodiscard]] consteval auto make_celt_qn_table() noexcept {
   constexpr std::array<opus_int16, 8> exp2_table8{16384, 17866, 19483, 21247, 23170, 25267, 27554, 30048};
-  int qn, qb;
+  std::array<opus_int16, 65> table{};
+  for (int qb = 0; qb <= 64; ++qb) {
+    int qn;
+    if (qb < (1 << 3 >> 1)) {
+      qn = 1;
+    } else {
+      qn = exp2_table8[static_cast<std::size_t>(qb & 0x7)] >> (14 - (qb >> 3));
+      qn = (qn + 1) >> 1 << 1;
+    }
+    table[static_cast<std::size_t>(qb)] = static_cast<opus_int16>(qn);
+  }
+  return table;
+}
+static constexpr auto celt_qn_table = make_celt_qn_table();
+[[nodiscard]] static OPUS_ALWAYS_INLINE auto celt_quantized_theta_runtime(const int theta, const int qn) noexcept -> int {
+  return celt_udiv(static_cast<opus_uint32>(theta) * 16384U, static_cast<opus_uint32>(qn));
+}
+static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
+  int qb;
   int N2 = 2 * N - 1;
   if (stereo && N == 2) N2--;
   qb = celt_sudiv(b + N2 * offset, N2);
   qb = ((b - pulse_cap - (4 << 3)) < (qb) ? (b - pulse_cap - (4 << 3)) : (qb));
   qb = std::min(8 << 3, qb);
-  if (qb < (1 << 3 >> 1)) {
-    qn = 1;
-  } else {
-    qn = exp2_table8[qb & 0x7] >> (14 - (qb >> 3));
-    qn = (qn + 1) >> 1 << 1;
+  return celt_qn_table[static_cast<std::size_t>(std::max(0, qb))];
+}
+[[nodiscard]] static auto celt_isqrt32_runtime(opus_uint32 value) noexcept -> unsigned {
+  unsigned root = 0;
+  int shift = ((((int)sizeof(unsigned) * 8) - (__builtin_clz(value))) - 1) >> 1;
+  for (auto bit = 1U << shift; shift >= 0; --shift, bit >>= 1) {
+    const auto trial = (((opus_uint32)root << 1) + bit) << shift;
+    if (trial <= value) {
+      root += bit;
+      value -= trial;
+    }
   }
-  return qn;
+  return root;
 }
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, theta_round, disable_inv, avoid_split_noise;
@@ -2763,7 +2832,7 @@ static void compute_theta(struct band_ctx *ctx, struct split_ctx *sctx, celt_nor
       if (!stereo || ctx->theta_round == 0) {
         itheta = (itheta * (opus_int32)qn + 8192) >> 14;
         if (!stereo && ctx->avoid_split_noise && itheta > 0 && itheta < qn) {
-          int unquantized = celt_udiv((opus_int32)itheta * 16384, qn);
+          int unquantized = celt_quantized_theta_runtime(itheta, qn);
           imid = bitexact_cos((opus_int16)unquantized); iside = bitexact_cos((opus_int16)(16384 - unquantized));
           delta = ((16384 + ((opus_int32)(opus_int16)((N - 1) << 7) * (opus_int16)(bitexact_log2tan(iside, imid)))) >> 15);
           if (delta > *b) itheta = qn;
@@ -2802,14 +2871,19 @@ static void compute_theta(struct band_ctx *ctx, struct split_ctx *sctx, celt_nor
         int fl = 0;
         int fm = ec_decode(ec, ft);
         if (fm < ((qn >> 1) * ((qn >> 1) + 1) >> 1)) {
-          itheta = (isqrt32(8 * (opus_uint32)fm + 1) - 1) >> 1; fs = itheta + 1; fl = itheta * (itheta + 1) >> 1;
+          itheta = static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(fm) + 1) - 1) >> 1);
+          fs = itheta + 1;
+          fl = itheta * (itheta + 1) >> 1;
         } else {
-          itheta = (2 * (qn + 1) - isqrt32(8 * (opus_uint32)(ft - fm - 1) + 1)) >> 1; fs = qn + 1 - itheta;
+          const int theta_value = ft - fm - 1;
+          const int theta_ceil = static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(theta_value) + 1) + 1) >> 1);
+          itheta = qn + 1 - theta_ceil;
+          fs = qn + 1 - itheta;
           fl = ft - ((qn + 1 - itheta) * (qn + 2 - itheta) >> 1);
 }
         ec_dec_update(ec, fl, fl + fs, ft); }
 }
-    itheta = celt_udiv((opus_int32)itheta * 16384, qn);
+    itheta = celt_quantized_theta_runtime(itheta, qn);
     if (encode && stereo) {
       if (itheta == 0) intensity_stereo(m, X, Y, bandE, i, N);
       else stereo_split(X, Y, N);
@@ -4491,19 +4565,19 @@ static int celt_decode_with_ec(CeltDecoderInternal *st, const unsigned char *dat
   return static_cast<opus_uint32>(total);
 }
 
-static constexpr auto celt_pvq_fast_row_count = 14;
+static constexpr auto celt_pvq_table_row_count = 14U;
+static constexpr auto celt_pvq_fast_row_count = celt_pvq_table_row_count;
 static constexpr auto celt_pvq_fast_column_count = 177;
 
 [[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
   std::array<std::array<opus_uint32, celt_pvq_fast_column_count>, celt_pvq_fast_row_count> rows{};
-  for (int row = 0; row < celt_pvq_fast_row_count; ++row) {
+  for (int row = 0; row < static_cast<int>(celt_pvq_fast_row_count); ++row) {
     for (int column = 0; column < celt_pvq_fast_column_count; ++column) rows[row][column] = celt_pvq_u_entry_raw(row, column);
   }
   return rows;
 }
 
 static constexpr auto celt_pvq_u_fast_rows = make_celt_pvq_fast_rows();
-static constexpr auto celt_pvq_table_row_count = 14U;
 static constexpr auto celt_pvq_table_first_stored_row = 4U;
 static constexpr std::array<unsigned char, celt_pvq_table_row_count> celt_pvq_u_row_max{0, 174, 173, 172, 171, 170, 96, 48, 37, 27, 24, 19, 18, 16};
 
@@ -4628,7 +4702,7 @@ static OPUS_INT_HOT OPUS_ALWAYS_INLINE opus_val32 cwrsi(int _n, int _k, opus_uin
   for (; _n > 2; --_n) {
     opus_uint32 q;
     if (_k >= _n) {
-      if (_n < celt_pvq_fast_row_count && _k + 1 < celt_pvq_fast_column_count) {
+      if (_n < static_cast<int>(celt_pvq_fast_row_count) && _k + 1 < celt_pvq_fast_column_count) {
         const auto *row = celt_pvq_u_fast_rows[static_cast<std::size_t>(_n)].data();
         p = row[_k + 1]; s = -(_i >= p); _i -= p & s; k0 = _k; q = row[_n];
         if (q > _i) {
@@ -4654,7 +4728,7 @@ static OPUS_INT_HOT OPUS_ALWAYS_INLINE opus_val32 cwrsi(int _n, int _k, opus_uin
       }
       _i -= p; val = (k0 - _k + s) ^ s; *_y++ = val; yy = ((yy) + (opus_val32)(val) * (opus_val32)(val));
     } else {
-      if (_k + 1 < celt_pvq_fast_row_count && _n < celt_pvq_fast_column_count) {
+      if (_k + 1 < static_cast<int>(celt_pvq_fast_row_count) && _n < celt_pvq_fast_column_count) {
         p = celt_pvq_u_fast_rows[static_cast<std::size_t>(_k)][static_cast<std::size_t>(_n)];
         q = celt_pvq_u_fast_rows[static_cast<std::size_t>(_k + 1)][static_cast<std::size_t>(_n)];
         if (p <= _i && _i < q) {
@@ -5060,16 +5134,6 @@ static int ec_laplace_decode(ec_dec *dec, unsigned fs, int decay) {
 }
       ec_dec_update(dec, fl, std::min(fl + fs, (unsigned)32768), 32768);
   return val;
-}
-static unsigned isqrt32(opus_uint32 _val) {
-  unsigned b; unsigned g;
-  int bshift;
-  g = 0; bshift = ((((int)sizeof(unsigned) * 8) - (__builtin_clz(_val))) - 1) >> 1; b = 1U << bshift;
-  for (; bshift >= 0; --bshift, b >>= 1) {
-    opus_uint32 t = (((opus_uint32)g << 1) + b) << bshift;
-    if (t <= _val) { g += b; _val -= t; }
-}
-  return g;
 }
 static void celt_float2int16_c(const float *in, opus_int16 *out, std::size_t count) {
   for (auto index = std::size_t{}; index < count; ++index) out[index] = FLOAT2INT16(in[index]);
@@ -6345,9 +6409,8 @@ struct silk_decoder_channel_view {
 };
 [[nodiscard]] static auto silk_ensure_side_channel(silk_decoder *decoder) noexcept -> silk_decoder_state * {
   if (decoder->side_channel_state == nullptr) {
-    auto side = make_opus_owned<silk_decoder_state>(sizeof(silk_decoder_state));
+    auto side = make_zeroed_opus_owned<silk_decoder_state>();
     if (!side) return nullptr;
-    zero_n_bytes(side.get(), sizeof(silk_decoder_state));
     if (silk_init_decoder(side.get()) != 0) {
       silk_release_cng(side.get());
       return nullptr;
@@ -7680,13 +7743,22 @@ constexpr std::array<opus_uint8, 3> silk_LTPscale_iCDF = numeric_blob_array<opus
 constexpr std::array<opus_uint8, 4> silk_type_offset_VAD_iCDF = numeric_blob_array<opus_uint8, 4>(R"blob(E89E0A00)blob");
 constexpr std::array<opus_uint8, 2> silk_type_offset_no_VAD_iCDF = numeric_blob_array<opus_uint8, 2>(R"blob(E600)blob");
 constexpr std::array<opus_uint8, 5> silk_NLSF_interpolation_factor_iCDF = numeric_blob_array<opus_uint8, 5>(R"blob(F3DDC0B500)blob");
-constexpr std::array<std::array<opus_uint8, 2>, 2> silk_Quantization_Offsets_Q10{{{{100, 240}}, {{32, 100}}}};
-constexpr std::array<opus_int16, 3> silk_LTPScales_table_Q14 = numeric_blob_array<opus_int16, 3>(R"blob(3CCD30002000)blob");
-constexpr std::array<opus_uint8, 3> silk_uniform3_iCDF = numeric_blob_array<opus_uint8, 3>(R"blob(AB5500)blob");
-constexpr std::array<opus_uint8, 4> silk_uniform4_iCDF = numeric_blob_array<opus_uint8, 4>(R"blob(C0804000)blob");
-constexpr std::array<opus_uint8, 5> silk_uniform5_iCDF = numeric_blob_array<opus_uint8, 5>(R"blob(CD9A663300)blob");
-constexpr std::array<opus_uint8, 6> silk_uniform6_iCDF = numeric_blob_array<opus_uint8, 6>(R"blob(D5AB80552B00)blob");
-constexpr std::array<opus_uint8, 8> silk_uniform8_iCDF = numeric_blob_array<opus_uint8, 8>(R"blob(E0C0A08060402000)blob");
+[[nodiscard]] consteval auto make_silk_quantization_offsets_q10() noexcept {
+  return std::array<std::array<opus_uint8, 2>, 2>{{{{100, 240}}, {{32, 100}}}};
+}
+[[nodiscard]] consteval auto make_silk_ltp_scales_q14() noexcept {
+  return std::array<opus_int16, 3>{q14_from_float(0.95f), q14_from_float(0.75f), q14_from_float(0.5f)};
+}
+[[nodiscard]] consteval auto make_silk_max_pulses_table() noexcept {
+  return std::array<opus_uint8, 4>{8, 10, 12, 16};
+}
+constexpr std::array<std::array<opus_uint8, 2>, 2> silk_Quantization_Offsets_Q10 = make_silk_quantization_offsets_q10();
+constexpr std::array<opus_int16, 3> silk_LTPScales_table_Q14 = make_silk_ltp_scales_q14();
+constexpr std::array<opus_uint8, 3> silk_uniform3_iCDF = make_uniform_icdf<3>();
+constexpr std::array<opus_uint8, 4> silk_uniform4_iCDF = make_uniform_icdf<4>();
+constexpr std::array<opus_uint8, 5> silk_uniform5_iCDF = make_uniform_icdf<5>();
+constexpr std::array<opus_uint8, 6> silk_uniform6_iCDF = make_uniform_icdf<6>();
+constexpr std::array<opus_uint8, 8> silk_uniform8_iCDF = make_uniform_icdf<8>();
 constexpr std::array<opus_uint8, 7> silk_NLSF_EXT_iCDF = numeric_blob_array<opus_uint8, 7>(R"blob(64281007030100)blob");
 constexpr std::array<std::array<opus_int32, 3>, 5> silk_Transition_LP_B_Q28 = numeric_blob_matrix<opus_int32, 5, 3>(R"blob(0EF2670A1DE4CD560EF2670A0C82527519049A590C8252750A311146146203ED0A31114607D702DA0FADC6F907D702DA0552B6220AA4FADA0552B622)blob");
 constexpr std::array<std::array<opus_int32, 2>, 5> silk_Transition_LP_A_Q28 = numeric_blob_matrix<opus_int32, 5, 2>(R"blob(1E2EF3460E4BE32B1880661F0A1D2C1C124861DA06F49CED0B1330EC04A590E3021DA4ED036BDF0A)blob");
@@ -7696,7 +7768,7 @@ constexpr std::array<opus_uint8, 34> silk_pitch_contour_iCDF = numeric_blob_arra
 constexpr std::array<opus_uint8, 11> silk_pitch_contour_NB_iCDF = numeric_blob_array<opus_uint8, 11>(R"blob(BCB09B8A7761432B1A0A00)blob");
 constexpr std::array<opus_uint8, 12> silk_pitch_contour_10_ms_iCDF = numeric_blob_array<opus_uint8, 12>(R"blob(A577503D2F231B140E090400)blob");
 constexpr std::array<opus_uint8, 3> silk_pitch_contour_10_ms_NB_iCDF = numeric_blob_array<opus_uint8, 3>(R"blob(713F00)blob");
-constexpr std::array<opus_uint8, 4> silk_max_pulses_table = numeric_blob_array<opus_uint8, 4>(R"blob(080A0C10)blob");
+constexpr std::array<opus_uint8, 4> silk_max_pulses_table = make_silk_max_pulses_table();
 constexpr std::array<std::array<opus_uint8, 18>, 10> silk_pulses_per_block_iCDF = numeric_blob_matrix<opus_uint8, 10, 18>(R"blob(7D331A120F0C0B0A09080706050403020100C6692D160F0C0B0A09080706050403020100D5A274533B2B2018120F0C09070605030200EFBB743B1C100B0A09080706050403020100FAE5BC8756331E130D0A0806050403020100F9EBD5B99C80675342352A211A15110D0A00FEF9EBCEA4764D2E1B100A07050403020100FFFDF9EFDCBF9C77553925170F0A06040200FFFDFBF6EDDFCBB3987C624B37281D150F00FFFEFDF7DCA26A432A1C120C090604030200)blob");
 constexpr std::array<std::array<opus_uint8, 18>, 9> silk_pulses_per_block_BITS_Q5 = numeric_blob_matrix<opus_uint8, 9, 18>(R"blob(1F396BA0CDCDFFFFFFFFFFFFFFFFFFFFFFFF452F436FA6CDFFFFFFFFFFFFFFFFFFFFFFFF524A4F5F6D8091A0ADCDCDCDE0FFFFE0FFE07D4A3B45618DB6FFFFFFFFFFFFFFFFFFFFFFAD7355494C5C7391ADCDE0E0FFFFFFFFFFFFA686716665666B767D8A919BA6B6C0C0CD96E0B68665534F55617891ADCDE0FFFFFFFFFFFFE0C09678655C595D667686A0B6C0E0E0E0FFE0E0B69B86766D68666A6F768391A0AD83)blob");
 constexpr std::array<std::array<opus_uint8, 9>, 2> silk_rate_levels_iCDF = numeric_blob_matrix<opus_uint8, 2, 9>(R"blob(F1BEB284574A290E00DFC19D8C6A39271200)blob");
