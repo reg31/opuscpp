@@ -2158,6 +2158,11 @@ static OPUS_ENCODER_HUB_SIZE_OPT opus_int32 encode_native(ref_OpusEncoder *st, c
     } else if (quality.strong_speech()) {
       const opus_int32 speech_celt_switch_bps = 54000;
       if (st->bitrate_bps < speech_celt_switch_bps) st->mode = opus_mode_silk_only;
+      else if (voip_style && st->channels == 1 && st->bitrate_bps < 80000 &&
+               quality.voice_score_Q7 >= 72 && quality.music_score_Q7 < 24 &&
+               quality.harmonic_music_Q7 < 32 && quality.high_z_tonal_Q7 < 48) {
+        st->mode = opus_mode_silk_only;
+      }
     }
     if (max_data_bytes < bitrate_to_bits(frame_rate > 50 ? 9000 : 6000, st->Fs, frame_size) / 8) {
       st->mode = opus_mode_celt_only;
