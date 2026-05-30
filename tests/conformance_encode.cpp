@@ -229,7 +229,7 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
     }
 }
 
-[[nodiscard]] auto compare_case(const case_record& oracle_case, const clip_input& clip, const scenario& current)
+[[nodiscard]] auto compare_case(const case_record& validation_case, const clip_input& clip, const scenario& current)
     -> std::string {
     const auto max_frame_index = []() -> std::optional<std::size_t> {
         if (const auto* value = std::getenv("CODEX_MAX_FRAME_INDEX")) {
@@ -255,13 +255,13 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
     const auto samples_per_frame = static_cast<std::size_t>(current.frame_size * clip.channels);
     auto decoded = std::vector<opus_int16>(samples_per_frame);
     const auto expected_frames = samples.size() / samples_per_frame;
-    const auto expected_oracle_frames =
+    const auto expected_validation_frames =
         max_frame_index.has_value() ? std::min(expected_frames, *max_frame_index + 1U) : expected_frames;
-    if (expected_oracle_frames != oracle_case.frames.size()) {
+    if (expected_validation_frames != validation_case.frames.size()) {
         throw std::runtime_error("frame count mismatch for " + clip.label + " / " + std::string{current.name});
     }
 
-    for (std::size_t frame_index = 0; frame_index < oracle_case.frames.size(); ++frame_index) {
+    for (std::size_t frame_index = 0; frame_index < validation_case.frames.size(); ++frame_index) {
         if (max_frame_index.has_value() && frame_index > *max_frame_index) {
             break;
         }
@@ -278,7 +278,7 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
             throw std::runtime_error("codex encoder returned an error");
         }
 
-        const auto& oracle_frame = oracle_case.frames[frame_index];
+        const auto& validation_frame = validation_case.frames[frame_index];
         std::uint32_t final_range = 0;
         if (const auto ret = codex_opus_encoder_ctl(encoder.get(), OPUS_GET_FINAL_RANGE_REQUEST, &final_range);
             ret != OPUS_OK) {
@@ -286,24 +286,24 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
         }
 
         if (require_bitexact) {
-            if (packet_size != static_cast<int>(oracle_frame.packet.size())) {
+            if (packet_size != static_cast<int>(validation_frame.packet.size())) {
                 throw std::runtime_error(
                     "packet size mismatch for " + clip.label + " / " + std::string{current.name} + " frame "
                     + std::to_string(frame_index));
             }
             if (!std::ranges::equal(
                     std::span<const unsigned char>{packet.data(), static_cast<std::size_t>(packet_size)},
-                    std::span<const unsigned char>{oracle_frame.packet})) {
+                    std::span<const unsigned char>{validation_frame.packet})) {
                 throw std::runtime_error(describe_packet_mismatch(
-                    oracle_frame.packet,
+                    validation_frame.packet,
                     std::span<const unsigned char>{packet.data(), static_cast<std::size_t>(packet_size)},
-                    oracle_frame.final_range,
+                    validation_frame.final_range,
                     final_range,
                     clip,
                     current,
                     frame_index));
             }
-            if (final_range != oracle_frame.final_range) {
+            if (final_range != validation_frame.final_range) {
                 throw std::runtime_error(
                     "final range mismatch for " + clip.label + " / " + std::string{current.name} + " frame "
                     + std::to_string(frame_index));
@@ -325,7 +325,7 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
     }
 
     return "PASS clip=" + clip.label + " scenario=" + std::string{current.name}
-         + " frames=" + std::to_string(oracle_case.frames.size());
+         + " frames=" + std::to_string(validation_case.frames.size());
 }
 
 } // namespace
@@ -333,7 +333,8 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
 int main(int argc, char** argv) {
     try {
         const auto vector_path = argc > 1 ? std::filesystem::path{argv[1]} : std::filesystem::path{"opus_newvectors"};
-        const auto oracle_path = argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_oracle.bin"};
+        const auto validation_path =
+            argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_validation.bin"};
         const auto worker_index = argc > 3 ? parse_int_argument(argv[3], "worker index") : 0;
         const auto worker_count = argc > 4 ? parse_int_argument(argv[4], "worker count") : 1;
         const auto clip_filter = []() -> std::string_view {
@@ -359,30 +360,30 @@ int main(int argc, char** argv) {
         }
 
         const auto clips = discover_clips(vector_path);
-        const auto oracle_cases = read_oracle(oracle_path);
-        if (oracle_cases.empty()) {
-            throw std::runtime_error("oracle file did not contain any cases");
+        const auto validation_cases = read_validation(validation_path);
+        if (validation_cases.empty()) {
+            throw std::runtime_error("validation file did not contain any cases");
         }
 
         const auto run_slice = [&](const worker_slice& slice_to_run) -> worker_result {
             auto result = worker_result{};
             for (const auto case_index : std::views::iota(slice_to_run.begin, slice_to_run.end)) {
-                const auto& oracle_case = oracle_cases[case_index];
-                if (!clip_filter.empty() && oracle_case.clip_label != clip_filter) {
+                const auto& validation_case = validation_cases[case_index];
+                if (!clip_filter.empty() && validation_case.clip_label != clip_filter) {
                     continue;
                 }
-                if (!scenario_filter.empty() && oracle_case.scenario_name != scenario_filter) {
+                if (!scenario_filter.empty() && validation_case.scenario_name != scenario_filter) {
                     continue;
                 }
-                const auto* clip = find_clip(clips, oracle_case.clip_label, oracle_case.channels);
+                const auto* clip = find_clip(clips, validation_case.clip_label, validation_case.channels);
                 if (clip == nullptr) {
-                    throw std::runtime_error("missing input clip " + oracle_case.clip_label);
+                    throw std::runtime_error("missing input clip " + validation_case.clip_label);
                 }
-                const auto* current = find_scenario(oracle_case.scenario_name);
+                const auto* current = find_scenario(validation_case.scenario_name);
                 if (current == nullptr) {
-                    throw std::runtime_error("unknown scenario " + oracle_case.scenario_name);
+                    throw std::runtime_error("unknown scenario " + validation_case.scenario_name);
                 }
-                result.pass_lines.push_back(compare_case(oracle_case, *clip, *current));
+                result.pass_lines.push_back(compare_case(validation_case, *clip, *current));
                 ++result.completed_cases;
             }
             return result;
@@ -399,7 +400,8 @@ int main(int argc, char** argv) {
                     futures.push_back(std::async(
                         std::launch::async,
                         [&, internal_worker] {
-                            return run_slice(make_worker_slice(oracle_cases.size(), internal_worker, internal_worker_count));
+                            return run_slice(
+                                make_worker_slice(validation_cases.size(), internal_worker, internal_worker_count));
                         }));
                 }
 
@@ -416,7 +418,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        const auto slice = make_worker_slice(oracle_cases.size(), worker_index, worker_count);
+        const auto slice = make_worker_slice(validation_cases.size(), worker_index, worker_count);
         auto result = run_slice(slice);
         for (const auto& line : result.pass_lines) {
             std::cout << line << '\n';

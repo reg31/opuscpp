@@ -96,7 +96,9 @@ def emit_metrics_report(
     output_dir: pathlib.Path,
     rfc: dict[str, str],
     encode: dict[str, str],
+    api_behavior: list[str],
     perceptual_rows: list[dict[str, str]],
+    voip_perceptual_rows: list[dict[str, str]],
     benchmark_rows: list[dict[str, str]],
     detector_rows: list[str],
     binary_size: dict[str, str],
@@ -109,10 +111,12 @@ def emit_metrics_report(
     memory_rows = load_csv_rows(metrics_dir / "memory_vs_official.csv")
     sections = {
         "speed_vs_official": benchmark_rows,
-        "quality_vs_official": perceptual_rows,
+        "quality_vs_official_audio": perceptual_rows,
+        "quality_vs_official_voip": voip_perceptual_rows,
         "memory_vs_official": memory_rows,
         "rfc_decode_conformance": rfc,
-        "encode_oracle_conformance": encode,
+        "encode_validation_conformance": encode,
+        "api_behavior_validation": api_behavior,
         "detector_mode_balance": detector_rows,
         "binary_size": binary_size,
         "toolchains": toolchains,
@@ -181,11 +185,22 @@ def emit_metrics_report(
         "- Official Opus checkout prepared locally.",
         "- Official `opus_demo` / `opus_compare` build prepared locally.",
         "- `opuscpp` decoder conformance harness built locally.",
+        f"- Vector set: {rfc.get('vector_set', 'unknown')}.",
         f"- Local result: {rfc.get('passed', '0')}/{rfc.get('total', '0')} RFC decode vectors passed.",
         "",
         "## Encode interoperability validation",
         "",
         f"- Local result: {encode.get('passed', '0')}/96 generated encode cases produced packets accepted by official Opus.",
+        "",
+        "## API behavior validation",
+        "",
+    ]
+    if api_behavior:
+        lines.extend(f"- `{line}`" for line in api_behavior)
+    else:
+        lines.append("- No API behavior validation was run.")
+
+    lines += [
         "",
         "## Perceptual and memory harness",
         "",
@@ -204,12 +219,27 @@ def emit_metrics_report(
 
     lines += [
         "",
-        "## Quality metrics vs official Opus",
+        "## AUDIO quality metrics vs official Opus",
         "",
         "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
         "|---:|---:|---:|---:|---:|---:|",
     ]
     for row in perceptual_rows:
+        bitrate = row.get("bitrate", "")
+        bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
+        lines.append(
+            f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} | "
+            f"{row.get('opuscpp_effective_kbps', '')} kbps | {row.get('official_effective_kbps', '')} kbps |"
+        )
+
+    lines += [
+        "",
+        "## VOIP quality metrics vs official Opus",
+        "",
+        "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
+        "|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in voip_perceptual_rows:
         bitrate = row.get("bitrate", "")
         bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         lines.append(
@@ -257,6 +287,13 @@ def emit_metrics_report(
     return md_path
 
 def find_vector_dir(vector_root: pathlib.Path) -> pathlib.Path:
+    # RFC 8251 updates the normative decoder vectors. Prefer it whenever both
+    # historical and updated bundles are available in tests/external.
+    for preferred in ("rfc8251", "rfc6716"):
+        preferred_root = vector_root / preferred
+        if preferred_root.exists():
+            for candidate in preferred_root.rglob("testvector01.bit"):
+                return candidate.parent
     for candidate in vector_root.rglob("testvector01.bit"):
         return candidate.parent
     raise FileNotFoundError(f"Could not find extracted RFC vector files under {vector_root}")
@@ -342,7 +379,14 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
             if channels == 2:
                 compare_args.append("-s")
             compare_args.extend(["-r", "48000"])
-            dec_candidates = [vector_dir / f"{stem}.dec", vector_dir / f"{stem}m.dec"]
+            # RFC 8251 includes an alternate "m" reference for the permitted
+            # no-phase-inversion mono-downmix behavior. The opuscpp mono path
+            # intentionally uses that behavior, so try it first for mono runs
+            # and avoid a guaranteed failed opus_compare pass on those vectors.
+            if channels == 1:
+                dec_candidates = [vector_dir / f"{stem}m.dec", vector_dir / f"{stem}.dec"]
+            else:
+                dec_candidates = [vector_dir / f"{stem}.dec", vector_dir / f"{stem}m.dec"]
             matched = False
             matched_reference = ""
             compare_logs: list[tuple[pathlib.Path, int]] = []
@@ -365,10 +409,11 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
                 raise RuntimeError(f"RFC decode mismatch for {stem} channels={channels}")
             passed += 1
             print(f"RFC vector PASS {stem} channels={channels} reference={matched_reference}")
-    return {"passed": str(passed), "total": str(total)}
+    vector_set = "rfc8251" if "rfc8251" in vector_dir.parts else "rfc6716" if "rfc6716" in vector_dir.parts else vector_dir.name
+    return {"passed": str(passed), "total": str(total), "vector_set": vector_set}
 
 
-def run_encode_oracle_conformance(
+def run_encode_validation_conformance(
     cxx: str,
     repo_root: pathlib.Path,
     official_include: pathlib.Path,
@@ -376,9 +421,9 @@ def run_encode_oracle_conformance(
     vector_dir: pathlib.Path,
     report_dir: pathlib.Path,
 ) -> dict[str, str]:
-    build_dir = report_dir / "encode_oracle"
+    build_dir = report_dir / "encode_validation"
     build_dir.mkdir(parents=True, exist_ok=True)
-    oracle_exe = build_dir / ("official_encode_oracle.exe" if os.name == "nt" else "official_encode_oracle")
+    validation_exe = build_dir / ("official_encode_validation.exe" if os.name == "nt" else "official_encode_validation")
     conformance_exe = build_dir / ("conformance_encode.exe" if os.name == "nt" else "conformance_encode")
     codex_obj = compile_object(
         cxx,
@@ -389,10 +434,10 @@ def run_encode_oracle_conformance(
     )
     link_executable(
         cxx,
-        [repo_root / "tests" / "official_encode_oracle.cpp"],
+        [repo_root / "tests" / "official_encode_validation.cpp"],
         [],
         [official_include, repo_root / "tests"],
-        oracle_exe,
+        validation_exe,
         [official_lib],
     )
     link_executable(
@@ -403,9 +448,9 @@ def run_encode_oracle_conformance(
         conformance_exe,
         [official_lib],
     )
-    oracle_path = build_dir / "encode_oracle.bin"
-    capture([str(oracle_exe), str(vector_dir), str(oracle_path)])
-    output = capture([str(conformance_exe), str(vector_dir), str(oracle_path)])
+    validation_path = build_dir / "encode_validation.bin"
+    capture([str(validation_exe), str(vector_dir), str(validation_path)])
+    output = capture([str(conformance_exe), str(vector_dir), str(validation_path)])
     match = re.search(r"Encode conformance completed \((\d+) case checks passed\)", output)
     return {"passed": match.group(1) if match else "0"}
 
@@ -437,36 +482,54 @@ def run_perceptual_and_memory(
     generated_audio = report_dir / "generated_audio"
     run([sys.executable, str(repo_root / "tests" / "generate_synthetic_wav.py"), "--out", str(generated_audio), "--seconds", "6"])
     rows: list[dict[str, str]] = []
+    voip_rows: list[dict[str, str]] = []
     memory_output = ""
-    for bitrate in BITRATES:
-        args = [str(exe), "--input", str(generated_audio / "synthetic_music_like_stereo.wav"), "--bitrate", str(bitrate)]
-        if bitrate != BITRATES[0]:
-            args.append("--skip-memory")
-        output = capture(args)
-        if bitrate == BITRATES[0]:
-            memory_output = output
-        delta_match = re.search(
-            r"delta current_minus_official.*?pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?packet_bytes_pct=[^\s]+.*?encode_speed_ratio_current_vs_official=([^\s]+)",
-            output,
-        )
-        if not delta_match:
-            raise RuntimeError(f"Could not parse perceptual output for bitrate {bitrate}")
-        current_match = re.search(r"^\s*current\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
-        official_match = re.search(r"^\s*official\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
-        if not current_match or not official_match:
-            raise RuntimeError(f"Could not parse effective bitrate for bitrate {bitrate}")
-        rows.append(
-            {
-                "bitrate": str(bitrate),
-                "pesq_delta": delta_match.group(1),
-                "visqol_delta": delta_match.group(2),
-                "celt_delta": delta_match.group(3),
-                "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
-                "official_effective_kbps": effective_kbps(official_match.group(1)),
-                "encode_speed_ratio": delta_match.group(4),
-            }
-        )
-    return {"rows": rows, "memory_output": memory_output}
+
+    def measure_rows(application: str, input_name: str, capture_memory: bool) -> list[dict[str, str]]:
+        nonlocal memory_output
+        measured: list[dict[str, str]] = []
+        for bitrate in BITRATES:
+            args = [
+                str(exe),
+                "--input",
+                str(generated_audio / input_name),
+                "--bitrate",
+                str(bitrate),
+                "--application",
+                application,
+            ]
+            if not capture_memory or bitrate != BITRATES[0]:
+                args.append("--skip-memory")
+            output = capture(args)
+            if capture_memory and bitrate == BITRATES[0]:
+                memory_output = output
+            delta_match = re.search(
+                r"delta current_minus_official.*?pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?packet_bytes_pct=[^\s]+.*?encode_speed_ratio_current_vs_official=([^\s]+)",
+                output,
+            )
+            if not delta_match:
+                raise RuntimeError(f"Could not parse perceptual output for {application} bitrate {bitrate}")
+            current_match = re.search(r"^\s*current\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
+            official_match = re.search(r"^\s*official\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
+            if not current_match or not official_match:
+                raise RuntimeError(f"Could not parse effective bitrate for {application} bitrate {bitrate}")
+            measured.append(
+                {
+                    "application": application,
+                    "bitrate": str(bitrate),
+                    "pesq_delta": delta_match.group(1),
+                    "visqol_delta": delta_match.group(2),
+                    "celt_delta": delta_match.group(3),
+                    "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
+                    "official_effective_kbps": effective_kbps(official_match.group(1)),
+                    "encode_speed_ratio": delta_match.group(4),
+                }
+            )
+        return measured
+
+    rows = measure_rows("audio", "synthetic_music_like_stereo.wav", True)
+    voip_rows = measure_rows("voip", "synthetic_voice_like_mono.wav", False)
+    return {"rows": rows, "voip_rows": voip_rows, "memory_output": memory_output}
 
 
 def run_benchmark_vs_official(
@@ -523,6 +586,25 @@ def run_detector_mode_balance(
     )
     output = capture([str(exe)])
     return [line for line in output.splitlines() if line.strip()]
+
+
+def run_api_behavior_validation(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path) -> list[str]:
+    build_dir = report_dir / "api_behavior"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    results: list[str] = []
+    suffix = ".exe" if os.name == "nt" else ""
+    for name in ("decoder_channel_remap", "packet_duration_behavior"):
+        exe = link_executable(
+            cxx,
+            [repo_root / "tests" / f"{name}.cpp", repo_root / "src" / "opus_codec.cpp"],
+            [],
+            [repo_root / "src"],
+            build_dir / f"{name}{suffix}",
+            [],
+        )
+        output = capture([str(exe)])
+        results.extend(line for line in output.splitlines() if line.strip())
+    return results
 
 
 def run_binary_size(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path) -> dict[str, str]:
@@ -685,7 +767,10 @@ def main() -> int:
     vector_dir = find_vector_dir(vector_root)
 
     rfc = run_rfc_decode_conformance(harness_path, opus_compare, vector_dir, report_dir)
-    encode = run_encode_oracle_conformance(args.cxx, repo_root, official_include, official_lib, vector_dir, report_dir)
+    encode = run_encode_validation_conformance(
+        args.cxx, repo_root, official_include, official_lib, vector_dir, report_dir
+    )
+    api_behavior = run_api_behavior_validation(args.cxx, repo_root, report_dir)
     perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_include, official_lib, report_dir)
     benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_include, official_lib, report_dir)
     detector_rows = run_detector_mode_balance(args.cxx, repo_root, official_include, report_dir)
@@ -696,7 +781,9 @@ def main() -> int:
         report_dir,
         rfc,
         encode,
+        api_behavior,
         perceptual["rows"],
+        perceptual["voip_rows"],
         benchmark_rows,
         detector_rows,
         binary_size,
@@ -720,8 +807,14 @@ def main() -> int:
     print(f"  passed={rfc['passed']}/{rfc['total']}")
     print("Encode interoperability validation:")
     print(f"  passed_cases={encode['passed']}")
-    print("Perceptual and memory harness:")
+    print("API behavior validation:")
+    for row in api_behavior:
+      print(f"  {row}")
+    print("AUDIO perceptual and memory harness:")
     for row in perceptual["rows"]:
+      print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} opuscpp_effective_kbps={row['opuscpp_effective_kbps']} official_effective_kbps={row['official_effective_kbps']} encode_speed_ratio={row['encode_speed_ratio']}")
+    print("VOIP perceptual harness:")
+    for row in perceptual["voip_rows"]:
       print(f"  bitrate={row['bitrate']} pesq_delta={row['pesq_delta']} visqol_delta={row['visqol_delta']} celt_delta={row['celt_delta']} opuscpp_effective_kbps={row['opuscpp_effective_kbps']} official_effective_kbps={row['official_effective_kbps']} encode_speed_ratio={row['encode_speed_ratio']}")
     print("Speed metrics vs official Opus:")
     for row in benchmark_rows:

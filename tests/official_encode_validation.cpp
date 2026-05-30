@@ -18,7 +18,8 @@ namespace {
 
 using namespace encode_conformance;
 
-[[nodiscard]] auto make_encoder(int channels, const scenario& current) -> std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)> {
+[[nodiscard]] auto make_encoder(int channels, const scenario& current)
+    -> std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)> {
     int error = OPUS_OK;
     auto* encoder = opus_encoder_create(48000, channels, current.application, &error);
     if (error != OPUS_OK || encoder == nullptr) {
@@ -35,7 +36,8 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
     if (const auto ret = opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY_REQUEST, current.complexity); ret != OPUS_OK) {
         throw std::runtime_error("failed to set official complexity");
     }
-    if (const auto ret = opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, static_cast<int>(current.vbr)); ret != OPUS_OK) {
+    if (const auto ret = opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, static_cast<int>(current.vbr));
+        ret != OPUS_OK) {
         throw std::runtime_error("failed to set official VBR");
     }
 }
@@ -91,7 +93,7 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
             frame_record{.final_range = final_range, .packet = {packet.begin(), packet.begin() + packet_size}});
     }
 
-    std::cout << "ORACLE clip=" << clip.label << " scenario=" << current.name << " frames=" << frame_count << '\n';
+    std::cout << "VALIDATION clip=" << clip.label << " scenario=" << current.name << " frames=" << frame_count << '\n';
     return result;
 }
 
@@ -100,7 +102,8 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
 int main(int argc, char** argv) {
     try {
         const auto vector_path = argc > 1 ? std::filesystem::path{argv[1]} : std::filesystem::path{"opus_newvectors"};
-        const auto oracle_path = argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_oracle.bin"};
+        const auto validation_path =
+            argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_validation.bin"};
         const auto clip_filter = []() -> std::string_view {
             if (const auto* value = std::getenv("CODEX_CLIP_FILTER")) {
                 return value;
@@ -134,11 +137,11 @@ int main(int argc, char** argv) {
             }
         }
 
-        write_oracle(oracle_path, cases);
-        std::cout << "Official encode oracle written to " << oracle_path << '\n';
+        write_validation(validation_path, cases);
+        std::cout << "Official encode validation written to " << validation_path << '\n';
         return 0;
     } catch (const std::exception& ex) {
-        std::cerr << "Official encode oracle failed: " << ex.what() << '\n';
+        std::cerr << "Official encode validation failed: " << ex.what() << '\n';
         return 1;
     }
 }

@@ -55,8 +55,8 @@ consteval auto make_scenarios() noexcept {
 }
 
 inline constexpr auto scenarios = make_scenarios();
-inline constexpr std::uint32_t oracle_magic = 0x454E4346u; // ENCF
-inline constexpr std::uint32_t oracle_version = 1u;
+inline constexpr std::uint32_t validation_magic = 0x454E4346u; // ENCF
+inline constexpr std::uint32_t validation_version = 1u;
 
 [[nodiscard]] constexpr auto scenario_bitrate(const scenario& value, int channels) noexcept -> int {
     return channels == 1 ? value.mono_bitrate : value.stereo_bitrate;
@@ -111,7 +111,7 @@ inline constexpr std::uint32_t oracle_version = 1u;
 inline void write_u32(std::ostream& output, std::uint32_t value) {
     output.write(reinterpret_cast<const char*>(&value), sizeof(value));
     if (!output) {
-        throw std::runtime_error("failed to write oracle data");
+        throw std::runtime_error("failed to write validation data");
     }
 }
 
@@ -119,7 +119,7 @@ inline void write_string(std::ostream& output, std::string_view value) {
     write_u32(output, static_cast<std::uint32_t>(value.size()));
     output.write(value.data(), static_cast<std::streamsize>(value.size()));
     if (!output) {
-        throw std::runtime_error("failed to write oracle string");
+        throw std::runtime_error("failed to write validation string");
     }
 }
 
@@ -127,7 +127,7 @@ inline void write_blob(std::ostream& output, std::span<const unsigned char> blob
     write_u32(output, static_cast<std::uint32_t>(blob.size()));
     output.write(reinterpret_cast<const char*>(blob.data()), static_cast<std::streamsize>(blob.size()));
     if (!output) {
-        throw std::runtime_error("failed to write oracle packet");
+        throw std::runtime_error("failed to write validation packet");
     }
 }
 
@@ -135,7 +135,7 @@ inline void write_blob(std::ostream& output, std::span<const unsigned char> blob
     std::uint32_t value = 0;
     input.read(reinterpret_cast<char*>(&value), sizeof(value));
     if (!input) {
-        throw std::runtime_error("failed to read oracle data");
+        throw std::runtime_error("failed to read validation data");
     }
     return value;
 }
@@ -144,7 +144,7 @@ inline void write_blob(std::ostream& output, std::span<const unsigned char> blob
     auto value = std::string(read_u32(input), '\0');
     input.read(value.data(), static_cast<std::streamsize>(value.size()));
     if (!input) {
-        throw std::runtime_error("failed to read oracle string");
+        throw std::runtime_error("failed to read validation string");
     }
     return value;
 }
@@ -153,19 +153,19 @@ inline void write_blob(std::ostream& output, std::span<const unsigned char> blob
     auto blob = std::vector<unsigned char>(read_u32(input));
     input.read(reinterpret_cast<char*>(blob.data()), static_cast<std::streamsize>(blob.size()));
     if (!input) {
-        throw std::runtime_error("failed to read oracle packet");
+        throw std::runtime_error("failed to read validation packet");
     }
     return blob;
 }
 
-inline void write_oracle(const fs::path& output_path, std::span<const case_record> cases) {
+inline void write_validation(const fs::path& output_path, std::span<const case_record> cases) {
     std::ofstream output(output_path, std::ios::binary);
     if (!output) {
-        throw std::runtime_error("failed to open oracle output");
+        throw std::runtime_error("failed to open validation output");
     }
 
-    write_u32(output, oracle_magic);
-    write_u32(output, oracle_version);
+    write_u32(output, validation_magic);
+    write_u32(output, validation_version);
     write_u32(output, static_cast<std::uint32_t>(cases.size()));
 
     for (const auto& case_record : cases) {
@@ -180,17 +180,17 @@ inline void write_oracle(const fs::path& output_path, std::span<const case_recor
     }
 }
 
-[[nodiscard]] inline auto read_oracle(const fs::path& input_path) -> std::vector<case_record> {
+[[nodiscard]] inline auto read_validation(const fs::path& input_path) -> std::vector<case_record> {
     std::ifstream input(input_path, std::ios::binary);
     if (!input) {
-        throw std::runtime_error("failed to open oracle input");
+        throw std::runtime_error("failed to open validation input");
     }
 
-    if (read_u32(input) != oracle_magic) {
-        throw std::runtime_error("invalid oracle magic");
+    if (read_u32(input) != validation_magic) {
+        throw std::runtime_error("invalid validation magic");
     }
-    if (read_u32(input) != oracle_version) {
-        throw std::runtime_error("unsupported oracle version");
+    if (read_u32(input) != validation_version) {
+        throw std::runtime_error("unsupported validation version");
     }
 
     auto cases = std::vector<case_record>(read_u32(input));
