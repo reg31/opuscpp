@@ -31,15 +31,15 @@ Benchmark setup: `opuscpp` and official Opus are both built with `-O2 -DNDEBUG`;
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.353344x | 1.569973x |
-| 24 kbps | 1.720476x | 1.165676x |
-| 32 kbps | 1.585990x | 1.172761x |
-| 48 kbps | 1.477651x | 1.126989x |
-| 64 kbps | 1.490007x | 1.111947x |
-| 96 kbps | 1.527927x | 1.074737x |
-| 128 kbps | 1.504769x | 1.044532x |
-| 192 kbps | 1.633149x | 1.020722x |
-| 256 kbps | 1.353617x | 1.112609x |
+| 16 kbps | 1.378305x | 1.577774x |
+| 24 kbps | 1.641981x | 1.192522x |
+| 32 kbps | 1.641065x | 1.146528x |
+| 48 kbps | 1.437030x | 1.122244x |
+| 64 kbps | 1.461149x | 1.129803x |
+| 96 kbps | 1.498020x | 1.065959x |
+| 128 kbps | 1.510358x | 1.044751x |
+| 192 kbps | 1.413134x | 1.046038x |
+| 256 kbps | 1.377213x | 1.033034x |
 
 ## AUDIO quality metrics vs official Opus
 
