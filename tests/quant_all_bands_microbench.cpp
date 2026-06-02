@@ -1,8 +1,8 @@
 #include <array>
 #include <chrono>
 #include <cmath>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -15,7 +15,7 @@ constexpr auto bench_iterations = 2000;
 constexpr auto checksum_scale = 1000003u;
 
 struct QuantCase {
-  const char *name;
+  const char* name;
   int channels;
   int bits_per_bin_q3;
 };
@@ -31,12 +31,14 @@ struct BenchResult {
   return hash * checksum_scale + value + 0x9e3779b9u + (hash << 6) + (hash >> 2);
 }
 
-[[nodiscard]] auto checksum_bytes(const unsigned char *data, int size, std::uint32_t hash) noexcept -> std::uint32_t {
-  for (int i = 0; i < size; ++i) hash = mix(hash, data[i]);
+[[nodiscard]] auto checksum_bytes(const unsigned char* data, int size, std::uint32_t hash) noexcept -> std::uint32_t {
+  for (int i = 0; i < size; ++i) {
+    hash = mix(hash, data[i]);
+  }
   return hash;
 }
 
-[[nodiscard]] auto checksum_norms(const std::vector<celt_norm> &data, std::uint32_t hash) noexcept -> std::uint32_t {
+[[nodiscard]] auto checksum_norms(const std::vector<celt_norm>& data, std::uint32_t hash) noexcept -> std::uint32_t {
   for (const auto value : data) {
     hash = mix(hash, static_cast<std::uint32_t>(std::lrint(value * 8192.0f)) & 0xffffu);
   }
@@ -64,8 +66,8 @@ void check_cwrs_roundtrip() {
   }
 }
 
-void prepare_case(const CeltModeInternal *mode, const QuantCase &test, int LM, std::vector<celt_norm> &source,
-                  std::vector<celt_ener> &band_energy, std::vector<int> &pulses, std::vector<int> &tf_res) {
+void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, std::vector<celt_norm>& source,
+                  std::vector<celt_ener>& band_energy, std::vector<int>& pulses, std::vector<int>& tf_res) {
   const int N = (1 << LM) * mode->shortMdctSize;
   source.assign(static_cast<std::size_t>(test.channels * N), 0.0f);
   for (int c = 0; c < test.channels; ++c) {
@@ -90,10 +92,9 @@ void prepare_case(const CeltModeInternal *mode, const QuantCase &test, int LM, s
   tf_res.assign(static_cast<std::size_t>(mode->nbEBands), 0);
 }
 
-[[nodiscard]] OPUS_NOINLINE auto quant_encode_once(const CeltModeInternal *mode, const QuantCase &test, int LM,
-                                                   const std::vector<celt_norm> &source, const std::vector<celt_ener> &band_energy,
-                                                   std::vector<int> &pulses, std::vector<int> &tf_res,
-                                                   unsigned char *packet, int packet_bytes, opus_uint32 seed) -> int {
+[[nodiscard]] auto quant_encode_once(const CeltModeInternal* mode, const QuantCase& test, int LM, const std::vector<celt_norm>& source,
+                                     const std::vector<celt_ener>& band_energy, std::vector<int>& pulses, std::vector<int>& tf_res,
+                                     unsigned char* packet, int packet_bytes, opus_uint32 seed) -> int {
   const int N = (1 << LM) * mode->shortMdctSize;
   auto work = source;
   std::array<unsigned char, 2 * 64> collapse_masks{};
@@ -107,23 +108,23 @@ void prepare_case(const CeltModeInternal *mode, const QuantCase &test, int LM, s
   return (ec_tell(&enc) + 7) >> 3;
 }
 
-[[nodiscard]] OPUS_NOINLINE auto quant_decode_once(const CeltModeInternal *mode, const QuantCase &test, int LM,
-                                                   const unsigned char *packet, int packet_bytes, std::vector<int> &pulses,
-                                                   std::vector<int> &tf_res, opus_uint32 seed, std::uint32_t &checksum) -> int {
+[[nodiscard]] auto quant_decode_once(const CeltModeInternal* mode, const QuantCase& test, int LM, const unsigned char* packet,
+                                     int packet_bytes, std::vector<int>& pulses, std::vector<int>& tf_res, opus_uint32 seed,
+                                     std::uint32_t& checksum) -> int {
   const int N = (1 << LM) * mode->shortMdctSize;
   std::vector<celt_norm> work(static_cast<std::size_t>(test.channels * N), 0.0f);
   std::array<unsigned char, 2 * 64> collapse_masks{};
   ec_dec dec{};
-  ec_dec_init(&dec, const_cast<unsigned char *>(packet), static_cast<opus_uint32>(packet_bytes));
+  ec_dec_init(&dec, const_cast<unsigned char*>(packet), static_cast<opus_uint32>(packet_bytes));
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
-  quant_all_bands(0, mode, 0, mode->effEBands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
-                  nullptr, pulses.data(), 0, 2, 0, mode->effEBands, tf_res.data(), total_bits, 0, &dec, LM, mode->effEBands, &seed, 0);
+  quant_all_bands(0, mode, 0, mode->effEBands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(), nullptr,
+                  pulses.data(), 0, 2, 0, mode->effEBands, tf_res.data(), total_bits, 0, &dec, LM, mode->effEBands, &seed, 0);
   checksum = checksum_norms(work, checksum);
   return dec.error;
 }
 
-[[nodiscard]] auto run_case(const QuantCase &test) -> BenchResult {
-  const auto *mode = default_custom_mode();
+[[nodiscard]] auto run_case(const QuantCase& test) -> BenchResult {
+  const auto* mode = default_custom_mode();
   constexpr int LM = 3;
   std::vector<celt_norm> source;
   std::vector<celt_ener> band_energy;
@@ -139,14 +140,16 @@ void prepare_case(const CeltModeInternal *mode, const QuantCase &test, int LM, s
 
   const auto encode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    result.bytes = quant_encode_once(mode, test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes, 0x12345678u + static_cast<opus_uint32>(i));
+    result.bytes = quant_encode_once(mode, test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes,
+                                     0x12345678u + static_cast<opus_uint32>(i));
     result.checksum = checksum_bytes(packet.data(), result.bytes, result.checksum);
   }
   const auto encode_end = std::chrono::steady_clock::now();
 
   const auto decode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    const int error = quant_decode_once(mode, test, LM, packet.data(), result.bytes, pulses, tf_res, 0x12345678u + static_cast<opus_uint32>(i), result.checksum);
+    const int error = quant_decode_once(mode, test, LM, packet.data(), result.bytes, pulses, tf_res,
+                                        0x12345678u + static_cast<opus_uint32>(i), result.checksum);
     if (error != 0) {
       std::cerr << "decode error in " << test.name << '\n';
       std::exit(3);
@@ -170,7 +173,7 @@ int main() {
       QuantCase{"stereo-high", 2, 10},
   };
 
-  for (const auto &test : cases) {
+  for (const auto& test : cases) {
     const auto result = run_case(test);
     std::cout << test.name << " bytes=" << result.bytes << " encode_ms=" << result.encode_ms << " decode_ms=" << result.decode_ms
               << " checksum=" << result.checksum << '\n';

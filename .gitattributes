@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.ogg binary
+*.opus binary
+*.wav binary
+*.zip binary
+*.gz binary

@@ -72,7 +72,7 @@ python3 tests/scripts/setup_official_compare.py --download-vectors both
 If you prefer to do it yourself, the equivalent manual steps are:
 
 1. Obtain the official Opus RFC test vector set.
-2. Build official Opus 1.6.1 as a static library with intrinsics enabled and matching `-O2 -DNDEBUG`
+2. Build official Opus 1.6.1 as a static library with intrinsics enabled at `-O2 -DNDEBUG`
    flags for the public benchmark comparison.
 3. Build the `opuscpp` decoder harness.
 
@@ -97,7 +97,7 @@ The RFC vector files are not committed to this repository. If you used
 build outputs. To run full decode conformance manually, build the decoder harness with:
 
 ```bash
-c++ -std=c++23 -O2 -I src \
+c++ -std=c++23 -O2 -DNDEBUG -I src \
     tests/conformance_decode.cpp src/opus_codec.cpp \
     -o build/conformance_decode
 ```
@@ -161,25 +161,22 @@ PESQ/ViSQOL tooling or listening tests.
 ## Speed metrics vs official Opus with x86 intrinsics
 
 This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 -DNDEBUG` and x86
-runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` remains the same
-pure C++23 build with no assembly and no SIMD intrinsics. Measurements are from Windows MinGW GCC
-16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo synthetic music-like
-benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized official build. This
-keeps optimization level and `NDEBUG` matched while comparing against the optimized official desktop
-path most users would actually get.
+runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` uses the same pure C++23 `-O2 -DNDEBUG` profile, with no assembly and no SIMD intrinsics. Measurements
+are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo
+synthetic music-like benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized
+official build. This keeps the optimization level matched while comparing against the optimized official desktop path most users would actually get.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.355x | 1.612x | 440x | 324x | 2010x | 1247x |
-| 24&nbsp;kbps | 1.603x | 1.170x | 480x | 300x | 1276x | 1091x |
-| 32&nbsp;kbps | 1.645x | 1.166x | 469x | 285x | 1208x | 1036x |
-| 48&nbsp;kbps | 1.507x | 1.174x | 412x | 274x | 1053x | 897x |
-| 64&nbsp;kbps | 1.390x | 1.100x | 354x | 255x | 907x | 825x |
-| 96&nbsp;kbps | 1.531x | 1.058x | 315x | 206x | 671x | 634x |
-| 128&nbsp;kbps | 1.534x | 1.057x | 278x | 182x | 578x | 547x |
-| 192&nbsp;kbps | 1.388x | 1.051x | 232x | 167x | 482x | 458x |
-| 256&nbsp;kbps | 1.319x | 1.047x | 211x | 160x | 467x | 446x |
-
+| 16&nbsp;kbps | 1.646x | 1.697x | 526x | 319x | 2052x | 1209x |
+| 24&nbsp;kbps | 1.743x | 1.296x | 495x | 284x | 1320x | 1019x |
+| 32&nbsp;kbps | 1.731x | 1.254x | 463x | 268x | 1251x | 997x |
+| 48&nbsp;kbps | 1.492x | 1.202x | 425x | 285x | 1110x | 924x |
+| 64&nbsp;kbps | 1.522x | 1.189x | 383x | 252x | 936x | 787x |
+| 96&nbsp;kbps | 1.641x | 1.174x | 321x | 196x | 722x | 615x |
+| 128&nbsp;kbps | 1.909x | 1.124x | 351x | 184x | 607x | 540x |
+| 192&nbsp;kbps | 1.560x | 1.109x | 261x | 167x | 528x | 476x |
+| 256&nbsp;kbps | 1.606x | 1.029x | 259x | 162x | 445x | 433x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
 refresh runs may also write temporary Markdown reports under `build/` or the working directory.
@@ -200,15 +197,15 @@ Effective bitrate columns show measured payload bitrate for the same validation 
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0004 | -0.0165 | +1.0302 | 16.9 kbps | 17.1 kbps |
-| 24&nbsp;kbps | -0.0071 | +0.0438 | +21.7351 | 24.5 kbps | 25.2 kbps |
+| 16&nbsp;kbps | +0.0007 | -0.0129 | +14.9510 | 16.5 kbps | 17.1 kbps |
+| 24&nbsp;kbps | -0.0068 | +0.0459 | +21.7351 | 24.5 kbps | 25.2 kbps |
 | 32&nbsp;kbps | +0.0018 | +0.0383 | +16.5793 | 32.5 kbps | 33.6 kbps |
 | 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
 | 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
 | 96&nbsp;kbps | +0.0005 | +0.0037 | -0.0504 | 96.4 kbps | 96.7 kbps |
-| 128&nbsp;kbps | +0.0006 | +0.0022 | -0.2914 | 128.4 kbps | 128.8 kbps |
-| 192&nbsp;kbps | +0.0003 | -0.0001 | -0.2242 | 192.4 kbps | 192.9 kbps |
-| 256&nbsp;kbps | +0.0005 | -0.0005 | -0.1322 | 256.4 kbps | 256.7 kbps |
+| 128&nbsp;kbps | -0.0001 | +0.0017 | -0.2840 | 128.4 kbps | 128.8 kbps |
+| 192&nbsp;kbps | -0.0002 | +0.0003 | -0.2254 | 192.4 kbps | 192.9 kbps |
+| 256&nbsp;kbps | -0.0003 | -0.0001 | -0.1346 | 256.4 kbps | 256.7 kbps |
 
 ## VOIP quality metrics vs official Opus
 
@@ -226,7 +223,6 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 128&nbsp;kbps | +0.0001 | +0.0020 | -0.1233 | 128.8 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0002 | +0.0002 | +0.0404 | 192.8 kbps | 192.4 kbps |
 | 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.7 kbps | 256.4 kbps |
-
 
 Source CSV:
 
@@ -261,9 +257,9 @@ Source CSV:
 
 ## Binary size
 
-| Build | Text | Data | Total measured text+data |
+| Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 250,804 B | 0 B | 250,804 B |
+| Host MinGW GCC `-O2` | 261,784 B | 8 B | 279,872 B |
 
 ## Toolchains checked
 
