@@ -348,6 +348,7 @@ static void celt_encoder_set_stream_channels(CeltEncoderInternal* st, opus_int32
 static void celt_encoder_set_lsb_depth(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_prediction(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_bitrate(CeltEncoderInternal* st, opus_int32 value);
+static void celt_encoder_set_midrate_quality_boost(CeltEncoderInternal* st, opus_int32 value);
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal* st) noexcept;
 [[nodiscard]] static const CeltModeInternal* celt_encoder_mode(const CeltEncoderInternal* st) noexcept;
 static int celt_decoder_get_size(int channels);
@@ -456,6 +457,9 @@ constexpr opus_val32 low_rate_tonal_celt_min_tone = .45f;
 constexpr opus_int32 low_rate_celt_trim_min_bps = 16000;
 constexpr opus_int32 low_rate_celt_trim_max_bps = 20000;
 constexpr int low_rate_celt_trim_boost = 2;
+constexpr opus_int32 audio_midrate_celt_quality_boost_min_bps = 22000;
+constexpr opus_int32 audio_midrate_celt_quality_boost_max_bps = 28000;
+constexpr opus_int32 audio_midrate_celt_quality_boost_bps = 1750;
 constexpr std::array<std::array<opus_val16, 3>, 3> comb_filter_tapset_gains =
     numeric_blob_matrix<opus_val16, 3, 3>(R"blob(3E9D00003E5E40003E04C0003EED80003E894000000000003F4CC0003DCD000000000000)blob");
 constexpr stereo_intensity_tables stereo_intensity_table{{1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 36, 44, 50, 56, 62, 67, 72, 79, 88, 106, 134},
@@ -2281,11 +2285,12 @@ constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
 constexpr opus_int32 audio_midrate_filter_min_bps = 22000;
 constexpr opus_int32 audio_midrate_filter_max_bps = 28000;
-constexpr opus_val16 audio_midrate_filter_gain = 0.9956f;
+constexpr opus_val16 audio_lowrate_filter_gain = 0.993f;
+constexpr opus_val16 audio_midrate_filter_gain = 0.966f;
 constexpr opus_int32 audio_highrate_filter_min_bps = 128000;
-constexpr opus_val16 audio_highrate_filter_gain = 0.999f;
+constexpr opus_val16 audio_highrate_filter_gain = 0.997f;
 constexpr opus_int32 audio_very_highrate_filter_min_bps = 192000;
-constexpr opus_val16 audio_very_highrate_filter_gain = 0.99875f;
+constexpr opus_val16 audio_very_highrate_filter_gain = 0.997f;
 constexpr opus_int32 voip_midrate_filter_min_bps = 24000;
 constexpr opus_int32 voip_midrate_filter_max_bps = 64000;
 constexpr opus_val16 voip_midrate_filter_gain = 0.995f;
@@ -2650,6 +2655,10 @@ struct encoder_error_balance_filter {
 
 [[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const ref_OpusEncoder* st) noexcept
     -> encoder_error_balance_filter {
+  if (st->application == opus_application_audio && st->bitrate_bps >= low_rate_celt_trim_min_bps &&
+      st->bitrate_bps < low_rate_celt_trim_max_bps) {
+    return {audio_lowrate_filter_gain};
+  }
   if (st->application == opus_application_audio && st->bitrate_bps >= audio_midrate_filter_min_bps &&
       st->bitrate_bps < audio_midrate_filter_max_bps) {
     return {audio_midrate_filter_gain};
@@ -3084,6 +3093,13 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
     }
   }
   celt_encoder_set_lsb_depth(celt_enc, static_cast<opus_int32>(lsb_depth));
+  const auto midrate_quality_boost_bps =
+      st->application == opus_application_audio && st->mode == opus_mode_celt_only && frame_size == st->Fs / 50 &&
+              st->bitrate_bps >= audio_midrate_celt_quality_boost_min_bps &&
+              st->bitrate_bps < audio_midrate_celt_quality_boost_max_bps
+          ? audio_midrate_celt_quality_boost_bps
+          : opus_int32{0};
+  celt_encoder_set_midrate_quality_boost(celt_enc, midrate_quality_boost_bps);
   if (st->application == opus_application_audio && st->mode == opus_mode_celt_only && frame_size == st->Fs / 50 &&
       st->bitrate_bps >= 22000 && st->bitrate_bps < 36000 &&
       ((st->channels == 2 && frame_metrics.energy > .006f && frame_metrics.mono_diff_ratio > 0 && frame_metrics.mono_diff_ratio < .006f) ||
@@ -4845,7 +4861,7 @@ static inline auto celt_decode_dynalloc(ec_dec* dec, std::span<const opus_int16>
 struct CeltEncoderInternal {
   const CeltModeInternal* mode;
   int channels, stream_channels, force_intra, disable_pf, complexity, upsample, start, end;
-  opus_int32 bitrate;
+  opus_int32 bitrate, midrate_quality_boost_bps;
   int vbr, constrained_vbr, lsb_depth, disable_inv;
   opus_uint32 rng;
   int spread_decision, high_z_tonal_Q7;
@@ -6037,6 +6053,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
       if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
         target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, mode->Fs, frame_size) << 3;
       }
+      if (C == 1 && st->midrate_quality_boost_bps > 0) {
+        target += bitrate_to_bits(st->midrate_quality_boost_bps, mode->Fs, frame_size) << 3;
+      }
     } else {
       target = celt_hybrid_target(base_target, LM, tf_estimate, st->silk_info.offset);
       const opus_val32 tone_gate = st->silk_info.bitrateBps >= 48000 ? .99f : .80f;
@@ -6167,6 +6186,10 @@ static void celt_encoder_set_prediction(CeltEncoderInternal* st, opus_int32 valu
 
 static void celt_encoder_set_bitrate(CeltEncoderInternal* st, opus_int32 value) {
   st->bitrate = std::min(value, static_cast<opus_int32>(750000 * st->channels));
+}
+
+static void celt_encoder_set_midrate_quality_boost(CeltEncoderInternal* st, opus_int32 value) {
+  st->midrate_quality_boost_bps = value;
 }
 
 static void celt_encoder_set_vbr(CeltEncoderInternal* st, opus_int32 value) {
