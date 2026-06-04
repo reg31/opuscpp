@@ -168,15 +168,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.653x | 1.720x | 514x | 311x | 1877x | 1091x |
-| 24&nbsp;kbps | 1.692x | 1.301x | 466x | 275x | 1326x | 1019x |
-| 32&nbsp;kbps | 1.784x | 1.239x | 469x | 263x | 1125x | 908x |
-| 48&nbsp;kbps | 1.489x | 1.207x | 371x | 249x | 1089x | 902x |
-| 64&nbsp;kbps | 1.532x | 1.207x | 380x | 248x | 932x | 772x |
-| 96&nbsp;kbps | 1.629x | 1.162x | 299x | 184x | 645x | 555x |
-| 128&nbsp;kbps | 1.881x | 1.157x | 325x | 173x | 595x | 514x |
-| 192&nbsp;kbps | 1.728x | 1.130x | 275x | 159x | 438x | 387x |
-| 256&nbsp;kbps | 1.523x | 1.080x | 215x | 141x | 356x | 329x |
+| 16&nbsp;kbps | 1.678x | 1.698x | 486x | 290x | 1922x | 1132x |
+| 24&nbsp;kbps | 1.781x | 1.321x | 458x | 257x | 1246x | 944x |
+| 32&nbsp;kbps | 1.714x | 1.247x | 426x | 249x | 1227x | 984x |
+| 48&nbsp;kbps | 1.517x | 1.211x | 424x | 280x | 1099x | 908x |
+| 64&nbsp;kbps | 1.551x | 1.182x | 387x | 250x | 949x | 803x |
+| 96&nbsp;kbps | 1.651x | 1.187x | 322x | 195x | 672x | 567x |
+| 128&nbsp;kbps | 2.645x | 1.361x | 257x | 97x | 315x | 232x |
+| 192&nbsp;kbps | 1.208x | 1.094x | 139x | 115x | 436x | 399x |
+| 256&nbsp;kbps | 1.668x | 1.056x | 199x | 119x | 357x | 338x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
 refresh runs may also write temporary Markdown reports under `build/` or the working directory.
@@ -215,32 +215,14 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0019 | +0.0048 | -0.2512 | 16.2 kbps | 16.3 kbps |
-| 24&nbsp;kbps | -0.0028 | +0.0021 | -0.0751 | 26.2 kbps | 24.1 kbps |
-| 32&nbsp;kbps | -0.0018 | -0.0011 | -0.1928 | 34.8 kbps | 32.2 kbps |
-| 48&nbsp;kbps | -0.0022 | +0.0019 | -0.2891 | 53.3 kbps | 48.2 kbps |
-| 64&nbsp;kbps | -0.0035 | +0.0007 | -0.0880 | 65.4 kbps | 64.5 kbps |
+| 24&nbsp;kbps | +0.0005 | +0.0024 | +0.0371 | 26.2 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0000 | +0.0021 | -0.1977 | 34.9 kbps | 32.2 kbps |
+| 48&nbsp;kbps | -0.0003 | +0.0014 | -0.2175 | 53.3 kbps | 48.2 kbps |
+| 64&nbsp;kbps | -0.0019 | +0.0004 | +0.0100 | 65.5 kbps | 64.5 kbps |
 | 96&nbsp;kbps | -0.0001 | -0.0004 | -0.0842 | 96.7 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0001 | +0.0020 | -0.1233 | 128.8 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0002 | +0.0002 | +0.0404 | 192.8 kbps | 192.4 kbps |
 | 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.7 kbps | 256.4 kbps |
-
-Source CSV:
-
-- `metrics/quality_vs_official.csv`
-- `metrics/quality_vs_official_voip.csv`
-
-## Detector mode-balance spot check
-
-The lightweight detector added for this snapshot distinguishes spoken pitch from sustained
-harmonic/music pitch using pitch stability, envelope stability, zero-crossing rate, and low-order
-tonal markers before updating the voice estimate.
-
-Representative AUDIO-mode results at 32 kbps mono:
-
-| Material class | SILK | Hybrid | CELT |
-|---|---:|---:|---:|
-| Speech-like | 0.0% | 8.7% | 91.3% |
-| Harmonic music | 0.0% | 0.0% | 100.0% |
 
 ## Memory metrics
 
@@ -259,7 +241,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 261,784 B | 8 B | 279,872 B |
+| Host MinGW GCC `-O2` | 261,976 B | 8 B | 280,064 B |
 
 ## Toolchains checked
 
