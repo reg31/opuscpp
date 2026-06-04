@@ -2276,9 +2276,14 @@ constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
 
 constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
+constexpr opus_int32 audio_midrate_filter_min_bps = 22000;
+constexpr opus_int32 audio_midrate_filter_max_bps = 28000;
+constexpr opus_val16 audio_midrate_filter_gain = 0.996f;
 constexpr opus_int32 voip_midrate_filter_min_bps = 24000;
 constexpr opus_int32 voip_midrate_filter_max_bps = 64000;
 constexpr opus_val16 voip_midrate_filter_gain = 0.995f;
+constexpr opus_int32 voip_upper_midrate_filter_min_bps = 40000;
+constexpr opus_val16 voip_upper_midrate_filter_gain = 0.985f;
 
 struct frame_activity_metrics {
   int is_silence;
@@ -2625,14 +2630,25 @@ static inline void apply_audio_presence_shelf(ref_OpusEncoder* st, opus_res* fra
   }
 }
 
-static inline void apply_voip_midrate_filter_trim(ref_OpusEncoder* st, opus_res* frame_pcm, int frame_size) noexcept {
-  if (st->application != opus_application_voip || st->bitrate_bps < voip_midrate_filter_min_bps ||
-      st->bitrate_bps > voip_midrate_filter_max_bps) {
+[[nodiscard]] static constexpr auto encoder_error_balance_gain(const ref_OpusEncoder* st) noexcept -> opus_val16 {
+  if (st->application == opus_application_audio && st->bitrate_bps >= audio_midrate_filter_min_bps &&
+      st->bitrate_bps < audio_midrate_filter_max_bps) {
+    return audio_midrate_filter_gain;
+  }
+  if (st->application == opus_application_voip && st->bitrate_bps >= voip_midrate_filter_min_bps &&
+      st->bitrate_bps <= voip_midrate_filter_max_bps) {
+    return st->bitrate_bps >= voip_upper_midrate_filter_min_bps ? voip_upper_midrate_filter_gain : voip_midrate_filter_gain;
+  }
+  return 1.0f;
+}
+
+static inline void apply_encoder_error_balance_filter(ref_OpusEncoder* st, opus_res* frame_pcm, int frame_size) noexcept {
+  const auto gain = encoder_error_balance_gain(st);
+  if (gain == 1.0f) {
     return;
   }
-
   for (int i = 0; i < frame_size * st->channels; ++i) {
-    frame_pcm[i] *= voip_midrate_filter_gain;
+    frame_pcm[i] *= gain;
   }
 }
 
@@ -3097,7 +3113,7 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
   } else {
     dc_reject(pcm, 3, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
-  apply_voip_midrate_filter_trim(st, frame_pcm, frame_size);
+  apply_encoder_error_balance_filter(st, frame_pcm, frame_size);
   apply_audio_presence_shelf(st, frame_pcm, frame_size);
 }
 
