@@ -168,15 +168,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.644x | 1.861x | 486x | 296x | 1922x | 1033x |
-| 24&nbsp;kbps | 1.563x | 1.308x | 458x | 293x | 1246x | 953x |
-| 32&nbsp;kbps | 1.735x | 1.259x | 426x | 246x | 1227x | 975x |
-| 48&nbsp;kbps | 1.511x | 1.191x | 424x | 281x | 1099x | 923x |
-| 64&nbsp;kbps | 1.519x | 1.186x | 387x | 255x | 949x | 800x |
-| 96&nbsp;kbps | 1.623x | 1.164x | 322x | 198x | 672x | 578x |
-| 128&nbsp;kbps | 1.881x | 1.143x | 257x | 136x | 315x | 276x |
-| 192&nbsp;kbps | 1.877x | 1.052x | 139x | 74x | 436x | 414x |
-| 256&nbsp;kbps | 1.600x | 1.052x | 199x | 125x | 357x | 339x |
+| 16&nbsp;kbps | 1.607x | 1.682x | 493x | 307x | 1957x | 1164x |
+| 24&nbsp;kbps | 1.735x | 1.279x | 479x | 276x | 1288x | 1007x |
+| 32&nbsp;kbps | 1.730x | 1.247x | 462x | 267x | 1217x | 976x |
+| 48&nbsp;kbps | 1.512x | 1.187x | 417x | 276x | 1060x | 893x |
+| 64&nbsp;kbps | 1.531x | 1.175x | 371x | 243x | 914x | 778x |
+| 96&nbsp;kbps | 1.634x | 1.167x | 321x | 196x | 710x | 608x |
+| 128&nbsp;kbps | 1.908x | 1.140x | 333x | 174x | 610x | 535x |
+| 192&nbsp;kbps | 1.708x | 1.108x | 276x | 162x | 505x | 456x |
+| 256&nbsp;kbps | 1.577x | 1.049x | 245x | 156x | 432x | 412x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
 refresh runs may also write temporary Markdown reports under `build/` or the working directory.
@@ -198,14 +198,14 @@ Effective bitrate columns show measured payload bitrate for the same validation 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0007 | -0.0129 | +14.9510 | 16.5 kbps | 17.1 kbps |
-| 24&nbsp;kbps | -0.0056 | +0.0462 | +21.7352 | 24.5 kbps | 25.2 kbps |
+| 24&nbsp;kbps | -0.0054 | +0.0462 | +21.7352 | 24.5 kbps | 25.2 kbps |
 | 32&nbsp;kbps | +0.0018 | +0.0383 | +16.5793 | 32.5 kbps | 33.6 kbps |
 | 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
 | 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
 | 96&nbsp;kbps | +0.0005 | +0.0037 | -0.0504 | 96.4 kbps | 96.7 kbps |
-| 128&nbsp;kbps | -0.0001 | +0.0017 | -0.2840 | 128.4 kbps | 128.8 kbps |
-| 192&nbsp;kbps | -0.0002 | +0.0003 | -0.2254 | 192.4 kbps | 192.9 kbps |
-| 256&nbsp;kbps | -0.0003 | -0.0001 | -0.1346 | 256.4 kbps | 256.7 kbps |
+| 128&nbsp;kbps | +0.0005 | +0.0017 | -0.2840 | 128.4 kbps | 128.8 kbps |
+| 192&nbsp;kbps | +0.0002 | +0.0005 | -0.1642 | 192.4 kbps | 192.9 kbps |
+| 256&nbsp;kbps | +0.0002 | -0.0001 | -0.1046 | 256.4 kbps | 256.7 kbps |
 
 ## VOIP quality metrics vs official Opus
 
@@ -219,7 +219,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 32&nbsp;kbps | +0.0000 | +0.0021 | -0.1977 | 34.9 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0029 | +0.0025 | -0.1551 | 53.3 kbps | 48.2 kbps |
 | 64&nbsp;kbps | +0.0018 | +0.0007 | +0.0317 | 65.5 kbps | 64.5 kbps |
-| 96&nbsp;kbps | -0.0001 | -0.0004 | -0.0842 | 96.7 kbps | 96.6 kbps |
+| 96&nbsp;kbps | +0.0001 | -0.0004 | -0.0839 | 96.7 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0001 | +0.0020 | -0.1233 | 128.8 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0002 | +0.0002 | +0.0404 | 192.8 kbps | 192.4 kbps |
 | 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.7 kbps | 256.4 kbps |
@@ -241,7 +241,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 262,104 B | 8 B | 280,192 B |
+| Host MinGW GCC `-O2` | 262,168 B | 8 B | 280,256 B |
 
 ## Toolchains checked
 

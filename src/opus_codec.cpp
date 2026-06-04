@@ -2278,12 +2278,19 @@ constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
 constexpr opus_int32 audio_midrate_filter_min_bps = 22000;
 constexpr opus_int32 audio_midrate_filter_max_bps = 28000;
-constexpr opus_val16 audio_midrate_filter_gain = 0.996f;
+constexpr opus_val16 audio_midrate_filter_gain = 0.9956f;
+constexpr opus_int32 audio_highrate_filter_min_bps = 128000;
+constexpr opus_val16 audio_highrate_filter_gain = 0.999f;
+constexpr opus_int32 audio_very_highrate_filter_min_bps = 192000;
+constexpr opus_val16 audio_very_highrate_filter_gain = 0.99875f;
 constexpr opus_int32 voip_midrate_filter_min_bps = 24000;
 constexpr opus_int32 voip_midrate_filter_max_bps = 64000;
 constexpr opus_val16 voip_midrate_filter_gain = 0.995f;
 constexpr opus_int32 voip_upper_midrate_filter_min_bps = 40000;
 constexpr opus_val16 voip_upper_midrate_filter_gain = 0.985f;
+constexpr opus_int32 voip_highrate_filter_min_bps = 80000;
+constexpr opus_int32 voip_highrate_filter_max_bps = 128000;
+constexpr opus_val16 voip_highrate_filter_gain = 0.9995f;
 
 struct frame_activity_metrics {
   int is_silence;
@@ -2630,25 +2637,44 @@ static inline void apply_audio_presence_shelf(ref_OpusEncoder* st, opus_res* fra
   }
 }
 
-[[nodiscard]] static constexpr auto encoder_error_balance_gain(const ref_OpusEncoder* st) noexcept -> opus_val16 {
+struct encoder_error_balance_filter {
+  opus_val16 gain;
+
+  [[nodiscard]] constexpr auto active() const noexcept -> bool {
+    return gain != 1.0f;
+  }
+};
+
+[[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const ref_OpusEncoder* st) noexcept
+    -> encoder_error_balance_filter {
   if (st->application == opus_application_audio && st->bitrate_bps >= audio_midrate_filter_min_bps &&
       st->bitrate_bps < audio_midrate_filter_max_bps) {
-    return audio_midrate_filter_gain;
+    return {audio_midrate_filter_gain};
+  }
+  if (st->application == opus_application_audio && st->bitrate_bps >= audio_highrate_filter_min_bps) {
+    const auto gain =
+        st->bitrate_bps >= audio_very_highrate_filter_min_bps ? audio_very_highrate_filter_gain : audio_highrate_filter_gain;
+    return {gain};
   }
   if (st->application == opus_application_voip && st->bitrate_bps >= voip_midrate_filter_min_bps &&
       st->bitrate_bps <= voip_midrate_filter_max_bps) {
-    return st->bitrate_bps >= voip_upper_midrate_filter_min_bps ? voip_upper_midrate_filter_gain : voip_midrate_filter_gain;
+    const auto gain = st->bitrate_bps >= voip_upper_midrate_filter_min_bps ? voip_upper_midrate_filter_gain : voip_midrate_filter_gain;
+    return {gain};
   }
-  return 1.0f;
+  if (st->application == opus_application_voip && st->bitrate_bps >= voip_highrate_filter_min_bps &&
+      st->bitrate_bps < voip_highrate_filter_max_bps) {
+    return {voip_highrate_filter_gain};
+  }
+  return {1.0f};
 }
 
 static inline void apply_encoder_error_balance_filter(ref_OpusEncoder* st, opus_res* frame_pcm, int frame_size) noexcept {
-  const auto gain = encoder_error_balance_gain(st);
-  if (gain == 1.0f) {
+  const auto filter = encoder_error_balance_filter_for(st);
+  if (!filter.active()) {
     return;
   }
   for (int i = 0; i < frame_size * st->channels; ++i) {
-    frame_pcm[i] *= gain;
+    frame_pcm[i] *= filter.gain;
   }
 }
 
