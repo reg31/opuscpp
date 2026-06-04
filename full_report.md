@@ -90,7 +90,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 263776 B | 8 B | 281864 B |
+| Host C++23 `-O2` | 263736 B | 8 B | 281824 B |
 
 ## Toolchains checked
 

@@ -197,15 +197,15 @@ Effective bitrate columns show measured payload bitrate for the same validation 
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0050 | -0.0001 | +15.7504 | 16.5 kbps | 17.1 kbps |
-| 24&nbsp;kbps | +0.0041 | +0.0453 | +24.0175 | 24.5 kbps | 25.2 kbps |
-| 32&nbsp;kbps | +0.0018 | +0.0383 | +16.5793 | 32.5 kbps | 33.6 kbps |
-| 48&nbsp;kbps | +0.0010 | +0.0131 | +0.3921 | 48.6 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0010 | +0.0057 | +0.2358 | 64.6 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0005 | +0.0037 | -0.0504 | 96.4 kbps | 96.7 kbps |
-| 128&nbsp;kbps | +0.0011 | +0.0015 | -0.2227 | 128.4 kbps | 128.8 kbps |
-| 192&nbsp;kbps | +0.0007 | +0.0005 | -0.1642 | 192.4 kbps | 192.9 kbps |
-| 256&nbsp;kbps | +0.0008 | -0.0001 | +0.1184 | 256.4 kbps | 256.7 kbps |
+| 16&nbsp;kbps | +0.0039 | +0.0001 | +16.3393 | 16.0 kbps | 17.1 kbps |
+| 24&nbsp;kbps | +0.0051 | +0.0430 | +24.6337 | 24.0 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0013 | +0.0365 | +16.5267 | 32.0 kbps | 33.6 kbps |
+| 48&nbsp;kbps | +0.0012 | +0.0126 | +0.6082 | 48.0 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0007 | -0.0016 | +0.2112 | 64.0 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0004 | +0.0040 | -0.0296 | 96.0 kbps | 96.7 kbps |
+| 128&nbsp;kbps | +0.0010 | +0.0015 | -0.2095 | 128.0 kbps | 128.8 kbps |
+| 192&nbsp;kbps | +0.0007 | +0.0005 | -0.1654 | 192.0 kbps | 192.9 kbps |
+| 256&nbsp;kbps | +0.0008 | +0.0001 | +0.1183 | 256.0 kbps | 256.7 kbps |
 
 ## VOIP quality metrics vs official Opus
 
@@ -214,15 +214,15 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0019 | +0.0048 | -0.2512 | 16.2 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0005 | +0.0024 | +0.0371 | 26.2 kbps | 24.1 kbps |
-| 32&nbsp;kbps | +0.0000 | +0.0021 | -0.1977 | 34.9 kbps | 32.2 kbps |
-| 48&nbsp;kbps | +0.0029 | +0.0025 | -0.1551 | 53.3 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0018 | +0.0007 | +0.0317 | 65.5 kbps | 64.5 kbps |
-| 96&nbsp;kbps | +0.0001 | -0.0004 | -0.0839 | 96.7 kbps | 96.6 kbps |
-| 128&nbsp;kbps | +0.0001 | +0.0020 | -0.1233 | 128.8 kbps | 128.5 kbps |
-| 192&nbsp;kbps | +0.0002 | +0.0002 | +0.0404 | 192.8 kbps | 192.4 kbps |
-| 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.7 kbps | 256.4 kbps |
+| 16&nbsp;kbps | +0.0005 | +0.0022 | -0.0111 | 15.9 kbps | 16.3 kbps |
+| 24&nbsp;kbps | +0.0004 | -0.0011 | -0.7737 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0014 | -0.0031 | -3.5403 | 32.0 kbps | 32.2 kbps |
+| 48&nbsp;kbps | +0.0024 | +0.0011 | -0.3039 | 47.9 kbps | 48.2 kbps |
+| 64&nbsp;kbps | +0.0015 | -0.0001 | +0.0662 | 64.0 kbps | 64.5 kbps |
+| 96&nbsp;kbps | -0.0001 | -0.0000 | -0.0849 | 96.0 kbps | 96.6 kbps |
+| 128&nbsp;kbps | +0.0000 | +0.0012 | -0.1227 | 128.0 kbps | 128.5 kbps |
+| 192&nbsp;kbps | +0.0003 | +0.0000 | +0.0400 | 192.0 kbps | 192.4 kbps |
+| 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.0 kbps | 256.4 kbps |
 
 ## Memory metrics
 
@@ -241,7 +241,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 262,624 B | 8 B | 280,712 B |
+| Host MinGW GCC `-O2` | 263,736 B | 8 B | 281,824 B |
 
 ## Toolchains checked
 

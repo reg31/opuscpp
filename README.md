@@ -29,9 +29,9 @@ Minimal integration looks like:
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.52x to 2.47x).
+  run (1.51x to 2.42x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.05x to 1.69x).
+  run (1.07x to 1.70x).
 - AUDIO and VOIP quality proxy deltas are tracked separately; AUDIO stays close to official Opus
   with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at
@@ -45,15 +45,15 @@ Minimal integration looks like:
   tracked by a mode-balance harness.
 - Lower memory footprint than official Opus in the measured configurations (`-21.9%` to `-49.0%`
   private state in the current memory snapshot).
-- Host MinGW GCC `-O2` binary text in the current measured snapshot: `262,624 B` (`280,712 B` text+data+bss).
+- Host MinGW GCC `-O2` binary text in the current measured snapshot: `263,736 B` (`281,824 B` text+data+bss).
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.52x to 2.47x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.05x to 1.69x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.51x to 2.42x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.07x to 1.70x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (`-21.9%` to `-49.0%` private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -106,29 +106,29 @@ harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.466x | 1.686x | +0.0050 | -0.0001 | 16.440 kbps | 16.895 kbps |
-| 24&nbsp;kbps | 1.586x | 1.319x | +0.0041 | +0.0453 | 24.460 kbps | 25.009 kbps |
-| 32&nbsp;kbps | 1.642x | 1.261x | +0.0018 | +0.0383 | 32.480 kbps | 33.301 kbps |
-| 48&nbsp;kbps | 1.520x | 1.211x | +0.0010 | +0.0131 | 48.520 kbps | 48.514 kbps |
-| 64&nbsp;kbps | 1.559x | 1.183x | +0.0010 | +0.0057 | 64.560 kbps | 64.555 kbps |
-| 96&nbsp;kbps | 1.622x | 1.177x | +0.0005 | +0.0037 | 96.400 kbps | 96.626 kbps |
-| 128&nbsp;kbps | 1.885x | 1.147x | +0.0011 | +0.0015 | 128.400 kbps | 128.700 kbps |
-| 192&nbsp;kbps | 1.761x | 1.107x | +0.0007 | +0.0005 | 192.400 kbps | 192.853 kbps |
-| 256&nbsp;kbps | 1.733x | 1.054x | +0.0008 | -0.0001 | 256.400 kbps | 256.846 kbps |
+| 16&nbsp;kbps | 2.417x | 1.705x | +0.0039 | +0.0001 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.666x | 1.307x | +0.0051 | +0.0430 | 24.000 kbps | 25.220 kbps |
+| 32&nbsp;kbps | 1.729x | 1.267x | +0.0013 | +0.0365 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.506x | 1.210x | +0.0012 | +0.0126 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.533x | 1.194x | +0.0007 | -0.0016 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.638x | 1.184x | +0.0004 | +0.0040 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.872x | 1.165x | +0.0010 | +0.0015 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.735x | 1.124x | +0.0007 | +0.0005 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.609x | 1.069x | +0.0008 | +0.0001 | 256.000 kbps | 256.736 kbps |
 
 VOIP mono speech-like quality spot check:
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0019 | +0.0048 | 16.153 kbps | 16.255 kbps |
-| 24&nbsp;kbps | +0.0005 | +0.0024 | 26.217 kbps | 24.148 kbps |
-| 32&nbsp;kbps | +0.0000 | +0.0021 | 34.884 kbps | 32.184 kbps |
-| 48&nbsp;kbps | +0.0029 | +0.0025 | 53.264 kbps | 48.244 kbps |
-| 64&nbsp;kbps | +0.0018 | +0.0007 | 65.476 kbps | 64.501 kbps |
-| 96&nbsp;kbps | +0.0001 | -0.0004 | 96.720 kbps | 96.595 kbps |
-| 128&nbsp;kbps | +0.0001 | +0.0020 | 128.827 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0002 | +0.0002 | 192.807 kbps | 192.421 kbps |
-| 256&nbsp;kbps | -0.0001 | +0.0001 | 256.705 kbps | 256.415 kbps |
+| 16&nbsp;kbps | +0.0005 | +0.0022 | 15.869 kbps | 16.255 kbps |
+| 24&nbsp;kbps | +0.0004 | -0.0011 | 23.992 kbps | 24.148 kbps |
+| 32&nbsp;kbps | +0.0014 | -0.0031 | 31.993 kbps | 32.184 kbps |
+| 48&nbsp;kbps | +0.0024 | +0.0011 | 47.927 kbps | 48.244 kbps |
+| 64&nbsp;kbps | +0.0015 | -0.0001 | 64.000 kbps | 64.501 kbps |
+| 96&nbsp;kbps | -0.0001 | -0.0000 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | +0.0000 | +0.0012 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0003 | +0.0000 | 192.000 kbps | 192.421 kbps |
+| 256&nbsp;kbps | -0.0001 | +0.0001 | 256.000 kbps | 256.415 kbps |
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy
 routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely
