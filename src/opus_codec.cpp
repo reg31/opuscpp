@@ -2285,7 +2285,7 @@ constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
 constexpr opus_int32 audio_midrate_filter_min_bps = 22000;
 constexpr opus_int32 audio_midrate_filter_max_bps = 28000;
-constexpr opus_val16 audio_lowrate_filter_gain = 0.993f;
+constexpr opus_val16 audio_lowrate_filter_gain = 0.985f;
 constexpr opus_val16 audio_midrate_filter_gain = 0.966f;
 constexpr opus_int32 audio_highrate_filter_min_bps = 128000;
 constexpr opus_val16 audio_highrate_filter_gain = 0.997f;
@@ -3145,7 +3145,7 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
   } else if (st->application == opus_application_audio) {
     if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
       dc_reject(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
-    } else if (st->mode == opus_mode_celt_only && st->channels == 2 && st->bitrate_bps >= 128000) {
+    } else if (st->mode == opus_mode_celt_only && st->channels == 2 && (st->bitrate_bps < 20000 || st->bitrate_bps >= 128000)) {
       copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else {
       hp_cutoff(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_music_hp_mem, frame_size, st->channels, st->Fs);
