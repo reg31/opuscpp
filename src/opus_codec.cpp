@@ -332,6 +332,20 @@ struct SILKInfo {
   return frame_rate == 16 ? bitrate * 6 / 100 : bitrate / frame_rate;
 }
 
+[[nodiscard]] constexpr auto vbr_credit_cap_bytes(opus_int32 target_bits, opus_int32 credit_bits) noexcept -> opus_int32 {
+  constexpr opus_int32 max_credit_spend_num = 1;
+  constexpr opus_int32 max_credit_spend_den = 5;
+  const opus_int32 max_spend_bits = target_bits * max_credit_spend_num / max_credit_spend_den;
+  const opus_int32 spend_credit_bits = std::min(clamp_value(credit_bits, opus_int32{0}, target_bits * 25), max_spend_bits);
+  return std::max<opus_int32>(2, (target_bits + spend_credit_bits + 7) / 8);
+}
+
+[[nodiscard]] constexpr auto update_vbr_credit(opus_int32 credit_bits, opus_int32 actual_bytes, opus_int32 target_bits) noexcept -> opus_int32 {
+  credit_bits += target_bits - actual_bytes * 8;
+  const opus_int32 max_credit_bits = std::max<opus_int32>(target_bits * 25, 1000);
+  return clamp_value(credit_bits, opus_int32{0}, max_credit_bits);
+}
+
 static int celt_encoder_get_size(int channels);
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed,
@@ -1884,6 +1898,7 @@ struct ref_OpusEncoder {
   opus_int32 Fs;
   int use_vbr, vbr_constraint;
   opus_int32 bitrate_bps, user_bitrate_bps;
+  opus_int32 vbr_budget_reservoir_bits;
   int encoder_buffer;
   int stream_channels;
   opus_int16 hybrid_stereo_width_Q14;
@@ -2833,6 +2848,7 @@ struct encoder_stage_storage {
 }
 struct multiframe_encode_params final {
   bool float_api;
+  bool governed_vbr;
   int lsb_depth;
   int redundancy, celt_to_silk, to_celt, prefill;
   opus_int32 equiv_rate, cbr_bytes;
@@ -2852,10 +2868,16 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   opus_int32 tot_size = 0;
   int dtx_count = 0;
   stage_storage.prime_from_encoder(st);
-  const opus_int32 repacketize_len =
+  opus_int32 repacketize_len =
       (st->use_vbr || st->user_bitrate_bps == -1) ? out_data_bytes : std::min(params.cbr_bytes, out_data_bytes);
+  const opus_int32 packet_target_bits = bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
+  if (params.governed_vbr) {
+    repacketize_len = std::min(repacketize_len, vbr_credit_cap_bytes(packet_target_bits, st->vbr_budget_reservoir_bits));
+  }
   const opus_int32 max_len_sum = nb_frames + repacketize_len - max_header_bytes;
-  const opus_int32 frame_budget_bytes = bitrate_to_bits(st->bitrate_bps, st->Fs, enc_frame_size) / 8;
+  const opus_int32 frame_target_bits = bitrate_to_bits(st->bitrate_bps, st->Fs, enc_frame_size);
+  const opus_int32 frame_budget_bytes =
+      params.governed_vbr ? vbr_credit_cap_bytes(frame_target_bits, st->vbr_budget_reservoir_bits) : frame_target_bits / 8;
   const opus_int32 frame_packet_cap = max_len_sum / nb_frames;
   auto* curr_data = OPUS_SCRATCH(unsigned char, static_cast<std::size_t>(repacketize_len));
   packet_frame_set packet_frames;
@@ -2899,6 +2921,9 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   stage_storage.commit_to_encoder(st);
   const int ret = write_packet_frames(&packet_frames, 0, nb_frames, data, repacketize_len, !st->use_vbr && (dtx_count != nb_frames));
   st->silk_mode.toMono = bak_to_mono;
+  if (params.governed_vbr && ret > 0) {
+    st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, packet_target_bits);
+  }
   return ret < 0 ? -3 : ret;
 }
 
@@ -2935,6 +2960,8 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   st->bitrate_bps = user_bitrate_to_bitrate(st, frame_size, max_data_bytes);
   const bool voip_style = st->application == opus_application_voip;
   frame_rate = st->Fs / frame_size;
+  const bool governed_vbr = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
+  const opus_int32 requested_frame_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
   if (!st->use_vbr) {
     const opus_int32 cbr_budget_bytes = (bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate) + 4) / 8;
     cbr_bytes = std::min(cbr_budget_bytes, max_data_bytes);
@@ -3121,14 +3148,20 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   }
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
     return encode_multiframe_packet(st, pcm, frame_size, data, out_data_bytes,
-                                    {float_api, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes});
+                                    {float_api, governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes});
   }
   auto* stage_buffer = OPUS_SCRATCH(opus_res, encoder_stage_storage_size(st, frame_size));
   auto stage_storage = make_encoder_stage_storage(stage_buffer, st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
+  if (governed_vbr) {
+    max_data_bytes = std::min(max_data_bytes, vbr_credit_cap_bytes(requested_frame_bits, st->vbr_budget_reservoir_bits));
+  }
   ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, frame_metrics, redundancy, celt_to_silk, prefill,
                                  equiv_rate, to_celt, stage_storage);
   stage_storage.commit_to_encoder(st);
+  if (governed_vbr && ret > 0) {
+    st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, requested_frame_bits);
+  }
   return ret;
 }
 
@@ -3523,6 +3556,7 @@ static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, i
 }
 static void reset_ref_encoder_state(ref_OpusEncoder* st, CeltEncoderInternal* celt_enc) {
   auto* silk_enc = encoder_silk_state(st);
+  st->vbr_budget_reservoir_bits = 0;
   auto* start = reinterpret_cast<std::byte*>(&st->stream_channels);
   const auto reset_bytes = static_cast<std::size_t>(st->silk_enc_offset - (start - reinterpret_cast<std::byte*>(st)));
   zero_n_bytes(start, reset_bytes);
@@ -6937,18 +6971,6 @@ static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets.back(
 
 static constexpr auto celt_pvq_fast_prefix_columns = make_celt_pvq_fast_prefix_columns();
 
-[[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
-  std::array<opus_uint32, celt_pvq_fast_data_count> values{};
-  for (std::size_t row_index = 0; row_index < celt_pvq_fast_row_count; ++row_index) {
-    const auto row = static_cast<int>(celt_pvq_fast_first_stored_row + row_index);
-    const auto offset = celt_pvq_fast_row_offsets[row_index];
-    for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
-      values[offset + column] = celt_pvq_u_entry_raw(row, static_cast<int>(column));
-    }
-  }
-  return values;
-}
-
 static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows{};
 
 static void fill_celt_pvq_fast_rows() noexcept {
@@ -6966,12 +6988,6 @@ static void fill_celt_pvq_fast_rows() noexcept {
     return celt_pvq_u_entry_raw(static_cast<int>(row_index), static_cast<int>(column_index));
   }
   return celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[row_index - celt_pvq_fast_first_stored_row] + column_index];
-}
-
-[[nodiscard]] static auto celt_pvq_fast_available(int n, int k) noexcept -> bool {
-  const auto row_limit = static_cast<unsigned>(std::min(n, k + 1));
-  const auto column_limit = static_cast<unsigned>(std::max(n, k + 1));
-  return row_limit < celt_pvq_fast_row_count && column_limit <= celt_pvq_fast_prefix_columns[row_limit];
 }
 
 [[nodiscard]] static auto celt_pvq_u_entry_fast(unsigned row_index, unsigned column_index) noexcept -> opus_uint32 {
@@ -7012,6 +7028,22 @@ struct celt_pvq_u_row_ref {
 
 [[nodiscard]] static auto celt_pvq_u_total(const int n, const int k) noexcept -> opus_uint32 {
   return celt_pvq_u_entry(n, k) + celt_pvq_u_entry(n, k + 1);
+}
+
+struct celt_pvq_decode_work {
+  opus_uint32 total{};
+  bool fast{};
+};
+
+[[nodiscard]] static auto celt_pvq_decode_work_for(int n, int k) noexcept -> celt_pvq_decode_work {
+  const auto row0 = static_cast<unsigned>(std::min(n, k));
+  const auto col0 = static_cast<unsigned>(std::max(n, k));
+  const auto row1 = static_cast<unsigned>(std::min(n, k + 1));
+  const auto col1 = static_cast<unsigned>(std::max(n, k + 1));
+  if (row1 < celt_pvq_fast_row_count && col1 <= celt_pvq_fast_prefix_columns[row1]) {
+    return {celt_pvq_u_entry_fast(row0, col0) + celt_pvq_u_entry_fast(row1, col1), true};
+  }
+  return {celt_pvq_u_total(n, k), false};
 }
 
 static opus_uint32 icwrs(int _n, const int* _y) {
@@ -7268,8 +7300,9 @@ static auto celt_pvq_unrank_impl(int n, int k, opus_uint32 index, Writer& writer
 }
 
 template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int k, ec_dec* dec, Writer& writer) noexcept -> opus_val32 {
-  const auto index = ec_dec_uint(dec, celt_pvq_u_total(n, k));
-  if (celt_pvq_fast_available(n, k)) {
+  const auto work = celt_pvq_decode_work_for(n, k);
+  const auto index = ec_dec_uint(dec, work.total);
+  if (work.fast) {
     return celt_pvq_unrank_impl<true>(n, k, index, writer);
   }
   return celt_pvq_unrank_impl<false>(n, k, index, writer);
@@ -11246,7 +11279,7 @@ struct silk_nsq_sample_state {
   opus_int32 Q_Q10, RD_Q10, xq_Q14, LF_AR_Q14, Diff_Q14, sLTP_shp_Q14, LPC_exc_Q14;
 };
 struct silk_nsq_quantization_candidates {
-  std::array<opus_int32, 2> q_Q10, rd_Q20;
+  std::array<opus_int32, 2> q_Q10, distortion_Q20, rate_Q20, rd_Q20;
 };
 static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NSQ) noexcept -> void {
   move_n_bytes(&NSQ->xq[psEncC->frame_length], static_cast<std::size_t>(psEncC->ltp_mem_length * sizeof(opus_int16)), NSQ->xq);
@@ -11296,7 +11329,26 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
   const auto lambda_i16 = static_cast<opus_int32>(static_cast<opus_int16>(Lambda_Q10));
   const auto rd1_bias = static_cast<opus_int32>(static_cast<opus_int16>(q1_Q10 < 0 ? -q1_Q10 : q1_Q10)) * lambda_i16;
   const auto rd2_bias = static_cast<opus_int32>(static_cast<opus_int16>(q2_Q10 < 0 ? -q2_Q10 : q2_Q10)) * lambda_i16;
-  return {{q1_Q10, q2_Q10}, {rd1_bias + silk_square_i16(residual_q10 - q1_Q10), rd2_bias + silk_square_i16(residual_q10 - q2_Q10)}};
+  const auto dist1 = silk_square_i16(residual_q10 - q1_Q10);
+  const auto dist2 = silk_square_i16(residual_q10 - q2_Q10);
+  return {{q1_Q10, q2_Q10}, {dist1, dist2}, {rd1_bias, rd2_bias}, {rd1_bias + dist1, rd2_bias + dist2}};
+}
+
+[[nodiscard]] static auto silk_choose_nsq_candidate_by_benefit(const silk_nsq_quantization_candidates& candidates) noexcept -> int {
+  if (candidates.rate_Q20[0] == candidates.rate_Q20[1]) {
+    return candidates.distortion_Q20[1] < candidates.distortion_Q20[0] ? 1 : 0;
+  }
+  const auto cheaper = candidates.rate_Q20[1] < candidates.rate_Q20[0] ? 1 : 0;
+  const auto dearer = 1 - cheaper;
+  const auto distortion_benefit = candidates.distortion_Q20[cheaper] - candidates.distortion_Q20[dearer];
+  const auto rate_cost = candidates.rate_Q20[dearer] - candidates.rate_Q20[cheaper];
+  if (distortion_benefit > rate_cost) {
+    return dearer;
+  }
+  if (distortion_benefit < rate_cost) {
+    return cheaper;
+  }
+  return 0;
 }
 
 [[nodiscard]] static auto silk_harmonic_shaping(const opus_int32* shp_lag_ptr, opus_int32 HarmShapeFIRPacked_Q14) noexcept -> opus_int32;
@@ -11424,7 +11476,7 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std:
     }
     r_Q10 = silk_signed_clamped_residual(x_sc_Q10[i] - tmp1, NSQ->rand_seed);
     const auto candidates = silk_quantize_candidates(r_Q10, Lambda_Q10, offset_Q10);
-    const auto best_index = candidates.rd_Q20[1] < candidates.rd_Q20[0];
+    const auto best_index = silk_choose_nsq_candidate_by_benefit(candidates);
     const auto sample = silk_nsq_build_sample(candidates.q_Q10[best_index], NSQ->rand_seed, saturating_left_shift<1>(LTP_pred_Q13),
                                               saturating_left_shift<4>(LPC_pred_Q10), x_sc_Q10[i], saturating_left_shift<2>(n_AR_Q12),
                                               saturating_left_shift<2>(n_LF_Q12));
@@ -16072,7 +16124,11 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   switch (request) {
   case OPUS_SET_BITRATE_REQUEST: {
     const auto value = va_arg(ap, opus_int32);
-    return try_set_user_bitrate(st, value) ? OPUS_OK : OPUS_BAD_ARG;
+    if (!try_set_user_bitrate(st, value)) {
+      return OPUS_BAD_ARG;
+    }
+    st->vbr_budget_reservoir_bits = 0;
+    return OPUS_OK;
   }
   case OPUS_GET_BITRATE_REQUEST: {
     return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize, 1276));
@@ -16084,6 +16140,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     }
     st->use_vbr = value;
     st->silk_mode.useCBR = 1 - value;
+    st->vbr_budget_reservoir_bits = 0;
     return OPUS_OK;
   }
   case OPUS_GET_VBR_REQUEST: {
@@ -16095,6 +16152,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       return OPUS_BAD_ARG;
     }
     st->vbr_constraint = value;
+    st->vbr_budget_reservoir_bits = 0;
     return OPUS_OK;
   }
   case OPUS_GET_VBR_CONSTRAINT_REQUEST: {
