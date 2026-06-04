@@ -63,8 +63,6 @@ inline constexpr int opus_mode_celt_only = 1002;
 // Standard Opus limits for the single-stream API implemented by this file.
 inline constexpr int opus_20ms_frame_samples_48k = 960;
 inline constexpr int opus_max_frame_samples_48k = 5760;
-inline constexpr int opus_max_packet_bytes = 1276;
-inline constexpr int opus_max_multiframe_packet_bytes = opus_max_packet_bytes * 6;
 
 // CELT/SILK structural limits used to size fixed scratch and state storage.
 inline constexpr int celt_default_overlap = 120;
@@ -75,8 +73,6 @@ inline constexpr int silk_nlsf_max_cb1_vectors = 32;
 inline constexpr int silk_nlsf_max_survivors = 16;
 inline constexpr int silk_nlsf_max_order = 16;
 inline constexpr int silk_vad_max_work_samples = 400;
-inline constexpr int silk_max_resampler_reconfig_samples = 45 * 16;
-inline constexpr int silk_max_resampler_api_reconfig_samples = 45 * 48;
 
 // Public application IDs are repeated internally so most helper code can stay
 // inside the anonymous implementation namespace.
@@ -212,10 +208,6 @@ static void move_n_bytes(const void* source, const std::size_t count, void* dest
 
 template <typename T> static void zero_object(T& value) noexcept {
   zero_n_bytes(&value, sizeof(value));
-}
-
-template <typename T> static void copy_object(const T& source, T& destination) noexcept {
-  copy_n_bytes(&source, sizeof(source), &destination);
 }
 
 template <typename T> [[nodiscard]] static auto offset_ptr(void* base, int offset) noexcept -> T* {
@@ -1011,13 +1003,13 @@ static_assert(sizeof(ref_OpusDecoder) <= 80);
 [[nodiscard]] static inline auto decoder_celt_state(ref_OpusDecoder* st) noexcept -> CeltDecoderInternal* {
   return offset_ptr<CeltDecoderInternal>(st, st->celt_dec_offset);
 }
-[[maybe_unused]] static int ref_opus_decoder_get_size(int channels) {
+static int ref_opus_decoder_get_size(int channels) {
   if (!is_supported_channel_count(channels)) {
     return 0;
   }
   return align(sizeof(ref_OpusDecoder)) + align(silk_decoder_get_size()) + celt_decoder_get_size(channels);
 }
-[[maybe_unused]] static void ref_opus_decoder_init(ref_OpusDecoder* st, opus_int32 Fs, int channels) {
+static void ref_opus_decoder_init(ref_OpusDecoder* st, opus_int32 Fs, int channels) {
   zero_n_bytes(st, static_cast<std::size_t>(ref_opus_decoder_get_size(channels)));
   const int silkDecSizeBytes = align(silk_decoder_get_size());
   st->silk_dec_offset = align(sizeof(ref_OpusDecoder));
@@ -1547,8 +1539,8 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
   }
   return opus_decode_fast_unavailable;
 }
-[[maybe_unused]] static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size,
-                                            int decode_fec) {
+static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size,
+                           int decode_fec) {
   if (frame_size <= 0) {
     return -1;
   }
@@ -1573,8 +1565,8 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
   }
   return ret;
 }
-[[maybe_unused]] static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_val16* pcm,
-                                                  int frame_size, int decode_fec) {
+static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_val16* pcm, int frame_size,
+                                 int decode_fec) {
   if (frame_size <= 0) {
     return -1;
   }
@@ -1610,7 +1602,7 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
   return 400 * frame_size == Fs || 200 * frame_size == Fs || 100 * frame_size == Fs || scaled_by_50 == Fs || 25 * frame_size == Fs ||
          scaled_by_50 == 3 * Fs || scaled_by_50 == 4 * Fs || scaled_by_50 == 5 * Fs || scaled_by_50 == 6 * Fs;
 }
-[[maybe_unused]] static void reset_ref_decoder_state(ref_OpusDecoder* st, void* silk_dec, CeltDecoderInternal* celt_dec) {
+static void reset_ref_decoder_state(ref_OpusDecoder* st, void* silk_dec, CeltDecoderInternal* celt_dec) {
   celt_decoder_reset_state(celt_dec);
   silk_ResetDecoder(silk_dec);
   st->DecControl = {};
@@ -1625,7 +1617,7 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
   st->DecControl.API_sampleRate = st->Fs;
   st->DecControl.nChannelsAPI = st->channels;
 }
-[[maybe_unused]] static void destroy_ref_decoder_state(ref_OpusDecoder* st) noexcept {
+static void destroy_ref_decoder_state(ref_OpusDecoder* st) noexcept {
   if (st == nullptr || st->silk_dec_offset <= 0) {
     return;
   }
@@ -1921,7 +1913,7 @@ constexpr int audio_preprocess_music = 0;
 constexpr int audio_preprocess_speech = 1;
 constexpr int audio_preprocess_warmup_frames = 12;
 constexpr int audio_preprocess_hold_frames = 50;
-[[maybe_unused]] static int ref_opus_encoder_get_size(int channels, int application) {
+static int ref_opus_encoder_get_size(int channels, int application) {
   if (!is_supported_channel_count(channels)) {
     return 0;
   }
@@ -1933,7 +1925,7 @@ constexpr int audio_preprocess_hold_frames = 50;
   }
   return base_size + silkEncSizeBytes + celtEncSizeBytes;
 }
-[[maybe_unused]] static void ref_opus_encoder_init(ref_OpusEncoder* st, opus_int32 Fs, int channels, int application) {
+static void ref_opus_encoder_init(ref_OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   void* silk_enc = nullptr;
   CeltEncoderInternal* celt_enc = nullptr;
   int silkEncSizeBytes, celtEncSizeBytes;
@@ -3420,8 +3412,8 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   }
   return ret;
 }
-[[maybe_unused]] static opus_int32 ref_opus_encode(ref_OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data,
-                                                   opus_int32 max_data_bytes) {
+static opus_int32 ref_opus_encode(ref_OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data,
+                                  opus_int32 max_data_bytes) {
   const int frame_size = frame_size_select(analysis_frame_size, st->Fs);
   if (frame_size <= 0) {
     return -1;
@@ -3433,8 +3425,8 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     *out++ = static_cast<opus_res>(sample * (1.0f / 32768.0f));
   return encode_native(st, input.data(), frame_size, data, max_data_bytes, 16, false);
 }
-[[maybe_unused]] static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, int analysis_frame_size,
-                                                         unsigned char* data, opus_int32 out_data_bytes) {
+static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, int analysis_frame_size, unsigned char* data,
+                                        opus_int32 out_data_bytes) {
   const int frame_size = frame_size_select(analysis_frame_size, st->Fs);
   if (frame_size <= 0) {
     return -1;
@@ -3452,7 +3444,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   st->user_bitrate_bps = value;
   return true;
 }
-[[maybe_unused]] static void reset_ref_encoder_state(ref_OpusEncoder* st, CeltEncoderInternal* celt_enc) {
+static void reset_ref_encoder_state(ref_OpusEncoder* st, CeltEncoderInternal* celt_enc) {
   auto* silk_enc = encoder_silk_state(st);
   auto* start = reinterpret_cast<std::byte*>(&st->stream_channels);
   const auto reset_bytes = static_cast<std::size_t>(st->silk_enc_offset - (start - reinterpret_cast<std::byte*>(st)));
@@ -4815,7 +4807,6 @@ struct celt_encoder_views {
 };
 static constexpr int celt_encoder_history_size = 1024;
 static constexpr int celt_decoder_history_size = 2048;
-static constexpr int celt_pitch_lookup_size = celt_encoder_history_size / 2 + 1;
 [[nodiscard]] static inline auto make_celt_encoder_views(CeltEncoderInternal* st) noexcept -> celt_encoder_views {
   const auto channels = st->channels, overlap = st->mode->overlap, nbEBands = st->mode->nbEBands;
   celt_encoder_views views{};
@@ -6388,7 +6379,6 @@ static void tf_decode(int start, int end, int isTransient, int* tf_res, int LM, 
 }
 
 constexpr int celt_decode_buffer_size = 2048, celt_plc_max_period = 1024, celt_lpc_order = 24;
-constexpr int celt_plc_iir_work_size = 960 + celt_default_overlap + celt_lpc_order;
 struct celt_decoder_views {
   std::array<celt_sig*, 2> decode_mem, out_syn;
   celt_glog *oldBandE{}, *oldLogE{}, *oldLogE2{}, *backgroundLogE{};
@@ -7101,16 +7091,16 @@ template <bool Fast> [[nodiscard]] static auto celt_pvq_unrank_find_column(int h
     return celt_pvq_find_last_leq_column(high, column, index);
 }
 
-template <typename Pulse> struct celt_pvq_dense_writer {
-  Pulse* out;
+struct celt_pvq_dense_writer {
+  opus_int16* out;
   inline void write(int, opus_int16 value) noexcept {
-    *out++ = static_cast<Pulse>(value);
+    *out++ = value;
   }
 };
 
-template <int MaxPulses> struct celt_pvq_sparse_writer {
-  std::array<int, MaxPulses>& positions;
-  std::array<int, MaxPulses>& values;
+struct celt_pvq_sparse_writer {
+  std::array<int, 4>& positions;
+  std::array<int, 4>& values;
   int& count;
 
   inline void write(int position, opus_int16 value) noexcept {
@@ -9583,7 +9573,7 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
     std::array<int, 4> positions;
     std::array<int, 4> values;
     int count = 0;
-    auto writer = celt_pvq_sparse_writer<4>{positions, values, count};
+    auto writer = celt_pvq_sparse_writer{positions, values, count};
     const opus_val32 Ryy = celt_pvq_decode_unrank(N, K, dec, writer);
     zero_n_items(X, static_cast<std::size_t>(N));
     const opus_val32 g = (1.f / sqrtf(Ryy)) * gain;
@@ -9665,7 +9655,7 @@ static auto silk_CNG_exc(opus_int32 exc_Q14[], opus_int32 exc_buf_Q14[], int len
 
 constexpr auto silk_max_fs_kHz = 16, silk_max_frame_length = 20 * silk_max_fs_kHz, silk_max_subfr_length = 5 * silk_max_fs_kHz,
                silk_max_ltp_mem_length = 20 * silk_max_fs_kHz, silk_max_ltp_buffer_length = silk_max_ltp_mem_length + silk_max_frame_length,
-               silk_max_shell_blocks = silk_max_frame_length / 16, silk_max_delayed_decision_states = 4;
+               silk_max_delayed_decision_states = 4;
 constexpr auto silk_max_resampler_batch_size = 480, silk_max_resampler_fir_order = 36;
 static void silk_CNG_Reset(silk_decoder_state* psDec) {
   if (psDec->sCNG == nullptr) {
@@ -11598,7 +11588,7 @@ template <int Shift> [[nodiscard]] static auto saturating_left_shift(opus_int32 
           LPC_exc_Q14};
 }
 
-template <typename StateSpan> [[nodiscard]] static auto silk_best_delayed_state_index(const StateSpan states) noexcept -> int {
+[[nodiscard]] static auto silk_best_delayed_state_index(std::span<const NSQ_del_dec_struct> states) noexcept -> int {
   int best = 0;
   for (int i = 1; i < static_cast<int>(states.size()); ++i) {
     if (states[static_cast<std::size_t>(i)].RD_Q10 < states[static_cast<std::size_t>(best)].RD_Q10) {
@@ -14159,16 +14149,14 @@ namespace {
   return static_cast<opus_int32>((sample * static_cast<opus_int64>(coef)) >> 16);
 }
 
-template <std::size_t HalfOrder>
-[[nodiscard]] constexpr auto resampler_fractional_fir_q6(std::span<const opus_int32, 2 * HalfOrder> buffer,
-                                                         std::span<const opus_int16, HalfOrder> leading,
-                                                         std::span<const opus_int16, HalfOrder> trailing) noexcept -> opus_int32 {
+[[nodiscard]] constexpr auto resampler_fractional_fir18_q6(std::span<const opus_int32, 18> buffer, std::span<const opus_int16, 9> leading,
+                                                           std::span<const opus_int16, 9> trailing) noexcept -> opus_int32 {
   auto acc = opus_int32{0};
-  for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
+  for (auto tap = std::size_t{}; tap < leading.size(); ++tap) {
     acc = static_cast<opus_int32>(acc + resampler_mul_q16(buffer[tap], leading[tap]));
   }
-  for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
-    acc = static_cast<opus_int32>(acc + resampler_mul_q16(buffer[2 * HalfOrder - 1 - tap], trailing[tap]));
+  for (auto tap = std::size_t{}; tap < trailing.size(); ++tap) {
+    acc = static_cast<opus_int32>(acc + resampler_mul_q16(buffer[buffer.size() - 1 - tap], trailing[tap]));
   }
   return acc;
 }
@@ -14209,7 +14197,7 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32
       interpol_ind = ((opus_int32)(((index_Q16 & 0xFFFF) * (opus_int64)((opus_int16)(FIR_Fracs))) >> 16));
       const auto leading = std::span<const opus_int16, 9>{&FIR_Coefs[9 * interpol_ind], 9};
       const auto trailing = std::span<const opus_int16, 9>{&FIR_Coefs[9 * (FIR_Fracs - 1 - interpol_ind)], 9};
-      res_Q6 = resampler_fractional_fir_q6<9>(std::span<const opus_int32, 18>{buf_ptr, 18}, leading, trailing);
+      res_Q6 = resampler_fractional_fir18_q6(std::span<const opus_int32, 18>{buf_ptr, 18}, leading, trailing);
       *out++ = resampler_round_shift_saturate_int16(res_Q6, 6);
     }
     break;
@@ -14507,8 +14495,7 @@ opus_int32 silk_stereo_find_predictor(opus_int32* ratio_Q14, const opus_int16 x[
   corr = silk_inner_prod_aligned_scale(std::span<const opus_int16>{x, static_cast<std::size_t>(length)},
                                        std::span<const opus_int16>{y, static_cast<std::size_t>(length)}, scale);
   pred_Q13 = silk_DIV32_varQ(corr, nrgx, 13);
-  pred_Q13 = ((-(1 << 14)) > (1 << 14) ? ((pred_Q13) > (-(1 << 14)) ? (-(1 << 14)) : ((pred_Q13) < (1 << 14) ? (1 << 14) : (pred_Q13)))
-                                       : ((pred_Q13) > (1 << 14) ? (1 << 14) : ((pred_Q13) < (-(1 << 14)) ? (-(1 << 14)) : (pred_Q13))));
+  pred_Q13 = clamp_value(pred_Q13, -(1 << 14), 1 << 14);
   pred2_Q10 = ((opus_int32)(((pred_Q13) * (opus_int64)((opus_int16)(pred_Q13))) >> 16));
   smooth_coef_Q16 = (int)std::max(smooth_coef_Q16, (((pred2_Q10) > 0) ? (pred2_Q10) : -(pred2_Q10)));
   scale = ((scale) >> (1));
@@ -14825,24 +14812,10 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
         } else {
           tmp = gainMult_Q8;
         }
-        pGains_Q16[i] = (((
-            opus_int32)((opus_uint32)((
-                            (((((opus_int32)0x80000000)) >> ((8)))) > (((0x7FFFFFFF) >> ((8))))
-                                ? (((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16)))) >
-                                           (((((opus_int32)0x80000000)) >> ((8))))
-                                       ? (((((opus_int32)0x80000000)) >> ((8))))
-                                       : (((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16)))) <
-                                                  (((0x7FFFFFFF) >> ((8))))
-                                              ? (((0x7FFFFFFF) >> ((8))))
-                                              : ((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16))))))
-                                : (((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16)))) >
-                                           (((0x7FFFFFFF) >> ((8))))
-                                       ? (((0x7FFFFFFF) >> ((8))))
-                                       : (((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16)))) <
-                                                  (((((opus_int32)0x80000000)) >> ((8))))
-                                              ? (((((opus_int32)0x80000000)) >> ((8))))
-                                              : ((((opus_int32)(((sEncCtrl.GainsUnq_Q16[i]) * (opus_int64)((opus_int16)(tmp))) >> 16))))))))
-                        << ((8)))));
+        const auto gain_Q8 =
+            static_cast<opus_int32>((static_cast<opus_int64>(sEncCtrl.GainsUnq_Q16[i]) * static_cast<opus_int16>(tmp)) >> 16);
+        const auto clamped_gain_Q8 = clamp_value(gain_Q8, opus_int32_min >> 8, opus_int32_max >> 8);
+        pGains_Q16[i] = static_cast<opus_int32>(static_cast<opus_uint32>(clamped_gain_Q8) << 8);
       }
       psEnc->sShape.LastGainIndex = sEncCtrl.lastGainIndexPrev;
       silk_gains_quant(psEnc->sCmn.indices.GainsIndices, pGains_Q16, &psEnc->sShape.LastGainIndex, condCoding == 2, psEnc->sCmn.nb_subfr);

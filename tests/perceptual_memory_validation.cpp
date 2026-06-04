@@ -96,6 +96,7 @@ struct options final {
 struct totals final {
   double signal = 0.0;
   double error = 0.0;
+  double abs_error = 0.0;
   double asym_error = 0.0;
   double seg_snr_sum = 0.0;
   std::uint64_t seg_count = 0;
@@ -112,6 +113,7 @@ struct totals final {
   std::uint64_t celt_windows = 0;
   std::uint64_t celt_high_count = 0;
   std::uint64_t stereo_width_count = 0;
+  std::uint64_t sample_count = 0;
   std::uint64_t packets = 0;
   std::uint64_t packet_bytes = 0;
   std::uint64_t encode_ns = 0;
@@ -139,6 +141,14 @@ struct result final {
 
 [[nodiscard]] auto seg_snr_db(const totals& v) noexcept -> double {
   return v.seg_count == 0 ? 0.0 : v.seg_snr_sum / static_cast<double>(v.seg_count);
+}
+
+[[nodiscard]] auto rms_error(const totals& v) noexcept -> double {
+  return v.sample_count == 0 ? 0.0 : std::sqrt(v.error / static_cast<double>(v.sample_count));
+}
+
+[[nodiscard]] auto mean_abs_error(const totals& v) noexcept -> double {
+  return v.sample_count == 0 ? 0.0 : v.abs_error / static_cast<double>(v.sample_count);
 }
 
 [[nodiscard]] auto log_error(const totals& v) noexcept -> double {
@@ -545,7 +555,9 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
     const auto e = d - r;
     out.signal += r * r;
     out.error += e * e;
+    out.abs_error += std::abs(e);
     out.asym_error += e * e * (std::abs(d) > std::abs(r) ? 1.30 : 1.0);
+    ++out.sample_count;
   }
   for (std::size_t frame = 0; frame * samples_per_frame < ref.size(); ++frame) {
     const auto offset = frame * samples_per_frame;
@@ -693,8 +705,9 @@ void write_listening(const options& opt, const clip_data& clip, const result& cu
 
 void print_result(std::string_view label, const totals& v) {
   std::cout << label << " snr_db=" << std::fixed << std::setprecision(4) << snr_db(v) << " segmental_snr_db=" << seg_snr_db(v)
-            << " pesq_style=" << pesq_style(v) << " visqol_style=" << visqol_style(v) << " logband_corr=" << log_corr(v)
-            << " logband_error=" << log_error(v) << " celt_quality=" << celt_quality(v) << " celt_masked_error=" << celt_masked_error(v)
+            << " rms_error=" << rms_error(v) << " mean_abs_error=" << mean_abs_error(v) << " pesq_style=" << pesq_style(v)
+            << " visqol_style=" << visqol_style(v) << " logband_corr=" << log_corr(v) << " logband_error=" << log_error(v)
+            << " celt_quality=" << celt_quality(v) << " celt_masked_error=" << celt_masked_error(v)
             << " celt_highband_error=" << celt_highband_error(v) << " stereo_width_error=" << stereo_width_error(v)
             << " avg_packet_bytes=" << avg_packet_bytes(v) << " encode_ms=" << encode_ms(v) << " packets=" << v.packets << '\n';
 }
@@ -837,6 +850,8 @@ void run_quality(const options& opt) {
   print_result("  official", official.score);
   std::cout << "  delta current_minus_official"
             << " snr_db=" << std::fixed << std::setprecision(4) << (snr_db(current.score) - snr_db(official.score))
+            << " rms_error=" << (rms_error(current.score) - rms_error(official.score))
+            << " mean_abs_error=" << (mean_abs_error(current.score) - mean_abs_error(official.score))
             << " pesq_style=" << (pesq_style(current.score) - pesq_style(official.score))
             << " visqol_style=" << (visqol_style(current.score) - visqol_style(official.score))
             << " logband_corr=" << (log_corr(current.score) - log_corr(official.score))

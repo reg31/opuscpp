@@ -31,43 +31,43 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.646320x | 1.696730x |
-| 24 kbps | 1.742961x | 1.295527x |
-| 32 kbps | 1.730725x | 1.254112x |
-| 48 kbps | 1.492103x | 1.201621x |
-| 64 kbps | 1.521636x | 1.189239x |
-| 96 kbps | 1.641106x | 1.173768x |
-| 128 kbps | 1.909210x | 1.123767x |
-| 192 kbps | 1.560353x | 1.109296x |
-| 256 kbps | 1.606291x | 1.029034x |
+| 16 kbps | 1.652506x | 1.720050x |
+| 24 kbps | 1.691883x | 1.300776x |
+| 32 kbps | 1.783894x | 1.238899x |
+| 48 kbps | 1.489250x | 1.206708x |
+| 64 kbps | 1.531962x | 1.207217x |
+| 96 kbps | 1.628804x | 1.161619x |
+| 128 kbps | 1.881159x | 1.156512x |
+| 192 kbps | 1.728257x | 1.129694x |
+| 256 kbps | 1.522908x | 1.080132x |
 
 ## AUDIO quality metrics vs official Opus
 
-| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
-|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.0007 | -0.0129 | 14.9510 | 16.451 kbps | 17.065 kbps |
-| 24 kbps | -0.0068 | 0.0459 | 21.7351 | 24.480 kbps | 25.220 kbps |
-| 32 kbps | 0.0018 | 0.0383 | 16.5793 | 32.507 kbps | 33.613 kbps |
-| 48 kbps | 0.0010 | 0.0131 | 0.3921 | 48.560 kbps | 48.560 kbps |
-| 64 kbps | 0.0010 | 0.0057 | 0.2358 | 64.613 kbps | 64.613 kbps |
-| 96 kbps | 0.0005 | 0.0037 | -0.0504 | 96.429 kbps | 96.697 kbps |
-| 128 kbps | -0.0001 | 0.0017 | -0.2840 | 128.401 kbps | 128.759 kbps |
-| 192 kbps | -0.0002 | 0.0003 | -0.2254 | 192.400 kbps | 192.900 kbps |
-| 256 kbps | -0.0003 | -0.0001 | -0.1346 | 256.400 kbps | 256.736 kbps |
+| Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 16 kbps | 0.0068 | -0.0002 | -0.0001 | 0.0007 | -0.0129 | -0.0020 | 14.9510 | 16.451 kbps | 17.065 kbps |
+| 24 kbps | -0.1243 | 0.0043 | 0.0032 | -0.0068 | 0.0459 | 0.0076 | 21.7351 | 24.480 kbps | 25.220 kbps |
+| 32 kbps | 0.0083 | -0.0003 | 0.0000 | 0.0018 | 0.0383 | 0.0060 | 16.5793 | 32.507 kbps | 33.613 kbps |
+| 48 kbps | 0.0056 | -0.0002 | -0.0003 | 0.0010 | 0.0131 | 0.0024 | 0.3921 | 48.560 kbps | 48.560 kbps |
+| 64 kbps | 0.0105 | -0.0004 | -0.0003 | 0.0010 | 0.0057 | 0.0008 | 0.2358 | 64.613 kbps | 64.613 kbps |
+| 96 kbps | 0.0033 | -0.0001 | -0.0002 | 0.0005 | 0.0037 | 0.0008 | -0.0504 | 96.429 kbps | 96.697 kbps |
+| 128 kbps | 0.0011 | -0.0000 | 0.0002 | -0.0001 | 0.0017 | 0.0004 | -0.2840 | 128.401 kbps | 128.759 kbps |
+| 192 kbps | -0.0051 | 0.0002 | 0.0003 | -0.0002 | 0.0003 | -0.0000 | -0.2254 | 192.400 kbps | 192.900 kbps |
+| 256 kbps | -0.0041 | 0.0001 | 0.0003 | -0.0003 | -0.0001 | -0.0000 | -0.1346 | 256.400 kbps | 256.736 kbps |
 
 ## VOIP quality metrics vs official Opus
 
-| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
-|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.0019 | 0.0048 | -0.2512 | 16.153 kbps | 16.255 kbps |
-| 24 kbps | -0.0028 | 0.0021 | -0.0751 | 26.168 kbps | 24.148 kbps |
-| 32 kbps | -0.0018 | -0.0011 | -0.1928 | 34.823 kbps | 32.184 kbps |
-| 48 kbps | -0.0022 | 0.0019 | -0.2891 | 53.284 kbps | 48.244 kbps |
-| 64 kbps | -0.0035 | 0.0007 | -0.0880 | 65.440 kbps | 64.501 kbps |
-| 96 kbps | -0.0001 | -0.0004 | -0.0842 | 96.720 kbps | 96.595 kbps |
-| 128 kbps | 0.0001 | 0.0020 | -0.1233 | 128.827 kbps | 128.503 kbps |
-| 192 kbps | 0.0002 | 0.0002 | 0.0404 | 192.807 kbps | 192.421 kbps |
-| 256 kbps | -0.0001 | 0.0001 | 0.0010 | 256.705 kbps | 256.415 kbps |
+| Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 16 kbps | 0.0127 | -0.0004 | -0.0004 | 0.0019 | 0.0048 | 0.0026 | -0.2512 | 16.153 kbps | 16.255 kbps |
+| 24 kbps | -0.0125 | 0.0004 | 0.0004 | -0.0028 | 0.0021 | 0.0015 | -0.0751 | 26.168 kbps | 24.148 kbps |
+| 32 kbps | -0.0121 | 0.0004 | 0.0002 | -0.0018 | -0.0011 | 0.0002 | -0.1928 | 34.823 kbps | 32.184 kbps |
+| 48 kbps | -0.0145 | 0.0005 | 0.0003 | -0.0022 | 0.0019 | 0.0017 | -0.2891 | 53.284 kbps | 48.244 kbps |
+| 64 kbps | -0.0510 | 0.0016 | 0.0011 | -0.0035 | 0.0007 | 0.0008 | -0.0880 | 65.440 kbps | 64.501 kbps |
+| 96 kbps | 0.0025 | -0.0001 | -0.0000 | -0.0001 | -0.0004 | 0.0001 | -0.0842 | 96.720 kbps | 96.595 kbps |
+| 128 kbps | 0.0002 | -0.0000 | -0.0000 | 0.0001 | 0.0020 | 0.0009 | -0.1233 | 128.827 kbps | 128.503 kbps |
+| 192 kbps | 0.0030 | -0.0001 | -0.0001 | 0.0002 | 0.0002 | 0.0001 | 0.0404 | 192.807 kbps | 192.421 kbps |
+| 256 kbps | 0.0002 | -0.0000 | 0.0000 | -0.0001 | 0.0001 | -0.0000 | 0.0010 | 256.705 kbps | 256.415 kbps |
 
 ## Detector mode-balance spot check
 

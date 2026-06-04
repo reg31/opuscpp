@@ -147,7 +147,7 @@ the RFC decode vectors:
 `perceptual_memory_validation.cpp` compares this implementation with official Opus on generated or
 user-provided 16-bit PCM WAV input. It reports:
 
-- SNR and segmental SNR.
+- SNR, segmental SNR, RMS error, and mean absolute error.
 - PESQ-style proxy score.
 - ViSQOL-style proxy score.
 - CELT-style high-band proxy score.
@@ -168,15 +168,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.646x | 1.697x | 526x | 319x | 2052x | 1209x |
-| 24&nbsp;kbps | 1.743x | 1.296x | 495x | 284x | 1320x | 1019x |
-| 32&nbsp;kbps | 1.731x | 1.254x | 463x | 268x | 1251x | 997x |
-| 48&nbsp;kbps | 1.492x | 1.202x | 425x | 285x | 1110x | 924x |
-| 64&nbsp;kbps | 1.522x | 1.189x | 383x | 252x | 936x | 787x |
-| 96&nbsp;kbps | 1.641x | 1.174x | 321x | 196x | 722x | 615x |
-| 128&nbsp;kbps | 1.909x | 1.124x | 351x | 184x | 607x | 540x |
-| 192&nbsp;kbps | 1.560x | 1.109x | 261x | 167x | 528x | 476x |
-| 256&nbsp;kbps | 1.606x | 1.029x | 259x | 162x | 445x | 433x |
+| 16&nbsp;kbps | 1.653x | 1.720x | 514x | 311x | 1877x | 1091x |
+| 24&nbsp;kbps | 1.692x | 1.301x | 466x | 275x | 1326x | 1019x |
+| 32&nbsp;kbps | 1.784x | 1.239x | 469x | 263x | 1125x | 908x |
+| 48&nbsp;kbps | 1.489x | 1.207x | 371x | 249x | 1089x | 902x |
+| 64&nbsp;kbps | 1.532x | 1.207x | 380x | 248x | 932x | 772x |
+| 96&nbsp;kbps | 1.629x | 1.162x | 299x | 184x | 645x | 555x |
+| 128&nbsp;kbps | 1.881x | 1.157x | 325x | 173x | 595x | 514x |
+| 192&nbsp;kbps | 1.728x | 1.130x | 275x | 159x | 438x | 387x |
+| 256&nbsp;kbps | 1.523x | 1.080x | 215x | 141x | 356x | 329x |
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
 refresh runs may also write temporary Markdown reports under `build/` or the working directory.

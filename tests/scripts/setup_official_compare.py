@@ -220,14 +220,16 @@ def emit_metrics_report(
         "",
         "## AUDIO quality metrics vs official Opus",
         "",
-        "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
-        "|---:|---:|---:|---:|---:|---:|",
+        "| Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
+        "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in perceptual_rows:
         bitrate = row.get("bitrate", "")
         bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         lines.append(
-            f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} | "
+            f"| {bitrate_kbps} kbps | {row.get('snr_delta', '')} | {row.get('rms_error_delta', '')} | "
+            f"{row.get('mean_abs_error_delta', '')} | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | "
+            f"{row.get('logband_corr_delta', '')} | {row.get('celt_delta', '')} | "
             f"{row.get('opuscpp_effective_kbps', '')} kbps | {row.get('official_effective_kbps', '')} kbps |"
         )
 
@@ -235,14 +237,16 @@ def emit_metrics_report(
         "",
         "## VOIP quality metrics vs official Opus",
         "",
-        "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
-        "|---:|---:|---:|---:|---:|---:|",
+        "| Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |",
+        "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in voip_perceptual_rows:
         bitrate = row.get("bitrate", "")
         bitrate_kbps = int(bitrate) // 1000 if bitrate.isdigit() else bitrate
         lines.append(
-            f"| {bitrate_kbps} kbps | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | {row.get('celt_delta', '')} | "
+            f"| {bitrate_kbps} kbps | {row.get('snr_delta', '')} | {row.get('rms_error_delta', '')} | "
+            f"{row.get('mean_abs_error_delta', '')} | {row.get('pesq_delta', '')} | {row.get('visqol_delta', '')} | "
+            f"{row.get('logband_corr_delta', '')} | {row.get('celt_delta', '')} | "
             f"{row.get('opuscpp_effective_kbps', '')} kbps | {row.get('official_effective_kbps', '')} kbps |"
         )
 
@@ -519,8 +523,10 @@ def run_perceptual_and_memory(
             if capture_memory and bitrate == BITRATES[0]:
                 memory_output = output
             delta_pattern = (
-                r"delta current_minus_official.*?pesq_style=([^\s]+).*?"
-                r"visqol_style=([^\s]+).*?celt_quality=([^\s]+).*?"
+                r"delta current_minus_official.*?snr_db=([^\s]+).*?"
+                r"rms_error=([^\s]+).*?mean_abs_error=([^\s]+).*?"
+                r"pesq_style=([^\s]+).*?visqol_style=([^\s]+).*?"
+                r"logband_corr=([^\s]+).*?celt_quality=([^\s]+).*?"
                 r"packet_bytes_pct=[^\s]+.*?encode_speed_ratio_current_vs_official=([^\s]+)"
             )
             delta_match = re.search(delta_pattern, output)
@@ -534,12 +540,16 @@ def run_perceptual_and_memory(
                 {
                     "application": application,
                     "bitrate": str(bitrate),
-                    "pesq_delta": delta_match.group(1),
-                    "visqol_delta": delta_match.group(2),
-                    "celt_delta": delta_match.group(3),
+                    "snr_delta": delta_match.group(1),
+                    "rms_error_delta": delta_match.group(2),
+                    "mean_abs_error_delta": delta_match.group(3),
+                    "pesq_delta": delta_match.group(4),
+                    "visqol_delta": delta_match.group(5),
+                    "logband_corr_delta": delta_match.group(6),
+                    "celt_delta": delta_match.group(7),
                     "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
                     "official_effective_kbps": effective_kbps(official_match.group(1)),
-                    "encode_speed_ratio": delta_match.group(4),
+                    "encode_speed_ratio": delta_match.group(8),
                 }
             )
         return measured
