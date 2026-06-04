@@ -31,21 +31,21 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.606596x | 1.681892x |
-| 24 kbps | 1.734544x | 1.278704x |
-| 32 kbps | 1.730074x | 1.246797x |
-| 48 kbps | 1.511938x | 1.187114x |
-| 64 kbps | 1.531381x | 1.174854x |
-| 96 kbps | 1.633654x | 1.166724x |
-| 128 kbps | 1.908208x | 1.139993x |
-| 192 kbps | 1.707671x | 1.107621x |
-| 256 kbps | 1.577270x | 1.048894x |
+| 16 kbps | 1.641956x | 1.691380x |
+| 24 kbps | 1.671039x | 1.280578x |
+| 32 kbps | 1.731365x | 1.243258x |
+| 48 kbps | 1.511951x | 1.192545x |
+| 64 kbps | 1.537328x | 1.168337x |
+| 96 kbps | 1.624263x | 1.147259x |
+| 128 kbps | 1.898744x | 1.127538x |
+| 192 kbps | 1.746051x | 1.062909x |
+| 256 kbps | 1.617312x | 1.021138x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.0068 | -0.0002 | -0.0001 | 0.0007 | -0.0129 | -0.0020 | 14.9510 | 16.451 kbps | 17.065 kbps |
+| 16 kbps | 0.0339 | -0.0010 | -0.0007 | 0.0018 | -0.0033 | -0.0008 | 15.7501 | 16.451 kbps | 17.065 kbps |
 | 24 kbps | -0.1093 | 0.0038 | 0.0028 | -0.0054 | 0.0462 | 0.0076 | 21.7352 | 24.480 kbps | 25.220 kbps |
 | 32 kbps | 0.0083 | -0.0003 | 0.0000 | 0.0018 | 0.0383 | 0.0060 | 16.5793 | 32.507 kbps | 33.613 kbps |
 | 48 kbps | 0.0056 | -0.0002 | -0.0003 | 0.0010 | 0.0131 | 0.0024 | 0.3921 | 48.560 kbps | 48.560 kbps |
@@ -89,7 +89,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 262168 B | 8 B | 280256 B |
+| Host C++23 `-O2` | 262296 B | 8 B | 280384 B |
 
 ## Toolchains checked
 

@@ -453,6 +453,9 @@ constexpr std::array<hybrid_rate_entry, 7> hybrid_rate_table{{{0, {0, 0, 0, 0}},
 constexpr opus_int32 low_rate_tonal_celt_max_bps = 32000;
 constexpr opus_int32 low_rate_tonal_celt_boost_bps = 4000;
 constexpr opus_val32 low_rate_tonal_celt_min_tone = .45f;
+constexpr opus_int32 low_rate_celt_trim_min_bps = 16000;
+constexpr opus_int32 low_rate_celt_trim_max_bps = 20000;
+constexpr int low_rate_celt_trim_boost = 2;
 constexpr std::array<std::array<opus_val16, 3>, 3> comb_filter_tapset_gains =
     numeric_blob_matrix<opus_val16, 3, 3>(R"blob(3E9D00003E5E40003E04C0003EED80003E894000000000003F4CC0003DCD000000000000)blob");
 constexpr stereo_intensity_tables stereo_intensity_table{{1, 2, 3, 4, 5, 6, 7, 8, 16, 24, 36, 44, 50, 56, 62, 67, 72, 79, 88, 106, 134},
@@ -6001,6 +6004,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     }
     if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 16000 && st->bitrate < 24000) {
       alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
+    }
+    if (!hybrid && st->bitrate >= low_rate_celt_trim_min_bps && st->bitrate < low_rate_celt_trim_max_bps) {
+      alloc_trim = clamp_value(alloc_trim + low_rate_celt_trim_boost, 0, 10);
     }
     if (!hybrid && st->bitrate >= 80000 && st->bitrate < 112000) {
       alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
