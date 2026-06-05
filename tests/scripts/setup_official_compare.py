@@ -386,6 +386,21 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
     log_dir = out_dir / "logs"
     out_dir.mkdir(parents=True, exist_ok=True)
     log_dir.mkdir(parents=True, exist_ok=True)
+
+    def stereo_reference_for_mono(dec_path: pathlib.Path) -> pathlib.Path:
+        """opus_compare expects its reference input as stereo, even for mono tests."""
+        if not dec_path.name.endswith("m.dec"):
+            return dec_path
+        stereo_path = out_dir / f"{dec_path.stem}_stereo_ref.dec"
+        source = dec_path.read_bytes()
+        stereo = bytearray(len(source) * 2)
+        for index in range(0, len(source), 2):
+            sample = source[index : index + 2]
+            stereo[2 * index : 2 * index + 2] = sample
+            stereo[2 * index + 2 : 2 * index + 4] = sample
+        stereo_path.write_bytes(stereo)
+        return stereo_path
+
     passed = 0
     total = 24
     for channels in (1, 2):
@@ -410,8 +425,9 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
             matched_reference = ""
             compare_logs: list[tuple[pathlib.Path, int]] = []
             for dec_path in dec_candidates:
+                compare_dec_path = stereo_reference_for_mono(dec_path) if channels == 1 else dec_path
                 result = subprocess.run(
-                    compare_args + [str(dec_path), str(out_path)],
+                    compare_args + [str(compare_dec_path), str(out_path)],
                     text=True,
                     capture_output=True,
                 )
