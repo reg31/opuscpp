@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdio>
-#include <memory>
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -47,7 +46,7 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
   constexpr int total_samples = sample_rate * seconds;
   auto pcm = make_test_pcm(channels, total_samples);
   int error = OPUS_OK;
-  std::unique_ptr<OpusEncoder> encoder(opus_encoder_create(sample_rate, channels, application, &error));
+  auto encoder = make_opus_encoder(sample_rate, channels, application, &error);
   if (!encoder || error != OPUS_OK) {
     throw std::runtime_error("encoder create failed");
   }
@@ -90,6 +89,6 @@ int main() {
       }
     }
   }
-  std::puts("vbr_budget_behavior=PASS");
+  std::cout << "vbr_budget_behavior=PASS\n";
   return 0;
 }

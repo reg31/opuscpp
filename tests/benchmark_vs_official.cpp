@@ -20,7 +20,7 @@ curr_OpusDecoder* curr_opus_decoder_create(int Fs, int channels, int* error) noe
 void curr_opus_decoder_destroy(curr_OpusDecoder* st) noexcept;
 int curr_opus_decode(curr_OpusDecoder* st, const unsigned char* data, int len, std::int16_t* pcm, int frame_size, int decode_fec) noexcept;
 
-#include <opus.h>
+#include "official_opus_abi.h"
 
 namespace {
 
@@ -85,13 +85,13 @@ auto make_current_encoder(int channels, int bitrate) -> handle<curr_OpusEncoder,
   if (!enc || err != OPUS_OK) {
     throw std::runtime_error("current encoder create failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("current bitrate failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY(10)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("current complexity failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_VBR(1)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("current VBR failed");
   }
   return handle<curr_OpusEncoder, curr_opus_encoder_destroy>{enc};
@@ -103,13 +103,13 @@ auto make_official_encoder(int channels, int bitrate) -> handle<OpusEncoder, opu
   if (!enc || err != OPUS_OK) {
     throw std::runtime_error("official encoder create failed");
   }
-  if (opus_encoder_ctl(enc, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
+  if (opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("official bitrate failed");
   }
-  if (opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY(10)) != OPUS_OK) {
+  if (opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("official complexity failed");
   }
-  if (opus_encoder_ctl(enc, OPUS_SET_VBR(1)) != OPUS_OK) {
+  if (opus_encoder_ctl(enc, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("official VBR failed");
   }
   return handle<OpusEncoder, opus_encoder_destroy>{enc};

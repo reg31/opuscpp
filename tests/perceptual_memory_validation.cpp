@@ -32,7 +32,7 @@ int curr_opus_encode(curr_OpusEncoder* st, const std::int16_t* pcm, int frame_si
 curr_OpusDecoder* curr_opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void curr_opus_decoder_destroy(curr_OpusDecoder* st) noexcept;
 
-#include <opus.h>
+#include "official_opus_abi.h"
 
 namespace {
 
@@ -317,13 +317,13 @@ struct result final {
   if (encoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current encoder create failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(encoder, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("current bitrate failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(10)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("current complexity failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_VBR(1)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("current VBR failed");
   }
   return {encoder, [](void* ptr) {
@@ -337,13 +337,13 @@ struct result final {
   if (encoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("official encoder create failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
+  if (opus_encoder_ctl(encoder, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("official bitrate failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(10)) != OPUS_OK) {
+  if (opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("official complexity failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_VBR(1)) != OPUS_OK) {
+  if (opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("official VBR failed");
   }
   return {encoder, [](void* ptr) {
@@ -357,7 +357,7 @@ struct result final {
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("official decoder create failed");
   }
-  if (complexity != 0 && opus_decoder_ctl(decoder, OPUS_SET_COMPLEXITY(complexity)) != OPUS_OK) {
+  if (complexity != 0 && opus_decoder_ctl(decoder, OPUS_SET_COMPLEXITY_REQUEST, complexity) != OPUS_OK) {
     throw std::runtime_error("official decoder complexity failed");
   }
   return {decoder, [](void* ptr) {

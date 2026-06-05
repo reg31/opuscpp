@@ -2,9 +2,9 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdlib>
 #include <iostream>
 #include <numeric>
+#include <stdexcept>
 #include <vector>
 
 #include "../src/opus_codec.cpp"
@@ -47,6 +47,7 @@ struct BenchResult {
 
 void check_cwrs_roundtrip() {
   std::array<int, 176> pulses{};
+  std::array<opus_int16, 176> decoded{};
   for (int n = 2; n <= 48; ++n) {
     for (int k = 0; k <= 32; ++k) {
       const auto total = celt_pvq_u_total(n, k);
@@ -54,12 +55,17 @@ void check_cwrs_roundtrip() {
           0U, total / 7U, total / 3U, total / 2U, (total * 5U) / 7U, total > 1U ? total - 2U : 0U, total - 1U};
       for (const auto index : samples) {
         fill_n_items(pulses.data(), pulses.size(), 0);
-        auto writer = celt_pvq_dense_writer{pulses.data()};
-        celt_pvq_unrank(n, k, index, writer);
+        fill_n_items(decoded.data(), decoded.size(), opus_int16{});
+        auto writer = celt_pvq_dense_writer{decoded.data()};
+        if (celt_pvq_decode_work_for(n, k).fast) {
+          celt_pvq_unrank_impl<true>(n, k, index, writer);
+        } else {
+          celt_pvq_unrank_impl<false>(n, k, index, writer);
+        }
+        std::copy_n(decoded.data(), static_cast<std::size_t>(n), pulses.data());
         const auto roundtrip = icwrs(n, pulses.data());
         if (roundtrip != index) {
-          std::cerr << "CWRS roundtrip failed: n=" << n << " k=" << k << " index=" << index << " got=" << roundtrip << '\n';
-          std::exit(2);
+          throw std::runtime_error("CWRS roundtrip failed");
         }
       }
     }
@@ -151,8 +157,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
     const int error = quant_decode_once(mode, test, LM, packet.data(), result.bytes, pulses, tf_res,
                                         0x12345678u + static_cast<opus_uint32>(i), result.checksum);
     if (error != 0) {
-      std::cerr << "decode error in " << test.name << '\n';
-      std::exit(3);
+      throw std::runtime_error(std::string{"decode error in "} + test.name);
     }
   }
   const auto decode_end = std::chrono::steady_clock::now();
@@ -165,17 +170,23 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
 } // namespace
 
 int main() {
-  check_cwrs_roundtrip();
-  const std::array cases{
-      QuantCase{"mono-mid", 1, 6},
-      QuantCase{"mono-high", 1, 12},
-      QuantCase{"stereo-mid", 2, 5},
-      QuantCase{"stereo-high", 2, 10},
-  };
+  try {
+    check_cwrs_roundtrip();
+    const std::array cases{
+        QuantCase{"mono-mid", 1, 6},
+        QuantCase{"mono-high", 1, 12},
+        QuantCase{"stereo-mid", 2, 5},
+        QuantCase{"stereo-high", 2, 10},
+    };
 
-  for (const auto& test : cases) {
-    const auto result = run_case(test);
-    std::cout << test.name << " bytes=" << result.bytes << " encode_ms=" << result.encode_ms << " decode_ms=" << result.decode_ms
-              << " checksum=" << result.checksum << '\n';
+    for (const auto& test : cases) {
+      const auto result = run_case(test);
+      std::cout << test.name << " bytes=" << result.bytes << " encode_ms=" << result.encode_ms << " decode_ms=" << result.decode_ms
+                << " checksum=" << result.checksum << '\n';
+    }
+  } catch (const std::exception& ex) {
+    std::cerr << "quant_all_bands_microbench failed: " << ex.what() << '\n';
+    return 1;
   }
+  return 0;
 }

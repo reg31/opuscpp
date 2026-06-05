@@ -1,7 +1,6 @@
 #include <array>
 #include <charconv>
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <future>
 #include <iostream>
@@ -14,50 +13,14 @@
 #include <thread>
 #include <vector>
 
-#define OpusEncoder codex_OpusEncoder
-#define OpusDecoder codex_OpusDecoder
-#define opus_encoder_create codex_opus_encoder_create
-#define opus_encoder_destroy codex_opus_encoder_destroy
-#define opus_encoder_ctl codex_opus_encoder_ctl
-#define opus_encode codex_opus_encode
-#define opus_encode_float codex_opus_encode_float
-#define opus_decoder_create codex_opus_decoder_create
-#define opus_decoder_destroy codex_opus_decoder_destroy
-#define opus_decoder_ctl codex_opus_decoder_ctl
-#define opus_decode codex_opus_decode
-#define opus_decode_float codex_opus_decode_float
-#define opus_packet_get_nb_samples codex_opus_packet_get_nb_samples
-#define opus_strerror codex_opus_strerror
-#if defined(CODEX_EXTERN_C)
-extern "C" {
-#endif
-#include "opus_codec.h"
-#if defined(CODEX_EXTERN_C)
-}
-#endif
-#undef OpusEncoder
-#undef OpusDecoder
-#undef opus_encoder_create
-#undef opus_encoder_destroy
-#undef opus_encoder_ctl
-#undef opus_encode
-#undef opus_encode_float
-#undef opus_decoder_create
-#undef opus_decoder_destroy
-#undef opus_decoder_ctl
-#undef opus_decode
-#undef opus_decode_float
-#undef opus_packet_get_nb_samples
-#undef opus_strerror
-
 #include "encode_conformance_shared.h"
+#include "official_opus_abi.h"
 
-extern "C" {
-struct OpusDecoder;
-OpusDecoder* opus_decoder_create(int Fs, int channels, int* error);
-void opus_decoder_destroy(OpusDecoder* st);
-int opus_decode(OpusDecoder* st, const unsigned char* data, int len, opus_int16* pcm, int frame_size, int decode_fec);
-}
+struct codex_OpusEncoder;
+codex_OpusEncoder* codex_opus_encoder_create(int Fs, int channels, int application, int* error) noexcept;
+void codex_opus_encoder_destroy(codex_OpusEncoder* st) noexcept;
+int codex_opus_encoder_ctl(codex_OpusEncoder* st, int request, ...) noexcept;
+int codex_opus_encode(codex_OpusEncoder* st, const std::int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 
 namespace {
 
@@ -75,6 +38,16 @@ struct worker_result {
   std::size_t completed_cases = 0;
 };
 
+struct validation_options final {
+  std::optional<std::size_t> max_frame_index;
+  std::string_view clip_filter;
+  std::string_view scenario_filter;
+  bool require_bitexact = false;
+  bool explicit_worker_slice = false;
+  int worker_index = 0;
+  int worker_count = 1;
+};
+
 [[nodiscard]] auto parse_int_argument(const char* text, std::string_view name) -> int {
   if (text == nullptr) {
     throw std::runtime_error("missing " + std::string{name});
@@ -87,6 +60,93 @@ struct worker_result {
     throw std::runtime_error("invalid " + std::string{name} + ": " + text);
   }
   return value;
+}
+
+[[nodiscard]] auto parse_int_argument(std::string_view text, std::string_view name) -> int {
+  auto value = 0;
+  const auto* begin = text.data();
+  const auto* end = begin + text.size();
+  const auto [ptr, error] = std::from_chars(begin, end, value);
+  if (error != std::errc{} || ptr != end) {
+    throw std::runtime_error("invalid " + std::string{name} + ": " + std::string{text});
+  }
+  return value;
+}
+
+[[nodiscard]] auto parse_bool_argument(std::string_view text, std::string_view name) -> bool {
+  if (text == "1" || text == "true" || text == "yes") {
+    return true;
+  }
+  if (text == "0" || text == "false" || text == "no") {
+    return false;
+  }
+  throw std::runtime_error("invalid " + std::string{name} + ": " + std::string{text});
+}
+
+[[nodiscard]] auto parse_optional_value(std::string_view argument, std::string_view name, int& index, int argc, char** argv)
+    -> std::optional<std::string_view> {
+  if (argument == name) {
+    if (index + 1 >= argc) {
+      throw std::runtime_error("missing value for " + std::string{name});
+    }
+    ++index;
+    return std::string_view{argv[index]};
+  }
+
+  const auto prefix = std::string{name} + "=";
+  if (argument.starts_with(prefix)) {
+    return argument.substr(prefix.size());
+  }
+
+  return std::nullopt;
+}
+
+[[nodiscard]] auto parse_validation_options(int argc, char** argv) -> validation_options {
+  auto options = validation_options{};
+  auto index = 3;
+  if (index < argc && !std::string_view{argv[index]}.starts_with("--")) {
+    options.explicit_worker_slice = true;
+    options.worker_index = parse_int_argument(argv[index], "worker index");
+    ++index;
+    if (index >= argc || std::string_view{argv[index]}.starts_with("--")) {
+      throw std::runtime_error("worker count is required when worker index is provided");
+    }
+    options.worker_count = parse_int_argument(argv[index], "worker count");
+    ++index;
+  }
+
+  for (; index < argc; ++index) {
+    const auto argument = std::string_view{argv[index]};
+    if (const auto value = parse_optional_value(argument, "--max-frame-index", index, argc, argv)) {
+      const auto parsed = parse_int_argument(*value, "max frame index");
+      if (parsed < 0) {
+        throw std::runtime_error("max frame index must be non-negative");
+      }
+      options.max_frame_index = static_cast<std::size_t>(parsed);
+    } else if (const auto value = parse_optional_value(argument, "--clip", index, argc, argv)) {
+      options.clip_filter = *value;
+    } else if (const auto value = parse_optional_value(argument, "--clip-filter", index, argc, argv)) {
+      options.clip_filter = *value;
+    } else if (const auto value = parse_optional_value(argument, "--scenario", index, argc, argv)) {
+      options.scenario_filter = *value;
+    } else if (const auto value = parse_optional_value(argument, "--scenario-filter", index, argc, argv)) {
+      options.scenario_filter = *value;
+    } else if (argument == "--require-bitexact") {
+      options.require_bitexact = true;
+    } else if (const auto value = parse_optional_value(argument, "--require-bitexact", index, argc, argv)) {
+      options.require_bitexact = parse_bool_argument(*value, "require bitexact");
+    } else {
+      throw std::runtime_error("unknown option: " + std::string{argument});
+    }
+  }
+
+  if (options.worker_count <= 0) {
+    throw std::runtime_error("worker count must be positive");
+  }
+  if (options.worker_index < 0 || options.worker_index >= options.worker_count) {
+    throw std::runtime_error("worker index out of range");
+  }
+  return options;
 }
 
 [[nodiscard]] constexpr auto make_worker_slice(const std::size_t total_cases, const int worker_index, const int worker_count)
@@ -218,38 +278,24 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
   }
 }
 
-[[nodiscard]] auto compare_case(const case_record& validation_case, const clip_input& clip, const scenario& current) -> std::string {
-  const auto max_frame_index = []() -> std::optional<std::size_t> {
-    if (const auto* value = std::getenv("CODEX_MAX_FRAME_INDEX")) {
-      const auto parsed = parse_int_argument(value, "max frame index");
-      if (parsed < 0) {
-        throw std::runtime_error("max frame index must be non-negative");
-      }
-      return static_cast<std::size_t>(parsed);
-    }
-    return std::nullopt;
-  }();
-  const auto require_bitexact = [] {
-    if (const auto* value = std::getenv("CODEX_REQUIRE_BITEXACT")) {
-      return std::string_view{value} != "0" && std::string_view{value} != "false";
-    }
-    return false;
-  }();
+[[nodiscard]] auto compare_case(const case_record& validation_case, const clip_input& clip, const scenario& current,
+                                const validation_options& options) -> std::string {
   auto encoder = make_encoder(clip.channels, current);
   configure_encoder(encoder.get(), clip.channels, current);
   auto official_decoder = make_official_decoder(clip.channels);
 
   const auto samples = load_pcm_samples(clip.path);
   const auto samples_per_frame = static_cast<std::size_t>(current.frame_size * clip.channels);
-  auto decoded = std::vector<opus_int16>(samples_per_frame);
+  auto decoded = std::vector<std::int16_t>(samples_per_frame);
   const auto expected_frames = samples.size() / samples_per_frame;
-  const auto expected_validation_frames = max_frame_index.has_value() ? std::min(expected_frames, *max_frame_index + 1U) : expected_frames;
+  const auto expected_validation_frames =
+      options.max_frame_index.has_value() ? std::min(expected_frames, *options.max_frame_index + 1U) : expected_frames;
   if (expected_validation_frames != validation_case.frames.size()) {
     throw std::runtime_error("frame count mismatch for " + clip.label + " / " + std::string{current.name});
   }
 
   for (std::size_t frame_index = 0; frame_index < validation_case.frames.size(); ++frame_index) {
-    if (max_frame_index.has_value() && frame_index > *max_frame_index) {
+    if (options.max_frame_index.has_value() && frame_index > *options.max_frame_index) {
       break;
     }
     const auto frame_offset = frame_index * samples_per_frame;
@@ -267,7 +313,7 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
       throw std::runtime_error("failed to read codex final range");
     }
 
-    if (require_bitexact) {
+    if (options.require_bitexact) {
       if (packet_size != static_cast<int>(validation_frame.packet.size())) {
         throw std::runtime_error("packet size mismatch for " + clip.label + " / " + std::string{current.name} + " frame " +
                                  std::to_string(frame_index));
@@ -300,29 +346,7 @@ int main(int argc, char** argv) {
   try {
     const auto vector_path = argc > 1 ? std::filesystem::path{argv[1]} : std::filesystem::path{"opus_newvectors"};
     const auto validation_path = argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_validation.bin"};
-    const auto worker_index = argc > 3 ? parse_int_argument(argv[3], "worker index") : 0;
-    const auto worker_count = argc > 4 ? parse_int_argument(argv[4], "worker count") : 1;
-    const auto clip_filter = []() -> std::string_view {
-      if (const auto* value = std::getenv("CODEX_CLIP_FILTER")) {
-        return value;
-      }
-      return {};
-    }();
-    const auto scenario_filter = []() -> std::string_view {
-      if (const auto* value = std::getenv("CODEX_SCENARIO_FILTER")) {
-        return value;
-      }
-      return {};
-    }();
-    if (worker_count <= 0) {
-      throw std::runtime_error("worker count must be positive");
-    }
-    if (worker_index < 0 || worker_index >= worker_count) {
-      throw std::runtime_error("worker index out of range");
-    }
-    if (argc == 4) {
-      throw std::runtime_error("worker count is required when worker index is provided");
-    }
+    const auto options = parse_validation_options(argc, argv);
 
     const auto clips = discover_clips(vector_path);
     const auto validation_cases = read_validation(validation_path);
@@ -334,10 +358,10 @@ int main(int argc, char** argv) {
       auto result = worker_result{};
       for (const auto case_index : std::views::iota(slice_to_run.begin, slice_to_run.end)) {
         const auto& validation_case = validation_cases[case_index];
-        if (!clip_filter.empty() && validation_case.clip_label != clip_filter) {
+        if (!options.clip_filter.empty() && validation_case.clip_label != options.clip_filter) {
           continue;
         }
-        if (!scenario_filter.empty() && validation_case.scenario_name != scenario_filter) {
+        if (!options.scenario_filter.empty() && validation_case.scenario_name != options.scenario_filter) {
           continue;
         }
         const auto* clip = find_clip(clips, validation_case.clip_label, validation_case.channels);
@@ -348,13 +372,13 @@ int main(int argc, char** argv) {
         if (current == nullptr) {
           throw std::runtime_error("unknown scenario " + validation_case.scenario_name);
         }
-        result.pass_lines.push_back(compare_case(validation_case, *clip, *current));
+        result.pass_lines.push_back(compare_case(validation_case, *clip, *current, options));
         ++result.completed_cases;
       }
       return result;
     };
 
-    const auto can_use_internal_parallelism = argc <= 3 && worker_count == 1;
+    const auto can_use_internal_parallelism = !options.explicit_worker_slice && options.worker_count == 1;
     if (can_use_internal_parallelism) {
       const auto available_threads = static_cast<int>(std::thread::hardware_concurrency());
       const auto internal_worker_count = std::clamp(available_threads > 0 ? available_threads : 1, 1, 8);
@@ -380,14 +404,14 @@ int main(int argc, char** argv) {
       }
     }
 
-    const auto slice = make_worker_slice(validation_cases.size(), worker_index, worker_count);
+    const auto slice = make_worker_slice(validation_cases.size(), options.worker_index, options.worker_count);
     auto result = run_slice(slice);
     for (const auto& line : result.pass_lines) {
       std::cout << line << '\n';
     }
 
-    if (worker_count > 1) {
-      std::cout << "Encode conformance worker completed (worker " << (worker_index + 1) << '/' << worker_count << ", "
+    if (options.worker_count > 1) {
+      std::cout << "Encode conformance worker completed (worker " << (options.worker_index + 1) << '/' << options.worker_count << ", "
                 << result.completed_cases << " case checks passed)\n";
     } else {
       std::cout << "Encode conformance completed (" << result.completed_cases << " case checks passed)\n";

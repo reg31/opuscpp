@@ -451,7 +451,6 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
 def run_encode_validation_conformance(
     cxx: str,
     repo_root: pathlib.Path,
-    official_include: pathlib.Path,
     official_lib: pathlib.Path,
     vector_dir: pathlib.Path,
     report_dir: pathlib.Path,
@@ -471,7 +470,7 @@ def run_encode_validation_conformance(
         cxx,
         [repo_root / "tests" / "official_encode_validation.cpp"],
         [],
-        [official_include, repo_root / "tests"],
+        [repo_root / "tests"],
         validation_exe,
         [official_lib],
     )
@@ -479,7 +478,7 @@ def run_encode_validation_conformance(
         cxx,
         [repo_root / "tests" / "conformance_encode.cpp"],
         [codex_obj],
-        [official_include, repo_root / "src", repo_root / "tests"],
+        [repo_root / "src", repo_root / "tests"],
         conformance_exe,
         [official_lib],
     )
@@ -493,7 +492,6 @@ def run_encode_validation_conformance(
 def run_perceptual_and_memory(
     cxx: str,
     repo_root: pathlib.Path,
-    official_include: pathlib.Path,
     official_lib: pathlib.Path,
     report_dir: pathlib.Path,
 ) -> dict[str, object]:
@@ -510,7 +508,7 @@ def run_perceptual_and_memory(
         cxx,
         [repo_root / "tests" / "perceptual_memory_validation.cpp"],
         [curr_obj],
-        [official_include, repo_root / "tests"],
+        [repo_root / "tests"],
         build_dir / ("perceptual_memory_validation.exe" if os.name == "nt" else "perceptual_memory_validation"),
         [official_lib],
     )
@@ -578,7 +576,6 @@ def run_perceptual_and_memory(
 def run_benchmark_vs_official(
     cxx: str,
     repo_root: pathlib.Path,
-    official_include: pathlib.Path,
     official_lib: pathlib.Path,
     report_dir: pathlib.Path,
 ) -> list[dict[str, str]]:
@@ -595,7 +592,7 @@ def run_benchmark_vs_official(
         cxx,
         [repo_root / "tests" / "benchmark_vs_official.cpp"],
         [curr_obj],
-        [official_include, repo_root / "tests"],
+        [repo_root / "tests"],
         build_dir / ("benchmark_vs_official.exe" if os.name == "nt" else "benchmark_vs_official"),
         [official_lib],
     )
@@ -604,12 +601,7 @@ def run_benchmark_vs_official(
     return rows
 
 
-def run_detector_mode_balance(
-    cxx: str,
-    repo_root: pathlib.Path,
-    official_include: pathlib.Path,
-    report_dir: pathlib.Path,
-) -> list[str]:
+def run_detector_mode_balance(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path) -> list[str]:
     build_dir = report_dir / "detector"
     build_dir.mkdir(parents=True, exist_ok=True)
     curr_obj = compile_object(
@@ -623,7 +615,7 @@ def run_detector_mode_balance(
         cxx,
         [repo_root / "tests" / "detector_mode_balance.cpp"],
         [curr_obj],
-        [official_include, repo_root / "tests"],
+        [repo_root / "tests"],
         build_dir / ("detector_mode_balance.exe" if os.name == "nt" else "detector_mode_balance"),
         [],
     )
@@ -823,19 +815,16 @@ def main() -> int:
     print(f"Built official Opus comparison tools in: {official_build_dir}")
     harness_path = build_conformance_harness(repo_root, harness_build_dir, args.cxx)
     print(f"Built opuscpp decoder conformance harness: {harness_path}")
-    official_include = official_repo_dir / "include"
     official_lib = find_official_library(official_build_dir)
     opus_compare = official_build_dir / ("opus_compare.exe" if os.name == "nt" else "opus_compare")
     vector_dir = find_vector_dir(vector_root)
 
     rfc = run_rfc_decode_conformance(harness_path, opus_compare, vector_dir, report_dir)
-    encode = run_encode_validation_conformance(
-        args.cxx, repo_root, official_include, official_lib, vector_dir, report_dir
-    )
+    encode = run_encode_validation_conformance(args.cxx, repo_root, official_lib, vector_dir, report_dir)
     api_behavior = run_api_behavior_validation(args.cxx, repo_root, report_dir)
-    perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_include, official_lib, report_dir)
-    benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_include, official_lib, report_dir)
-    detector_rows = run_detector_mode_balance(args.cxx, repo_root, official_include, report_dir)
+    perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_lib, report_dir)
+    benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_lib, report_dir)
+    detector_rows = run_detector_mode_balance(args.cxx, repo_root, report_dir)
     binary_size = run_binary_size(args.cxx, repo_root, report_dir)
     toolchains = run_toolchain_checks(repo_root, args.cxx, report_dir)
     metrics_report = emit_metrics_report(

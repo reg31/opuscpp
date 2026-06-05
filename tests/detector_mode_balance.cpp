@@ -14,7 +14,7 @@ void curr_opus_encoder_destroy(curr_OpusEncoder* st) noexcept;
 int curr_opus_encoder_ctl(curr_OpusEncoder* st, int request, ...) noexcept;
 int curr_opus_encode(curr_OpusEncoder* st, const std::int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 
-#include <opus.h>
+#include "official_opus_abi.h"
 
 namespace {
 
@@ -55,13 +55,13 @@ auto make_current_encoder(int bitrate) -> curr_OpusEncoder* {
   if (!enc || err != OPUS_OK) {
     throw std::runtime_error("encoder create failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("bitrate failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY(10)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("complexity failed");
   }
-  if (curr_opus_encoder_ctl(enc, OPUS_SET_VBR(1)) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(enc, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("VBR failed");
   }
   return enc;

@@ -1,6 +1,6 @@
 #include <array>
+#include <charconv>
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -10,13 +10,72 @@
 #include <string>
 #include <vector>
 
-#include <opus.h>
-
 #include "encode_conformance_shared.h"
+#include "official_opus_abi.h"
 
 namespace {
 
 using namespace encode_conformance;
+
+struct validation_options final {
+  std::optional<std::size_t> max_frame_index;
+  std::string_view clip_filter;
+  std::string_view scenario_filter;
+};
+
+[[nodiscard]] auto parse_int_argument(std::string_view value, std::string_view name) -> int {
+  auto parsed = 0;
+  const auto* begin = value.data();
+  const auto* end = begin + value.size();
+  const auto [ptr, error] = std::from_chars(begin, end, parsed);
+  if (error != std::errc{} || ptr != end) {
+    throw std::runtime_error("invalid " + std::string{name} + ": " + std::string{value});
+  }
+  return parsed;
+}
+
+[[nodiscard]] auto parse_optional_value(std::string_view argument, std::string_view name, int& index, int argc, char** argv)
+    -> std::string_view {
+  if (argument == name) {
+    if (index + 1 >= argc) {
+      throw std::runtime_error("missing value for " + std::string{name});
+    }
+    ++index;
+    return argv[index];
+  }
+
+  const auto prefix = std::string{name} + "=";
+  if (argument.starts_with(prefix)) {
+    return argument.substr(prefix.size());
+  }
+
+  return {};
+}
+
+[[nodiscard]] auto parse_validation_options(int argc, char** argv, int first_index) -> validation_options {
+  auto options = validation_options{};
+  for (int index = first_index; index < argc; ++index) {
+    const auto argument = std::string_view{argv[index]};
+    if (const auto value = parse_optional_value(argument, "--max-frame-index", index, argc, argv); !value.empty()) {
+      const auto parsed = parse_int_argument(value, "max frame index");
+      if (parsed < 0) {
+        throw std::runtime_error("max frame index must be non-negative");
+      }
+      options.max_frame_index = static_cast<std::size_t>(parsed);
+    } else if (const auto value = parse_optional_value(argument, "--clip", index, argc, argv); !value.empty()) {
+      options.clip_filter = value;
+    } else if (const auto value = parse_optional_value(argument, "--clip-filter", index, argc, argv); !value.empty()) {
+      options.clip_filter = value;
+    } else if (const auto value = parse_optional_value(argument, "--scenario", index, argc, argv); !value.empty()) {
+      options.scenario_filter = value;
+    } else if (const auto value = parse_optional_value(argument, "--scenario-filter", index, argc, argv); !value.empty()) {
+      options.scenario_filter = value;
+    } else {
+      throw std::runtime_error("unknown option: " + std::string{argument});
+    }
+  }
+  return options;
+}
 
 [[nodiscard]] auto make_encoder(int channels, const scenario& current) -> std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)> {
   int error = OPUS_OK;
@@ -39,17 +98,7 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
   }
 }
 
-[[nodiscard]] auto encode_case(const clip_input& clip, const scenario& current) -> case_record {
-  const auto max_frame_index = []() -> std::optional<std::size_t> {
-    if (const auto* value = std::getenv("CODEX_MAX_FRAME_INDEX")) {
-      const auto parsed = std::strtol(value, nullptr, 10);
-      if (parsed < 0) {
-        throw std::runtime_error("max frame index must be non-negative");
-      }
-      return static_cast<std::size_t>(parsed);
-    }
-    return std::nullopt;
-  }();
+[[nodiscard]] auto encode_case(const clip_input& clip, const scenario& current, const validation_options& options) -> case_record {
   auto result = case_record{
       .clip_label = clip.label,
       .scenario_name = std::string{current.name},
@@ -65,7 +114,7 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
   result.frames.reserve(frame_count);
 
   for (std::size_t frame_index = 0; frame_index < frame_count; ++frame_index) {
-    if (max_frame_index.has_value() && frame_index > *max_frame_index) {
+    if (options.max_frame_index.has_value() && frame_index > *options.max_frame_index) {
       break;
     }
     const auto frame_offset = frame_index * samples_per_frame;
@@ -94,18 +143,7 @@ int main(int argc, char** argv) {
   try {
     const auto vector_path = argc > 1 ? std::filesystem::path{argv[1]} : std::filesystem::path{"opus_newvectors"};
     const auto validation_path = argc > 2 ? std::filesystem::path{argv[2]} : std::filesystem::path{"encode_validation.bin"};
-    const auto clip_filter = []() -> std::string_view {
-      if (const auto* value = std::getenv("CODEX_CLIP_FILTER")) {
-        return value;
-      }
-      return {};
-    }();
-    const auto scenario_filter = []() -> std::string_view {
-      if (const auto* value = std::getenv("CODEX_SCENARIO_FILTER")) {
-        return value;
-      }
-      return {};
-    }();
+    const auto options = parse_validation_options(argc, argv, 3);
 
     const auto clips = discover_clips(vector_path);
     if (clips.empty()) {
@@ -116,14 +154,14 @@ int main(int argc, char** argv) {
     auto cases = std::vector<case_record>{};
     cases.reserve(clips.size() * scenarios.size());
     for (const auto& clip : clips) {
-      if (!clip_filter.empty() && clip.label != clip_filter) {
+      if (!options.clip_filter.empty() && clip.label != options.clip_filter) {
         continue;
       }
       for (const auto& current : scenarios) {
-        if (!scenario_filter.empty() && current.name != scenario_filter) {
+        if (!options.scenario_filter.empty() && current.name != options.scenario_filter) {
           continue;
         }
-        cases.push_back(encode_case(clip, current));
+        cases.push_back(encode_case(clip, current, options));
       }
     }
 

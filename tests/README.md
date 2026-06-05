@@ -168,15 +168,16 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.382x | 1.700x | 746x | 313x | 2062x | 1213x |
-| 24&nbsp;kbps | 1.720x | 1.304x | 496x | 289x | 1358x | 1041x |
-| 32&nbsp;kbps | 1.732x | 1.259x | 488x | 281x | 1292x | 1026x |
-| 48&nbsp;kbps | 1.526x | 1.201x | 436x | 286x | 1079x | 898x |
-| 64&nbsp;kbps | 1.532x | 1.188x | 384x | 251x | 962x | 810x |
-| 96&nbsp;kbps | 1.621x | 1.174x | 333x | 206x | 750x | 639x |
-| 128&nbsp;kbps | 1.871x | 1.150x | 349x | 187x | 642x | 559x |
-| 192&nbsp;kbps | 1.765x | 1.100x | 283x | 161x | 526x | 479x |
-| 256&nbsp;kbps | 1.598x | 1.056x | 258x | 162x | 455x | 431x |
+| 16&nbsp;kbps | 2.354x | 1.708x | 739x | 314x | 2058x | 1205x |
+| 24&nbsp;kbps | 1.728x | 1.306x | 500x | 289x | 1357x | 1039x |
+| 32&nbsp;kbps | 1.724x | 1.253x | 485x | 281x | 1290x | 1029x |
+| 48&nbsp;kbps | 1.515x | 1.203x | 435x | 287x | 1118x | 929x |
+| 64&nbsp;kbps | 1.526x | 1.180x | 386x | 253x | 917x | 777x |
+| 96&nbsp;kbps | 1.580x | 1.174x | 319x | 202x | 730x | 622x |
+| 128&nbsp;kbps | 1.947x | 1.145x | 343x | 176x | 636x | 556x |
+| 192&nbsp;kbps | 1.650x | 1.114x | 269x | 163x | 479x | 430x |
+| 256&nbsp;kbps | 1.574x | 1.057x | 254x | 161x | 456x | 432x |
+
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
 refresh runs may also write temporary Markdown reports under `build/` or the working directory.
@@ -206,6 +207,7 @@ Effective bitrate columns show measured payload bitrate for the same validation 
 | 128&nbsp;kbps | +0.0010 | +0.0015 | -0.2095 | 128.0 kbps | 128.8 kbps |
 | 192&nbsp;kbps | +0.0007 | +0.0005 | -0.1654 | 192.0 kbps | 192.9 kbps |
 | 256&nbsp;kbps | +0.0008 | +0.0001 | +0.1183 | 256.0 kbps | 256.7 kbps |
+
 
 ## VOIP quality metrics vs official Opus
 
@@ -241,7 +243,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 263,800 B | 8 B | 281,888 B |
+| Host MinGW GCC `-O2` | 261,628 B | 8 B | 279,716 B |
 
 ## Toolchains checked
 

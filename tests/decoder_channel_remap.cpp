@@ -3,14 +3,14 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
+#include <iostream>
 #include <span>
 
 namespace {
 
 [[nodiscard]] auto expect(bool condition, const char* message) -> bool {
   if (!condition) {
-    std::printf("FAIL %s\n", message);
+    std::cout << "FAIL " << message << '\n';
   }
   return condition;
 }
@@ -92,7 +92,7 @@ int main() {
   if (!ok) {
     return 1;
   }
-  std::printf("decoder_channel_remap=PASS stereo_bytes=%d mono_bytes=%d mono_nonzero=%d stereo_nonzero=%d\n", stereo_bytes, mono_bytes,
-              count_nonzero(mono_out), count_nonzero(stereo_out));
+  std::cout << "decoder_channel_remap=PASS stereo_bytes=" << stereo_bytes << " mono_bytes=" << mono_bytes
+            << " mono_nonzero=" << count_nonzero(mono_out) << " stereo_nonzero=" << count_nonzero(stereo_out) << '\n';
   return 0;
 }

@@ -12,15 +12,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
-#include <memory>
 #include <span>
 #include <string_view>
 #include <type_traits>
-
-// A few RFC-translated kernels still intentionally use C-style names such as
-// `sqrtf`, `floor`, and `lrint`. Keep the C header local to this translation
-// unit instead of leaking those spellings through the public header.
-#include <math.h>
 
 // Internal fixed-width aliases matching the names used by the Opus reference
 // code and RFC pseudocode.
@@ -111,17 +105,11 @@ template <typename T> [[nodiscard]] constexpr auto clamp_value(T value, T low, T
 
 [[nodiscard]] constexpr auto bandwidth_to_endband(int bandwidth) noexcept -> int;
 template <int Shift, typename Integer> [[nodiscard]] static auto rounded_rshift(Integer value) noexcept -> Integer;
-[[nodiscard]] static auto rounded_rshift(opus_int64 value, int shift) noexcept -> opus_int64;
 [[nodiscard]] static auto saturate_int16_from_int32(opus_int32 value) noexcept -> opus_int16;
 template <int Shift> [[nodiscard]] static auto scale_and_saturate_q14(opus_int32 sample_q14, opus_int32 gain) noexcept -> opus_int16;
-template <int Shift> [[nodiscard]] static constexpr auto rounded_rshift_to_int16(opus_int32 value) noexcept -> opus_int16;
-template <int Shift> [[nodiscard]] static constexpr auto rounded_i16_product_shift(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32;
-template <int Shift> [[nodiscard]] static constexpr auto rounded_mul_i16_q16(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32;
 template <int Shift> [[nodiscard]] static auto saturating_left_shift(opus_int32 value) noexcept -> opus_int32;
 [[nodiscard]] static auto saturating_left_shift(opus_int32 value, int shift) noexcept -> opus_int32;
 [[nodiscard]] static auto saturating_add_int32(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32;
-[[nodiscard]] static auto inverse_prediction_step(opus_int32 lhs, opus_int32 rhs, opus_int32 rc_q31, opus_int32 rc_mult2,
-                                                  int mult2_q) noexcept -> opus_int64;
 [[nodiscard]] static auto delayed_pulse_from_q10(opus_int32 value_q10) noexcept -> opus_int8;
 [[nodiscard]] static auto silk_next_rand_seed(opus_int32 seed) noexcept -> opus_int32;
 [[nodiscard]] constexpr auto opus_bit_width(opus_uint32 value) noexcept -> int {
@@ -359,9 +347,9 @@ static void celt_encoder_set_complexity(CeltEncoderInternal* st, opus_int32 valu
 static void celt_encoder_set_start_band(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_end_band(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_stream_channels(CeltEncoderInternal* st, opus_int32 value);
-static void celt_encoder_set_lsb_depth(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_prediction(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_bitrate(CeltEncoderInternal* st, opus_int32 value);
+static void celt_encoder_set_lsb_depth(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_midrate_quality_boost(CeltEncoderInternal* st, opus_int32 value);
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal* st) noexcept;
 [[nodiscard]] static const CeltModeInternal* celt_encoder_mode(const CeltEncoderInternal* st) noexcept;
@@ -480,8 +468,6 @@ constexpr stereo_intensity_tables stereo_intensity_table{{1, 2, 3, 4, 5, 6, 7, 8
                                                          {1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 5, 6, 8, 8}};
 constexpr std::array<opus_val16, 16> celt_anti_collapse_thresh_by_depth = numeric_blob_array<opus_val16, 16>(
     R"blob(3F0000003EEAC0C73ED744FD3EC5672A3EB504F33EA5FED73E9837F03E8B95C23E8000003E6AC0C73E5744FD3E45672A3E3504F33E25FED73E1837F03E0B95C2)blob");
-static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opus_val16 g0, opus_val16 g1, int tapset0, int tapset1,
-                        const celt_coef* window, int overlap);
 struct mdct_lookup {
   int n;
   const kiss_fft_state* kfft[4];
@@ -527,12 +513,6 @@ template <std::size_t ViewCount, typename T>
   }
   return views;
 }
-struct opus_free_deleter {
-  inline void operator()(void* ptr) const noexcept {
-    std::free(ptr);
-  }
-};
-template <typename T> using opus_owned_ptr = std::unique_ptr<T, opus_free_deleter>;
 [[nodiscard]] static auto celt_maxabs16(const opus_val16* x, int len) noexcept -> opus_val32 {
   if (len <= 0) {
     return 0;
@@ -572,8 +552,6 @@ struct packet_frame_set {
   std::array<const unsigned char*, 48> frames;
   std::array<opus_int16, 48> len;
 };
-static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 out_data_bytes,
-                                int lsb_depth, bool float_api);
 [[nodiscard]] constexpr auto align(int value) noexcept -> int {
   union aligned_storage {
     void* pointer;
@@ -584,8 +562,6 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   return ((value + alignment - 1) / alignment) * alignment;
 }
 
-static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len, unsigned char* out_toc, const unsigned char* frames[48],
-                                      opus_int16 size[48], int* payload_offset);
 static opus_int32 write_packet_frames(packet_frame_set* frames, int begin, int end, unsigned char* data, opus_int32 maxlen, int pad);
 static int append_packet_frames(packet_frame_set* frames, const unsigned char* data, opus_int32 len);
 static int pad_packet(unsigned char* data, opus_int32 len, opus_int32 new_len, int pad);
@@ -759,11 +735,11 @@ static void silk_ResetDecoder(void* decState);
 static void silk_InitDecoder(void* decState);
 static int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec,
                        opus_res* samplesOut, opus_int16* samplesOut16, opus_int32* nSamplesOut);
-int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc,
+static int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc,
                 opus_int32* nBytesOut, const int prefillFlag, int activity);
 static void silk_destroy_decoder(void* decState) noexcept;
 [[nodiscard]] inline auto float2int(float x) noexcept -> opus_int32 {
-  return static_cast<opus_int32>(lrint(x));
+  return static_cast<opus_int32>(std::lrint(x));
 }
 
 [[nodiscard]] static inline auto pcm_float2int(float x) noexcept -> opus_int32 {
@@ -788,7 +764,8 @@ static void silk_destroy_decoder(void* decState) noexcept;
   return static_cast<opus_int16>(pcm_float2int(clamp_value(x * 32768.f, -32768.f, 32767.f)));
 }
 struct silk_resampler_state_struct {
-  opus_int32 sIIR[6], invRatio_Q16;
+  opus_int32 sIIR[6];
+  opus_int32 invRatio_Q16;
   union {
     opus_int32 i32[36];
     opus_int16 i16[36];
@@ -803,15 +780,12 @@ struct silk_resampler_state_struct {
 
 static void silk_resampler_init(silk_resampler_state_struct* S, opus_int32 Fs_Hz_in, opus_int32 Fs_Hz_out, int forEnc);
 static void silk_resampler(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
-static void silk_biquad_alt_stride1(const opus_int16* in, const opus_int32* B_Q28, const opus_int32* A_Q28, opus_int32* S, opus_int16* out,
-                                    const opus_int32 len);
-static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len, const opus_int32 d);
+static void silk_biquad_alt_stride1(const opus_int16* in, const opus_int32 B_Q28[3], const opus_int32 A_Q28[2], opus_int32 S[2],
+                                    opus_int16* out, const opus_int32 len);
 template <typename T> static void silk_bwexpander(T* ar, std::size_t count, opus_int32 chirp_Q16);
 static opus_int32 silk_LPC_inverse_pred_gain_c(const opus_int16* A_Q12, const int order);
-static void silk_ana_filt_bank_1(const opus_int16* in, opus_int32* S, opus_int16* outL, opus_int16* outH, const opus_int32 N);
-static opus_int32 silk_lin2log(const opus_int32 inLin);
+static void silk_ana_filt_bank_1(const opus_int16* in, opus_int32 S[2], opus_int16* outL, opus_int16* outH, const opus_int32 N);
 static int silk_sigm_Q15(int in_Q5);
-static opus_int32 silk_log2lin(const opus_int32 inLog_Q7);
 static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* x, int len);
 static void silk_decode_pitch(opus_int16 lagIndex, opus_int8 contourIndex, int pitch_lags[], const int Fs_kHz, const int nb_subfr);
 static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF, const int d);
@@ -901,12 +875,15 @@ struct silk_nsq_state {
   int rewhite_flag;
 };
 struct silk_VAD_state {
-  opus_int32 AnaState[2], AnaState1[2], AnaState2[2], XnrgSubfr[4], NrgRatioSmth_Q8[4];
+  std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
+  std::array<opus_int32, 4> XnrgSubfr, NrgRatioSmth_Q8;
   opus_int16 HPstate;
-  opus_int32 NL[4], inv_NL[4], NoiseLevelBias[4], counter;
+  std::array<opus_int32, 4> NL, inv_NL, NoiseLevelBias;
+  opus_int32 counter;
 };
 struct silk_LP_state {
-  opus_int32 In_LP_State[2], transition_frame_no;
+  std::array<opus_int32, 2> In_LP_State;
+  opus_int32 transition_frame_no;
   int mode;
   opus_int32 saved_fs_kHz;
 };
@@ -917,14 +894,17 @@ struct silk_NLSF_CB_struct {
   const opus_uint8 *CB1_iCDF, *pred_Q8, *ec_sel, *ec_iCDF, *ec_Rates_Q5;
   const opus_int16* deltaMin_Q15;
 };
+using silk_stereo_pred_indices = std::array<std::array<opus_int8, 3>, 2>;
+
 struct stereo_enc_state {
-  opus_int16 pred_prev_Q13[2], sMid[2], sSide[2];
-  opus_int32 mid_side_amp_Q0[4];
+  std::array<opus_int16, 2> pred_prev_Q13, sMid, sSide;
+  std::array<opus_int32, 4> mid_side_amp_Q0;
   opus_int16 smth_width_Q14, width_prev_Q14, silent_side_len;
-  opus_int8 predIx[3][2][3], mid_only_flags[3];
+  std::array<silk_stereo_pred_indices, 3> predIx;
+  std::array<opus_int8, 3> mid_only_flags;
 };
 struct stereo_dec_state {
-  opus_int16 pred_prev_Q13[2], sMid[2], sSide[2];
+  std::array<opus_int16, 2> pred_prev_Q13, sMid, sSide;
 };
 struct SideInfoIndices {
   opus_int8 GainsIndices[4], LTPIndex[4], NLSFIndices[16 + 1];
@@ -932,11 +912,12 @@ struct SideInfoIndices {
   opus_int8 contourIndex, signalType, quantOffsetType, NLSFInterpCoef_Q2, PERIndex, LTP_scaleIndex, Seed;
 };
 struct silk_encoder_state {
-  opus_int32 In_HP_State[2], variable_HP_smth1_Q15, variable_HP_smth2_Q15;
+  std::array<opus_int32, 2> In_HP_State;
+  opus_int32 variable_HP_smth1_Q15, variable_HP_smth2_Q15;
   silk_LP_state sLP;
   silk_VAD_state sVAD;
   silk_nsq_state sNSQ;
-  opus_int16 prev_NLSFq_Q15[16];
+  std::array<opus_int16, 16> prev_NLSFq_Q15;
   int speech_activity_Q8, allow_bandwidth_switch;
   opus_int8 prevSignalType;
   int prevLag, pitch_LPC_win_length;
@@ -952,8 +933,9 @@ struct silk_encoder_state {
   int NLSF_MSVQ_Survivors, first_frame_after_reset, controlled_since_last_payload, warping_Q16, useCBR, prefillFlag;
   const opus_uint8 *pitch_lag_low_bits_iCDF, *pitch_contour_iCDF;
   const silk_NLSF_CB_struct* psNLSF_CB;
-  int input_quality_bands_Q15[4], input_tilt_Q15, SNR_dB_Q7;
-  opus_int8 VAD_flags[3];
+  std::array<int, 4> input_quality_bands_Q15;
+  int input_tilt_Q15, SNR_dB_Q7;
+  std::array<opus_int8, 3> VAD_flags;
   SideInfoIndices indices;
   opus_int8 pulses[((5 * 4) * 16)];
   opus_int16 inputBuf[((5 * 4) * 16) + 2];
@@ -963,7 +945,8 @@ struct silk_encoder_state {
 };
 struct silk_PLC_struct {
   opus_int32 pitchL_Q8, rand_seed, conc_energy, prevGain_Q16[2];
-  opus_int16 LTPCoef_Q14[5], prevLPC_Q12[16], randScale_Q14, prevLTP_scale_Q14;
+  opus_int16 LTPCoef_Q14[5], prevLPC_Q12[16];
+  opus_int16 randScale_Q14, prevLTP_scale_Q14;
   int last_frame_lost, conc_energy_shift, fs_kHz, nb_subfr, subfr_length;
 };
 struct silk_CNG_struct {
@@ -994,18 +977,19 @@ static void silk_release_cng(silk_decoder_state* psDec) noexcept {
 
 [[nodiscard]] static auto silk_ensure_cng(silk_decoder_state* psDec) noexcept -> silk_CNG_struct* {
   if (psDec->sCNG == nullptr) {
-    auto cng = opus_owned_ptr<silk_CNG_struct>(static_cast<silk_CNG_struct*>(std::calloc(1, sizeof(silk_CNG_struct))));
-    if (!cng) {
+    auto* cng = static_cast<silk_CNG_struct*>(std::calloc(1, sizeof(silk_CNG_struct)));
+    if (cng == nullptr) {
       return nullptr;
     }
-    psDec->sCNG = cng.release();
+    psDec->sCNG = cng;
     silk_CNG_Reset(psDec);
     psDec->sCNG->fs_kHz = psDec->fs_kHz;
   }
   return psDec->sCNG;
 }
 struct silk_decoder_control {
-  int pitchL[4], LTP_scale_Q14;
+  int pitchL[4];
+  int LTP_scale_Q14;
   opus_int32 Gains_Q16[4];
   opus_int16 PredCoef_Q12[2][16], LTPCoef_Q14[5 * 4];
 };
@@ -1319,7 +1303,7 @@ static int opus_decode_frame(ref_OpusDecoder* st, const unsigned char* data, opu
 static int decode_native(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
   int i, nb_samples, count, offset;
   int packet_frame_size, packet_bandwidth, packet_mode, packet_stream_channels;
-  std::array<opus_int16, 48> size;
+  opus_int16 size[48];
   if (decode_fec < 0 || decode_fec > 1) {
     return -1;
   }
@@ -1365,7 +1349,7 @@ static int decode_native(ref_OpusDecoder* st, const unsigned char* data, opus_in
     offset = 1;
     size[0] = size[1] = static_cast<opus_int16>(frame_bytes);
   } else {
-    count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size.data(), &offset);
+    count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size, &offset);
   }
   if (count < 0) {
     return count;
@@ -1458,9 +1442,9 @@ static int decode_native_celt_direct_fast(ref_OpusDecoder* st, const unsigned ch
     st->rangeFinal = celt_decoder_final_range(celt_dec);
     return finish_direct_decode(st, packet_mode, ret);
   }
-  std::array<opus_int16, 48> size;
+  opus_int16 size[48];
   int offset = 0;
-  int count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size.data(), &offset);
+  int count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size, &offset);
   if (count < 0) {
     return opus_decode_fast_unavailable;
   }
@@ -1518,9 +1502,9 @@ static int decode_native_silk_i16_fast(ref_OpusDecoder* st, const unsigned char*
     st->rangeFinal = dec.rng;
     return finish_direct_decode(st, packet_mode, silk_frame_size);
   }
-  std::array<opus_int16, 48> size;
+  opus_int16 size[48];
   int offset = 0;
-  int count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size.data(), &offset);
+  int count = ref_opus_packet_parse_impl(data, len, nullptr, nullptr, size, &offset);
   if (count < 0 || count * packet_frame_size > frame_size) {
     return opus_decode_fast_unavailable;
   }
@@ -1697,7 +1681,7 @@ static constexpr int ref_opus_decoder_get_nb_samples(const ref_OpusDecoder* dec,
 static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len, int factor);
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch);
 static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, int N, int* T0, int prev_period, opus_val16 prev_gain);
-static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, opus_val32 sum[4], int len) {
+static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, std::span<opus_val32, 4> sum, int len) {
   for (int index = 0; index < len; ++index) {
     const auto sample = static_cast<opus_val32>(x[index]);
     sum[0] += sample * static_cast<opus_val32>(y[index]);
@@ -1707,7 +1691,7 @@ static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, opus_val32 
   }
 }
 
-static void dual_inner_prod_c(const opus_val16* x, const opus_val16* y01, const opus_val16* y02, int N, opus_val32* xy1, opus_val32* xy2) {
+static void dual_inner_prod_c(const opus_val16* x, const opus_val16* y01, const opus_val16* y02, int N, opus_val32& xy1, opus_val32& xy2) {
   auto sum_1 = opus_val32{0};
   auto sum_2 = opus_val32{0};
   for (int index = 0; index < N; ++index) {
@@ -1715,8 +1699,8 @@ static void dual_inner_prod_c(const opus_val16* x, const opus_val16* y01, const 
     sum_1 += sample * static_cast<opus_val32>(y01[index]);
     sum_2 += sample * static_cast<opus_val32>(y02[index]);
   }
-  *xy1 = sum_1;
-  *xy2 = sum_2;
+  xy1 = sum_1;
+  xy2 = sum_2;
 }
 
 [[nodiscard]] static auto celt_inner_prod_c(const opus_val16* x, const opus_val16* y, int N) -> opus_val32 {
@@ -1811,31 +1795,34 @@ consteval auto make_silk_nlsf_cb(const int vectors, const int order, const int q
 static void silk_PLC_Reset(silk_decoder_state* psDec);
 static void silk_PLC(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame, int lost);
 static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame);
-static inline void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], opus_int8 ix[2][3],
-                                        opus_int8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps,
-                                        int prev_speech_act_Q8, int toMono, int fs_kHz, int frame_length);
 static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz,
                                  int frame_length);
-static void silk_stereo_quant_pred(opus_int32 pred_Q13[], opus_int8 ix[2][3]);
+static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix,
+                                 opus_int8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps,
+                                 int prev_speech_act_Q8, int toMono, int fs_kHz, int frame_length);
+static void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix);
 static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpass, opus_int16* highpass, int frame_length);
-static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, opus_int8 ix[2][3]);
+static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[],
+                                             std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16);
+static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix);
 static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag);
-static void silk_stereo_decode_pred(ec_dec* psRangeDec, opus_int32 pred_Q13[]);
-static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int* decode_only_mid);
+static void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13);
+static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid);
+
+static void silk_shell_encoder(ec_enc* psRangeEnc, std::span<const int, 16> pulses0);
+static void silk_shell_decoder(std::span<opus_int16, 16> pulses0, ec_dec* psRangeDec, const int pulses4);
 static void silk_encode_signs(ec_enc* psRangeEnc, std::span<const opus_int8> pulses, const int signalType, const int quantOffsetType,
                               std::span<const int> sum_pulses);
 static void silk_decode_signs(ec_dec* psRangeDec, std::span<opus_int16> pulses, const int signalType, const int quantOffsetType,
                               std::span<const int> sum_pulses);
-static void silk_shell_encoder(ec_enc* psRangeEnc, std::span<const int, 16> pulses0);
-static void silk_shell_decoder(std::span<opus_int16, 16> pulses0, ec_dec* psRangeDec, const int pulses4);
 static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional,
                                const int nb_subfr);
-static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index, opus_int32* sum_gain_dB_Q7,
-                                 int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5], const opus_int32 xX_Q17[4 * 5],
-                                 const int subfr_len, const int nb_subfr);
 static void silk_VQ_WMat_EC_c(opus_int8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17,
                               const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5,
                               const int subfr_len, const opus_int32 max_gain_Q7, const int L);
+static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index,
+                                 opus_int32* sum_gain_dB_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5],
+                                 const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr);
 static void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
                        opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
                        const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
@@ -1848,22 +1835,27 @@ static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state*
                                const int LTP_scale_Q14);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[],
                          const int K, const int LPC_order);
-static void silk_NLSF_unpack(opus_int16 ec_ix[], opus_uint8 pred_Q8[], const silk_NLSF_CB_struct* psNLSF_CB, const int CB1_index);
-static void silk_NLSF_decode(opus_int16* pNLSF_Q15, opus_int8* NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB);
+static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB,
+                             const int CB1_index);
+static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices,
+                             const silk_NLSF_CB_struct* psNLSF_CB);
+static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15,
+                             const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_QW, const int NLSF_mu_Q20,
+                             const int nSurvivors, const int signalType);
+static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10,
+                                          std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8,
+                                          std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[],
+                                          const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6,
+                                          const opus_int32 mu_Q20, const opus_int16 order);
 static void silk_decode_indices(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding);
 static void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, int condCoding);
 static void silk_decode_pulses(ec_dec* psRangeDec, std::span<opus_int16> pulses, const int signalType, const int quantOffsetType,
                                const int frame_length);
-static void silk_CNG_Reset(silk_decoder_state* psDec);
+static opus_int32 silk_lin2log(const opus_int32 inLin);
+static opus_int32 silk_log2lin(const opus_int32 inLog_Q7);
+static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len,
+                                     const opus_int32 d);
 static void silk_control_SNR(silk_encoder_state* psEncC, opus_int32 TargetRate_bps);
-static opus_int32 silk_stereo_find_predictor(opus_int32* ratio_Q14, const opus_int16 x[], const opus_int16 y[], opus_int32 mid_res_amp_Q0[],
-                                             int length, int smooth_coef_Q16);
-static void silk_NLSF_encode(opus_int8* NLSFIndices, opus_int16* pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB, const opus_int16* pW_QW,
-                             const int NLSF_mu_Q20, const int nSurvivors, const int signalType);
-static opus_int32 silk_NLSF_del_dec_quant(opus_int8 indices[], const opus_int16 x_Q10[], const opus_int16 w_Q5[],
-                                          const opus_uint8 pred_coef_Q8[], const opus_int16 ec_ix[], const opus_uint8 ec_rates_Q5[],
-                                          const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20,
-                                          const opus_int16 order);
 struct silk_shape_state_FLP {
   opus_int8 LastGainIndex;
   float HarmShapeGain_smth, Tilt_smth;
@@ -2025,8 +2017,8 @@ static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channel
 static void silk_biquad_res(const opus_res* in, const opus_int32* B_Q28, const opus_int32* A_Q28, opus_val32* S, opus_res* out,
                             const opus_int32 len, int stride) {
   constexpr float inv28 = 1.f / (1 << 28);
-  const opus_val32 A[2] = {A_Q28[0] * inv28, A_Q28[1] * inv28};
-  const opus_val32 B[3] = {B_Q28[0] * inv28, B_Q28[1] * inv28, B_Q28[2] * inv28};
+  const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
+  const std::array<opus_val32, 3> B{B_Q28[0] * inv28, B_Q28[1] * inv28, B_Q28[2] * inv28};
   for (int k = 0; k < len; k++) {
     const opus_val32 inval = in[k * stride];
     const opus_val32 vout = S[0] + B[0] * inval;
@@ -2204,14 +2196,14 @@ static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus
   mem->YY = std::max(0.f, mem->YY);
   if (std::max(mem->XX, mem->YY) > (8e-4f)) {
     opus_val16 corr, ldiff, width;
-    sqrt_xx = ((float)sqrt(mem->XX));
-    sqrt_yy = ((float)sqrt(mem->YY));
-    qrrt_xx = ((float)sqrt(sqrt_xx));
-    qrrt_yy = ((float)sqrt(sqrt_yy));
+    sqrt_xx = ((float)std::sqrt(mem->XX));
+    sqrt_yy = ((float)std::sqrt(mem->YY));
+    qrrt_xx = ((float)std::sqrt(sqrt_xx));
+    qrrt_yy = ((float)std::sqrt(sqrt_yy));
     mem->XY = std::min(mem->XY, sqrt_xx * sqrt_yy);
     corr = (((float)(mem->XY) / (1e-15f + ((opus_val32)(sqrt_xx) * (opus_val32)(sqrt_yy)))));
-    ldiff = ((opus_val32)(1.0f) * (opus_val32)(((float)fabs(qrrt_xx - qrrt_yy)))) / (1e-15f + qrrt_xx + qrrt_yy);
-    const opus_val16 decorrelation = (float)sqrt((1.f) - ((opus_val32)(corr) * (opus_val32)(corr)));
+    ldiff = ((opus_val32)(1.0f) * (opus_val32)(((float)std::fabs(qrrt_xx - qrrt_yy)))) / (1e-15f + qrrt_xx + qrrt_yy);
+    const opus_val16 decorrelation = (float)std::sqrt((1.f) - ((opus_val32)(corr) * (opus_val32)(corr)));
     width = std::min(1.0f, decorrelation) * ldiff;
     mem->smoothed_width += (width - mem->smoothed_width) / frame_rate;
     mem->max_follower = ((mem->max_follower - (.02f) / frame_rate) > (mem->smoothed_width) ? (mem->max_follower - (.02f) / frame_rate)
@@ -2406,9 +2398,9 @@ struct audio_content_markers {
   int lpc_music = 0;
   if (frame_size >= 64) {
     int delay = 1, fail = 1;
-    opus_val32 lpc[2]{};
+    std::array<opus_val32, 2> lpc{};
     for (; delay <= 16 && (fail || (lpc[0] > 1.f && lpc[1] < 0)); delay *= 2) {
-      fail = tone_lpc(mono, frame_size, delay, lpc);
+      fail = tone_lpc(mono, frame_size, delay, lpc.data());
     }
     lpc_music = !fail && lpc[0] * lpc[0] + 3.999999f * lpc[1] < 0 && -lpc[1] > .24f;
   }
@@ -2862,8 +2854,8 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes;
 };
 static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                           opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
-                                           int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
+                                           opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
+                                           int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
                                            encoder_stage_storage& stage_storage);
 [[nodiscard]] static auto encode_multiframe_packet(ref_OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data,
                                                    const opus_int32 out_data_bytes, const multiframe_encode_params& params) -> opus_int32 {
@@ -3017,12 +3009,9 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   } else {
     const auto threshold = quality_mode_threshold(quality, stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
-    // Avoid over-trusting a cold speech/music classifier in the sensitive mono 24 kbps region.
     if (st->lightweight_analysis_frames < audio_preprocess_warmup_frames && st->channels == 1 && st->bitrate_bps >= 22000 &&
         st->bitrate_bps < 28000 && !quality.high_z_tonal_confident()) {
       st->mode = opus_mode_silk_only;
-      // Real-clip tests prefer SILK/hybrid for mono non-tonal AUDIO at 64-96 kbps;
-      // keep confident high-Z tones on CELT.
     } else if (!voip_style && st->channels == 1 && st->bitrate_bps >= 56000 && st->bitrate_bps < 128000 &&
                !quality.high_z_tonal_confident() && quality.harmonic_music_Q7 < 32) {
       st->mode = opus_mode_silk_only;
@@ -3175,7 +3164,7 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
 
 static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size) {
   const int hp_freq_smth1 =
-      st->mode == opus_mode_celt_only ? silk_log_60_q15 : ((silk_encoder*)silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
+      st->mode == opus_mode_celt_only ? silk_log_60_q15 : static_cast<silk_encoder*>(silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
   st->variable_HP_smth2_Q15 =
       ((opus_int32)((st->variable_HP_smth2_Q15) + (((hp_freq_smth1 - st->variable_HP_smth2_Q15) *
                                                     (opus_int64)((opus_int16)(((opus_int32)((0.015f) * ((opus_int64)1 << (16)) + 0.5))))) >>
@@ -3218,7 +3207,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   opus_val16 HB_gain;
   auto celt_pcm = stage_storage.active_celt_window();
   auto frame_pcm = stage_storage.active_frame();
-  max_data_bytes = ((orig_max_data_bytes) < (1276) ? (orig_max_data_bytes) : (1276));
+  max_data_bytes = std::min<opus_int32>(orig_max_data_bytes, 1276);
   st->rangeFinal = 0;
   const bool uses_silk = encoder_uses_silk(st->application);
   if (uses_silk) {
@@ -3298,11 +3287,10 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
         st->silk_mode.bitRate = hybrid_silk_lowrate_boost_bps(st->bitrate_bps, st->silk_mode.bitRate);
       }
       if (voip_mono_silk_budget_boost_enabled(st)) {
-        st->silk_mode.bitRate =
-            std::min<opus_int32>(total_bitRate - 500, st->silk_mode.bitRate + voip_mono_silk_budget_boost_bps);
+        st->silk_mode.bitRate = std::min<opus_int32>(total_bitRate - 500, st->silk_mode.bitRate + voip_mono_silk_budget_boost_bps);
       }
       celt_rate = total_bitRate - st->silk_mode.bitRate;
-      HB_gain = 1.0f - (((float)exp(0.6931471805599453094 * (-celt_rate * (1.f / 1024)))));
+      HB_gain = 1.0f - (((float)std::exp(0.6931471805599453094 * (-celt_rate * (1.f / 1024)))));
     } else {
       st->silk_mode.bitRate = total_bitRate;
     }
@@ -3330,10 +3318,9 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     }
     if (st->silk_mode.useCBR) {
       if (st->mode == opus_mode_hybrid) {
-        opus_int16 other_bits = ((0) > (st->silk_mode.maxBits - st->silk_mode.bitRate * frame_size / st->Fs)
-                                     ? (0)
-                                     : (st->silk_mode.maxBits - st->silk_mode.bitRate * frame_size / st->Fs));
-        st->silk_mode.maxBits = ((0) > (st->silk_mode.maxBits - other_bits * 3 / 4) ? (0) : (st->silk_mode.maxBits - other_bits * 3 / 4));
+        const auto reserved_bits = st->silk_mode.bitRate * frame_size / st->Fs;
+        const auto other_bits = std::max<opus_int32>(0, st->silk_mode.maxBits - reserved_bits);
+        st->silk_mode.maxBits = std::max<opus_int32>(0, st->silk_mode.maxBits - other_bits * 3 / 4);
         st->silk_mode.useCBR = 0;
       }
     } else if (st->mode == opus_mode_hybrid) {
@@ -3416,10 +3403,8 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
       ec_enc_bit_logp(&enc, celt_to_silk, 1);
       int max_redundancy = (st->mode == opus_mode_hybrid) ? (max_data_bytes - 1) - ((ec_tell(&enc) + 8 + 3 + 7) >> 3)
                                                           : (max_data_bytes - 1) - ((ec_tell(&enc) + 7) >> 3);
-      redundancy_bytes = ((max_redundancy) < (redundancy_bytes) ? (max_redundancy) : (redundancy_bytes));
-      redundancy_bytes =
-          ((257) < (((2) > (redundancy_bytes) ? (2) : (redundancy_bytes))) ? (257)
-                                                                           : (((2) > (redundancy_bytes) ? (2) : (redundancy_bytes))));
+      redundancy_bytes = std::min(max_redundancy, redundancy_bytes);
+      redundancy_bytes = std::clamp(redundancy_bytes, 2, 257);
       if (st->mode == opus_mode_hybrid) {
         ec_enc_uint(&enc, redundancy_bytes - 2, 256);
       }
@@ -3762,6 +3747,10 @@ static void unquant_fine_energy(const CeltModeInternal* m, int start, int end, c
                                 ec_dec* dec, int C);
 static void unquant_energy_finalise(const CeltModeInternal* m, int start, int end, celt_glog* oldEBands, int* fine_quant,
                                     int* fine_priority, int bits_left, ec_dec* dec, int C);
+static int clt_compute_allocation(const CeltModeInternal* m, int start, int end, const int* offsets, const int* cap, int alloc_trim,
+                                  int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits,
+                                  int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth);
+
 [[nodiscard]] constexpr auto get_pulses(int value) noexcept -> int {
   return value < 8 ? value : (8 + (value & 7)) << ((value >> 3) - 1);
 }
@@ -3789,9 +3778,6 @@ static void unquant_energy_finalise(const CeltModeInternal* m, int start, int en
   return pulses == 0 ? 0 : cache[pulses] + 1;
 }
 
-static int clt_compute_allocation(const CeltModeInternal* m, int start, int end, const int* offsets, const int* cap, int alloc_trim,
-                                  int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits,
-                                  int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth);
 static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
@@ -3856,7 +3842,7 @@ static void compute_band_energies(const CeltModeInternal* m, const celt_sig* X, 
     for (int i = 0; i < end; i++) {
       opus_val32 sum =
           1e-27f + celt_inner_prod_c(&X[c * N + (eBands[i] << LM)], &X[c * N + (eBands[i] << LM)], (eBands[i + 1] - eBands[i]) << LM);
-      bandE[i + c * m->nbEBands] = (float)sqrt(sum);
+      bandE[i + c * m->nbEBands] = (float)std::sqrt(sum);
     }
 }
 
@@ -3945,8 +3931,8 @@ static void anti_collapse(const CeltModeInternal* m, celt_norm* X_, unsigned cha
     const int depth = celt_udiv(1 + pulses[i], (m->eBands[i + 1] - m->eBands[i])) >> LM;
     const opus_val16 thresh = depth < static_cast<int>(celt_anti_collapse_thresh_by_depth.size())
                                   ? celt_anti_collapse_thresh_by_depth[static_cast<std::size_t>(depth)]
-                                  : .5f * (float)exp(0.6931471805599453094 * (-.125f * depth));
-    const opus_val16 sqrt_1 = 1.f / (float)sqrt(N0 << LM);
+                                  : .5f * (float)std::exp(0.6931471805599453094 * (-.125f * depth));
+    const opus_val16 sqrt_1 = 1.f / (float)std::sqrt(N0 << LM);
     for (int c = 0; c < C; ++c) {
       celt_glog prev1 = prev1logE[c * m->nbEBands + i], prev2 = prev2logE[c * m->nbEBands + i];
       if (!encode && C == 1) {
@@ -3954,7 +3940,7 @@ static void anti_collapse(const CeltModeInternal* m, celt_norm* X_, unsigned cha
         prev2 = std::max(prev2, prev2logE[m->nbEBands + i]);
       }
       opus_val32 Ediff = std::max(0.f, logE[c * m->nbEBands + i] - std::min(prev1, prev2));
-      celt_norm r = std::min(thresh, 2.f * (float)exp(0.6931471805599453094 * (-Ediff)));
+      celt_norm r = std::min(thresh, 2.f * (float)std::exp(0.6931471805599453094 * (-Ediff)));
       if (LM == 3) {
         r *= 1.41421356f;
       }
@@ -3979,7 +3965,7 @@ static void anti_collapse(const CeltModeInternal* m, celt_norm* X_, unsigned cha
 
 static void intensity_stereo(const CeltModeInternal* m, celt_norm* X, const celt_norm* Y, const celt_ener* bandE, int bandID, int N) {
   opus_val16 left = bandE[bandID], right = bandE[bandID + m->nbEBands];
-  opus_val16 norm = 1e-15f + sqrtf(1e-15f + (opus_val32)left * left + (opus_val32)right * right);
+  opus_val16 norm = 1e-15f + std::sqrt(1e-15f + (opus_val32)left * left + (opus_val32)right * right);
   opus_val16 a1 = (opus_val32)left / (opus_val16)norm, a2 = (opus_val32)right / (opus_val16)norm;
   for (int j = 0; j < N; j++) {
     X[j] = a1 * X[j] + a2 * Y[j];
@@ -4002,7 +3988,7 @@ static void stereo_merge(celt_norm* X, celt_norm* Y, opus_val32 mid, int N) {
     copy_n_items(X, static_cast<std::size_t>(N), Y);
     return;
   }
-  opus_val32 lgain = 1.f / sqrtf(El), rgain = 1.f / sqrtf(Er);
+  opus_val32 lgain = 1.f / std::sqrt(El), rgain = 1.f / std::sqrt(Er);
   for (int j = 0; j < N; j++) {
     celt_norm l = mid * X[j], r = Y[j];
     X[j] = lgain * (l - r);
@@ -4067,7 +4053,7 @@ static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
     N2--;
   }
   qb = celt_sudiv(b + N2 * offset, N2);
-  qb = ((b - pulse_cap - (4 << 3)) < (qb) ? (b - pulse_cap - (4 << 3)) : (qb));
+  qb = std::min(qb, b - pulse_cap - (4 << 3));
   qb = std::min(8 << 3, qb);
   const auto encoded_qn = celt_qn_table[static_cast<std::size_t>(std::max(0, qb))];
   return encoded_qn == 0 ? 256 : encoded_qn;
@@ -4318,8 +4304,9 @@ static unsigned quant_partition(struct band_ctx* ctx, celt_norm* X, int N, int b
     if (B0 > 1 && (itheta & 0x3fff)) {
       if (itheta > 8192) {
         delta -= delta >> (4 - LM);
-      } else
-        delta = ((0) < (delta + (N << 3 >> (5 - LM))) ? (0) : (delta + (N << 3 >> (5 - LM))));
+      } else {
+        delta = std::min(0, delta + ((N << 3) >> (5 - LM)));
+      }
     }
     const int half_delta_bits = (b - delta) / 2;
     mbits = std::max(0, std::min(b, half_delta_bits));
@@ -4466,7 +4453,7 @@ static unsigned quant_band(struct band_ctx* ctx, celt_norm* X, int N, int b, int
     B <<= recombine;
     if (lowband_out) {
       int j;
-      opus_val16 n = ((float)sqrt(((N0))));
+      opus_val16 n = ((float)std::sqrt(((N0))));
       for (j = 0; j < N0; j++) {
         lowband_out[j] = ((n) * (X[j]));
       }
@@ -4614,8 +4601,8 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
   norm = OPUS_SCRATCH(celt_norm, C * norm_size);
   norm2 = norm + norm_size;
   lowband_scratch = X_ + M * eBands[m->effEBands - 1];
-  std::array<opus_int16, opus_20ms_frame_samples_48k> decode_pulse_scratch_storage;
-  auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage.data() : nullptr;
+  opus_int16 decode_pulse_scratch_storage[opus_20ms_frame_samples_48k];
+  auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage : nullptr;
   lowband_offset = 0;
   ctx.bandE = bandE;
   ctx.ec = ec;
@@ -4730,8 +4717,8 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
 }
 
 static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p);
-static void celt_iir(const opus_val32* x, const opus_val16* den, opus_val32* y, int N, int ord, opus_val16* mem);
 static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N, int ord);
+static void celt_iir(const opus_val32* x, const opus_val16* den, opus_val32* y, int N, int ord, opus_val16* mem);
 static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n);
 static int resampling_factor(opus_int32 rate) {
   switch (rate) {
@@ -4935,9 +4922,10 @@ static constexpr int celt_encoder_history_size = 1024;
 static constexpr int celt_decoder_history_size = 2048;
 [[nodiscard]] static inline auto make_celt_encoder_views(CeltEncoderInternal* st) noexcept -> celt_encoder_views {
   const auto channels = st->channels, overlap = st->mode->overlap, nbEBands = st->mode->nbEBands;
+  auto* const in_mem = st->in_mem;
   celt_encoder_views views{};
-  views.prefilter_mem = st->in_mem + channels * overlap;
-  views.oldBandE = reinterpret_cast<celt_glog*>(st->in_mem + channels * (overlap + 1024));
+  views.prefilter_mem = in_mem + channels * overlap;
+  views.oldBandE = reinterpret_cast<celt_glog*>(in_mem + channels * (overlap + 1024));
   views.oldLogE = views.oldBandE + channels * nbEBands;
   views.oldLogE2 = views.oldLogE + channels * nbEBands;
   views.energyError = views.oldLogE2 + channels * nbEBands;
@@ -5103,19 +5091,19 @@ static inline int alloc_trim_analysis(const CeltModeInternal* m, const celt_norm
       sum = ((sum) + (((partial))));
     }
     sum = (((1.f / 8)) * (sum));
-    sum = (((1.f)) < (((float)fabs(sum))) ? ((1.f)) : (((float)fabs(sum))));
+    sum = (((1.f)) < (((float)std::fabs(sum))) ? ((1.f)) : (((float)std::fabs(sum))));
     minXC = sum;
     for (i = 8; i < intensity; i++) {
       opus_val32 partial =
           celt_inner_prod_c(&X[m->eBands[i] << LM], &X[N0 + (m->eBands[i] << LM)], (m->eBands[i + 1] - m->eBands[i]) << LM);
-      minXC = ((minXC) < (((float)fabs(((partial))))) ? (minXC) : (((float)fabs(((partial))))));
+      minXC = ((minXC) < (((float)std::fabs(((partial))))) ? (minXC) : (((float)std::fabs(((partial))))));
     }
-    minXC = (((1.f)) < (((float)fabs(minXC))) ? ((1.f)) : (((float)fabs(minXC))));
-    logXC = ((float)(1.442695040888963387 * log((1.001f) - ((opus_val32)(sum) * (opus_val32)(sum)))));
-    const opus_val16 min_logXC = (float)(1.442695040888963387 * log((1.001f) - ((opus_val32)(minXC) * (opus_val32)(minXC))));
+    minXC = (((1.f)) < (((float)std::fabs(minXC))) ? ((1.f)) : (((float)std::fabs(minXC))));
+    logXC = ((float)(1.442695040888963387 * std::log((1.001f) - ((opus_val32)(sum) * (opus_val32)(sum)))));
+    const opus_val16 min_logXC = (float)(1.442695040888963387 * std::log((1.001f) - ((opus_val32)(minXC) * (opus_val32)(minXC))));
     logXC2 = std::max(.5f * logXC, min_logXC);
-    trim += ((-(4.f)) > ((((.75f)) * (logXC))) ? (-(4.f)) : ((((.75f)) * (logXC))));
-    *stereo_saving = ((*stereo_saving + (0.25f)) < (-(.5f * (logXC2))) ? (*stereo_saving + (0.25f)) : (-(.5f * (logXC2))));
+    trim += std::max(-4.f, .75f * logXC);
+    *stereo_saving = std::min(*stereo_saving + .25f, -.5f * logXC2);
   }
   for (c = 0; c < C; ++c) {
     for (i = 0; i < end - 1; i++) {
@@ -5129,7 +5117,7 @@ static inline int alloc_trim_analysis(const CeltModeInternal* m, const celt_norm
   if (equiv_rate >= 64000) {
     trim += (1.f);
   }
-  trim_index = (int)floor(.5f + trim);
+  trim_index = (int)std::floor(.5f + trim);
   trim_index = std::max(0, std::min(10, trim_index));
   return trim_index;
 }
@@ -5145,8 +5133,8 @@ static inline int stereo_analysis(const CeltModeInternal* m, const celt_norm* X,
       R = (X[N0 + j]);
       M = ((L) + (R));
       S = ((L) - (R));
-      sumLR = ((sumLR) + (((((float)fabs(L))) + (((float)fabs(R))))));
-      sumMS = ((sumMS) + (((((float)fabs(M))) + (((float)fabs(S))))));
+      sumLR = ((sumLR) + (((((float)std::fabs(L))) + (((float)std::fabs(R))))));
+      sumMS = ((sumMS) + (((((float)std::fabs(M))) + (((float)std::fabs(S))))));
     }
   }
   sumMS = (((0.707107f)) * (sumMS));
@@ -5222,7 +5210,7 @@ static inline void apply_tone_dynalloc_boost(celt_glog* follower, int start, int
   if (toneishness <= (.98f)) {
     return;
   }
-  const int freq_bin = static_cast<int>(floor(.5 + tone_freq * 120 / 3.141592653));
+  const int freq_bin = static_cast<int>(std::floor(.5 + tone_freq * 120 / 3.141592653));
   for (int i = start; i < end; ++i) {
     if (freq_bin >= eBands[i] && freq_bin <= eBands[i + 1]) {
       follower[i] += (2.f);
@@ -5312,15 +5300,15 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
       sig[i] = mask[i];
     }
     for (i = 1; i < end; i++) {
-      mask[i] = ((mask[i]) > (mask[i - 1] - (2.f)) ? (mask[i]) : (mask[i - 1] - (2.f)));
+      mask[i] = std::max(mask[i], mask[i - 1] - 2.f);
     }
     for (i = end - 2; i >= 0; i--) {
-      mask[i] = ((mask[i]) > (mask[i + 1] - (3.f)) ? (mask[i]) : (mask[i + 1] - (3.f)));
+      mask[i] = std::max(mask[i], mask[i + 1] - 3.f);
     }
     const celt_glog mask_floor = std::max(0.f, maxDepth - (12.f));
     for (i = 0; i < end; i++) {
       celt_glog smr = sig[i] - std::max(mask_floor, mask[i]);
-      const int raw_shift = std::max(0, -(int)floor(.5f + smr));
+      const int raw_shift = std::max(0, -(int)std::floor(.5f + smr));
       int shift = std::min(5, raw_shift);
       spread_weight[i] = 32 >> shift;
     }
@@ -5342,7 +5330,7 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
         if (bandLogE3[i] > bandLogE3[i - 1] + (.5f)) {
           last = i;
         }
-        f[i] = ((f[i - 1] + (1.5f)) < (bandLogE3[i]) ? (f[i - 1] + (1.5f)) : (bandLogE3[i]));
+        f[i] = std::min(f[i - 1] + 1.5f, bandLogE3[i]);
       }
       for (i = last - 1; i >= 0; i--) {
         f[i] = std::min(f[i], std::min(f[i + 1] + (2.f), bandLogE3[i]));
@@ -5373,7 +5361,7 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
       }
     }
     for (i = start; i < end; i++) {
-      importance[i] = (int)floor(.5f + 13 * ((float)exp(0.6931471805599453094 * (((follower[i]) < ((4.f)) ? (follower[i]) : ((4.f)))))));
+      importance[i] = (int)std::floor(.5f + 13 * ((float)std::exp(0.6931471805599453094 * (((follower[i]) < ((4.f)) ? (follower[i]) : ((4.f)))))));
     }
     if ((!vbr || constrained_vbr) && !isTransient) {
       for (i = start; i < end; i++) {
@@ -5490,7 +5478,7 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
 
 static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs) {
   int i, delay = 1, fail;
-  opus_val32 lpc[2];
+  std::array<opus_val32, 2> lpc;
   opus_val16 freq;
   const opus_val16* x = in;
   if (CC == 2) {
@@ -5501,10 +5489,10 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
     }
     x = x_sum;
   }
-  fail = tone_lpc(x, N, delay, lpc);
+  fail = tone_lpc(x, N, delay, lpc.data());
   for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
     delay *= 2;
-    fail = tone_lpc(x, N, delay, lpc);
+    fail = tone_lpc(x, N, delay, lpc.data());
   }
   if (!fail && ((lpc[0]) * (lpc[0])) + (((3.999999)) * (lpc[1])) < 0) {
     *toneishness = -lpc[1];
@@ -5520,7 +5508,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
                          opus_val16* gain, int* qgain, int enabled, int complexity, opus_val16 tf_estimate, int nbAvailableBytes,
                          opus_val16 tone_freq, opus_val32 toneishness) {
   int c;
-  std::array<celt_sig*, 2> pre;
+  celt_sig* pre[2]{};
   const CeltModeInternal* mode;
   int pitch_index;
   opus_val16 gain1, pf_threshold;
@@ -5563,7 +5551,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     }
     for (; (tone_freq) >= multiple * (0.39f); ++multiple) {}
     if ((tone_freq) > (0.006148f)) {
-      const int tone_pitch = (int)floor(.5 + 2.f * 3.141592653 * multiple / (tone_freq));
+      const int tone_pitch = (int)std::floor(.5 + 2.f * 3.141592653 * multiple / (tone_freq));
       pitch_index = std::min(tone_pitch, 1024 - 2);
     } else {
       pitch_index = 15;
@@ -5576,7 +5564,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
       gain1 = st->prefilter_gain;
     } else {
       auto* pitch_buf = OPUS_SCRATCH(opus_val16, (max_period + N) >> 1);
-      pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1, 2);
+      pitch_downsample(pre, CC, pitch_buf, (max_period + N) >> 1, 2);
       pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index);
       pitch_index = max_period - pitch_index;
       gain1 = remove_doubling(pitch_buf, max_period, min_period, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
@@ -5614,10 +5602,10 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     pf_on = 0;
     qg = 0;
   } else {
-    if (((float)fabs(gain1 - st->prefilter_gain)) < (.1f)) {
+    if (((float)std::fabs(gain1 - st->prefilter_gain)) < (.1f)) {
       gain1 = st->prefilter_gain;
     }
-    qg = (int)floor(.5f + gain1 * 32 / 3) - 1;
+    qg = (int)std::floor(.5f + gain1 * 32 / 3) - 1;
     qg = std::max(0, std::min(7, qg));
     gain1 = (0.09375f) * (qg + 1);
     pf_on = 1;
@@ -5625,9 +5613,9 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   for (c = 0; c < CC; ++c) {
     int i, offset = mode->shortMdctSize - overlap;
     st->prefilter_period = std::max(st->prefilter_period, 15);
-    copy_n_items(st->in_mem + c * (overlap), static_cast<std::size_t>(overlap), in + c * (N + overlap));
+    copy_n_items(st->in_mem + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
     for (i = 0; i < N; i++) {
-      before[c] += ((float)fabs((in[c * (N + overlap) + overlap + i])));
+      before[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
     }
     if (offset)
       comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, st->prefilter_period, offset,
@@ -5635,7 +5623,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     comb_filter(in + c * (N + overlap) + overlap + offset, pre[c] + max_period + offset, st->prefilter_period, pitch_index, N - offset,
                 -st->prefilter_gain, -gain1, st->prefilter_tapset, prefilter_tapset, mode->window, overlap);
     for (i = 0; i < N; i++) {
-      after[c] += ((float)fabs((in[c * (N + overlap) + overlap + i])));
+      after[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
     }
   }
   if (CC == 2) {
@@ -5665,7 +5653,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     qg = 0;
   }
   for (c = 0; c < CC; ++c) {
-    copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), st->in_mem + c * (overlap));
+    copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), st->in_mem + c * overlap);
     if (N > max_period) {
       copy_n_items(pre[c] + N, static_cast<std::size_t>(max_period), prefilter_mem + c * max_period);
     } else {
@@ -5753,7 +5741,7 @@ struct celt_input_peak {
   if (layout.mode->preemph[1] == 0 && st->upsample == 1) {
     std::array<celt_sig, 2> old_mem{};
     for (int c = 0; c < layout.CC; ++c) {
-      old_mem[static_cast<std::size_t>(c)] = st->preemph_memE[c];
+      old_mem[static_cast<std::size_t>(c)] = st->preemph_memE[static_cast<std::size_t>(c)];
     }
     const opus_val32 old_overlap_max = st->overlap_max;
     opus_val16 mn = pcm[0], mx = pcm[0], tail_mn = 0, tail_mx = 0;
@@ -5761,7 +5749,7 @@ struct celt_input_peak {
     const int tail_begin = layout.N - layout.overlap;
     const opus_val16 coef0 = layout.mode->preemph[0];
     for (int c = 0; c < layout.CC; ++c) {
-      celt_sig m = st->preemph_memE[c];
+      celt_sig m = st->preemph_memE[static_cast<std::size_t>(c)];
       auto* dst = in + c * (layout.N + layout.overlap) + layout.overlap;
       for (int i = 0; i < layout.N; ++i) {
         const opus_val16 sample = pcm[layout.CC * i + c];
@@ -5781,7 +5769,7 @@ struct celt_input_peak {
         dst[i] = x - m;
         m = coef0 * x;
       }
-      st->preemph_memE[c] = m;
+      st->preemph_memE[static_cast<std::size_t>(c)] = m;
       copy_n_items(&prefilter_mem[(1 + c) * (1024) - layout.overlap], static_cast<std::size_t>(layout.overlap),
                    in + c * (layout.N + layout.overlap));
     }
@@ -5792,7 +5780,7 @@ struct celt_input_peak {
       return {sample_max, sample_max <= (opus_val16)1 / (1 << st->lsb_depth)};
     }
     for (int c = 0; c < layout.CC; ++c) {
-      st->preemph_memE[c] = old_mem[static_cast<std::size_t>(c)];
+      st->preemph_memE[static_cast<std::size_t>(c)] = old_mem[static_cast<std::size_t>(c)];
     }
     st->overlap_max = old_overlap_max;
   }
@@ -5882,7 +5870,7 @@ static inline void celt_apply_energy_error_feedback(const celt_glog* oldBandE, c
                                                     const celt_encode_layout& layout) noexcept {
   for (int c = 0; c < layout.C; ++c)
     for (int i = layout.start; i < layout.end; i++)
-      if (((float)fabs(bandLogE[i + c * layout.nbEBands] - oldBandE[i + c * layout.nbEBands])) < 2.f) {
+      if (((float)std::fabs(bandLogE[i + c * layout.nbEBands] - oldBandE[i + c * layout.nbEBands])) < 2.f) {
         bandLogE[i + c * layout.nbEBands] -= 0.25f * energyError[i + c * layout.nbEBands];
       }
 }
@@ -6304,7 +6292,8 @@ static int celt_decoder_get_size(int channels) {
 
 static void celt_decoder_reset_state(CeltDecoderInternal* st) {
   constexpr auto energy_channels = celt_decoder_energy_channel_count;
-  auto* old_band_energy = reinterpret_cast<celt_glog*>(st->_decode_mem + (celt_decoder_history_size + st->overlap) * st->channels);
+  auto* old_band_energy =
+      reinterpret_cast<celt_glog*>(st->_decode_mem + (celt_decoder_history_size + st->overlap) * st->channels);
   auto* old_log_energy = old_band_energy + energy_channels * st->mode->nbEBands;
   auto* old_log_energy2 = old_log_energy + energy_channels * st->mode->nbEBands;
   const auto band_count = static_cast<std::size_t>(energy_channels * st->mode->nbEBands);
@@ -6522,13 +6511,14 @@ struct celt_decoder_views {
 };
 [[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N) noexcept -> celt_decoder_views {
   const auto overlap = st->mode->overlap;
+  auto* const decode_storage = st->_decode_mem;
   celt_decoder_views views{};
   constexpr auto energy_channels = celt_decoder_energy_channel_count;
   for (int channel = 0; channel < st->channels; ++channel) {
-    views.decode_mem[channel] = st->_decode_mem + channel * (celt_decode_buffer_size + overlap);
+    views.decode_mem[channel] = decode_storage + channel * (celt_decode_buffer_size + overlap);
     views.out_syn[channel] = views.decode_mem[channel] + celt_decode_buffer_size - N;
   }
-  views.oldBandE = reinterpret_cast<celt_glog*>(st->_decode_mem + (celt_decode_buffer_size + overlap) * st->channels);
+  views.oldBandE = reinterpret_cast<celt_glog*>(decode_storage + (celt_decode_buffer_size + overlap) * st->channels);
   views.oldLogE = views.oldBandE + energy_channels * st->mode->nbEBands;
   views.oldLogE2 = views.oldLogE + energy_channels * st->mode->nbEBands;
   views.backgroundLogE = views.oldLogE2 + energy_channels * st->mode->nbEBands;
@@ -6581,13 +6571,13 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
 
 static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, const celt_coef* window, int overlap, int N, int pitch_index,
                                          int exc_length, opus_val16 fade, bool update_lpc) {
-  auto* exc_storage = OPUS_SCRATCH(opus_val16, celt_plc_max_period + celt_lpc_order);
-  auto* lpc_mem = OPUS_SCRATCH(opus_val16, celt_lpc_order);
-  auto* exc = exc_storage + celt_lpc_order;
+  std::array<opus_val16, celt_plc_max_period + celt_lpc_order> exc_storage;
+  std::array<opus_val16, celt_lpc_order> lpc_mem;
+  auto* exc = exc_storage.data() + celt_lpc_order;
   opus_val16 decay, attenuation;
   opus_val32 S1 = 0;
   copy_n_items(buf + celt_decode_buffer_size - celt_plc_max_period - celt_lpc_order,
-               static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage);
+               static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage.data());
   if (update_lpc) {
     std::array<opus_val32, celt_lpc_order + 1> ac;
     _celt_autocorr(exc, ac.data(), window, overlap, celt_lpc_order, celt_plc_max_period);
@@ -6628,7 +6618,8 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, const c
   for (int i = 0; i < celt_lpc_order; ++i) {
     lpc_mem[i] = buf[celt_decode_buffer_size - N - 1 - i];
   }
-  celt_iir(buf + celt_decode_buffer_size - N, lpc, buf + celt_decode_buffer_size - N, extrapolation_len, celt_lpc_order, lpc_mem);
+  celt_iir(buf + celt_decode_buffer_size - N, lpc, buf + celt_decode_buffer_size - N, extrapolation_len, celt_lpc_order,
+           lpc_mem.data());
   {
     opus_val32 S2 = 0;
     for (int i = 0; i < extrapolation_len; ++i) {
@@ -6652,9 +6643,9 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, const c
 
 static inline int celt_plc_pitch_search(std::span<celt_sig* const> decode_mem) {
   int pitch_index;
-  auto* lp_pitch_buf = OPUS_SCRATCH(opus_val16, (2048 >> 1));
-  pitch_downsample(decode_mem.data(), static_cast<int>(decode_mem.size()), lp_pitch_buf, 2048 >> 1, 2);
-  pitch_search(lp_pitch_buf + ((720) >> 1), lp_pitch_buf, 2048 - (720), (720) - (100), &pitch_index);
+  std::array<opus_val16, (2048 >> 1)> lp_pitch_buf;
+  pitch_downsample(decode_mem.data(), 2, lp_pitch_buf.data(), 2048 >> 1, 2);
+  pitch_search(lp_pitch_buf.data() + ((720) >> 1), lp_pitch_buf.data(), 2048 - (720), (720) - (100), &pitch_index);
   pitch_index = (720) - pitch_index;
   return (pitch_index);
 }
@@ -6729,8 +6720,7 @@ static void celt_decode_lost(CeltDecoderInternal* st, int N, int LM) {
     opus_val16 fade = 1.0f;
     int pitch_index;
     if (st->last_frame_type != 3) {
-      st->last_pitch_index = pitch_index =
-          celt_plc_pitch_search(std::span<celt_sig* const>{decode_mem.data(), static_cast<std::size_t>(C)});
+      st->last_pitch_index = pitch_index = celt_plc_pitch_search(std::span<celt_sig* const>{decode_mem.data(), static_cast<std::size_t>(C)});
     } else {
       pitch_index = st->last_pitch_index;
       fade = (.8f);
@@ -6958,8 +6948,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
 }
 
 static constexpr auto celt_pvq_table_row_count = 15U;
-static constexpr auto celt_pvq_fast_first_stored_row = 0U;
-static constexpr auto celt_pvq_fast_row_count = celt_pvq_table_row_count - celt_pvq_fast_first_stored_row;
+static constexpr auto celt_pvq_fast_row_count = celt_pvq_table_row_count;
 static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_row_max_columns{176, 176, 176, 176, 176, 176, 96, 54,
                                                                                                37,  28,  24,  19,  18,  16,  14};
 
@@ -6990,19 +6979,18 @@ static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows{};
 
 static void fill_celt_pvq_fast_rows() noexcept {
   for (std::size_t row_index = 0; row_index < celt_pvq_fast_row_count; ++row_index) {
-    const auto row = static_cast<int>(celt_pvq_fast_first_stored_row + row_index);
     const auto offset = celt_pvq_fast_row_offsets[row_index];
     for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
-      celt_pvq_u_fast_rows[offset + column] = celt_pvq_u_entry_raw(row, static_cast<int>(column));
+      celt_pvq_u_fast_rows[offset + column] = celt_pvq_u_entry_raw(static_cast<int>(row_index), static_cast<int>(column));
     }
   }
 }
 
 [[nodiscard]] static auto celt_pvq_u_entry_known_row(unsigned row_index, unsigned column_index) noexcept -> opus_uint32 {
-  if (row_index >= celt_pvq_table_row_count || column_index > celt_pvq_fast_row_max_columns[row_index - celt_pvq_fast_first_stored_row]) {
+  if (row_index >= celt_pvq_table_row_count || column_index > celt_pvq_fast_row_max_columns[row_index]) {
     return celt_pvq_u_entry_raw(static_cast<int>(row_index), static_cast<int>(column_index));
   }
-  return celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[row_index - celt_pvq_fast_first_stored_row] + column_index];
+  return celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[row_index] + column_index];
 }
 
 [[nodiscard]] static auto celt_pvq_u_entry_fast(unsigned row_index, unsigned column_index) noexcept -> opus_uint32 {
@@ -7026,8 +7014,7 @@ struct celt_pvq_u_row_ref {
 [[nodiscard]] static auto celt_pvq_u_row(int row) noexcept -> celt_pvq_u_row_ref {
   const auto row_index = static_cast<unsigned>(row);
   if (row_index < celt_pvq_table_row_count) {
-    return {row, celt_pvq_fast_row_max_columns[row_index - celt_pvq_fast_first_stored_row],
-            celt_pvq_u_fast_rows.data() + celt_pvq_fast_row_offsets[row_index - celt_pvq_fast_first_stored_row]};
+    return {row, celt_pvq_fast_row_max_columns[row_index], celt_pvq_u_fast_rows.data() + celt_pvq_fast_row_offsets[row_index]};
   }
   return {row, 0U, nullptr};
 }
@@ -7549,7 +7536,7 @@ void ec_encode(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
   ec_enc_normalize(_this);
 }
 
-void ec_encode_bin(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _bits) {
+static void ec_encode_bin(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _bits) {
   opus_uint32 r = _this->rng >> _bits;
   if (_fl > 0) {
     _this->val += _this->rng - ((r) * (((1U << _bits) - _fl)));
@@ -7616,7 +7603,7 @@ void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _bits) {
   _this->nbits_total += _bits;
 }
 
-void ec_enc_patch_initial_bits(ec_enc* _this, unsigned _val, unsigned _nbits) {
+static void ec_enc_patch_initial_bits(ec_enc* _this, unsigned _val, unsigned _nbits) {
   int shift;
   unsigned mask;
   shift = (8) - _nbits;
@@ -7750,7 +7737,7 @@ static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
     }
   } else {
     int j;
-    kiss_fft_cpx scratch[6];
+    std::array<kiss_fft_cpx, 6> scratch;
     const kiss_twiddle_cpx *tw1, *tw2, *tw3;
     const int m2 = 2 * m;
     const int m3 = 3 * m;
@@ -7813,7 +7800,7 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
   size_t k;
   const size_t m2 = 2 * m;
   const kiss_twiddle_cpx *tw1, *tw2;
-  kiss_fft_cpx scratch[5];
+  std::array<kiss_fft_cpx, 5> scratch;
   kiss_twiddle_cpx epi3;
   kiss_fft_cpx* Fout_beg = Fout;
   epi3 = st->twiddles[fstride * m];
@@ -7861,7 +7848,7 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
 static void kf_bfly5(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m, int N, int mm) {
   kiss_fft_cpx *Fout0, *Fout1, *Fout2, *Fout3, *Fout4;
   int i, u;
-  kiss_fft_cpx scratch[13];
+  std::array<kiss_fft_cpx, 13> scratch;
   const kiss_twiddle_cpx* tw;
   kiss_twiddle_cpx ya, yb;
   kiss_fft_cpx* Fout_beg = Fout;
@@ -8566,7 +8553,7 @@ static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp,
 static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
   int i;
   for (i = 0; i < max_pitch - 3; i += 4) {
-    opus_val32 sum[4] = {0, 0, 0, 0};
+    std::array<opus_val32, 4> sum{};
     xcorr_kernel_c(x, y + i, sum, len);
     xcorr[i] = sum[0];
     xcorr[i + 1] = sum[1];
@@ -8582,7 +8569,7 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
   int i, j;
   int lag;
-  int best_pitch[2] = {0, 0};
+  std::array<int, 2> best_pitch{};
   int offset;
   lag = len + max_pitch;
   auto* x_lp4 = OPUS_SCRATCH(opus_val16, static_cast<std::size_t>(len >> 2));
@@ -8595,7 +8582,7 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
     y_lp4[j] = y[2 * j];
   }
   celt_pitch_xcorr_c(x_lp4, y_lp4, xcorr, len >> 2, max_pitch >> 2);
-  find_best_pitch(xcorr, y_lp4, len >> 2, max_pitch >> 2, best_pitch);
+  find_best_pitch(xcorr, y_lp4, len >> 2, max_pitch >> 2, best_pitch.data());
   for (i = 0; i < max_pitch >> 1; i++) {
     opus_val32 sum;
     xcorr[i] = 0;
@@ -8605,7 +8592,7 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
     sum = celt_inner_prod_c(x_lp, y + i, len >> 1);
     xcorr[i] = std::max(-1.f, sum);
   }
-  find_best_pitch(xcorr, y, len >> 1, max_pitch >> 1, best_pitch);
+  find_best_pitch(xcorr, y, len >> 1, max_pitch >> 1, best_pitch.data());
   if (best_pitch[0] > 0 && best_pitch[0] < (max_pitch >> 1) - 1) {
     opus_val32 a, b, c;
     a = xcorr[best_pitch[0] - 1];
@@ -8624,7 +8611,7 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
 }
 
 static opus_val16 compute_pitch_gain(opus_val32 xy, opus_val32 xx, opus_val32 yy) {
-  return xy / ((float)sqrt(1 + xx * yy));
+  return xy / ((float)std::sqrt(1 + xx * yy));
 }
 
 constexpr std::array<opus_uint8, 16> second_check{0, 0, 3, 2, 3, 2, 5, 2, 3, 2, 3, 2, 5, 2, 3, 2};
@@ -8633,7 +8620,7 @@ static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, i
   opus_val16 g, g0;
   opus_val16 pg;
   opus_val32 xy, xx, yy, xy2;
-  opus_val32 xcorr[3];
+  std::array<opus_val32, 3> xcorr;
   opus_val32 best_xy, best_yy;
   int offset, minperiod0;
   minperiod0 = minperiod;
@@ -8648,7 +8635,7 @@ static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, i
   }
   T = T0 = *T0_;
   auto* yy_lookup = OPUS_SCRATCH(opus_val32, static_cast<std::size_t>(maxperiod + 1));
-  dual_inner_prod_c(x, x, x - T0, N, &xx, &xy);
+  dual_inner_prod_c(x, x, x - T0, N, xx, xy);
   yy_lookup[0] = xx;
   yy = xx;
   for (i = 1; i <= maxperiod; i++) {
@@ -8674,7 +8661,7 @@ static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, i
     } else {
       T1b = celt_udiv(2 * second_check[k] * T0 + k, 2 * k);
     }
-    dual_inner_prod_c(x, &x[-T1], &x[-T1b], N, &xy, &xy2);
+    dual_inner_prod_c(x, &x[-T1], &x[-T1b], N, xy, xy2);
     xy = (.5f * (xy + xy2));
     yy = (.5f * (yy_lookup[T1] + yy_lookup[T1b]));
     g1 = compute_pitch_gain(xy, xx, yy);
@@ -8701,7 +8688,7 @@ static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, i
     int T1, T2;
     T1 = T * 5 / 8;
     T2 = T * 6 / 8;
-    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, &xy, &xy2);
+    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, xy, xy2);
     g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);
     g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);
     if (g1 >= g || g2 >= g) {
@@ -8714,7 +8701,7 @@ static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, i
   } else
     pg = (((float)(best_xy) / (best_yy + 1)));
   for (k = 0; k < 3; k++) {
-    xcorr[k] = celt_inner_prod_c(x, x - (T + k - 1), N);
+    xcorr[static_cast<std::size_t>(k)] = celt_inner_prod_c(x, x - (T + k - 1), N);
   }
   if ((xcorr[2] - xcorr[0]) > (((.7f)) * (xcorr[1] - xcorr[0]))) {
     offset = 1;
@@ -8767,7 +8754,7 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
   auto* rnum = rnum_storage.data();
   std::reverse_copy(num, num + ord, rnum);
   for (i = 0; i < N - 3; i += 4) {
-    opus_val32 sum[4];
+    std::array<opus_val32, 4> sum;
     sum[0] = ((x[i]));
     sum[1] = ((x[i + 1]));
     sum[2] = ((x[i + 2]));
@@ -8797,7 +8784,7 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
   }
   zero_n_items(y + ord, static_cast<std::size_t>(N));
   for (i = 0; i < N - 3; i += 4) {
-    opus_val32 sum[4];
+    std::array<opus_val32, 4> sum;
     sum[0] = _x[i];
     sum[1] = _x[i + 1];
     sum[2] = _x[i + 2];
@@ -8887,7 +8874,7 @@ static void quant_coarse_energy_impl(const CeltModeInternal* m, int start, int e
                                      opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_enc* enc,
                                      int C, int LM, int intra, celt_glog max_decay) {
   int i, c;
-  opus_val32 prev[2] = {0, 0};
+  std::array<opus_val32, 2> prev{};
   opus_val16 coef, beta;
   if (tell + 3 <= budget) {
     ec_enc_bit_logp(enc, intra, 3);
@@ -9053,7 +9040,7 @@ static void unquant_coarse_energy(const CeltModeInternal* m, int start, int end,
                                   int LM) {
   const unsigned char* prob_model = e_prob_model[static_cast<std::size_t>(LM * 2 + intra)].data();
   int i, c;
-  opus_val64 prev[2] = {0, 0};
+  std::array<opus_val64, 2> prev{};
   opus_val16 coef, beta;
   opus_int32 budget, tell;
   if (intra) {
@@ -9109,7 +9096,7 @@ static void amp2Log2(const CeltModeInternal* m, int effEnd, int end, celt_ener* 
   for (c = 0; c < C; ++c) {
     for (i = 0; i < effEnd; i++) {
       bandLogE[i + c * m->nbEBands] =
-          static_cast<float>(1.442695040888963387 * ::log(static_cast<double>(bandE[i + c * m->nbEBands]))) - ((celt_glog)eMeans[i]);
+          static_cast<float>(1.442695040888963387 * std::log(static_cast<double>(bandE[i + c * m->nbEBands]))) - ((celt_glog)eMeans[i]);
     }
     for (i = effEnd; i < end; i++) {
       bandLogE[c * m->nbEBands + i] = -(14.f);
@@ -9262,7 +9249,7 @@ static int interp_bits2pulses(const CeltModeInternal* m, int start, int end, int
         offset += NClogN >> 2;
       } else if (bits[j] + offset < den * 3 << 3)
         offset += NClogN >> 3;
-      ebits[j] = ((0) > ((bits[j] + offset + (den << (3 - 1)))) ? (0) : ((bits[j] + offset + (den << (3 - 1)))));
+      ebits[j] = std::max(0, bits[j] + offset + (den << (3 - 1)));
       ebits[j] = celt_udiv(ebits[j], den) >> 3;
       if (C * ebits[j] > (bits[j] >> 3)) {
         ebits[j] = bits[j] >> stereo >> 3;
@@ -9271,7 +9258,7 @@ static int interp_bits2pulses(const CeltModeInternal* m, int start, int end, int
       fine_priority[j] = ebits[j] * (den << 3) >= bits[j] + offset;
       bits[j] -= C * ebits[j] << 3;
     } else {
-      excess = ((0) > (bit - (C << 3)) ? (0) : (bit - (C << 3)));
+      excess = std::max(0, bit - (C << 3));
       bits[j] = bit - excess;
       ebits[j] = 0;
       fine_priority[j] = 1;
@@ -9437,8 +9424,8 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
   factor = SPREAD_FACTOR[spread - 1];
   gain = (((opus_val32)((opus_val32)(((opus_val16)1.f)) * (opus_val32)(len))) / ((opus_val32)(len + factor * K)));
   theta = (.5f * (((gain) * (gain))));
-  c = ((float)cos((.5f * 3.1415926535897931) * ((theta))));
-  s = ((float)sin((.5f * 3.1415926535897931) * (theta)));
+  c = ((float)std::cos((.5f * 3.1415926535897931) * ((theta))));
+  s = ((float)std::sin((.5f * 3.1415926535897931) * (theta)));
   if (len >= 8 * stride) {
     stride2 = 1;
     for (; (stride2 * stride2 + stride2) * stride + (stride >> 2) < len; ++stride2) {}
@@ -9461,7 +9448,7 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
 
 template <typename Pulse>
 static unsigned normalise_residual_and_extract_collapse_mask(const Pulse* iy, celt_norm* X, int N, int B, opus_val32 Ryy, opus_val32 gain) {
-  const opus_val32 g = (1.f / sqrtf(Ryy)) * gain;
+  const opus_val32 g = (1.f / std::sqrt(Ryy)) * gain;
   if (B <= 1) {
     for (int index = 0; index < N; ++index) {
       X[index] = static_cast<opus_val32>(iy[index]) * g;
@@ -9514,7 +9501,7 @@ static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N) {
   sum = 0;
   for (j = 0; j < N; ++j) {
     signx[j] = X[j] < 0;
-    X[j] = ((float)fabs(X[j]));
+    X[j] = ((float)std::fabs(X[j]));
     iy[j] = 0;
     y[j] = 0;
   }
@@ -9546,7 +9533,7 @@ static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N) {
     }
     rcp = (((K + 0.8f) * ((1.f / (sum)))));
     for (j = 0; j < N; ++j) {
-      iy[j] = (int)floor(rcp * X[j]);
+      iy[j] = (int)std::floor(rcp * X[j]);
       y[j] = (celt_norm)iy[j];
       yy = ((yy) + (opus_val32)(y[j]) * (opus_val32)(y[j]));
       xy = ((xy) + (opus_val32)(X[j]) * (opus_val32)(y[j]));
@@ -9684,7 +9671,7 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
     }
 
     zero_n_items(X, static_cast<std::size_t>(N));
-    const opus_val32 g = (1.f / sqrtf(Ryy)) * gain;
+    const opus_val32 g = (1.f / std::sqrt(Ryy)) * gain;
     X[pos0] = static_cast<opus_val32>(val0) * g;
     if (pos1 >= 0) {
       X[pos1] = static_cast<opus_val32>(val1) * g;
@@ -9711,7 +9698,7 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
     auto writer = celt_pvq_sparse_writer{positions, values, count};
     const opus_val32 Ryy = celt_pvq_decode_unrank(N, K, dec, writer);
     zero_n_items(X, static_cast<std::size_t>(N));
-    const opus_val32 g = (1.f / sqrtf(Ryy)) * gain;
+    const opus_val32 g = (1.f / std::sqrt(Ryy)) * gain;
     for (int index = 0; index < count; ++index) {
       X[positions[static_cast<std::size_t>(index)]] = static_cast<opus_val32>(values[static_cast<std::size_t>(index)]) * g;
     }
@@ -9745,7 +9732,7 @@ static void renormalise_vector(celt_norm* X, int N, opus_val32 gain) {
   celt_norm* xptr;
   E = 1e-15f + celt_inner_prod_c(X, X, N);
   t = (E);
-  g = ((((1.f / (sqrtf(t)))) * (gain)));
+  g = ((((1.f / (std::sqrt(t)))) * (gain)));
   xptr = X;
   for (i = 0; i < N; i++) {
     *xptr = ((((opus_val32)(g) * (opus_val32)(*xptr))));
@@ -9770,9 +9757,9 @@ static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int ster
     Emid += celt_inner_prod_c(X, X, N);
     Eside += celt_inner_prod_c(Y, Y, N);
   }
-  mid = sqrtf(Emid);
-  side = sqrtf(Eside);
-  itheta = (int)floor(.5f + 65536.f * 16384 * celt_atan2p_norm(side, mid));
+  mid = std::sqrt(Emid);
+  side = std::sqrt(Eside);
+  itheta = (int)std::floor(.5f + 65536.f * 16384 * celt_atan2p_norm(side, mid));
   return itheta;
 }
 
@@ -9808,7 +9795,7 @@ static void silk_CNG_Reset(silk_decoder_state* psDec) {
   psCNG->rand_seed = 3176576;
 }
 
-void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_int16 frame[], int length) {
+static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_int16 frame[], int length) {
   int i, subfr;
   opus_int32 LPC_pred_Q10, max_Gain_Q16, gain_Q16, gain_Q10;
   opus_int16 A_Q12[16];
@@ -9849,8 +9836,7 @@ void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_i
     }
   }
   if (generates_cng) {
-    std::array<opus_int32, silk_max_frame_length + 16> CNG_sig_Q14_storage{};
-    auto* CNG_sig_Q14 = CNG_sig_Q14_storage.data();
+    opus_int32 CNG_sig_Q14[silk_max_frame_length + 16]{};
     gain_Q16 = ((opus_int32)(((opus_int64)(psDec->sPLC.randScale_Q14) * (psDec->sPLC.prevGain_Q16[1])) >> 16));
     if (gain_Q16 >= (1 << 21) || psCNG->CNG_smth_Gain_Q16 > (1 << 23)) {
       gain_Q16 = (((gain_Q16) >> 16) * ((gain_Q16) >> 16));
@@ -9881,7 +9867,7 @@ void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_i
 
 template <bool Encode, typename Coder, typename PulseSpan>
 void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, const int quantOffsetType, std::span<const int> sum_pulses) {
-  std::array<opus_uint8, 2> icdf{0, 0};
+  opus_uint8 icdf[2] = {0, 0};
   const auto* icdf_ptr = silk_sign_iCDF.data() + 7 * (quantOffsetType + (signalType << 1));
   for (auto block_index = std::size_t{}; block_index < sum_pulses.size(); ++block_index) {
     const auto pulse_count = sum_pulses[block_index];
@@ -9894,10 +9880,10 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
       auto& pulse = pulse_block[pulse_index];
       if constexpr (Encode) {
         if (pulse != 0) {
-          ec_enc_icdf(coder, (pulse >> 15) + 1, icdf.data(), 8);
+          ec_enc_icdf(coder, (pulse >> 15) + 1, icdf, 8);
         }
       } else if (pulse > 0) {
-        pulse *= static_cast<opus_int16>((ec_dec_icdf(coder, icdf.data(), 8) << 1) - 1);
+        pulse *= static_cast<opus_int16>((ec_dec_icdf(coder, icdf, 8) << 1) - 1);
       }
     }
   }
@@ -9913,7 +9899,7 @@ void silk_decode_signs(ec_dec* psRangeDec, std::span<opus_int16> pulses, const i
   silk_process_signs<false>(psRangeDec, pulses, signalType, quantOffsetType, sum_pulses);
 }
 
-void silk_reset_decoder(silk_decoder_state* psDec) {
+static void silk_reset_decoder(silk_decoder_state* psDec) {
   silk_release_cng(psDec);
   const auto reset_offset = reinterpret_cast<std::byte*>(&psDec->prev_gain_Q16) - reinterpret_cast<std::byte*>(psDec);
   zero_n_bytes(&psDec->prev_gain_Q16, sizeof(silk_decoder_state) - static_cast<std::size_t>(reset_offset));
@@ -9923,13 +9909,13 @@ void silk_reset_decoder(silk_decoder_state* psDec) {
   silk_PLC_Reset(psDec);
 }
 
-void silk_init_decoder(silk_decoder_state* psDec) {
+static void silk_init_decoder(silk_decoder_state* psDec) {
   silk_release_cng(psDec);
   zero_n_bytes(psDec, static_cast<std::size_t>(sizeof(silk_decoder_state)));
   silk_reset_decoder(psDec);
 }
 
-void silk_decode_core(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_int16 xq[],
+static void silk_decode_core(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_int16 xq[],
                       const opus_int16 pulses[((5 * 4) * 16)]) {
   int i, k, lag = 0, start_idx, sLTP_buf_idx, NLSF_interpolation_flag, signalType;
   const opus_int16* A_Q12;
@@ -9967,8 +9953,8 @@ void silk_decode_core(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl
   sLTP_buf_idx = psDec->ltp_mem_length;
   for (k = 0; k < psDec->nb_subfr; k++) {
     pres_Q14 = res_Q14;
-    A_Q12 = psDecCtrl->PredCoef_Q12[k >> 1];
-    B_Q14 = &psDecCtrl->LTPCoef_Q14[k * 5];
+    A_Q12 = psDecCtrl->PredCoef_Q12[static_cast<std::size_t>(k >> 1)];
+    B_Q14 = psDecCtrl->LTPCoef_Q14 + k * 5;
     signalType = psDec->indices.signalType;
     const auto* b_q14_coefficients = B_Q14;
     Gain_Q10 = ((psDecCtrl->Gains_Q16[k]) >> (6));
@@ -10038,38 +10024,38 @@ void silk_decode_core(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl
   copy_n_bytes(sLPC_Q14, static_cast<std::size_t>(16 * sizeof(opus_int32)), psDec->sLPC_Q14_buf);
 }
 
-void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
+static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
   int L, mv_len;
   L = psDec->frame_length;
-  silk_decoder_control psDecCtrl[1];
-  psDecCtrl->LTP_scale_Q14 = 0;
+  silk_decoder_control psDecCtrl;
+  psDecCtrl.LTP_scale_Q14 = 0;
   if (lostFlag == 0 || (lostFlag == 2 && psDec->LBRR_flags[psDec->nFramesDecoded] == 1)) {
     auto pulses = std::span<opus_int16>{OPUS_SCRATCH(opus_int16, static_cast<std::size_t>((L + 16 - 1) & ~(16 - 1))),
                                         static_cast<std::size_t>((L + 16 - 1) & ~(16 - 1))};
     silk_decode_indices(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding);
     silk_decode_pulses(psRangeDec, pulses, psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
-    silk_decode_parameters(psDec, psDecCtrl, condCoding);
-    silk_decode_core(psDec, psDecCtrl, pOut, pulses.data());
+    silk_decode_parameters(psDec, &psDecCtrl, condCoding);
+    silk_decode_core(psDec, &psDecCtrl, pOut, pulses.data());
     mv_len = psDec->ltp_mem_length - psDec->frame_length;
     move_n_bytes(&psDec->outBuf[psDec->frame_length], static_cast<std::size_t>(mv_len * sizeof(opus_int16)), psDec->outBuf);
     copy_n_bytes(pOut, static_cast<std::size_t>(psDec->frame_length * sizeof(opus_int16)), &psDec->outBuf[mv_len]);
-    silk_PLC(psDec, psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
+    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
     psDec->lossCnt = 0;
     psDec->prevSignalType = psDec->indices.signalType;
     psDec->first_frame_after_reset = 0;
   } else {
-    silk_PLC(psDec, psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
+    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
     mv_len = psDec->ltp_mem_length - psDec->frame_length;
     move_n_bytes(&psDec->outBuf[psDec->frame_length], static_cast<std::size_t>(mv_len * sizeof(opus_int16)), psDec->outBuf);
     copy_n_bytes(pOut, static_cast<std::size_t>(psDec->frame_length * sizeof(opus_int16)), &psDec->outBuf[mv_len]);
   }
-  silk_CNG(psDec, psDecCtrl, pOut, L);
+  silk_CNG(psDec, &psDecCtrl, pOut, L);
   silk_PLC_glue_frames(psDec, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)});
-  psDec->lagPrev = psDecCtrl->pitchL[psDec->nb_subfr - 1];
+  psDec->lagPrev = psDecCtrl.pitchL[psDec->nb_subfr - 1];
   *pN = L;
 }
 
-void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, int condCoding) {
+static void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, int condCoding) {
   int i, k, Ix;
   opus_int16 pNLSF_Q15[16], pNLSF0_Q15[16];
   const opus_int8* cbk_ptr_Q7;
@@ -10085,7 +10071,8 @@ void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psD
     }
     silk_NLSF2A(psDecCtrl->PredCoef_Q12[0], pNLSF0_Q15, psDec->LPC_order);
   } else {
-    copy_n_bytes(psDecCtrl->PredCoef_Q12[1], static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)), psDecCtrl->PredCoef_Q12[0]);
+    copy_n_bytes(psDecCtrl->PredCoef_Q12[1], static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)),
+                 psDecCtrl->PredCoef_Q12[0]);
   }
   copy_n_bytes(pNLSF_Q15, static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)), psDec->prevNLSF_Q15);
   if (psDec->lossCnt) {
@@ -10098,7 +10085,7 @@ void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psD
     for (k = 0; k < psDec->nb_subfr; k++) {
       Ix = psDec->indices.LTPIndex[k];
       for (i = 0; i < 5; i++) {
-        psDecCtrl->LTPCoef_Q14[k * 5 + i] = ((opus_int32)((opus_uint32)(cbk_ptr_Q7[Ix * 5 + i]) << (7)));
+        psDecCtrl->LTPCoef_Q14[static_cast<std::size_t>(k * 5 + i)] = ((opus_int32)((opus_uint32)(cbk_ptr_Q7[Ix * 5 + i]) << (7)));
       }
     }
     Ix = psDec->indices.LTP_scaleIndex;
@@ -10111,7 +10098,7 @@ void silk_decode_parameters(silk_decoder_state* psDec, silk_decoder_control* psD
   }
 }
 
-void silk_decode_indices(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding) {
+static void silk_decode_indices(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding) {
   int i, k, Ix;
   int decode_absolute_lagIndex, delta_lagIndex;
   opus_int16 ec_ix[16];
@@ -10230,7 +10217,7 @@ void silk_decode_pulses(ec_dec* psRangeDec, std::span<opus_int16> pulses, const 
                     std::span<const int>{sum_pulses, static_cast<std::size_t>(iter)});
 }
 
-void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int32 fs_API_Hz) {
+static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int32 fs_API_Hz) {
   int frame_length;
   psDec->subfr_length = ((opus_int32)((opus_int16)(5)) * (opus_int32)((opus_int16)(fs_kHz)));
   frame_length = ((opus_int32)((opus_int16)(psDec->nb_subfr)) * (opus_int32)((opus_int16)(psDec->subfr_length)));
@@ -10271,13 +10258,13 @@ struct silk_decoder_channel_view {
 };
 [[nodiscard]] static auto silk_ensure_side_channel(silk_decoder* decoder) noexcept -> silk_decoder_state* {
   if (decoder->side_channel_state == nullptr) {
-    auto side = opus_owned_ptr<silk_decoder_state>(static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state))));
-    if (!side) {
+    auto* side = static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state)));
+    if (side == nullptr) {
       return nullptr;
     }
     side->sCNG = nullptr;
-    silk_init_decoder(side.get());
-    decoder->side_channel_state = side.release();
+    silk_init_decoder(side);
+    decoder->side_channel_state = side;
   }
   return decoder->side_channel_state;
 }
@@ -10303,7 +10290,7 @@ static void silk_destroy_decoder(void* decState) noexcept {
   return static_cast<int>(sizeof(silk_decoder));
 }
 
-void silk_ResetDecoder(void* decState) {
+static void silk_ResetDecoder(void* decState) {
   auto* decoder = static_cast<silk_decoder*>(decState);
   silk_reset_decoder(&decoder->channel_state);
   silk_release_side_channel(decoder);
@@ -10311,7 +10298,7 @@ void silk_ResetDecoder(void* decState) {
   decoder->prev_decode_only_middle = 0;
 }
 
-void silk_InitDecoder(void* decState) {
+static void silk_InitDecoder(void* decState) {
   auto* decoder = static_cast<silk_decoder*>(decState);
   silk_destroy_decoder(decoder);
   zero_n_bytes(decoder, sizeof(silk_decoder));
@@ -10361,9 +10348,9 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
                 opus_res* samplesOut, opus_int16* samplesOut16, opus_int32* nSamplesOut) {
   int i, n, decode_only_middle = 0;
   opus_int32 nSamplesOutDec = 0, LBRR_symbol;
-  opus_int16* samplesOut1_tmp[2];
-  opus_int32 MS_pred_Q13[2] = {0};
-  silk_decoder* psDec = (silk_decoder*)decState;
+  std::array<opus_int16*, 2> samplesOut1_tmp;
+  std::array<opus_int32, 2> MS_pred_Q13{};
+  silk_decoder* psDec = static_cast<silk_decoder*>(decState);
   if ((decControl->nChannelsInternal == 2 || psDec->nChannelsInternal == 2 || decControl->nChannelsAPI == 2) &&
       silk_ensure_side_channel(psDec) == nullptr)
     return -1;
@@ -10443,12 +10430,12 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
       for (i = 0; i < channel_state[0].nFramesPerPacket; i++) {
         for (n = 0; n < decControl->nChannelsInternal; n++) {
           if (channel_state[n].LBRR_flags[i]) {
-            opus_int16 pulses[((5 * 4) * 16)];
+            std::array<opus_int16, ((5 * 4) * 16)> pulses;
             int condCoding;
             if (decControl->nChannelsInternal == 2 && n == 0) {
               silk_stereo_decode_pred(psRangeDec, MS_pred_Q13);
               if (channel_state[1].LBRR_flags[i] == 0) {
-                silk_stereo_decode_mid_only(psRangeDec, &decode_only_middle);
+                silk_stereo_decode_mid_only(psRangeDec, decode_only_middle);
               }
             }
             if (i > 0 && channel_state[n].LBRR_flags[i - 1]) {
@@ -10458,7 +10445,8 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
             }
             silk_decode_indices(&channel_state[n], psRangeDec, i, 1, condCoding);
             silk_decode_pulses(
-                psRangeDec, std::span<opus_int16>{pulses, static_cast<std::size_t>(((channel_state[n].frame_length + 16 - 1) & ~(16 - 1)))},
+                psRangeDec,
+                std::span<opus_int16>{pulses.data(), static_cast<std::size_t>(((channel_state[n].frame_length + 16 - 1) & ~(16 - 1)))},
                 channel_state[n].indices.signalType, channel_state[n].indices.quantOffsetType, channel_state[n].frame_length);
           }
         }
@@ -10470,7 +10458,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
       silk_stereo_decode_pred(psRangeDec, MS_pred_Q13);
       if ((lostFlag == 0 && channel_state[1].VAD_flags[channel_state[0].nFramesDecoded] == 0) ||
           (lostFlag == 2 && channel_state[1].LBRR_flags[channel_state[0].nFramesDecoded] == 0)) {
-        silk_stereo_decode_mid_only(psRangeDec, &decode_only_middle);
+        silk_stereo_decode_mid_only(psRangeDec, decode_only_middle);
       } else {
         decode_only_middle = 0;
       }
@@ -10517,15 +10505,14 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
     channel_state[n].nFramesDecoded++;
   }
   if (decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 2) {
-    silk_stereo_MS_to_LR(&psDec->sStereo, samplesOut1_tmp[0], samplesOut1_tmp[1], MS_pred_Q13, channel_state[0].fs_kHz, nSamplesOutDec);
+    silk_stereo_MS_to_LR(&psDec->sStereo, samplesOut1_tmp[0], samplesOut1_tmp[1], MS_pred_Q13.data(), channel_state[0].fs_kHz, nSamplesOutDec);
   } else {
-    copy_n_bytes(psDec->sStereo.sMid, static_cast<std::size_t>(2 * sizeof(opus_int16)), samplesOut1_tmp[0]);
-    copy_n_bytes(&samplesOut1_tmp[0][nSamplesOutDec], static_cast<std::size_t>(2 * sizeof(opus_int16)), psDec->sStereo.sMid);
+    copy_n_bytes(psDec->sStereo.sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), samplesOut1_tmp[0]);
+    copy_n_bytes(&samplesOut1_tmp[0][nSamplesOutDec], static_cast<std::size_t>(2 * sizeof(opus_int16)), psDec->sStereo.sMid.data());
   }
   *nSamplesOut = ((opus_int32)((nSamplesOutDec * decControl->API_sampleRate) /
                                (((opus_int32)((opus_int16)(channel_state[0].fs_kHz)) * (opus_int32)((opus_int16)(1000))))));
-  std::array<opus_int16, opus_20ms_frame_samples_48k> samplesOut2_tmp_storage;
-  auto* samplesOut2_tmp = samplesOut2_tmp_storage.data();
+  opus_int16 samplesOut2_tmp[opus_20ms_frame_samples_48k];
   for (n = 0; n < std::min(decControl->nChannelsAPI, decControl->nChannelsInternal); n++) {
     silk_resample_and_store_channel(channel_state[n], samplesOut2_tmp, &samplesOut1_tmp[n][1], nSamplesOutDec, samplesOut, samplesOut16,
                                     *nSamplesOut, decControl->nChannelsAPI, n);
@@ -10561,16 +10548,17 @@ static void silk_HP_variable_cutoff(silk_encoder_state_FLP state_Fxx[]);
 static void silk_encode_do_VAD_FLP(silk_encoder_state_FLP* psEnc, int activity);
 static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float* pitch_res,
                                           const float* x);
-static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length, const int order);
 static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding);
 static void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, float res[], const float x[]);
 static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[],
                                      const float x[], int condCoding);
-static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4],
-                                         const int subfr_length, const int nb_subfr, const int pre_length);
 static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length,
                                             const int nb_subfr, const int LPC_order);
 static void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], const float s[], const int length, const int Order);
+static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4],
+                                         const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length);
+static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length,
+                                                   const int order);
 static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index,
                                             opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5],
                                             const float xX[4 * 5], const int subfr_len, const int nb_subfr);
@@ -10635,7 +10623,7 @@ static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 
   return static_cast<int>(sizeof(silk_encoder) - (channels == 1 ? sizeof(silk_encoder_state_FLP) : 0));
 }
 
-void silk_InitEncoder(void* encState, int channels) {
+static void silk_InitEncoder(void* encState, int channels) {
   auto* psEnc = static_cast<silk_encoder*>(encState);
   zero_n_bytes(psEnc, static_cast<std::size_t>(sizeof(silk_encoder) - (channels == 1) * sizeof(silk_encoder_state_FLP)));
   for (int n = 0; n < channels; n++) {
@@ -10645,14 +10633,14 @@ void silk_InitEncoder(void* encState, int channels) {
   psEnc->nChannelsInternal = 1;
 }
 
-int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc,
+static int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc,
                 opus_int32* nBytesOut, const int prefillFlag, int activity) {
   int n, i, nBits, flags, tmp_payloadSize_ms = 0, tmp_complexity = 0;
   int nSamplesToBuffer, nSamplesToBufferMax, nBlocksOf10ms;
   int nSamplesFromInput = 0, nSamplesFromInputMax;
   int speech_act_thr_for_switch_Q8;
   opus_int32 TargetRate_bps, MStargetRates_bps[2], channelRate_bps, sum;
-  silk_encoder* psEnc = (silk_encoder*)encState;
+  silk_encoder* psEnc = static_cast<silk_encoder*>(encState);
   int curr_block, tot_blocks;
   for (n = 0; n < encControl->nChannelsAPI; n++) {
     psEnc->state_Fxx[n].sCmn.nFramesEncoded = 0;
@@ -10671,8 +10659,8 @@ int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_re
     if (psEnc->nChannelsAPI == 2) {
       copy_n_bytes(&psEnc->state_Fxx[0].sCmn.resampler_state, static_cast<std::size_t>(sizeof(silk_resampler_state_struct)),
                    &psEnc->state_Fxx[1].sCmn.resampler_state);
-      copy_n_bytes(&psEnc->state_Fxx[0].sCmn.In_HP_State, static_cast<std::size_t>(sizeof(psEnc->state_Fxx[1].sCmn.In_HP_State)),
-                   &psEnc->state_Fxx[1].sCmn.In_HP_State);
+      copy_n_bytes(psEnc->state_Fxx[0].sCmn.In_HP_State.data(), static_cast<std::size_t>(sizeof(psEnc->state_Fxx[1].sCmn.In_HP_State)),
+                   psEnc->state_Fxx[1].sCmn.In_HP_State.data());
     }
   }
   psEnc->nChannelsAPI = encControl->nChannelsAPI;
@@ -10776,7 +10764,7 @@ int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_re
     psEnc->allowBandwidthSwitch = 0;
     if (psEnc->state_Fxx[0].sCmn.inputBufIx >= psEnc->state_Fxx[0].sCmn.frame_length) {
       if (psEnc->state_Fxx[0].sCmn.nFramesEncoded == 0 && !prefillFlag) {
-        opus_uint8 iCDF[2] = {0, 0};
+        opus_uint8 iCDF[2] = {};
         iCDF[0] = 256 - ((256) >> ((psEnc->state_Fxx[0].sCmn.nFramesPerPacket + 1) * encControl->nChannelsInternal));
         { ec_enc_icdf(psRangeEnc, 0, iCDF, 8); }
       }
@@ -10811,6 +10799,7 @@ int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_re
         } else {
           psEnc->state_Fxx[1].sCmn.VAD_flags[frame_index] = 0;
         }
+
         if (!prefillFlag) {
           {
             silk_stereo_encode_pred(psRangeEnc, psEnc->sStereo.predIx[frame_index]);
@@ -10820,9 +10809,9 @@ int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_re
           }
         }
       } else {
-        copy_n_bytes(psEnc->sStereo.sMid, static_cast<std::size_t>(2 * sizeof(opus_int16)), psEnc->state_Fxx[0].sCmn.inputBuf);
+        copy_n_bytes(psEnc->sStereo.sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), psEnc->state_Fxx[0].sCmn.inputBuf);
         copy_n_bytes(&psEnc->state_Fxx[0].sCmn.inputBuf[psEnc->state_Fxx[0].sCmn.frame_length],
-                     static_cast<std::size_t>(2 * sizeof(opus_int16)), psEnc->sStereo.sMid);
+                     static_cast<std::size_t>(2 * sizeof(opus_int16)), psEnc->sStereo.sMid.data());
       }
       silk_encode_do_VAD_FLP(&psEnc->state_Fxx[0], activity);
       for (n = 0; n < encControl->nChannelsInternal; n++) {
@@ -10912,7 +10901,7 @@ int silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_re
   return 0;
 }
 
-void silk_encode_indices(silk_encoder_state* psEncC, ec_enc* psRangeEnc, int condCoding) {
+static void silk_encode_indices(silk_encoder_state* psEncC, ec_enc* psRangeEnc, int condCoding) {
   int i, k, typeOffset, encode_absolute_lagIndex, delta_lagIndex;
   opus_int16 ec_ix[16];
   opus_uint8 pred_Q8[16];
@@ -10998,7 +10987,7 @@ static auto combine_and_check(std::span<int> pulses_comb, std::span<const int> p
   return 0;
 }
 
-void silk_encode_pulses(ec_enc* psRangeEnc, const int signalType, const int quantOffsetType, std::span<opus_int8> pulses,
+static void silk_encode_pulses(ec_enc* psRangeEnc, const int signalType, const int quantOffsetType, std::span<opus_int8> pulses,
                         const int frame_length) {
   int i, k, j, iter, bit, nLS, scale_down, RateLevelIndex = 0;
   opus_int32 abs_q, minSumBits_Q5, sumBits_Q5;
@@ -11090,7 +11079,7 @@ void silk_encode_pulses(ec_enc* psRangeEnc, const int signalType, const int quan
                     std::span<const int>{sum_pulses, static_cast<std::size_t>(iter)});
 }
 
-void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
+static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
   int k, double_step_size_threshold;
   for (k = 0; k < nb_subfr; k++) {
     ind[k] = ((opus_int32)(((((65536 * (64 - 1)) / (((88 - 2) * 128) / 6))) *
@@ -11147,7 +11136,7 @@ void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int
   }
 }
 
-opus_int32 silk_gains_ID(const opus_int8 ind[4], const int nb_subfr) {
+static opus_int32 silk_gains_ID(const opus_int8 ind[4], const int nb_subfr) {
   int k;
   opus_int32 gainsID = 0;
   for (k = 0; k < nb_subfr; k++) {
@@ -11208,29 +11197,24 @@ static void silk_LP_interpolate_filter_taps(opus_int32 B_Q28[3], opus_int32 A_Q2
   }
 }
 
-void silk_LP_variable_cutoff(silk_LP_state* psLP, opus_int16* frame, const int frame_length) {
-  opus_int32 B_Q28[3], A_Q28[2], fac_Q16 = 0;
+static void silk_LP_variable_cutoff(silk_LP_state* psLP, opus_int16* frame, const int frame_length) {
+  constexpr auto transition_frames = 5120 / (5 * 4);
+  std::array<opus_int32, 3> B_Q28{};
+  std::array<opus_int32, 2> A_Q28{};
+  opus_int32 fac_Q16 = 0;
   int ind = 0;
   if (psLP->mode != 0) {
-    fac_Q16 = ((opus_int32)((opus_uint32)((5120 / (5 * 4)) - psLP->transition_frame_no) << (16 - 6)));
+    fac_Q16 = ((opus_int32)((opus_uint32)(transition_frames - psLP->transition_frame_no) << (16 - 6)));
     ind = ((fac_Q16) >> (16));
     fac_Q16 -= ((opus_int32)((opus_uint32)(ind) << (16)));
-    silk_LP_interpolate_filter_taps(B_Q28, A_Q28, ind, fac_Q16);
-    psLP->transition_frame_no =
-        ((0) > ((5120 / (5 * 4)))
-             ? ((psLP->transition_frame_no + psLP->mode) > (0)
-                    ? (0)
-                    : ((psLP->transition_frame_no + psLP->mode) < ((5120 / (5 * 4))) ? ((5120 / (5 * 4)))
-                                                                                     : (psLP->transition_frame_no + psLP->mode)))
-             : ((psLP->transition_frame_no + psLP->mode) > ((5120 / (5 * 4)))
-                    ? ((5120 / (5 * 4)))
-                    : ((psLP->transition_frame_no + psLP->mode) < (0) ? (0) : (psLP->transition_frame_no + psLP->mode))));
-    silk_biquad_alt_stride1(frame, B_Q28, A_Q28, psLP->In_LP_State, frame, frame_length);
+    silk_LP_interpolate_filter_taps(B_Q28.data(), A_Q28.data(), ind, fac_Q16);
+    psLP->transition_frame_no = std::clamp(psLP->transition_frame_no + psLP->mode, 0, transition_frames);
+    silk_biquad_alt_stride1(frame, B_Q28.data(), A_Q28.data(), psLP->In_LP_State.data(), frame, frame_length);
   }
 }
 
-static void silk_NLSF_residual_dequant(opus_int16 x_Q10[], const opus_int8 indices[], const opus_uint8 pred_coef_Q8[],
-                                       const int quant_step_size_Q16, const opus_int16 order) {
+static void silk_NLSF_residual_dequant(std::span<opus_int16, 16> x_Q10, std::span<const opus_int8, 16> indices,
+                                       std::span<const opus_uint8, 16> pred_coef_Q8, const int quant_step_size_Q16, const opus_int16 order) {
   constexpr auto adjustment = static_cast<opus_int32>((0.1) * (static_cast<opus_int64>(1) << 10) + 0.5);
   auto residual = opus_int32{0};
   for (int index = order - 1; index >= 0; --index) {
@@ -11250,25 +11234,24 @@ static void silk_NLSF_residual_dequant(opus_int16 x_Q10[], const opus_int8 indic
   }
 }
 
-void silk_NLSF_decode(opus_int16* pNLSF_Q15, opus_int8* NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB) {
+void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices,
+                      const silk_NLSF_CB_struct* psNLSF_CB) {
   int i;
   opus_uint8 pred_Q8[16];
-  opus_int16 ec_ix[16];
-  opus_int16 res_Q10[16];
+  opus_int16 ec_ix[16], res_Q10[16];
   opus_int32 NLSF_Q15_tmp;
   const opus_uint8* pCB_element;
   const opus_int16* pCB_Wght_Q9;
   silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, NLSFIndices[0]);
-  silk_NLSF_residual_dequant(res_Q10, &NLSFIndices[1], pred_Q8, psNLSF_CB->quantStepSize_Q16, psNLSF_CB->order);
+  silk_NLSF_residual_dequant(res_Q10, NLSFIndices.last<16>(), pred_Q8, psNLSF_CB->quantStepSize_Q16, psNLSF_CB->order);
   pCB_element = &psNLSF_CB->CB1_NLSF_Q8[NLSFIndices[0] * psNLSF_CB->order];
   pCB_Wght_Q9 = &psNLSF_CB->CB1_Wght_Q9[NLSFIndices[0] * psNLSF_CB->order];
   for (i = 0; i < psNLSF_CB->order; i++) {
     NLSF_Q15_tmp = (((((opus_int32)((((opus_int32)((opus_uint32)((opus_int32)res_Q10[i]) << (14)))) / (pCB_Wght_Q9[i]))))) +
                     (((opus_int32)((opus_uint32)(((opus_int16)pCB_element[i])) << ((7))))));
-    pNLSF_Q15[i] = (opus_int16)((0) > (32767) ? ((NLSF_Q15_tmp) > (0) ? (0) : ((NLSF_Q15_tmp) < (32767) ? (32767) : (NLSF_Q15_tmp)))
-                                              : ((NLSF_Q15_tmp) > (32767) ? (32767) : ((NLSF_Q15_tmp) < (0) ? (0) : (NLSF_Q15_tmp))));
+    pNLSF_Q15[i] = static_cast<opus_int16>(std::clamp<opus_int32>(NLSF_Q15_tmp, 0, 32767));
   }
-  silk_NLSF_stabilize(pNLSF_Q15, psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
+  silk_NLSF_stabilize(pNLSF_Q15.data(), psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
 }
 
 static auto silk_NSQ_noise_shape_feedback_loop_c(const opus_int32* data0, opus_int32* data1, const opus_int16* coef, int order)
@@ -11379,7 +11362,39 @@ static inline void scale_q16_buffer(opus_int32* data, const int count, const opu
 static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<const opus_int16> x16,
                                   std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15,
                                   int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL,
-                                  const int signal_type, const int ltp_scale_end) noexcept -> opus_int32;
+                                  const int signal_type, const int ltp_scale_end) noexcept -> opus_int32 {
+  const auto lag = pitchL[subfr];
+  auto inv_gain_Q31 = silk_INVERSE32_varQ(std::max(Gains_Q16[subfr], 1), 47);
+  const auto inv_gain_Q26 = rounded_rshift<5>(inv_gain_Q31);
+  for (auto index = std::size_t{}; index < x16.size(); ++index)
+    x_sc_Q10[index] = static_cast<opus_int32>((static_cast<opus_int64>(x16[index]) * inv_gain_Q26) >> 16);
+  if (NSQ->rewhite_flag) {
+    if (subfr == 0) {
+      inv_gain_Q31 = static_cast<opus_int32>(static_cast<opus_uint32>(static_cast<opus_int32>(
+                                                 (inv_gain_Q31 * static_cast<opus_int64>(static_cast<opus_int16>(LTP_scale_Q14))) >> 16))
+                                             << 2);
+    }
+    for (auto i = NSQ->sLTP_buf_idx - lag - 5 / 2; i < NSQ->sLTP_buf_idx; i++) {
+      sLTP_Q15[i] = static_cast<opus_int32>((inv_gain_Q31 * static_cast<opus_int64>(static_cast<opus_int16>(sLTP[i]))) >> 16);
+    }
+  }
+  if (Gains_Q16[subfr] == NSQ->prev_gain_Q16) {
+    return static_cast<opus_int32>(1) << 16;
+  }
+  const auto gain_adj_Q16 = silk_DIV32_varQ(NSQ->prev_gain_Q16, Gains_Q16[subfr], 16);
+  scale_q16_buffer(NSQ->sLTP_shp_Q14 + (NSQ->sLTP_shp_buf_idx - psEncC->ltp_mem_length), psEncC->ltp_mem_length, gain_adj_Q16);
+  if (signal_type == 2 && NSQ->rewhite_flag == 0) {
+    const auto ltp_start = NSQ->sLTP_buf_idx - lag - 5 / 2;
+    scale_q16_buffer(sLTP_Q15.data() + ltp_start, ltp_scale_end - ltp_start, gain_adj_Q16);
+  }
+  NSQ->sLF_AR_shp_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * NSQ->sLF_AR_shp_Q14) >> 16);
+  NSQ->sDiff_shp_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * NSQ->sDiff_shp_Q14) >> 16);
+  scale_q16_buffer(NSQ->sLPC_Q14, 16, gain_adj_Q16);
+  scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adj_Q16);
+  NSQ->prev_gain_Q16 = Gains_Q16[subfr];
+  return gain_adj_Q16;
+}
+
 static void silk_nsq_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<const opus_int16> x16,
                                   std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15,
                                   int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL,
@@ -11388,64 +11403,6 @@ static void silk_nsq_scale_states(const silk_encoder_state* psEncC, silk_nsq_sta
                                           NSQ->sLTP_buf_idx));
 }
 
-static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std::span<const opus_int32> x_sc_Q10,
-                                       std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15,
-                                       std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14,
-                                       std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14,
-                                       opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10);
-void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
-                opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24],
-                const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4],
-                const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
-  int k, lag, start_idx, LSF_interpolation_flag;
-  const opus_int16 *A_Q12, *B_Q14, *AR_shp_Q13;
-  opus_int16* pxq;
-  opus_int32 HarmShapeFIRPacked_Q14;
-  int offset_Q10;
-  NSQ->rand_seed = psIndices->Seed;
-  lag = NSQ->lagPrev;
-  offset_Q10 = silk_Quantization_Offsets_Q10[psIndices->signalType >> 1][psIndices->quantOffsetType];
-  LSF_interpolation_flag = psIndices->NLSFInterpCoef_Q2 != 4;
-  const auto ltp_frame_storage = static_cast<std::size_t>(psEncC->ltp_mem_length + psEncC->frame_length);
-  auto* sLTP_Q15_storage = OPUS_SCRATCH(opus_int32, ltp_frame_storage);
-  auto* sLTP_storage = OPUS_SCRATCH(opus_int16, ltp_frame_storage);
-  auto* sLTP = sLTP_storage;
-  auto* x_sc_Q10_storage = OPUS_SCRATCH(opus_int32, static_cast<std::size_t>(psEncC->subfr_length));
-  NSQ->sLTP_shp_buf_idx = psEncC->ltp_mem_length;
-  NSQ->sLTP_buf_idx = psEncC->ltp_mem_length;
-  pxq = &NSQ->xq[psEncC->ltp_mem_length];
-  for (k = 0; k < psEncC->nb_subfr; k++) {
-    A_Q12 = &PredCoef_Q12[((k >> 1) | (1 - LSF_interpolation_flag)) * 16];
-    B_Q14 = &LTPCoef_Q14[k * 5];
-    AR_shp_Q13 = &AR_Q13[k * 24];
-    HarmShapeFIRPacked_Q14 = silk_pack_harm_shape_gain(HarmShapeGain_Q14[k]);
-    NSQ->rewhite_flag = 0;
-    if (psIndices->signalType == 2) {
-      lag = pitchL[k];
-      if ((k & (3 - ((opus_int32)((opus_uint32)(LSF_interpolation_flag) << (1))))) == 0) {
-        start_idx = psEncC->ltp_mem_length - lag - psEncC->predictLPCOrder - 5 / 2;
-        silk_LPC_analysis_filter(&sLTP[start_idx], &NSQ->xq[start_idx + k * psEncC->subfr_length], A_Q12,
-                                 psEncC->ltp_mem_length - start_idx, psEncC->predictLPCOrder);
-        NSQ->rewhite_flag = 1;
-        NSQ->sLTP_buf_idx = psEncC->ltp_mem_length;
-      }
-    }
-    silk_nsq_scale_states(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
-                          {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_storage, ltp_frame_storage},
-                          {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14, {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType);
-    silk_noise_shape_quantizer(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
-                               {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
-                               {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
-                               {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
-                               {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
-                               LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
-    x16 += psEncC->subfr_length;
-    pulses += psEncC->subfr_length;
-    pxq += psEncC->subfr_length;
-  }
-  NSQ->lagPrev = pitchL[psEncC->nb_subfr - 1];
-  silk_finish_nsq(psEncC, NSQ);
-}
 
 static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std::span<const opus_int32> x_sc_Q10,
                                        std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15,
@@ -11510,41 +11467,61 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std:
   copy_n_bytes(&NSQ->sLPC_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)), NSQ->sLPC_Q14);
 }
 
-static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<const opus_int16> x16,
-                                  std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15,
-                                  int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL,
-                                  const int signal_type, const int ltp_scale_end) noexcept -> opus_int32 {
-  const auto lag = pitchL[subfr];
-  auto inv_gain_Q31 = silk_INVERSE32_varQ(std::max(Gains_Q16[subfr], 1), 47);
-  const auto inv_gain_Q26 = rounded_rshift<5>(inv_gain_Q31);
-  for (auto index = std::size_t{}; index < x16.size(); ++index)
-    x_sc_Q10[index] = static_cast<opus_int32>((static_cast<opus_int64>(x16[index]) * inv_gain_Q26) >> 16);
-  if (NSQ->rewhite_flag) {
-    if (subfr == 0) {
-      inv_gain_Q31 = static_cast<opus_int32>(static_cast<opus_uint32>(static_cast<opus_int32>(
-                                                 (inv_gain_Q31 * static_cast<opus_int64>(static_cast<opus_int16>(LTP_scale_Q14))) >> 16))
-                                             << 2);
+void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
+                opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24],
+                const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4],
+                const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
+  int k, lag, start_idx, LSF_interpolation_flag;
+  const opus_int16 *A_Q12, *B_Q14, *AR_shp_Q13;
+  opus_int16* pxq;
+  opus_int32 HarmShapeFIRPacked_Q14;
+  int offset_Q10;
+  NSQ->rand_seed = psIndices->Seed;
+  lag = NSQ->lagPrev;
+  offset_Q10 = silk_Quantization_Offsets_Q10[psIndices->signalType >> 1][psIndices->quantOffsetType];
+  LSF_interpolation_flag = psIndices->NLSFInterpCoef_Q2 != 4;
+  const auto ltp_frame_storage = static_cast<std::size_t>(psEncC->ltp_mem_length + psEncC->frame_length);
+  auto* sLTP_Q15_storage = OPUS_SCRATCH(opus_int32, ltp_frame_storage);
+  auto* sLTP_storage = OPUS_SCRATCH(opus_int16, ltp_frame_storage);
+  auto* sLTP = sLTP_storage;
+  auto* x_sc_Q10_storage = OPUS_SCRATCH(opus_int32, static_cast<std::size_t>(psEncC->subfr_length));
+  NSQ->sLTP_shp_buf_idx = psEncC->ltp_mem_length;
+  NSQ->sLTP_buf_idx = psEncC->ltp_mem_length;
+  pxq = &NSQ->xq[psEncC->ltp_mem_length];
+  for (k = 0; k < psEncC->nb_subfr; k++) {
+    A_Q12 = &PredCoef_Q12[((k >> 1) | (1 - LSF_interpolation_flag)) * 16];
+    B_Q14 = &LTPCoef_Q14[k * 5];
+    AR_shp_Q13 = &AR_Q13[k * 24];
+    HarmShapeFIRPacked_Q14 = silk_pack_harm_shape_gain(HarmShapeGain_Q14[k]);
+    NSQ->rewhite_flag = 0;
+    if (psIndices->signalType == 2) {
+      lag = pitchL[k];
+      if ((k & (3 - ((opus_int32)((opus_uint32)(LSF_interpolation_flag) << (1))))) == 0) {
+        start_idx = psEncC->ltp_mem_length - lag - psEncC->predictLPCOrder - 5 / 2;
+        silk_LPC_analysis_filter(&sLTP[start_idx], &NSQ->xq[start_idx + k * psEncC->subfr_length], A_Q12,
+                                 psEncC->ltp_mem_length - start_idx, psEncC->predictLPCOrder);
+        NSQ->rewhite_flag = 1;
+        NSQ->sLTP_buf_idx = psEncC->ltp_mem_length;
+      }
     }
-    for (auto i = NSQ->sLTP_buf_idx - lag - 5 / 2; i < NSQ->sLTP_buf_idx; i++) {
-      sLTP_Q15[i] = static_cast<opus_int32>((inv_gain_Q31 * static_cast<opus_int64>(static_cast<opus_int16>(sLTP[i]))) >> 16);
-    }
+    silk_nsq_scale_states(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
+                          {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_storage, ltp_frame_storage},
+                          {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14, {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType);
+    silk_noise_shape_quantizer(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+                               {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
+                               {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
+                               {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
+                               {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
+                               LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
+    x16 += psEncC->subfr_length;
+    pulses += psEncC->subfr_length;
+    pxq += psEncC->subfr_length;
   }
-  if (Gains_Q16[subfr] == NSQ->prev_gain_Q16) {
-    return static_cast<opus_int32>(1) << 16;
-  }
-  const auto gain_adj_Q16 = silk_DIV32_varQ(NSQ->prev_gain_Q16, Gains_Q16[subfr], 16);
-  scale_q16_buffer(NSQ->sLTP_shp_Q14 + (NSQ->sLTP_shp_buf_idx - psEncC->ltp_mem_length), psEncC->ltp_mem_length, gain_adj_Q16);
-  if (signal_type == 2 && NSQ->rewhite_flag == 0) {
-    const auto ltp_start = NSQ->sLTP_buf_idx - lag - 5 / 2;
-    scale_q16_buffer(sLTP_Q15.data() + ltp_start, ltp_scale_end - ltp_start, gain_adj_Q16);
-  }
-  NSQ->sLF_AR_shp_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * NSQ->sLF_AR_shp_Q14) >> 16);
-  NSQ->sDiff_shp_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * NSQ->sDiff_shp_Q14) >> 16);
-  scale_q16_buffer(NSQ->sLPC_Q14, 16, gain_adj_Q16);
-  scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adj_Q16);
-  NSQ->prev_gain_Q16 = Gains_Q16[subfr];
-  return gain_adj_Q16;
+  NSQ->lagPrev = pitchL[psEncC->nb_subfr - 1];
+  silk_finish_nsq(psEncC, NSQ);
 }
+
+
 struct NSQ_del_dec_struct {
   opus_int32 sLPC_Q14[(5 * 16) + 16], RandState[40], Q_Q10[40], Xq_Q14[40], Pred_Q15[40], Shape_Q14[40], sAR2_Q14[24], LF_AR_Q14, Diff_Q14,
       Seed, SeedInit, RD_Q10;
@@ -11752,18 +11729,171 @@ template <int Shift> [[nodiscard]] static auto saturating_left_shift(opus_int32 
   return best;
 }
 
-static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec,
-                                          std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP,
-                                          std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14,
-                                          std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type,
-                                          const int decisionDelay);
 static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType,
                                                std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq,
                                                std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10,
                                                std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14,
                                                std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14,
                                                int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10,
-                                               int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay);
+                                               int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
+  int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
+  opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
+      tmp2, *pred_lag_ptr, *shp_lag_ptr, *psLPC_Q14;
+  NSQ_del_dec_struct* psDD;
+  silk_nsq_sample_state* psSS;
+  const auto length = static_cast<int>(x_Q10.size());
+  const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
+  const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
+  std::array<std::array<silk_nsq_sample_state, 2>, silk_max_delayed_decision_states> psSampleState;
+  const auto* b_q14_coefficients = b_Q14.data();
+  const auto tilt_Q14_i16 = static_cast<opus_int16>(Tilt_Q14);
+  const auto lf_shp_Q14_i16 = static_cast<opus_int16>(LF_shp_Q14);
+  const auto lf_shp_Q14_high = static_cast<opus_int64>(LF_shp_Q14) >> 16;
+  shp_lag_ptr = &NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - lag + 3 / 2];
+  pred_lag_ptr = &sLTP_Q15[NSQ->sLTP_buf_idx - lag + 5 / 2];
+  Gain_Q10 = ((Gain_Q16) >> (6));
+  for (i = 0; i < length; i++) {
+    if (signalType == 2) {
+      LTP_pred_Q14 = static_cast<opus_int32>(static_cast<opus_uint32>(silk_ltp_prediction_5tap(pred_lag_ptr, b_q14_coefficients)) << 1);
+      ++pred_lag_ptr;
+    } else {
+      LTP_pred_Q14 = 0;
+    }
+    if (lag > 0) {
+      n_LTP_Q14 =
+          saturating_subtract_int32(LTP_pred_Q14, saturating_left_shift<2>(silk_harmonic_shaping(shp_lag_ptr, HarmShapeFIRPacked_Q14)));
+      ++shp_lag_ptr;
+    } else {
+      n_LTP_Q14 = 0;
+    }
+    for (k = 0; k < nStatesDelayedDecision; k++) {
+      psDD = &psDelDec[k];
+      psSS = psSampleState[k].data();
+      psDD->Seed = silk_next_rand_seed(psDD->Seed);
+      psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
+      LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
+      if (warping_Q16 == 0) {
+        n_AR_Q14 = silk_del_dec_unwarped_feedback(psDD, AR_shp_Q13.data(), shapingLPCOrder);
+      } else {
+        n_AR_Q14 = silk_del_dec_warped_feedback(psDD, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
+      }
+      n_AR_Q14 = ((opus_int32)((n_AR_Q14) + (((psDD->LF_AR_Q14) * (opus_int64)tilt_Q14_i16) >> 16)));
+      n_AR_Q14 = ((opus_int32)((opus_uint32)(n_AR_Q14) << (2)));
+      n_LF_Q14 = ((opus_int32)(((psDD->Shape_Q14[*smpl_buf_idx]) * (opus_int64)lf_shp_Q14_i16) >> 16));
+      n_LF_Q14 = ((opus_int32)((n_LF_Q14) + (((psDD->LF_AR_Q14) * lf_shp_Q14_high) >> 16)));
+      n_LF_Q14 = ((opus_int32)((opus_uint32)(n_LF_Q14) << (2)));
+      tmp1 = ((((opus_uint32)(n_AR_Q14) + (opus_uint32)(n_LF_Q14)) & 0x80000000) == 0
+                  ? ((((n_AR_Q14) & (n_LF_Q14)) & 0x80000000) != 0 ? ((opus_int32)0x80000000) : (n_AR_Q14) + (n_LF_Q14))
+                  : ((((n_AR_Q14) | (n_LF_Q14)) & 0x80000000) == 0 ? 0x7FFFFFFF : (n_AR_Q14) + (n_LF_Q14)));
+      tmp2 = ((opus_int32)((opus_uint32)(n_LTP_Q14) + (opus_uint32)(LPC_pred_Q14)));
+      tmp1 = ((((opus_uint32)(tmp2) - (opus_uint32)(tmp1)) & 0x80000000) == 0
+                  ? (((tmp2) & ((tmp1) ^ 0x80000000) & 0x80000000) ? ((opus_int32)0x80000000) : (tmp2) - (tmp1))
+                  : ((((tmp2) ^ 0x80000000) & (tmp1) & 0x80000000) ? 0x7FFFFFFF : (tmp2) - (tmp1)));
+      tmp1 = rounded_rshift<4>(tmp1);
+      r_Q10 = silk_signed_clamped_residual(x_Q10[i] - tmp1, psDD->Seed);
+      const auto candidates = silk_quantize_candidates(r_Q10, Lambda_Q10, offset_Q10);
+      const auto candidate0 = static_cast<opus_int32>(candidates.rd_Q20[0] >> 10);
+      const auto candidate1 = static_cast<opus_int32>(candidates.rd_Q20[1] >> 10);
+      const auto first_is_q0 = candidate0 < candidate1;
+      psSS[0] = silk_nsq_build_sample(candidates.q_Q10[first_is_q0 ? 0 : 1], psDD->Seed, LTP_pred_Q14, LPC_pred_Q14, x_Q10[i], n_AR_Q14,
+                                      n_LF_Q14);
+      psSS[1] = silk_nsq_build_sample(candidates.q_Q10[first_is_q0 ? 1 : 0], psDD->Seed, LTP_pred_Q14, LPC_pred_Q14, x_Q10[i], n_AR_Q14,
+                                      n_LF_Q14);
+      psSS[0].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
+      psSS[1].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate1 : candidate0);
+    }
+    *smpl_buf_idx = (*smpl_buf_idx - 1) % 40;
+    if (*smpl_buf_idx < 0) {
+      *smpl_buf_idx += 40;
+    }
+    last_smple_idx = (*smpl_buf_idx + decisionDelay) % 40;
+    RDmin_Q10 = psSampleState[0][0].RD_Q10;
+    Winner_ind = 0;
+    for (k = 1; k < nStatesDelayedDecision; k++) {
+      if (psSampleState[k][0].RD_Q10 < RDmin_Q10) {
+        RDmin_Q10 = psSampleState[k][0].RD_Q10;
+        Winner_ind = k;
+      }
+    }
+    Winner_rand_state = psDelDec[Winner_ind].RandState[last_smple_idx];
+    for (k = 0; k < nStatesDelayedDecision; k++) {
+      if (psDelDec[k].RandState[last_smple_idx] != Winner_rand_state) {
+        psSampleState[k][0].RD_Q10 = ((psSampleState[k][0].RD_Q10) + (0x7FFFFFFF >> 4));
+        psSampleState[k][1].RD_Q10 = ((psSampleState[k][1].RD_Q10) + (0x7FFFFFFF >> 4));
+      }
+    }
+    RDmax_Q10 = psSampleState[0][0].RD_Q10;
+    RDmin_Q10 = psSampleState[0][1].RD_Q10;
+    RDmax_ind = 0;
+    RDmin_ind = 0;
+    for (k = 1; k < nStatesDelayedDecision; k++) {
+      if (psSampleState[k][0].RD_Q10 > RDmax_Q10) {
+        RDmax_Q10 = psSampleState[k][0].RD_Q10;
+        RDmax_ind = k;
+      }
+      if (psSampleState[k][1].RD_Q10 < RDmin_Q10) {
+        RDmin_Q10 = psSampleState[k][1].RD_Q10;
+        RDmin_ind = k;
+      }
+    }
+    if (RDmin_Q10 < RDmax_Q10) {
+      copy_n_bytes(reinterpret_cast<opus_int32*>(&psDelDec[RDmin_ind]) + i,
+                   static_cast<std::size_t>(sizeof(NSQ_del_dec_struct) - i * sizeof(opus_int32)),
+                   reinterpret_cast<opus_int32*>(&psDelDec[RDmax_ind]) + i);
+      copy_n_bytes(&psSampleState[RDmin_ind][1], static_cast<std::size_t>(sizeof(silk_nsq_sample_state)), &psSampleState[RDmax_ind][0]);
+    }
+    psDD = &psDelDec[Winner_ind];
+    if (subfr > 0 || i >= decisionDelay) {
+      const auto output_index = static_cast<std::size_t>(subfr > 0 ? i : i - decisionDelay);
+      pulses[output_index] = delayed_pulse_from_q10(psDD->Q_Q10[last_smple_idx]);
+      xq[output_index] = scale_and_saturate_q14<8>(psDD->Xq_Q14[last_smple_idx], delayedGain_Q10[last_smple_idx]);
+      NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay] = psDD->Shape_Q14[last_smple_idx];
+      sLTP_Q15[NSQ->sLTP_buf_idx - decisionDelay] = psDD->Pred_Q15[last_smple_idx];
+    }
+    NSQ->sLTP_shp_buf_idx++;
+    NSQ->sLTP_buf_idx++;
+    for (k = 0; k < nStatesDelayedDecision; k++) {
+      psDD = &psDelDec[k];
+      psSS = &psSampleState[k][0];
+      psDD->LF_AR_Q14 = psSS->LF_AR_Q14;
+      psDD->Diff_Q14 = psSS->Diff_Q14;
+      psDD->sLPC_Q14[16 + i] = psSS->xq_Q14;
+      psDD->Xq_Q14[*smpl_buf_idx] = psSS->xq_Q14;
+      psDD->Q_Q10[*smpl_buf_idx] = psSS->Q_Q10;
+      psDD->Pred_Q15[*smpl_buf_idx] = ((opus_int32)((opus_uint32)(psSS->LPC_exc_Q14) << (1)));
+      psDD->Shape_Q14[*smpl_buf_idx] = psSS->sLTP_shp_Q14;
+      psDD->Seed =
+          static_cast<opus_int32>(static_cast<opus_uint32>(psDD->Seed) + static_cast<opus_uint32>(rounded_rshift<10>(psSS->Q_Q10)));
+      psDD->RandState[*smpl_buf_idx] = psDD->Seed;
+      psDD->RD_Q10 = psSS->RD_Q10;
+    }
+    delayedGain_Q10[*smpl_buf_idx] = Gain_Q10;
+  }
+  for (k = 0; k < nStatesDelayedDecision; k++) {
+    psDD = &psDelDec[k];
+    copy_n_bytes(&psDD->sLPC_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)), psDD->sLPC_Q14);
+  }
+}
+
+static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec,
+                                          std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP,
+                                          std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14,
+                                          std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type,
+                                          const int decisionDelay) {
+  const auto gain_adj_Q16 = silk_nsq_scale_common(psEncC, NSQ, x16, x_sc_Q10, sLTP, sLTP_Q15, subfr, LTP_scale_Q14, Gains_Q16, pitchL,
+                                                  signal_type, NSQ->sLTP_buf_idx - decisionDelay);
+  if (gain_adj_Q16 != (static_cast<opus_int32>(1) << 16)) {
+    for (auto& state : psDelDec) {
+      state.LF_AR_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * state.LF_AR_Q14) >> 16);
+      state.Diff_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * state.Diff_Q14) >> 16);
+      scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
+      scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
+      scale_q16_buffer(state.Pred_Q15, 40, gain_adj_Q16);
+      scale_q16_buffer(state.Shape_Q14, 40, gain_adj_Q16);
+    }
+  }
+}
+
 void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
                         opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
                         const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
@@ -11887,169 +12017,7 @@ void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, S
   silk_finish_nsq(psEncC, NSQ);
 }
 
-static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType,
-                                               std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq,
-                                               std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10,
-                                               std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14,
-                                               std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14,
-                                               int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10,
-                                               int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
-  int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
-  opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
-      tmp2, *pred_lag_ptr, *shp_lag_ptr, *psLPC_Q14;
-  NSQ_del_dec_struct* psDD;
-  silk_nsq_sample_state* psSS;
-  const auto length = static_cast<int>(x_Q10.size());
-  const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
-  const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
-  std::array<std::array<silk_nsq_sample_state, 2>, silk_max_delayed_decision_states> psSampleState;
-  const auto* b_q14_coefficients = b_Q14.data();
-  const auto tilt_Q14_i16 = static_cast<opus_int16>(Tilt_Q14);
-  const auto lf_shp_Q14_i16 = static_cast<opus_int16>(LF_shp_Q14);
-  const auto lf_shp_Q14_high = static_cast<opus_int64>(LF_shp_Q14) >> 16;
-  shp_lag_ptr = &NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - lag + 3 / 2];
-  pred_lag_ptr = &sLTP_Q15[NSQ->sLTP_buf_idx - lag + 5 / 2];
-  Gain_Q10 = ((Gain_Q16) >> (6));
-  for (i = 0; i < length; i++) {
-    if (signalType == 2) {
-      LTP_pred_Q14 = static_cast<opus_int32>(static_cast<opus_uint32>(silk_ltp_prediction_5tap(pred_lag_ptr, b_q14_coefficients)) << 1);
-      ++pred_lag_ptr;
-    } else {
-      LTP_pred_Q14 = 0;
-    }
-    if (lag > 0) {
-      n_LTP_Q14 =
-          saturating_subtract_int32(LTP_pred_Q14, saturating_left_shift<2>(silk_harmonic_shaping(shp_lag_ptr, HarmShapeFIRPacked_Q14)));
-      ++shp_lag_ptr;
-    } else {
-      n_LTP_Q14 = 0;
-    }
-    for (k = 0; k < nStatesDelayedDecision; k++) {
-      psDD = &psDelDec[k];
-      psSS = psSampleState[k].data();
-      psDD->Seed = silk_next_rand_seed(psDD->Seed);
-      psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
-      LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
-      if (warping_Q16 == 0) {
-        n_AR_Q14 = silk_del_dec_unwarped_feedback(psDD, AR_shp_Q13.data(), shapingLPCOrder);
-      } else {
-        n_AR_Q14 = silk_del_dec_warped_feedback(psDD, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
-      }
-      n_AR_Q14 = ((opus_int32)((n_AR_Q14) + (((psDD->LF_AR_Q14) * (opus_int64)tilt_Q14_i16) >> 16)));
-      n_AR_Q14 = ((opus_int32)((opus_uint32)(n_AR_Q14) << (2)));
-      n_LF_Q14 = ((opus_int32)(((psDD->Shape_Q14[*smpl_buf_idx]) * (opus_int64)lf_shp_Q14_i16) >> 16));
-      n_LF_Q14 = ((opus_int32)((n_LF_Q14) + (((psDD->LF_AR_Q14) * lf_shp_Q14_high) >> 16)));
-      n_LF_Q14 = ((opus_int32)((opus_uint32)(n_LF_Q14) << (2)));
-      tmp1 = ((((opus_uint32)(n_AR_Q14) + (opus_uint32)(n_LF_Q14)) & 0x80000000) == 0
-                  ? ((((n_AR_Q14) & (n_LF_Q14)) & 0x80000000) != 0 ? ((opus_int32)0x80000000) : (n_AR_Q14) + (n_LF_Q14))
-                  : ((((n_AR_Q14) | (n_LF_Q14)) & 0x80000000) == 0 ? 0x7FFFFFFF : (n_AR_Q14) + (n_LF_Q14)));
-      tmp2 = ((opus_int32)((opus_uint32)(n_LTP_Q14) + (opus_uint32)(LPC_pred_Q14)));
-      tmp1 = ((((opus_uint32)(tmp2) - (opus_uint32)(tmp1)) & 0x80000000) == 0
-                  ? (((tmp2) & ((tmp1) ^ 0x80000000) & 0x80000000) ? ((opus_int32)0x80000000) : (tmp2) - (tmp1))
-                  : ((((tmp2) ^ 0x80000000) & (tmp1) & 0x80000000) ? 0x7FFFFFFF : (tmp2) - (tmp1)));
-      tmp1 = rounded_rshift<4>(tmp1);
-      r_Q10 = silk_signed_clamped_residual(x_Q10[i] - tmp1, psDD->Seed);
-      const auto candidates = silk_quantize_candidates(r_Q10, Lambda_Q10, offset_Q10);
-      const auto candidate0 = static_cast<opus_int32>(candidates.rd_Q20[0] >> 10);
-      const auto candidate1 = static_cast<opus_int32>(candidates.rd_Q20[1] >> 10);
-      const auto first_is_q0 = candidate0 < candidate1;
-      psSS[0] = silk_nsq_build_sample(candidates.q_Q10[first_is_q0 ? 0 : 1], psDD->Seed, LTP_pred_Q14, LPC_pred_Q14, x_Q10[i], n_AR_Q14,
-                                      n_LF_Q14);
-      psSS[1] = silk_nsq_build_sample(candidates.q_Q10[first_is_q0 ? 1 : 0], psDD->Seed, LTP_pred_Q14, LPC_pred_Q14, x_Q10[i], n_AR_Q14,
-                                      n_LF_Q14);
-      psSS[0].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
-      psSS[1].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate1 : candidate0);
-    }
-    *smpl_buf_idx = (*smpl_buf_idx - 1) % 40;
-    if (*smpl_buf_idx < 0) {
-      *smpl_buf_idx += 40;
-    }
-    last_smple_idx = (*smpl_buf_idx + decisionDelay) % 40;
-    RDmin_Q10 = psSampleState[0][0].RD_Q10;
-    Winner_ind = 0;
-    for (k = 1; k < nStatesDelayedDecision; k++) {
-      if (psSampleState[k][0].RD_Q10 < RDmin_Q10) {
-        RDmin_Q10 = psSampleState[k][0].RD_Q10;
-        Winner_ind = k;
-      }
-    }
-    Winner_rand_state = psDelDec[Winner_ind].RandState[last_smple_idx];
-    for (k = 0; k < nStatesDelayedDecision; k++) {
-      if (psDelDec[k].RandState[last_smple_idx] != Winner_rand_state) {
-        psSampleState[k][0].RD_Q10 = ((psSampleState[k][0].RD_Q10) + (0x7FFFFFFF >> 4));
-        psSampleState[k][1].RD_Q10 = ((psSampleState[k][1].RD_Q10) + (0x7FFFFFFF >> 4));
-      }
-    }
-    RDmax_Q10 = psSampleState[0][0].RD_Q10;
-    RDmin_Q10 = psSampleState[0][1].RD_Q10;
-    RDmax_ind = 0;
-    RDmin_ind = 0;
-    for (k = 1; k < nStatesDelayedDecision; k++) {
-      if (psSampleState[k][0].RD_Q10 > RDmax_Q10) {
-        RDmax_Q10 = psSampleState[k][0].RD_Q10;
-        RDmax_ind = k;
-      }
-      if (psSampleState[k][1].RD_Q10 < RDmin_Q10) {
-        RDmin_Q10 = psSampleState[k][1].RD_Q10;
-        RDmin_ind = k;
-      }
-    }
-    if (RDmin_Q10 < RDmax_Q10) {
-      copy_n_bytes(((opus_int32*)&psDelDec[RDmin_ind]) + i, static_cast<std::size_t>(sizeof(NSQ_del_dec_struct) - i * sizeof(opus_int32)),
-                   ((opus_int32*)&psDelDec[RDmax_ind]) + i);
-      copy_n_bytes(&psSampleState[RDmin_ind][1], static_cast<std::size_t>(sizeof(silk_nsq_sample_state)), &psSampleState[RDmax_ind][0]);
-    }
-    psDD = &psDelDec[Winner_ind];
-    if (subfr > 0 || i >= decisionDelay) {
-      const auto output_index = static_cast<std::size_t>(subfr > 0 ? i : i - decisionDelay);
-      pulses[output_index] = delayed_pulse_from_q10(psDD->Q_Q10[last_smple_idx]);
-      xq[output_index] = scale_and_saturate_q14<8>(psDD->Xq_Q14[last_smple_idx], delayedGain_Q10[last_smple_idx]);
-      NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay] = psDD->Shape_Q14[last_smple_idx];
-      sLTP_Q15[NSQ->sLTP_buf_idx - decisionDelay] = psDD->Pred_Q15[last_smple_idx];
-    }
-    NSQ->sLTP_shp_buf_idx++;
-    NSQ->sLTP_buf_idx++;
-    for (k = 0; k < nStatesDelayedDecision; k++) {
-      psDD = &psDelDec[k];
-      psSS = &psSampleState[k][0];
-      psDD->LF_AR_Q14 = psSS->LF_AR_Q14;
-      psDD->Diff_Q14 = psSS->Diff_Q14;
-      psDD->sLPC_Q14[16 + i] = psSS->xq_Q14;
-      psDD->Xq_Q14[*smpl_buf_idx] = psSS->xq_Q14;
-      psDD->Q_Q10[*smpl_buf_idx] = psSS->Q_Q10;
-      psDD->Pred_Q15[*smpl_buf_idx] = ((opus_int32)((opus_uint32)(psSS->LPC_exc_Q14) << (1)));
-      psDD->Shape_Q14[*smpl_buf_idx] = psSS->sLTP_shp_Q14;
-      psDD->Seed =
-          static_cast<opus_int32>(static_cast<opus_uint32>(psDD->Seed) + static_cast<opus_uint32>(rounded_rshift<10>(psSS->Q_Q10)));
-      psDD->RandState[*smpl_buf_idx] = psDD->Seed;
-      psDD->RD_Q10 = psSS->RD_Q10;
-    }
-    delayedGain_Q10[*smpl_buf_idx] = Gain_Q10;
-  }
-  for (k = 0; k < nStatesDelayedDecision; k++) {
-    psDD = &psDelDec[k];
-    copy_n_bytes(&psDD->sLPC_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)), psDD->sLPC_Q14);
-  }
-}
 
-static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec,
-                                          std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP,
-                                          std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14,
-                                          std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type,
-                                          const int decisionDelay) {
-  const auto gain_adj_Q16 = silk_nsq_scale_common(psEncC, NSQ, x16, x_sc_Q10, sLTP, sLTP_Q15, subfr, LTP_scale_Q14, Gains_Q16, pitchL,
-                                                  signal_type, NSQ->sLTP_buf_idx - decisionDelay);
-  if (gain_adj_Q16 != (static_cast<opus_int32>(1) << 16)) {
-    for (auto& state : psDelDec) {
-      state.LF_AR_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * state.LF_AR_Q14) >> 16);
-      state.Diff_Q14 = static_cast<opus_int32>((static_cast<opus_int64>(gain_adj_Q16) * state.Diff_Q14) >> 16);
-      scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
-      scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
-      scale_q16_buffer(state.Pred_Q15, 40, gain_adj_Q16);
-      scale_q16_buffer(state.Shape_Q14, 40, gain_adj_Q16);
-    }
-  }
-}
 
 [[nodiscard]] constexpr auto plc_harm_atten_q15(int loss_count) noexcept -> opus_int16 {
   return loss_count == 0 ? 31948 : 28672;
@@ -12100,11 +12068,12 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
       }
       temp_LTP_Gain_Q14 = 0;
       for (i = 0; i < 5; i++) {
-        temp_LTP_Gain_Q14 += psDecCtrl->LTPCoef_Q14[(psDec->nb_subfr - 1 - j) * 5 + i];
+        temp_LTP_Gain_Q14 += psDecCtrl->LTPCoef_Q14[static_cast<std::size_t>((psDec->nb_subfr - 1 - j) * 5 + i)];
       }
       if (temp_LTP_Gain_Q14 > LTP_Gain_Q14) {
         LTP_Gain_Q14 = temp_LTP_Gain_Q14;
-        copy_n_bytes(&psDecCtrl->LTPCoef_Q14[((opus_int32)((opus_int16)(psDec->nb_subfr - 1 - j)) * (opus_int32)((opus_int16)(5)))],
+        copy_n_bytes(psDecCtrl->LTPCoef_Q14 +
+                         ((opus_int32)((opus_int16)(psDec->nb_subfr - 1 - j)) * (opus_int32)((opus_int16)(5))),
                      static_cast<std::size_t>(5 * sizeof(opus_int16)), psPLC->LTPCoef_Q14);
         psPLC->pitchL_Q8 = ((opus_int32)((opus_uint32)(psDecCtrl->pitchL[psDec->nb_subfr - 1 - j]) << (8)));
       }
@@ -12132,7 +12101,7 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
   }
   copy_n_bytes(psDecCtrl->PredCoef_Q12[1], static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)), psPLC->prevLPC_Q12);
   psPLC->prevLTP_scale_Q14 = psDecCtrl->LTP_scale_Q14;
-  copy_n_bytes(&psDecCtrl->Gains_Q16[psDec->nb_subfr - 2], static_cast<std::size_t>(2 * sizeof(opus_int32)), psPLC->prevGain_Q16);
+  copy_n_bytes(psDecCtrl->Gains_Q16 + psDec->nb_subfr - 2, static_cast<std::size_t>(2 * sizeof(opus_int32)), psPLC->prevGain_Q16);
   psPLC->subfr_length = psDec->subfr_length;
   psPLC->nb_subfr = psDec->nb_subfr;
 }
@@ -12140,8 +12109,7 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
 static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_int32> exc_Q14,
                             std::span<const opus_int32> prevGain_Q10, int subfr_length, int nb_subfr) {
   int i, k;
-  std::array<opus_int16, 2 * silk_max_subfr_length> exc_buf_storage;
-  auto* exc_buf = exc_buf_storage.data();
+  opus_int16 exc_buf[2 * silk_max_subfr_length];
   auto* exc_buf_ptr = exc_buf;
   for (k = 0; k < 2; k++) {
     for (i = 0; i < subfr_length; i++) {
@@ -12162,9 +12130,9 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   opus_int16 rand_scale_Q14;
   opus_int16* B_Q14;
   opus_int32* sLPC_Q14_ptr;
-  std::array<opus_int16, 16> A_Q12;
+  opus_int16 A_Q12[16];
   silk_PLC_struct* psPLC = &psDec->sPLC;
-  std::array<opus_int32, 2> prevGain_Q10;
+  opus_int32 prevGain_Q10[2];
   std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14_storage{};
   auto* sLTP_Q14 = sLTP_Q14_storage.data();
   std::array<opus_int16, silk_max_ltp_mem_length> sLTP_storage{};
@@ -12172,7 +12140,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   prevGain_Q10[0] = ((psPLC->prevGain_Q16[0]) >> (6));
   prevGain_Q10[1] = ((psPLC->prevGain_Q16[1]) >> (6));
   if (psDec->first_frame_after_reset) {
-    zero_n_items(psPLC->prevLPC_Q12, std::size(psPLC->prevLPC_Q12));
+    zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
   }
   silk_PLC_energy(&energy1, &shift1, &energy2, &shift2, {psDec->exc_Q14, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)},
                   prevGain_Q10, psDec->subfr_length, psDec->nb_subfr);
@@ -12189,8 +12157,9 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   } else {
     rand_Gain_Q15 = plc_rand_atten_uv_q15(psDec->lossCnt);
   }
-  silk_bwexpander(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), ((opus_int32)((0.99) * ((opus_int64)1 << (16)) + 0.5)));
-  copy_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), A_Q12.data());
+  silk_bwexpander(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order),
+                  ((opus_int32)((0.99) * ((opus_int64)1 << (16)) + 0.5)));
+  copy_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), A_Q12);
   if (psDec->lossCnt == 0) {
     rand_scale_Q14 = 1 << 14;
     if (psDec->prevSignalType == 2) {
@@ -12213,7 +12182,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   lag = rounded_rshift<8>(psPLC->pitchL_Q8);
   sLTP_buf_idx = psDec->ltp_mem_length;
   idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
-  silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12.data(), psDec->ltp_mem_length - idx, psDec->LPC_order);
+  silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
   inv_gain_Q30 = silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46);
   inv_gain_Q30 = std::min(inv_gain_Q30, std::numeric_limits<opus_int32>::max() >> 1);
   for (i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
@@ -12245,14 +12214,14 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   sLPC_Q14_ptr = &sLTP_Q14[psDec->ltp_mem_length - 16];
   copy_n_bytes(psDec->sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)), sLPC_Q14_ptr);
   for (i = 0; i < psDec->frame_length; i++) {
-    LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12.data(), psDec->LPC_order);
+    LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
     sLPC_Q14_ptr[16 + i] = saturating_add_int32(sLPC_Q14_ptr[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
     frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], prevGain_Q10[1]);
   }
   copy_n_bytes(&sLPC_Q14_ptr[psDec->frame_length], static_cast<std::size_t>(16 * sizeof(opus_int32)), psDec->sLPC_Q14_buf);
   psPLC->rand_seed = rand_seed;
   psPLC->randScale_Q14 = rand_scale_Q14;
-  fill_n_items(psDecCtrl->pitchL, std::size(psDecCtrl->pitchL), lag);
+  fill_n_items(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
 }
 
 void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
@@ -12500,8 +12469,8 @@ constinit const std::array<opus_uint8, 17> silk_shell_code_table_offsets =
 constinit const std::array<opus_uint8, 42> silk_sign_iCDF =
     numeric_blob_array<opus_uint8, 42>(R"blob(FE31434D525D63C60B12181F242DFF2E424E575E68D00E15202A3342FF5E686D707376F8354550585F66)blob");
 } // namespace
-static void silk_VAD_GetNoiseLevels(const opus_int32 pX[4], silk_VAD_state* psSilk_VAD);
-void silk_VAD_Init(silk_VAD_state* psSilk_VAD) {
+static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD);
+static void silk_VAD_Init(silk_VAD_state* psSilk_VAD) {
   int b;
   zero_n_bytes(psSilk_VAD, static_cast<std::size_t>(sizeof(silk_VAD_state)));
   for (b = 0; b < 4; b++) {
@@ -12514,13 +12483,12 @@ void silk_VAD_Init(silk_VAD_state* psSilk_VAD) {
 }
 
 constexpr std::array<opus_int16, 4> tiltWeights{30000, 6000, -12000, -12000};
-void silk_VAD_GetSA_Q8_c(silk_encoder_state* psEncC, const opus_int16 pIn[]) {
+static void silk_VAD_GetSA_Q8_c(silk_encoder_state* psEncC, const opus_int16 pIn[]) {
   int SA_Q15, pSNR_dB_Q7, input_tilt, decimated_framelength1, decimated_framelength2, decimated_framelength, dec_subframe_length,
       dec_subframe_offset, SNR_Q7, i, b, s;
   opus_int32 sumSquared = 0, smooth_coef_Q16;
   opus_int16 HPstateTmp;
-  opus_int32 Xnrg[4];
-  opus_int32 NrgToNoiseRatio_Q8[4];
+  opus_int32 Xnrg[4], NrgToNoiseRatio_Q8[4];
   opus_int32 speech_nrg, x_tmp;
   int X_offset[4];
   silk_VAD_state* psSilk_VAD = &psEncC->sVAD;
@@ -12533,9 +12501,9 @@ void silk_VAD_GetSA_Q8_c(silk_encoder_state* psEncC, const opus_int16 pIn[]) {
   X_offset[3] = X_offset[2] + decimated_framelength2;
   std::array<opus_int16, silk_vad_max_work_samples> X_storage;
   auto* X = X_storage.data();
-  silk_ana_filt_bank_1(pIn, &psSilk_VAD->AnaState[0], X, &X[X_offset[3]], psEncC->frame_length);
-  silk_ana_filt_bank_1(X, &psSilk_VAD->AnaState1[0], X, &X[X_offset[2]], decimated_framelength1);
-  silk_ana_filt_bank_1(X, &psSilk_VAD->AnaState2[0], X, &X[X_offset[1]], decimated_framelength2);
+  silk_ana_filt_bank_1(pIn, psSilk_VAD->AnaState.data(), X, &X[X_offset[3]], psEncC->frame_length);
+  silk_ana_filt_bank_1(X, psSilk_VAD->AnaState1.data(), X, &X[X_offset[2]], decimated_framelength1);
+  silk_ana_filt_bank_1(X, psSilk_VAD->AnaState2.data(), X, &X[X_offset[1]], decimated_framelength2);
   X[decimated_framelength - 1] = ((X[decimated_framelength - 1]) >> (1));
   HPstateTmp = X[decimated_framelength - 1];
   for (i = decimated_framelength - 1; i > 0; i--) {
@@ -12565,7 +12533,7 @@ void silk_VAD_GetSA_Q8_c(silk_encoder_state* psEncC, const opus_int16 pIn[]) {
     }
     psSilk_VAD->XnrgSubfr[b] = sumSquared;
   }
-  silk_VAD_GetNoiseLevels(&Xnrg[0], psSilk_VAD);
+  silk_VAD_GetNoiseLevels(Xnrg, psSilk_VAD);
   sumSquared = 0;
   input_tilt = 0;
   for (b = 0; b < 4; b++) {
@@ -12622,7 +12590,7 @@ void silk_VAD_GetSA_Q8_c(silk_encoder_state* psEncC, const opus_int16 pIn[]) {
   }
 }
 
-static void silk_VAD_GetNoiseLevels(const opus_int32 pX[4], silk_VAD_state* psSilk_VAD) {
+static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD) {
   int k;
   opus_int32 nl, nrg, inv_nrg;
   int coef, min_coef;
@@ -12654,7 +12622,7 @@ static void silk_VAD_GetNoiseLevels(const opus_int32 pX[4], silk_VAD_state* psSi
   }
 }
 
-int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncControlStruct* encControl) {
+static int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncControlStruct* encControl) {
   int fs_kHz, orig_kHz;
   opus_int32 fs_Hz;
   orig_kHz = psEncC->fs_kHz;
@@ -12873,24 +12841,20 @@ void silk_HP_variable_cutoff(silk_encoder_state_FLP state_Fxx[]) {
   }
 }
 
-void silk_NLSF_encode(opus_int8* NLSFIndices, opus_int16* pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB, const opus_int16* pW_Q2,
-                      const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
+void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB,
+                      std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
   int i, s, ind1, bestIndex, prob_Q8, bits_q7;
   opus_int32 W_tmp_Q9;
-  opus_int16 res_Q10[16];
-  opus_int16 NLSF_tmp_Q15[16];
-  opus_int16 W_adj_Q5[16];
+  opus_int16 res_Q10[16], NLSF_tmp_Q15[16], W_adj_Q5[16], ec_ix[16];
   opus_uint8 pred_Q8[16];
-  opus_int16 ec_ix[16];
   const opus_uint8 *pCB_element, *iCDF_ptr;
   const opus_int16* pCB_Wght_Q9;
-  silk_NLSF_stabilize(pNLSF_Q15, psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
-  opus_int32 err_Q24[silk_nlsf_max_cb1_vectors];
-  silk_NLSF_VQ(err_Q24, pNLSF_Q15, psNLSF_CB->CB1_NLSF_Q8, psNLSF_CB->CB1_Wght_Q9, psNLSF_CB->nVectors, psNLSF_CB->order);
+  silk_NLSF_stabilize(pNLSF_Q15.data(), psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
+  opus_int32 err_Q24[silk_nlsf_max_cb1_vectors], RD_Q25[silk_nlsf_max_survivors];
   int tempIndices1[silk_nlsf_max_survivors];
+  opus_int8 tempIndices2[silk_nlsf_max_survivors][silk_nlsf_max_order];
+  silk_NLSF_VQ(err_Q24, pNLSF_Q15.data(), psNLSF_CB->CB1_NLSF_Q8, psNLSF_CB->CB1_Wght_Q9, psNLSF_CB->nVectors, psNLSF_CB->order);
   silk_insertion_sort_increasing(err_Q24, tempIndices1, psNLSF_CB->nVectors, nSurvivors);
-  opus_int32 RD_Q25[silk_nlsf_max_survivors];
-  opus_int8 tempIndices2[silk_nlsf_max_survivors * silk_nlsf_max_order];
   for (s = 0; s < nSurvivors; s++) {
     ind1 = tempIndices1[s];
     pCB_element = psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order;
@@ -12904,7 +12868,7 @@ void silk_NLSF_encode(opus_int8* NLSFIndices, opus_int16* pNLSF_Q15, const silk_
           silk_DIV32_varQ((opus_int32)pW_Q2[i], ((opus_int32)((opus_int16)(W_tmp_Q9)) * (opus_int32)((opus_int16)(W_tmp_Q9))), 21);
     }
     silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, ind1);
-    RD_Q25[s] = silk_NLSF_del_dec_quant(&tempIndices2[s * 16], res_Q10, W_adj_Q5, pred_Q8, ec_ix, psNLSF_CB->ec_Rates_Q5,
+    RD_Q25[s] = silk_NLSF_del_dec_quant(tempIndices2[s], res_Q10, W_adj_Q5, pred_Q8, ec_ix, psNLSF_CB->ec_Rates_Q5,
                                         psNLSF_CB->quantStepSize_Q16, psNLSF_CB->invQuantStepSize_Q6, NLSF_mu_Q20, psNLSF_CB->order);
     iCDF_ptr = silk_nlsf_cb1_icdf(psNLSF_CB, signalType);
     if (ind1 == 0) {
@@ -12917,7 +12881,7 @@ void silk_NLSF_encode(opus_int8* NLSFIndices, opus_int16* pNLSF_Q15, const silk_
   }
   silk_insertion_sort_increasing(RD_Q25, &bestIndex, nSurvivors, 1);
   NLSFIndices[0] = (opus_int8)tempIndices1[bestIndex];
-  copy_n_bytes(&tempIndices2[bestIndex * 16], static_cast<std::size_t>(psNLSF_CB->order * sizeof(opus_int8)), &NLSFIndices[1]);
+  copy_n_bytes(tempIndices2[bestIndex], static_cast<std::size_t>(psNLSF_CB->order * sizeof(opus_int8)), &NLSFIndices[1]);
   silk_NLSF_decode(pNLSF_Q15, NLSFIndices, psNLSF_CB);
 }
 
@@ -12952,7 +12916,8 @@ void silk_NLSF_VQ(opus_int32 err_Q24[], const opus_int16 in_Q15[], const opus_ui
   }
 }
 
-void silk_NLSF_unpack(opus_int16 ec_ix[], opus_uint8 pred_Q8[], const silk_NLSF_CB_struct* psNLSF_CB, const int CB1_index) {
+void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB,
+                      const int CB1_index) {
   int i;
   opus_uint8 entry;
   auto* ec_sel_ptr = psNLSF_CB->ec_sel + CB1_index * psNLSF_CB->order / 2;
@@ -13001,103 +12966,83 @@ consteval auto make_silk_nlsf_del_dec_out_tables(const int quant_step_size_Q16) 
 constexpr auto silk_nlsf_del_dec_out_tables_nb_mb = make_silk_nlsf_del_dec_out_tables(silk_nlsf_quant_step_nb_mb_q16);
 constexpr auto silk_nlsf_del_dec_out_tables_wb = make_silk_nlsf_del_dec_out_tables(silk_nlsf_quant_step_wb_q16);
 
-opus_int32 silk_NLSF_del_dec_quant(opus_int8 indices[], const opus_int16 x_Q10[], const opus_int16 w_Q5[], const opus_uint8 pred_coef_Q8[],
-                                   const opus_int16 ec_ix[], const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16,
+[[nodiscard]] constexpr auto silk_nlsf_rate_q5(const opus_uint8* rates_Q5, int index) noexcept -> int {
+  return index >= 4 ? 280 + 43 * (index - 4) : (index <= -4 ? 280 - 43 * (index + 4) : rates_Q5[index + 4]);
+}
+
+[[nodiscard]] constexpr auto silk_nlsf_rd_q25(opus_int32 base_Q25, int in_Q10, opus_int16 out_Q10, opus_int16 weight_Q5,
+                                              opus_int32 mu_Q20, int rate_Q5) noexcept -> opus_int32 {
+  const auto diff_Q10 = static_cast<opus_int32>(static_cast<opus_int16>(in_Q10 - out_Q10));
+  return base_Q25 + diff_Q10 * diff_Q10 * weight_Q5 +
+         static_cast<opus_int32>(static_cast<opus_int16>(mu_Q20)) * static_cast<opus_int32>(static_cast<opus_int16>(rate_Q5));
+}
+
+opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10,
+                                   std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8,
+                                   std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16,
                                    const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order) {
-  int i, j, nStates, ind_tmp, ind_min_max, ind_max_min, in_Q10, res_Q10;
-  int pred_Q10, diff_Q10, rate0_Q5, rate1_Q5;
-  opus_int16 out0_Q10, out1_Q10;
-  opus_int32 RD_tmp_Q25, min_Q25, min_max_Q25, max_min_Q25;
-  int ind_sort[(1 << 2)];
-  opus_int8 ind[(1 << 2)][16];
-  opus_int16 prev_out_Q10[2 * (1 << 2)];
-  opus_int32 RD_Q25[2 * (1 << 2)];
-  opus_int32 RD_min_Q25[(1 << 2)];
-  opus_int32 RD_max_Q25[(1 << 2)];
-  const opus_uint8* rates_Q5;
+  constexpr int state_count = 4;
+  std::array<int, state_count> ind_sort;
+  std::array<std::array<opus_int8, 16>, state_count> ind;
+  std::array<opus_int16, 2 * state_count> prev_out_Q10;
+  std::array<opus_int32, 2 * state_count> RD_Q25;
+  std::array<opus_int32, state_count> RD_min_Q25;
+  std::array<opus_int32, state_count> RD_max_Q25;
   const auto& out_tables =
       quant_step_size_Q16 == silk_nlsf_quant_step_nb_mb_q16 ? silk_nlsf_del_dec_out_tables_nb_mb : silk_nlsf_del_dec_out_tables_wb;
   const auto* out0_Q10_table = out_tables.out0.data();
   const auto* out1_Q10_table = out_tables.out1.data();
-  nStates = 1;
+  int nStates = 1;
   RD_Q25[0] = 0;
   prev_out_Q10[0] = 0;
-  for (i = order - 1; i >= 0; i--) {
-    rates_Q5 = &ec_rates_Q5[ec_ix[i]];
-    in_Q10 = x_Q10[i];
-    for (j = 0; j < nStates; j++) {
-      pred_Q10 = ((((opus_int32)((opus_int16)((opus_int16)pred_coef_Q8[i])) * (opus_int32)((opus_int16)(prev_out_Q10[j])))) >> (8));
-      res_Q10 = ((in_Q10) - (pred_Q10));
-      ind_tmp = ((((opus_int32)((opus_int16)(inv_quant_step_size_Q6)) * (opus_int32)((opus_int16)(res_Q10)))) >> (16));
-      ind_tmp = ((-10) > (10 - 1) ? ((ind_tmp) > (-10) ? (-10) : ((ind_tmp) < (10 - 1) ? (10 - 1) : (ind_tmp)))
-                                  : ((ind_tmp) > (10 - 1) ? (10 - 1) : ((ind_tmp) < (-10) ? (-10) : (ind_tmp))));
+  for (int i = order - 1; i >= 0; --i) {
+    const auto* rates_Q5 = &ec_rates_Q5[ec_ix[i]];
+    const auto in_Q10 = x_Q10[i];
+    for (int j = 0; j < nStates; ++j) {
+      const auto pred_Q10 =
+          ((((opus_int32)((opus_int16)((opus_int16)pred_coef_Q8[i])) * (opus_int32)((opus_int16)(prev_out_Q10[j])))) >> (8));
+      const auto res_Q10 = ((in_Q10) - (pred_Q10));
+      auto ind_tmp = ((((opus_int32)((opus_int16)(inv_quant_step_size_Q6)) * (opus_int32)((opus_int16)(res_Q10)))) >> (16));
+      ind_tmp = std::clamp(ind_tmp, -10, 9);
       ind[j][i] = (opus_int8)ind_tmp;
-      out0_Q10 = out0_Q10_table[ind_tmp + 10];
-      out1_Q10 = out1_Q10_table[ind_tmp + 10];
-      out0_Q10 = ((out0_Q10) + (pred_Q10));
-      out1_Q10 = ((out1_Q10) + (pred_Q10));
+      const auto out0_Q10 = static_cast<opus_int16>(out0_Q10_table[ind_tmp + 10] + pred_Q10);
+      const auto out1_Q10 = static_cast<opus_int16>(out1_Q10_table[ind_tmp + 10] + pred_Q10);
       prev_out_Q10[j] = out0_Q10;
       prev_out_Q10[j + nStates] = out1_Q10;
-      if (ind_tmp + 1 >= 4) {
-        if (ind_tmp + 1 == 4) {
-          rate0_Q5 = rates_Q5[ind_tmp + 4];
-          rate1_Q5 = 280;
-        } else {
-          rate0_Q5 = ((280 - 43 * 4) + ((opus_int32)((opus_int16)(43))) * (opus_int32)((opus_int16)(ind_tmp)));
-          rate1_Q5 = ((rate0_Q5) + (43));
-        }
-      } else if (ind_tmp <= -4) {
-        if (ind_tmp == -4) {
-          rate0_Q5 = 280;
-          rate1_Q5 = rates_Q5[ind_tmp + 1 + 4];
-        } else {
-          rate0_Q5 = ((280 - 43 * 4) + ((opus_int32)((opus_int16)(-43))) * (opus_int32)((opus_int16)(ind_tmp)));
-          rate1_Q5 = ((rate0_Q5) - (43));
-        }
-      } else {
-        rate0_Q5 = rates_Q5[ind_tmp + 4];
-        rate1_Q5 = rates_Q5[ind_tmp + 1 + 4];
-      }
-      RD_tmp_Q25 = RD_Q25[j];
-      diff_Q10 = ((in_Q10) - (out0_Q10));
-      RD_Q25[j] = (((((RD_tmp_Q25)) + (((((opus_int32)((opus_int16)(diff_Q10)) * (opus_int32)((opus_int16)(diff_Q10)))) * (w_Q5[i]))))) +
-                   ((opus_int32)((opus_int16)(mu_Q20))) * (opus_int32)((opus_int16)(rate0_Q5)));
-      diff_Q10 = ((in_Q10) - (out1_Q10));
-      RD_Q25[j + nStates] =
-          (((((RD_tmp_Q25)) + (((((opus_int32)((opus_int16)(diff_Q10)) * (opus_int32)((opus_int16)(diff_Q10)))) * (w_Q5[i]))))) +
-           ((opus_int32)((opus_int16)(mu_Q20))) * (opus_int32)((opus_int16)(rate1_Q5)));
+      const auto rate0_Q5 = silk_nlsf_rate_q5(rates_Q5, ind_tmp);
+      const auto rate1_Q5 = silk_nlsf_rate_q5(rates_Q5, ind_tmp + 1);
+      const auto RD_tmp_Q25 = RD_Q25[j];
+      RD_Q25[j] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out0_Q10, w_Q5[i], mu_Q20, rate0_Q5);
+      RD_Q25[j + nStates] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out1_Q10, w_Q5[i], mu_Q20, rate1_Q5);
     }
-    if (nStates <= (1 << 2) / 2) {
-      for (j = 0; j < nStates; j++) {
+    if (nStates <= state_count / 2) {
+      for (int j = 0; j < nStates; ++j) {
         ind[j + nStates][i] = ind[j][i] + 1;
       }
-      nStates = ((opus_int32)((opus_uint32)(nStates) << (1)));
-      for (j = nStates; j < (1 << 2); j++) {
+      nStates <<= 1;
+      for (int j = nStates; j < state_count; ++j) {
         ind[j][i] = ind[j - nStates][i];
       }
     } else {
-      for (j = 0; j < (1 << 2); j++) {
-        if (RD_Q25[j] > RD_Q25[j + (1 << 2)]) {
+      for (int j = 0; j < state_count; ++j) {
+        if (RD_Q25[j] > RD_Q25[j + state_count]) {
           RD_max_Q25[j] = RD_Q25[j];
-          RD_min_Q25[j] = RD_Q25[j + (1 << 2)];
-          RD_Q25[j] = RD_min_Q25[j];
-          RD_Q25[j + (1 << 2)] = RD_max_Q25[j];
-          out0_Q10 = prev_out_Q10[j];
-          prev_out_Q10[j] = prev_out_Q10[j + (1 << 2)];
-          prev_out_Q10[j + (1 << 2)] = out0_Q10;
-          ind_sort[j] = j + (1 << 2);
+          RD_min_Q25[j] = RD_Q25[j + state_count];
+          std::swap(RD_Q25[j], RD_Q25[j + state_count]);
+          std::swap(prev_out_Q10[j], prev_out_Q10[j + state_count]);
+          ind_sort[j] = j + state_count;
         } else {
           RD_min_Q25[j] = RD_Q25[j];
-          RD_max_Q25[j] = RD_Q25[j + (1 << 2)];
+          RD_max_Q25[j] = RD_Q25[j + state_count];
           ind_sort[j] = j;
         }
       }
-      for (auto separating_paths = true; separating_paths;) {
-        min_max_Q25 = 0x7FFFFFFF;
-        max_min_Q25 = 0;
-        ind_min_max = 0;
-        ind_max_min = 0;
-        for (j = 0; j < (1 << 2); j++) {
+      while (true) {
+        auto min_max_Q25 = opus_int32_max;
+        opus_int32 max_min_Q25 = 0;
+        int ind_min_max = 0;
+        int ind_max_min = 0;
+        for (int j = 0; j < state_count; ++j) {
           if (min_max_Q25 > RD_max_Q25[j]) {
             min_max_Q25 = RD_max_Q25[j];
             ind_min_max = j;
@@ -13108,45 +13053,41 @@ opus_int32 silk_NLSF_del_dec_quant(opus_int8 indices[], const opus_int16 x_Q10[]
           }
         }
         if (min_max_Q25 >= max_min_Q25) {
-          separating_paths = false;
-          continue;
+          break;
         }
-        ind_sort[ind_max_min] = ind_sort[ind_min_max] ^ (1 << 2);
-        RD_Q25[ind_max_min] = RD_Q25[ind_min_max + (1 << 2)];
-        prev_out_Q10[ind_max_min] = prev_out_Q10[ind_min_max + (1 << 2)];
+        ind_sort[ind_max_min] = ind_sort[ind_min_max] ^ state_count;
+        RD_Q25[ind_max_min] = RD_Q25[ind_min_max + state_count];
+        prev_out_Q10[ind_max_min] = prev_out_Q10[ind_min_max + state_count];
         RD_min_Q25[ind_max_min] = 0;
-        RD_max_Q25[ind_min_max] = 0x7FFFFFFF;
-        copy_n_bytes(ind[ind_min_max], static_cast<std::size_t>(16 * sizeof(opus_int8)), ind[ind_max_min]);
+        RD_max_Q25[ind_min_max] = opus_int32_max;
+        ind[ind_max_min] = ind[ind_min_max];
       }
-      for (j = 0; j < (1 << 2); j++) {
-        ind[j][i] += ((ind_sort[j]) >> (2));
+      for (int j = 0; j < state_count; ++j) {
+        ind[j][i] += ind_sort[j] >> 2;
       }
     }
   }
-  ind_tmp = 0;
-  min_Q25 = 0x7FFFFFFF;
-  for (j = 0; j < 2 * (1 << 2); j++) {
+  int best_state = 0;
+  auto min_Q25 = opus_int32_max;
+  for (int j = 0; j < 2 * state_count; ++j) {
     if (min_Q25 > RD_Q25[j]) {
       min_Q25 = RD_Q25[j];
-      ind_tmp = j;
+      best_state = j;
     }
   }
-  for (j = 0; j < order; j++) {
-    indices[j] = ind[ind_tmp & ((1 << 2) - 1)][j];
+  const auto best_path = best_state & (state_count - 1);
+  for (int j = 0; j < order; ++j) {
+    indices[j] = ind[best_path][j];
   }
-  indices[0] += ((ind_tmp) >> (2));
+  indices[0] += best_state >> 2;
   return min_Q25;
 }
 
-void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16],
+static void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16],
                         const opus_int16 prev_NLSFq_Q15[16]) {
-  int i, doInterpolate;
-  int NLSF_mu_Q20;
-  opus_int16 i_sqr_Q15;
   opus_int16 pNLSF0_temp_Q15[16]{};
-  opus_int16 pNLSFW_QW[16];
-  opus_int16 pNLSFW0_temp_QW[16];
-  NLSF_mu_Q20 = ((
+  opus_int16 pNLSFW_QW[16], pNLSFW0_temp_QW[16];
+  auto NLSF_mu_Q20 = ((
       opus_int32)((((opus_int32)((0.003) * ((opus_int64)1 << (20)) + 0.5))) +
                   (((((opus_int32)((-0.001) * ((opus_int64)1 << (28)) + 0.5))) * (opus_int64)((opus_int16)(psEncC->speech_activity_Q8))) >>
                    16)));
@@ -13154,23 +13095,23 @@ void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][1
     NLSF_mu_Q20 = ((NLSF_mu_Q20) + (((NLSF_mu_Q20)) >> ((1))));
   }
   silk_NLSF_VQ_weights_laroia(pNLSFW_QW, pNLSF_Q15, psEncC->predictLPCOrder);
-  doInterpolate = (psEncC->useInterpolatedNLSFs == 1) && (psEncC->indices.NLSFInterpCoef_Q2 < 4);
+  const auto doInterpolate = (psEncC->useInterpolatedNLSFs == 1) && (psEncC->indices.NLSFInterpCoef_Q2 < 4);
   if (doInterpolate) {
     silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
                      std::span<const opus_int16>{prev_NLSFq_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
                      std::span<const opus_int16>{pNLSF_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
                      psEncC->indices.NLSFInterpCoef_Q2);
     silk_NLSF_VQ_weights_laroia(pNLSFW0_temp_QW, pNLSF0_temp_Q15, psEncC->predictLPCOrder);
-    i_sqr_Q15 = ((opus_int32)((opus_uint32)(((opus_int32)((opus_int16)(psEncC->indices.NLSFInterpCoef_Q2)) *
-                                             (opus_int32)((opus_int16)(psEncC->indices.NLSFInterpCoef_Q2))))
-                              << (11)));
-    for (i = 0; i < psEncC->predictLPCOrder; i++) {
+    const auto i_sqr_Q15 = ((opus_int32)((opus_uint32)(((opus_int32)((opus_int16)(psEncC->indices.NLSFInterpCoef_Q2)) *
+                                                        (opus_int32)((opus_int16)(psEncC->indices.NLSFInterpCoef_Q2))))
+                                         << (11)));
+    for (int i = 0; i < psEncC->predictLPCOrder; ++i) {
       pNLSFW_QW[i] = ((((pNLSFW_QW[i]) >> (1))) +
                       (((((opus_int32)((opus_int16)(pNLSFW0_temp_QW[i])) * (opus_int32)((opus_int16)(i_sqr_Q15)))) >> (16))));
     }
   }
-  silk_NLSF_encode(psEncC->indices.NLSFIndices, pNLSF_Q15, psEncC->psNLSF_CB, pNLSFW_QW, NLSF_mu_Q20, psEncC->NLSF_MSVQ_Survivors,
-                   psEncC->indices.signalType);
+  silk_NLSF_encode(std::span<opus_int8, 17>{psEncC->indices.NLSFIndices}, std::span<opus_int16, 16>{pNLSF_Q15, 16},
+                   psEncC->psNLSF_CB, pNLSFW_QW, NLSF_mu_Q20, psEncC->NLSF_MSVQ_Survivors, psEncC->indices.signalType);
   silk_NLSF2A(PredCoef_Q12[1], pNLSF_Q15, psEncC->predictLPCOrder);
   if (doInterpolate) {
     silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
@@ -13183,208 +13124,22 @@ void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][1
   }
 }
 
-void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], opus_int8 ix[2][3], opus_int8* mid_only_flag,
-                          opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int fs_kHz,
-                          int frame_length) {
-  int n, is10msFrame, denom_Q16, delta0_Q13, delta1_Q13;
-  opus_int32 sum, diff, smooth_coef_Q16, pred_Q13[2], pred0_Q13, pred1_Q13, LP_ratio_Q14, HP_ratio_Q14, frac_Q16, frac_3_Q16,
-      min_mid_rate_bps, width_Q14, w_Q24, deltaw_Q24;
-  opus_int16* mid = &x1[-2];
-  opus_int16 side_storage[silk_max_frame_length + 2];
-  auto* side = side_storage;
-  for (n = 0; n < frame_length + 2; n++) {
-    sum = x1[n - 2] + (opus_int32)x2[n - 2];
-    diff = x1[n - 2] - (opus_int32)x2[n - 2];
-    mid[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
-    side[n] = rounded_rshift_to_int16<1>(diff);
-  }
-  copy_n_bytes(state->sMid, static_cast<std::size_t>(2 * sizeof(opus_int16)), mid);
-  copy_n_bytes(state->sSide, static_cast<std::size_t>(2 * sizeof(opus_int16)), side);
-  copy_n_bytes(&mid[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sMid);
-  copy_n_bytes(&side[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sSide);
-  opus_int16 LP_mid[silk_max_frame_length];
-  opus_int16 HP_mid[silk_max_frame_length];
-  opus_int16 LP_side[silk_max_frame_length];
-  opus_int16 HP_side[silk_max_frame_length];
-  silk_stereo_split_lp_hp(mid, LP_mid, HP_mid, frame_length);
-  silk_stereo_split_lp_hp(side, LP_side, HP_side, frame_length);
-  is10msFrame = frame_length == 10 * fs_kHz;
-  smooth_coef_Q16 =
-      is10msFrame ? ((opus_int32)((0.01 / 2) * ((opus_int64)1 << (16)) + 0.5)) : ((opus_int32)((0.01) * ((opus_int64)1 << (16)) + 0.5));
-  smooth_coef_Q16 = ((opus_int32)(((((opus_int32)((opus_int16)(prev_speech_act_Q8)) * (opus_int32)((opus_int16)(prev_speech_act_Q8)))) *
-                                   (opus_int64)((opus_int16)(smooth_coef_Q16))) >>
-                                  16));
-  pred_Q13[0] = silk_stereo_find_predictor(&LP_ratio_Q14, LP_mid, LP_side, &state->mid_side_amp_Q0[0], frame_length, smooth_coef_Q16);
-  pred_Q13[1] = silk_stereo_find_predictor(&HP_ratio_Q14, HP_mid, HP_side, &state->mid_side_amp_Q0[2], frame_length, smooth_coef_Q16);
-  frac_Q16 = ((HP_ratio_Q14) + ((opus_int32)((opus_int16)(LP_ratio_Q14))) * (opus_int32)((opus_int16)(3)));
-  frac_Q16 = (((frac_Q16) < (((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5)))) ? (frac_Q16)
-                                                                                   : (((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5))));
-  total_rate_bps -= is10msFrame ? 1200 : 600;
-  if (total_rate_bps < 1) {
-    total_rate_bps = 1;
-  }
-  min_mid_rate_bps = ((2000) + ((opus_int32)((opus_int16)(fs_kHz))) * (opus_int32)((opus_int16)(600)));
-  frac_3_Q16 = ((3) * (frac_Q16));
-  mid_side_rates_bps[0] = silk_DIV32_varQ(total_rate_bps, ((opus_int32)((8 + 5) * ((opus_int64)1 << (16)) + 0.5)) + frac_3_Q16, 16 + 3);
-  if (mid_side_rates_bps[0] < min_mid_rate_bps) {
-    mid_side_rates_bps[0] = min_mid_rate_bps;
-    mid_side_rates_bps[1] = total_rate_bps - mid_side_rates_bps[0];
-    width_Q14 = silk_DIV32_varQ(
-        ((opus_int32)((opus_uint32)(mid_side_rates_bps[1]) << (1))) - min_mid_rate_bps,
-        ((opus_int32)(((((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5)) + frac_3_Q16) * (opus_int64)((opus_int16)(min_mid_rate_bps))) >>
-                      16)),
-        14 + 2);
-    width_Q14 =
-        ((0) > (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
-             ? ((width_Q14) > (0) ? (0)
-                                  : ((width_Q14) < (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
-                                         ? (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
-                                         : (width_Q14)))
-             : ((width_Q14) > (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5))) ? (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
-                                                                                    : ((width_Q14) < (0) ? (0) : (width_Q14))));
-  } else {
-    mid_side_rates_bps[1] = total_rate_bps - mid_side_rates_bps[0];
-    width_Q14 = ((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5));
-  }
-  state->smth_width_Q14 = (opus_int16)((
-      opus_int32)((state->smth_width_Q14) + (((width_Q14 - state->smth_width_Q14) * (opus_int64)((opus_int16)(smooth_coef_Q16))) >> 16)));
-  *mid_only_flag = 0;
-  const auto quantize_smoothed_pred = [&]() {
-    pred_Q13[0] = ((((opus_int32)((opus_int16)(state->smth_width_Q14)) * (opus_int32)((opus_int16)(pred_Q13[0])))) >> (14));
-    pred_Q13[1] = ((((opus_int32)((opus_int16)(state->smth_width_Q14)) * (opus_int32)((opus_int16)(pred_Q13[1])))) >> (14));
-    silk_stereo_quant_pred(pred_Q13, ix);
-  };
-  const auto reset_side_prediction = [&]() {
-    width_Q14 = 0;
-    pred_Q13[0] = 0;
-    pred_Q13[1] = 0;
-  };
-  const auto mid_only_state_score = [&]() {
-    const auto was_mid_only = state->width_prev_Q14 == 0;
-    return std::max(
-        score_below(static_cast<float>(8 * total_rate_bps), static_cast<float>((was_mid_only ? 13 : 11) * min_mid_rate_bps)),
-        score_below(static_cast<float>((static_cast<opus_int32>(((frac_Q16) * (opus_int64)((opus_int16)(state->smth_width_Q14))) >> 16))),
-                    static_cast<float>(was_mid_only ? ((opus_int32)((0.05) * ((opus_int64)1 << (14)) + 0.5))
-                                                    : ((opus_int32)((0.02) * ((opus_int64)1 << (14)) + 0.5)))));
-  };
-  const auto high_rate_mid_only_bias = clamp_value((static_cast<float>(total_rate_bps) - 30000.0f) * (1.0f / 18000.0f), 0.0f, 1.0f);
-  const auto low_speech_mid_only_bias =
-      std::min(clamp_value(1.0f - static_cast<float>(std::abs(total_rate_bps - 24000)) * (1.0f / 4000.0f), 0.0f, 1.0f),
-               score_below(static_cast<float>(prev_speech_act_Q8), 32.0f));
-  if (toMono) {
-    reset_side_prediction();
-    silk_stereo_quant_pred(pred_Q13, ix);
-  } else if (mid_only_state_score() + silk_mid_only_score_bias * high_rate_mid_only_bias +
-                 silk_mid_only_low_speech_bias * low_speech_mid_only_bias >
-             0.0f) {
-    quantize_smoothed_pred();
-    reset_side_prediction();
-    if (state->width_prev_Q14 == 0) {
-      mid_side_rates_bps[0] = total_rate_bps;
-      mid_side_rates_bps[1] = 0;
-      *mid_only_flag = 1;
-    }
-  } else if (state->smth_width_Q14 > ((opus_int32)((0.95) * ((opus_int64)1 << (14)) + 0.5))) {
-    silk_stereo_quant_pred(pred_Q13, ix);
-    width_Q14 = ((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5));
-  } else {
-    quantize_smoothed_pred();
-    width_Q14 = state->smth_width_Q14;
-  }
-  if (*mid_only_flag == 1) {
-    state->silent_side_len += frame_length - 8 * fs_kHz;
-    if (state->silent_side_len < 5 * fs_kHz) {
-      *mid_only_flag = 0;
-    } else {
-      state->silent_side_len = 10000;
-    }
-  } else {
-    state->silent_side_len = 0;
-  }
-  if (*mid_only_flag == 0 && mid_side_rates_bps[1] < 1) {
-    mid_side_rates_bps[1] = 1;
-    mid_side_rates_bps[0] = std::max(1, total_rate_bps - mid_side_rates_bps[1]);
-  }
-  pred0_Q13 = -state->pred_prev_Q13[0];
-  pred1_Q13 = -state->pred_prev_Q13[1];
-  w_Q24 = ((opus_int32)((opus_uint32)(state->width_prev_Q14) << (10)));
-  denom_Q16 = ((opus_int32)(((opus_int32)1 << 16) / (8 * fs_kHz)));
-  delta0_Q13 = -rounded_i16_product_shift<16>(pred_Q13[0] - state->pred_prev_Q13[0], denom_Q16);
-  delta1_Q13 = -rounded_i16_product_shift<16>(pred_Q13[1] - state->pred_prev_Q13[1], denom_Q16);
-  deltaw_Q24 =
-      ((opus_int32)((opus_uint32)(((opus_int32)(((width_Q14 - state->width_prev_Q14) * (opus_int64)((opus_int16)(denom_Q16))) >> 16)))
-                    << (10)));
-  for (n = 0; n < 8 * fs_kHz; n++) {
-    pred0_Q13 += delta0_Q13;
-    pred1_Q13 += delta1_Q13;
-    w_Q24 += deltaw_Q24;
-    sum = ((opus_int32)((opus_uint32)((((mid[n] + (opus_int32)mid[n + 2])) + (((opus_int32)((opus_uint32)((mid[n + 1])) << ((1)))))))
-                        << (9)));
-    sum = ((opus_int32)((((opus_int32)(((w_Q24) * (opus_int64)((opus_int16)(side[n + 1]))) >> 16))) +
-                        (((sum) * (opus_int64)((opus_int16)(pred0_Q13))) >> 16)));
-    sum = ((opus_int32)((sum) +
-                        (((((opus_int32)((opus_uint32)((opus_int32)mid[n + 1]) << (11)))) * (opus_int64)((opus_int16)(pred1_Q13))) >> 16)));
-    x2[n - 1] = rounded_rshift_to_int16<8>(sum);
-  }
-  pred0_Q13 = -pred_Q13[0];
-  pred1_Q13 = -pred_Q13[1];
-  w_Q24 = ((opus_int32)((opus_uint32)(width_Q14) << (10)));
-  for (n = 8 * fs_kHz; n < frame_length; n++) {
-    sum = ((opus_int32)((opus_uint32)((((mid[n] + (opus_int32)mid[n + 2])) + (((opus_int32)((opus_uint32)((mid[n + 1])) << ((1)))))))
-                        << (9)));
-    sum = ((opus_int32)((((opus_int32)(((w_Q24) * (opus_int64)((opus_int16)(side[n + 1]))) >> 16))) +
-                        (((sum) * (opus_int64)((opus_int16)(pred0_Q13))) >> 16)));
-    sum = ((opus_int32)((sum) +
-                        (((((opus_int32)((opus_uint32)((opus_int32)mid[n + 1]) << (11)))) * (opus_int64)((opus_int16)(pred1_Q13))) >> 16)));
-    x2[n - 1] = rounded_rshift_to_int16<8>(sum);
-  }
-  state->pred_prev_Q13[0] = (opus_int16)pred_Q13[0];
-  state->pred_prev_Q13[1] = (opus_int16)pred_Q13[1];
-  state->width_prev_Q14 = (opus_int16)width_Q14;
+[[nodiscard]] static auto silk_stereo_mid_mix_q9(const opus_int16* mid, int n) noexcept -> opus_int32 {
+  return ((opus_int32)((opus_uint32)((((mid[n] + (opus_int32)mid[n + 2])) +
+                                      (((opus_int32)((opus_uint32)((mid[n + 1])) << ((1)))))))
+                       << (9)));
 }
 
-void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz,
-                          int frame_length) {
-  int n, denom_Q16, delta0_Q13, delta1_Q13;
-  opus_int32 sum, diff, pred0_Q13, pred1_Q13;
-  copy_n_bytes(state->sMid, static_cast<std::size_t>(2 * sizeof(opus_int16)), x1);
-  copy_n_bytes(state->sSide, static_cast<std::size_t>(2 * sizeof(opus_int16)), x2);
-  copy_n_bytes(&x1[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sMid);
-  copy_n_bytes(&x2[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sSide);
-  pred0_Q13 = state->pred_prev_Q13[0];
-  pred1_Q13 = state->pred_prev_Q13[1];
-  denom_Q16 = ((opus_int32)(((opus_int32)1 << 16) / (8 * fs_kHz)));
-  delta0_Q13 = rounded_i16_product_shift<16>(pred_Q13[0] - state->pred_prev_Q13[0], denom_Q16);
-  delta1_Q13 = rounded_i16_product_shift<16>(pred_Q13[1] - state->pred_prev_Q13[1], denom_Q16);
-  for (n = 0; n < 8 * fs_kHz; n++) {
-    pred0_Q13 += delta0_Q13;
-    pred1_Q13 += delta1_Q13;
-    sum = ((opus_int32)((opus_uint32)((((x1[n] + (opus_int32)x1[n + 2])) + (((opus_int32)((opus_uint32)((x1[n + 1])) << ((1))))))) << (9)));
-    sum = ((opus_int32)((((opus_int32)((opus_uint32)((opus_int32)x2[n + 1]) << (8)))) +
-                        (((sum) * (opus_int64)((opus_int16)(pred0_Q13))) >> 16)));
-    sum = ((opus_int32)((sum) +
-                        (((((opus_int32)((opus_uint32)((opus_int32)x1[n + 1]) << (11)))) * (opus_int64)((opus_int16)(pred1_Q13))) >> 16)));
-    x2[n + 1] = rounded_rshift_to_int16<8>(sum);
-  }
-  pred0_Q13 = pred_Q13[0];
-  pred1_Q13 = pred_Q13[1];
-  for (n = 8 * fs_kHz; n < frame_length; n++) {
-    sum = ((opus_int32)((opus_uint32)((((x1[n] + (opus_int32)x1[n + 2])) + (((opus_int32)((opus_uint32)((x1[n + 1])) << ((1))))))) << (9)));
-    sum = ((opus_int32)((((opus_int32)((opus_uint32)((opus_int32)x2[n + 1]) << (8)))) +
-                        (((sum) * (opus_int64)((opus_int16)(pred0_Q13))) >> 16)));
-    sum = ((opus_int32)((sum) +
-                        (((((opus_int32)((opus_uint32)((opus_int32)x1[n + 1]) << (11)))) * (opus_int64)((opus_int16)(pred1_Q13))) >> 16)));
-    x2[n + 1] = rounded_rshift_to_int16<8>(sum);
-  }
-  state->pred_prev_Q13[0] = pred_Q13[0];
-  state->pred_prev_Q13[1] = pred_Q13[1];
-  for (n = 0; n < frame_length; n++) {
-    sum = x1[n + 1] + (opus_int32)x2[n + 1];
-    diff = x1[n + 1] - (opus_int32)x2[n + 1];
-    x1[n + 1] = saturate_int16_from_int32(sum);
-    x2[n + 1] = saturate_int16_from_int32(diff);
-  }
+[[nodiscard]] static auto silk_stereo_apply_predictors_q8(opus_int32 side_Q8, opus_int32 mid_mix_Q9, opus_int16 mid_center,
+                                                          opus_int32 pred0_Q13, opus_int32 pred1_Q13) noexcept -> opus_int32 {
+  auto sum = ((opus_int32)((side_Q8) + (((mid_mix_Q9) * (opus_int64)((opus_int16)(pred0_Q13))) >> 16)));
+  sum = ((opus_int32)((sum) + (((((opus_int32)((opus_uint32)((opus_int32)mid_center) << (11)))) *
+                                (opus_int64)((opus_int16)(pred1_Q13))) >>
+                               16)));
+  return sum;
 }
+
+
 
 constexpr std::array<unsigned char, 117 - 10> silk_TargetRate_NB_21 = numeric_blob_array<unsigned char, 107>(
     R"blob(000F27343D444A4F54585C5F6366696C6F7275777A7C7E81838587898B8E8F91939597999B9D9EA0A2A3A5A7A8AAABADAEB0B1B3B4B6B7B9BABBBDBEC0C1C2C4C5C7C8C9CBCCCDCFD0D1D3D4D5D7D8D9DBDCDDDFE0E1E3E4E6E7E8EAEBECEEEFF1F2F3F5F6F8F9FAFCFDFF)blob");
@@ -13472,12 +13227,12 @@ static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
       new_buf_samples = buf_length_ms * fs_kHz;
       auto* x_bufFIX = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(std::max(old_buf_samples, new_buf_samples)));
       silk_float2short_array(x_bufFIX, psEnc->x_buf, old_buf_samples);
-      silk_resampler_state_struct temp_resampler_state[1];
-      silk_resampler_init(temp_resampler_state, ((opus_int32)((opus_int16)(psEnc->sCmn.fs_kHz)) * (opus_int32)((opus_int16)(1000))),
+      silk_resampler_state_struct temp_resampler_state{};
+      silk_resampler_init(&temp_resampler_state, ((opus_int32)((opus_int16)(psEnc->sCmn.fs_kHz)) * (opus_int32)((opus_int16)(1000))),
                           psEnc->sCmn.API_fs_Hz, 0);
       api_buf_samples = buf_length_ms * ((opus_int32)((psEnc->sCmn.API_fs_Hz) / (1000)));
       auto* x_buf_API_fs_Hz = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(api_buf_samples));
-      silk_resampler(temp_resampler_state, x_buf_API_fs_Hz, x_bufFIX, old_buf_samples);
+      silk_resampler(&temp_resampler_state, x_buf_API_fs_Hz, x_bufFIX, old_buf_samples);
       silk_resampler_init(&psEnc->sCmn.resampler_state, psEnc->sCmn.API_fs_Hz,
                           ((opus_int32)((opus_int16)(fs_kHz)) * (opus_int32)((opus_int16)(1000))), 1);
       silk_resampler(&psEnc->sCmn.resampler_state, x_bufFIX, x_buf_API_fs_Hz, api_buf_samples);
@@ -13610,7 +13365,7 @@ static void silk_A2NLSF_init(const opus_int32* a_Q16, opus_int32* P, opus_int32*
   silk_A2NLSF_trans_poly(Q, dd);
 }
 
-void silk_A2NLSF(opus_int16* NLSF, opus_int32* a_Q16, const int d) {
+static void silk_A2NLSF(opus_int16* NLSF, opus_int32* a_Q16, const int d) {
   int i, k, m, dd, root_ix, ffrac;
   opus_int32 xlo, xhi, xmid;
   opus_int32 ylo, yhi, ymid, thr;
@@ -13711,7 +13466,7 @@ void silk_A2NLSF(opus_int16* NLSF, opus_int32* a_Q16, const int d) {
 
 constexpr opus_int16 A_fb1_20 = 5394 << 1;
 constexpr opus_int16 A_fb1_21 = -24290;
-void silk_ana_filt_bank_1(const opus_int16* in, opus_int32* S, opus_int16* outL, opus_int16* outH, const opus_int32 N) {
+void silk_ana_filt_bank_1(const opus_int16* in, opus_int32 S[2], opus_int16* outL, opus_int16* outH, const opus_int32 N) {
   int k, N2 = ((N) >> (1));
   opus_int32 in32, X, Y, out_1, out_2;
   for (k = 0; k < N2; k++) {
@@ -13730,7 +13485,7 @@ void silk_ana_filt_bank_1(const opus_int16* in, opus_int32* S, opus_int16* outL,
   }
 }
 
-void silk_biquad_alt_stride1(const opus_int16* in, const opus_int32* B_Q28, const opus_int32* A_Q28, opus_int32* S, opus_int16* out,
+void silk_biquad_alt_stride1(const opus_int16* in, const opus_int32 B_Q28[3], const opus_int32 A_Q28[2], opus_int32 S[2], opus_int16* out,
                              const opus_int32 len) {
   int k;
   opus_int32 inval, A0_U_Q28, A0_L_Q28, A1_U_Q28, A1_L_Q28, out32_Q14;
@@ -13917,7 +13672,7 @@ void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, const opus_
   }
 }
 
-static inline opus_int32 LPC_inverse_pred_gain_QA_c(opus_int32 A_QA[24], const int order) {
+static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA, const int order) {
   int k, n, mult2Q;
   opus_int32 invGain_Q30, rc_Q31, rc_mult1_Q30, rc_mult2, tmp1, tmp2;
   invGain_Q30 = ((opus_int32)((1) * ((opus_int64)1 << (30)) + 0.5));
@@ -13968,7 +13723,7 @@ opus_int32 silk_LPC_inverse_pred_gain_c(const opus_int16* A_Q12, const int order
   if (DC_resp >= 4096) {
     return 0;
   }
-  return LPC_inverse_pred_gain_QA_c(Atmp_QA, order);
+  return LPC_inverse_pred_gain_QA_c(std::span<opus_int32>{Atmp_QA, static_cast<std::size_t>(order)}, order);
 }
 namespace {
 constinit const std::array<opus_int16, 128 + 1> silk_LSFCosTab_FIX_Q12 = numeric_blob_array<opus_int16, 129>(
@@ -14204,7 +13959,7 @@ void silk_resampler_init(silk_resampler_state_struct* S, opus_int32 Fs_Hz_in, op
 void silk_resampler(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
   int nSamples;
   nSamples = S->Fs_in_kHz - S->inputDelay;
-  copy_n_bytes(in, static_cast<std::size_t>(nSamples * sizeof(opus_int16)), &S->delayBuf[S->inputDelay]);
+  copy_n_bytes(in, static_cast<std::size_t>(nSamples * sizeof(opus_int16)), S->delayBuf + S->inputDelay);
   switch (S->resampler_function) {
   case (1):
     silk_resampler_private_up2_HQ_wrapper(S, out, S->delayBuf, S->Fs_in_kHz);
@@ -14225,15 +13980,15 @@ void silk_resampler(silk_resampler_state_struct* S, opus_int16 out[], const opus
   copy_n_bytes(&in[inLen - S->inputDelay], static_cast<std::size_t>(S->inputDelay * sizeof(opus_int16)), S->delayBuf);
 }
 
-void silk_resampler_down2_3(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 inLen) {
+static void silk_resampler_down2_3(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 inLen) {
   opus_int32 nSamplesIn = 0, counter, res_Q6;
   opus_int32* buf_ptr;
-  opus_int32 buf[(10 * 48) + 4];
-  copy_n_bytes(S, static_cast<std::size_t>(4 * sizeof(opus_int32)), buf);
+  std::array<opus_int32, (10 * 48) + 4> buf;
+  copy_n_bytes(S, static_cast<std::size_t>(4 * sizeof(opus_int32)), buf.data());
   for (; inLen > 0;) {
     nSamplesIn = (((inLen) < ((10 * 48))) ? (inLen) : ((10 * 48)));
-    silk_resampler_private_AR2(&S[4], &buf[4], in, silk_Resampler_2_3_COEFS_LQ.data(), nSamplesIn);
-    buf_ptr = buf;
+    silk_resampler_private_AR2(&S[4], buf.data() + 4, in, silk_Resampler_2_3_COEFS_LQ.data(), nSamplesIn);
+    buf_ptr = buf.data();
     counter = nSamplesIn;
     for (; counter > 2; counter -= 3, buf_ptr += 3) {
       res_Q6 = ((opus_int32)(((buf_ptr[0]) * (opus_int64)((opus_int16)(silk_Resampler_2_3_COEFS_LQ[2]))) >> 16));
@@ -14250,13 +14005,13 @@ void silk_resampler_down2_3(opus_int32* S, opus_int16* out, const opus_int16* in
     in += nSamplesIn;
     inLen -= nSamplesIn;
     if (inLen > 0) {
-      copy_n_bytes(&buf[nSamplesIn], static_cast<std::size_t>(4 * sizeof(opus_int32)), buf);
+      copy_n_bytes(buf.data() + nSamplesIn, static_cast<std::size_t>(4 * sizeof(opus_int32)), buf.data());
     }
   }
-  copy_n_bytes(&buf[nSamplesIn], static_cast<std::size_t>(4 * sizeof(opus_int32)), S);
+  copy_n_bytes(buf.data() + nSamplesIn, static_cast<std::size_t>(4 * sizeof(opus_int32)), S);
 }
 
-void silk_resampler_down2(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 inLen) {
+static void silk_resampler_down2(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 inLen) {
   opus_int32 k, len2 = ((inLen) >> (1));
   opus_int32 in32, out32, Y, X;
   for (k = 0; k < len2; k++) {
@@ -14380,26 +14135,27 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32
 }
 
 static void silk_resampler_private_down_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
-  silk_resampler_state_struct* S = (silk_resampler_state_struct*)SS;
+  silk_resampler_state_struct* S = static_cast<silk_resampler_state_struct*>(SS);
   opus_int32 nSamplesIn = 0;
   opus_int32 max_index_Q16, index_increment_Q16;
   const opus_int16* FIR_Coefs;
-  opus_int32 buf[silk_max_resampler_batch_size + silk_max_resampler_fir_order];
-  copy_n_bytes(S->sFIR.i32, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), buf);
+  std::array<opus_int32, silk_max_resampler_batch_size + silk_max_resampler_fir_order> buf;
+  copy_n_bytes(S->sFIR.i32, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), buf.data());
   FIR_Coefs = &S->Coefs[2];
   index_increment_Q16 = S->invRatio_Q16;
   for (; inLen > 1;) {
     nSamplesIn = (((inLen) < (S->batchSize)) ? (inLen) : (S->batchSize));
-    silk_resampler_private_AR2(S->sIIR, &buf[S->FIR_Order], in, S->Coefs, nSamplesIn);
+    silk_resampler_private_AR2(S->sIIR, buf.data() + S->FIR_Order, in, S->Coefs, nSamplesIn);
     max_index_Q16 = ((opus_int32)((opus_uint32)(nSamplesIn) << (16)));
-    out = silk_resampler_private_down_FIR_INTERPOL(out, buf, FIR_Coefs, S->FIR_Order, S->FIR_Fracs, max_index_Q16, index_increment_Q16);
+    out = silk_resampler_private_down_FIR_INTERPOL(out, buf.data(), FIR_Coefs, S->FIR_Order, S->FIR_Fracs, max_index_Q16,
+                                                  index_increment_Q16);
     in += nSamplesIn;
     inLen -= nSamplesIn;
     if (inLen > 1) {
-      copy_n_bytes(&buf[nSamplesIn], static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), buf);
+      copy_n_bytes(buf.data() + nSamplesIn, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), buf.data());
     }
   }
-  copy_n_bytes(&buf[nSamplesIn], static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), S->sFIR.i32);
+  copy_n_bytes(buf.data() + nSamplesIn, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)), S->sFIR.i32);
 }
 
 static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16* buf, opus_int32 max_index_Q16,
@@ -14419,24 +14175,24 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
 }
 
 static void silk_resampler_private_IIR_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
-  silk_resampler_state_struct* S = (silk_resampler_state_struct*)SS;
+  silk_resampler_state_struct* S = static_cast<silk_resampler_state_struct*>(SS);
   opus_int32 nSamplesIn = 0;
   opus_int32 max_index_Q16, index_increment_Q16;
-  opus_int16 buf[2 * silk_max_resampler_batch_size + 8];
-  copy_n_bytes(S->sFIR.i16, static_cast<std::size_t>(8 * sizeof(opus_int16)), buf);
+  std::array<opus_int16, 2 * silk_max_resampler_batch_size + 8> buf;
+  copy_n_bytes(S->sFIR.i16, static_cast<std::size_t>(8 * sizeof(opus_int16)), buf.data());
   index_increment_Q16 = S->invRatio_Q16;
   for (; inLen > 0;) {
     nSamplesIn = (((inLen) < (S->batchSize)) ? (inLen) : (S->batchSize));
-    silk_resampler_private_up2_HQ(S->sIIR, &buf[8], in, nSamplesIn);
+    silk_resampler_private_up2_HQ(S->sIIR, buf.data() + 8, in, nSamplesIn);
     max_index_Q16 = ((opus_int32)((opus_uint32)(nSamplesIn) << (16 + 1)));
-    out = silk_resampler_private_IIR_FIR_INTERPOL(out, buf, max_index_Q16, index_increment_Q16);
+    out = silk_resampler_private_IIR_FIR_INTERPOL(out, buf.data(), max_index_Q16, index_increment_Q16);
     in += nSamplesIn;
     inLen -= nSamplesIn;
     if (inLen > 0) {
-      copy_n_bytes(&buf[nSamplesIn << 1], static_cast<std::size_t>(8 * sizeof(opus_int16)), buf);
+      copy_n_bytes(buf.data() + (nSamplesIn << 1), static_cast<std::size_t>(8 * sizeof(opus_int16)), buf.data());
     }
   }
-  copy_n_bytes(&buf[nSamplesIn << 1], static_cast<std::size_t>(8 * sizeof(opus_int16)), S->sFIR.i16);
+  copy_n_bytes(buf.data() + (nSamplesIn << 1), static_cast<std::size_t>(8 * sizeof(opus_int16)), S->sFIR.i16);
 }
 
 [[nodiscard]] static auto silk_resampler_up2_hq_branch(std::span<opus_int32, 3> state, const opus_int32 in32,
@@ -14467,7 +14223,7 @@ static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const 
 }
 
 void silk_resampler_private_up2_HQ_wrapper(void* SS, opus_int16* out, const opus_int16* in, opus_int32 len) {
-  silk_resampler_state_struct* S = (silk_resampler_state_struct*)SS;
+  silk_resampler_state_struct* S = static_cast<silk_resampler_state_struct*>(SS);
   silk_resampler_private_up2_HQ(S->sIIR, out, in, len);
 }
 namespace {
@@ -14605,38 +14361,8 @@ static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpas
   }
 }
 
-void silk_stereo_decode_pred(ec_dec* psRangeDec, opus_int32 pred_Q13[]) {
-  int ix[2][3]{};
-  const int joint_index = ec_dec_icdf(psRangeDec, silk_stereo_pred_joint_iCDF.data(), 8);
-  ix[0][2] = joint_index / 5;
-  ix[1][2] = joint_index - 5 * ix[0][2];
-  for (int channel = 0; channel < 2; ++channel) {
-    ix[channel][0] = ec_dec_icdf(psRangeDec, silk_uniform3_iCDF.data(), 8);
-    ix[channel][1] = ec_dec_icdf(psRangeDec, silk_uniform5_iCDF.data(), 8);
-    pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
-  }
-  pred_Q13[0] -= pred_Q13[1];
-}
-
-void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int* decode_only_mid) {
-  *decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
-}
-
-void silk_stereo_encode_pred(ec_enc* psRangeEnc, opus_int8 ix[2][3]) {
-  const int joint_index = 5 * ix[0][2] + ix[1][2];
-  ec_enc_icdf(psRangeEnc, joint_index, silk_stereo_pred_joint_iCDF.data(), 8);
-  for (int channel = 0; channel < 2; ++channel) {
-    ec_enc_icdf(psRangeEnc, ix[channel][0], silk_uniform3_iCDF.data(), 8);
-    ec_enc_icdf(psRangeEnc, ix[channel][1], silk_uniform5_iCDF.data(), 8);
-  }
-}
-
-void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag) {
-  ec_enc_icdf(psRangeEnc, mid_only_flag, silk_stereo_only_code_mid_iCDF.data(), 8);
-}
-
-opus_int32 silk_stereo_find_predictor(opus_int32* ratio_Q14, const opus_int16 x[], const opus_int16 y[], opus_int32 mid_res_amp_Q0[],
-                                      int length, int smooth_coef_Q16) {
+opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[],
+                                      std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
   int scale, scale1, scale2;
   opus_int32 nrgx, nrgy, corr, pred_Q13, pred2_Q10;
   silk_sum_sqr_shift(&nrgx, &scale1, x, length);
@@ -14663,13 +14389,12 @@ opus_int32 silk_stereo_find_predictor(opus_int32* ratio_Q14, const opus_int16 x[
       ((opus_int32)((mid_res_amp_Q0[1]) + (((((opus_int32)((opus_uint32)(silk_SQRT_APPROX(nrgy)) << (scale))) - mid_res_amp_Q0[1]) *
                                             (opus_int64)((opus_int16)(smooth_coef_Q16))) >>
                                            16)));
-  *ratio_Q14 = silk_DIV32_varQ(mid_res_amp_Q0[1], (((mid_res_amp_Q0[0]) > (1)) ? (mid_res_amp_Q0[0]) : (1)), 14);
-  *ratio_Q14 = ((0) > (32767) ? ((*ratio_Q14) > (0) ? (0) : ((*ratio_Q14) < (32767) ? (32767) : (*ratio_Q14)))
-                              : ((*ratio_Q14) > (32767) ? (32767) : ((*ratio_Q14) < (0) ? (0) : (*ratio_Q14))));
+  ratio_Q14 = silk_DIV32_varQ(mid_res_amp_Q0[1], (((mid_res_amp_Q0[0]) > (1)) ? (mid_res_amp_Q0[0]) : (1)), 14);
+  ratio_Q14 = std::clamp<opus_int32>(ratio_Q14, 0, 32767);
   return pred_Q13;
 }
 
-void silk_stereo_quant_pred(opus_int32 pred_Q13[], opus_int8 ix[2][3]) {
+void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix) {
   opus_int32 quant_pred_Q13 = 0;
   for (int n = 0; n < 2; ++n) {
     auto searching = true;
@@ -14695,6 +14420,234 @@ void silk_stereo_quant_pred(opus_int32 pred_Q13[], opus_int8 ix[2][3]) {
   }
   pred_Q13[0] -= pred_Q13[1];
 }
+
+void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13) {
+  std::array<std::array<int, 3>, 2> ix{};
+  const int joint_index = ec_dec_icdf(psRangeDec, silk_stereo_pred_joint_iCDF.data(), 8);
+  ix[0][2] = joint_index / 5;
+  ix[1][2] = joint_index - 5 * ix[0][2];
+  for (int channel = 0; channel < 2; ++channel) {
+    ix[channel][0] = ec_dec_icdf(psRangeDec, silk_uniform3_iCDF.data(), 8);
+    ix[channel][1] = ec_dec_icdf(psRangeDec, silk_uniform5_iCDF.data(), 8);
+    pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
+  }
+  pred_Q13[0] -= pred_Q13[1];
+}
+
+void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid) {
+  decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
+}
+
+void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix) {
+  const int joint_index = 5 * ix[0][2] + ix[1][2];
+  ec_enc_icdf(psRangeEnc, joint_index, silk_stereo_pred_joint_iCDF.data(), 8);
+  for (int channel = 0; channel < 2; ++channel) {
+    ec_enc_icdf(psRangeEnc, ix[channel][0], silk_uniform3_iCDF.data(), 8);
+    ec_enc_icdf(psRangeEnc, ix[channel][1], silk_uniform5_iCDF.data(), 8);
+  }
+}
+
+void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag) {
+  ec_enc_icdf(psRangeEnc, mid_only_flag, silk_stereo_only_code_mid_iCDF.data(), 8);
+}
+
+void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_int8* mid_only_flag,
+                          opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int fs_kHz,
+                          int frame_length) {
+  int n, is10msFrame, denom_Q16, delta0_Q13, delta1_Q13;
+  opus_int32 sum, diff, smooth_coef_Q16, pred_Q13[2], pred0_Q13, pred1_Q13, LP_ratio_Q14, HP_ratio_Q14, frac_Q16, frac_3_Q16,
+      min_mid_rate_bps, width_Q14, w_Q24, deltaw_Q24;
+  opus_int16* mid = &x1[-2];
+  opus_int16 side[silk_max_frame_length + 2];
+  for (n = 0; n < frame_length + 2; n++) {
+    sum = x1[n - 2] + (opus_int32)x2[n - 2];
+    diff = x1[n - 2] - (opus_int32)x2[n - 2];
+    mid[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
+    side[n] = rounded_rshift_to_int16<1>(diff);
+  }
+  copy_n_bytes(state->sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), mid);
+  copy_n_bytes(state->sSide.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), side);
+  copy_n_bytes(&mid[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sMid.data());
+  copy_n_bytes(&side[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sSide.data());
+  std::array<opus_int16, silk_max_frame_length> LP_mid;
+  std::array<opus_int16, silk_max_frame_length> HP_mid;
+  std::array<opus_int16, silk_max_frame_length> LP_side;
+  std::array<opus_int16, silk_max_frame_length> HP_side;
+  silk_stereo_split_lp_hp(mid, LP_mid.data(), HP_mid.data(), frame_length);
+  silk_stereo_split_lp_hp(side, LP_side.data(), HP_side.data(), frame_length);
+  is10msFrame = frame_length == 10 * fs_kHz;
+  smooth_coef_Q16 =
+      is10msFrame ? ((opus_int32)((0.01 / 2) * ((opus_int64)1 << (16)) + 0.5)) : ((opus_int32)((0.01) * ((opus_int64)1 << (16)) + 0.5));
+  smooth_coef_Q16 = ((opus_int32)(((((opus_int32)((opus_int16)(prev_speech_act_Q8)) * (opus_int32)((opus_int16)(prev_speech_act_Q8)))) *
+                                   (opus_int64)((opus_int16)(smooth_coef_Q16))) >>
+                                  16));
+  pred_Q13[0] =
+      silk_stereo_find_predictor(LP_ratio_Q14, LP_mid.data(), LP_side.data(), std::span<opus_int32, 2>{state->mid_side_amp_Q0.data(), 2}, frame_length, smooth_coef_Q16);
+  pred_Q13[1] =
+      silk_stereo_find_predictor(HP_ratio_Q14, HP_mid.data(), HP_side.data(), std::span<opus_int32, 2>{state->mid_side_amp_Q0.data() + 2, 2}, frame_length, smooth_coef_Q16);
+  frac_Q16 = ((HP_ratio_Q14) + ((opus_int32)((opus_int16)(LP_ratio_Q14))) * (opus_int32)((opus_int16)(3)));
+  frac_Q16 = (((frac_Q16) < (((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5)))) ? (frac_Q16)
+                                                                                   : (((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5))));
+  total_rate_bps -= is10msFrame ? 1200 : 600;
+  if (total_rate_bps < 1) {
+    total_rate_bps = 1;
+  }
+  min_mid_rate_bps = ((2000) + ((opus_int32)((opus_int16)(fs_kHz))) * (opus_int32)((opus_int16)(600)));
+  frac_3_Q16 = ((3) * (frac_Q16));
+  mid_side_rates_bps[0] = silk_DIV32_varQ(total_rate_bps, ((opus_int32)((8 + 5) * ((opus_int64)1 << (16)) + 0.5)) + frac_3_Q16, 16 + 3);
+  if (mid_side_rates_bps[0] < min_mid_rate_bps) {
+    mid_side_rates_bps[0] = min_mid_rate_bps;
+    mid_side_rates_bps[1] = total_rate_bps - mid_side_rates_bps[0];
+    width_Q14 = silk_DIV32_varQ(
+        ((opus_int32)((opus_uint32)(mid_side_rates_bps[1]) << (1))) - min_mid_rate_bps,
+        ((opus_int32)(((((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5)) + frac_3_Q16) * (opus_int64)((opus_int16)(min_mid_rate_bps))) >>
+                      16)),
+        14 + 2);
+    width_Q14 =
+        ((0) > (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
+             ? ((width_Q14) > (0) ? (0)
+                                  : ((width_Q14) < (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
+                                         ? (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
+                                         : (width_Q14)))
+             : ((width_Q14) > (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5))) ? (((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5)))
+                                                                                    : ((width_Q14) < (0) ? (0) : (width_Q14))));
+  } else {
+    mid_side_rates_bps[1] = total_rate_bps - mid_side_rates_bps[0];
+    width_Q14 = ((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5));
+  }
+  state->smth_width_Q14 = (opus_int16)((
+      opus_int32)((state->smth_width_Q14) + (((width_Q14 - state->smth_width_Q14) * (opus_int64)((opus_int16)(smooth_coef_Q16))) >> 16)));
+  *mid_only_flag = 0;
+  const auto quantize_smoothed_pred = [&]() {
+    pred_Q13[0] = ((((opus_int32)((opus_int16)(state->smth_width_Q14)) * (opus_int32)((opus_int16)(pred_Q13[0])))) >> (14));
+    pred_Q13[1] = ((((opus_int32)((opus_int16)(state->smth_width_Q14)) * (opus_int32)((opus_int16)(pred_Q13[1])))) >> (14));
+    silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
+  };
+  const auto reset_side_prediction = [&]() {
+    width_Q14 = 0;
+    pred_Q13[0] = 0;
+    pred_Q13[1] = 0;
+  };
+  const auto mid_only_state_score = [&]() {
+    const auto was_mid_only = state->width_prev_Q14 == 0;
+    return std::max(
+        score_below(static_cast<float>(8 * total_rate_bps), static_cast<float>((was_mid_only ? 13 : 11) * min_mid_rate_bps)),
+        score_below(static_cast<float>((static_cast<opus_int32>(((frac_Q16) * (opus_int64)((opus_int16)(state->smth_width_Q14))) >> 16))),
+                    static_cast<float>(was_mid_only ? ((opus_int32)((0.05) * ((opus_int64)1 << (14)) + 0.5))
+                                                    : ((opus_int32)((0.02) * ((opus_int64)1 << (14)) + 0.5)))));
+  };
+  const auto high_rate_mid_only_bias = clamp_value((static_cast<float>(total_rate_bps) - 30000.0f) * (1.0f / 18000.0f), 0.0f, 1.0f);
+  const auto low_speech_mid_only_bias =
+      std::min(clamp_value(1.0f - static_cast<float>(std::abs(total_rate_bps - 24000)) * (1.0f / 4000.0f), 0.0f, 1.0f),
+               score_below(static_cast<float>(prev_speech_act_Q8), 32.0f));
+  if (toMono) {
+    reset_side_prediction();
+    silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
+  } else if (mid_only_state_score() + silk_mid_only_score_bias * high_rate_mid_only_bias +
+                 silk_mid_only_low_speech_bias * low_speech_mid_only_bias >
+             0.0f) {
+    quantize_smoothed_pred();
+    reset_side_prediction();
+    if (state->width_prev_Q14 == 0) {
+      mid_side_rates_bps[0] = total_rate_bps;
+      mid_side_rates_bps[1] = 0;
+      *mid_only_flag = 1;
+    }
+  } else if (state->smth_width_Q14 > ((opus_int32)((0.95) * ((opus_int64)1 << (14)) + 0.5))) {
+    silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
+    width_Q14 = ((opus_int32)((1) * ((opus_int64)1 << (14)) + 0.5));
+  } else {
+    quantize_smoothed_pred();
+    width_Q14 = state->smth_width_Q14;
+  }
+  if (*mid_only_flag == 1) {
+    state->silent_side_len += frame_length - 8 * fs_kHz;
+    if (state->silent_side_len < 5 * fs_kHz) {
+      *mid_only_flag = 0;
+    } else {
+      state->silent_side_len = 10000;
+    }
+  } else {
+    state->silent_side_len = 0;
+  }
+  if (*mid_only_flag == 0 && mid_side_rates_bps[1] < 1) {
+    mid_side_rates_bps[1] = 1;
+    mid_side_rates_bps[0] = std::max(1, total_rate_bps - mid_side_rates_bps[1]);
+  }
+  pred0_Q13 = -state->pred_prev_Q13[0];
+  pred1_Q13 = -state->pred_prev_Q13[1];
+  w_Q24 = ((opus_int32)((opus_uint32)(state->width_prev_Q14) << (10)));
+  denom_Q16 = ((opus_int32)(((opus_int32)1 << 16) / (8 * fs_kHz)));
+  delta0_Q13 = -rounded_i16_product_shift<16>(pred_Q13[0] - state->pred_prev_Q13[0], denom_Q16);
+  delta1_Q13 = -rounded_i16_product_shift<16>(pred_Q13[1] - state->pred_prev_Q13[1], denom_Q16);
+  deltaw_Q24 =
+      ((opus_int32)((opus_uint32)(((opus_int32)(((width_Q14 - state->width_prev_Q14) * (opus_int64)((opus_int16)(denom_Q16))) >> 16)))
+                    << (10)));
+  for (n = 0; n < 8 * fs_kHz; n++) {
+    pred0_Q13 += delta0_Q13;
+    pred1_Q13 += delta1_Q13;
+    w_Q24 += deltaw_Q24;
+    const auto side_Q8 = ((opus_int32)(((w_Q24) * (opus_int64)((opus_int16)(side[n + 1]))) >> 16));
+    sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(mid, n), mid[n + 1], pred0_Q13, pred1_Q13);
+    x2[n - 1] = rounded_rshift_to_int16<8>(sum);
+  }
+  pred0_Q13 = -pred_Q13[0];
+  pred1_Q13 = -pred_Q13[1];
+  w_Q24 = ((opus_int32)((opus_uint32)(width_Q14) << (10)));
+  for (n = 8 * fs_kHz; n < frame_length; n++) {
+    const auto side_Q8 = ((opus_int32)(((w_Q24) * (opus_int64)((opus_int16)(side[n + 1]))) >> 16));
+    sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(mid, n), mid[n + 1], pred0_Q13, pred1_Q13);
+    x2[n - 1] = rounded_rshift_to_int16<8>(sum);
+  }
+  state->pred_prev_Q13[0] = (opus_int16)pred_Q13[0];
+  state->pred_prev_Q13[1] = (opus_int16)pred_Q13[1];
+  state->width_prev_Q14 = (opus_int16)width_Q14;
+}
+
+void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz,
+                          int frame_length) {
+  int n, denom_Q16, delta0_Q13, delta1_Q13;
+  opus_int32 sum, diff, pred0_Q13, pred1_Q13;
+  copy_n_bytes(state->sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), x1);
+  copy_n_bytes(state->sSide.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)), x2);
+  copy_n_bytes(&x1[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sMid.data());
+  copy_n_bytes(&x2[frame_length], static_cast<std::size_t>(2 * sizeof(opus_int16)), state->sSide.data());
+  pred0_Q13 = state->pred_prev_Q13[0];
+  pred1_Q13 = state->pred_prev_Q13[1];
+  denom_Q16 = ((opus_int32)(((opus_int32)1 << 16) / (8 * fs_kHz)));
+  delta0_Q13 = rounded_i16_product_shift<16>(pred_Q13[0] - state->pred_prev_Q13[0], denom_Q16);
+  delta1_Q13 = rounded_i16_product_shift<16>(pred_Q13[1] - state->pred_prev_Q13[1], denom_Q16);
+  for (n = 0; n < 8 * fs_kHz; n++) {
+    pred0_Q13 += delta0_Q13;
+    pred1_Q13 += delta1_Q13;
+    const auto side_Q8 = ((opus_int32)((opus_uint32)((opus_int32)x2[n + 1]) << (8)));
+    sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(x1, n), x1[n + 1], pred0_Q13, pred1_Q13);
+    x2[n + 1] = rounded_rshift_to_int16<8>(sum);
+  }
+  pred0_Q13 = pred_Q13[0];
+  pred1_Q13 = pred_Q13[1];
+  for (n = 8 * fs_kHz; n < frame_length; n++) {
+    const auto side_Q8 = ((opus_int32)((opus_uint32)((opus_int32)x2[n + 1]) << (8)));
+    sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(x1, n), x1[n + 1], pred0_Q13, pred1_Q13);
+    x2[n + 1] = rounded_rshift_to_int16<8>(sum);
+  }
+  state->pred_prev_Q13[0] = pred_Q13[0];
+  state->pred_prev_Q13[1] = pred_Q13[1];
+  for (n = 0; n < frame_length; n++) {
+    sum = x1[n + 1] + (opus_int32)x2[n + 1];
+    diff = x1[n + 1] - (opus_int32)x2[n + 1];
+    x1[n + 1] = saturate_int16_from_int32(sum);
+    x2[n + 1] = saturate_int16_from_int32(diff);
+  }
+}
+
+
+
+
+
+
+
+
 
 void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int QOUT, const int QIN, const int d) {
   int i, k, idx = 0;
@@ -14730,7 +14683,7 @@ void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int QOUT, const i
   }
 }
 
-void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<const float> px, const int win_type) {
+static void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<const float> px, const int win_type) {
   float freq, c, S0, S1;
   const auto length = static_cast<int>(px_win.size());
   freq = (3.1415926536f) / (length + 1);
@@ -14753,7 +14706,7 @@ void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<const f
   }
 }
 
-void silk_corrVector_FLP(const std::span<const float> x, const std::span<const float> t, std::span<float> Xt) {
+static void silk_corrVector_FLP(const std::span<const float> x, const std::span<const float> t, std::span<float> Xt) {
   const auto order = Xt.size();
   for (auto lag = std::size_t{}; lag < order; ++lag) {
     const auto offset = order - lag - 1;
@@ -14761,7 +14714,7 @@ void silk_corrVector_FLP(const std::span<const float> x, const std::span<const f
   }
 }
 
-void silk_corrMatrix_FLP(const std::span<const float> x, const int L, const int Order, std::span<float> XX) {
+static void silk_corrMatrix_FLP(const std::span<const float> x, const int L, const int Order, std::span<float> XX) {
   double energy;
   auto xx = [XX, Order](const int row, const int column) mutable -> float& {
     return XX[static_cast<std::size_t>(row * Order + column)];
@@ -14804,6 +14757,13 @@ void silk_encode_do_VAD_FLP(silk_encoder_state_FLP* psEnc, int activity) {
   }
 }
 
+static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* psRangeEnc, int condCoding) {
+  silk_encode_indices(psEncC, psRangeEnc, condCoding);
+  silk_encode_pulses(psRangeEnc, psEncC->indices.signalType, psEncC->indices.quantOffsetType,
+                     std::span<opus_int8>{psEncC->pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
+                     psEncC->frame_length);
+}
+
 void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits,
                            int useCBR) {
   silk_encoder_control_FLP sEncCtrl;
@@ -14816,11 +14776,11 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
   int ec_prevSignalType_copy;
   opus_int8 LastGainIndex_copy2;
   opus_int32 pGains_Q16[4];
-  int gain_lock[4] = {0};
+  int gain_lock[4] = {};
   opus_int16 best_gain_mult[4];
   int best_sum[4];
   int bits_margin;
-  auto* sNSQ_copy = OPUS_SCRATCH(silk_nsq_state, 2);
+  silk_nsq_state sNSQ_copy[2];
   bits_margin = useCBR ? 5 : maxBits / 4;
   LastGainIndex_copy2 = nBits_lower = nBits_upper = gainMult_lower = gainMult_upper = 0;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
@@ -14850,7 +14810,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
     seed_copy = psEnc->sCmn.indices.Seed;
     ec_prevLagIndex_copy = psEnc->sCmn.ec_prevLagIndex;
     ec_prevSignalType_copy = psEnc->sCmn.ec_prevSignalType;
-    auto* ec_buf_copy = OPUS_SCRATCH(opus_uint8, 1275);
+    opus_uint8 ec_buf_copy[1275];
     for (iter = 0;; iter++) {
       if (gainsID == gainsID_lower) {
         nBits = nBits_lower;
@@ -14868,11 +14828,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
         if (iter == maxIter && !found_lower) {
           copy_n_bytes(psRangeEnc, static_cast<std::size_t>(sizeof(ec_enc)), &sRangeEnc_copy2);
         }
-        silk_encode_indices(&psEnc->sCmn, psRangeEnc, condCoding);
-        silk_encode_pulses(
-            psRangeEnc, psEnc->sCmn.indices.signalType, psEnc->sCmn.indices.quantOffsetType,
-            std::span<opus_int8>{psEnc->sCmn.pulses, static_cast<std::size_t>((psEnc->sCmn.frame_length + 16 - 1) & ~(16 - 1))},
-            psEnc->sCmn.frame_length);
+        silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding);
         nBits = ec_tell(psRangeEnc);
         if (iter == maxIter && !found_lower && nBits > maxBits) {
           copy_n_bytes(&sRangeEnc_copy2, static_cast<std::size_t>(sizeof(ec_enc)), psRangeEnc);
@@ -14884,11 +14840,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
           psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
           psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
           zero_n_items(psEnc->sCmn.pulses, static_cast<std::size_t>(psEnc->sCmn.frame_length));
-          silk_encode_indices(&psEnc->sCmn, psRangeEnc, condCoding);
-          silk_encode_pulses(
-              psRangeEnc, psEnc->sCmn.indices.signalType, psEnc->sCmn.indices.quantOffsetType,
-              std::span<opus_int8>{psEnc->sCmn.pulses, static_cast<std::size_t>((psEnc->sCmn.frame_length + 16 - 1) & ~(16 - 1))},
-              psEnc->sCmn.frame_length);
+          silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding);
           nBits = ec_tell(psRangeEnc);
         }
         if (useCBR == 0 && iter == 0 && nBits <= maxBits) {
@@ -14991,29 +14943,28 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, opus_int32* pnBytesOut
   *pnBytesOut = ((ec_tell(psRangeEnc) + 7) >> (3));
 }
 
-void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain) {
+static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain) {
   int k, subfr_length;
-  std::array<float, 16> a{};
+  float a[16]{};
   float res_nrg, res_nrg_2nd, res_nrg_interp;
-  std::array<opus_int16, 16> NLSF0_Q15{};
-  std::array<float, 16> a_tmp{};
-  std::array<float, ((5 * 4) * 16) + 4 * 16> LPC_res{};
+  opus_int16 NLSF0_Q15[16]{};
+  float a_tmp[16]{}, LPC_res[((5 * 4) * 16) + 4 * 16]{};
   subfr_length = psEncC->subfr_length + psEncC->predictLPCOrder;
   psEncC->indices.NLSFInterpCoef_Q2 = 4;
-  res_nrg = silk_burg_modified_FLP(a.data(), x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder);
+  res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder);
   if (psEncC->useInterpolatedNLSFs && !psEncC->first_frame_after_reset && psEncC->nb_subfr == 4) {
-    res_nrg -= silk_burg_modified_FLP(a_tmp.data(), x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2, psEncC->predictLPCOrder);
-    silk_A2NLSF_FLP(NLSF_Q15, a_tmp.data(), psEncC->predictLPCOrder);
+    res_nrg -= silk_burg_modified_FLP(a_tmp, x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2, psEncC->predictLPCOrder);
+    silk_A2NLSF_FLP(NLSF_Q15, a_tmp, psEncC->predictLPCOrder);
     res_nrg_2nd = 3.40282346638528859811704183484516925e+38F;
     for (k = 3; k >= 0; k--) {
-      silk_interpolate(std::span<opus_int16>{NLSF0_Q15.data(), static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                       std::span<const opus_int16>{psEncC->prev_NLSFq_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
+      silk_interpolate(std::span<opus_int16>{NLSF0_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
+                       std::span<const opus_int16>{psEncC->prev_NLSFq_Q15.data(), static_cast<std::size_t>(psEncC->predictLPCOrder)},
                        std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)}, k);
-      silk_NLSF2A_FLP(a_tmp.data(), NLSF0_Q15.data(), psEncC->predictLPCOrder);
-      silk_LPC_analysis_filter_FLP(LPC_res.data(), a_tmp.data(), x, 2 * subfr_length, psEncC->predictLPCOrder);
+      silk_NLSF2A_FLP(a_tmp, NLSF0_Q15, psEncC->predictLPCOrder);
+      silk_LPC_analysis_filter_FLP(LPC_res, a_tmp, x, 2 * subfr_length, psEncC->predictLPCOrder);
       res_nrg_interp =
-          (float)(silk_energy_FLP(LPC_res.data() + psEncC->predictLPCOrder, subfr_length - psEncC->predictLPCOrder) +
-                  silk_energy_FLP(LPC_res.data() + psEncC->predictLPCOrder + subfr_length, subfr_length - psEncC->predictLPCOrder));
+          (float)(silk_energy_FLP(LPC_res + psEncC->predictLPCOrder, subfr_length - psEncC->predictLPCOrder) +
+                  silk_energy_FLP(LPC_res + psEncC->predictLPCOrder + subfr_length, subfr_length - psEncC->predictLPCOrder));
       if (res_nrg_interp < res_nrg) {
         res_nrg = res_nrg_interp;
         psEncC->indices.NLSFInterpCoef_Q2 = (opus_int8)k;
@@ -15024,11 +14975,11 @@ void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[], const 
     }
   }
   if (psEncC->indices.NLSFInterpCoef_Q2 == 4) {
-    silk_A2NLSF_FLP(NLSF_Q15, a.data(), psEncC->predictLPCOrder);
+    silk_A2NLSF_FLP(NLSF_Q15, a, psEncC->predictLPCOrder);
   }
 }
 
-void silk_find_LTP_FLP(float XX[4 * 5 * 5], float xX[4 * 5], const float r_ptr[], const int lag[4], const int subfr_length,
+static void silk_find_LTP_FLP(float XX[4 * 5 * 5], float xX[4 * 5], const float r_ptr[], const int lag[4], const int subfr_length,
                        const int nb_subfr) {
   int k;
   float *xX_ptr, *XX_ptr;
@@ -15057,9 +15008,7 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   int buf_len;
   float thrhld, res_nrg;
   const float *x_buf_ptr, *x_buf;
-  std::array<float, 16 + 1> auto_corr;
-  std::array<float, 16> A;
-  std::array<float, 16> refl_coef;
+  float auto_corr[16 + 1], A[16], refl_coef[16];
   auto* Wsig = OPUS_SCRATCH(float, static_cast<std::size_t>(psEnc->sCmn.pitch_LPC_win_length));
   float* Wsig_ptr;
   buf_len = psEnc->sCmn.la_pitch + psEnc->sCmn.frame_length + psEnc->sCmn.ltp_mem_length;
@@ -15076,13 +15025,13 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   x_buf_ptr += psEnc->sCmn.pitch_LPC_win_length - (psEnc->sCmn.la_pitch << 1);
   silk_apply_sine_window_FLP(std::span<float>{Wsig_ptr, static_cast<std::size_t>(psEnc->sCmn.la_pitch)},
                              std::span<const float>{x_buf_ptr, static_cast<std::size_t>(psEnc->sCmn.la_pitch)}, 2);
-  silk_autocorrelation_FLP(auto_corr.data(), Wsig, psEnc->sCmn.pitch_LPC_win_length, psEnc->sCmn.pitchEstimationLPCOrder + 1);
+  silk_autocorrelation_FLP(auto_corr, Wsig, psEnc->sCmn.pitch_LPC_win_length, psEnc->sCmn.pitchEstimationLPCOrder + 1);
   auto_corr[0] += auto_corr[0] * 1e-3f + 1;
-  res_nrg = silk_schur_FLP(refl_coef.data(), auto_corr.data(), psEnc->sCmn.pitchEstimationLPCOrder);
+  res_nrg = silk_schur_FLP(refl_coef, auto_corr, psEnc->sCmn.pitchEstimationLPCOrder);
   psEncCtrl->predGain = auto_corr[0] / (((res_nrg) > (1.0f)) ? (res_nrg) : (1.0f));
-  silk_k2a_FLP(A.data(), refl_coef.data(), psEnc->sCmn.pitchEstimationLPCOrder);
-  silk_bwexpander_FLP(std::span<float>{A.data(), static_cast<std::size_t>(psEnc->sCmn.pitchEstimationLPCOrder)}, 0.99f);
-  silk_LPC_analysis_filter_FLP(res, A.data(), x_buf, buf_len, psEnc->sCmn.pitchEstimationLPCOrder);
+  silk_k2a_FLP(A, refl_coef, psEnc->sCmn.pitchEstimationLPCOrder);
+  silk_bwexpander_FLP(std::span<float>{A, static_cast<std::size_t>(psEnc->sCmn.pitchEstimationLPCOrder)}, 0.99f);
+  silk_LPC_analysis_filter_FLP(res, A, x_buf, buf_len, psEnc->sCmn.pitchEstimationLPCOrder);
   if (psEnc->sCmn.indices.signalType != 0 && psEnc->sCmn.first_frame_after_reset == 0) {
     thrhld = 0.6f;
     thrhld -= 0.004f * psEnc->sCmn.pitchEstimationLPCOrder;
@@ -15107,10 +15056,8 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
 void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[],
                               int condCoding) {
   int i;
-  std::array<float, 4 * 5 * 5> XXLTP;
-  std::array<float, 4 * 5> xXLTP;
-  std::array<float, 4> invGains;
-  std::array<opus_int16, 16> NLSF_Q15{};
+  float XXLTP[4 * 5 * 5], xXLTP[4 * 5], invGains[4];
+  opus_int16 NLSF_Q15[16]{};
   const float* x_ptr;
   float* x_pre_ptr;
   auto* LPC_in_pre =
@@ -15120,11 +15067,11 @@ void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
   }
   if (psEnc->sCmn.indices.signalType == 2) {
-    silk_find_LTP_FLP(XXLTP.data(), xXLTP.data(), res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
+    silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
-                             &psEncCtrl->LTPredCodGain, XXLTP.data(), xXLTP.data(), psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
+                             &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
-    silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains.data(),
+    silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
                                  psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
     x_ptr = x - psEnc->sCmn.predictLPCOrder;
@@ -15141,14 +15088,14 @@ void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   if (psEnc->sCmn.first_frame_after_reset) {
     minInvGain = 1.0f / 1e2f;
   } else {
-    minInvGain = (float)pow(2, psEncCtrl->LTPredCodGain / 3) / 1e4f;
+    minInvGain = (float)std::pow(2, psEncCtrl->LTPredCodGain / 3) / 1e4f;
     minInvGain /= 0.25f + 0.75f * psEncCtrl->coding_quality;
   }
-  silk_find_LPC_FLP(&psEnc->sCmn, NLSF_Q15.data(), LPC_in_pre, minInvGain);
-  silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15.data(), psEnc->sCmn.prev_NLSFq_Q15);
+  silk_find_LPC_FLP(&psEnc->sCmn, NLSF_Q15, LPC_in_pre, minInvGain);
+  silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
   silk_residual_energy_FLP(psEncCtrl->ResNrg, LPC_in_pre, psEncCtrl->PredCoef, psEncCtrl->Gains, psEnc->sCmn.subfr_length,
                            psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
-  copy_n_bytes(NLSF_Q15.data(), static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)), psEnc->sCmn.prev_NLSFq_Q15);
+  copy_n_bytes(NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)), psEnc->sCmn.prev_NLSFq_Q15.data());
 }
 namespace {
 template <std::size_t Order>
@@ -15289,9 +15236,7 @@ void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_c
   float SNR_adj_dB, HarmShapeGain, Tilt;
   float nrg, log_energy, log_energy_prev, energy_variation;
   float BWExp, gain_mult, gain_add, strength, b, warping;
-  std::array<float, (15 * 16)> x_windowed;
-  std::array<float, 24 + 1> auto_corr;
-  std::array<float, 24 + 1> rc;
+  float x_windowed[15 * 16], auto_corr[24 + 1], rc[24 + 1];
   const float *x_ptr, *pitch_res_ptr;
   x_ptr = x - psEnc->sCmn.la_shape;
   SNR_adj_dB = psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f);
@@ -15336,23 +15281,23 @@ void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_c
     int shift, slope_part, flat_part;
     flat_part = psEnc->sCmn.fs_kHz * 3;
     slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed.data(), static_cast<std::size_t>(slope_part)},
+    silk_apply_sine_window_FLP(std::span<float>{x_windowed, static_cast<std::size_t>(slope_part)},
                                std::span<const float>{x_ptr, static_cast<std::size_t>(slope_part)}, 1);
     shift = slope_part;
-    copy_n_bytes(x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)), x_windowed.data() + shift);
+    copy_n_bytes(x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)), x_windowed + shift);
     shift += flat_part;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed.data() + shift, static_cast<std::size_t>(slope_part)},
+    silk_apply_sine_window_FLP(std::span<float>{x_windowed + shift, static_cast<std::size_t>(slope_part)},
                                std::span<const float>{x_ptr + shift, static_cast<std::size_t>(slope_part)}, 2);
     x_ptr += psEnc->sCmn.subfr_length;
     if (psEnc->sCmn.warping_Q16 > 0) {
-      silk_warped_autocorrelation_FLP(auto_corr.data(), x_windowed.data(), warping, psEnc->sCmn.shapeWinLength,
+      silk_warped_autocorrelation_FLP(auto_corr, x_windowed, warping, psEnc->sCmn.shapeWinLength,
                                       psEnc->sCmn.shapingLPCOrder);
     } else {
-      silk_autocorrelation_FLP(auto_corr.data(), x_windowed.data(), psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder + 1);
+      silk_autocorrelation_FLP(auto_corr, x_windowed, psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder + 1);
     }
     auto_corr[0] += auto_corr[0] * 3e-5f + 1.0f;
-    nrg = silk_schur_FLP(rc.data(), auto_corr.data(), psEnc->sCmn.shapingLPCOrder);
-    silk_k2a_FLP(&psEncCtrl->AR[k * 24], rc.data(), psEnc->sCmn.shapingLPCOrder);
+    nrg = silk_schur_FLP(rc, auto_corr, psEnc->sCmn.shapingLPCOrder);
+    silk_k2a_FLP(&psEncCtrl->AR[k * 24], rc, psEnc->sCmn.shapingLPCOrder);
     psEncCtrl->Gains[k] = silk_sqrt_reference(nrg);
     if (psEnc->sCmn.warping_Q16 > 0) {
       psEncCtrl->Gains[k] *=
@@ -15406,7 +15351,7 @@ void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_c
 void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
   silk_shape_state_FLP* psShapeSt = &psEnc->sShape;
   int k;
-  std::array<opus_int32, 4> pGains_Q16{};
+  opus_int32 pGains_Q16[4]{};
   float s, InvMaxSqrVal, gain, quant_offset;
   if (psEnc->sCmn.indices.signalType == 2) {
     s = 1.0f - 0.5f * silk_sigmoid(0.25f * (psEncCtrl->LTPredCodGain - 12.0f));
@@ -15414,17 +15359,17 @@ void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_
       psEncCtrl->Gains[i] *= s;
     }
   }
-  InvMaxSqrVal = (float)(pow(2.0f, 0.33f * (21.0f - psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f))) / psEnc->sCmn.subfr_length);
+  InvMaxSqrVal = (float)(std::pow(2.0f, 0.33f * (21.0f - psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f))) / psEnc->sCmn.subfr_length);
   for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
-    gain = (float)sqrt(psEncCtrl->Gains[k] * psEncCtrl->Gains[k] + psEncCtrl->ResNrg[k] * InvMaxSqrVal);
+    gain = (float)std::sqrt(psEncCtrl->Gains[k] * psEncCtrl->Gains[k] + psEncCtrl->ResNrg[k] * InvMaxSqrVal);
     psEncCtrl->Gains[k] = std::min(gain, 32767.0f);
   }
   for (int index = 0; index < psEnc->sCmn.nb_subfr; ++index) {
     pGains_Q16[index] = static_cast<opus_int32>(psEncCtrl->Gains[index] * 65536.0f);
   }
-  copy_n_bytes(pGains_Q16.data(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr * sizeof(opus_int32)), psEncCtrl->GainsUnq_Q16);
+  copy_n_bytes(pGains_Q16, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * sizeof(opus_int32)), psEncCtrl->GainsUnq_Q16);
   psEncCtrl->lastGainIndexPrev = psShapeSt->LastGainIndex;
-  silk_gains_quant(psEnc->sCmn.indices.GainsIndices, pGains_Q16.data(), &psShapeSt->LastGainIndex, condCoding == 2, psEnc->sCmn.nb_subfr);
+  silk_gains_quant(psEnc->sCmn.indices.GainsIndices, pGains_Q16, &psShapeSt->LastGainIndex, condCoding == 2, psEnc->sCmn.nb_subfr);
   for (int index = 0; index < psEnc->sCmn.nb_subfr; ++index) {
     psEncCtrl->Gains[index] = pGains_Q16[index] / 65536.0f;
   }
@@ -15439,22 +15384,22 @@ void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_
 void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length,
                               const int nb_subfr, const int LPC_order) {
   int shift;
-  std::array<float, (((5 * 4) * 16) + 4 * 16) / 2> LPC_res{};
-  auto* LPC_res_ptr = LPC_res.data() + LPC_order;
+  float LPC_res[(((5 * 4) * 16) + 4 * 16) / 2]{};
+  auto* LPC_res_ptr = LPC_res + LPC_order;
   shift = LPC_order + subfr_length;
-  silk_LPC_analysis_filter_FLP(LPC_res.data(), a[0], x + 0 * shift, 2 * shift, LPC_order);
+  silk_LPC_analysis_filter_FLP(LPC_res, a[0], x + 0 * shift, 2 * shift, LPC_order);
   nrgs[0] = (float)(gains[0] * gains[0] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
   nrgs[1] = (float)(gains[1] * gains[1] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
   if (nb_subfr == 4) {
-    silk_LPC_analysis_filter_FLP(LPC_res.data(), a[1], x + 2 * shift, 2 * shift, LPC_order);
+    silk_LPC_analysis_filter_FLP(LPC_res, a[1], x + 2 * shift, 2 * shift, LPC_order);
     nrgs[2] = (float)(gains[2] * gains[2] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
     nrgs[3] = (float)(gains[3] * gains[3] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
   }
 }
 
 void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length, const int order) {
-  double state[24 + 1] = {0};
-  double C[24 + 1] = {0};
+  std::array<double, 24 + 1> state{};
+  std::array<double, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
     double tmp1 = input[n];
     for (int i = 0; i < order; i += 2) {
@@ -15490,7 +15435,7 @@ void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LPC_order
 }
 
 void silk_process_NLSFs_FLP(silk_encoder_state* psEncC, float PredCoef[2][16], opus_int16 NLSF_Q15[16],
-                            const opus_int16 prev_NLSF_Q15[16]) {
+                             const opus_int16 prev_NLSF_Q15[16]) {
   opus_int16 PredCoef_Q12[2][16];
   silk_process_NLSFs(psEncC, PredCoef_Q12, NLSF_Q15, prev_NLSF_Q15);
   for (int j = 0; j < 2; j++) {
@@ -15508,11 +15453,10 @@ void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FL
   opus_int16 PredCoef_Q12[2][16]{};
   opus_int16 LTPCoef_Q14[5 * 4]{};
   int LTP_scale_Q14;
-  std::array<opus_int16, 4 * 24> AR_Q13{};
-  std::array<opus_int32, 4> LF_shp_Q14{};
+  opus_int16 AR_Q13[4 * 24]{};
+  opus_int32 LF_shp_Q14[4]{};
   int Lambda_Q10;
-  std::array<int, 4> Tilt_Q14{};
-  std::array<int, 4> HarmShapeGain_Q14{};
+  int Tilt_Q14[4]{}, HarmShapeGain_Q14[4]{};
   for (i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     for (int index = 0; index < psEnc->sCmn.shapingLPCOrder; ++index) {
       AR_Q13[static_cast<std::size_t>(i * 24 + index)] = static_cast<opus_int16>(silk_float2int(psEncCtrl->AR[i * 24 + index] * 8192.0f));
@@ -15549,12 +15493,12 @@ void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FL
     x16[index] = static_cast<opus_int16>(silk_float2int(x[index]));
   }
   if (psEnc->sCmn.nStatesDelayedDecision > 1 || psEnc->sCmn.warping_Q16 > 0) {
-    silk_NSQ_del_dec_c(&psEnc->sCmn, psNSQ, psIndices, x16.data(), pulses, PredCoef_Q12[0], LTPCoef_Q14, AR_Q13.data(),
-                       HarmShapeGain_Q14.data(), Tilt_Q14.data(), LF_shp_Q14.data(), Gains_Q16.data(), psEncCtrl->pitchL, Lambda_Q10,
+    silk_NSQ_del_dec_c(&psEnc->sCmn, psNSQ, psIndices, x16.data(), pulses, PredCoef_Q12[0], LTPCoef_Q14, AR_Q13,
+                       HarmShapeGain_Q14, Tilt_Q14, LF_shp_Q14, Gains_Q16.data(), psEncCtrl->pitchL, Lambda_Q10,
                        LTP_scale_Q14);
   } else {
-    silk_NSQ_c(&psEnc->sCmn, psNSQ, psIndices, x16.data(), pulses, PredCoef_Q12[0], LTPCoef_Q14, AR_Q13.data(), HarmShapeGain_Q14.data(),
-               Tilt_Q14.data(), LF_shp_Q14.data(), Gains_Q16.data(), psEncCtrl->pitchL, Lambda_Q10, LTP_scale_Q14);
+    silk_NSQ_c(&psEnc->sCmn, psNSQ, psIndices, x16.data(), pulses, PredCoef_Q12[0], LTPCoef_Q14, AR_Q13, HarmShapeGain_Q14, Tilt_Q14,
+               LF_shp_Q14, Gains_Q16.data(), psEncCtrl->pitchL, Lambda_Q10, LTP_scale_Q14);
   }
 }
 
@@ -15562,17 +15506,15 @@ void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int8 cbk_index[4], opus_int8*
                               float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len,
                               const int nb_subfr) {
   int pred_gain_dB_Q7;
-  std::array<opus_int16, 4 * 5> B_Q14{};
-  std::array<opus_int32, 4 * 5 * 5> XX_Q17{};
-  std::array<opus_int32, 4 * 5> xX_Q17{};
+  opus_int16 B_Q14[4 * 5]{};
+  opus_int32 XX_Q17[4 * 5 * 5]{}, xX_Q17[4 * 5]{};
   for (int index = 0; index < nb_subfr * 5 * 5; ++index) {
     XX_Q17[index] = static_cast<opus_int32>(silk_float2int(XX[index] * 131072.0f));
   }
   for (int index = 0; index < nb_subfr * 5; ++index) {
     xX_Q17[index] = static_cast<opus_int32>(silk_float2int(xX[index] * 131072.0f));
   }
-  silk_quant_LTP_gains(B_Q14.data(), cbk_index, periodicity_index, sum_log_gain_Q7, &pred_gain_dB_Q7, XX_Q17.data(), xX_Q17.data(),
-                       subfr_len, nb_subfr);
+  silk_quant_LTP_gains(B_Q14, cbk_index, periodicity_index, sum_log_gain_Q7, &pred_gain_dB_Q7, XX_Q17, xX_Q17, subfr_len, nb_subfr);
   for (int index = 0; index < nb_subfr * 5; ++index) {
     B[index] = static_cast<float>(B_Q14[index]) * (1.0f / 16384.0f);
   }
@@ -15650,7 +15592,7 @@ float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain,
     rc = -2.0 * num / (nrg_f + nrg_b);
     tmp1 = invGain * (1.0 - rc * rc);
     if (tmp1 <= minInvGain) {
-      rc = sqrt(1.0 - minInvGain / invGain);
+      rc = std::sqrt(1.0 - minInvGain / invGain);
       if (num > 0) {
         rc = -rc;
       }
@@ -15742,15 +15684,15 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
                                  int prevLag, const float search_thres1, const float search_thres2, const int Fs_kHz, const int complexity,
                                  const int nb_subfr) {
   int i, k, d, j;
-  opus_int32 filt_state[6];
+  std::array<opus_int32, 6> filt_state;
   float threshold, contour_bias;
   constexpr int pitch_stage2_cols = ((18 * 16) >> 1) + 5;
-  opus_val32 xcorr[18 * 4 - 2 * 4 + 1];
-  float CC[11];
+  std::array<opus_val32, 18 * 4 - 2 * 4 + 1> xcorr;
+  std::array<float, 11> CC;
   const float *target_ptr, *basis_ptr;
   double cross_corr, normalizer, energy, energy_tmp;
-  int d_srch[24];
-  opus_int16 d_comp[((18 * 16) >> 1) + 5];
+  std::array<int, 24> d_srch;
+  std::array<opus_int16, ((18 * 16) >> 1) + 5> d_comp;
   int length_d_srch, length_d_comp;
   float Cmax, CCmax, CCmax_b, CCmax_new_b, CCmax_new;
   int CBimax, CBimax_new, lag, start_lag, end_lag, lag_new;
@@ -15779,20 +15721,20 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
   if (Fs_kHz == 16) {
     auto* frame_16_FIX = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(frame_length));
     silk_float2short_array(frame_16_FIX, frame, frame_length);
-    zero_n_bytes(filt_state, static_cast<std::size_t>(2 * sizeof(opus_int32)));
-    silk_resampler_down2(filt_state, frame_8_FIX, frame_16_FIX, frame_length);
+    zero_n_bytes(filt_state.data(), static_cast<std::size_t>(2 * sizeof(opus_int32)));
+    silk_resampler_down2(filt_state.data(), frame_8_FIX, frame_16_FIX, frame_length);
     silk_short2float_array(frame_8kHz, frame_8_FIX, frame_length_8kHz);
   } else if (Fs_kHz == 12) {
     auto* frame_12_FIX = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(frame_length));
     silk_float2short_array(frame_12_FIX, frame, frame_length);
-    zero_n_bytes(filt_state, static_cast<std::size_t>(6 * sizeof(opus_int32)));
-    silk_resampler_down2_3(filt_state, frame_8_FIX, frame_12_FIX, frame_length);
+    zero_n_bytes(filt_state.data(), static_cast<std::size_t>(6 * sizeof(opus_int32)));
+    silk_resampler_down2_3(filt_state.data(), frame_8_FIX, frame_12_FIX, frame_length);
     silk_short2float_array(frame_8kHz, frame_8_FIX, frame_length_8kHz);
   } else {
     silk_float2short_array(frame_8_FIX, frame, frame_length_8kHz);
   }
-  zero_n_bytes(filt_state, static_cast<std::size_t>(2 * sizeof(opus_int32)));
-  silk_resampler_down2(filt_state, frame_4_FIX, frame_8_FIX, frame_length_8kHz);
+  zero_n_bytes(filt_state.data(), static_cast<std::size_t>(2 * sizeof(opus_int32)));
+  silk_resampler_down2(filt_state.data(), frame_4_FIX, frame_8_FIX, frame_length_8kHz);
   silk_short2float_array(frame_4kHz, frame_4_FIX, frame_length_4kHz);
   for (i = frame_length_4kHz - 1; i > 0; i--) {
     frame_4kHz[i] = saturate_int16_from_int32(static_cast<opus_int32>(frame_4kHz[i]) + frame_4kHz[i - 1]);
@@ -15801,7 +15743,7 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
   target_ptr = &frame_4kHz[((opus_int32)((opus_uint32)(sf_length_4kHz) << (2)))];
   for (k = 0; k < nb_subfr >> 1; k++) {
     basis_ptr = target_ptr - min_lag_4kHz;
-    celt_pitch_xcorr_c(target_ptr, target_ptr - max_lag_4kHz, xcorr, sf_length_8kHz, max_lag_4kHz - min_lag_4kHz + 1);
+    celt_pitch_xcorr_c(target_ptr, target_ptr - max_lag_4kHz, xcorr.data(), sf_length_8kHz, max_lag_4kHz - min_lag_4kHz + 1);
     cross_corr = xcorr[max_lag_4kHz - min_lag_4kHz];
     normalizer = silk_energy_FLP(target_ptr, sf_length_8kHz) + silk_energy_FLP(basis_ptr, sf_length_8kHz) + sf_length_8kHz * 4000.0f;
     C[0][min_lag_4kHz] += (float)(2 * cross_corr / normalizer);
@@ -15817,7 +15759,7 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
     C[0][i] -= C[0][i] * i / 4096.0f;
   }
   length_d_srch = 4 + 2 * complexity;
-  silk_insertion_sort_decreasing_FLP(&C[0][min_lag_4kHz], d_srch, max_lag_4kHz - min_lag_4kHz + 1, length_d_srch);
+  silk_insertion_sort_decreasing_FLP(&C[0][min_lag_4kHz], d_srch.data(), max_lag_4kHz - min_lag_4kHz + 1, length_d_srch);
   Cmax = C[0][min_lag_4kHz];
   if (Cmax < 0.2f) {
     zero_n_bytes(pitch_out, static_cast<std::size_t>(nb_subfr * sizeof(int)));
@@ -15835,7 +15777,7 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
       break;
     }
   }
-  zero_n_items(d_comp + min_lag_8kHz - 5, static_cast<std::size_t>(max_lag_8kHz - min_lag_8kHz + 10));
+  zero_n_items(d_comp.data() + min_lag_8kHz - 5, static_cast<std::size_t>(max_lag_8kHz - min_lag_8kHz + 10));
   for (i = 0; i < length_d_srch; i++) {
     d_comp[d_srch[i]] = 1;
   }
@@ -16005,16 +15947,16 @@ static void silk_P_Ana_calc_corr_st3(float cross_corr_st3[4][34][5], const float
     const int lag_low = lag_ranges.low(k);
     const int lag_high = lag_ranges.high(k);
     const int lag_count = lag_high - lag_low + 1;
-    float scratch_mem[22];
-    opus_val32 xcorr[22];
-    celt_pitch_xcorr_c(target_ptr, target_ptr - start_lag - lag_high, xcorr, sf_length, lag_count);
+    std::array<float, 22> scratch_mem;
+    std::array<opus_val32, 22> xcorr;
+    celt_pitch_xcorr_c(target_ptr, target_ptr - start_lag - lag_high, xcorr.data(), sf_length, lag_count);
     for (int j = 0; j < lag_count; j++) {
       scratch_mem[j] = xcorr[lag_high - lag_low - j];
     }
     const int delta = lag_low;
     for (int i = 0; i < codebook.nb_cbk_search; i++) {
       const int idx = codebook.at(k, i) - delta;
-      copy_n_items(scratch_mem + idx, std::size(cross_corr_st3[k][i]), cross_corr_st3[k][i]);
+      copy_n_items(scratch_mem.data() + idx, std::size(cross_corr_st3[k][i]), cross_corr_st3[k][i]);
     }
     target_ptr += sf_length;
   }
@@ -16026,7 +15968,7 @@ static void silk_P_Ana_calc_energy_st3(float energies_st3[4][34][5], const float
   const auto codebook = silk_stage3_pitch_codebook_view(nb_subfr, complexity);
   const float* target_ptr = &frame[((opus_int32)((opus_uint32)(sf_length) << (2)))];
   for (int k = 0; k < nb_subfr; k++) {
-    float scratch_mem[22];
+    std::array<float, 22> scratch_mem;
     const float* basis_ptr = target_ptr - (start_lag + lag_ranges.low(k));
     double energy = silk_energy_FLP(basis_ptr, sf_length) + 1e-3;
     scratch_mem[0] = (float)energy;
@@ -16039,7 +15981,7 @@ static void silk_P_Ana_calc_energy_st3(float energies_st3[4][34][5], const float
     const int delta = lag_ranges.low(k);
     for (int i = 0; i < codebook.nb_cbk_search; i++) {
       const int idx = codebook.at(k, i) - delta;
-      copy_n_items(scratch_mem + idx, std::size(energies_st3[k][i]), energies_st3[k][i]);
+      copy_n_items(scratch_mem.data() + idx, std::size(energies_st3[k][i]), energies_st3[k][i]);
     }
     target_ptr += sf_length;
   }
@@ -16055,7 +15997,7 @@ void silk_scale_vector_FLP(float* data1, float gain, int dataSize) {
   silk_scale_copy_vector_FLP(data1, data1, gain, dataSize);
 }
 float silk_schur_FLP(float refl_coef[], const float auto_corr[], int order) {
-  double C[24 + 1][2];
+  std::array<std::array<double, 2>, 24 + 1> C;
   for (int i = 0; i <= order; ++i) {
     C[i][0] = C[i][1] = auto_corr[i];
   }
@@ -16095,14 +16037,14 @@ void assign_error(int* error, int value) noexcept {
     assign_error(error, OPUS_BAD_ARG);
     return nullptr;
   }
-  auto state = opus_owned_ptr<OpusEncoder>(static_cast<OpusEncoder*>(std::malloc(static_cast<std::size_t>(state_size))));
+  auto* state = static_cast<OpusEncoder*>(std::malloc(static_cast<std::size_t>(state_size)));
   if (state == nullptr) {
     assign_error(error, OPUS_ALLOC_FAIL);
     return nullptr;
   }
-  ref_opus_encoder_init(reinterpret_cast<ref_OpusEncoder*>(state.get()), Fs, channels, application);
+  ref_opus_encoder_init(reinterpret_cast<ref_OpusEncoder*>(state), Fs, channels, application);
   assign_error(error, OPUS_OK);
-  return state.release();
+  return state;
 }
 
 [[nodiscard]] auto create_decoder_state(int Fs, int channels, int* error) noexcept -> OpusDecoder* {
@@ -16115,14 +16057,14 @@ void assign_error(int* error, int value) noexcept {
     assign_error(error, OPUS_BAD_ARG);
     return nullptr;
   }
-  auto state = opus_owned_ptr<OpusDecoder>(static_cast<OpusDecoder*>(std::malloc(static_cast<std::size_t>(state_size))));
+  auto* state = static_cast<OpusDecoder*>(std::malloc(static_cast<std::size_t>(state_size)));
   if (state == nullptr) {
     assign_error(error, OPUS_ALLOC_FAIL);
     return nullptr;
   }
-  ref_opus_decoder_init(reinterpret_cast<ref_OpusDecoder*>(state.get()), Fs, channels);
+  ref_opus_decoder_init(reinterpret_cast<ref_OpusDecoder*>(state), Fs, channels);
   assign_error(error, OPUS_OK);
-  return state.release();
+  return state;
 }
 
 template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& ap, T value) noexcept -> int {

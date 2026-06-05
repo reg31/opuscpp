@@ -1,13 +1,13 @@
 #include "opus_codec.h"
 
 #include <array>
-#include <cstdio>
+#include <iostream>
 
 namespace {
 
 [[nodiscard]] auto expect_eq(int actual, int expected, const char* message) -> bool {
   if (actual != expected) {
-    std::printf("FAIL %s actual=%d expected=%d\n", message, actual, expected);
+    std::cout << "FAIL " << message << " actual=" << actual << " expected=" << expected << '\n';
     return false;
   }
   return true;
@@ -44,6 +44,6 @@ int main() {
   if (!ok) {
     return 1;
   }
-  std::printf("packet_duration_behavior=PASS\n");
+  std::cout << "packet_duration_behavior=PASS\n";
   return 0;
 }
