@@ -1934,7 +1934,9 @@ static int ref_opus_encoder_get_size(int channels, int application) {
   const int silkEncSizeBytes = encoder_uses_silk(application) ? align(silk_encoder_get_size(channels)) : 0;
   const int celtEncSizeBytes = celt_encoder_get_size(channels);
   int base_size = align(sizeof(ref_OpusEncoder));
-  if (channels == 1) {
+  if (!encoder_uses_silk(application)) {
+    base_size = align(base_size - 480 * 2 * sizeof(opus_res));
+  } else if (channels == 1) {
     base_size = align(base_size - 480 * sizeof(opus_res));
   }
   return base_size + silkEncSizeBytes + celtEncSizeBytes;
@@ -1950,7 +1952,9 @@ static void ref_opus_encoder_init(ref_OpusEncoder* st, opus_int32 Fs, int channe
   }
   celtEncSizeBytes = celt_encoder_get_size(channels);
   base_size = align(sizeof(ref_OpusEncoder));
-  if (channels == 1) {
+  if (!encoder_uses_silk(application)) {
+    base_size = align(base_size - 480 * 2 * sizeof(opus_res));
+  } else if (channels == 1) {
     base_size = align(base_size - 480 * sizeof(opus_res));
   }
   tot_size = base_size + silkEncSizeBytes + celtEncSizeBytes;
