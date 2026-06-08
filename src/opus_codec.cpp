@@ -2318,6 +2318,9 @@ constexpr opus_val16 voip_upper_midrate_filter_gain = 0.985f;
 constexpr opus_int32 voip_highrate_filter_min_bps = 80000;
 constexpr opus_int32 voip_highrate_filter_max_bps = 128000;
 constexpr opus_val16 voip_highrate_filter_gain = 0.9995f;
+constexpr opus_int32 voip_voice_low_band_keep_min_bps = 16000;
+constexpr opus_int32 voip_voice_low_band_keep_max_bps = 64000;
+constexpr opus_val16 voip_voice_low_band_keep = 0.35f;
 
 struct frame_activity_metrics {
   int is_silence;
@@ -3176,6 +3179,12 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
   const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
   if (st->application == opus_application_voip) {
     hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
+    if (st->channels == 1 && st->bitrate_bps >= voip_voice_low_band_keep_min_bps &&
+        st->bitrate_bps <= voip_voice_low_band_keep_max_bps) {
+      for (int i = 0; i < frame_size; ++i) {
+        frame_pcm[i] += voip_voice_low_band_keep * (pcm[i] - frame_pcm[i]);
+      }
+    }
   } else if (st->application == opus_application_audio) {
     if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
       dc_reject(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);

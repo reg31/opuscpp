@@ -85,6 +85,7 @@ struct options final {
   fs::path input{"tests/generated_audio/synthetic_music_like_stereo.wav"};
   fs::path listening_dir{};
   int bitrate = 24000;
+  int official_bitrate = 0;
   int application = OPUS_APPLICATION_AUDIO;
   int official_decoder_complexity = 0;
   int memory_instances = 256;
@@ -606,7 +607,8 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
 }
 
 [[nodiscard]] auto run_variant(std::string name, const clip_data& clip, const options& opt, bool official) -> result {
-  auto encoder = official ? make_official_encoder(clip.channels, opt.bitrate, opt.application)
+  const int bitrate = official && opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
+  auto encoder = official ? make_official_encoder(clip.channels, bitrate, opt.application)
                           : make_current_encoder(clip.channels, opt.bitrate, opt.application);
   auto decoder = make_official_decoder(clip.channels, opt.official_decoder_complexity);
   auto decoded_frame = std::vector<float>(static_cast<std::size_t>(frame_size * clip.channels));
@@ -810,6 +812,8 @@ void run_memory(const options& opt) {
       opt.input = fs::path{value()};
     } else if (arg == "--bitrate")
       opt.bitrate = std::stoi(std::string{value()});
+    else if (arg == "--official-bitrate")
+      opt.official_bitrate = std::stoi(std::string{value()});
     else if (arg == "--application")
       opt.application = parse_application(value());
     else if (arg == "--official-decoder-complexity")
@@ -840,7 +844,8 @@ void run_memory(const options& opt) {
 
 void run_quality(const options& opt) {
   const auto clip = load_wav(opt.input, opt.max_seconds);
-  std::cout << "perceptual validation bitrate=" << opt.bitrate << " input=" << opt.input.string()
+  const int official_bitrate = opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
+  std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate << " input=" << opt.input.string()
             << " official_decoder_complexity=" << opt.official_decoder_complexity << " channels=" << clip.channels
             << " frames=" << (clip.samples.size() / static_cast<std::size_t>(frame_size * clip.channels)) << '\n';
   const auto current = run_variant("current", clip, opt, false);
