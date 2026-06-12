@@ -168,15 +168,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.427x | 1.719x | 709x | 292x | 1765x | 1027x |
-| 24&nbsp;kbps | 1.634x | 1.312x | 385x | 235x | 1074x | 819x |
-| 32&nbsp;kbps | 1.724x | 1.245x | 379x | 220x | 1034x | 831x |
-| 48&nbsp;kbps | 1.507x | 1.195x | 371x | 246x | 952x | 797x |
-| 64&nbsp;kbps | 1.465x | 1.193x | 318x | 217x | 797x | 669x |
-| 96&nbsp;kbps | 1.532x | 1.174x | 287x | 187x | 743x | 633x |
-| 128&nbsp;kbps | 1.875x | 1.198x | 341x | 182x | 621x | 518x |
-| 192&nbsp;kbps | 1.598x | 1.147x | 259x | 162x | 500x | 437x |
-| 256&nbsp;kbps | 1.626x | 1.055x | 247x | 152x | 442x | 419x |
+| 16&nbsp;kbps | 2.179x | 1.718x | 701x | 322x | 2131x | 1241x |
+| 24&nbsp;kbps | 1.828x | 1.303x | 514x | 281x | 1406x | 1079x |
+| 32&nbsp;kbps | 1.768x | 1.264x | 501x | 283x | 1328x | 1051x |
+| 48&nbsp;kbps | 1.530x | 1.197x | 446x | 292x | 1067x | 892x |
+| 64&nbsp;kbps | 1.442x | 1.200x | 353x | 245x | 922x | 769x |
+| 96&nbsp;kbps | 1.590x | 1.167x | 331x | 208x | 765x | 655x |
+| 128&nbsp;kbps | 1.887x | 1.150x | 358x | 190x | 656x | 570x |
+| 192&nbsp;kbps | 1.764x | 1.085x | 291x | 165x | 508x | 468x |
+| 256&nbsp;kbps | 1.633x | 1.053x | 256x | 157x | 464x | 440x |
 
 
 
@@ -222,7 +222,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 32&nbsp;kbps | +0.0104 | +0.0084 | -0.5399 | 32.0 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0139 | +0.0102 | -1.0647 | 47.8 kbps | 48.2 kbps |
 | 64&nbsp;kbps | +0.0097 | +0.0062 | +0.1277 | 64.0 kbps | 64.5 kbps |
-| 96&nbsp;kbps | -0.0001 | -0.0000 | -0.0849 | 96.0 kbps | 96.6 kbps |
+| 96&nbsp;kbps | -0.0001 | +0.0000 | -0.0849 | 96.0 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0000 | +0.0012 | -0.1227 | 128.0 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0003 | +0.0000 | +0.0400 | 192.0 kbps | 192.4 kbps |
 | 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0010 | 256.0 kbps | 256.4 kbps |

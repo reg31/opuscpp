@@ -106,15 +106,15 @@ harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.427x | 1.719x | +0.0039 | +0.0001 | 16.000 kbps | 16.895 kbps |
-| 24&nbsp;kbps | 1.634x | 1.312x | +0.0051 | +0.0430 | 24.000 kbps | 25.009 kbps |
-| 32&nbsp;kbps | 1.724x | 1.245x | +0.0013 | +0.0365 | 32.000 kbps | 33.301 kbps |
-| 48&nbsp;kbps | 1.507x | 1.195x | +0.0012 | +0.0126 | 48.000 kbps | 48.514 kbps |
-| 64&nbsp;kbps | 1.465x | 1.193x | +0.0007 | -0.0016 | 64.000 kbps | 64.555 kbps |
-| 96&nbsp;kbps | 1.532x | 1.174x | +0.0004 | +0.0040 | 96.000 kbps | 96.626 kbps |
-| 128&nbsp;kbps | 1.875x | 1.198x | +0.0010 | +0.0015 | 128.000 kbps | 128.700 kbps |
-| 192&nbsp;kbps | 1.598x | 1.147x | +0.0007 | +0.0005 | 192.000 kbps | 192.853 kbps |
-| 256&nbsp;kbps | 1.626x | 1.055x | +0.0008 | +0.0001 | 256.000 kbps | 256.846 kbps |
+| 16&nbsp;kbps | 2.179x | 1.718x | +0.0039 | +0.0001 | 16.000 kbps | 16.895 kbps |
+| 24&nbsp;kbps | 1.828x | 1.303x | +0.0051 | +0.0430 | 24.000 kbps | 25.009 kbps |
+| 32&nbsp;kbps | 1.768x | 1.264x | +0.0013 | +0.0365 | 32.000 kbps | 33.301 kbps |
+| 48&nbsp;kbps | 1.530x | 1.197x | +0.0012 | +0.0126 | 48.000 kbps | 48.514 kbps |
+| 64&nbsp;kbps | 1.442x | 1.200x | +0.0007 | -0.0016 | 64.000 kbps | 64.555 kbps |
+| 96&nbsp;kbps | 1.590x | 1.167x | +0.0004 | +0.0040 | 96.000 kbps | 96.626 kbps |
+| 128&nbsp;kbps | 1.887x | 1.150x | +0.0010 | +0.0015 | 128.000 kbps | 128.700 kbps |
+| 192&nbsp;kbps | 1.764x | 1.085x | +0.0007 | +0.0005 | 192.000 kbps | 192.853 kbps |
+| 256&nbsp;kbps | 1.633x | 1.053x | +0.0008 | +0.0001 | 256.000 kbps | 256.846 kbps |
 
 
 
@@ -127,7 +127,7 @@ VOIP mono speech-like quality spot check:
 | 32&nbsp;kbps | +0.0104 | +0.0084 | 31.988 kbps | 32.184 kbps |
 | 48&nbsp;kbps | +0.0139 | +0.0102 | 47.817 kbps | 48.244 kbps |
 | 64&nbsp;kbps | +0.0097 | +0.0062 | 64.000 kbps | 64.501 kbps |
-| 96&nbsp;kbps | -0.0001 | -0.0000 | 96.000 kbps | 96.595 kbps |
+| 96&nbsp;kbps | -0.0001 | +0.0000 | 96.000 kbps | 96.595 kbps |
 | 128&nbsp;kbps | +0.0000 | +0.0012 | 128.000 kbps | 128.503 kbps |
 | 192&nbsp;kbps | +0.0003 | +0.0000 | 192.000 kbps | 192.421 kbps |
 | 256&nbsp;kbps | -0.0001 | +0.0001 | 256.000 kbps | 256.415 kbps |

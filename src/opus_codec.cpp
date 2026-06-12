@@ -4672,7 +4672,7 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
     if (i >= m->effEBands) {
       X = norm;
       if (Y_ != nullptr) {
-        Y = norm;
+        Y = norm2;
       }
       lowband_scratch = nullptr;
     }
