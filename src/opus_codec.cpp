@@ -1544,24 +1544,34 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
   }
   return opus_decode_fast_unavailable;
 }
+
+static int validated_packet_sample_count(const ref_OpusDecoder* st, const unsigned char* data, opus_int32 len) noexcept {
+  // `len == 0` is packet loss concealment in the Opus API, not a malformed packet.
+  if (data == nullptr || len <= 0) {
+    return 0;
+  }
+  const int nb_samples = ref_opus_decoder_get_nb_samples(st, data, len);
+  return nb_samples > 0 ? nb_samples : OPUS_INVALID_PACKET;
+}
+
 static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size,
                            int decode_fec) {
   if (frame_size <= 0) {
     return -1;
   }
-  const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
-  if (fast_ret != opus_decode_fast_unavailable) {
-    return fast_ret;
+  const int nb_packet_samples = validated_packet_sample_count(st, data, len);
+  if (nb_packet_samples < 0) {
+    return nb_packet_samples;
   }
-  if (data != nullptr && len > 0 && !decode_fec) {
-    const int nb_samples = ref_opus_decoder_get_nb_samples(st, data, len);
-    if (nb_samples > 0) {
-      frame_size = std::min(frame_size, nb_samples);
-    } else
-      return -4;
+  if (!decode_fec && nb_packet_samples > 0) {
+    frame_size = std::min(frame_size, nb_packet_samples);
   }
   if (frame_size > opus_max_frame_samples_48k) {
     return -1;
+  }
+  const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
+  if (fast_ret != opus_decode_fast_unavailable) {
+    return fast_ret;
   }
   auto* out = OPUS_SCRATCH(opus_res, static_cast<std::size_t>(frame_size * st->channels));
   const int ret = decode_native(st, data, len, out, frame_size, decode_fec);
@@ -1573,6 +1583,16 @@ static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_
 static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_val16* pcm, int frame_size,
                                  int decode_fec) {
   if (frame_size <= 0) {
+    return -1;
+  }
+  const int nb_packet_samples = validated_packet_sample_count(st, data, len);
+  if (nb_packet_samples < 0) {
+    return nb_packet_samples;
+  }
+  if (!decode_fec && nb_packet_samples > 0) {
+    frame_size = std::min(frame_size, nb_packet_samples);
+  }
+  if (frame_size > opus_max_frame_samples_48k) {
     return -1;
   }
   const int fast_ret = decode_native_direct_fast(st, data, len, pcm, nullptr, frame_size, decode_fec);

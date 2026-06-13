@@ -25,6 +25,7 @@ int main() {
   constexpr std::array<unsigned char, 10> code3_vbr_20ms{0x7B, 0x83, 1, 2, 3, 4, 5, 6, 7, 8};
   constexpr std::array<unsigned char, 2> code3_120ms{0x83, 48};
   constexpr std::array<unsigned char, 2> code3_too_long{0x7B, 7};
+  constexpr std::array<unsigned char, 2> celt_code3_too_long{0x83, 63};
 
   ok &= expect_eq(opus_packet_get_nb_samples(code0_20ms.data(), static_cast<int>(code0_20ms.size()), 48000), 960, "code0 one 20ms frame");
   ok &= expect_eq(opus_packet_get_nb_samples(code1_20ms.data(), static_cast<int>(code1_20ms.size()), 48000), 1920,
@@ -39,7 +40,21 @@ int main() {
                   "code3 accepts 120ms aggregate");
   ok &= expect_eq(opus_packet_get_nb_samples(code3_too_long.data(), static_cast<int>(code3_too_long.size()), 48000), OPUS_INVALID_PACKET,
                   "code3 rejects packets above 120ms");
+  ok &= expect_eq(opus_packet_get_nb_samples(celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), 48000),
+                  OPUS_INVALID_PACKET, "CELT fast-path shaped packet rejects packets above 120ms");
   ok &= expect_eq(opus_packet_get_nb_samples(nullptr, 0, 48000), OPUS_BAD_ARG, "null/empty packet rejected");
+
+  int error = OPUS_OK;
+  OpusDecoder* decoder = opus_decoder_create(48000, 2, &error);
+  std::array<opus_int16, 5760 * 2> pcm{};
+  std::array<float, 5760 * 2> pcm_float{};
+  ok &= expect_eq(error, OPUS_OK, "create decoder");
+  ok &= expect_eq(opus_decode(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), pcm.data(), 5760, 0),
+                  OPUS_INVALID_PACKET, "invalid CELT-shaped packet is rejected before decode");
+  ok &= expect_eq(opus_decode_float(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()),
+                                    pcm_float.data(), 5760, 0),
+                  OPUS_INVALID_PACKET, "invalid CELT-shaped float packet is rejected before decode");
+  opus_decoder_destroy(decoder);
 
   if (!ok) {
     return 1;

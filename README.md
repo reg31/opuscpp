@@ -106,15 +106,15 @@ harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.179x | 1.718x | +0.0039 | +0.0001 | 16.000 kbps | 16.895 kbps |
-| 24&nbsp;kbps | 1.828x | 1.303x | +0.0051 | +0.0430 | 24.000 kbps | 25.009 kbps |
-| 32&nbsp;kbps | 1.768x | 1.264x | +0.0013 | +0.0365 | 32.000 kbps | 33.301 kbps |
-| 48&nbsp;kbps | 1.530x | 1.197x | +0.0012 | +0.0126 | 48.000 kbps | 48.514 kbps |
-| 64&nbsp;kbps | 1.442x | 1.200x | +0.0007 | -0.0016 | 64.000 kbps | 64.555 kbps |
-| 96&nbsp;kbps | 1.590x | 1.167x | +0.0004 | +0.0040 | 96.000 kbps | 96.626 kbps |
-| 128&nbsp;kbps | 1.887x | 1.150x | +0.0010 | +0.0015 | 128.000 kbps | 128.700 kbps |
-| 192&nbsp;kbps | 1.764x | 1.085x | +0.0007 | +0.0005 | 192.000 kbps | 192.853 kbps |
-| 256&nbsp;kbps | 1.633x | 1.053x | +0.0008 | +0.0001 | 256.000 kbps | 256.846 kbps |
+| 16&nbsp;kbps | 2.364x | 1.691x | +0.0039 | +0.0001 | 16.000 kbps | 16.895 kbps |
+| 24&nbsp;kbps | 1.760x | 1.299x | +0.0051 | +0.0430 | 24.000 kbps | 25.009 kbps |
+| 32&nbsp;kbps | 1.724x | 1.256x | +0.0013 | +0.0365 | 32.000 kbps | 33.301 kbps |
+| 48&nbsp;kbps | 1.541x | 1.225x | +0.0012 | +0.0126 | 48.000 kbps | 48.514 kbps |
+| 64&nbsp;kbps | 1.529x | 1.174x | +0.0007 | -0.0016 | 64.000 kbps | 64.555 kbps |
+| 96&nbsp;kbps | 1.694x | 1.164x | +0.0004 | +0.0040 | 96.000 kbps | 96.626 kbps |
+| 128&nbsp;kbps | 1.864x | 1.139x | +0.0010 | +0.0015 | 128.000 kbps | 128.700 kbps |
+| 192&nbsp;kbps | 1.690x | 1.094x | +0.0007 | +0.0005 | 192.000 kbps | 192.853 kbps |
+| 256&nbsp;kbps | 1.622x | 1.059x | +0.0008 | +0.0001 | 256.000 kbps | 256.846 kbps |
 
 
 
