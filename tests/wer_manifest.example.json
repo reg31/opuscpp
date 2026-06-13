@@ -1,0 +1,9 @@
+{
+  "samples": [
+    {
+      "id": "voice_sample",
+      "wav": "path/to/your_voice_48k_pcm16.wav",
+      "transcript": "Replace this text with the exact spoken words in the sample."
+    }
+  ]
+}

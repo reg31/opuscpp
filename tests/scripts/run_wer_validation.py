@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+"""WER-style validation gate for speech-to-text oriented Opus tuning.
+
+The script intentionally does not depend on a particular ASR provider. Pass an
+ASR command with a ``{wav}`` placeholder; the command must print the recognized
+text to stdout. This lets local runs use Azure, Whisper, Android Speech, or any
+other recognizer without adding a cloud dependency to opuscpp.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import math
+import os
+import pathlib
+import random
+import re
+import shutil
+import struct
+import subprocess
+import sys
+import wave
+from dataclasses import dataclass
+from typing import Iterable
+
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+
+
+@dataclass(frozen=True)
+class Sample:
+    sample_id: str
+    wav: pathlib.Path
+    transcript: str
+
+
+@dataclass(frozen=True)
+class Score:
+    sample_id: str
+    snr_db: str
+    bitrate: int
+    application: str
+    reference: str
+    hypothesis: str
+    wer: float
+    cer: float
+    decoded_wav: str
+
+
+def normalize_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"[^a-z0-9']+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def edit_distance(lhs: list[str] | str, rhs: list[str] | str) -> int:
+    previous = list(range(len(rhs) + 1))
+    for i, left in enumerate(lhs, 1):
+        current = [i] + [0] * len(rhs)
+        for j, right in enumerate(rhs, 1):
+            current[j] = min(
+                previous[j] + 1,
+                current[j - 1] + 1,
+                previous[j - 1] + (0 if left == right else 1),
+            )
+        previous = current
+    return previous[-1]
+
+
+def word_error_rate(reference: str, hypothesis: str) -> float:
+    ref_words = normalize_text(reference).split()
+    hyp_words = normalize_text(hypothesis).split()
+    if not ref_words:
+        return 0.0 if not hyp_words else 1.0
+    return edit_distance(ref_words, hyp_words) / len(ref_words)
+
+
+def char_error_rate(reference: str, hypothesis: str) -> float:
+    ref = normalize_text(reference).replace(" ", "")
+    hyp = normalize_text(hypothesis).replace(" ", "")
+    if not ref:
+        return 0.0 if not hyp else 1.0
+    return edit_distance(ref, hyp) / len(ref)
+
+
+def load_manifest(path: pathlib.Path) -> list[Sample]:
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    base = path.parent
+    samples: list[Sample] = []
+    for item in manifest.get("samples", []):
+        wav = pathlib.Path(item["wav"])
+        if not wav.is_absolute():
+            wav = (base / wav).resolve()
+        samples.append(Sample(str(item["id"]), wav, str(item["transcript"])))
+    if not samples:
+        raise ValueError(f"manifest contains no samples: {path}")
+    return samples
+
+
+def read_pcm16_wav(path: pathlib.Path) -> tuple[int, int, list[int]]:
+    with wave.open(str(path), "rb") as wav:
+        channels = wav.getnchannels()
+        rate = wav.getframerate()
+        sample_width = wav.getsampwidth()
+        frames = wav.readframes(wav.getnframes())
+    if channels not in (1, 2) or rate != 48000 or sample_width != 2:
+        raise ValueError(f"{path} must be 48 kHz mono/stereo PCM16 WAV")
+    count = len(frames) // 2
+    return rate, channels, list(struct.unpack(f"<{count}h", frames))
+
+
+def write_pcm16_wav(path: pathlib.Path, rate: int, channels: int, samples: Iterable[int]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    values = [max(-32768, min(32767, int(v))) for v in samples]
+    with wave.open(str(path), "wb") as wav:
+        wav.setnchannels(channels)
+        wav.setsampwidth(2)
+        wav.setframerate(rate)
+        wav.writeframes(struct.pack(f"<{len(values)}h", *values))
+
+
+def make_noisy_wav(source: pathlib.Path, output: pathlib.Path, snr_db: str, seed: int) -> pathlib.Path:
+    if snr_db.lower() in {"clean", "none", "inf", "infinite"}:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, output)
+        return output
+
+    target_snr = float(snr_db)
+    rate, channels, samples = read_pcm16_wav(source)
+    signal_rms = math.sqrt(sum(float(v) * float(v) for v in samples) / max(1, len(samples)))
+    if signal_rms <= 1e-9:
+        noise_scale = 1.0
+    else:
+        noise_scale = signal_rms / (10.0 ** (target_snr / 20.0))
+    rng = random.Random(seed)
+    noisy = [sample + rng.gauss(0.0, noise_scale) for sample in samples]
+    write_pcm16_wav(output, rate, channels, noisy)
+    return output
+
+
+def build_roundtrip(cxx: str, output_dir: pathlib.Path) -> pathlib.Path:
+    exe = output_dir / ("wer_roundtrip.exe" if os.name == "nt" else "wer_roundtrip")
+    source = REPO_ROOT / "tests" / "wer_roundtrip.cpp"
+    codec = REPO_ROOT / "src" / "opus_codec.cpp"
+    cmd = [
+        cxx,
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-I",
+        str(REPO_ROOT / "src"),
+        str(source),
+        str(codec),
+        "-o",
+        str(exe),
+    ]
+    subprocess.run(cmd, check=True)
+    return exe
+
+
+def run_asr(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, snr_db: str) -> str:
+    command = asr_command.format(
+        wav=str(wav),
+        sample_id=sample.sample_id,
+        bitrate=bitrate,
+        snr_db=snr_db,
+    )
+    result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode != 0:
+        raise RuntimeError(f"ASR command failed for {wav}\ncommand: {command}\n{result.stderr}")
+    return result.stdout.strip()
+
+
+def parse_csv_ints(value: str) -> list[int]:
+    return [int(item.strip()) for item in value.split(",") if item.strip()]
+
+
+def parse_csv_strings(value: str) -> list[str]:
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def load_baseline(path: pathlib.Path | None) -> dict[tuple[str, str, int, str], float]:
+    if path is None or not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    rows = data.get("rows", data if isinstance(data, list) else [])
+    baseline: dict[tuple[str, str, int, str], float] = {}
+    for row in rows:
+        baseline[(str(row["sample_id"]), str(row["snr_db"]), int(row["bitrate"]), str(row["application"]))] = float(row["wer"])
+    return baseline
+
+
+def write_reports(scores: list[Score], output_dir: pathlib.Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    rows = [score.__dict__ for score in scores]
+    (output_dir / "wer_results.json").write_text(json.dumps({"rows": rows}, indent=2), encoding="utf-8")
+
+    with (output_dir / "wer_results.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()) if rows else [])
+        if rows:
+            writer.writeheader()
+            writer.writerows(rows)
+
+    average_wer = sum(score.wer for score in scores) / max(1, len(scores))
+    average_cer = sum(score.cer for score in scores) / max(1, len(scores))
+    lines = [
+        "# WER Validation Report",
+        "",
+        f"- Cases: {len(scores)}",
+        f"- Average WER: {average_wer:.4f}",
+        f"- Average CER: {average_cer:.4f}",
+        "",
+        "| Sample | SNR | Bitrate | Application | WER | CER | Hypothesis |",
+        "|---|---:|---:|---|---:|---:|---|",
+    ]
+    for score in scores:
+        hyp = score.hypothesis.replace("|", "\\|")
+        lines.append(
+            f"| {score.sample_id} | {score.snr_db} | {score.bitrate} | {score.application} | {score.wer:.4f} | {score.cer:.4f} | {hyp} |"
+        )
+    (output_dir / "wer_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Run WER-style validation on opuscpp encoded speech.")
+    parser.add_argument("--manifest", required=True, type=pathlib.Path, help="JSON manifest with WAV paths and reference transcripts.")
+    parser.add_argument("--asr-command", default=os.environ.get("OPUSCPP_ASR_COMMAND", ""), help="Command that prints transcript; use {wav}.")
+    parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"), help="C++23 compiler.")
+    parser.add_argument("--output-dir", default=REPO_ROOT / "build" / "wer_validation", type=pathlib.Path)
+    parser.add_argument("--bitrate", default="16000,24000,32000,48000", help="Comma-separated bitrates.")
+    parser.add_argument("--application", default="voip", help="Comma-separated applications: voip,audio,lowdelay.")
+    parser.add_argument("--snr-db", default="clean,20,10,5,0", help="Comma-separated SNR values plus clean.")
+    parser.add_argument("--frame-size", default=960, type=int)
+    parser.add_argument("--vbr", default=1, type=int)
+    parser.add_argument("--complexity", default=10, type=int)
+    parser.add_argument("--max-average-wer", default=None, type=float)
+    parser.add_argument("--max-case-wer", default=None, type=float)
+    parser.add_argument("--baseline", default=None, type=pathlib.Path, help="Optional previous wer_results.json for regression gating.")
+    parser.add_argument("--max-wer-regression", default=0.02, type=float)
+    parser.add_argument("--update-baseline", action="store_true", help="Write current results to --baseline after a passing run.")
+    args = parser.parse_args()
+
+    if not args.asr_command:
+        print("No ASR command configured. Pass --asr-command or set OPUSCPP_ASR_COMMAND.", file=sys.stderr)
+        return 2
+
+    samples = load_manifest(args.manifest)
+    bitrates = parse_csv_ints(args.bitrate)
+    applications = parse_csv_strings(args.application)
+    snr_values = parse_csv_strings(args.snr_db)
+
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    roundtrip_exe = build_roundtrip(args.cxx, args.output_dir)
+    baseline = load_baseline(args.baseline)
+
+    scores: list[Score] = []
+    failures: list[str] = []
+    for sample in samples:
+        for snr_db in snr_values:
+            noisy_wav = make_noisy_wav(sample.wav, args.output_dir / "inputs" / f"{sample.sample_id}_{snr_db}db.wav", snr_db, 0x5154)
+            for application in applications:
+                for bitrate in bitrates:
+                    decoded_wav = args.output_dir / "decoded" / f"{sample.sample_id}_{snr_db}db_{application}_{bitrate}.wav"
+                    decoded_wav.parent.mkdir(parents=True, exist_ok=True)
+                    subprocess.run(
+                        [
+                            str(roundtrip_exe),
+                            str(noisy_wav),
+                            str(decoded_wav),
+                            str(bitrate),
+                            application,
+                            str(args.frame_size),
+                            str(args.vbr),
+                            str(args.complexity),
+                        ],
+                        check=True,
+                    )
+                    hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, snr_db)
+                    score = Score(
+                        sample_id=sample.sample_id,
+                        snr_db=snr_db,
+                        bitrate=bitrate,
+                        application=application,
+                        reference=sample.transcript,
+                        hypothesis=hypothesis,
+                        wer=word_error_rate(sample.transcript, hypothesis),
+                        cer=char_error_rate(sample.transcript, hypothesis),
+                        decoded_wav=str(decoded_wav),
+                    )
+                    scores.append(score)
+                    if args.max_case_wer is not None and score.wer > args.max_case_wer:
+                        failures.append(f"{sample.sample_id}/{snr_db}/{application}/{bitrate}: WER {score.wer:.4f} > {args.max_case_wer:.4f}")
+                    previous = baseline.get((sample.sample_id, snr_db, bitrate, application))
+                    if previous is not None and score.wer - previous > args.max_wer_regression:
+                        failures.append(
+                            f"{sample.sample_id}/{snr_db}/{application}/{bitrate}: WER regression {score.wer - previous:.4f} > "
+                            f"{args.max_wer_regression:.4f}"
+                        )
+
+    write_reports(scores, args.output_dir)
+    average_wer = sum(score.wer for score in scores) / max(1, len(scores))
+    if args.max_average_wer is not None and average_wer > args.max_average_wer:
+        failures.append(f"average WER {average_wer:.4f} > {args.max_average_wer:.4f}")
+
+    if failures:
+        print("WER validation FAILED")
+        for failure in failures:
+            print(f"- {failure}")
+        print(f"Report: {args.output_dir / 'wer_report.md'}")
+        return 1
+
+    if args.update_baseline and args.baseline is not None:
+        args.baseline.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(args.output_dir / "wer_results.json", args.baseline)
+
+    print(f"WER validation PASS average_wer={average_wer:.4f} report={args.output_dir / 'wer_report.md'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
