@@ -2305,6 +2305,7 @@ constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
 constexpr opus_int32 voip_mono_silk_budget_boost_min_bps = 24000;
 constexpr opus_int32 voip_mono_silk_budget_boost_max_bps = 64000;
 constexpr opus_int32 voip_mono_silk_budget_boost_bps = 4000;
+constexpr opus_int32 voip_mono_speech_silk_max_bps = 40000;
 
 [[nodiscard]] static constexpr opus_int32 hybrid_silk_lowrate_boost_bps(opus_int32 user_bitrate_bps, opus_int32 silk_bitrate_bps) noexcept {
   if (user_bitrate_bps < hybrid_silk_lowrate_boost_min_bps || user_bitrate_bps > hybrid_silk_lowrate_boost_max_bps) {
@@ -3041,6 +3042,9 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
       st->mode = opus_mode_silk_only;
     } else if (!voip_style && st->channels == 1 && st->bitrate_bps >= 56000 && st->bitrate_bps < 128000 &&
                !quality.high_z_tonal_confident() && quality.harmonic_music_Q7 < 32) {
+      st->mode = opus_mode_silk_only;
+    } else if (voip_style && st->channels == 1 && st->bitrate_bps < voip_mono_speech_silk_max_bps && quality.harmonic_music_Q7 < 80 &&
+               !quality.high_z_tonal_confident()) {
       st->mode = opus_mode_silk_only;
     } else if (quality.strong_music()) {
       const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;

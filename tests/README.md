@@ -194,15 +194,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.364x | 1.691x | 786x | 333x | 2144x | 1268x |
-| 24&nbsp;kbps | 1.760x | 1.299x | 525x | 298x | 1421x | 1094x |
-| 32&nbsp;kbps | 1.724x | 1.256x | 512x | 297x | 1359x | 1081x |
-| 48&nbsp;kbps | 1.541x | 1.225x | 460x | 299x | 1145x | 935x |
-| 64&nbsp;kbps | 1.529x | 1.174x | 409x | 268x | 990x | 843x |
-| 96&nbsp;kbps | 1.694x | 1.164x | 350x | 207x | 779x | 669x |
-| 128&nbsp;kbps | 1.864x | 1.139x | 367x | 197x | 671x | 589x |
-| 192&nbsp;kbps | 1.690x | 1.094x | 301x | 178x | 552x | 504x |
-| 256&nbsp;kbps | 1.622x | 1.059x | 256x | 158x | 455x | 429x |
+| 16&nbsp;kbps | 2.478x | 1.653x | 737x | 297x | 2061x | 1247x |
+| 24&nbsp;kbps | 1.822x | 1.345x | 516x | 283x | 1392x | 1035x |
+| 32&nbsp;kbps | 1.773x | 1.404x | 477x | 269x | 1229x | 876x |
+| 48&nbsp;kbps | 1.546x | 1.299x | 334x | 216x | 998x | 768x |
+| 64&nbsp;kbps | 1.523x | 1.124x | 346x | 227x | 862x | 767x |
+| 96&nbsp;kbps | 1.633x | 1.022x | 284x | 174x | 453x | 443x |
+| 128&nbsp;kbps | 2.127x | 1.109x | 274x | 129x | 496x | 448x |
+| 192&nbsp;kbps | 1.779x | 1.192x | 241x | 135x | 417x | 350x |
+| 256&nbsp;kbps | 1.541x | 1.117x | 184x | 120x | 441x | 395x |
 
 
 
@@ -244,8 +244,8 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0115 | +0.0076 | -0.0534 | 15.8 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0109 | +0.0095 | -1.3103 | 23.9 kbps | 24.1 kbps |
-| 32&nbsp;kbps | +0.0104 | +0.0084 | -0.5399 | 32.0 kbps | 32.2 kbps |
+| 24&nbsp;kbps | +0.0113 | +0.0107 | +0.0262 | 23.5 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0107 | +0.0105 | -0.2172 | 32.0 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0139 | +0.0102 | -1.0647 | 47.8 kbps | 48.2 kbps |
 | 64&nbsp;kbps | +0.0097 | +0.0062 | +0.1277 | 64.0 kbps | 64.5 kbps |
 | 96&nbsp;kbps | -0.0001 | +0.0000 | -0.0849 | 96.0 kbps | 96.6 kbps |

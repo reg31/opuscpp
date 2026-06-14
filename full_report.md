@@ -32,15 +32,15 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.363915x | 1.690735x |
-| 24 kbps | 1.760261x | 1.299403x |
-| 32 kbps | 1.723855x | 1.256402x |
-| 48 kbps | 1.540980x | 1.224780x |
-| 64 kbps | 1.529252x | 1.174124x |
-| 96 kbps | 1.694293x | 1.164227x |
-| 128 kbps | 1.864386x | 1.139002x |
-| 192 kbps | 1.689578x | 1.094061x |
-| 256 kbps | 1.622004x | 1.059481x |
+| 16 kbps | 2.477811x | 1.652517x |
+| 24 kbps | 1.821971x | 1.344798x |
+| 32 kbps | 1.772844x | 1.403832x |
+| 48 kbps | 1.545654x | 1.299440x |
+| 64 kbps | 1.523342x | 1.124251x |
+| 96 kbps | 1.632969x | 1.022396x |
+| 128 kbps | 2.127449x | 1.109217x |
+| 192 kbps | 1.779142x | 1.192211x |
+| 256 kbps | 1.540746x | 1.116961x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -61,8 +61,8 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.1033 | -0.0032 | -0.0021 | 0.0115 | 0.0076 | 0.0036 | -0.0534 | 15.837 kbps | 16.255 kbps |
-| 24 kbps | 0.1063 | -0.0033 | -0.0020 | 0.0109 | 0.0095 | 0.0043 | -1.3103 | 23.928 kbps | 24.148 kbps |
-| 32 kbps | 0.0879 | -0.0028 | -0.0019 | 0.0104 | 0.0084 | 0.0042 | -0.5399 | 31.988 kbps | 32.184 kbps |
+| 24 kbps | 0.0949 | -0.0030 | -0.0018 | 0.0113 | 0.0107 | 0.0043 | 0.0262 | 23.491 kbps | 24.148 kbps |
+| 32 kbps | 0.0865 | -0.0027 | -0.0017 | 0.0107 | 0.0105 | 0.0044 | -0.2172 | 31.988 kbps | 32.184 kbps |
 | 48 kbps | 0.1241 | -0.0039 | -0.0026 | 0.0139 | 0.0102 | 0.0047 | -1.0647 | 47.817 kbps | 48.244 kbps |
 | 64 kbps | 0.0674 | -0.0021 | -0.0014 | 0.0097 | 0.0062 | 0.0030 | 0.1277 | 64.000 kbps | 64.501 kbps |
 | 96 kbps | 0.0032 | -0.0001 | -0.0000 | -0.0001 | -0.0000 | 0.0002 | -0.0849 | 96.000 kbps | 96.595 kbps |
