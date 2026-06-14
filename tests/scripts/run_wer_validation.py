@@ -39,6 +39,7 @@ class Sample:
 @dataclass(frozen=True)
 class Score:
     sample_id: str
+    gain_db: str
     snr_db: str
     bitrate: int
     application: str
@@ -122,21 +123,22 @@ def write_pcm16_wav(path: pathlib.Path, rate: int, channels: int, samples: Itera
         wav.writeframes(struct.pack(f"<{len(values)}h", *values))
 
 
-def make_noisy_wav(source: pathlib.Path, output: pathlib.Path, snr_db: str, seed: int) -> pathlib.Path:
+def make_conditioned_wav(source: pathlib.Path, output: pathlib.Path, gain_db: str, snr_db: str, seed: int) -> pathlib.Path:
+    rate, channels, samples = read_pcm16_wav(source)
+    gain = 10.0 ** (float(gain_db) / 20.0)
+    gained = [sample * gain for sample in samples]
     if snr_db.lower() in {"clean", "none", "inf", "infinite"}:
-        output.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, output)
+        write_pcm16_wav(output, rate, channels, gained)
         return output
 
     target_snr = float(snr_db)
-    rate, channels, samples = read_pcm16_wav(source)
-    signal_rms = math.sqrt(sum(float(v) * float(v) for v in samples) / max(1, len(samples)))
+    signal_rms = math.sqrt(sum(float(v) * float(v) for v in gained) / max(1, len(gained)))
     if signal_rms <= 1e-9:
         noise_scale = 1.0
     else:
         noise_scale = signal_rms / (10.0 ** (target_snr / 20.0))
     rng = random.Random(seed)
-    noisy = [sample + rng.gauss(0.0, noise_scale) for sample in samples]
+    noisy = [sample + rng.gauss(0.0, noise_scale) for sample in gained]
     write_pcm16_wav(output, rate, channels, noisy)
     return output
 
@@ -161,11 +163,12 @@ def build_roundtrip(cxx: str, output_dir: pathlib.Path) -> pathlib.Path:
     return exe
 
 
-def run_asr(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, snr_db: str) -> str:
+def run_asr(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, gain_db: str, snr_db: str) -> str:
     command = asr_command.format(
         wav=str(wav),
         sample_id=sample.sample_id,
         bitrate=bitrate,
+        gain_db=gain_db,
         snr_db=snr_db,
     )
     result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -182,14 +185,15 @@ def parse_csv_strings(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def load_baseline(path: pathlib.Path | None) -> dict[tuple[str, str, int, str], float]:
+def load_baseline(path: pathlib.Path | None) -> dict[tuple[str, str, str, int, str], float]:
     if path is None or not path.exists():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
     rows = data.get("rows", data if isinstance(data, list) else [])
-    baseline: dict[tuple[str, str, int, str], float] = {}
+    baseline: dict[tuple[str, str, str, int, str], float] = {}
     for row in rows:
-        baseline[(str(row["sample_id"]), str(row["snr_db"]), int(row["bitrate"]), str(row["application"]))] = float(row["wer"])
+        gain_db = str(row.get("gain_db", "0"))
+        baseline[(str(row["sample_id"]), gain_db, str(row["snr_db"]), int(row["bitrate"]), str(row["application"]))] = float(row["wer"])
     return baseline
 
 
@@ -213,13 +217,14 @@ def write_reports(scores: list[Score], output_dir: pathlib.Path) -> None:
         f"- Average WER: {average_wer:.4f}",
         f"- Average CER: {average_cer:.4f}",
         "",
-        "| Sample | SNR | Bitrate | Application | WER | CER | Hypothesis |",
-        "|---|---:|---:|---|---:|---:|---|",
+        "| Sample | Gain | SNR | Bitrate | Application | WER | CER | Hypothesis |",
+        "|---|---:|---:|---:|---|---:|---:|---|",
     ]
     for score in scores:
         hyp = score.hypothesis.replace("|", "\\|")
         lines.append(
-            f"| {score.sample_id} | {score.snr_db} | {score.bitrate} | {score.application} | {score.wer:.4f} | {score.cer:.4f} | {hyp} |"
+            f"| {score.sample_id} | {score.gain_db} dB | {score.snr_db} | {score.bitrate} | {score.application} | "
+            f"{score.wer:.4f} | {score.cer:.4f} | {hyp} |"
         )
     (output_dir / "wer_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -232,6 +237,7 @@ def main() -> int:
     parser.add_argument("--output-dir", default=REPO_ROOT / "build" / "wer_validation", type=pathlib.Path)
     parser.add_argument("--bitrate", default="16000,24000,32000,48000", help="Comma-separated bitrates.")
     parser.add_argument("--application", default="voip", help="Comma-separated applications: voip,audio,lowdelay.")
+    parser.add_argument("--gain-db", default="0", help="Comma-separated input gain values before encode, e.g. 0,-12,-24 for quiet talkers.")
     parser.add_argument("--snr-db", default="clean,20,10,5,0", help="Comma-separated SNR values plus clean.")
     parser.add_argument("--frame-size", default=960, type=int)
     parser.add_argument("--vbr", default=1, type=int)
@@ -250,6 +256,7 @@ def main() -> int:
     samples = load_manifest(args.manifest)
     bitrates = parse_csv_ints(args.bitrate)
     applications = parse_csv_strings(args.application)
+    gain_values = parse_csv_strings(args.gain_db)
     snr_values = parse_csv_strings(args.snr_db)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -259,46 +266,61 @@ def main() -> int:
     scores: list[Score] = []
     failures: list[str] = []
     for sample in samples:
-        for snr_db in snr_values:
-            noisy_wav = make_noisy_wav(sample.wav, args.output_dir / "inputs" / f"{sample.sample_id}_{snr_db}db.wav", snr_db, 0x5154)
-            for application in applications:
-                for bitrate in bitrates:
-                    decoded_wav = args.output_dir / "decoded" / f"{sample.sample_id}_{snr_db}db_{application}_{bitrate}.wav"
-                    decoded_wav.parent.mkdir(parents=True, exist_ok=True)
-                    subprocess.run(
-                        [
-                            str(roundtrip_exe),
-                            str(noisy_wav),
-                            str(decoded_wav),
-                            str(bitrate),
-                            application,
-                            str(args.frame_size),
-                            str(args.vbr),
-                            str(args.complexity),
-                        ],
-                        check=True,
-                    )
-                    hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, snr_db)
-                    score = Score(
-                        sample_id=sample.sample_id,
-                        snr_db=snr_db,
-                        bitrate=bitrate,
-                        application=application,
-                        reference=sample.transcript,
-                        hypothesis=hypothesis,
-                        wer=word_error_rate(sample.transcript, hypothesis),
-                        cer=char_error_rate(sample.transcript, hypothesis),
-                        decoded_wav=str(decoded_wav),
-                    )
-                    scores.append(score)
-                    if args.max_case_wer is not None and score.wer > args.max_case_wer:
-                        failures.append(f"{sample.sample_id}/{snr_db}/{application}/{bitrate}: WER {score.wer:.4f} > {args.max_case_wer:.4f}")
-                    previous = baseline.get((sample.sample_id, snr_db, bitrate, application))
-                    if previous is not None and score.wer - previous > args.max_wer_regression:
-                        failures.append(
-                            f"{sample.sample_id}/{snr_db}/{application}/{bitrate}: WER regression {score.wer - previous:.4f} > "
-                            f"{args.max_wer_regression:.4f}"
+        for gain_db in gain_values:
+            for snr_db in snr_values:
+                input_wav = make_conditioned_wav(
+                    sample.wav,
+                    args.output_dir / "inputs" / f"{sample.sample_id}_gain{gain_db}db_{snr_db}snr.wav",
+                    gain_db,
+                    snr_db,
+                    0x5154,
+                )
+                for application in applications:
+                    for bitrate in bitrates:
+                        decoded_wav = (
+                            args.output_dir
+                            / "decoded"
+                            / f"{sample.sample_id}_gain{gain_db}db_{snr_db}snr_{application}_{bitrate}.wav"
                         )
+                        decoded_wav.parent.mkdir(parents=True, exist_ok=True)
+                        subprocess.run(
+                            [
+                                str(roundtrip_exe),
+                                str(input_wav),
+                                str(decoded_wav),
+                                str(bitrate),
+                                application,
+                                str(args.frame_size),
+                                str(args.vbr),
+                                str(args.complexity),
+                            ],
+                            check=True,
+                        )
+                        hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, gain_db, snr_db)
+                        score = Score(
+                            sample_id=sample.sample_id,
+                            gain_db=gain_db,
+                            snr_db=snr_db,
+                            bitrate=bitrate,
+                            application=application,
+                            reference=sample.transcript,
+                            hypothesis=hypothesis,
+                            wer=word_error_rate(sample.transcript, hypothesis),
+                            cer=char_error_rate(sample.transcript, hypothesis),
+                            decoded_wav=str(decoded_wav),
+                        )
+                        scores.append(score)
+                        if args.max_case_wer is not None and score.wer > args.max_case_wer:
+                            failures.append(
+                                f"{sample.sample_id}/{gain_db}dB/{snr_db}/{application}/{bitrate}: "
+                                f"WER {score.wer:.4f} > {args.max_case_wer:.4f}"
+                            )
+                        previous = baseline.get((sample.sample_id, gain_db, snr_db, bitrate, application))
+                        if previous is not None and score.wer - previous > args.max_wer_regression:
+                            failures.append(
+                                f"{sample.sample_id}/{gain_db}dB/{snr_db}/{application}/{bitrate}: "
+                                f"WER regression {score.wer - previous:.4f} > {args.max_wer_regression:.4f}"
+                            )
 
     write_reports(scores, args.output_dir)
     average_wer = sum(score.wer for score in scores) / max(1, len(scores))

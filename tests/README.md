@@ -89,8 +89,9 @@ The generated files are ignored by git.
 ## Optional WER validation for speech-to-text
 
 `run_wer_validation.py` is a speech-to-text oriented gate for VOIP tuning. It encodes and decodes
-48 kHz PCM16 speech samples, optionally adds deterministic noise at several SNR levels, runs an ASR
-command on the decoded WAVs, then reports WER/CER against the reference transcript.
+48 kHz PCM16 speech samples, optionally attenuates quiet-talker cases, adds deterministic noise at
+several SNR levels, runs an ASR command on the decoded WAVs, then reports WER/CER against the
+reference transcript.
 
 Create a manifest like `tests/wer_manifest.example.json` with exact transcripts, then run:
 
@@ -100,6 +101,7 @@ python3 tests/scripts/run_wer_validation.py \
     --asr-command "python3 my_asr.py {wav}" \
     --bitrate 16000,24000,32000,48000 \
     --application voip \
+    --gain-db 0,-12,-24 \
     --snr-db clean,20,10,5,0 \
     --max-average-wer 0.12 \
     --max-case-wer 0.30
@@ -108,6 +110,8 @@ python3 tests/scripts/run_wer_validation.py \
 The ASR command can be Azure, Whisper, Android Speech, or any local recognizer; it only needs to
 print the recognized text to stdout. Use `OPUSCPP_ASR_COMMAND` instead of `--asr-command` if you
 prefer environment configuration. Reports are written under `build/wer_validation/`.
+`--gain-db` is applied before encoding and before optional noise injection; use it to validate quiet
+voice robustness without needing separate low-volume source files.
 
 For regression gating, pass `--baseline tests/metrics/wer_results.json --max-wer-regression 0.02`.
 Add `--update-baseline` only after listening/ASR review confirms the new result is better.
