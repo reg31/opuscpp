@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.478x | 1.653x | 737x | 297x | 2061x | 1247x |
-| 24&nbsp;kbps | 1.822x | 1.345x | 516x | 283x | 1392x | 1035x |
-| 32&nbsp;kbps | 1.773x | 1.404x | 477x | 269x | 1229x | 876x |
-| 48&nbsp;kbps | 1.546x | 1.299x | 334x | 216x | 998x | 768x |
-| 64&nbsp;kbps | 1.523x | 1.124x | 346x | 227x | 862x | 767x |
-| 96&nbsp;kbps | 1.633x | 1.022x | 284x | 174x | 453x | 443x |
-| 128&nbsp;kbps | 2.127x | 1.109x | 274x | 129x | 496x | 448x |
-| 192&nbsp;kbps | 1.779x | 1.192x | 241x | 135x | 417x | 350x |
-| 256&nbsp;kbps | 1.541x | 1.117x | 184x | 120x | 441x | 395x |
+| 16&nbsp;kbps | 2.615x | 1.670x | 792x | 303x | 2022x | 1210x |
+| 24&nbsp;kbps | 1.799x | 1.294x | 510x | 283x | 1407x | 1087x |
+| 32&nbsp;kbps | 1.834x | 1.255x | 506x | 276x | 1350x | 1075x |
+| 48&nbsp;kbps | 1.381x | 1.197x | 410x | 297x | 1163x | 971x |
+| 64&nbsp;kbps | 1.612x | 1.167x | 396x | 246x | 986x | 845x |
+| 96&nbsp;kbps | 1.691x | 1.212x | 348x | 206x | 712x | 587x |
+| 128&nbsp;kbps | 1.800x | 1.247x | 322x | 179x | 615x | 493x |
+| 192&nbsp;kbps | 1.718x | 1.103x | 280x | 163x | 528x | 479x |
+| 256&nbsp;kbps | 1.620x | 1.057x | 265x | 163x | 453x | 428x |
 
 
 

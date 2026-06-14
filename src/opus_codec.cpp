@@ -513,6 +513,7 @@ template <std::size_t ViewCount, typename T>
   }
   return views;
 }
+
 [[nodiscard]] static auto celt_maxabs16(const opus_val16* x, int len) noexcept -> opus_val32 {
   if (len <= 0) {
     return 0;
@@ -1008,12 +1009,14 @@ static_assert(sizeof(ref_OpusDecoder) <= 80);
 [[nodiscard]] static inline auto decoder_celt_state(ref_OpusDecoder* st) noexcept -> CeltDecoderInternal* {
   return offset_ptr<CeltDecoderInternal>(st, st->celt_dec_offset);
 }
+
 static int ref_opus_decoder_get_size(int channels) {
   if (!is_supported_channel_count(channels)) {
     return 0;
   }
   return align(sizeof(ref_OpusDecoder)) + align(silk_decoder_get_size()) + celt_decoder_get_size(channels);
 }
+
 static void ref_opus_decoder_init(ref_OpusDecoder* st, opus_int32 Fs, int channels) {
   zero_n_bytes(st, static_cast<std::size_t>(ref_opus_decoder_get_size(channels)));
   const int silkDecSizeBytes = align(silk_decoder_get_size());
@@ -1580,6 +1583,7 @@ static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_
   }
   return ret;
 }
+
 static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_val16* pcm, int frame_size,
                                  int decode_fec) {
   if (frame_size <= 0) {
@@ -1627,6 +1631,7 @@ static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data,
   return 400 * frame_size == Fs || 200 * frame_size == Fs || 100 * frame_size == Fs || scaled_by_50 == Fs || 25 * frame_size == Fs ||
          scaled_by_50 == 3 * Fs || scaled_by_50 == 4 * Fs || scaled_by_50 == 5 * Fs || scaled_by_50 == 6 * Fs;
 }
+
 static void reset_ref_decoder_state(ref_OpusDecoder* st, void* silk_dec, CeltDecoderInternal* celt_dec) {
   celt_decoder_reset_state(celt_dec);
   silk_ResetDecoder(silk_dec);
@@ -1642,6 +1647,7 @@ static void reset_ref_decoder_state(ref_OpusDecoder* st, void* silk_dec, CeltDec
   st->DecControl.API_sampleRate = st->Fs;
   st->DecControl.nChannelsAPI = st->channels;
 }
+
 static void destroy_ref_decoder_state(ref_OpusDecoder* st) noexcept {
   if (st == nullptr || st->silk_dec_offset <= 0) {
     return;
@@ -1655,13 +1661,13 @@ static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data) {
     return bw == 1102 ? 1101 : bw;
   }
   if ((data[0] & 0x60) == 0x60) {
-    return (data[0] & 0x10) ? 1105 : 1104;
+    return (data[0] & 0x10) != 0 ? 1105 : 1104;
   }
   return 1101 + ((data[0] >> 5) & 0x3);
 }
 
 static constexpr int ref_opus_packet_get_nb_channels(const unsigned char* data) {
-  return (data[0] & 0x4) ? 2 : 1;
+  return (data[0] & 0x4) != 0 ? 2 : 1;
 }
 
 static constexpr int ref_opus_packet_get_nb_frames(const unsigned char packet[], opus_int32 len) {
@@ -1961,6 +1967,7 @@ static int ref_opus_encoder_get_size(int channels, int application) {
   }
   return base_size + silkEncSizeBytes + celtEncSizeBytes;
 }
+
 static void ref_opus_encoder_init(ref_OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   void* silk_enc = nullptr;
   CeltEncoderInternal* celt_enc = nullptr;
@@ -2174,15 +2181,13 @@ static opus_int32 frame_size_select(opus_int32 frame_size, opus_int32 Fs) {
 }
 
 static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus_int32 Fs, StereoWidthState* mem) {
-  opus_val32 xx, xy, yy;
-  opus_val16 sqrt_xx, sqrt_yy;
-  opus_val16 qrrt_xx, qrrt_yy;
-  int frame_rate, i;
-  opus_val16 short_alpha;
-  frame_rate = Fs / frame_size;
-  short_alpha = ((opus_val32)(25) * (opus_val32)(1.0f)) / std::max(50, frame_rate);
-  xx = xy = yy = 0;
-  for (i = 0; i < frame_size - 3; i += 4) {
+  const int frame_rate = Fs / frame_size;
+  const opus_val16 short_alpha = 25.0f / std::max(50, frame_rate);
+  opus_val32 xx = 0;
+  opus_val32 xy = 0;
+  opus_val32 yy = 0;
+
+  for (int i = 0; i < frame_size - 3; i += 4) {
     opus_val32 pxx = 0, pxy = 0, pyy = 0;
     opus_val16 x, y;
     x = (pcm[2 * i]);
@@ -2205,13 +2210,15 @@ static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus
     pxx += (((opus_val32)(x) * (opus_val32)(x)));
     pxy += (((opus_val32)(x) * (opus_val32)(y)));
     pyy += (((opus_val32)(y) * (opus_val32)(y)));
-    xx += (pxx);
-    xy += (pxy);
-    yy += (pyy);
+    xx += pxx;
+    xy += pxy;
+    yy += pyy;
   }
-  if (!(xx < 1e9f) || ((xx) != (xx)) || !(yy < 1e9f) || ((yy) != (yy))) {
+
+  if (!(xx < 1e9f) || xx != xx || !(yy < 1e9f) || yy != yy) {
     xy = xx = yy = 0;
   }
+
   mem->XX += ((short_alpha) * (xx - mem->XX));
   mem->XY = ((1.0f - short_alpha) * (mem->XY)) + ((short_alpha) * (xy));
   mem->YY += ((short_alpha) * (yy - mem->YY));
@@ -2219,22 +2226,20 @@ static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus
   mem->XY = std::max(0.f, mem->XY);
   mem->YY = std::max(0.f, mem->YY);
   if (std::max(mem->XX, mem->YY) > (8e-4f)) {
-    opus_val16 corr, ldiff, width;
-    sqrt_xx = ((float)std::sqrt(mem->XX));
-    sqrt_yy = ((float)std::sqrt(mem->YY));
-    qrrt_xx = ((float)std::sqrt(sqrt_xx));
-    qrrt_yy = ((float)std::sqrt(sqrt_yy));
+    const opus_val16 sqrt_xx = static_cast<float>(std::sqrt(mem->XX));
+    const opus_val16 sqrt_yy = static_cast<float>(std::sqrt(mem->YY));
+    const opus_val16 qrrt_xx = static_cast<float>(std::sqrt(sqrt_xx));
+    const opus_val16 qrrt_yy = static_cast<float>(std::sqrt(sqrt_yy));
     mem->XY = std::min(mem->XY, sqrt_xx * sqrt_yy);
-    corr = (((float)(mem->XY) / (1e-15f + ((opus_val32)(sqrt_xx) * (opus_val32)(sqrt_yy)))));
-    ldiff = ((opus_val32)(1.0f) * (opus_val32)(((float)std::fabs(qrrt_xx - qrrt_yy)))) / (1e-15f + qrrt_xx + qrrt_yy);
+
+    const opus_val16 corr = mem->XY / (1e-15f + sqrt_xx * sqrt_yy);
+    const opus_val16 ldiff = static_cast<float>(std::fabs(qrrt_xx - qrrt_yy)) / (1e-15f + qrrt_xx + qrrt_yy);
     const opus_val16 decorrelation = (float)std::sqrt((1.f) - ((opus_val32)(corr) * (opus_val32)(corr)));
-    width = std::min(1.0f, decorrelation) * ldiff;
+    const opus_val16 width = std::min(1.0f, decorrelation) * ldiff;
     mem->smoothed_width += (width - mem->smoothed_width) / frame_rate;
-    mem->max_follower = ((mem->max_follower - (.02f) / frame_rate) > (mem->smoothed_width) ? (mem->max_follower - (.02f) / frame_rate)
-                                                                                           : (mem->smoothed_width));
+    mem->max_follower = std::max(mem->max_follower - 0.02f / frame_rate, mem->smoothed_width);
   }
-  return (
-      ((1.0f) < (((opus_val32)(20) * (opus_val32)(mem->max_follower))) ? (1.0f) : (((opus_val32)(20) * (opus_val32)(mem->max_follower)))));
+  return std::min(1.0f, 20.0f * mem->max_follower);
 }
 
 static int compute_silk_rate_for_hybrid(int rate, int bandwidth, int frame20ms, int vbr, int channels) {
@@ -3559,6 +3564,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   }
   return ret;
 }
+
 static opus_int32 ref_opus_encode(ref_OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data,
                                   opus_int32 max_data_bytes) {
   const int frame_size = frame_size_select(analysis_frame_size, st->Fs);
@@ -3572,6 +3578,7 @@ static opus_int32 ref_opus_encode(ref_OpusEncoder* st, const opus_int16* pcm, in
     *out++ = static_cast<opus_res>(sample * (1.0f / 32768.0f));
   return encode_native(st, input.data(), frame_size, data, max_data_bytes, 16, false);
 }
+
 static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, int analysis_frame_size, unsigned char* data,
                                         opus_int32 out_data_bytes) {
   const int frame_size = frame_size_select(analysis_frame_size, st->Fs);
@@ -3591,6 +3598,7 @@ static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, i
   st->user_bitrate_bps = value;
   return true;
 }
+
 static void reset_ref_encoder_state(ref_OpusEncoder* st, CeltEncoderInternal* celt_enc) {
   auto* silk_enc = encoder_silk_state(st);
   st->vbr_budget_reservoir_bits = 0;
@@ -6681,10 +6689,10 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, const c
 static inline int celt_plc_pitch_search(std::span<celt_sig* const> decode_mem) {
   int pitch_index;
   std::array<opus_val16, (2048 >> 1)> lp_pitch_buf;
-  pitch_downsample(decode_mem.data(), 2, lp_pitch_buf.data(), 2048 >> 1, 2);
+  pitch_downsample(decode_mem.data(), static_cast<int>(decode_mem.size()), lp_pitch_buf.data(), 2048 >> 1, 2);
   pitch_search(lp_pitch_buf.data() + ((720) >> 1), lp_pitch_buf.data(), 2048 - (720), (720) - (100), &pitch_index);
   pitch_index = (720) - pitch_index;
-  return (pitch_index);
+  return pitch_index;
 }
 
 static void prefilter_and_fold(CeltDecoderInternal* st, int N) {
@@ -8904,7 +8912,7 @@ static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* old
       dist = ((dist) + (opus_val32)(d) * (opus_val32)(d));
     }
   }
-  return ((200) < ((dist)) ? (200) : ((dist)));
+  return std::min(200.0f, dist);
 }
 
 static void quant_coarse_energy_impl(const CeltModeInternal* m, int start, int end, const celt_glog* eBands, celt_glog* oldEBands,

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import os
@@ -27,6 +28,68 @@ from typing import Iterable
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
+NUMBER_WORDS = {
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
+}
+
+
+def canonicalize_tokens(tokens: list[str]) -> list[str]:
+    canonical: list[str] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token in {"it's", "it"} and index + 1 < len(tokens) and tokens[index + 1] == "is":
+            canonical.append("it's")
+            index += 2
+            continue
+        if token in {"kilobit", "kilobits", "kbit", "kbits", "kb", "kbps"}:
+            if index + 2 < len(tokens) and tokens[index + 1] == "per" and tokens[index + 2] == "second":
+                index += 3
+            else:
+                index += 1
+            canonical.append("kbps")
+            continue
+        first = NUMBER_WORDS.get(token)
+        if first is not None:
+            if index + 1 < len(tokens):
+                second = NUMBER_WORDS.get(tokens[index + 1])
+                if second is not None and first >= 20 and first % 10 == 0 and 0 < second < 10:
+                    canonical.append(str(first + second))
+                    index += 2
+                    continue
+            canonical.append(str(first))
+            index += 1
+            continue
+        canonical.append(token)
+        index += 1
+    return canonical
 
 
 @dataclass(frozen=True)
@@ -54,7 +117,7 @@ def normalize_text(text: str) -> str:
     text = text.lower()
     text = re.sub(r"[^a-z0-9']+", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
-    return text
+    return " ".join(canonicalize_tokens(text.split()))
 
 
 def edit_distance(lhs: list[str] | str, rhs: list[str] | str) -> int:
@@ -163,7 +226,55 @@ def build_roundtrip(cxx: str, output_dir: pathlib.Path) -> pathlib.Path:
     return exe
 
 
-def run_asr(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, gain_db: str, snr_db: str) -> str:
+def file_sha256(path: pathlib.Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_asr_cache(path: pathlib.Path | None) -> dict[str, str]:
+    if path is None or not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {str(key): str(value) for key, value in data.items()}
+
+
+def save_asr_cache(path: pathlib.Path | None, cache: dict[str, str]) -> None:
+    if path is None:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def asr_cache_key(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, gain_db: str, snr_db: str) -> str:
+    return json.dumps(
+        {
+            "asr_command": asr_command,
+            "bitrate": bitrate,
+            "gain_db": gain_db,
+            "sample_id": sample.sample_id,
+            "sha256": file_sha256(wav),
+            "snr_db": snr_db,
+        },
+        sort_keys=True,
+    )
+
+
+def run_asr(
+    asr_command: str,
+    wav: pathlib.Path,
+    sample: Sample,
+    bitrate: int,
+    gain_db: str,
+    snr_db: str,
+    asr_cache: dict[str, str] | None,
+    asr_cache_path: pathlib.Path | None,
+) -> str:
+    key = asr_cache_key(asr_command, wav, sample, bitrate, gain_db, snr_db) if asr_cache is not None else ""
+    if asr_cache is not None and key in asr_cache:
+        return asr_cache[key]
     command = asr_command.format(
         wav=str(wav),
         sample_id=sample.sample_id,
@@ -174,7 +285,11 @@ def run_asr(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, g
     result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise RuntimeError(f"ASR command failed for {wav}\ncommand: {command}\n{result.stderr}")
-    return result.stdout.strip()
+    transcript = result.stdout.strip()
+    if asr_cache is not None:
+        asr_cache[key] = transcript
+        save_asr_cache(asr_cache_path, asr_cache)
+    return transcript
 
 
 def parse_csv_ints(value: str) -> list[int]:
@@ -244,6 +359,7 @@ def main() -> int:
     parser.add_argument("--complexity", default=10, type=int)
     parser.add_argument("--max-average-wer", default=None, type=float)
     parser.add_argument("--max-case-wer", default=None, type=float)
+    parser.add_argument("--asr-cache", default=None, type=pathlib.Path, help="Optional JSON cache for ASR transcripts keyed by decoded WAV hash.")
     parser.add_argument("--baseline", default=None, type=pathlib.Path, help="Optional previous wer_results.json for regression gating.")
     parser.add_argument("--max-wer-regression", default=0.02, type=float)
     parser.add_argument("--update-baseline", action="store_true", help="Write current results to --baseline after a passing run.")
@@ -262,6 +378,7 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     roundtrip_exe = build_roundtrip(args.cxx, args.output_dir)
     baseline = load_baseline(args.baseline)
+    asr_cache = load_asr_cache(args.asr_cache) if args.asr_cache is not None else None
 
     scores: list[Score] = []
     failures: list[str] = []
@@ -296,7 +413,7 @@ def main() -> int:
                             ],
                             check=True,
                         )
-                        hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, gain_db, snr_db)
+                        hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, gain_db, snr_db, asr_cache, args.asr_cache)
                         score = Score(
                             sample_id=sample.sample_id,
                             gain_db=gain_db,

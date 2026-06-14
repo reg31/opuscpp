@@ -391,6 +391,9 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
         """opus_compare expects its reference input as stereo, even for mono tests."""
         if not dec_path.name.endswith("m.dec"):
             return dec_path
+        stereo_sibling = dec_path.with_name(dec_path.stem.removesuffix("m") + ".dec")
+        if stereo_sibling.exists() and dec_path.stat().st_size == stereo_sibling.stat().st_size:
+            return dec_path
         stereo_path = out_dir / f"{dec_path.stem}_stereo_ref.dec"
         source = dec_path.read_bytes()
         stereo = bytearray(len(source) * 2)
