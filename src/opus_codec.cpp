@@ -2730,25 +2730,6 @@ static inline void apply_audio_presence_shelf(ref_OpusEncoder* st, opus_res* fra
   }
 }
 
-static inline void apply_voip_noise_smoother(ref_OpusEncoder* st, opus_res* frame_pcm, int frame_size,
-                                             const frame_activity_metrics& metrics) noexcept {
-  if (st->application != opus_application_voip || st->channels != 1 || st->bitrate_bps != 16000) {
-    return;
-  }
-  if (metrics.energy <= 1e-5f || metrics.energy >= 0.006f || metrics.mono_diff_ratio < 0.35f) {
-    return;
-  }
-
-  opus_res previous = frame_pcm[0];
-  opus_res current = frame_pcm[1];
-  for (int i = 1; i + 1 < frame_size; ++i) {
-    const opus_res next = frame_pcm[i + 1];
-    frame_pcm[i] = current + 0.08f * (0.5f * (previous + next) - current);
-    previous = current;
-    current = next;
-  }
-}
-
 struct encoder_error_balance_filter {
   opus_val16 gain;
 
@@ -3254,8 +3235,7 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   return ret;
 }
 
-static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size,
-                                        const frame_activity_metrics& frame_metrics) {
+static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size) {
   const int hp_freq_smth1 =
       st->mode == opus_mode_celt_only ? silk_log_60_q15 : static_cast<silk_encoder*>(silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
   st->variable_HP_smth2_Q15 =
@@ -3288,7 +3268,6 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
     dc_reject(pcm, 3, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
   apply_encoder_error_balance_filter(st, frame_pcm, frame_size);
-  apply_voip_noise_smoother(st, frame_pcm, frame_size, frame_metrics);
   apply_audio_presence_shelf(st, frame_pcm, frame_size);
 }
 
@@ -3365,7 +3344,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), target_bits) - 8;
   data += 1;
   ec_enc_init(&enc, data, orig_max_data_bytes - 1);
-  opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
+  opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size);
   if (float_api) {
     opus_val32 sum = celt_inner_prod_c(frame_pcm.data(), frame_pcm.data(), frame_size * st->channels);
     if (!(sum < 1e9f) || ((sum) != (sum))) {
