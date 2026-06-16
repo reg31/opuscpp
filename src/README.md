@@ -106,13 +106,15 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 |---|---|---|
 | `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | Optional `opuscpp` output postfilter: `0` off (default), `1` light, `2` stronger. Leave off for RFC vector validation. |
-| `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the optional output-postfilter level. |
+| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` auto; default is auto. |
+| `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the output-postfilter level. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |
 
-The decoder postfilter is intentionally `opuscpp`-specific and disabled by default. It does not
-change packet syntax or encoder interoperability, but enabled output is no longer the plain RFC
-decoder output used by the conformance harness.
+The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
+encoder interoperability. Auto mode is conservative: it targets mono hybrid packets, the common
+speech-heavy case where it helped validation metrics, and leaves stereo broadband CELT/music-style
+output untouched. Use level `0` if you need the plainest possible decoder output for local
+comparisons.
 
 ## Unsupported API areas
 

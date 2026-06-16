@@ -93,7 +93,7 @@ struct options final {
   int official_decoder_complexity = 0;
   int memory_instances = 256;
   double max_seconds = 0.0;
-  int current_postfilter_level = 0;
+  int current_postfilter_level = 3;
   bool memory_only = false;
   bool skip_memory = false;
 };
@@ -376,7 +376,7 @@ struct result final {
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current decoder create failed");
   }
-  if (postfilter_level != 0 && curr_opus_decoder_ctl(decoder, opuscpp_set_decode_postfilter_request, postfilter_level) != OPUS_OK) {
+  if (curr_opus_decoder_ctl(decoder, opuscpp_set_decode_postfilter_request, postfilter_level) != OPUS_OK) {
     throw std::runtime_error("current decoder postfilter failed");
   }
   return {decoder, [](void* ptr) {
@@ -842,8 +842,10 @@ void run_memory(const options& opt) {
         opt.current_postfilter_level = 1;
       } else if (mode == "strong" || mode == "smooth" || mode == "2") {
         opt.current_postfilter_level = 2;
+      } else if (mode == "auto" || mode == "3") {
+        opt.current_postfilter_level = 3;
       } else {
-        throw std::runtime_error("--current-postfilter must be none, light, strong, 0, 1, or 2");
+        throw std::runtime_error("--current-postfilter must be none, light, strong, auto, 0, 1, 2, or 3");
       }
     } else if (arg == "--memory-only")
       opt.memory_only = true;

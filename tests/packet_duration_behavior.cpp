@@ -52,12 +52,12 @@ int main() {
   ok &= expect_eq(error, OPUS_OK, "create decoder");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
                   "default postfilter get");
-  ok &= expect_eq(postfilter_level, 0, "default postfilter off");
+  ok &= expect_eq(postfilter_level, 3, "default postfilter auto");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(2)), OPUS_OK, "set postfilter");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
                   "configured postfilter get");
   ok &= expect_eq(postfilter_level, 2, "configured postfilter level");
-  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(3)), OPUS_BAD_ARG, "invalid postfilter level");
+  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(4)), OPUS_BAD_ARG, "invalid postfilter level");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUS_RESET_STATE), OPUS_OK, "reset decoder");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
                   "postfilter survives reset get");
