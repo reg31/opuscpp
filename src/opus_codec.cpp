@@ -361,6 +361,9 @@ static void celt_decoder_reset_state(CeltDecoderInternal* st);
 static void celt_decoder_set_start_band(CeltDecoderInternal* st, opus_int32 value);
 static void celt_decoder_set_end_band(CeltDecoderInternal* st, opus_int32 value);
 static void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opus_int32 value);
+[[nodiscard]] static int celt_decoder_output_postfilter_level(const CeltDecoderInternal* st) noexcept;
+static void celt_decoder_set_output_postfilter(CeltDecoderInternal* st, int level) noexcept;
+static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels) noexcept;
 [[nodiscard]] static opus_uint32 celt_decoder_final_range(const CeltDecoderInternal* st) noexcept;
 [[nodiscard]] static const CeltModeInternal* celt_decoder_mode(const CeltDecoderInternal* st) noexcept;
 consteval void numeric_blob_fail() {
@@ -1572,13 +1575,20 @@ static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_
   if (frame_size > opus_max_frame_samples_48k) {
     return -1;
   }
-  const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
-  if (fast_ret != opus_decode_fast_unavailable) {
-    return fast_ret;
+  auto* celt_dec = decoder_celt_state(st);
+  const bool output_postfilter_enabled = celt_decoder_output_postfilter_level(celt_dec) != 0;
+  if (!output_postfilter_enabled) {
+    const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
+    if (fast_ret != opus_decode_fast_unavailable) {
+      return fast_ret;
+    }
   }
   auto* out = OPUS_SCRATCH(opus_res, static_cast<std::size_t>(frame_size * st->channels));
   const int ret = decode_native(st, data, len, out, frame_size, decode_fec);
   if (ret > 0) {
+    if (output_postfilter_enabled) {
+      celt_decoder_apply_output_postfilter(celt_dec, out, ret, st->channels);
+    }
     celt_float2int16_c(out, pcm, static_cast<std::size_t>(ret * st->channels));
   }
   return ret;
@@ -1599,11 +1609,20 @@ static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data,
   if (frame_size > opus_max_frame_samples_48k) {
     return -1;
   }
+  auto* celt_dec = decoder_celt_state(st);
+  const bool output_postfilter_enabled = celt_decoder_output_postfilter_level(celt_dec) != 0;
   const int fast_ret = decode_native_direct_fast(st, data, len, pcm, nullptr, frame_size, decode_fec);
   if (fast_ret != opus_decode_fast_unavailable) {
+    if (output_postfilter_enabled) {
+      celt_decoder_apply_output_postfilter(celt_dec, pcm, fast_ret, st->channels);
+    }
     return fast_ret;
   }
-  return decode_native(st, data, len, pcm, frame_size, decode_fec);
+  const int ret = decode_native(st, data, len, pcm, frame_size, decode_fec);
+  if (ret > 0 && output_postfilter_enabled) {
+    celt_decoder_apply_output_postfilter(celt_dec, pcm, ret, st->channels);
+  }
+  return ret;
 }
 
 [[nodiscard]] constexpr auto encoder_uses_silk(int application) noexcept -> bool {
@@ -6299,14 +6318,17 @@ static void celt_encoder_set_high_z_tonal(CeltEncoderInternal* st, opus_int32 va
 [[nodiscard]] static const CeltModeInternal* celt_encoder_mode(const CeltEncoderInternal* st) noexcept {
   return st->mode;
 }
+
 struct CeltDecoderInternal {
   const CeltModeInternal* mode;
   int overlap, channels, stream_channels, downsample, start, end, disable_inv, error, last_pitch_index, loss_duration, plc_duration,
-      last_frame_type, skip_plc, postfilter_period, postfilter_period_old, postfilter_tapset, postfilter_tapset_old, prefilter_and_fold;
+      last_frame_type, skip_plc, postfilter_period, postfilter_period_old, postfilter_tapset, postfilter_tapset_old, prefilter_and_fold,
+      output_postfilter_level;
   opus_uint32 rng;
   opus_val16 postfilter_gain, postfilter_gain_old;
-  celt_sig preemph_memD[2], _decode_mem[1];
+  celt_sig preemph_memD[2], output_postfilter_mem[2], _decode_mem[1];
 };
+
 static inline void celt_decoder_set_start_band(CeltDecoderInternal* st, opus_int32 value) {
   st->start = static_cast<int>(value);
 }
@@ -6317,6 +6339,32 @@ static inline void celt_decoder_set_end_band(CeltDecoderInternal* st, opus_int32
 
 static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opus_int32 value) {
   st->stream_channels = static_cast<int>(value);
+}
+
+[[nodiscard]] static int celt_decoder_output_postfilter_level(const CeltDecoderInternal* st) noexcept {
+  return st->output_postfilter_level;
+}
+
+static void celt_decoder_set_output_postfilter(CeltDecoderInternal* st, int level) noexcept {
+  st->output_postfilter_level = level;
+}
+
+static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels) noexcept {
+  const int level = st->output_postfilter_level;
+  if (level <= 0 || pcm == nullptr || samples <= 0) {
+    return;
+  }
+
+  const opus_val16 gain = level == 1 ? 0.025f : 0.10f;
+  for (int i = 0; i < samples; ++i) {
+    const auto base = i * channels;
+    for (int c = 0; c < channels; ++c) {
+      auto& low = st->output_postfilter_mem[c];
+      const opus_res x = pcm[base + c];
+      low += 0.08f * (x - low);
+      pcm[base + c] = std::clamp(x - gain * (x - low), -1.0f, 1.0f);
+    }
+  }
 }
 
 [[nodiscard]] static inline opus_uint32 celt_decoder_final_range(const CeltDecoderInternal* st) noexcept {
@@ -16213,6 +16261,17 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   }
   case OPUS_GET_FINAL_RANGE_REQUEST: {
     return ctl_write_value(ap, st->rangeFinal);
+  }
+  case OPUSCPP_SET_DECODE_POSTFILTER_REQUEST: {
+    const auto value = va_arg(ap, opus_int32);
+    if (value < 0 || value > 2) {
+      return OPUS_BAD_ARG;
+    }
+    celt_decoder_set_output_postfilter(decoder_celt_state(st), static_cast<int>(value));
+    return OPUS_OK;
+  }
+  case OPUSCPP_GET_DECODE_POSTFILTER_REQUEST: {
+    return ctl_write_value(ap, static_cast<opus_int32>(celt_decoder_output_postfilter_level(decoder_celt_state(st))));
   }
   case OPUS_RESET_STATE: {
     auto* silk_dec = decoder_silk_state(st);

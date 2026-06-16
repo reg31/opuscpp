@@ -31,6 +31,8 @@ int curr_opus_encoder_ctl(curr_OpusEncoder* st, int request, ...) noexcept;
 int curr_opus_encode(curr_OpusEncoder* st, const std::int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 curr_OpusDecoder* curr_opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void curr_opus_decoder_destroy(curr_OpusDecoder* st) noexcept;
+int curr_opus_decoder_ctl(curr_OpusDecoder* st, int request, ...) noexcept;
+int curr_opus_decode_float(curr_OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;
 
 #include "official_opus_abi.h"
 
@@ -40,6 +42,7 @@ namespace fs = std::filesystem;
 constexpr int sample_rate = 48000;
 constexpr int frame_size = 960;
 constexpr double pi = 3.141592653589793238462643383279502884;
+constexpr int opuscpp_set_decode_postfilter_request = 5100;
 
 struct state_handle final {
   void* ptr = nullptr;
@@ -90,6 +93,7 @@ struct options final {
   int official_decoder_complexity = 0;
   int memory_instances = 256;
   double max_seconds = 0.0;
+  int current_postfilter_level = 0;
   bool memory_only = false;
   bool skip_memory = false;
 };
@@ -366,11 +370,14 @@ struct result final {
           }};
 }
 
-[[nodiscard]] auto make_current_decoder(int channels) -> state_handle {
+[[nodiscard]] auto make_current_decoder(int channels, int postfilter_level = 0) -> state_handle {
   int error = OPUS_OK;
   auto* decoder = curr_opus_decoder_create(sample_rate, channels, &error);
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current decoder create failed");
+  }
+  if (postfilter_level != 0 && curr_opus_decoder_ctl(decoder, opuscpp_set_decode_postfilter_request, postfilter_level) != OPUS_OK) {
+    throw std::runtime_error("current decoder postfilter failed");
   }
   return {decoder, [](void* ptr) {
             curr_opus_decoder_destroy(static_cast<curr_OpusDecoder*>(ptr));
@@ -610,7 +617,8 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   const int bitrate = official && opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
   auto encoder = official ? make_official_encoder(clip.channels, bitrate, opt.application)
                           : make_current_encoder(clip.channels, opt.bitrate, opt.application);
-  auto decoder = make_official_decoder(clip.channels, opt.official_decoder_complexity);
+  auto decoder = official ? make_official_decoder(clip.channels, opt.official_decoder_complexity)
+                          : make_current_decoder(clip.channels, opt.current_postfilter_level);
   auto decoded_frame = std::vector<float>(static_cast<std::size_t>(frame_size * clip.channels));
   auto decoded = std::vector<float>(clip.samples.size());
   auto packet = std::array<unsigned char, 1500>{};
@@ -629,10 +637,12 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
     if (packet_size <= 0) {
       throw std::runtime_error(name + " encode failed");
     }
-    const auto got =
-        opus_decode_float(static_cast<OpusDecoder*>(decoder.ptr), packet.data(), packet_size, decoded_frame.data(), frame_size, 0);
+    const auto got = official ? opus_decode_float(static_cast<OpusDecoder*>(decoder.ptr), packet.data(), packet_size,
+                                                  decoded_frame.data(), frame_size, 0)
+                              : curr_opus_decode_float(static_cast<curr_OpusDecoder*>(decoder.ptr), packet.data(), packet_size,
+                                                       decoded_frame.data(), frame_size, 0);
     if (got != frame_size) {
-      throw std::runtime_error(name + " official decode failed");
+      throw std::runtime_error(name + " decode failed");
     }
     std::copy(decoded_frame.begin(), decoded_frame.end(), decoded.begin() + static_cast<std::ptrdiff_t>(offset));
     ++score.packets;
@@ -824,7 +834,18 @@ void run_memory(const options& opt) {
       opt.memory_instances = std::stoi(std::string{value()});
     else if (arg == "--max-seconds")
       opt.max_seconds = std::stod(std::string{value()});
-    else if (arg == "--memory-only")
+    else if (arg == "--current-postfilter") {
+      const auto mode = value();
+      if (mode == "none" || mode == "0") {
+        opt.current_postfilter_level = 0;
+      } else if (mode == "light" || mode == "smooth_light" || mode == "1") {
+        opt.current_postfilter_level = 1;
+      } else if (mode == "strong" || mode == "smooth" || mode == "2") {
+        opt.current_postfilter_level = 2;
+      } else {
+        throw std::runtime_error("--current-postfilter must be none, light, strong, 0, 1, or 2");
+      }
+    } else if (arg == "--memory-only")
       opt.memory_only = true;
     else if (arg == "--skip-memory")
       opt.skip_memory = true;
@@ -847,6 +868,7 @@ void run_quality(const options& opt) {
   const int official_bitrate = opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
   std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate << " input=" << opt.input.string()
             << " official_decoder_complexity=" << opt.official_decoder_complexity << " channels=" << clip.channels
+            << " current_postfilter_level=" << opt.current_postfilter_level
             << " frames=" << (clip.samples.size() / static_cast<std::size_t>(frame_size * clip.channels)) << '\n';
   const auto current = run_variant("current", clip, opt, false);
   const auto official = run_variant("official", clip, opt, true);

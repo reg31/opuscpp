@@ -32,15 +32,15 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.614676x | 1.670356x |
-| 24 kbps | 1.798839x | 1.294208x |
-| 32 kbps | 1.834363x | 1.255125x |
-| 48 kbps | 1.380717x | 1.197293x |
-| 64 kbps | 1.611723x | 1.166689x |
-| 96 kbps | 1.691218x | 1.212113x |
-| 128 kbps | 1.800433x | 1.247122x |
-| 192 kbps | 1.717638x | 1.102509x |
-| 256 kbps | 1.620330x | 1.057308x |
+| 16 kbps | 2.385299x | 1.799178x |
+| 24 kbps | 1.740413x | 1.301996x |
+| 32 kbps | 1.718450x | 1.261409x |
+| 48 kbps | 1.452392x | 1.238260x |
+| 64 kbps | 1.657897x | 1.167831x |
+| 96 kbps | 1.522928x | 1.146052x |
+| 128 kbps | 1.836824x | 1.145431x |
+| 192 kbps | 1.717696x | 1.100228x |
+| 256 kbps | 1.641665x | 1.048646x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -90,7 +90,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 261844 B | 8 B | 279932 B |
+| Host C++23 `-O2` | 262384 B | 8 B | 280472 B |
 
 ## Toolchains checked
 
