@@ -2363,6 +2363,10 @@ constexpr opus_int32 voip_mono_speech_silk_max_bps = 40000;
          st->bitrate_bps < voip_mono_silk_budget_boost_max_bps;
 }
 
+[[nodiscard]] static constexpr auto voip_mono_hybrid_celt_budget_enabled(const ref_OpusEncoder* st) noexcept -> bool {
+  return voip_mono_silk_budget_boost_enabled(st);
+}
+
 constexpr opus_int32 audio_clean_hp_cutoff_hz = 3;
 constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
 constexpr opus_int32 audio_midrate_filter_min_bps = 22000;
@@ -3540,6 +3544,10 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     if (st->mode == opus_mode_hybrid) {
       if (st->use_vbr) {
         opus_int32 celt_vbr_bps = st->bitrate_bps - st->silk_mode.bitRate;
+        if (voip_mono_hybrid_celt_budget_enabled(st)) {
+          const opus_int32 remaining_bits = std::max<opus_int32>(0, 8 * nb_compr_bytes - ec_tell(&enc));
+          celt_vbr_bps = std::max(celt_vbr_bps, bits_to_bitrate_for_frame_rate(remaining_bits, frame_rate));
+        }
         celt_set_bitrate(static_cast<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps)));
         celt_encoder_set_constrained_vbr(celt_enc, 0);
       }
