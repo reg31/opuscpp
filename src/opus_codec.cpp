@@ -3309,32 +3309,17 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   }
   celt_enc = encoder_celt_state(st);
   celt_mode = celt_encoder_mode(celt_enc);
-  auto celt_set_start = [&](opus_int32 value) {
-    celt_encoder_set_start_band(celt_enc, value);
-  };
-  auto celt_set_bitrate = [&](opus_int32 value) {
-    celt_encoder_set_bitrate(celt_enc, value);
-  };
-  auto celt_set_prediction = [&](opus_int32 value) {
-    celt_encoder_set_prediction(celt_enc, value);
-  };
-  auto celt_reset = [&] {
-    celt_encoder_reset_state(celt_enc);
-  };
   auto refresh_redundancy = [&] {
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
     redundancy = redundancy_bytes != 0;
   };
-  auto celt_final_range = [&](opus_uint32& rng) {
-    rng = celt_encoder_final_range(celt_enc);
-  };
   auto configure_redundant_celt = [&](int band, int pred) {
-    celt_set_start(static_cast<opus_int32>(band));
+    celt_encoder_set_start_band(celt_enc, static_cast<opus_int32>(band));
     if (pred >= 0) {
-      celt_set_prediction(static_cast<opus_int32>(pred));
+      celt_encoder_set_prediction(celt_enc, static_cast<opus_int32>(pred));
     }
     celt_encoder_set_vbr(celt_enc, 0);
-    celt_set_bitrate(-1);
+    celt_encoder_set_bitrate(celt_enc, -1);
   };
   curr_bandwidth = st->bandwidth;
   frame_rate = st->Fs / frame_size;
@@ -3462,11 +3447,11 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     const auto endband = bandwidth_to_endband(curr_bandwidth);
     celt_encoder_set_end_band(celt_enc, static_cast<opus_int32>(endband));
     celt_encoder_set_stream_channels(celt_enc, static_cast<opus_int32>(st->stream_channels));
-    celt_set_bitrate(-1);
+    celt_encoder_set_bitrate(celt_enc, -1);
   }
   if (st->mode != opus_mode_silk_only) {
     opus_val32 celt_pred = 2;
-    celt_set_prediction(static_cast<opus_int32>(celt_pred));
+    celt_encoder_set_prediction(celt_enc, static_cast<opus_int32>(celt_pred));
   }
   auto transition_prefill = std::span<opus_res>{};
   if (st->mode != opus_mode_silk_only && st->mode != st->prev_mode && st->prev_mode > 0 && uses_silk) {
@@ -3534,10 +3519,10 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     if (err < 0) {
       return -3;
     }
-    celt_final_range(redundant_rng);
-    celt_reset();
+    redundant_rng = celt_encoder_final_range(celt_enc);
+    celt_encoder_reset_state(celt_enc);
   }
-  celt_set_start(static_cast<opus_int32>(start_band));
+  celt_encoder_set_start_band(celt_enc, static_cast<opus_int32>(start_band));
   data[-1] = 0;
   if (st->mode != opus_mode_silk_only) {
     celt_encoder_set_vbr(celt_enc, static_cast<opus_int32>(st->use_vbr));
@@ -3548,19 +3533,19 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
           const opus_int32 remaining_bits = std::max<opus_int32>(0, 8 * nb_compr_bytes - ec_tell(&enc));
           celt_vbr_bps = std::max(celt_vbr_bps, bits_to_bitrate_for_frame_rate(remaining_bits, frame_rate));
         }
-        celt_set_bitrate(static_cast<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps)));
+        celt_encoder_set_bitrate(celt_enc, static_cast<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps)));
         celt_encoder_set_constrained_vbr(celt_enc, 0);
       }
     } else if (st->use_vbr) {
       celt_encoder_set_vbr(celt_enc, 1);
       celt_encoder_set_constrained_vbr(celt_enc, static_cast<opus_int32>(st->vbr_constraint));
-      celt_set_bitrate(static_cast<opus_int32>(st->bitrate_bps));
+      celt_encoder_set_bitrate(celt_enc, static_cast<opus_int32>(st->bitrate_bps));
     }
     if (st->mode != st->prev_mode && st->prev_mode > 0 && encoder_uses_silk(st->application)) {
       unsigned char dummy[2];
-      celt_reset();
+      celt_encoder_reset_state(celt_enc);
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
-      celt_set_prediction(0);
+      celt_encoder_set_prediction(celt_enc, 0);
     }
     if (ec_tell(&enc) <= 8 * nb_compr_bytes) {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc);
@@ -3579,7 +3564,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   if (redundancy && !celt_to_silk) {
     unsigned char dummy[2];
     int N2 = st->Fs / 200, N4 = st->Fs / 400;
-    celt_reset();
+    celt_encoder_reset_state(celt_enc);
     configure_redundant_celt(0, 0);
     if (st->mode == opus_mode_hybrid) {
       nb_compr_bytes = ret;
@@ -3591,7 +3576,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     if (err < 0) {
       return -3;
     }
-    celt_final_range(redundant_rng);
+    redundant_rng = celt_encoder_final_range(celt_enc);
   }
   data--;
   data[0] |= gen_toc(st->mode, frame_rate, curr_bandwidth, st->stream_channels);
@@ -6151,8 +6136,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     if (start > 0) {
       st->stereo_saving = 0;
       alloc_trim = 5;
-    } else
+    } else {
       alloc_trim = alloc_trim_analysis(mode, X, bandLogE, end, LM, C, N, &st->stereo_saving, tf_estimate, st->intensity, equiv_rate);
+    }
     if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) {
       alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
     }
@@ -6168,7 +6154,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     if (!hybrid && st->bitrate >= 80000 && st->bitrate < 112000) {
       alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
     }
-    { ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7); }
+    ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
     tell = ec_tell_frac(enc);
   }
   min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
@@ -10960,7 +10946,7 @@ static int silk_Encode(void* encState, silk_EncControlStruct* encControl, const 
       if (psEnc->state_Fxx[0].sCmn.nFramesEncoded == 0 && !prefillFlag) {
         opus_uint8 iCDF[2] = {};
         iCDF[0] = 256 - ((256) >> ((psEnc->state_Fxx[0].sCmn.nFramesPerPacket + 1) * encControl->nChannelsInternal));
-        { ec_enc_icdf(psRangeEnc, 0, iCDF, 8); }
+        ec_enc_icdf(psRangeEnc, 0, iCDF, 8);
       }
       silk_HP_variable_cutoff(psEnc->state_Fxx);
       nBits = ((opus_int32)((((encControl->bitRate) * (encControl->payloadSize_ms))) / (1000)));
@@ -11108,8 +11094,8 @@ static void silk_encode_indices(silk_encoder_state* psEncC, ec_enc* psRangeEnc, 
   if (condCoding == 2) {
     ec_enc_icdf(psRangeEnc, psIndices->GainsIndices[0], silk_delta_gain_iCDF.data(), 8);
   } else {
-    { ec_enc_icdf(psRangeEnc, ((psIndices->GainsIndices[0]) >> (3)), silk_gain_iCDF[psIndices->signalType].data(), 8); }
-    { ec_enc_icdf(psRangeEnc, psIndices->GainsIndices[0] & 7, silk_uniform8_iCDF.data(), 8); }
+    ec_enc_icdf(psRangeEnc, ((psIndices->GainsIndices[0]) >> (3)), silk_gain_iCDF[psIndices->signalType].data(), 8);
+    ec_enc_icdf(psRangeEnc, psIndices->GainsIndices[0] & 7, silk_uniform8_iCDF.data(), 8);
   }
   for (i = 1; i < psEncC->nb_subfr; i++) {
     ec_enc_icdf(psRangeEnc, psIndices->GainsIndices[i], silk_delta_gain_iCDF.data(), 8);
@@ -11166,7 +11152,7 @@ static void silk_encode_indices(silk_encoder_state* psEncC, ec_enc* psRangeEnc, 
     }
   }
   psEncC->ec_prevSignalType = psIndices->signalType;
-  { ec_enc_icdf(psRangeEnc, psIndices->Seed, silk_uniform4_iCDF.data(), 8); }
+  ec_enc_icdf(psRangeEnc, psIndices->Seed, silk_uniform4_iCDF.data(), 8);
 }
 
 static auto combine_and_check(std::span<int> pulses_comb, std::span<const int> pulses_in, int max_pulses) -> int {
