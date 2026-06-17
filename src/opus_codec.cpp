@@ -6162,6 +6162,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     if (!hybrid && st->bitrate >= low_rate_celt_trim_min_bps && st->bitrate < low_rate_celt_trim_max_bps) {
       alloc_trim = clamp_value(alloc_trim + low_rate_celt_trim_boost, 0, 10);
     }
+    if (!hybrid && C == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
+      alloc_trim = clamp_value(alloc_trim + 1, 0, 10);
+    }
     if (!hybrid && st->bitrate >= 80000 && st->bitrate < 112000) {
       alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
     }

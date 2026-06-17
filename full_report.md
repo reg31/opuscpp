@@ -32,15 +32,15 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.231120x | 1.730562x |
-| 24 kbps | 1.706584x | 1.300136x |
-| 32 kbps | 1.735067x | 1.241455x |
-| 48 kbps | 1.432514x | 1.212023x |
-| 64 kbps | 1.628381x | 1.191052x |
-| 96 kbps | 1.602086x | 1.183678x |
-| 128 kbps | 2.010146x | 1.335236x |
-| 192 kbps | 1.613070x | 1.110651x |
-| 256 kbps | 1.605946x | 1.084571x |
+| 16 kbps | 2.535093x | 1.677040x |
+| 24 kbps | 1.756662x | 1.306860x |
+| 32 kbps | 1.726301x | 1.262827x |
+| 48 kbps | 1.646969x | 1.207862x |
+| 64 kbps | 1.458521x | 1.195363x |
+| 96 kbps | 1.395412x | 1.182483x |
+| 128 kbps | 1.877070x | 1.118874x |
+| 192 kbps | 1.690827x | 1.076343x |
+| 256 kbps | 1.500379x | 1.053131x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -50,7 +50,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 | 24 kbps | 0.0334 | -0.0012 | -0.0008 | 0.0051 | 0.0430 | 0.0070 | 24.6337 | 24.000 kbps | 25.220 kbps |
 | 32 kbps | 0.0026 | -0.0001 | 0.0001 | 0.0013 | 0.0365 | 0.0056 | 16.5267 | 32.000 kbps | 33.613 kbps |
 | 48 kbps | 0.0083 | -0.0003 | -0.0003 | 0.0012 | 0.0126 | 0.0023 | 0.6082 | 48.000 kbps | 48.560 kbps |
-| 64 kbps | 0.0084 | -0.0003 | -0.0004 | 0.0007 | -0.0016 | 0.0001 | 0.2112 | 64.000 kbps | 64.613 kbps |
+| 64 kbps | 0.0113 | -0.0004 | -0.0003 | 0.0011 | 0.0050 | 0.0006 | 0.2282 | 64.000 kbps | 64.613 kbps |
 | 96 kbps | 0.0000 | -0.0000 | -0.0001 | 0.0004 | 0.0040 | 0.0010 | -0.0296 | 96.000 kbps | 96.697 kbps |
 | 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | -0.2095 | 128.000 kbps | 128.759 kbps |
 | 192 kbps | 0.0059 | -0.0002 | 0.0000 | 0.0007 | 0.0005 | -0.0000 | -0.1654 | 192.000 kbps | 192.900 kbps |
@@ -90,7 +90,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 263284 B | 8 B | 281372 B |
+| Host C++23 `-O2` | 263348 B | 8 B | 281436 B |
 
 ## Toolchains checked
 

@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.231x | 1.731x | 641x | 287x | 2012x | 1162x |
-| 24&nbsp;kbps | 1.707x | 1.300x | 474x | 278x | 1291x | 993x |
-| 32&nbsp;kbps | 1.735x | 1.241x | 465x | 268x | 1136x | 915x |
-| 48&nbsp;kbps | 1.433x | 1.212x | 410x | 286x | 1106x | 912x |
-| 64&nbsp;kbps | 1.628x | 1.191x | 388x | 238x | 964x | 810x |
-| 96&nbsp;kbps | 1.602x | 1.184x | 346x | 216x | 795x | 672x |
-| 128&nbsp;kbps | 2.010x | 1.335x | 374x | 186x | 580x | 434x |
-| 192&nbsp;kbps | 1.613x | 1.111x | 253x | 157x | 526x | 473x |
-| 256&nbsp;kbps | 1.606x | 1.085x | 257x | 160x | 452x | 416x |
+| 16&nbsp;kbps | 2.535x | 1.677x | 775x | 306x | 2113x | 1260x |
+| 24&nbsp;kbps | 1.757x | 1.307x | 521x | 297x | 1413x | 1081x |
+| 32&nbsp;kbps | 1.726x | 1.263x | 510x | 295x | 1366x | 1081x |
+| 48&nbsp;kbps | 1.647x | 1.208x | 456x | 277x | 1087x | 900x |
+| 64&nbsp;kbps | 1.459x | 1.195x | 342x | 235x | 786x | 658x |
+| 96&nbsp;kbps | 1.395x | 1.182x | 272x | 195x | 757x | 641x |
+| 128&nbsp;kbps | 1.877x | 1.119x | 360x | 192x | 639x | 571x |
+| 192&nbsp;kbps | 1.691x | 1.076x | 300x | 178x | 461x | 429x |
+| 256&nbsp;kbps | 1.500x | 1.053x | 252x | 168x | 474x | 451x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -232,7 +232,7 @@ Effective bitrate columns show measured payload bitrate for the same validation 
 | 24&nbsp;kbps | +0.0051 | +0.0430 | +24.6337 | 24.0 kbps | 25.2 kbps |
 | 32&nbsp;kbps | +0.0013 | +0.0365 | +16.5267 | 32.0 kbps | 33.6 kbps |
 | 48&nbsp;kbps | +0.0012 | +0.0126 | +0.6082 | 48.0 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0007 | -0.0016 | +0.2112 | 64.0 kbps | 64.6 kbps |
+| 64&nbsp;kbps | +0.0011 | +0.0050 | +0.2282 | 64.0 kbps | 64.6 kbps |
 | 96&nbsp;kbps | +0.0004 | +0.0040 | -0.0296 | 96.0 kbps | 96.7 kbps |
 | 128&nbsp;kbps | +0.0010 | +0.0015 | -0.2095 | 128.0 kbps | 128.8 kbps |
 | 192&nbsp;kbps | +0.0007 | +0.0005 | -0.1654 | 192.0 kbps | 192.9 kbps |
@@ -274,7 +274,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 263,284 B | 8 B | 281,372 B |
+| Host MinGW GCC `-O2` | 263,348 B | 8 B | 281,436 B |
 
 ## Toolchains checked
 
