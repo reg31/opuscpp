@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.357x | 1.663x | 690x | 293x | 1901x | 1144x |
-| 24&nbsp;kbps | 1.722x | 1.300x | 492x | 286x | 1367x | 1051x |
-| 32&nbsp;kbps | 1.774x | 1.285x | 498x | 281x | 1323x | 1030x |
-| 48&nbsp;kbps | 1.551x | 1.193x | 446x | 288x | 1007x | 844x |
-| 64&nbsp;kbps | 1.482x | 1.168x | 368x | 248x | 870x | 745x |
-| 96&nbsp;kbps | 1.630x | 1.147x | 340x | 209x | 750x | 654x |
-| 128&nbsp;kbps | 1.954x | 1.143x | 342x | 175x | 628x | 550x |
-| 192&nbsp;kbps | 1.675x | 1.109x | 293x | 175x | 537x | 484x |
-| 256&nbsp;kbps | 1.611x | 1.034x | 265x | 165x | 456x | 441x |
+| 16&nbsp;kbps | 2.354x | 1.689x | 784x | 333x | 2144x | 1269x |
+| 24&nbsp;kbps | 1.750x | 1.291x | 519x | 297x | 1397x | 1082x |
+| 32&nbsp;kbps | 1.739x | 1.285x | 512x | 294x | 1336x | 1040x |
+| 48&nbsp;kbps | 1.556x | 1.187x | 440x | 283x | 1091x | 919x |
+| 64&nbsp;kbps | 1.506x | 1.189x | 386x | 256x | 975x | 820x |
+| 96&nbsp;kbps | 1.615x | 1.171x | 336x | 208x | 787x | 672x |
+| 128&nbsp;kbps | 1.882x | 1.151x | 369x | 196x | 670x | 582x |
+| 192&nbsp;kbps | 1.689x | 1.105x | 288x | 170x | 514x | 465x |
+| 256&nbsp;kbps | 1.607x | 1.033x | 262x | 163x | 454x | 439x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -247,7 +247,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0142 | +0.0081 | -0.0200 | 15.8 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0141 | +0.0111 | +0.0562 | 23.5 kbps | 24.1 kbps |
+| 24&nbsp;kbps | +0.0143 | +0.0107 | +0.0517 | 23.4 kbps | 24.1 kbps |
 | 32&nbsp;kbps | +0.0136 | +0.0108 | -0.1842 | 32.0 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0164 | +0.0105 | -1.0632 | 47.8 kbps | 48.2 kbps |
 | 64&nbsp;kbps | +0.0104 | +0.0063 | +0.1573 | 64.0 kbps | 64.5 kbps |
@@ -274,7 +274,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 263,156 B | 8 B | 281,244 B |
+| Host MinGW GCC `-O2` | 263,220 B | 8 B | 281,308 B |
 
 ## Toolchains checked
 

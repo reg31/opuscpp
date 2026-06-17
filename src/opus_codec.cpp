@@ -2384,6 +2384,11 @@ constexpr opus_val16 voip_highrate_filter_gain = 0.9995f;
 constexpr opus_int32 voip_voice_low_band_keep_min_bps = 16000;
 constexpr opus_int32 voip_voice_low_band_keep_max_bps = 64000;
 constexpr opus_val16 voip_voice_low_band_keep = 0.35f;
+constexpr opus_int32 voip_noisy_voice_low_band_min_bps = 22000;
+constexpr opus_int32 voip_noisy_voice_low_band_max_bps = 28000;
+constexpr opus_val32 voip_noisy_voice_energy_max = 0.006f;
+constexpr opus_val32 voip_noisy_voice_diff_ratio_min = 0.18f;
+constexpr opus_val16 voip_noisy_voice_low_band_keep = 0.15f;
 
 struct frame_activity_metrics {
   int is_silence;
@@ -3235,7 +3240,8 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   return ret;
 }
 
-static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size) {
+static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size,
+                                        const frame_activity_metrics& frame_metrics) {
   const int hp_freq_smth1 =
       st->mode == opus_mode_celt_only ? silk_log_60_q15 : static_cast<silk_encoder*>(silk_enc)->state_Fxx[0].sCmn.variable_HP_smth1_Q15;
   st->variable_HP_smth2_Q15 =
@@ -3245,10 +3251,15 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
   const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
   if (st->application == opus_application_voip) {
     hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
-    if (st->channels == 1 && st->bitrate_bps >= voip_voice_low_band_keep_min_bps &&
-        st->bitrate_bps <= voip_voice_low_band_keep_max_bps) {
+    const bool can_blend_low_band = st->channels == 1 && st->bitrate_bps >= voip_voice_low_band_keep_min_bps &&
+                                    st->bitrate_bps <= voip_voice_low_band_keep_max_bps;
+    if (can_blend_low_band) {
+      const bool noisy_midrate_voice =
+          st->bitrate_bps >= voip_noisy_voice_low_band_min_bps && st->bitrate_bps <= voip_noisy_voice_low_band_max_bps &&
+          frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min;
+      const opus_val16 low_band_keep = noisy_midrate_voice ? voip_noisy_voice_low_band_keep : voip_voice_low_band_keep;
       for (int i = 0; i < frame_size; ++i) {
-        frame_pcm[i] += voip_voice_low_band_keep * (pcm[i] - frame_pcm[i]);
+        frame_pcm[i] += low_band_keep * (pcm[i] - frame_pcm[i]);
       }
     }
   } else if (st->application == opus_application_audio) {
@@ -3344,7 +3355,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), target_bits) - 8;
   data += 1;
   ec_enc_init(&enc, data, orig_max_data_bytes - 1);
-  opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size);
+  opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
   if (float_api) {
     opus_val32 sum = celt_inner_prod_c(frame_pcm.data(), frame_pcm.data(), frame_size * st->channels);
     if (!(sum < 1e9f) || ((sum) != (sum))) {
