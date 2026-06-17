@@ -2386,9 +2386,9 @@ constexpr opus_int32 voip_voice_low_band_keep_max_bps = 64000;
 constexpr opus_val16 voip_voice_low_band_keep = 0.35f;
 constexpr opus_int32 voip_noisy_voice_low_band_min_bps = 22000;
 constexpr opus_int32 voip_noisy_voice_low_band_max_bps = 28000;
-constexpr opus_val32 voip_noisy_voice_energy_max = 0.006f;
+constexpr opus_val32 voip_noisy_voice_energy_max = 0.001f;
 constexpr opus_val32 voip_noisy_voice_diff_ratio_min = 0.18f;
-constexpr opus_val16 voip_noisy_voice_low_band_keep = 0.15f;
+constexpr opus_val16 voip_noisy_voice_low_band_keep = 0.0f;
 
 struct frame_activity_metrics {
   int is_silence;
@@ -3256,7 +3256,7 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
     if (can_blend_low_band) {
       const bool noisy_midrate_voice =
           st->bitrate_bps >= voip_noisy_voice_low_band_min_bps && st->bitrate_bps <= voip_noisy_voice_low_band_max_bps &&
-          frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min;
+          (frame_metrics.energy < voip_noisy_voice_energy_max || frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min);
       const opus_val16 low_band_keep = noisy_midrate_voice ? voip_noisy_voice_low_band_keep : voip_voice_low_band_keep;
       for (int i = 0; i < frame_size; ++i) {
         frame_pcm[i] += low_band_keep * (pcm[i] - frame_pcm[i]);

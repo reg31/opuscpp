@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.354x | 1.689x | 784x | 333x | 2144x | 1269x |
-| 24&nbsp;kbps | 1.750x | 1.291x | 519x | 297x | 1397x | 1082x |
-| 32&nbsp;kbps | 1.739x | 1.285x | 512x | 294x | 1336x | 1040x |
-| 48&nbsp;kbps | 1.556x | 1.187x | 440x | 283x | 1091x | 919x |
-| 64&nbsp;kbps | 1.506x | 1.189x | 386x | 256x | 975x | 820x |
-| 96&nbsp;kbps | 1.615x | 1.171x | 336x | 208x | 787x | 672x |
-| 128&nbsp;kbps | 1.882x | 1.151x | 369x | 196x | 670x | 582x |
-| 192&nbsp;kbps | 1.689x | 1.105x | 288x | 170x | 514x | 465x |
-| 256&nbsp;kbps | 1.607x | 1.033x | 262x | 163x | 454x | 439x |
+| 16&nbsp;kbps | 2.355x | 1.688x | 713x | 303x | 1939x | 1149x |
+| 24&nbsp;kbps | 1.725x | 1.302x | 476x | 276x | 1293x | 993x |
+| 32&nbsp;kbps | 1.736x | 1.212x | 463x | 267x | 1182x | 976x |
+| 48&nbsp;kbps | 1.583x | 1.186x | 374x | 236x | 923x | 778x |
+| 64&nbsp;kbps | 1.509x | 1.189x | 363x | 240x | 913x | 768x |
+| 96&nbsp;kbps | 1.614x | 1.176x | 320x | 199x | 724x | 616x |
+| 128&nbsp;kbps | 1.885x | 1.154x | 338x | 179x | 615x | 533x |
+| 192&nbsp;kbps | 1.705x | 1.106x | 277x | 163x | 506x | 458x |
+| 256&nbsp;kbps | 1.578x | 1.051x | 249x | 158x | 451x | 429x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -247,7 +247,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0142 | +0.0081 | -0.0200 | 15.8 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0143 | +0.0107 | +0.0517 | 23.4 kbps | 24.1 kbps |
+| 24&nbsp;kbps | +0.0138 | +0.0087 | +0.0502 | 23.3 kbps | 24.1 kbps |
 | 32&nbsp;kbps | +0.0136 | +0.0108 | -0.1842 | 32.0 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0164 | +0.0105 | -1.0632 | 47.8 kbps | 48.2 kbps |
 | 64&nbsp;kbps | +0.0104 | +0.0063 | +0.1573 | 64.0 kbps | 64.5 kbps |
