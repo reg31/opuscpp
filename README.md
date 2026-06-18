@@ -47,15 +47,15 @@ Minimal integration looks like:
   check while preserving RFC vector conformance.
 - Lower memory footprint than official Opus in the measured configurations (21.9% to 49.0%
   lower private state in the current memory snapshot).
-- Host MinGW GCC `-O2` binary text in the current measured snapshot: `263,840 B` (`281,928 B` text+data+bss).
+- Host MinGW GCC `-O2` binary text in the current measured snapshot: `264,020 B` (`282,108 B` text+data+bss).
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.49x to 2.32x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.05x to 1.69x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.50x to 2.35x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.05x to 1.70x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (21.9% to 49.0% lower private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -108,30 +108,30 @@ harness, not a replacement for official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.323x | 1.692x | +0.0039 | +0.0001 | 16.000 kbps | 16.895 kbps |
-| 24&nbsp;kbps | 1.698x | 1.309x | +0.0051 | +0.0430 | 24.000 kbps | 25.009 kbps |
-| 32&nbsp;kbps | 1.727x | 1.264x | +0.0013 | +0.0365 | 32.000 kbps | 33.301 kbps |
-| 48&nbsp;kbps | 1.506x | 1.208x | +0.0012 | +0.0126 | 48.000 kbps | 48.514 kbps |
-| 64&nbsp;kbps | 1.544x | 1.229x | +0.0011 | +0.0050 | 64.000 kbps | 64.555 kbps |
-| 96&nbsp;kbps | 1.614x | 1.183x | +0.0004 | +0.0040 | 96.000 kbps | 96.626 kbps |
-| 128&nbsp;kbps | 1.875x | 1.159x | +0.0010 | +0.0015 | 128.000 kbps | 128.700 kbps |
-| 192&nbsp;kbps | 1.675x | 1.174x | +0.0007 | +0.0005 | 192.000 kbps | 192.853 kbps |
-| 256&nbsp;kbps | 1.491x | 1.048x | +0.0008 | +0.0001 | 256.000 kbps | 256.846 kbps |
+| 16&nbsp;kbps | 2.346x | 1.701x | +0.0035 | -0.0038 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.766x | 1.315x | +0.0051 | +0.0430 | 24.000 kbps | 25.220 kbps |
+| 32&nbsp;kbps | 1.818x | 1.205x | +0.0013 | +0.0365 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.501x | 1.180x | +0.0012 | +0.0126 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.500x | 1.197x | +0.0011 | +0.0050 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.586x | 1.158x | +0.0020 | +0.0038 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.993x | 1.122x | +0.0026 | +0.0011 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.638x | 1.080x | +0.0023 | +0.0000 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.506x | 1.052x | +0.0008 | +0.0001 | 256.000 kbps | 256.736 kbps |
 
 
 VOIP mono speech-like quality spot check:
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0142 | +0.0081 | 15.837 kbps | 16.255 kbps |
-| 24&nbsp;kbps | +0.0142 | +0.0129 | 24.000 kbps | 24.148 kbps |
-| 32&nbsp;kbps | +0.0137 | +0.0129 | 32.000 kbps | 32.184 kbps |
-| 48&nbsp;kbps | +0.0152 | +0.0132 | 48.000 kbps | 48.244 kbps |
-| 64&nbsp;kbps | +0.0104 | +0.0063 | 64.000 kbps | 64.501 kbps |
-| 96&nbsp;kbps | -0.0001 | -0.0000 | 96.000 kbps | 96.595 kbps |
-| 128&nbsp;kbps | +0.0000 | +0.0012 | 128.000 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0003 | +0.0000 | 192.000 kbps | 192.421 kbps |
-| 256&nbsp;kbps | -0.0001 | +0.0001 | 256.000 kbps | 256.415 kbps |
+| 16&nbsp;kbps | +0.0162 | +0.0084 | 15.837 kbps | 16.255 kbps |
+| 24&nbsp;kbps | +0.0160 | +0.0111 | 24.000 kbps | 24.148 kbps |
+| 32&nbsp;kbps | +0.0165 | +0.0114 | 32.000 kbps | 32.184 kbps |
+| 48&nbsp;kbps | +0.0171 | +0.0120 | 48.000 kbps | 48.244 kbps |
+| 64&nbsp;kbps | +0.0148 | +0.0070 | 64.000 kbps | 64.501 kbps |
+| 96&nbsp;kbps | +0.0107 | +0.0012 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | +0.0108 | +0.0025 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0111 | +0.0012 | 192.000 kbps | 192.421 kbps |
+| 256&nbsp;kbps | +0.0107 | +0.0013 | 256.000 kbps | 256.415 kbps |
 
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy
