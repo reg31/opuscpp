@@ -126,17 +126,14 @@ template <int Shift> [[nodiscard]] static auto saturating_left_shift(opus_int32 
 template <typename T> static void fill_n_items(T* destination, const std::size_t count, const T value) noexcept {
   if constexpr (std::is_integral_v<T> && sizeof(T) == 1) {
     std::memset(destination, static_cast<unsigned char>(value), count);
-    return;
-  }
-  for (std::size_t index = 0; index < count; ++index) {
-    destination[index] = value;
+  } else {
+    for (std::size_t index = 0; index < count; ++index) {
+      destination[index] = value;
+    }
   }
 }
 
 template <typename T> static void zero_n_items(T* destination, const std::size_t count) noexcept {
-  if (count == 0) {
-    return;
-  }
   if constexpr (std::is_integral_v<T> || std::is_enum_v<T> || std::is_floating_point_v<T>) {
     std::memset(destination, 0, count * sizeof(T));
     return;
@@ -145,11 +142,13 @@ template <typename T> static void zero_n_items(T* destination, const std::size_t
 }
 
 template <typename T> static void copy_n_items(const T* source, const std::size_t count, T* destination) noexcept {
-  if (count == 0 || source == destination) {
+  if constexpr (std::is_trivially_copyable_v<T>) {
+    if (source != destination) {
+      std::memcpy(destination, source, count * sizeof(T));
+    }
     return;
   }
-  if constexpr (std::is_trivially_copyable_v<T>) {
-    std::memcpy(destination, source, count * sizeof(T));
+  if (source == destination) {
     return;
   }
   for (std::size_t index = 0; index < count; ++index) {
@@ -164,11 +163,11 @@ template <typename T> [[nodiscard]] constexpr auto optional_span(T* data, const 
 [[nodiscard]] static constexpr auto silk_pitch_contour_icdf(int fs_kHz, int nb_subfr) noexcept -> std::span<const opus_uint8>;
 [[nodiscard]] static constexpr auto silk_pitch_lag_low_bits_icdf(int fs_kHz) noexcept -> std::span<const opus_uint8>;
 template <typename T> static void move_n_items(const T* source, const std::size_t count, T* destination) noexcept {
-  if (count == 0 || source == destination) {
-    return;
-  }
   if constexpr (std::is_trivially_copyable_v<T>) {
     std::memmove(destination, source, count * sizeof(T));
+    return;
+  }
+  if (count == 0 || source == destination) {
     return;
   }
   if (destination < source) {
@@ -510,24 +509,15 @@ struct ref_OpusDecoder;
 // Stack scratch buffer. Lives until the enclosing function returns. No heap alloc, no zero-init, no destructor.
 // Only use for trivially-destructible types, and only where the buffer is fully written before any read.
 #define OPUS_SCRATCH(T, N) static_cast<T*>(__builtin_alloca(static_cast<std::size_t>(N) * sizeof(T)))
-template <std::size_t ViewCount, typename T>
-[[nodiscard]] inline auto partition_workset(std::span<T> storage, const std::size_t view_size) noexcept
-    -> std::array<std::span<T>, ViewCount> {
-  auto remaining = storage.first(ViewCount * view_size);
-  std::array<std::span<T>, ViewCount> views{};
-  for (auto& view : views) {
-    view = remaining.first(view_size);
-    remaining = remaining.subspan(view_size);
-  }
-  return views;
-}
 
 [[nodiscard]] static auto celt_maxabs16(const opus_val16* x, int len) noexcept -> opus_val32 {
   if (len <= 0) {
     return 0;
   }
-  auto mn = x[0], mx = x[0];
-  for (const auto sample : std::span<const opus_val16>{x + 1, static_cast<std::size_t>(len - 1)}) {
+  auto mn = x[0];
+  auto mx = x[0];
+  for (int index = 1; index < len; ++index) {
+    const auto sample = x[index];
     mn = std::min(mn, sample);
     mx = std::max(mx, sample);
   }
@@ -6023,6 +6013,29 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   return temporal_vbr;
 }
 
+[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, int channels) noexcept -> int {
+  if (hybrid) {
+    return alloc_trim;
+  }
+  if (st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) {
+    alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
+  }
+  if (st->high_z_tonal_Q7 > 64 && st->bitrate >= 16000 && st->bitrate < 24000) {
+    alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
+  }
+  if (st->bitrate >= low_rate_celt_trim_min_bps && st->bitrate < low_rate_celt_trim_max_bps) {
+    const int trim_boost = st->bitrate >= low_rate_celt_trim_mid_bps ? midrate_celt_trim_boost : low_rate_celt_trim_boost;
+    alloc_trim = clamp_value(alloc_trim + trim_boost, 0, 10);
+  }
+  if (channels == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
+    alloc_trim = clamp_value(alloc_trim + 1, 0, 10);
+  }
+  if (st->bitrate >= 80000 && st->bitrate < 112000) {
+    alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
+  }
+  return alloc_trim;
+}
+
 static inline void celt_apply_energy_error_feedback(const celt_glog* oldBandE, celt_glog* bandLogE, const celt_glog* energyError,
                                                     const celt_encode_layout& layout) noexcept {
   for (int c = 0; c < layout.C; ++c)
@@ -6169,10 +6182,16 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   auto* X = OPUS_SCRATCH(celt_norm, C * N);
   normalise_bands(mode, freq, X, bandE, effEnd, C, M);
   std::array<int, 8 * celt_default_nb_ebands> celt_band_storage;
-  auto band_storage = std::span<int>{celt_band_storage}.first(8 * band_count);
-  zero_n_items(band_storage.data(), band_storage.size());
-  auto [offsets, importance, spread_weight, tf_res, cap, fine_quant, pulses, fine_priority] =
-      partition_workset<8>(band_storage, band_count);
+  auto* const band_base = celt_band_storage.data();
+  zero_n_items(band_base, 8 * band_count);
+  std::span<int> offsets{band_base + 0 * band_count, band_count};
+  std::span<int> importance{band_base + 1 * band_count, band_count};
+  std::span<int> spread_weight{band_base + 2 * band_count, band_count};
+  std::span<int> tf_res{band_base + 3 * band_count, band_count};
+  std::span<int> cap{band_base + 4 * band_count, band_count};
+  std::span<int> fine_quant{band_base + 5 * band_count, band_count};
+  std::span<int> pulses{band_base + 6 * band_count, band_count};
+  std::span<int> fine_priority{band_base + 7 * band_count, band_count};
   maxDepth = dynalloc_analysis(bandLogE, bandLogE2, oldBandE, nbEBands, start, end, C, offsets.data(), st->lsb_depth, mode->logN,
                                isTransient, st->vbr, st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, importance.data(),
                                spread_weight.data(), tone_freq, toneishness);
@@ -6210,22 +6229,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     } else {
       alloc_trim = alloc_trim_analysis(mode, X, bandLogE, end, LM, C, N, &st->stereo_saving, tf_estimate, st->intensity, equiv_rate);
     }
-    if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) {
-      alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
-    }
-    if (!hybrid && st->high_z_tonal_Q7 > 64 && st->bitrate >= 16000 && st->bitrate < 24000) {
-      alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
-    }
-    if (!hybrid && st->bitrate >= low_rate_celt_trim_min_bps && st->bitrate < low_rate_celt_trim_max_bps) {
-      const int trim_boost = st->bitrate >= low_rate_celt_trim_mid_bps ? midrate_celt_trim_boost : low_rate_celt_trim_boost;
-      alloc_trim = clamp_value(alloc_trim + trim_boost, 0, 10);
-    }
-    if (!hybrid && C == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
-      alloc_trim = clamp_value(alloc_trim + 1, 0, 10);
-    }
-    if (!hybrid && st->bitrate >= 80000 && st->bitrate < 112000) {
-      alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
-    }
+    alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C);
     ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
     tell = ec_tell_frac(enc);
   }
@@ -7137,8 +7141,13 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   unquant_coarse_energy(mode, start, end, oldBandE, intra_ener, dec, C, LM);
   const auto band_count = static_cast<std::size_t>(nbEBands);
   std::array<int, 6 * celt_default_nb_ebands> celt_band_storage;
-  auto band_storage = std::span<int>{celt_band_storage}.first(6 * band_count);
-  auto [tf_res, cap, offsets, fine_quant, pulses, fine_priority] = partition_workset<6>(band_storage, band_count);
+  auto* const band_base = celt_band_storage.data();
+  std::span<int> tf_res{band_base + 0 * band_count, band_count};
+  std::span<int> cap{band_base + 1 * band_count, band_count};
+  std::span<int> offsets{band_base + 2 * band_count, band_count};
+  std::span<int> fine_quant{band_base + 3 * band_count, band_count};
+  std::span<int> pulses{band_base + 4 * band_count, band_count};
+  std::span<int> fine_priority{band_base + 5 * band_count, band_count};
   tf_decode(start, end, isTransient, tf_res.data(), LM, dec);
   tell = ec_tell(dec);
   spread_decision = tell + 4 <= total_bits ? ec_dec_icdf(dec, spread_icdf.data(), 5) : 2;
@@ -9582,9 +9591,12 @@ static int clt_compute_allocation(const CeltModeInternal* m, int start, int end,
       total -= dual_stereo_rsv;
     }
   }
-  auto* celt_allocation_storage = OPUS_SCRATCH(int, 4 * static_cast<std::size_t>(len));
-  auto allocation_storage = std::span<int>{celt_allocation_storage, 4 * static_cast<std::size_t>(len)};
-  auto [bits1, bits2, thresh, trim_offset] = partition_workset<4>(allocation_storage, static_cast<std::size_t>(len));
+  auto* const celt_allocation_storage = OPUS_SCRATCH(int, 4 * static_cast<std::size_t>(len));
+  const auto alloc_len = static_cast<std::size_t>(len);
+  std::span<int> bits1{celt_allocation_storage + 0 * alloc_len, alloc_len};
+  std::span<int> bits2{celt_allocation_storage + 1 * alloc_len, alloc_len};
+  std::span<int> thresh{celt_allocation_storage + 2 * alloc_len, alloc_len};
+  std::span<int> trim_offset{celt_allocation_storage + 3 * alloc_len, alloc_len};
   for (j = start; j < end; j++) {
     const auto band_width = m->eBands[j + 1] - m->eBands[j];
     const auto channel_min_bits = C << 3;
