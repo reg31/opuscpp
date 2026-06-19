@@ -7252,21 +7252,14 @@ static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_r
 static constexpr auto celt_pvq_fast_row_offsets = make_celt_pvq_fast_row_offsets();
 static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets.back();
 
-[[nodiscard]] consteval auto make_celt_pvq_fast_prefix_columns() noexcept {
-  std::array<opus_uint8, celt_pvq_fast_row_count> limits{};
-  auto limit = celt_pvq_fast_row_max_columns[0];
-  for (std::size_t row = 0; row < celt_pvq_fast_row_count; ++row) {
-    limit = std::min(limit, celt_pvq_fast_row_max_columns[row]);
-    limits[row] = limit;
-  }
-  return limits;
-}
-
-static constexpr auto celt_pvq_fast_prefix_columns = make_celt_pvq_fast_prefix_columns();
-
-static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows{};
+// Same lifetime trade as the CELT mode tables: one process-lifetime allocation instead of static BSS.
+static opus_uint32* celt_pvq_u_fast_rows{};
 
 static void fill_celt_pvq_fast_rows() noexcept {
+  celt_pvq_u_fast_rows = static_cast<opus_uint32*>(std::malloc(celt_pvq_fast_data_count * sizeof(opus_uint32)));
+  if (celt_pvq_u_fast_rows == nullptr) {
+    std::abort();
+  }
   for (std::size_t row_index = 0; row_index < celt_pvq_fast_row_count; ++row_index) {
     const auto offset = celt_pvq_fast_row_offsets[row_index];
     for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
@@ -7303,7 +7296,7 @@ struct celt_pvq_u_row_ref {
 [[nodiscard]] static auto celt_pvq_u_row(int row) noexcept -> celt_pvq_u_row_ref {
   const auto row_index = static_cast<unsigned>(row);
   if (row_index < celt_pvq_table_row_count) {
-    return {row, celt_pvq_fast_row_max_columns[row_index], celt_pvq_u_fast_rows.data() + celt_pvq_fast_row_offsets[row_index]};
+    return {row, celt_pvq_fast_row_max_columns[row_index], celt_pvq_u_fast_rows + celt_pvq_fast_row_offsets[row_index]};
   }
   return {row, 0U, nullptr};
 }
@@ -7331,7 +7324,7 @@ struct celt_pvq_decode_work {
   const auto col0 = static_cast<unsigned>(std::max(n, k));
   const auto row1 = static_cast<unsigned>(std::min(n, k + 1));
   const auto col1 = static_cast<unsigned>(std::max(n, k + 1));
-  if (row1 < celt_pvq_fast_row_count && col1 <= celt_pvq_fast_prefix_columns[row1]) {
+  if (row1 < celt_pvq_fast_row_count && col1 <= celt_pvq_fast_row_max_columns[row1]) {
     return {celt_pvq_u_entry_fast(row0, col0) + celt_pvq_u_entry_fast(row1, col1), true};
   }
   return {celt_pvq_u_total(n, k), false};
@@ -7421,7 +7414,7 @@ struct celt_pvq_fast_row_ref {
 };
 
 [[nodiscard]] static auto celt_pvq_u_row_fast(int row) noexcept -> celt_pvq_fast_row_ref {
-  return {celt_pvq_u_fast_rows.data() + celt_pvq_fast_row_offsets[static_cast<unsigned>(row)]};
+  return {celt_pvq_u_fast_rows + celt_pvq_fast_row_offsets[static_cast<unsigned>(row)]};
 }
 
 [[nodiscard]] static auto celt_pvq_find_last_leq_fast(celt_pvq_fast_row_ref row, int high, opus_uint32 index) noexcept
@@ -8698,39 +8691,53 @@ static void fill_celt_generated_tables(celt_generated_tables& tables) {
   }
 }
 
-static celt_generated_tables celt_tables{};
-struct codec_generated_tables_initializer {
-  codec_generated_tables_initializer() noexcept {
-    fill_celt_pvq_fast_rows();
-    fill_celt_generated_tables(celt_tables);
-  }
+// Generated CELT tables are process-lifetime data; keeping them on the heap avoids a large static BSS block.
+struct celt_runtime_mode {
+  celt_generated_tables tables{};
+  std::array<kiss_fft_state, 4> fft_states{};
+  CeltModeInternal mode{};
 };
-static const codec_generated_tables_initializer codec_generated_tables_init{};
-static const kiss_fft_state fft_state48000_960_0{480, 0.0020833334f, celt_tables.fft_twiddles.data(),
-                                                 celt_tables.fft_bitrev_480.data()};
-static const kiss_fft_state fft_state48000_960_1{240, 0.0041666669f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
-static const kiss_fft_state fft_state48000_960_2{120, 0.0083333338f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
-static const kiss_fft_state fft_state48000_960_3{60, 0.016666668f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
-static const CeltModeInternal mode48000_960_120 = {
-    48000,
-    120,
-    21,
-    21,
-    {0.85000610f, 0.0000000f, 1.0000000f, 1.0000000f},
-    eband5ms.data(),
-    3,
-    120,
-    11,
-    band_allocation.data(),
-    logN400.data(),
-    celt_tables.window.data(),
-    mdct_lookup{
-        1920, {&fft_state48000_960_0, &fft_state48000_960_1, &fft_state48000_960_2, &fft_state48000_960_3}, celt_tables.mdct_trig.data()},
-    cache_index50.data(),
-    cache_bits50.data(),
-    cache_caps50.data()};
+
+[[nodiscard]] static auto make_celt_runtime_mode() noexcept -> celt_runtime_mode* {
+  auto* runtime = static_cast<celt_runtime_mode*>(std::malloc(sizeof(celt_runtime_mode)));
+  if (runtime == nullptr) {
+    std::abort();
+  }
+  fill_celt_pvq_fast_rows();
+  fill_celt_generated_tables(runtime->tables);
+  runtime->fft_states[0] = kiss_fft_state{
+      480, 0.0020833334f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_480.data()};
+  runtime->fft_states[1] = kiss_fft_state{
+      240, 0.0041666669f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_240.data()};
+  runtime->fft_states[2] = kiss_fft_state{
+      120, 0.0083333338f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_120.data()};
+  runtime->fft_states[3] = kiss_fft_state{
+      60, 0.016666668f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_60.data()};
+  runtime->mode = CeltModeInternal{48000,
+                                   120,
+                                   21,
+                                   21,
+                                   {0.85000610f, 0.0000000f, 1.0000000f, 1.0000000f},
+                                   eband5ms.data(),
+                                   3,
+                                   120,
+                                   11,
+                                   band_allocation.data(),
+                                   logN400.data(),
+                                   runtime->tables.window.data(),
+                                   mdct_lookup{1920,
+                                               {&runtime->fft_states[0], &runtime->fft_states[1], &runtime->fft_states[2],
+                                                &runtime->fft_states[3]},
+                                               runtime->tables.mdct_trig.data()},
+                                   cache_index50.data(),
+                                   cache_bits50.data(),
+                                   cache_caps50.data()};
+  return runtime;
+}
+
 [[nodiscard]] static auto default_custom_mode() noexcept -> const CeltModeInternal* {
-  return &mode48000_960_120;
+  static const auto* runtime = make_celt_runtime_mode();
+  return &runtime->mode;
 }
 
 static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch) {
