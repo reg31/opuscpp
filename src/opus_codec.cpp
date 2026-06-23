@@ -134,26 +134,17 @@ template <typename T> static void fill_n_items(T* destination, const std::size_t
 }
 
 template <typename T> static void zero_n_items(T* destination, const std::size_t count) noexcept {
-  if constexpr (std::is_integral_v<T> || std::is_enum_v<T> || std::is_floating_point_v<T>) {
-    std::memset(destination, 0, count * sizeof(T));
-    return;
-  }
-  fill_n_items(destination, count, T{});
+  static_assert(std::is_integral_v<T> || std::is_enum_v<T> || std::is_floating_point_v<T>);
+  std::memset(destination, 0, count * sizeof(T));
 }
 
 template <typename T> static void copy_n_items(const T* source, const std::size_t count, T* destination) noexcept {
-  if constexpr (std::is_trivially_copyable_v<T>) {
-    if (source != destination) {
-      std::memcpy(destination, source, count * sizeof(T));
-    }
+  static_assert(std::is_trivially_copyable_v<T>);
+  if (count == 0 || source == destination) {
     return;
   }
-  if (source == destination) {
-    return;
-  }
-  for (std::size_t index = 0; index < count; ++index) {
-    destination[index] = source[index];
-  }
+  // Callers use move_n_items() for overlapping ranges.
+  std::memcpy(destination, source, count * sizeof(T));
 }
 
 template <typename T> [[nodiscard]] constexpr auto optional_span(T* data, const std::size_t size) noexcept -> std::span<T> {
@@ -163,22 +154,8 @@ template <typename T> [[nodiscard]] constexpr auto optional_span(T* data, const 
 [[nodiscard]] static constexpr auto silk_pitch_contour_icdf(int fs_kHz, int nb_subfr) noexcept -> std::span<const opus_uint8>;
 [[nodiscard]] static constexpr auto silk_pitch_lag_low_bits_icdf(int fs_kHz) noexcept -> std::span<const opus_uint8>;
 template <typename T> static void move_n_items(const T* source, const std::size_t count, T* destination) noexcept {
-  if constexpr (std::is_trivially_copyable_v<T>) {
-    std::memmove(destination, source, count * sizeof(T));
-    return;
-  }
-  if (count == 0 || source == destination) {
-    return;
-  }
-  if (destination < source) {
-    for (std::size_t index = 0; index < count; ++index) {
-      destination[index] = source[index];
-    }
-    return;
-  }
-  for (std::size_t index = count; index-- > 0;) {
-    destination[index] = source[index];
-  }
+  static_assert(std::is_trivially_copyable_v<T>);
+  std::memmove(destination, source, count * sizeof(T));
 }
 
 static void zero_n_bytes(void* destination, const std::size_t count) noexcept {
@@ -362,7 +339,6 @@ static void celt_decoder_set_end_band(CeltDecoderInternal* st, opus_int32 value)
 static void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opus_int32 value);
 [[nodiscard]] static int celt_decoder_output_postfilter_level(const CeltDecoderInternal* st) noexcept;
 [[nodiscard]] static bool decoder_should_apply_output_postfilter(ref_OpusDecoder* st) noexcept;
-static void celt_decoder_set_output_postfilter(CeltDecoderInternal* st, int level) noexcept;
 static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels,
                                                  bool apply_filter) noexcept;
 static void celt_decoder_update_output_postfilter(CeltDecoderInternal* st, const opus_int16* pcm, int samples, int channels) noexcept;
@@ -1798,11 +1774,6 @@ extern const u8_matrix<3, 64 / 8> silk_gain_iCDF;
 extern const u8_table<36 - -4 + 1> silk_delta_gain_iCDF;
 extern const u8_table<2 * (18 - 2)> silk_pitch_lag_iCDF;
 extern const u8_table<21> silk_pitch_delta_iCDF;
-extern const u8_table<34> silk_pitch_contour_iCDF;
-extern const u8_table<11> silk_pitch_contour_NB_iCDF;
-extern const u8_table<12> silk_pitch_contour_10_ms_iCDF;
-extern const u8_table<3> silk_pitch_contour_10_ms_NB_iCDF;
-extern const u8_table<3> silk_uniform3_iCDF;
 extern const u8_table<3> silk_LTP_per_index_iCDF;
 extern const u8_table<3> silk_LTPscale_iCDF;
 extern const u8_matrix<10, 16 + 2> silk_pulses_per_block_iCDF;
@@ -1819,17 +1790,12 @@ extern const u8_table<152> silk_shell_code_table3;
 extern const u8_table<16 + 1> silk_shell_code_table_offsets;
 extern const u8_table<2> silk_lsb_iCDF;
 extern const u8_table<2> silk_type_offset_no_VAD_iCDF;
-extern const u8_table<2> silk_stereo_only_code_mid_iCDF;
 extern const u8_table<42> silk_sign_iCDF;
-extern const u8_table<5> silk_uniform5_iCDF;
 extern const u8_table<5> silk_NLSF_interpolation_factor_iCDF;
-extern const u8_table<6> silk_uniform6_iCDF;
 extern const u8_table<8> silk_uniform8_iCDF;
 extern const u8_table<7> silk_NLSF_EXT_iCDF;
 [[nodiscard]] constexpr auto silk_LTP_codebook(int index) noexcept -> silk_ltp_codebook_view;
 extern const i16_table<3> silk_LTPScales_table_Q14;
-extern const i16_table<16> silk_stereo_pred_quant_Q13;
-extern const u8_table<25> silk_stereo_pred_joint_iCDF;
 extern const u8_table<3> silk_LBRR_flags_2_iCDF;
 extern const u8_table<7> silk_LBRR_flags_3_iCDF;
 extern const silk_NLSF_CB_struct silk_NLSF_CB_WB;
@@ -1873,10 +1839,6 @@ static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_
 static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix,
                                  opus_int8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps,
                                  int prev_speech_act_Q8, int toMono, int fs_kHz, int frame_length);
-static void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix);
-static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpass, opus_int16* highpass, int frame_length);
-static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[],
-                                             std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16);
 static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix);
 static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag);
 static void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13);
@@ -1884,37 +1846,17 @@ static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid
 
 static void silk_shell_encoder(ec_enc* psRangeEnc, std::span<const int, 16> pulses0);
 static void silk_shell_decoder(std::span<opus_int16, 16> pulses0, ec_dec* psRangeDec, const int pulses4);
-static void silk_encode_signs(ec_enc* psRangeEnc, std::span<const opus_int8> pulses, const int signalType, const int quantOffsetType,
-                              std::span<const int> sum_pulses);
-static void silk_decode_signs(ec_dec* psRangeDec, std::span<opus_int16> pulses, const int signalType, const int quantOffsetType,
-                              std::span<const int> sum_pulses);
 static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional,
                                const int nb_subfr);
 static void silk_VQ_WMat_EC_c(opus_int8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17,
                               const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5,
                               const int subfr_len, const opus_int32 max_gain_Q7, const int L);
-static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index,
-                                 opus_int32* sum_gain_dB_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5],
-                                 const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr);
-static void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
-                       opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
-                       const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
-                       const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10,
-                       const int LTP_scale_Q14);
-static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
-                               opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
-                               const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
-                               const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10,
-                               const int LTP_scale_Q14);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[],
                          const int K, const int LPC_order);
 static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB,
                              const int CB1_index);
 static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices,
                              const silk_NLSF_CB_struct* psNLSF_CB);
-static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15,
-                             const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_QW, const int NLSF_mu_Q20,
-                             const int nSurvivors, const int signalType);
 static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10,
                                           std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8,
                                           std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[],
@@ -5565,28 +5507,23 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
 static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   int i;
   opus_val32 r00 = 0, r01 = 0, r11 = 0, r02 = 0, r12 = 0, r22 = 0;
-  opus_val32 edges;
   opus_val32 num0, num1, den;
   for (i = 0; i < len - 2 * delay; i++) {
     r00 += ((opus_val32)(x[i]) * (opus_val32)(x[i]));
     r01 += ((opus_val32)(x[i]) * (opus_val32)(x[i + delay]));
     r02 += ((opus_val32)(x[i]) * (opus_val32)(x[i + 2 * delay]));
   }
-  edges = 0;
+  opus_val32 edge11 = 0, edge22 = 0, edge12 = 0;
   for (i = 0; i < delay; i++) {
-    edges += ((opus_val32)(x[len + i - 2 * delay]) * (opus_val32)(x[len + i - 2 * delay])) - ((opus_val32)(x[i]) * (opus_val32)(x[i]));
+    const opus_val32 early0 = x[i], early1 = x[i + delay];
+    const opus_val32 late0 = x[len + i - 2 * delay], late1 = x[len + i - delay];
+    edge11 += late0 * late0 - early0 * early0;
+    edge22 += late1 * late1 - early1 * early1;
+    edge12 += late0 * late1 - early0 * early1;
   }
-  r11 = r00 + edges;
-  edges = 0;
-  for (i = 0; i < delay; i++)
-    edges +=
-        ((opus_val32)(x[len + i - delay]) * (opus_val32)(x[len + i - delay])) - ((opus_val32)(x[i + delay]) * (opus_val32)(x[i + delay]));
-  r22 = r11 + edges;
-  edges = 0;
-  for (i = 0; i < delay; i++) {
-    edges += ((opus_val32)(x[len + i - 2 * delay]) * (opus_val32)(x[len + i - delay])) - ((opus_val32)(x[i]) * (opus_val32)(x[i + delay]));
-  }
-  r12 = r01 + edges;
+  r11 = r00 + edge11;
+  r22 = r11 + edge22;
+  r12 = r01 + edge12;
   {
     opus_val32 R00, R01, R11, R02, R12, R22;
     R00 = r00 + r22;
@@ -6499,13 +6436,12 @@ static void celt_decoder_set_output_postfilter(CeltDecoderInternal* st, int leve
   opus_val32 energy = 0;
   opus_val32 diff_energy = 0;
   opus_res previous = pcm[0];
-  for (int i = 0; i < samples; ++i) {
+  energy = previous * previous;
+  for (int i = 1; i < samples; ++i) {
     const opus_res x = pcm[i];
+    const opus_res d = x - previous;
     energy += x * x;
-    if (i != 0) {
-      const opus_res d = x - previous;
-      diff_energy += d * d;
-    }
+    diff_energy += d * d;
     previous = x;
   }
 
@@ -6600,7 +6536,7 @@ static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate,
   st->end = st->mode->effEBands;
   st->disable_inv = channels == 1;
   celt_decoder_reset_state(st);
-  st->output_postfilter_level = 3;
+  st->output_postfilter_level = 0;
 }
 
 template <typename Sample> [[nodiscard]] static inline auto deemphasis_output(celt_sig sample) noexcept -> Sample {
@@ -7249,17 +7185,16 @@ static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_r
   return offsets;
 }
 
-static constexpr auto celt_pvq_fast_row_offsets = make_celt_pvq_fast_row_offsets();
-static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets.back();
+static constexpr auto celt_pvq_fast_row_offsets_storage = make_celt_pvq_fast_row_offsets();
+static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_storage.back();
+static constexpr const auto* celt_pvq_fast_row_offsets = celt_pvq_fast_row_offsets_storage.data();
 
-// Same lifetime trade as the CELT mode tables: one process-lifetime allocation instead of static BSS.
-static opus_uint32* celt_pvq_u_fast_rows{};
+static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows_storage{};
+// Keep static storage, but address it through a pointer so hot PVQ row lookups
+// compile to compact indexed loads instead of larger array-address sequences.
+static opus_uint32* celt_pvq_u_fast_rows = celt_pvq_u_fast_rows_storage.data();
 
 static void fill_celt_pvq_fast_rows() noexcept {
-  celt_pvq_u_fast_rows = static_cast<opus_uint32*>(std::malloc(celt_pvq_fast_data_count * sizeof(opus_uint32)));
-  if (celt_pvq_u_fast_rows == nullptr) {
-    std::abort();
-  }
   for (std::size_t row_index = 0; row_index < celt_pvq_fast_row_count; ++row_index) {
     const auto offset = celt_pvq_fast_row_offsets[row_index];
     for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
@@ -8019,7 +7954,6 @@ static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
     }
   } else {
     int j;
-    std::array<kiss_fft_cpx, 6> scratch;
     const kiss_twiddle_cpx *tw1, *tw2, *tw3;
     const int m2 = 2 * m;
     const int m3 = 3 * m;
@@ -8028,49 +7962,25 @@ static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
       Fout = Fout_beg + i * mm;
       tw3 = tw2 = tw1 = st->twiddles;
       for (j = 0; j < m; j++) {
-        {
-          (scratch[0]).r = (Fout[m]).r * (*tw1).r - (Fout[m]).i * (*tw1).i;
-          (scratch[0]).i = (Fout[m]).r * (*tw1).i + (Fout[m]).i * (*tw1).r;
-        }
-        {
-          (scratch[1]).r = (Fout[m2]).r * (*tw2).r - (Fout[m2]).i * (*tw2).i;
-          (scratch[1]).i = (Fout[m2]).r * (*tw2).i + (Fout[m2]).i * (*tw2).r;
-        }
-        {
-          (scratch[2]).r = (Fout[m3]).r * (*tw3).r - (Fout[m3]).i * (*tw3).i;
-          (scratch[2]).i = (Fout[m3]).r * (*tw3).i + (Fout[m3]).i * (*tw3).r;
-        }
-        {
-          (scratch[5]).r = (*Fout).r - (scratch[1]).r;
-          (scratch[5]).i = (*Fout).i - (scratch[1]).i;
-        }
-        {
-          (*Fout).r += (scratch[1]).r;
-          (*Fout).i += (scratch[1]).i;
-        }
-        {
-          (scratch[3]).r = (scratch[0]).r + (scratch[2]).r;
-          (scratch[3]).i = (scratch[0]).i + (scratch[2]).i;
-        }
-        {
-          (scratch[4]).r = (scratch[0]).r - (scratch[2]).r;
-          (scratch[4]).i = (scratch[0]).i - (scratch[2]).i;
-        }
-        {
-          (Fout[m2]).r = (*Fout).r - (scratch[3]).r;
-          (Fout[m2]).i = (*Fout).i - (scratch[3]).i;
-        }
+        const kiss_fft_cpx scratch0{Fout[m].r * tw1->r - Fout[m].i * tw1->i, Fout[m].r * tw1->i + Fout[m].i * tw1->r};
+        const kiss_fft_cpx scratch1{Fout[m2].r * tw2->r - Fout[m2].i * tw2->i, Fout[m2].r * tw2->i + Fout[m2].i * tw2->r};
+        const kiss_fft_cpx scratch2{Fout[m3].r * tw3->r - Fout[m3].i * tw3->i, Fout[m3].r * tw3->i + Fout[m3].i * tw3->r};
+        const kiss_fft_cpx scratch5{Fout->r - scratch1.r, Fout->i - scratch1.i};
+        Fout->r += scratch1.r;
+        Fout->i += scratch1.i;
+        const kiss_fft_cpx scratch3{scratch0.r + scratch2.r, scratch0.i + scratch2.i};
+        const kiss_fft_cpx scratch4{scratch0.r - scratch2.r, scratch0.i - scratch2.i};
+        Fout[m2].r = Fout->r - scratch3.r;
+        Fout[m2].i = Fout->i - scratch3.i;
         tw1 += fstride;
         tw2 += fstride * 2;
         tw3 += fstride * 3;
-        {
-          (*Fout).r += (scratch[3]).r;
-          (*Fout).i += (scratch[3]).i;
-        }
-        Fout[m].r = ((scratch[5].r) + (scratch[4].i));
-        Fout[m].i = ((scratch[5].i) - (scratch[4].r));
-        Fout[m3].r = ((scratch[5].r) - (scratch[4].i));
-        Fout[m3].i = ((scratch[5].i) + (scratch[4].r));
+        Fout->r += scratch3.r;
+        Fout->i += scratch3.i;
+        Fout[m].r = scratch5.r + scratch4.i;
+        Fout[m].i = scratch5.i - scratch4.r;
+        Fout[m3].r = scratch5.r - scratch4.i;
+        Fout[m3].i = scratch5.i + scratch4.r;
         ++Fout;
       }
     }
@@ -8082,7 +7992,6 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
   size_t k;
   const size_t m2 = 2 * m;
   const kiss_twiddle_cpx *tw1, *tw2;
-  std::array<kiss_fft_cpx, 5> scratch;
   kiss_twiddle_cpx epi3;
   kiss_fft_cpx* Fout_beg = Fout;
   epi3 = st->twiddles[fstride * m];
@@ -8090,38 +7999,22 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
     Fout = Fout_beg + i * mm;
     tw1 = tw2 = st->twiddles;
     for (k = m; k > 0; --k) {
-      {
-        (scratch[1]).r = (Fout[m]).r * (*tw1).r - (Fout[m]).i * (*tw1).i;
-        (scratch[1]).i = (Fout[m]).r * (*tw1).i + (Fout[m]).i * (*tw1).r;
-      }
-      {
-        (scratch[2]).r = (Fout[m2]).r * (*tw2).r - (Fout[m2]).i * (*tw2).i;
-        (scratch[2]).i = (Fout[m2]).r * (*tw2).i + (Fout[m2]).i * (*tw2).r;
-      }
-      {
-        (scratch[3]).r = (scratch[1]).r + (scratch[2]).r;
-        (scratch[3]).i = (scratch[1]).i + (scratch[2]).i;
-      }
-      {
-        (scratch[0]).r = (scratch[1]).r - (scratch[2]).r;
-        (scratch[0]).i = (scratch[1]).i - (scratch[2]).i;
-      }
+      const kiss_fft_cpx scratch1{Fout[m].r * tw1->r - Fout[m].i * tw1->i, Fout[m].r * tw1->i + Fout[m].i * tw1->r};
+      const kiss_fft_cpx scratch2{Fout[m2].r * tw2->r - Fout[m2].i * tw2->i, Fout[m2].r * tw2->i + Fout[m2].i * tw2->r};
+      const kiss_fft_cpx scratch3{scratch1.r + scratch2.r, scratch1.i + scratch2.i};
+      kiss_fft_cpx scratch0{scratch1.r - scratch2.r, scratch1.i - scratch2.i};
       tw1 += fstride;
       tw2 += fstride * 2;
-      Fout[m].r = ((Fout->r) - (((scratch[3].r) * .5f)));
-      Fout[m].i = ((Fout->i) - (((scratch[3].i) * .5f)));
-      {
-        (scratch[0]).r *= (epi3.i);
-        (scratch[0]).i *= (epi3.i);
-      }
-      {
-        (*Fout).r += (scratch[3]).r;
-        (*Fout).i += (scratch[3]).i;
-      }
-      Fout[m2].r = ((Fout[m].r) + (scratch[0].i));
-      Fout[m2].i = ((Fout[m].i) - (scratch[0].r));
-      Fout[m].r = ((Fout[m].r) - (scratch[0].i));
-      Fout[m].i = ((Fout[m].i) + (scratch[0].r));
+      Fout[m].r = Fout->r - scratch3.r * .5f;
+      Fout[m].i = Fout->i - scratch3.i * .5f;
+      scratch0.r *= epi3.i;
+      scratch0.i *= epi3.i;
+      Fout->r += scratch3.r;
+      Fout->i += scratch3.i;
+      Fout[m2].r = Fout[m].r + scratch0.i;
+      Fout[m2].i = Fout[m].i - scratch0.r;
+      Fout[m].r -= scratch0.i;
+      Fout[m].i += scratch0.r;
       ++Fout;
     }
   }
@@ -8691,66 +8584,47 @@ static void fill_celt_generated_tables(celt_generated_tables& tables) {
   }
 }
 
-// Generated CELT tables are process-lifetime data; keeping them on the heap avoids a large static BSS block.
-struct celt_runtime_mode {
-  celt_generated_tables tables{};
-  std::array<kiss_fft_state, 4> fft_states{};
-  CeltModeInternal mode{};
-};
-
-[[nodiscard]] static auto make_celt_runtime_mode() noexcept -> celt_runtime_mode* {
-  auto* runtime = static_cast<celt_runtime_mode*>(std::malloc(sizeof(celt_runtime_mode)));
-  if (runtime == nullptr) {
-    std::abort();
+static celt_generated_tables celt_tables{};
+struct codec_generated_tables_initializer {
+  codec_generated_tables_initializer() noexcept {
+    fill_celt_pvq_fast_rows();
+    fill_celt_generated_tables(celt_tables);
   }
-  fill_celt_pvq_fast_rows();
-  fill_celt_generated_tables(runtime->tables);
-  runtime->fft_states[0] = kiss_fft_state{
-      480, 0.0020833334f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_480.data()};
-  runtime->fft_states[1] = kiss_fft_state{
-      240, 0.0041666669f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_240.data()};
-  runtime->fft_states[2] = kiss_fft_state{
-      120, 0.0083333338f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_120.data()};
-  runtime->fft_states[3] = kiss_fft_state{
-      60, 0.016666668f, runtime->tables.fft_twiddles.data(), runtime->tables.fft_bitrev_60.data()};
-  runtime->mode = CeltModeInternal{48000,
-                                   120,
-                                   21,
-                                   21,
-                                   {0.85000610f, 0.0000000f, 1.0000000f, 1.0000000f},
-                                   eband5ms.data(),
-                                   3,
-                                   120,
-                                   11,
-                                   band_allocation.data(),
-                                   logN400.data(),
-                                   runtime->tables.window.data(),
-                                   mdct_lookup{1920,
-                                               {&runtime->fft_states[0], &runtime->fft_states[1], &runtime->fft_states[2],
-                                                &runtime->fft_states[3]},
-                                               runtime->tables.mdct_trig.data()},
-                                   cache_index50.data(),
-                                   cache_bits50.data(),
-                                   cache_caps50.data()};
-  return runtime;
-}
-
+};
+static const codec_generated_tables_initializer codec_generated_tables_init{};
+static const kiss_fft_state fft_state48000_960_0{480, 0.0020833334f, celt_tables.fft_twiddles.data(),
+                                                 celt_tables.fft_bitrev_480.data()};
+static const kiss_fft_state fft_state48000_960_1{240, 0.0041666669f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
+static const kiss_fft_state fft_state48000_960_2{120, 0.0083333338f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
+static const kiss_fft_state fft_state48000_960_3{60, 0.016666668f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
+static const CeltModeInternal mode48000_960_120 = {
+    48000,
+    120,
+    21,
+    21,
+    {0.85000610f, 0.0000000f, 1.0000000f, 1.0000000f},
+    eband5ms.data(),
+    3,
+    120,
+    11,
+    band_allocation.data(),
+    logN400.data(),
+    celt_tables.window.data(),
+    mdct_lookup{
+        1920, {&fft_state48000_960_0, &fft_state48000_960_1, &fft_state48000_960_2, &fft_state48000_960_3}, celt_tables.mdct_trig.data()},
+    cache_index50.data(),
+    cache_bits50.data(),
+    cache_caps50.data()};
 [[nodiscard]] static auto default_custom_mode() noexcept -> const CeltModeInternal* {
-  static const auto* runtime = make_celt_runtime_mode();
-  return &runtime->mode;
+  return &mode48000_960_120;
 }
 
 static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch) {
   int i, j;
   opus_val32 Syy = 1;
-  std::array<opus_val16, 2> best_num{};
-  std::array<opus_val32, 2> best_den{};
-  best_num[0] = -1;
-  best_num[1] = -1;
-  best_den[0] = 0;
-  best_den[1] = 0;
-  best_pitch[0] = 0;
-  best_pitch[1] = 1;
+  opus_val16 best_num0 = -1, best_num1 = -1;
+  opus_val32 best_den0 = 0, best_den1 = 0;
+  int best_pitch0 = 0, best_pitch1 = 1;
   for (j = 0; j < len; j++) {
     Syy = ((Syy) + ((((opus_val32)(y[j]) * (opus_val32)(y[j])))));
   }
@@ -8760,24 +8634,26 @@ static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_p
       opus_val32 xcorr16 = ((xcorr[i]));
       xcorr16 *= 1e-12f;
       num = ((xcorr16) * (xcorr16));
-      if (((num) * (best_den[1])) > ((best_num[1]) * (Syy))) {
-        if (((num) * (best_den[0])) > ((best_num[0]) * (Syy))) {
-          best_num[1] = best_num[0];
-          best_den[1] = best_den[0];
-          best_pitch[1] = best_pitch[0];
-          best_num[0] = num;
-          best_den[0] = Syy;
-          best_pitch[0] = i;
+      if (((num) * best_den1) > (best_num1 * Syy)) {
+        if (((num) * best_den0) > (best_num0 * Syy)) {
+          best_num1 = best_num0;
+          best_den1 = best_den0;
+          best_pitch1 = best_pitch0;
+          best_num0 = num;
+          best_den0 = Syy;
+          best_pitch0 = i;
         } else {
-          best_num[1] = num;
-          best_den[1] = Syy;
-          best_pitch[1] = i;
+          best_num1 = num;
+          best_den1 = Syy;
+          best_pitch1 = i;
         }
       }
     }
     Syy += (((opus_val32)(y[i + len]) * (opus_val32)(y[i + len]))) - (((opus_val32)(y[i]) * (opus_val32)(y[i])));
     Syy = std::max(1.f, Syy);
   }
+  best_pitch[0] = best_pitch0;
+  best_pitch[1] = best_pitch1;
 }
 
 static void celt_fir5(opus_val16* x, const opus_val16* num, int N) {
@@ -10188,13 +10064,13 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
   }
 }
 
-void silk_encode_signs(ec_enc* psRangeEnc, std::span<const opus_int8> pulses, const int signalType, const int quantOffsetType,
-                       std::span<const int> sum_pulses) {
+static void silk_encode_signs(ec_enc* psRangeEnc, std::span<const opus_int8> pulses, const int signalType, const int quantOffsetType,
+                              std::span<const int> sum_pulses) {
   silk_process_signs<true>(psRangeEnc, pulses, signalType, quantOffsetType, sum_pulses);
 }
 
-void silk_decode_signs(ec_dec* psRangeDec, std::span<opus_int16> pulses, const int signalType, const int quantOffsetType,
-                       std::span<const int> sum_pulses) {
+static void silk_decode_signs(ec_dec* psRangeDec, std::span<opus_int16> pulses, const int signalType, const int quantOffsetType,
+                              std::span<const int> sum_pulses) {
   silk_process_signs<false>(psRangeDec, pulses, signalType, quantOffsetType, sum_pulses);
 }
 
@@ -11782,10 +11658,11 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std:
   copy_n_bytes(&NSQ->sLPC_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)), NSQ->sLPC_Q14);
 }
 
-void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
-                opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24],
-                const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4],
-                const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
+static void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
+                       opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
+                       const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
+                       const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10,
+                       const int LTP_scale_Q14) {
   int k, lag, start_idx, LSF_interpolation_flag;
   const opus_int16 *A_Q12, *B_Q14, *AR_shp_Q13;
   opus_int16* pxq;
@@ -12220,11 +12097,11 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
   }
 }
 
-void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
-                        opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
-                        const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
-                        const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10,
-                        const int LTP_scale_Q14) {
+static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[],
+                               opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4],
+                               const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4],
+                               const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10,
+                               const int LTP_scale_Q14) {
   int i, k, lag, start_idx, LSF_interpolation_flag, Winner_ind, subfr, last_smple_idx, smpl_buf_idx, decisionDelay, offset_Q10;
   const opus_int16 *A_Q12, *B_Q14, *AR_shp_Q13;
   opus_int16* pxq;
@@ -12649,7 +12526,7 @@ void silk_shell_encoder(ec_enc* psRangeEnc, std::span<const int, 16> pulses0) {
   silk_shell_encode_node(psRangeEnc, std::span<const int>{pulses0});
 }
 
-void silk_shell_decoder(std::span<opus_int16, 16> pulses0, ec_dec* psRangeDec, const int pulses4) {
+static void silk_shell_decoder(std::span<opus_int16, 16> pulses0, ec_dec* psRangeDec, const int pulses4) {
   silk_shell_decode_node(std::span<opus_int16>{pulses0}, psRangeDec, pulses4);
 }
 namespace {
@@ -13004,9 +12881,9 @@ static int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncCont
   return fs_kHz;
 }
 
-void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index, opus_int32* sum_log_gain_Q7,
-                          int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5], const opus_int32 xX_Q17[4 * 5], const int subfr_len,
-                          const int nb_subfr) {
+static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_int8 cbk_index[4], opus_int8* periodicity_index,
+                                 opus_int32* sum_log_gain_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5],
+                                 const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr) {
   int j, k, cbk_size;
   opus_int8 temp_idx[4];
   const opus_uint8* cl_ptr_Q5;
@@ -13161,8 +13038,9 @@ void silk_HP_variable_cutoff(silk_encoder_state_FLP state_Fxx[]) {
   }
 }
 
-void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB,
-                      std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
+static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15,
+                             const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20,
+                             const int nSurvivors, const int signalType) {
   int i, s, ind1, bestIndex, prob_Q8, bits_q7;
   opus_int32 W_tmp_Q9;
   opus_int16 res_Q10[16], NLSF_tmp_Q15[16], W_adj_Q5[16], ec_ix[16];
@@ -14678,8 +14556,8 @@ static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpas
   }
 }
 
-opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[],
-                                      std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
+static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[],
+                                             std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
   int scale, scale1, scale2;
   opus_int32 nrgx, nrgy, corr, pred_Q13, pred2_Q10;
   silk_sum_sqr_shift(&nrgx, &scale1, x, length);
@@ -14711,7 +14589,7 @@ opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[
   return pred_Q13;
 }
 
-void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix) {
+static void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix) {
   opus_int32 quant_pred_Q13 = 0;
   for (int n = 0; n < 2; ++n) {
     auto searching = true;

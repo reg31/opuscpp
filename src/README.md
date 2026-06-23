@@ -106,15 +106,14 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 |---|---|---|
 | `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` auto; default is auto. |
+| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` auto; default is off for RFC-compatible decoder output. |
 | `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the output-postfilter level. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |
 
 The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
-encoder interoperability. Auto mode is conservative: it targets mono hybrid packets, the common
-speech-heavy case where it helped validation metrics, and leaves stereo broadband CELT/music-style
-output untouched. Use level `0` if you need the plainest possible decoder output for local
-comparisons.
+encoder interoperability. The default level is `0`, so normal decoder output remains RFC-compatible.
+Auto mode (`3`) is opt-in and only applies the filter when the runtime detector considers the packet
+likely to benefit. Use level `0` for validation runs and for the plainest possible decoder output.
 
 ## Unsupported API areas
 
