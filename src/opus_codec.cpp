@@ -1760,6 +1760,25 @@ static void dual_inner_prod_c(const opus_val16* x, const opus_val16* y01, const 
   return sum;
 }
 
+[[nodiscard]] static inline auto celt_self_inner_prod_fast(const opus_val16* x, int N) noexcept -> opus_val32 {
+  opus_val32 sum0 = 0;
+  opus_val32 sum1 = 0;
+  opus_val32 sum2 = 0;
+  opus_val32 sum3 = 0;
+  int i = 0;
+  for (; i + 3 < N; i += 4) {
+    sum0 += x[i + 0] * x[i + 0];
+    sum1 += x[i + 1] * x[i + 1];
+    sum2 += x[i + 2] * x[i + 2];
+    sum3 += x[i + 3] * x[i + 3];
+  }
+  opus_val32 sum = (sum0 + sum1) + (sum2 + sum3);
+  for (; i < N; ++i) {
+    sum += x[i] * x[i];
+  }
+  return sum;
+}
+
 template <std::size_t Size> using u8_table = std::array<opus_uint8, Size>;
 template <std::size_t Size> using i16_table = std::array<opus_int16, Size>;
 template <std::size_t Rows, std::size_t Cols> using u8_matrix = std::array<std::array<opus_uint8, Cols>, Rows>;
@@ -3945,27 +3964,32 @@ static int bitexact_log2tan(int isin, int icos) {
           15);
 }
 
-static void compute_band_energies(const CeltModeInternal* m, const celt_sig* X, celt_ener* bandE, int end, int C, int LM) {
-  const opus_int16* eBands = m->eBands;
-  const int N = m->shortMdctSize << LM;
-  for (int c = 0; c < C; ++c)
-    for (int i = 0; i < end; i++) {
-      opus_val32 sum =
-          1e-27f + celt_inner_prod_c(&X[c * N + (eBands[i] << LM)], &X[c * N + (eBands[i] << LM)], (eBands[i + 1] - eBands[i]) << LM);
-      bandE[i + c * m->nbEBands] = (float)std::sqrt(sum);
-    }
-}
-
-static void normalise_bands(const CeltModeInternal* m, const celt_sig* freq, celt_norm* X, const celt_ener* bandE, int end, int C, int M) {
+static void compute_band_energies_log_and_normalise(const CeltModeInternal* m, const celt_sig* freq, celt_ener* bandE,
+                                                    celt_glog* bandLogE, celt_norm* X, int effEnd, int end, int C, int M, int LM) {
   const opus_int16* eBands = m->eBands;
   const int N = M * m->shortMdctSize;
-  for (int c = 0; c < C; ++c)
-    for (int i = 0; i < end; i++) {
-      opus_val16 g = 1.f / (1e-27f + bandE[i + c * m->nbEBands]);
-      for (int j = M * eBands[i]; j < M * eBands[i + 1]; j++) {
-        X[j + c * N] = freq[j + c * N] * g;
+  for (int c = 0; c < C; ++c) {
+    const int channel_offset = c * N;
+    const int band_offset = c * m->nbEBands;
+    for (int i = 0; i < effEnd; ++i) {
+      const int band_begin = M * eBands[i];
+      const int band_end = M * eBands[i + 1];
+      const int width = (eBands[i + 1] - eBands[i]) << LM;
+      const int offset = channel_offset + band_begin;
+      const opus_val32 sum = 1e-27f + celt_self_inner_prod_fast(&freq[offset], width);
+      const auto energy = static_cast<float>(std::sqrt(sum));
+      bandE[i + band_offset] = energy;
+      bandLogE[i + band_offset] =
+          static_cast<float>(0.7213475204444817 * std::log(static_cast<double>(sum))) - static_cast<celt_glog>(eMeans[i]);
+      const opus_val16 g = 1.f / (1e-27f + energy);
+      for (int j = band_begin; j < band_end; ++j) {
+        X[channel_offset + j] = freq[channel_offset + j] * g;
       }
     }
+    for (int i = effEnd; i < end; ++i) {
+      bandLogE[i + band_offset] = -(14.f);
+    }
+  }
 }
 
 static void denormalise_bands(const CeltModeInternal* m, const celt_norm* X, celt_sig* freq, const celt_glog* bandLogE, int start, int end,
@@ -4708,9 +4732,9 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
   B = shortBlocks ? M : 1;
   norm_offset = M * eBands[start];
   const int norm_size = M * eBands[m->nbEBands - 1] - norm_offset;
-  norm = OPUS_SCRATCH(celt_norm, C * norm_size);
-  norm2 = norm + norm_size;
-  lowband_scratch = X_ + M * eBands[m->effEBands - 1];
+  norm = resynth ? OPUS_SCRATCH(celt_norm, C * norm_size) : nullptr;
+  norm2 = resynth ? norm + norm_size : nullptr;
+  lowband_scratch = resynth ? X_ + M * eBands[m->effEBands - 1] : nullptr;
   opus_int16 decode_pulse_scratch_storage[opus_20ms_frame_samples_48k];
   auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage : nullptr;
   lowband_offset = 0;
@@ -4761,7 +4785,7 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
     if (resynth && (M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || lowband_offset == 0)) {
       lowband_offset = i;
     }
-    if (i == start + 1) {
+    if (resynth && i == start + 1) {
       special_hybrid_folding(m, norm, norm2, start, M, dual_stereo);
     }
     tf_change = tf_res[i];
@@ -4776,7 +4800,9 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
     if (last) {
       lowband_scratch = nullptr;
     }
-    if (lowband_offset != 0 && (spread != (3) || B > 1 || tf_change < 0)) {
+    if (!resynth) {
+      x_cm = y_cm = (1 << B) - 1;
+    } else if (lowband_offset != 0 && (spread != (3) || B > 1 || tf_change < 0)) {
       int fold_start, fold_end, fold_i;
       effective_lowband = std::max(0, M * eBands[lowband_offset] - norm_offset - N);
       fold_start = lowband_offset;
@@ -4801,10 +4827,10 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
           norm[j] = (.5f * (norm[j] + norm2[j]));
         }
     }
-    auto* const lowband = effective_lowband != -1 ? norm + effective_lowband : nullptr;
-    auto* const lowband2 = effective_lowband != -1 ? norm2 + effective_lowband : nullptr;
-    auto* const lowband_out = last ? nullptr : norm + M * eBands[i] - norm_offset;
-    auto* const lowband_out2 = last ? nullptr : norm2 + M * eBands[i] - norm_offset;
+    auto* const lowband = resynth && effective_lowband != -1 ? norm + effective_lowband : nullptr;
+    auto* const lowband2 = resynth && effective_lowband != -1 ? norm2 + effective_lowband : nullptr;
+    auto* const lowband_out = resynth && !last ? norm + M * eBands[i] - norm_offset : nullptr;
+    auto* const lowband_out2 = resynth && !last ? norm2 + M * eBands[i] - norm_offset : nullptr;
     if (dual_stereo) {
       x_cm = quant_band(&ctx, X, N, b / 2, B, lowband, LM, lowband_out, 1.0f, lowband_scratch, x_cm);
       y_cm = quant_band(&ctx, Y, N, b / 2, B, lowband2, LM, lowband_out2, 1.0f, lowband_scratch, y_cm);
@@ -4817,8 +4843,10 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
       }
       y_cm = x_cm;
     }
-    collapse_masks[i * C + 0] = (unsigned char)x_cm;
-    collapse_masks[i * C + C - 1] = (unsigned char)y_cm;
+    if (resynth) {
+      collapse_masks[i * C + 0] = (unsigned char)x_cm;
+      collapse_masks[i * C + C - 1] = (unsigned char)y_cm;
+    }
     balance += pulses[i] + tell;
     update_lowband = b > (N << 3);
     ctx.avoid_split_noise = 0;
@@ -4848,11 +4876,22 @@ static int resampling_factor(opus_int32 rate) {
 }
 
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
-  for (int i = 0; i < N; ++i) {
+  auto filter_one = [=](int i) noexcept -> opus_val32 {
     const opus_val32 delayed_0 = x[i - T];
     const opus_val32 delayed_1 = x[i - T + 1] + x[i - T - 1];
     const opus_val32 delayed_2 = x[i - T + 2] + x[i - T - 2];
-    y[i] = x[i] + g10 * delayed_0 + g11 * delayed_1 + g12 * delayed_2;
+    return x[i] + g10 * delayed_0 + g11 * delayed_1 + g12 * delayed_2;
+  };
+
+  int i = 0;
+  for (; i + 3 < N; i += 4) {
+    y[i + 0] = filter_one(i + 0);
+    y[i + 1] = filter_one(i + 1);
+    y[i + 2] = filter_one(i + 2);
+    y[i + 3] = filter_one(i + 3);
+  }
+  for (; i < N; ++i) {
+    y[i] = filter_one(i);
   }
 }
 
@@ -5580,34 +5619,6 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   return 0;
 }
 
-static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs) {
-  int i, delay = 1, fail;
-  std::array<opus_val32, 2> lpc;
-  opus_val16 freq;
-  const opus_val16* x = in;
-  if (CC == 2) {
-    std::array<opus_val16, opus_20ms_frame_samples_48k + celt_default_overlap> x_sum_storage;
-    auto* x_sum = x_sum_storage.data();
-    for (i = 0; i < N; i++) {
-      x_sum[i] = 0.5f * (in[i] + in[i + N]);
-    }
-    x = x_sum;
-  }
-  fail = tone_lpc(x, N, delay, lpc.data());
-  for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
-    delay *= 2;
-    fail = tone_lpc(x, N, delay, lpc.data());
-  }
-  if (!fail && ((lpc[0]) * (lpc[0])) + (((3.999999)) * (lpc[1])) < 0) {
-    *toneishness = -lpc[1];
-    freq = acos(.5f * lpc[0]) / delay;
-  } else {
-    freq = -1;
-    *toneishness = 0;
-  }
-  return freq;
-}
-
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int prefilter_tapset, int* pitch,
                          opus_val16* gain, int* qgain, int enabled, int complexity, opus_val16 tf_estimate, int nbAvailableBytes,
                          opus_val16 tone_freq, opus_val32 toneishness) {
@@ -5622,9 +5633,9 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   constexpr auto max_period = 1024, min_period = 15;
   mode = st->mode;
   overlap = mode->overlap;
-  // Complexity <5 never performs pitch search; when no old prefilter is active,
-  // keep only the histories instead of building the full scratch/filter path.
-  if (complexity < 5 && (!enabled || toneishness <= (.99f)) && st->prefilter_gain == 0) {
+  // If a new prefilter cannot be signalled and no old one is active, only the
+  // histories need updating. Complexity <5 also skips pitch search by design.
+  if (((!enabled) || (complexity < 5 && toneishness <= (.99f))) && st->prefilter_gain == 0) {
     for (c = 0; c < CC; ++c) {
       copy_n_items(st->in_mem + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
       copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), st->in_mem + c * overlap);
@@ -5646,7 +5657,13 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   pre[1] = _pre + (N + max_period);
   for (c = 0; c < CC; ++c) {
     copy_n_items(prefilter_mem + c * max_period, static_cast<std::size_t>(max_period), pre[c]);
-    copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), pre[c] + max_period);
+    const auto* current = in + c * (N + overlap) + overlap;
+    auto* history = pre[c] + max_period;
+    for (int i = 0; i < N; ++i) {
+      const celt_sig sample = current[i];
+      history[i] = sample;
+      before[c] += static_cast<float>(std::fabs(sample));
+    }
   }
   if (enabled && toneishness > (.99f)) {
     int multiple = 1;
@@ -5718,9 +5735,6 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     int i, offset = mode->shortMdctSize - overlap;
     st->prefilter_period = std::max(st->prefilter_period, 15);
     copy_n_items(st->in_mem + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-    for (i = 0; i < N; i++) {
-      before[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
-    }
     if (offset)
       comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, st->prefilter_period, offset,
                   -st->prefilter_gain, -st->prefilter_gain, st->prefilter_tapset, st->prefilter_tapset, nullptr, 0);
@@ -5902,13 +5916,6 @@ struct celt_tone_analysis {
   opus_val16 frequency{-1};
   opus_val32 toneishness{};
 };
-[[nodiscard]] static inline auto celt_analyse_tone(celt_sig* in, const celt_encode_layout& layout, opus_val16 tf_estimate)
-    -> celt_tone_analysis {
-  auto tone = celt_tone_analysis{};
-  tone.frequency = tone_detect(in, layout.CC, layout.N + layout.overlap, &tone.toneishness, layout.mode->Fs);
-  tone.toneishness = std::min(tone.toneishness, (1.f) - tf_estimate);
-  return tone;
-}
 struct celt_prefilter_result {
   int pitch_index{15};
   int tapset{};
@@ -6111,7 +6118,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     tell = nbCompressedBytes * 8;
     enc->nbits_total += tell - ec_tell(enc);
   }
-  const auto tone = silence ? celt_tone_analysis{} : celt_analyse_tone(in, layout, tf_estimate);
+  const auto tone = silence ? celt_tone_analysis{} : celt_tone_analysis{-1, st->high_z_tonal_Q7 > 64 ? 0.65f : 0.0f};
   tone_freq = tone.frequency;
   toneishness = tone.toneishness;
   isTransient = 0;
@@ -6128,19 +6135,16 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   auto* bandLogE = OPUS_SCRATCH(celt_glog, nbEBands * CC);
   auto* bandLogE2 = OPUS_SCRATCH(celt_glog, C * nbEBands);
   compute_mdcts(mode, shortBlocks, in, freq, C, CC, LM, st->upsample);
-  compute_band_energies(mode, freq, bandE, effEnd, C, LM);
-  amp2Log2(mode, effEnd, end, bandE, bandLogE, C);
+  const auto band_count = static_cast<std::size_t>(nbEBands);
+  auto* X = OPUS_SCRATCH(celt_norm, C * N);
+  compute_band_energies_log_and_normalise(mode, freq, bandE, bandLogE, X, effEnd, end, C, M, LM);
   temporal_vbr = celt_update_temporal_vbr(st, bandLogE, layout, shortBlocks);
   copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
   if (LM > 0 && ec_tell(enc) + 3 <= total_bits) {
     ec_enc_bit_logp(enc, isTransient, 3);
   }
-  const auto band_count = static_cast<std::size_t>(nbEBands);
-  auto* X = OPUS_SCRATCH(celt_norm, C * N);
-  normalise_bands(mode, freq, X, bandE, effEnd, C, M);
   std::array<int, 8 * celt_default_nb_ebands> celt_band_storage;
   auto* const band_base = celt_band_storage.data();
-  zero_n_items(band_base, 8 * band_count);
   std::span<int> offsets{band_base + 0 * band_count, band_count};
   std::span<int> importance{band_base + 1 * band_count, band_count};
   std::span<int> spread_weight{band_base + 2 * band_count, band_count};
@@ -6272,10 +6276,8 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   // close side-channel reserves and commit predictor state for the next frame.
   { quant_fine_energy(mode, start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C); }
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
-  std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks_storage;
-  auto* collapse_masks = collapse_masks_storage.data();
   {
-    quant_all_bands(1, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, bandE, pulses.data(), shortBlocks,
+    quant_all_bands(1, mode, start, end, X, C == 2 ? X + N : nullptr, nullptr, bandE, pulses.data(), shortBlocks,
                     st->spread_decision, dual_stereo, st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv,
                     balance, enc, LM, codedBands, &st->rng, st->disable_inv);
   }
@@ -7298,6 +7300,34 @@ static opus_uint32 icwrs(int _n, const int* _y) {
     k += abs(_y[j]);
     if (_y[j] < 0) {
       i += celt_pvq_u_entry(_n - j, k + 1);
+    }
+  }
+  return i;
+}
+
+static opus_uint32 icwrs_abs_with_sign_mask(int n, const int* abs_y, opus_uint64 sign_mask) {
+  int j = n - 1;
+  int k = abs_y[j];
+  opus_uint32 i = (k != 0 && ((sign_mask >> static_cast<unsigned>(j)) & 1U) != 0) ? 1U : 0U;
+  for (; j-- > 0;) {
+    i += celt_pvq_u_entry(n - j, k);
+    k += abs_y[j];
+    if (abs_y[j] != 0 && ((sign_mask >> static_cast<unsigned>(j)) & 1U) != 0) {
+      i += celt_pvq_u_entry(n - j, k + 1);
+    }
+  }
+  return i;
+}
+
+static opus_uint32 icwrs_abs_with_sign_scratch(int n, const int* abs_y, const int* signx) {
+  int j = n - 1;
+  int k = abs_y[j];
+  opus_uint32 i = (k != 0 && signx[j] != 0) ? 1U : 0U;
+  for (; j-- > 0;) {
+    i += celt_pvq_u_entry(n - j, k);
+    k += abs_y[j];
+    if (abs_y[j] != 0 && signx[j] != 0) {
+      i += celt_pvq_u_entry(n - j, k + 1);
     }
   }
   return i;
@@ -10101,29 +10131,53 @@ static unsigned extract_collapse_mask(int* iy, int N, int B) {
   return collapse_mask;
 }
 
-static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N) {
+static constexpr int pvq_score_inv_max = 32768;
+
+[[nodiscard]] consteval auto make_pvq_score_inv() noexcept {
+  std::array<opus_val16, pvq_score_inv_max + 1> table{};
+  for (int index = 1; index <= pvq_score_inv_max; ++index) {
+    table[static_cast<std::size_t>(index)] = 1.0f / static_cast<float>(index);
+  }
+  return table;
+}
+
+static constexpr auto pvq_score_inv = make_pvq_score_inv();
+
+[[nodiscard]] static inline auto pvq_score_recip(opus_val16 value) noexcept -> opus_val16 {
+  const int index = static_cast<int>(value);
+  return index <= pvq_score_inv_max ? pvq_score_inv[static_cast<std::size_t>(index)] : 1.0f / value;
+}
+
+static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N, opus_uint32* encoded_index) {
   int i, j;
   int pulsesLeft;
   opus_val32 sum, xy;
   opus_val16 yy;
-  auto* y = OPUS_SCRATCH(celt_norm, N);
-  auto* signx = OPUS_SCRATCH(int, N);
+  const bool use_sign_scratch = N > 64;
+  auto* signx = use_sign_scratch ? OPUS_SCRATCH(int, N) : nullptr;
+  opus_uint64 sign_mask = 0;
   sum = 0;
   for (j = 0; j < N; ++j) {
-    signx[j] = X[j] < 0;
+    const bool negative = X[j] < 0;
+    if (use_sign_scratch) {
+      signx[j] = negative;
+    } else if (negative) {
+      sign_mask |= opus_uint64{1} << static_cast<unsigned>(j);
+    }
     X[j] = ((float)std::fabs(X[j]));
     iy[j] = 0;
-    y[j] = 0;
   }
   if (K == 1) {
     int best_id = 0;
-    for (int candidate = 1; candidate < N; ++candidate)
+    for (int candidate = 1; candidate < N; ++candidate) {
       if (X[candidate] > X[best_id]) {
         best_id = candidate;
       }
+    }
     iy[best_id] = 1;
     for (int idx = 0; idx < N; ++idx) {
-      iy[idx] = (iy[idx] ^ -signx[idx]) + signx[idx];
+      const int negative = use_sign_scratch ? signx[idx] : static_cast<int>((sign_mask >> static_cast<unsigned>(idx)) & 1U);
+      iy[idx] = (iy[idx] ^ -negative) + negative;
     }
     return 1;
   }
@@ -10143,50 +10197,80 @@ static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N) {
     }
     rcp = (((K + 0.8f) * ((1.f / (sum)))));
     for (j = 0; j < N; ++j) {
-      iy[j] = (int)std::floor(rcp * X[j]);
-      y[j] = (celt_norm)iy[j];
-      yy = ((yy) + (opus_val32)(y[j]) * (opus_val32)(y[j]));
-      xy = ((xy) + (opus_val32)(X[j]) * (opus_val32)(y[j]));
-      y[j] *= 2;
+      iy[j] = static_cast<int>(rcp * X[j]);
+      const auto yj = static_cast<celt_norm>(iy[j]);
+      yy = ((yy) + (opus_val32)(yj) * (opus_val32)(yj));
+      xy = ((xy) + (opus_val32)(X[j]) * (opus_val32)(yj));
       pulsesLeft -= iy[j];
     }
   }
   if (pulsesLeft > N + 3) {
     opus_val16 tmp = (opus_val16)pulsesLeft;
     yy = ((yy) + (opus_val32)(tmp) * (opus_val32)(tmp));
-    yy = ((yy) + (opus_val32)(tmp) * (opus_val32)(y[0]));
+    yy = ((yy) + (opus_val32)(tmp) * (opus_val32)(2 * iy[0]));
     iy[0] += pulsesLeft;
     pulsesLeft = 0;
   }
   for (i = 0; i < pulsesLeft; i++) {
     opus_val16 Rxy, Ryy;
     int best_id;
-    opus_val32 best_num;
-    opus_val16 best_den;
+    opus_val32 best_score;
     best_id = 0;
     yy = ((yy) + (1));
     Rxy = ((((xy) + ((X[0])))));
-    Ryy = ((yy) + (y[0]));
-    Rxy = ((Rxy) * (Rxy));
-    best_den = Ryy;
-    best_num = Rxy;
-    for (int candidate = 1; candidate < N; ++candidate) {
+    Ryy = ((yy) + (2 * iy[0]));
+    best_score = Rxy * Rxy * pvq_score_recip(Ryy);
+    int candidate = 1;
+    for (; candidate + 3 < N; candidate += 4) {
       Rxy = ((((xy) + ((X[candidate])))));
-      Ryy = ((yy) + (y[candidate]));
-      Rxy = ((Rxy) * (Rxy));
-      if (((opus_val32)(best_den) * (opus_val32)(Rxy)) > ((opus_val32)(Ryy) * (opus_val32)(best_num))) {
-        best_den = Ryy;
-        best_num = Rxy;
+      Ryy = ((yy) + (2 * iy[candidate]));
+      opus_val32 score = Rxy * Rxy * pvq_score_recip(Ryy);
+      if (score > best_score) {
+        best_score = score;
+        best_id = candidate;
+      }
+      Rxy = ((((xy) + ((X[candidate + 1])))));
+      Ryy = ((yy) + (2 * iy[candidate + 1]));
+      score = Rxy * Rxy * pvq_score_recip(Ryy);
+      if (score > best_score) {
+        best_score = score;
+        best_id = candidate + 1;
+      }
+      Rxy = ((((xy) + ((X[candidate + 2])))));
+      Ryy = ((yy) + (2 * iy[candidate + 2]));
+      score = Rxy * Rxy * pvq_score_recip(Ryy);
+      if (score > best_score) {
+        best_score = score;
+        best_id = candidate + 2;
+      }
+      Rxy = ((((xy) + ((X[candidate + 3])))));
+      Ryy = ((yy) + (2 * iy[candidate + 3]));
+      score = Rxy * Rxy * pvq_score_recip(Ryy);
+      if (score > best_score) {
+        best_score = score;
+        best_id = candidate + 3;
+      }
+    }
+    for (; candidate < N; ++candidate) {
+      Rxy = ((((xy) + ((X[candidate])))));
+      Ryy = ((yy) + (2 * iy[candidate]));
+      const opus_val32 score = Rxy * Rxy * pvq_score_recip(Ryy);
+      if (score > best_score) {
+        best_score = score;
         best_id = candidate;
       }
     }
     xy = ((xy) + ((X[best_id])));
-    yy = ((yy) + (y[best_id]));
-    y[best_id] += 2;
+    yy = ((yy) + (2 * iy[best_id]));
     iy[best_id]++;
   }
-  for (int idx = 0; idx < N; ++idx) {
-    iy[idx] = (iy[idx] ^ -signx[idx]) + signx[idx];
+  if (encoded_index != nullptr) {
+    *encoded_index = use_sign_scratch ? icwrs_abs_with_sign_scratch(N, iy, signx) : icwrs_abs_with_sign_mask(N, iy, sign_mask);
+  } else {
+    for (int idx = 0; idx < N; ++idx) {
+      const int negative = use_sign_scratch ? signx[idx] : static_cast<int>((sign_mask >> static_cast<unsigned>(idx)) & 1U);
+      iy[idx] = (iy[idx] ^ -negative) + negative;
+    }
   }
   return yy;
 }
@@ -10194,12 +10278,30 @@ static opus_val16 op_pvq_search_c(celt_norm* X, int* iy, int K, int N) {
 static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth) {
   opus_val32 yy;
   unsigned collapse_mask;
-  auto* iy = OPUS_SCRATCH(int, static_cast<std::size_t>(N + 3));
   exp_rotation(X, N, 1, B, K, spread);
+  if (!resynth && K == 1) {
+    int best_id = 0;
+    opus_val32 best_abs = std::fabs(X[0]);
+    for (int candidate = 1; candidate < N; ++candidate) {
+      const opus_val32 candidate_abs = std::fabs(X[candidate]);
+      if (candidate_abs > best_abs) {
+        best_abs = candidate_abs;
+        best_id = candidate;
+      }
+    }
+    opus_uint32 rank = static_cast<opus_uint32>(best_id);
+    if (X[best_id] < 0) {
+      rank += static_cast<opus_uint32>(2 * (N - best_id) - 1);
+    }
+    ec_enc_uint(enc, rank, static_cast<opus_uint32>(N << 1));
+    return (1U << B) - 1U;
+  }
+  auto* iy = OPUS_SCRATCH(int, static_cast<std::size_t>(N + 3));
   {
-    yy = (op_pvq_search_c(X, iy, K, N));
-    collapse_mask = extract_collapse_mask(iy, N, B);
-    ec_enc_uint(enc, icwrs(N, iy), celt_pvq_u_total(N, K));
+    opus_uint32 encoded_index = 0;
+    yy = (op_pvq_search_c(X, iy, K, N, resynth ? nullptr : &encoded_index));
+    collapse_mask = resynth ? extract_collapse_mask(iy, N, B) : ((1U << B) - 1U);
+    ec_enc_uint(enc, resynth ? icwrs(N, iy) : encoded_index, celt_pvq_u_total(N, K));
     if (resynth) {
       static_cast<void>(normalise_residual_and_extract_collapse_mask(iy, X, N, 1, yy, gain));
     }
