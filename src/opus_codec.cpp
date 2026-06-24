@@ -3819,7 +3819,9 @@ static int pad_packet(unsigned char* data, opus_int32 len, opus_int32 new_len, i
   return ret > 0 ? 0 : static_cast<int>(ret);
 }
 namespace {
-extern constinit const std::array<opus_val16, 25> eMeans;
+constexpr auto eMeans = numeric_blob_array<opus_val16, 25>(
+    R"blob(40CE000040C8000040B8000040AA000040A20000409A000040900000408C0000409C00004096000040920000408E0000409C000040940000408A000040900000408C00004094000040980000408E00004070000040700000407000004070000040700000)blob");
+extern constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise_floor_base;
 }
 
 static void amp2Log2(const CeltModeInternal* m, int effEnd, int end, celt_ener* bandE, celt_glog* bandLogE, int C);
@@ -3844,21 +3846,40 @@ static int clt_compute_allocation(const CeltModeInternal* m, int start, int end,
   return value < 8 ? value : (8 + (value & 7)) << ((value >> 3) - 1);
 }
 
-[[nodiscard]] constexpr auto bits2pulses(const CeltModeInternal* mode, int band, int lm, int bits) noexcept -> int {
-  ++lm;
-  const unsigned char* cache = mode->cache_bits + mode->cache_index[lm * mode->nbEBands + band];
-  int lo = 0, hi = cache[0];
+constexpr int celt_bits2pulses_lut_bits = 160;
+constexpr int celt_bits2pulses_lut_lm_count = 4;
+constexpr int celt_bits2pulses_lut_rows = celt_bits2pulses_lut_lm_count * celt_default_nb_ebands;
+using celt_bits2pulses_lut_table = std::array<std::array<opus_uint8, celt_bits2pulses_lut_bits>, celt_bits2pulses_lut_rows>;
+
+namespace {
+extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
+}
+
+[[nodiscard]] constexpr auto celt_bits2pulses_search(const unsigned char* cache, int bits) noexcept -> int {
+  int lo = 0;
+  int hi = cache[0];
   --bits;
   for (int i = 0; i < 6; ++i) {
     const int mid = (lo + hi + 1) >> 1;
     if (static_cast<int>(cache[mid]) >= bits) {
       hi = mid;
-    } else
+    } else {
       lo = mid;
+    }
   }
   const int low_distance = bits - (lo == 0 ? -1 : static_cast<int>(cache[lo]));
   const int high_distance = static_cast<int>(cache[hi]) - bits;
   return low_distance <= high_distance ? lo : hi;
+}
+
+[[nodiscard]] constexpr auto bits2pulses(const CeltModeInternal* mode, int band, int lm, int bits) noexcept -> int {
+  ++lm;
+  const unsigned char* cache = mode->cache_bits + mode->cache_index[lm * mode->nbEBands + band];
+  if (bits >= 0 && bits < celt_bits2pulses_lut_bits && lm > 0 && lm <= celt_bits2pulses_lut_lm_count &&
+      mode->nbEBands == celt_default_nb_ebands) {
+    return celt_bits2pulses_lut[(lm - 1) * celt_default_nb_ebands + band][bits];
+  }
+  return celt_bits2pulses_search(cache, bits);
 }
 
 [[nodiscard]] static constexpr auto pulses2bits(const CeltModeInternal* mode, int band, int lm, int pulses) noexcept -> int {
@@ -5348,10 +5369,9 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
 }
 
 static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_glog* bandLogE2, const celt_glog* oldBandE, int nbEBands,
-                                          int start, int end, int C, int* offsets, int lsb_depth, const opus_int16* logN, int isTransient,
-                                          int vbr, int constrained_vbr, const opus_int16* eBands, int LM, int effectiveBytes,
-                                          opus_int32* tot_boost_, int* importance, int* spread_weight, opus_val16 tone_freq,
-                                          opus_val32 toneishness) {
+                                          int start, int end, int C, int* offsets, int lsb_depth, int isTransient, int vbr,
+                                          int constrained_vbr, const opus_int16* eBands, int LM, int effectiveBytes, opus_int32* tot_boost_,
+                                          int* importance, int* spread_weight, opus_val16 tone_freq, opus_val32 toneishness) {
   int i, c;
   opus_int32 tot_boost = 0;
   celt_glog maxDepth;
@@ -5364,7 +5384,7 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
   zero_n_items(offsets, static_cast<std::size_t>(nbEBands));
   maxDepth = -(31.9f);
   for (i = 0; i < end; i++) {
-    noise_floor[i] = (0.0625f) * logN[i] + (.5f) + (9 - lsb_depth) - (eMeans[i]) + (.0062f) * (i + 5) * (i + 5);
+    noise_floor[i] = celt_noise_floor_base[i] + (9 - lsb_depth);
   }
   for (c = 0; c < C; ++c) {
     for (i = 0; i < end; i++) {
@@ -6129,9 +6149,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   std::span<int> fine_quant{band_base + 5 * band_count, band_count};
   std::span<int> pulses{band_base + 6 * band_count, band_count};
   std::span<int> fine_priority{band_base + 7 * band_count, band_count};
-  maxDepth = dynalloc_analysis(bandLogE, bandLogE2, oldBandE, nbEBands, start, end, C, offsets.data(), st->lsb_depth, mode->logN,
-                               isTransient, st->vbr, st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, importance.data(),
-                               spread_weight.data(), tone_freq, toneishness);
+  maxDepth = dynalloc_analysis(bandLogE, bandLogE2, oldBandE, nbEBands, start, end, C, offsets.data(), st->lsb_depth, isTransient, st->vbr,
+                               st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, importance.data(), spread_weight.data(),
+                               tone_freq, toneishness);
   fill_n_items(tf_res.data(), static_cast<std::size_t>(end), 0);
   tf_select = 0;
   auto* error = OPUS_SCRATCH(celt_glog, C * nbEBands);
@@ -8531,6 +8551,44 @@ constexpr std::array<unsigned char, 392> cache_bits50 = numeric_blob_array<unsig
     R"blob(2807070707070707070707070707070707070707070707070707070707070707070707070707070707280F171C1F22242627292A2B2C2D2E2F2F3132333435363737393A3B3C3D3E3F3F4142434445464747281421293035393D40424547494B4C4E50525557595B5C5E60626567696B6C6E70727577797B7C7E80281727333C43494F53575B5E616466696B6F7376797C7E8183878B8E919496999B9FA3A6A9ACAEB1B3231C31414E59636B72787E84888D9195999FA5ABB0B4B9BDC0C7CDD3D8DCE1E5E8EFF5FB15213A4F61707D89949DA6AEB6BDC3C9CFD9E3EBF3FB11233F566A7B8B98A5B1BBC5CED6DEE6EDFA191F374B5B6975808A929AA1A8AEB4B9BEC8D0D7DEE5EBF0F5FF102441596E80909FADB9C4CFD9E2EAF2FA0B294A678097ACBFD1E1F1FF092B4F6E8AA3BACFE3F60C2747637B90A4B6C6D6E4F1FD092C51718EA8C0D6EBFF07315A7FA0BFDCF706335F86AACBEA072F577B9BB8D4ED06346189AED0F005396A97C0E7053B6F9ECAF305376793BBE0053C71A1CEF804417AAFE004437FB6EA)blob");
 constexpr std::array<unsigned char, 168> cache_caps50 = numeric_blob_array<unsigned char, 168>(
     R"blob(E0E0E0E0E0E0E0E0A0A0A0A0B9B9B9B2B2A8863D25E0E0E0E0E0E0E0E0F0F0F0F0CFCFCFC6C6B7904228A0A0A0A0A0A0A0A0B9B9B9B9C1C1C1B7B7AC8A4026F0F0F0F0F0F0F0F0CFCFCFCFCCCCCCC1C1B48F4228B9B9B9B9B9B9B9B9C1C1C1C1C1C1C1B7B7AC8A4127CFCFCFCFCFCFCFCFCCCCCCCCC9C9C9BCBCB08D4228C1C1C1C1C1C1C1C1C1C1C1C1C2C2C2B8B8AD8B4127CCCCCCCCCCCCCCCCC9C9C9C9C6C6C6BBBBAF8C4228)blob");
+
+namespace {
+[[nodiscard]] consteval auto celt_bits2pulses_search_cache50(int cache_offset, int bits) noexcept -> int {
+  int lo = 0;
+  int hi = cache_bits50[static_cast<std::size_t>(cache_offset)];
+  --bits;
+  for (int i = 0; i < 6; ++i) {
+    const int mid = (lo + hi + 1) >> 1;
+    if (static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + mid)]) >= bits) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  const int low_distance =
+      bits - (lo == 0 ? -1 : static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + lo)]));
+  const int high_distance = static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + hi)]) - bits;
+  return low_distance <= high_distance ? lo : hi;
+}
+
+[[nodiscard]] consteval auto make_celt_bits2pulses_lut() noexcept -> celt_bits2pulses_lut_table {
+  celt_bits2pulses_lut_table table{};
+  for (int lm = 1; lm <= celt_bits2pulses_lut_lm_count; ++lm) {
+    for (int band = 0; band < celt_default_nb_ebands; ++band) {
+      const int row = (lm - 1) * celt_default_nb_ebands + band;
+      const auto cache_offset = cache_index50[static_cast<std::size_t>(lm * celt_default_nb_ebands + band)];
+      for (int bits = 0; bits < celt_bits2pulses_lut_bits; ++bits) {
+        table[static_cast<std::size_t>(row)][static_cast<std::size_t>(bits)] =
+          static_cast<opus_uint8>(celt_bits2pulses_search_cache50(cache_offset, bits));
+      }
+    }
+  }
+  return table;
+}
+
+constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut = make_celt_bits2pulses_lut();
+}
+
 struct celt_generated_tables {
   std::array<kiss_twiddle_cpx, 381> fft_twiddles;
   std::array<celt_coef, 1800> mdct_trig;
@@ -9386,8 +9444,16 @@ static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef*
   }
 }
 namespace {
-constinit const std::array<opus_val16, 25> eMeans = numeric_blob_array<opus_val16, 25>(
-    R"blob(40CE000040C8000040B8000040AA000040A20000409A000040900000408C0000409C00004096000040920000408E0000409C000040940000408A000040900000408C00004094000040980000408E00004070000040700000407000004070000040700000)blob");
+template <std::size_t Count>
+[[nodiscard]] consteval auto make_celt_noise_floor_base(const std::array<opus_int16, Count>& logN) noexcept {
+  std::array<opus_val16, celt_default_nb_ebands> base{};
+  for (std::size_t i = 0; i < base.size(); ++i) {
+    base[i] = (0.0625f) * logN[i] + (.5f) - eMeans[i] + (.0062f) * static_cast<opus_val16>((i + 5) * (i + 5));
+  }
+  return base;
+}
+
+constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise_floor_base = make_celt_noise_floor_base(logN400);
 }
 
 constexpr std::array<opus_val16, 4> pred_coef = numeric_blob_array<opus_val16, 4>(R"blob(3F6600003F4C00003F2600003F000000)blob");
