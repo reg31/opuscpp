@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.396x | 1.753x | 801x | 334x | 2037x | 1162x |
-| 24&nbsp;kbps | 1.728x | 1.344x | 480x | 278x | 1419x | 1056x |
-| 32&nbsp;kbps | 1.736x | 1.302x | 503x | 289x | 1361x | 1045x |
-| 48&nbsp;kbps | 1.510x | 1.234x | 448x | 296x | 1189x | 963x |
-| 64&nbsp;kbps | 1.554x | 1.214x | 411x | 264x | 1014x | 835x |
-| 96&nbsp;kbps | 1.634x | 1.197x | 346x | 212x | 790x | 660x |
-| 128&nbsp;kbps | 1.902x | 1.181x | 366x | 192x | 685x | 580x |
-| 192&nbsp;kbps | 1.695x | 1.117x | 298x | 176x | 550x | 493x |
-| 256&nbsp;kbps | 1.633x | 1.065x | 271x | 166x | 476x | 446x |
+| 16&nbsp;kbps | 2.383x | 1.698x | 791x | 332x | 2089x | 1230x |
+| 24&nbsp;kbps | 1.642x | 1.322x | 496x | 302x | 1469x | 1111x |
+| 32&nbsp;kbps | 1.748x | 1.284x | 519x | 297x | 1395x | 1087x |
+| 48&nbsp;kbps | 1.506x | 1.236x | 457x | 303x | 1214x | 982x |
+| 64&nbsp;kbps | 1.522x | 1.216x | 408x | 268x | 1037x | 853x |
+| 96&nbsp;kbps | 1.598x | 1.198x | 346x | 216x | 811x | 677x |
+| 128&nbsp;kbps | 1.822x | 1.172x | 359x | 197x | 691x | 590x |
+| 192&nbsp;kbps | 1.559x | 1.136x | 279x | 179x | 576x | 506x |
+| 256&nbsp;kbps | 1.584x | 1.082x | 271x | 171x | 490x | 453x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -256,7 +256,6 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 192&nbsp;kbps | +0.0111 | +0.0012 | +0.1763 | 192.0 kbps | 192.4 kbps |
 | 256&nbsp;kbps | +0.0107 | +0.0013 | +0.1400 | 256.0 kbps | 256.4 kbps |
 
-
 ## Memory metrics
 
 | State | opuscpp | official Opus | Difference |
@@ -274,7 +273,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 292,712 B | 0 B | 292,712 B |
+| Host MinGW GCC `-O2` | 291,552 B | 0 B | 291,552 B |
 
 ## Toolchains checked
 
