@@ -2418,6 +2418,7 @@ struct frame_activity_metrics {
   int is_silence;
   opus_val32 energy;
   opus_val64 mono_energy;
+  int mono_zero_crossings;
   opus_val32 mono_diff_ratio, mono_zero_cross_rate;
 };
 static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int frame_size, int channels, int lsb_depth) {
@@ -2460,7 +2461,8 @@ static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int fr
   const int len = frame_size * channels;
   const auto diff_ratio = static_cast<opus_val32>(mono_diff_energy / (mono_energy + 1e-12f));
   const auto zero_cross_rate = static_cast<opus_val32>(mono_zero_crossings) / std::max(1, frame_size - 1);
-  return {sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth), energy / len, mono_energy, diff_ratio, zero_cross_rate};
+  return {sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth), energy / len, mono_energy, mono_zero_crossings, diff_ratio,
+          zero_cross_rate};
 }
 
 static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc);
@@ -2478,23 +2480,12 @@ struct audio_content_markers {
     return markers;
   }
   constexpr int envelope_blocks = 10;
-  int zc = 0;
-  opus_val32 prev = channels == 1 ? pcm[0] : .5f * (pcm[0] + pcm[1]);
+  const int zc = frame_metrics.mono_zero_crossings;
   const opus_val16* mono = pcm;
-  if (channels == 1) {
-    for (int i = 1; i < frame_size; ++i) {
-      const opus_val32 sample = pcm[i];
-      zc += (sample >= 0) != (prev >= 0);
-      prev = sample;
-    }
-  } else {
+  if (channels == 2) {
     opus_val16* mono_storage = OPUS_SCRATCH(opus_val16, static_cast<std::size_t>(frame_size));
-    mono_storage[0] = prev;
-    for (int i = 1; i < frame_size; ++i) {
-      const opus_val32 sample = .5f * (pcm[2 * i] + pcm[2 * i + 1]);
-      mono_storage[i] = sample;
-      zc += (sample >= 0) != (prev >= 0);
-      prev = sample;
+    for (int i = 0; i < frame_size; ++i) {
+      mono_storage[i] = .5f * (pcm[2 * i] + pcm[2 * i + 1]);
     }
     mono = mono_storage;
   }
@@ -3912,10 +3903,14 @@ static int clt_compute_allocation(const CeltModeInternal* m, int start, int end,
   return value < 8 ? value : (8 + (value & 7)) << ((value >> 3) - 1);
 }
 
-constexpr int celt_bits2pulses_lut_bits = 160;
 constexpr int celt_bits2pulses_lut_lm_count = 4;
 constexpr int celt_bits2pulses_lut_rows = celt_bits2pulses_lut_lm_count * celt_default_nb_ebands;
-using celt_bits2pulses_lut_table = std::array<std::array<opus_uint8, celt_bits2pulses_lut_bits>, celt_bits2pulses_lut_rows>;
+constexpr int celt_bits2pulses_lut_entries = 15936;
+
+struct celt_bits2pulses_lut_table {
+  std::array<opus_uint16, celt_bits2pulses_lut_rows + 1> offsets{};
+  std::array<opus_uint8, celt_bits2pulses_lut_entries> values{};
+};
 
 namespace {
 extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
@@ -3941,9 +3936,14 @@ extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
 [[nodiscard]] constexpr auto bits2pulses(const CeltModeInternal* mode, int band, int lm, int bits) noexcept -> int {
   ++lm;
   const unsigned char* cache = mode->cache_bits + mode->cache_index[lm * mode->nbEBands + band];
-  if (bits >= 0 && bits < celt_bits2pulses_lut_bits && lm > 0 && lm <= celt_bits2pulses_lut_lm_count &&
-      mode->nbEBands == celt_default_nb_ebands) {
-    return celt_bits2pulses_lut[(lm - 1) * celt_default_nb_ebands + band][bits];
+  if (bits >= 0 && lm > 0 && lm <= celt_bits2pulses_lut_lm_count && mode->nbEBands == celt_default_nb_ebands) {
+    const auto row = static_cast<std::size_t>((lm - 1) * celt_default_nb_ebands + band);
+    const auto begin = celt_bits2pulses_lut.offsets[row];
+    const auto end = celt_bits2pulses_lut.offsets[row + 1];
+    if (static_cast<unsigned>(bits) < static_cast<unsigned>(end - begin)) {
+      return celt_bits2pulses_lut.values[begin + static_cast<unsigned>(bits)];
+    }
+    return cache[0];
   }
   return celt_bits2pulses_search(cache, bits);
 }
@@ -8631,34 +8631,27 @@ constexpr std::array<unsigned char, 168> cache_caps50 = numeric_blob_array<unsig
     R"blob(E0E0E0E0E0E0E0E0A0A0A0A0B9B9B9B2B2A8863D25E0E0E0E0E0E0E0E0F0F0F0F0CFCFCFC6C6B7904228A0A0A0A0A0A0A0A0B9B9B9B9C1C1C1B7B7AC8A4026F0F0F0F0F0F0F0F0CFCFCFCFCCCCCCC1C1B48F4228B9B9B9B9B9B9B9B9C1C1C1C1C1C1C1B7B7AC8A4127CFCFCFCFCFCFCFCFCCCCCCCCC9C9C9BCBCB08D4228C1C1C1C1C1C1C1C1C1C1C1C1C2C2C2B8B8AD8B4127CCCCCCCCCCCCCCCCC9C9C9C9C6C6C6BBBBAF8C4228)blob");
 
 namespace {
-[[nodiscard]] consteval auto celt_bits2pulses_search_cache50(int cache_offset, int bits) noexcept -> int {
-  int lo = 0;
-  int hi = cache_bits50[static_cast<std::size_t>(cache_offset)];
-  --bits;
-  for (int i = 0; i < 6; ++i) {
-    const int mid = (lo + hi + 1) >> 1;
-    if (static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + mid)]) >= bits) {
-      hi = mid;
-    } else {
-      lo = mid;
-    }
-  }
-  const int low_distance =
-      bits - (lo == 0 ? -1 : static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + lo)]));
-  const int high_distance = static_cast<int>(cache_bits50[static_cast<std::size_t>(cache_offset + hi)]) - bits;
-  return low_distance <= high_distance ? lo : hi;
-}
-
 [[nodiscard]] consteval auto make_celt_bits2pulses_lut() noexcept -> celt_bits2pulses_lut_table {
   celt_bits2pulses_lut_table table{};
+  std::size_t entry = 0;
+  int row = 0;
   for (int lm = 1; lm <= celt_bits2pulses_lut_lm_count; ++lm) {
-    for (int band = 0; band < celt_default_nb_ebands; ++band) {
-      const int row = (lm - 1) * celt_default_nb_ebands + band;
+    for (int band = 0; band < celt_default_nb_ebands; ++band, ++row) {
       const auto cache_offset = cache_index50[static_cast<std::size_t>(lm * celt_default_nb_ebands + band)];
-      for (int bits = 0; bits < celt_bits2pulses_lut_bits; ++bits) {
-        table[static_cast<std::size_t>(row)][static_cast<std::size_t>(bits)] =
-          static_cast<opus_uint8>(celt_bits2pulses_search_cache50(cache_offset, bits));
+      const auto max_pulse = cache_bits50[static_cast<std::size_t>(cache_offset)];
+      const auto count = cache_bits50[static_cast<std::size_t>(cache_offset + max_pulse)] + 2;
+      int upper = 1;
+      for (int bits = 0; bits < count; ++bits) {
+        const int target = bits - 1;
+        while (upper < max_pulse && cache_bits50[static_cast<std::size_t>(cache_offset + upper)] < target) {
+          ++upper;
+        }
+        const int lower = upper - 1;
+        const int lower_value = lower == 0 ? -1 : cache_bits50[static_cast<std::size_t>(cache_offset + lower)];
+        const int upper_value = cache_bits50[static_cast<std::size_t>(cache_offset + upper)];
+        table.values[entry++] = static_cast<opus_uint8>(target - lower_value <= upper_value - target ? lower : upper);
       }
+      table.offsets[static_cast<std::size_t>(row + 1)] = static_cast<opus_uint16>(entry);
     }
   }
   return table;
