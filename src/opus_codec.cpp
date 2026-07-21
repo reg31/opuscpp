@@ -1789,12 +1789,16 @@ static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp,
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch);
 static opus_val16 remove_doubling(opus_val16* x, int maxperiod, int minperiod, int N, int* T0, int prev_period, opus_val16 prev_gain);
 static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, std::span<opus_val32, 4> sum, int len) {
+  const auto* y0 = y;
+  const auto* y1 = y + 1;
+  const auto* y2 = y + 2;
+  const auto* y3 = y + 3;
   for (int index = 0; index < len; ++index) {
     const auto sample = static_cast<opus_val32>(x[index]);
-    sum[0] += sample * static_cast<opus_val32>(y[index]);
-    sum[1] += sample * static_cast<opus_val32>(y[index + 1]);
-    sum[2] += sample * static_cast<opus_val32>(y[index + 2]);
-    sum[3] += sample * static_cast<opus_val32>(y[index + 3]);
+    sum[0] += sample * static_cast<opus_val32>(y0[index]);
+    sum[1] += sample * static_cast<opus_val32>(y1[index]);
+    sum[2] += sample * static_cast<opus_val32>(y2[index]);
+    sum[3] += sample * static_cast<opus_val32>(y3[index]);
   }
 }
 
