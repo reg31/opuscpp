@@ -198,15 +198,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.215x | 1.741x | 589x | 266x | 1804x | 1036x |
-| 24&nbsp;kbps | 1.769x | 1.357x | 401x | 227x | 1136x | 837x |
-| 32&nbsp;kbps | 1.698x | 1.284x | 358x | 211x | 1013x | 789x |
-| 48&nbsp;kbps | 1.427x | 1.191x | 313x | 219x | 910x | 764x |
-| 64&nbsp;kbps | 1.453x | 1.228x | 337x | 232x | 931x | 758x |
-| 96&nbsp;kbps | 1.605x | 1.258x | 341x | 212x | 755x | 600x |
-| 128&nbsp;kbps | 1.904x | 1.248x | 341x | 179x | 561x | 450x |
-| 192&nbsp;kbps | 1.622x | 1.163x | 211x | 130x | 509x | 438x |
-| 256&nbsp;kbps | 1.810x | 1.097x | 262x | 145x | 400x | 364x |
+| 16&nbsp;kbps | 2.362x | 1.711x | 764x | 323x | 2141x | 1251x |
+| 24&nbsp;kbps | 1.713x | 1.356x | 525x | 307x | 1483x | 1093x |
+| 32&nbsp;kbps | 1.729x | 1.294x | 506x | 293x | 1398x | 1081x |
+| 48&nbsp;kbps | 1.527x | 1.248x | 437x | 286x | 1131x | 906x |
+| 64&nbsp;kbps | 1.817x | 1.175x | 350x | 193x | 805x | 686x |
+| 96&nbsp;kbps | 1.672x | 1.162x | 299x | 179x | 549x | 473x |
+| 128&nbsp;kbps | 1.940x | 1.230x | 261x | 134x | 473x | 385x |
+| 192&nbsp;kbps | 1.683x | 1.210x | 220x | 131x | 404x | 334x |
+| 256&nbsp;kbps | 1.598x | 1.137x | 221x | 138x | 439x | 386x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -273,7 +273,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 294,240 B | 0 B | 294,240 B |
+| Host MinGW GCC `-O2` | 293,668 B | 0 B | 293,668 B |
 
 ## Toolchains checked
 
