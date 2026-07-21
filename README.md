@@ -29,9 +29,9 @@ Minimal integration looks like:
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.14x to 1.80x).
+  run (1.56x to 2.32x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.14x to 1.71x).
+  run (1.14x to 1.80x).
 - AUDIO and VOIP quality proxy deltas are tracked separately; AUDIO stays close to official Opus
   with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at
@@ -54,8 +54,8 @@ Minimal integration looks like:
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.53x to 2.36x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.14x to 1.71x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.56x to 2.32x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.14x to 1.80x). | A few high-rate decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (21.9% to 49.0% lower private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
