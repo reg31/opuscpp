@@ -536,8 +536,6 @@ struct CeltModeInternal {
   const unsigned char* cache_bits;
   const unsigned char* cache_caps;
 };
-struct ref_OpusEncoder;
-struct ref_OpusDecoder;
 [[nodiscard]] static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data);
 [[nodiscard]] static constexpr int ref_opus_packet_get_nb_channels(const unsigned char* data);
 [[nodiscard]] static constexpr int ref_opus_decoder_get_nb_samples(const ref_OpusDecoder* dec, const unsigned char packet[],
@@ -1185,7 +1183,7 @@ static int opus_decode_frame(ref_OpusDecoder* st, const unsigned char* data, opu
   pcm_transition_celt_size = 1;
   if (data != nullptr && st->prev_mode > 0 &&
       ((mode == opus_mode_celt_only && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy) ||
-       (mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only))) {
+         (mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only))) {
     transition = 1;
     if (mode == opus_mode_celt_only) {
       pcm_transition_celt_size = F5 * st->channels;
@@ -6205,10 +6203,10 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   // Frequency-domain analysis creates the band energies and scratch workset
   // used by dynalloc, TF signalling, trim, and pulse allocation.
   auto* freq = OPUS_SCRATCH(celt_sig, CC * N);
-  auto* bandE = OPUS_SCRATCH(celt_ener, nbEBands * CC);
-  auto* bandLogE = OPUS_SCRATCH(celt_glog, nbEBands * CC);
-  auto* bandLogE2 = OPUS_SCRATCH(celt_glog, C * nbEBands);
   compute_mdcts(mode, shortBlocks, in, freq, C, CC, LM, st->upsample);
+  celt_ener* bandE = in;
+  celt_glog* bandLogE = bandE + nbEBands * CC;
+  celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
   compute_band_energies(mode, freq, bandE, effEnd, C, LM);
   amp2Log2(mode, effEnd, end, bandE, bandLogE, C);
   temporal_vbr = celt_update_temporal_vbr(st, bandLogE, layout, shortBlocks);
@@ -6217,7 +6215,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     ec_enc_bit_logp(enc, isTransient, 3);
   }
   const auto band_count = static_cast<std::size_t>(nbEBands);
-  auto* X = OPUS_SCRATCH(celt_norm, C * N);
+  auto* X = freq;
   normalise_bands(mode, freq, X, bandE, effEnd, C, M);
   std::array<int, 8 * celt_default_nb_ebands> celt_band_storage;
   auto* const band_base = celt_band_storage.data();
@@ -6235,7 +6233,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
                                tone_freq, toneishness);
   fill_n_items(tf_res.data(), static_cast<std::size_t>(end), 0);
   tf_select = 0;
-  auto* error = OPUS_SCRATCH(celt_glog, C * nbEBands);
+  auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
   celt_apply_energy_error_feedback(oldBandE, bandLogE, energyError, layout);
   {
@@ -6687,8 +6685,6 @@ static inline void deemphasis_i16(celt_sig* const* in, opus_int16* pcm, int N, i
 }
 
 static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int downsample, const opus_val16* coef, celt_sig* mem) {
-  int c, Nd;
-  opus_val16 coef0;
   if (downsample == 1 && C == 1) {
     deemphasis_mono_simple(in[0], pcm, N, coef[0], mem);
     return;
@@ -6697,39 +6693,20 @@ static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int dow
     deemphasis_stereo_simple(in[0], in[1], pcm, N, coef[0], mem);
     return;
   }
-  auto* scratch = static_cast<celt_sig*>(nullptr);
-  if (downsample > 1) {
-    scratch = OPUS_SCRATCH(celt_sig, N);
-  }
-  coef0 = coef[0];
-  Nd = N / downsample;
-  for (c = 0; c < C; ++c) {
-    int j;
-    celt_sig* x;
-    opus_res* y;
+  const opus_val16 coef0 = coef[0];
+  for (int c = 0; c < C; ++c) {
     celt_sig m = mem[c];
-    x = in[c];
-    y = pcm + c;
-    if (downsample > 1) {
-      for (j = 0; j < N; j++) {
-        celt_sig tmp = x[j] + 1e-30f + m;
-        m = coef0 * tmp;
-        scratch[j] = tmp;
-      }
-      mem[c] = zero_tiny_float_mem(m);
-      for (j = 0; j < Nd; j++) {
-        y[j * C] = signal_to_float_pcm(scratch[j * downsample]);
-      }
-    } else {
-      for (j = 0; j < N; j++) {
-        celt_sig tmp = x[j] + 1e-30f + m;
-        m = coef0 * tmp;
-        y[j * C] = signal_to_float_pcm(tmp);
+    int next_output = 0;
+    int output = 0;
+    for (int j = 0; j < N; ++j) {
+      const celt_sig sample = in[c][j] + 1e-30f + m;
+      m = coef0 * sample;
+      if (j == next_output) {
+        pcm[output++ * C + c] = signal_to_float_pcm(sample);
+        next_output += downsample;
       }
     }
-    if (downsample == 1) {
-      mem[c] = zero_tiny_float_mem(m);
-    }
+    mem[c] = zero_tiny_float_mem(m);
   }
 }
 
@@ -7363,22 +7340,6 @@ struct celt_pvq_decode_work {
     return {celt_pvq_u_entry_fast(row0, col0) + celt_pvq_u_entry_fast(row1, col1), true};
   }
   return {celt_pvq_u_total(n, k), false};
-}
-
-[[maybe_unused]] static opus_uint32 icwrs(int _n, const int* _y) {
-  opus_uint32 i;
-  int j, k;
-  j = _n - 1;
-  i = _y[j] < 0;
-  k = std::abs(_y[j]);
-  for (; j-- > 0;) {
-    i += celt_pvq_u_entry(_n - j, k);
-    k += std::abs(_y[j]);
-    if (_y[j] < 0) {
-      i += celt_pvq_u_entry(_n - j, k + 1);
-    }
-  }
-  return i;
 }
 
 struct celt_pvq_search_result {
@@ -12156,7 +12117,7 @@ static void silk_NSQ_c(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Si
   auto* sLTP_Q15_storage = OPUS_SCRATCH(opus_int32, ltp_frame_storage);
   auto* sLTP_storage = OPUS_SCRATCH(opus_int16, ltp_frame_storage);
   auto* sLTP = sLTP_storage;
-  auto* x_sc_Q10_storage = OPUS_SCRATCH(opus_int32, static_cast<std::size_t>(psEncC->subfr_length));
+  auto* x_sc_Q10_storage = sLTP_Q15_storage + ltp_frame_storage - psEncC->subfr_length;
   NSQ->sLTP_shp_buf_idx = psEncC->ltp_mem_length;
   NSQ->sLTP_buf_idx = psEncC->ltp_mem_length;
   pxq = &NSQ->xq[psEncC->ltp_mem_length];
@@ -12632,7 +12593,7 @@ static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state*
   auto* sLTP_Q15_storage = OPUS_SCRATCH(opus_int32, ltp_frame_storage);
   auto* sLTP_storage = OPUS_SCRATCH(opus_int16, ltp_frame_storage);
   auto* sLTP = sLTP_storage;
-  auto* x_sc_Q10_storage = OPUS_SCRATCH(opus_int32, static_cast<std::size_t>(psEncC->subfr_length));
+  auto* x_sc_Q10_storage = sLTP_Q15_storage + ltp_frame_storage - psEncC->subfr_length;
   std::array<opus_int32, 40> delayedGain_Q10;
   pxq = &NSQ->xq[psEncC->ltp_mem_length];
   NSQ->sLTP_shp_buf_idx = psEncC->ltp_mem_length;
@@ -12705,9 +12666,6 @@ static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state*
   NSQ->lagPrev = pitchL[psEncC->nb_subfr - 1];
   silk_finish_nsq(psEncC, NSQ);
 }
-
-
-
 [[nodiscard]] constexpr auto plc_harm_atten_q15(int loss_count) noexcept -> opus_int16 {
   return loss_count == 0 ? 31948 : 28672;
 }
@@ -13827,9 +13785,6 @@ static void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q
                                16)));
   return sum;
 }
-
-
-
 constexpr std::array<unsigned char, 117 - 10> silk_TargetRate_NB_21 = numeric_blob_array<unsigned char, 107>(
     R"blob(000F27343D444A4F54585C5F6366696C6F7275777A7C7E81838587898B8E8F91939597999B9D9EA0A2A3A5A7A8AAABADAEB0B1B3B4B6B7B9BABBBDBEC0C1C2C4C5C7C8C9CBCCCDCFD0D1D3D4D5D7D8D9DBDCDDDFE0E1E3E4E6E7E8EAEBECEEEFF1F2F3F5F6F8F9FAFCFDFF)blob");
 constexpr std::array<unsigned char, 165 - 10> silk_TargetRate_MB_21 = numeric_blob_array<unsigned char, 155>(
@@ -15329,15 +15284,6 @@ void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x
     x2[n + 1] = saturate_int16_from_int32(diff);
   }
 }
-
-
-
-
-
-
-
-
-
 void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int QOUT, const int QIN, const int d) {
   int i, k, idx = 0;
   opus_int32 maxabs, absval, chirp_Q16;
@@ -15698,7 +15644,7 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   float thrhld, res_nrg;
   const float *x_buf_ptr, *x_buf;
   float auto_corr[16 + 1], A[16], refl_coef[16];
-  auto* Wsig = OPUS_SCRATCH(float, static_cast<std::size_t>(psEnc->sCmn.pitch_LPC_win_length));
+  auto* Wsig = res;
   float* Wsig_ptr;
   buf_len = psEnc->sCmn.la_pitch + psEnc->sCmn.frame_length + psEnc->sCmn.ltp_mem_length;
   x_buf = x - psEnc->sCmn.ltp_mem_length;
@@ -15743,14 +15689,16 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
 }
 
 void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[],
-                              int condCoding) {
+                               int condCoding) {
   int i;
-  float XXLTP[4 * 5 * 5], xXLTP[4 * 5], invGains[4];
+  float invGains[4];
   opus_int16 NLSF_Q15[16]{};
   const float* x_ptr;
   float* x_pre_ptr;
   auto* LPC_in_pre =
       OPUS_SCRATCH(float, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * (psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder)));
+  auto* XXLTP = LPC_in_pre;
+  auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * 5 * 5;
   float minInvGain;
   for (i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
@@ -16382,7 +16330,6 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
   const float *target_ptr, *basis_ptr;
   double cross_corr, normalizer, energy, energy_tmp;
   std::array<int, 24> d_srch;
-  std::array<opus_int16, ((18 * 16) >> 1) + 5> d_comp;
   int length_d_srch, length_d_comp;
   float Cmax, CCmax, CCmax_b, CCmax_new_b, CCmax_new;
   int CBimax, CBimax_new, lag, start_lag, end_lag, lag_new;
@@ -16404,6 +16351,7 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
   auto* frame_8kHz = OPUS_SCRATCH(float, static_cast<std::size_t>(frame_length_8kHz));
   auto* frame_4kHz = OPUS_SCRATCH(float, static_cast<std::size_t>(frame_length_4kHz));
   auto* frame_8_FIX = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(frame_length_8kHz));
+  auto* d_comp = frame_8_FIX;
   auto* frame_4_FIX = OPUS_SCRATCH(opus_int16, static_cast<std::size_t>(frame_length_4kHz));
   auto(*C)[pitch_stage2_cols] = reinterpret_cast<float (*)[pitch_stage2_cols]>(OPUS_SCRATCH(float, 4 * pitch_stage2_cols));
   auto(*energies_st3)[34][5] = reinterpret_cast<float (*)[34][5]>(OPUS_SCRATCH(float, 4 * 34 * 5));
@@ -16467,7 +16415,7 @@ int silk_pitch_analysis_core_FLP(const float* frame, int* pitch_out, opus_int16*
       break;
     }
   }
-  zero_n_items(d_comp.data() + min_lag_8kHz - 5, static_cast<std::size_t>(max_lag_8kHz - min_lag_8kHz + 10));
+  zero_n_items(d_comp + min_lag_8kHz - 5, static_cast<std::size_t>(max_lag_8kHz - min_lag_8kHz + 10));
   for (i = 0; i < length_d_srch; i++) {
     d_comp[d_srch[i]] = 1;
   }
