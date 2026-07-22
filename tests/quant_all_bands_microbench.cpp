@@ -45,8 +45,23 @@ struct BenchResult {
   return hash;
 }
 
+[[nodiscard]] auto rank_cwrs(const std::span<const opus_int16> pulses) noexcept -> opus_uint32 {
+  int position = static_cast<int>(pulses.size()) - 1;
+  int accumulated = std::abs(pulses[static_cast<std::size_t>(position)]);
+  auto index = accumulated != 0 && pulses[static_cast<std::size_t>(position)] < 0 ? 1U : 0U;
+  while (position-- > 0) {
+    const auto pulse = pulses[static_cast<std::size_t>(position)];
+    const int magnitude = std::abs(pulse);
+    index += celt_pvq_u_entry(static_cast<int>(pulses.size()) - position, accumulated);
+    accumulated += magnitude;
+    if (magnitude != 0 && pulse < 0) {
+      index += celt_pvq_u_entry(static_cast<int>(pulses.size()) - position, accumulated + 1);
+    }
+  }
+  return index;
+}
+
 void check_cwrs_roundtrip() {
-  std::array<int, 176> pulses{};
   std::array<opus_int16, 176> decoded{};
   for (int n = 2; n <= 48; ++n) {
     for (int k = 0; k <= 32; ++k) {
@@ -54,7 +69,6 @@ void check_cwrs_roundtrip() {
       const std::array<opus_uint32, 7> samples{
           0U, total / 7U, total / 3U, total / 2U, (total * 5U) / 7U, total > 1U ? total - 2U : 0U, total - 1U};
       for (const auto index : samples) {
-        fill_n_items(pulses.data(), pulses.size(), 0);
         fill_n_items(decoded.data(), decoded.size(), opus_int16{});
         auto writer = celt_pvq_dense_writer{decoded.data()};
         if (celt_pvq_decode_work_for(n, k).fast) {
@@ -62,8 +76,7 @@ void check_cwrs_roundtrip() {
         } else {
           celt_pvq_unrank_impl<false>(n, k, index, writer);
         }
-        std::copy_n(decoded.data(), static_cast<std::size_t>(n), pulses.data());
-        const auto roundtrip = icwrs(n, pulses.data());
+        const auto roundtrip = rank_cwrs(std::span{decoded}.first(static_cast<std::size_t>(n)));
         if (roundtrip != index) {
           throw std::runtime_error("CWRS roundtrip failed");
         }

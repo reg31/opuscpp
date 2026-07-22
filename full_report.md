@@ -26,21 +26,22 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 ## Perceptual and memory harness
 
 - Local run includes perceptual proxy metrics, effective-bitrate measurements, encode timing, and memory figures.
+- Proxy quality uses the opt-in automatic opuscpp decoder postfilter; default decoding remains unfiltered.
 - Source harness: `tests/perceptual_memory_validation.cpp`.
 
 ## Speed metrics vs official Opus
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.319743x | 1.803371x |
-| 24 kbps | 1.819111x | 1.317682x |
-| 32 kbps | 1.938658x | 1.325406x |
-| 48 kbps | 1.578780x | 1.302775x |
-| 64 kbps | 1.557209x | 1.419594x |
-| 96 kbps | 1.720849x | 1.234288x |
-| 128 kbps | 2.187846x | 1.218717x |
-| 192 kbps | 1.680403x | 1.180209x |
-| 256 kbps | 1.625677x | 1.141328x |
+| 16 kbps | 2.393428x | 1.724462x |
+| 24 kbps | 1.730149x | 1.347430x |
+| 32 kbps | 1.793642x | 1.294633x |
+| 48 kbps | 1.499696x | 1.251423x |
+| 64 kbps | 1.540848x | 1.250270x |
+| 96 kbps | 1.627623x | 1.233233x |
+| 128 kbps | 1.873761x | 1.219509x |
+| 192 kbps | 1.684725x | 1.198195x |
+| 256 kbps | 1.669357x | 1.136961x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -49,18 +50,18 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 | 16 kbps | 0.0665 | -0.0020 | -0.0013 | 0.0050 | 0.0009 | -0.0005 | 11.2709 | 16.000 kbps | 17.065 kbps |
 | 24 kbps | 0.0450 | -0.0015 | -0.0003 | 0.0047 | 0.0229 | 0.0041 | 27.5027 | 24.000 kbps | 25.220 kbps |
 | 32 kbps | 0.1406 | -0.0050 | -0.0029 | 0.0129 | 0.0403 | 0.0058 | 20.6017 | 32.000 kbps | 33.613 kbps |
-| 48 kbps | 0.0083 | -0.0003 | -0.0003 | 0.0012 | 0.0126 | 0.0023 | 0.6082 | 48.000 kbps | 48.560 kbps |
-| 64 kbps | 0.0113 | -0.0004 | -0.0003 | 0.0011 | 0.0050 | 0.0006 | 0.2282 | 64.000 kbps | 64.613 kbps |
-| 96 kbps | 0.0197 | -0.0007 | -0.0005 | 0.0020 | 0.0038 | 0.0010 | 0.7145 | 96.000 kbps | 96.697 kbps |
-| 128 kbps | 0.0346 | -0.0012 | -0.0006 | 0.0026 | 0.0011 | 0.0002 | 0.5326 | 128.000 kbps | 128.759 kbps |
-| 192 kbps | 0.0256 | -0.0009 | -0.0004 | 0.0023 | 0.0000 | -0.0000 | 0.5769 | 192.000 kbps | 192.900 kbps |
-| 256 kbps | 0.0089 | -0.0003 | -0.0001 | 0.0008 | 0.0001 | -0.0000 | 0.1183 | 256.000 kbps | 256.736 kbps |
+| 48 kbps | 0.0104 | -0.0004 | -0.0004 | 0.0014 | 0.0127 | 0.0023 | 0.6830 | 48.000 kbps | 48.560 kbps |
+| 64 kbps | 0.0134 | -0.0005 | -0.0004 | 0.0013 | 0.0050 | 0.0006 | 0.3020 | 64.000 kbps | 64.613 kbps |
+| 96 kbps | 0.0216 | -0.0008 | -0.0006 | 0.0022 | 0.0038 | 0.0010 | 0.7335 | 96.000 kbps | 96.697 kbps |
+| 128 kbps | 0.0364 | -0.0013 | -0.0006 | 0.0028 | 0.0011 | 0.0002 | 0.5515 | 128.000 kbps | 128.759 kbps |
+| 192 kbps | 0.0275 | -0.0010 | -0.0005 | 0.0025 | -0.0000 | -0.0000 | 0.5958 | 192.000 kbps | 192.900 kbps |
+| 256 kbps | 0.0110 | -0.0004 | -0.0002 | 0.0010 | 0.0001 | -0.0000 | 0.1919 | 256.000 kbps | 256.736 kbps |
 
 ## VOIP quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.2684 | -0.0083 | -0.0050 | 0.0133 | -0.0279 | -0.0079 | -0.0222 | 16.000 kbps | 16.255 kbps |
+| 16 kbps | 0.3138 | -0.0097 | -0.0060 | 0.0216 | 0.0031 | 0.0002 | 0.0628 | 16.000 kbps | 16.255 kbps |
 | 24 kbps | 0.1289 | -0.0040 | -0.0026 | 0.0094 | 0.0007 | 0.0005 | 0.3045 | 24.000 kbps | 24.148 kbps |
 | 32 kbps | 0.3163 | -0.0098 | -0.0064 | 0.0244 | 0.0016 | 0.0001 | 0.1715 | 32.000 kbps | 32.184 kbps |
 | 48 kbps | 0.1639 | -0.0051 | -0.0034 | 0.0128 | 0.0023 | 0.0007 | -0.0847 | 48.000 kbps | 48.244 kbps |
@@ -90,7 +91,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 294316 B | 0 B | 294316 B |
+| Host C++23 `-O2` | 294296 B | 0 B | 294296 B |
 
 ## Toolchains checked
 

@@ -204,6 +204,7 @@ def emit_metrics_report(
         "## Perceptual and memory harness",
         "",
         "- Local run includes perceptual proxy metrics, effective-bitrate measurements, encode timing, and memory figures.",
+        "- Proxy quality uses the opt-in automatic opuscpp decoder postfilter; default decoding remains unfiltered.",
         "- Source harness: `tests/perceptual_memory_validation.cpp`.",
         "",
         "## Speed metrics vs official Opus",

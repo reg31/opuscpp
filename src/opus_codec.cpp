@@ -375,6 +375,7 @@ static void celt_encoder_set_vbr(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_constrained_vbr(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_silk_info(CeltEncoderInternal* st, const SILKInfo* info);
 static void celt_encoder_set_high_z_tonal(CeltEncoderInternal* st, opus_int32 value);
+static void celt_encoder_set_lowrate_refinement(CeltEncoderInternal* st, bool value);
 static void celt_encoder_set_complexity(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_start_band(CeltEncoderInternal* st, opus_int32 value);
 static void celt_encoder_set_end_band(CeltEncoderInternal* st, opus_int32 value);
@@ -945,7 +946,6 @@ struct SideInfoIndices {
   opus_int8 contourIndex, signalType, quantOffsetType, NLSFInterpCoef_Q2, PERIndex, LTP_scaleIndex, Seed;
 };
 struct silk_encoder_state {
-  std::array<opus_int32, 2> In_HP_State;
   opus_int32 variable_HP_smth1_Q15, variable_HP_smth2_Q15;
   silk_LP_state sLP;
   silk_VAD_state sVAD;
@@ -3151,6 +3151,12 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
       st->mode = opus_mode_celt_only;
     }
   }
+  // Recover spectral detail only on the low-rate CELT segment that needs it.
+  const bool refine_lowrate_voip_celt =
+      st->use_vbr && voip_style && st->channels == 1 && st->silk_mode.complexity >= 5 && st->bitrate_bps <= 16000 &&
+      frame_size == st->Fs / 50 && st->mode == opus_mode_celt_only &&
+      st->audio_preprocess_mode == preprocess_lowrate_voip_celt;
+  celt_encoder_set_lowrate_refinement(celt_enc, refine_lowrate_voip_celt);
   if (st->mode != opus_mode_celt_only && frame_size < st->Fs / 100) {
     st->mode = opus_mode_celt_only;
   }
@@ -5080,15 +5086,14 @@ struct CeltEncoderInternal {
   const CeltModeInternal* mode;
   int channels, stream_channels, force_intra, disable_pf, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
-  int vbr, constrained_vbr, lsb_depth, disable_inv;
+  int vbr, constrained_vbr, lsb_depth;
   opus_uint32 rng;
-  int spread_decision, high_z_tonal_Q7;
-  opus_val32 delayedIntra;
-  int lastCodedBands, prefilter_period;
-  opus_val16 prefilter_gain;
-  int prefilter_tapset, consec_transient;
+  opus_uint16 prefilter_period;
+  opus_uint8 spread_decision, high_z_tonal_Q7, consec_transient, lastCodedBands, prefilter_tapset;
+  bool lowrate_refinement;
+  opus_val32 delayedIntra, prefilter_gain;
   SILKInfo silk_info;
-  opus_val32 preemph_memE[2], preemph_memD[2];
+  opus_val32 preemph_memE[2];
   opus_int32 vbr_reservoir, vbr_drift, vbr_offset, vbr_count;
   opus_val32 overlap_max;
   opus_val16 stereo_saving;
@@ -5445,9 +5450,10 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
 }
 
 static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_glog* bandLogE2, const celt_glog* oldBandE, int nbEBands,
-                                          int start, int end, int C, int* offsets, int lsb_depth, int isTransient, int vbr,
-                                          int constrained_vbr, const opus_int16* eBands, int LM, int effectiveBytes, opus_int32* tot_boost_,
-                                          int* importance, int* spread_weight, opus_val16 tone_freq, opus_val32 toneishness) {
+                                           int start, int end, int C, int* offsets, int lsb_depth, int isTransient, int vbr,
+                                           int constrained_vbr, const opus_int16* eBands, int LM, int effectiveBytes, opus_int32* tot_boost_,
+                                           int* importance, int* spread_weight, opus_val16 tone_freq, opus_val32 toneishness,
+                                           int lowrate_refinement) {
   int i, c;
   opus_int32 tot_boost = 0;
   celt_glog maxDepth;
@@ -5498,7 +5504,7 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
       spread_weight[i] = 32 >> shift;
     }
   }
-  if (effectiveBytes >= (30 + 5 * LM)) {
+  if (effectiveBytes >= (30 + 5 * LM) || lowrate_refinement) {
     int last = 0;
     for (c = 0; c < C; ++c) {
       celt_glog offset, tmp;
@@ -5738,8 +5744,8 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     }
     gain1 = (.75f);
   } else if (enabled && complexity >= 5) {
-    // Reuse a stable prefilter instead of repeating the expensive pitch search on every frame.
-    if (st->prefilter_gain > (.2f) && st->prefilter_period >= min_period) {
+    // Reuse stable pitch unless low-rate quality refinement requests a fresh estimate.
+    if (!st->lowrate_refinement && st->prefilter_gain > (.2f) && st->prefilter_period >= min_period) {
       pitch_index = st->prefilter_period;
       gain1 = st->prefilter_gain;
     } else {
@@ -5792,7 +5798,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   }
   for (c = 0; c < CC; ++c) {
     int i, offset = mode->shortMdctSize - overlap;
-    st->prefilter_period = std::max(st->prefilter_period, 15);
+    st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
     copy_n_items(st->in_mem + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
     for (i = 0; i < N; i++) {
       before[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
@@ -6234,8 +6240,8 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   std::span<int> fine_priority{band_base + 7 * band_count, band_count};
   maxDepth = dynalloc_analysis(bandLogE, bandLogE2, oldBandE, nbEBands, start, end, C, offsets.data(), st->lsb_depth, isTransient, st->vbr,
                                st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, importance.data(), spread_weight.data(),
-                               tone_freq, toneishness);
-  fill_n_items(tf_res.data(), static_cast<std::size_t>(end), 0);
+                               tone_freq, toneishness, st->lowrate_refinement);
+  fill_n_items(tf_res.data(), static_cast<std::size_t>(end), st->lowrate_refinement ? 1 : 0);
   tf_select = 0;
   auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
@@ -6348,9 +6354,11 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
                                pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signalBandwidth);
   }
   if (st->lastCodedBands) {
-    st->lastCodedBands = clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1);
-  } else
-    st->lastCodedBands = codedBands;
+    st->lastCodedBands =
+        static_cast<opus_uint8>(clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1));
+  } else {
+    st->lastCodedBands = static_cast<opus_uint8>(codedBands);
+  }
   // Quantisation writes the final spectral payload; the remaining steps only
   // close side-channel reserves and commit predictor state for the next frame.
   { quant_fine_energy(mode, start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C); }
@@ -6360,7 +6368,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   {
     quant_all_bands(1, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, bandE, pulses.data(), shortBlocks,
                     st->spread_decision, dual_stereo, st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv,
-                    balance, enc, LM, codedBands, &st->rng, st->disable_inv);
+                    balance, enc, LM, codedBands, &st->rng, 0);
   }
   if (anti_collapse_rsv > 0) {
     anti_collapse_on = st->consec_transient < 2;
@@ -6372,12 +6380,14 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   if (silence) {
     fill_n_items(oldBandE, static_cast<std::size_t>(C * nbEBands), -(28.f));
   }
-  st->prefilter_period = pitch_index;
+  st->prefilter_period = static_cast<opus_uint16>(pitch_index);
   st->prefilter_gain = gain1;
-  st->prefilter_tapset = prefilter_tapset;
+  st->prefilter_tapset = static_cast<opus_uint8>(prefilter_tapset);
   celt_commit_band_state(oldBandE, oldLogE, oldLogE2, CC, nbEBands, start, end, isTransient, CC == 2 && C == 1);
   if (isTransient || transient_got_disabled) {
-    st->consec_transient++;
+    if (st->consec_transient < 2) {
+      ++st->consec_transient;
+    }
   } else {
     st->consec_transient = 0;
   }
@@ -6450,7 +6460,11 @@ static void celt_encoder_set_silk_info(CeltEncoderInternal* st, const SILKInfo* 
 }
 
 static void celt_encoder_set_high_z_tonal(CeltEncoderInternal* st, opus_int32 value) {
-  st->high_z_tonal_Q7 = static_cast<int>(value);
+  st->high_z_tonal_Q7 = static_cast<opus_uint8>(value);
+}
+
+static void celt_encoder_set_lowrate_refinement(CeltEncoderInternal* st, bool value) {
+  st->lowrate_refinement = value;
 }
 
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal* st) noexcept {
@@ -6463,7 +6477,7 @@ static void celt_encoder_set_high_z_tonal(CeltEncoderInternal* st, opus_int32 va
 
 struct CeltDecoderInternal {
   const CeltModeInternal* mode;
-  int overlap, channels, stream_channels, downsample, start, end, disable_inv, error, last_pitch_index, loss_duration, plc_duration,
+  int overlap, channels, stream_channels, downsample, start, end, disable_inv, last_pitch_index, loss_duration, plc_duration,
       last_frame_type, skip_plc, postfilter_period, postfilter_period_old, postfilter_tapset, postfilter_tapset_old, prefilter_and_fold,
       output_postfilter_level;
   opus_uint32 rng;
@@ -6499,7 +6513,6 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
     return true;
   }
 
-  celt_dec->output_postfilter_auto_gain = 0.0f;
   if (st->channels == 1) {
     if (st->mode == opus_mode_celt_only && st->last_packet_bitrate_bps < 20000) {
       celt_dec->output_postfilter_auto_gain = 0.30f;
@@ -6516,12 +6529,11 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
     return true;
   }
 
-  // Stereo auto filtering is only useful in the high-rate fullband CELT range
-  // where the CELT proxy loses; lower-rate and very-high-rate music already
-  // scores better without touching the output.
-  if (st->channels == 2 && st->mode == opus_mode_celt_only && st->bandwidth == 1105 && st->last_packet_bitrate_bps >= 80000 &&
-      st->last_packet_bitrate_bps < 224000) {
-    celt_dec->output_postfilter_auto_gain = 0.025f;
+  const auto rate = st->last_packet_bitrate_bps;
+  // Fullband CELT needs only a light correction outside the 80-224 kbps middle range.
+  const bool middle_rate = static_cast<opus_uint32>(rate - 80000) < 144000;
+  if (st->channels == 2 && st->mode == opus_mode_celt_only && st->bandwidth == 1105 && rate >= 36000) {
+    celt_dec->output_postfilter_auto_gain = middle_rate ? 0.0255f : 0.0025f;
     return true;
   }
   return false;
@@ -6568,12 +6580,13 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
   }
 
   const opus_val16 gain = level == 1 ? 0.025f : level == 3 ? st->output_postfilter_auto_gain : 0.10f;
+  const opus_val16 pole = level == 3 && channels == 2 && gain < 0.05f ? 0.076f : 0.08f;
   for (int i = 0; i < samples; ++i) {
     const auto base = i * channels;
     for (int c = 0; c < channels; ++c) {
       auto& low = st->output_postfilter_mem[c];
       const opus_res x = pcm[base + c];
-      low += 0.08f * (x - low);
+      low += pole * (x - low);
       if (apply_filter) {
         pcm[base + c] = std::clamp(x - gain * (x - low), -1.0f, 1.0f);
       }
@@ -7215,9 +7228,6 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   if (ec_tell(dec) > 8 * len) {
     return -3;
   }
-  if (dec->error) {
-    st->error = 1;
-  }
   return frame_size / st->downsample;
 }
 
@@ -7417,32 +7427,12 @@ struct celt_pvq_fast_row_ref {
   return {celt_pvq_u_fast_rows + celt_pvq_fast_row_offsets[static_cast<unsigned>(row)]};
 }
 
-template <celt_pvq_entry_provider Entry>
-[[nodiscard]] static auto celt_pvq_binary_find_last_leq(int high, opus_uint32 index, Entry entry) noexcept -> celt_pvq_search_result {
-  int lo = 0;
-  int hi = high - 1;
-  while (lo < hi) {
-    const int mid = (lo + hi + 1) >> 1;
-    if (entry(mid) <= index) {
-      lo = mid;
-    } else {
-      hi = mid - 1;
-    }
-  }
-  return {lo, entry(lo)};
-}
-
 [[nodiscard]] static auto celt_pvq_find_last_leq_fast(celt_pvq_fast_row_ref row, int high, opus_uint32 index) noexcept
     -> celt_pvq_search_result {
   const auto* entry = row.base + high;
   opus_uint32 value = *entry;
   if (value <= index) {
     return {high, value};
-  }
-  if (high > 16) {
-    return celt_pvq_binary_find_last_leq(high, index, [row](int candidate) noexcept {
-      return row.get(candidate);
-    });
   }
   do {
     value = *--entry;
@@ -7457,11 +7447,6 @@ template <celt_pvq_entry_provider Entry>
   opus_uint32 value = celt_pvq_u_entry_fast(row_index, column);
   if (value <= index) {
     return {high, value};
-  }
-  if (high > 16) {
-    return celt_pvq_binary_find_last_leq(high, index, [column](int candidate) noexcept {
-      return celt_pvq_u_entry_fast(static_cast<unsigned>(candidate), column);
-    });
   }
   do {
     --high;
@@ -11277,8 +11262,6 @@ static int silk_Encode(void* encState, silk_EncControlStruct* encControl, const 
     if (psEnc->nChannelsAPI == 2) {
       copy_n_bytes(&psEnc->state_Fxx[0].sCmn.resampler_state, static_cast<std::size_t>(sizeof(silk_resampler_state_struct)),
                    &psEnc->state_Fxx[1].sCmn.resampler_state);
-      copy_n_bytes(psEnc->state_Fxx[0].sCmn.In_HP_State.data(), static_cast<std::size_t>(sizeof(psEnc->state_Fxx[1].sCmn.In_HP_State)),
-                   psEnc->state_Fxx[1].sCmn.In_HP_State.data());
     }
   }
   psEnc->nChannelsAPI = encControl->nChannelsAPI;
