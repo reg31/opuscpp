@@ -2238,12 +2238,26 @@ static opus_int32 frame_size_select(opus_int32 frame_size, opus_int32 Fs) {
   return frame_size;
 }
 
-static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus_int32 Fs, StereoWidthState* mem) {
+struct stereo_width_measurement {
+  opus_val16 width;
+  opus_val32 energy;
+  opus_val16 sample_max;
+};
+
+static stereo_width_measurement measure_stereo_width(const opus_res* pcm, int frame_size, opus_int32 Fs, StereoWidthState* mem,
+                                                     bool measure_activity) {
   const int frame_rate = Fs / frame_size;
   const opus_val16 short_alpha = 25.0f / std::max(50, frame_rate);
-  opus_val32 xx = 0;
-  opus_val32 xy = 0;
-  opus_val32 yy = 0;
+  opus_val32 xx = 0, xy = 0, yy = 0, energy = 0;
+  opus_val16 sample_max = 0;
+  if (measure_activity) {
+    for (int i = 0; i < frame_size; ++i) {
+      const auto x = pcm[2 * i];
+      const auto y = pcm[2 * i + 1];
+      energy += x * x + y * y;
+      sample_max = std::max(sample_max, std::max(std::abs(x), std::abs(y)));
+    }
+  }
 
   for (int i = 0; i < frame_size - 3; i += 4) {
     opus_val32 pxx = 0, pxy = 0, pyy = 0;
@@ -2297,7 +2311,7 @@ static opus_val16 compute_stereo_width(const opus_res* pcm, int frame_size, opus
     mem->smoothed_width += (width - mem->smoothed_width) / frame_rate;
     mem->max_follower = std::max(mem->max_follower - 0.02f / frame_rate, mem->smoothed_width);
   }
-  return std::min(1.0f, 20.0f * mem->max_follower);
+  return {std::min(1.0f, 20.0f * mem->max_follower), energy, sample_max};
 }
 
 static int compute_silk_rate_for_hybrid(int rate, int bandwidth, int frame20ms, int vbr, int channels) {
@@ -3042,15 +3056,6 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
     silk_enc = encoder_silk_state(st);
   }
   celt_enc = encoder_celt_state(st);
-  const auto frame_metrics = measure_frame_activity(pcm, frame_size, st->channels, lsb_depth);
-  if (!frame_metrics.is_silence) {
-    st->peak_signal_energy = std::max<opus_val32>(0.999f * st->peak_signal_energy, frame_metrics.energy);
-  }
-  if (st->channels == 2 && st->force_channels != 1) {
-    stereo_width = compute_stereo_width(pcm, frame_size, st->Fs, &st->width_mem);
-  } else {
-    stereo_width = 0;
-  }
   st->bitrate_bps = user_bitrate_to_bitrate(st, frame_size, max_data_bytes);
   const bool voip_style = st->application == opus_application_voip;
   frame_rate = st->Fs / frame_size;
@@ -3061,6 +3066,28 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
     cbr_bytes = std::min(cbr_budget_bytes, max_data_bytes);
     st->bitrate_bps = bits_to_bitrate_for_frame_rate(cbr_bytes * 8, frame_rate);
     max_data_bytes = std::max(1, cbr_bytes);
+  }
+
+  frame_activity_metrics frame_metrics;
+  if (st->channels == 2 && st->force_channels != 1) {
+    const bool balance_needs_detail =
+        st->application == opus_application_audio && st->bitrate_bps >= 22000 && st->bitrate_bps < 36000;
+    const auto stereo = measure_stereo_width(pcm, frame_size, st->Fs, &st->width_mem, !balance_needs_detail);
+    stereo_width = stereo.width;
+    const bool detector_needs_detail =
+        (st->application == opus_application_audio || voip_style) && stereo_width <= .05f;
+    if (detector_needs_detail || balance_needs_detail) {
+      frame_metrics = measure_frame_activity(pcm, frame_size, st->channels, lsb_depth);
+    } else {
+      frame_metrics = {
+          stereo.sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth), stereo.energy / (2 * frame_size), 0, 0, 0, 0};
+    }
+  } else {
+    stereo_width = 0;
+    frame_metrics = measure_frame_activity(pcm, frame_size, st->channels, lsb_depth);
+  }
+  if (!frame_metrics.is_silence) {
+    st->peak_signal_energy = std::max<opus_val32>(0.999f * st->peak_signal_energy, frame_metrics.energy);
   }
   if (max_data_bytes < 3 || st->bitrate_bps < 3 * frame_rate * 8 ||
       (frame_rate < 50 && (max_data_bytes * (opus_int32)frame_rate < 300 || st->bitrate_bps < 2400))) {
