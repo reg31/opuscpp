@@ -44,39 +44,7 @@ constexpr int frame_size = 960;
 constexpr double pi = 3.141592653589793238462643383279502884;
 constexpr int opuscpp_set_decode_postfilter_request = 5100;
 
-struct state_handle final {
-  void* ptr = nullptr;
-  void (*destroy)(void*) = nullptr;
-
-  state_handle() = default;
-  state_handle(void* value, void (*deleter)(void*)) noexcept : ptr(value), destroy(deleter) {}
-  state_handle(const state_handle&) = delete;
-  auto operator=(const state_handle&) -> state_handle& = delete;
-  state_handle(state_handle&& other) noexcept : ptr(other.ptr), destroy(other.destroy) {
-    other.ptr = nullptr;
-    other.destroy = nullptr;
-  }
-  auto operator=(state_handle&& other) noexcept -> state_handle& {
-    if (this != &other) {
-      reset();
-      ptr = other.ptr;
-      destroy = other.destroy;
-      other.ptr = nullptr;
-      other.destroy = nullptr;
-    }
-    return *this;
-  }
-  ~state_handle() {
-    reset();
-  }
-  void reset() noexcept {
-    if (ptr != nullptr && destroy != nullptr) {
-      destroy(ptr);
-    }
-    ptr = nullptr;
-    destroy = nullptr;
-  }
-};
+using state_handle = std::unique_ptr<void, void (*)(void*)>;
 
 struct clip_data final {
   std::string label;
@@ -318,70 +286,72 @@ struct result final {
 
 [[nodiscard]] auto make_current_encoder(int channels, int bitrate, int application) -> state_handle {
   int error = OPUS_OK;
-  auto* encoder = curr_opus_encoder_create(sample_rate, channels, application, &error);
+  auto encoder = state_handle{curr_opus_encoder_create(sample_rate, channels, application, &error), [](void* ptr) {
+                                curr_opus_encoder_destroy(static_cast<curr_OpusEncoder*>(ptr));
+                              }};
   if (encoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current encoder create failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("current bitrate failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("current complexity failed");
   }
-  if (curr_opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
+  if (curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("current VBR failed");
   }
-  return {encoder, [](void* ptr) {
-            curr_opus_encoder_destroy(static_cast<curr_OpusEncoder*>(ptr));
-          }};
+  return encoder;
 }
 
 [[nodiscard]] auto make_official_encoder(int channels, int bitrate, int application) -> state_handle {
   int error = OPUS_OK;
-  auto* encoder = opus_encoder_create(sample_rate, channels, application, &error);
+  auto encoder = state_handle{opus_encoder_create(sample_rate, channels, application, &error), [](void* ptr) {
+                                opus_encoder_destroy(static_cast<OpusEncoder*>(ptr));
+                              }};
   if (encoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("official encoder create failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
+  if (opus_encoder_ctl(static_cast<OpusEncoder*>(encoder.get()), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) {
     throw std::runtime_error("official bitrate failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
+  if (opus_encoder_ctl(static_cast<OpusEncoder*>(encoder.get()), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK) {
     throw std::runtime_error("official complexity failed");
   }
-  if (opus_encoder_ctl(encoder, OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
+  if (opus_encoder_ctl(static_cast<OpusEncoder*>(encoder.get()), OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("official VBR failed");
   }
-  return {encoder, [](void* ptr) {
-            opus_encoder_destroy(static_cast<OpusEncoder*>(ptr));
-          }};
+  return encoder;
 }
 
 [[nodiscard]] auto make_official_decoder(int channels, int complexity = 0) -> state_handle {
   int error = OPUS_OK;
-  auto* decoder = opus_decoder_create(sample_rate, channels, &error);
+  auto decoder = state_handle{opus_decoder_create(sample_rate, channels, &error), [](void* ptr) {
+                                opus_decoder_destroy(static_cast<OpusDecoder*>(ptr));
+                              }};
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("official decoder create failed");
   }
-  if (complexity != 0 && opus_decoder_ctl(decoder, OPUS_SET_COMPLEXITY_REQUEST, complexity) != OPUS_OK) {
+  if (complexity != 0 &&
+      opus_decoder_ctl(static_cast<OpusDecoder*>(decoder.get()), OPUS_SET_COMPLEXITY_REQUEST, complexity) != OPUS_OK) {
     throw std::runtime_error("official decoder complexity failed");
   }
-  return {decoder, [](void* ptr) {
-            opus_decoder_destroy(static_cast<OpusDecoder*>(ptr));
-          }};
+  return decoder;
 }
 
 [[nodiscard]] auto make_current_decoder(int channels, int postfilter_level = 0) -> state_handle {
   int error = OPUS_OK;
-  auto* decoder = curr_opus_decoder_create(sample_rate, channels, &error);
+  auto decoder = state_handle{curr_opus_decoder_create(sample_rate, channels, &error), [](void* ptr) {
+                                curr_opus_decoder_destroy(static_cast<curr_OpusDecoder*>(ptr));
+                              }};
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current decoder create failed");
   }
-  if (curr_opus_decoder_ctl(decoder, opuscpp_set_decode_postfilter_request, postfilter_level) != OPUS_OK) {
+  if (curr_opus_decoder_ctl(static_cast<curr_OpusDecoder*>(decoder.get()), opuscpp_set_decode_postfilter_request,
+                            postfilter_level) != OPUS_OK) {
     throw std::runtime_error("current decoder postfilter failed");
   }
-  return {decoder, [](void* ptr) {
-            curr_opus_decoder_destroy(static_cast<curr_OpusDecoder*>(ptr));
-          }};
+  return decoder;
 }
 
 [[nodiscard]] auto mono(std::span<const std::int16_t> x, std::size_t offset, int channels, std::size_t n) noexcept -> double {
@@ -628,18 +598,18 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   for (std::size_t frame = 0; frame < frames; ++frame) {
     const auto offset = frame * samples_per_frame;
     const auto start = std::chrono::steady_clock::now();
-    const auto packet_size = official ? opus_encode(static_cast<OpusEncoder*>(encoder.ptr), clip.samples.data() + offset, frame_size,
+    const auto packet_size = official ? opus_encode(static_cast<OpusEncoder*>(encoder.get()), clip.samples.data() + offset, frame_size,
                                                     packet.data(), static_cast<int>(packet.size()))
-                                      : curr_opus_encode(static_cast<curr_OpusEncoder*>(encoder.ptr), clip.samples.data() + offset,
+                                      : curr_opus_encode(static_cast<curr_OpusEncoder*>(encoder.get()), clip.samples.data() + offset,
                                                          frame_size, packet.data(), static_cast<int>(packet.size()));
     score.encode_ns +=
         static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start).count());
     if (packet_size <= 0) {
       throw std::runtime_error(name + " encode failed");
     }
-    const auto got = official ? opus_decode_float(static_cast<OpusDecoder*>(decoder.ptr), packet.data(), packet_size,
+    const auto got = official ? opus_decode_float(static_cast<OpusDecoder*>(decoder.get()), packet.data(), packet_size,
                                                   decoded_frame.data(), frame_size, 0)
-                              : curr_opus_decode_float(static_cast<curr_OpusDecoder*>(decoder.ptr), packet.data(), packet_size,
+                              : curr_opus_decode_float(static_cast<curr_OpusDecoder*>(decoder.get()), packet.data(), packet_size,
                                                        decoded_frame.data(), frame_size, 0);
     if (got != frame_size) {
       throw std::runtime_error(name + " decode failed");

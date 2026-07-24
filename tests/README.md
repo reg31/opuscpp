@@ -192,21 +192,21 @@ PESQ/ViSQOL tooling or listening tests.
 
 This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 -DNDEBUG` and x86
 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` uses the same pure C++23 `-O2 -DNDEBUG` profile, with no assembly and no SIMD intrinsics. Measurements
-are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 8-second stereo
+are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using the repository's 60-second stereo
 synthetic music-like benchmark. A value above `1.00x` means `opuscpp` is faster than the optimized
 official build. This keeps the optimization level matched while comparing against the optimized official desktop path most users would actually get.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.437x | 1.741x | 751x | 308x | 2049x | 1177x |
-| 24&nbsp;kbps | 1.597x | 1.343x | 448x | 280x | 1373x | 1022x |
-| 32&nbsp;kbps | 1.771x | 1.299x | 486x | 275x | 1308x | 1007x |
-| 48&nbsp;kbps | 1.531x | 1.266x | 428x | 280x | 1154x | 911x |
-| 64&nbsp;kbps | 1.614x | 1.240x | 393x | 243x | 926x | 746x |
-| 96&nbsp;kbps | 1.502x | 1.246x | 300x | 199x | 774x | 621x |
-| 128&nbsp;kbps | 1.864x | 1.217x | 331x | 178x | 620x | 510x |
-| 192&nbsp;kbps | 1.721x | 1.219x | 283x | 164x | 556x | 457x |
-| 256&nbsp;kbps | 1.636x | 1.155x | 258x | 158x | 486x | 421x |
+| 16&nbsp;kbps | 2.372x | 1.780x | 840x | 354x | 2298x | 1291x |
+| 24&nbsp;kbps | 1.655x | 1.343x | 536x | 324x | 1518x | 1130x |
+| 32&nbsp;kbps | 1.669x | 1.292x | 532x | 319x | 1450x | 1122x |
+| 48&nbsp;kbps | 1.577x | 1.224x | 472x | 299x | 1189x | 971x |
+| 64&nbsp;kbps | 1.607x | 1.221x | 422x | 263x | 1028x | 842x |
+| 96&nbsp;kbps | 1.691x | 1.198x | 360x | 213x | 795x | 664x |
+| 128&nbsp;kbps | 1.947x | 1.178x | 376x | 193x | 682x | 579x |
+| 192&nbsp;kbps | 1.753x | 1.155x | 306x | 175x | 574x | 497x |
+| 256&nbsp;kbps | 1.663x | 1.095x | 280x | 168x | 492x | 449x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -275,7 +275,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 294,736 B | 0 B | 294,736 B |
+| Host MinGW GCC `-O2` | 294,868 B | 0 B | 294,868 B |
 
 ## Toolchains checked
 

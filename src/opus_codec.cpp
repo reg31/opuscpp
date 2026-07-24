@@ -267,7 +267,7 @@ struct ref_OpusEncoder;
 struct CeltEncoderInternal;
 struct CeltDecoderInternal;
 struct CeltModeInternal;
-[[nodiscard]] static auto default_custom_mode() noexcept -> const CeltModeInternal*;
+[[nodiscard]] static constexpr auto default_custom_mode() noexcept -> const CeltModeInternal*;
 using opus_val16 = float;
 using opus_val32 = float;
 using opus_val64 = float;
@@ -366,7 +366,7 @@ struct ref_OpusDecoder;
   return clamp_value(credit_bits, opus_int32{0}, max_credit_bits);
 }
 
-static int celt_encoder_get_size(int channels);
+[[nodiscard]] static constexpr auto celt_encoder_get_size(int channels) noexcept -> int;
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed,
                                int nbCompressedBytes, ec_enc* enc);
@@ -386,7 +386,7 @@ static void celt_encoder_set_lsb_depth(CeltEncoderInternal* st, opus_int32 value
 static void celt_encoder_set_midrate_quality_boost(CeltEncoderInternal* st, opus_int32 value);
 [[nodiscard]] static opus_uint32 celt_encoder_final_range(const CeltEncoderInternal* st) noexcept;
 [[nodiscard]] static const CeltModeInternal* celt_encoder_mode(const CeltEncoderInternal* st) noexcept;
-static int celt_decoder_get_size(int channels);
+[[nodiscard]] static constexpr auto celt_decoder_get_size(int channels) noexcept -> int;
 static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
                                opus_int16* pcm16 = nullptr);
@@ -1037,7 +1037,7 @@ static_assert(sizeof(ref_OpusDecoder) <= 80);
   return offset_ptr<CeltDecoderInternal>(st, st->celt_dec_offset);
 }
 
-static int ref_opus_decoder_get_size(int channels) {
+[[nodiscard]] static constexpr auto ref_opus_decoder_get_size(int channels) noexcept -> int {
   if (!is_supported_channel_count(channels)) {
     return 0;
   }
@@ -2006,7 +2006,7 @@ constexpr int audio_preprocess_speech = 1;
 constexpr int preprocess_lowrate_voip_celt = 2;
 constexpr int audio_preprocess_warmup_frames = 12;
 constexpr int audio_preprocess_hold_frames = 50;
-static int ref_opus_encoder_get_size(int channels, int application) {
+[[nodiscard]] static constexpr auto ref_opus_encoder_get_size(int channels, int application) noexcept -> int {
   if (!is_supported_channel_count(channels)) {
     return 0;
   }
@@ -3142,7 +3142,10 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
                !quality.high_z_tonal_confident()) {
       st->mode = opus_mode_silk_only;
     } else if (quality.strong_music()) {
-      const opus_int32 music_celt_switch_bps = voip_style ? 23000 : 15000;
+      const bool high_energy_stereo_music =
+          !voip_style && st->channels == 2 && stereo_width > .10f && frame_metrics.energy > .008f &&
+          st->bitrate_bps >= 56000 && st->bitrate_bps < 80000;
+      const opus_int32 music_celt_switch_bps = high_energy_stereo_music ? 80000 : (voip_style ? 23000 : 15000);
       st->mode = st->bitrate_bps >= music_celt_switch_bps ? opus_mode_celt_only : opus_mode_silk_only;
     } else if (quality.strong_speech()) {
       const opus_int32 speech_celt_switch_bps = 54000;
@@ -4992,7 +4995,7 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
   comb_filter_const_c(y + i, x + i, T1, N - i, g10, g11, g12);
 }
 
-static constinit const std::array<std::array<signed char, 8>, 4> tf_select_table =
+static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
     numeric_blob_matrix<signed char, 4, 8>(R"blob(00FF00FF00FF00FF00FF00FE010001FF00FE00FD020001FF00FE00FD030001FF)blob");
 static void init_caps(const CeltModeInternal* m, std::span<int> cap, int LM, int C) {
   const int nbEBands = m->nbEBands;
@@ -5143,7 +5146,7 @@ static constexpr int celt_decoder_history_size = 2048;
   return views;
 }
 
-static int celt_encoder_get_size(int channels) {
+[[nodiscard]] static constexpr auto celt_encoder_get_size(int channels) noexcept -> int {
   return sizeof(CeltEncoderInternal) + (channels * celt_default_overlap - 1) * static_cast<int>(sizeof(celt_sig)) +
          channels * celt_encoder_history_size * static_cast<int>(sizeof(celt_sig)) +
          4 * channels * celt_default_nb_ebands * static_cast<int>(sizeof(celt_glog));
@@ -5689,10 +5692,10 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
 static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs) {
   int i, delay = 1, fail;
   std::array<opus_val32, 2> lpc;
+  std::array<opus_val16, opus_20ms_frame_samples_48k + celt_default_overlap> x_sum_storage;
   opus_val16 freq;
   const opus_val16* x = in;
   if (CC == 2) {
-    std::array<opus_val16, opus_20ms_frame_samples_48k + celt_default_overlap> x_sum_storage;
     auto* x_sum = x_sum_storage.data();
     for (i = 0; i < N; i++) {
       x_sum[i] = 0.5f * (in[i] + in[i + N]);
@@ -6648,7 +6651,7 @@ static void celt_decoder_update_output_postfilter(CeltDecoderInternal* st, const
 }
 
 inline constexpr int celt_decoder_energy_channel_count = 2;
-static int celt_decoder_get_size(int channels) {
+[[nodiscard]] static constexpr auto celt_decoder_get_size(int channels) noexcept -> int {
   return sizeof(CeltDecoderInternal) +
          (channels * (celt_decoder_history_size + celt_default_overlap) - 1) * static_cast<int>(sizeof(celt_sig)) +
          4 * celt_decoder_energy_channel_count * celt_default_nb_ebands * static_cast<int>(sizeof(celt_glog)) +
@@ -9071,12 +9074,15 @@ static constexpr celt_generated_tables celt_tables{
     )blob"),
 };
 
-static const kiss_fft_state fft_state48000_960_0{480, 0.0020833334f, celt_tables.fft_twiddles.data(),
-                                                 celt_tables.fft_bitrev_480.data()};
-static const kiss_fft_state fft_state48000_960_1{240, 0.0041666669f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
-static const kiss_fft_state fft_state48000_960_2{120, 0.0083333338f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
-static const kiss_fft_state fft_state48000_960_3{60, 0.016666668f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
-static const CeltModeInternal mode48000_960_120 = {
+static constexpr kiss_fft_state fft_state48000_960_0{480, 0.0020833334f, celt_tables.fft_twiddles.data(),
+                                                      celt_tables.fft_bitrev_480.data()};
+static constexpr kiss_fft_state fft_state48000_960_1{240, 0.0041666669f, celt_tables.fft_twiddles.data(),
+                                                      celt_tables.fft_bitrev_240.data()};
+static constexpr kiss_fft_state fft_state48000_960_2{120, 0.0083333338f, celt_tables.fft_twiddles.data(),
+                                                      celt_tables.fft_bitrev_120.data()};
+static constexpr kiss_fft_state fft_state48000_960_3{60, 0.016666668f, celt_tables.fft_twiddles.data(),
+                                                      celt_tables.fft_bitrev_60.data()};
+static constexpr CeltModeInternal mode48000_960_120 = {
     48000,
     120,
     21,
@@ -9094,7 +9100,7 @@ static const CeltModeInternal mode48000_960_120 = {
     cache_index50.data(),
     cache_bits50.data(),
     cache_caps50.data()};
-[[nodiscard]] static auto default_custom_mode() noexcept -> const CeltModeInternal* {
+[[nodiscard]] static constexpr auto default_custom_mode() noexcept -> const CeltModeInternal* {
   return &mode48000_960_120;
 }
 
@@ -14980,11 +14986,13 @@ void silk_insertion_sort_increasing_all_values_int16(opus_int16* a, const int L)
     pair_energy = static_cast<opus_int32>(
         static_cast<opus_uint32>(pair_energy) +
         static_cast<opus_uint32>(static_cast<opus_int32>(samples[index + 1]) * static_cast<opus_int32>(samples[index + 1])));
-    energy = static_cast<opus_int32>(energy + (static_cast<opus_int32>(pair_energy) >> shft));
+    energy = static_cast<opus_int32>(static_cast<opus_uint32>(energy) +
+                                     static_cast<opus_uint32>(static_cast<opus_int32>(pair_energy) >> shft));
   }
   if (even_count != samples.size()) {
     const auto tail_energy = static_cast<opus_int32>(samples[even_count]) * static_cast<opus_int32>(samples[even_count]);
-    energy = static_cast<opus_int32>(energy + (static_cast<opus_int32>(tail_energy) >> shft));
+    energy = static_cast<opus_int32>(static_cast<opus_uint32>(energy) +
+                                     static_cast<opus_uint32>(static_cast<opus_int32>(tail_energy) >> shft));
   }
   return energy;
 }
