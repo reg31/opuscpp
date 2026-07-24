@@ -498,11 +498,6 @@ constexpr std::array<hybrid_rate_entry, 7> hybrid_rate_table{{{0, {0, 0, 0, 0}},
 constexpr opus_int32 low_rate_tonal_celt_max_bps = 32000;
 constexpr opus_int32 low_rate_tonal_celt_boost_bps = 4000;
 constexpr opus_val32 low_rate_tonal_celt_min_tone = .45f;
-constexpr opus_int32 low_rate_celt_trim_min_bps = 16000;
-constexpr opus_int32 low_rate_celt_trim_mid_bps = 28000;
-constexpr opus_int32 low_rate_celt_trim_max_bps = 40000;
-constexpr int low_rate_celt_trim_boost = 4;
-constexpr int midrate_celt_trim_boost = 7;
 constexpr opus_int32 audio_midrate_celt_quality_boost_min_bps = 22000;
 constexpr opus_int32 audio_midrate_celt_quality_boost_max_bps = 28000;
 constexpr opus_int32 audio_midrate_celt_quality_boost_bps = 1750;
@@ -2403,6 +2398,8 @@ constexpr opus_val16 mono_voice_low_band_keep = 0.86f;
 constexpr int audio_clean_music_score_min_Q7 = 16;
 constexpr opus_val16 audio_clean_music_low_band_keep = 0.94f;
 constexpr opus_val16 audio_clean_music_smoothing = -0.080f;
+constexpr opus_int32 audio_lowrate_filter_min_bps = 16000;
+constexpr opus_int32 audio_lowrate_filter_max_bps = 40000;
 constexpr opus_val16 audio_lowrate_filter_gain = 0.985f;
 constexpr opus_int32 audio_highrate_filter_min_bps = 128000;
 constexpr opus_val16 audio_highrate_filter_gain = 0.997f;
@@ -2780,8 +2777,8 @@ struct encoder_error_balance_filter {
 
 [[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const ref_OpusEncoder* st) noexcept
     -> encoder_error_balance_filter {
-  if (st->application == opus_application_audio && st->bitrate_bps >= low_rate_celt_trim_min_bps &&
-      st->bitrate_bps < low_rate_celt_trim_max_bps) {
+  if (st->application == opus_application_audio && st->bitrate_bps >= audio_lowrate_filter_min_bps &&
+      st->bitrate_bps < audio_lowrate_filter_max_bps) {
     return {st->lightweight_high_z_tonal_Q7 >= 64 ? 0.97f : audio_lowrate_filter_gain};
   }
   if (st->application == opus_application_audio && st->bitrate_bps >= audio_highrate_filter_min_bps) {
@@ -6089,9 +6086,15 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   if (st->high_z_tonal_Q7 > 64 && st->bitrate >= 16000 && st->bitrate < 24000) {
     alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
   }
-  if (st->bitrate >= low_rate_celt_trim_min_bps && st->bitrate < low_rate_celt_trim_max_bps) {
-    const int trim_boost = st->bitrate >= low_rate_celt_trim_mid_bps ? midrate_celt_trim_boost : low_rate_celt_trim_boost;
-    alloc_trim = clamp_value(alloc_trim + trim_boost, 0, 10);
+  if (st->bitrate > 0) {
+    // Use the actual spectral budget instead of giving fixed bitrate windows
+    // special treatment. Scarce or bandwidth-limited spectra favour low bands.
+    const int missing_bands = clamp_value(celt_default_nb_ebands - st->end, 0, 3);
+    const int spectral_budget = st->bitrate / std::max(1, st->end);
+    const int scarcity_boost = std::min(4, (std::max(0, 2050 - spectral_budget) + 49) / 50);
+    const int bandwidth_boost =
+        missing_bands > 0 ? (spectral_budget < 1200 ? std::min(7, 2 * missing_bands) : 7) : 0;
+    alloc_trim = clamp_value(alloc_trim + std::max(bandwidth_boost, scarcity_boost), 0, 10);
   }
   if (channels == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
     alloc_trim = clamp_value(alloc_trim + 1, 0, 10);

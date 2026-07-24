@@ -33,22 +33,22 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.373956x | 1.749766x |
-| 24 kbps | 1.702799x | 1.330992x |
-| 32 kbps | 1.866517x | 1.304589x |
-| 48 kbps | 1.546136x | 1.275786x |
-| 64 kbps | 1.560110x | 1.234143x |
-| 96 kbps | 1.648124x | 1.261898x |
-| 128 kbps | 1.883830x | 1.234846x |
-| 192 kbps | 1.691483x | 1.206815x |
-| 256 kbps | 1.537477x | 1.151459x |
+| 16 kbps | 2.436977x | 1.741291x |
+| 24 kbps | 1.597465x | 1.342577x |
+| 32 kbps | 1.771413x | 1.298852x |
+| 48 kbps | 1.531356x | 1.265768x |
+| 64 kbps | 1.613721x | 1.240483x |
+| 96 kbps | 1.502487x | 1.246406x |
+| 128 kbps | 1.863850x | 1.217406x |
+| 192 kbps | 1.721233x | 1.218645x |
+| 256 kbps | 1.635676x | 1.155345x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.0665 | -0.0020 | -0.0013 | 0.0050 | 0.0009 | -0.0005 | 11.2709 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | 0.0450 | -0.0015 | -0.0003 | 0.0047 | 0.0229 | 0.0041 | 27.5027 | 24.000 kbps | 25.220 kbps |
+| 24 kbps | 0.0455 | -0.0016 | -0.0003 | 0.0049 | 0.0229 | 0.0041 | 27.5027 | 24.000 kbps | 25.220 kbps |
 | 32 kbps | 0.1406 | -0.0050 | -0.0029 | 0.0129 | 0.0403 | 0.0058 | 20.6017 | 32.000 kbps | 33.613 kbps |
 | 48 kbps | 0.0104 | -0.0004 | -0.0004 | 0.0014 | 0.0127 | 0.0023 | 0.6830 | 48.000 kbps | 48.560 kbps |
 | 64 kbps | 0.0134 | -0.0005 | -0.0004 | 0.0013 | 0.0050 | 0.0006 | 0.3020 | 64.000 kbps | 64.613 kbps |
@@ -91,7 +91,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 294808 B | 0 B | 294808 B |
+| Host C++23 `-O2` | 294736 B | 0 B | 294736 B |
 
 ## Toolchains checked
 
