@@ -90,6 +90,11 @@ def effective_kbps(avg_packet_bytes: str) -> str:
     return f"{float(avg_packet_bytes) * 0.4:.3f}"
 
 
+def normalize_signed_zero(value: str) -> str:
+    """Keep rounded zero metrics from rendering as negative zero."""
+    return value.lstrip("-") if float(value) == 0 else value
+
+
 def emit_metrics_report(
     repo_root: pathlib.Path,
     output_dir: pathlib.Path,
@@ -558,13 +563,13 @@ def run_perceptual_and_memory(
                 {
                     "application": application,
                     "bitrate": str(bitrate),
-                    "snr_delta": delta_match.group(1),
-                    "rms_error_delta": delta_match.group(2),
-                    "mean_abs_error_delta": delta_match.group(3),
-                    "pesq_delta": delta_match.group(4),
-                    "visqol_delta": delta_match.group(5),
-                    "logband_corr_delta": delta_match.group(6),
-                    "celt_delta": delta_match.group(7),
+                    "snr_delta": normalize_signed_zero(delta_match.group(1)),
+                    "rms_error_delta": normalize_signed_zero(delta_match.group(2)),
+                    "mean_abs_error_delta": normalize_signed_zero(delta_match.group(3)),
+                    "pesq_delta": normalize_signed_zero(delta_match.group(4)),
+                    "visqol_delta": normalize_signed_zero(delta_match.group(5)),
+                    "logband_corr_delta": normalize_signed_zero(delta_match.group(6)),
+                    "celt_delta": normalize_signed_zero(delta_match.group(7)),
                     "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
                     "official_effective_kbps": effective_kbps(official_match.group(1)),
                     "encode_speed_ratio": delta_match.group(8),
