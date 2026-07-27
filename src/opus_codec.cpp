@@ -963,8 +963,10 @@ struct silk_encoder_state {
 };
 struct silk_PLC_struct {
   opus_int32 pitchL_Q8, rand_seed, conc_energy, prevGain_Q16[2];
+  std::array<opus_uint16, 4> pitch_history;
   opus_int16 LTPCoef_Q14[5], prevLPC_Q12[16];
   opus_int16 randScale_Q14, prevLTP_scale_Q14;
+  opus_uint8 pitch_history_index;
   int last_frame_lost, conc_energy_shift, fs_kHz, nb_subfr, subfr_length;
 };
 struct silk_CNG_struct {
@@ -6506,7 +6508,7 @@ struct CeltDecoderInternal {
   opus_uint32 rng;
   int output_postfilter_auto_hold;
   opus_val16 postfilter_gain, postfilter_gain_old;
-  opus_val16 output_postfilter_auto_gain;
+  opus_val16 output_postfilter_auto_gain, output_postfilter_smoothed_gain;
   celt_sig preemph_memD[2], output_postfilter_mem[2], _decode_mem[1];
 };
 
@@ -6524,6 +6526,15 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
 
 [[nodiscard]] static int celt_decoder_output_postfilter_level(const CeltDecoderInternal* st) noexcept {
   return st->output_postfilter_level;
+}
+
+[[nodiscard]] static bool decoder_has_speech_activity(ref_OpusDecoder* st) noexcept {
+  const auto* celt_dec = decoder_celt_state(st);
+  if (st->mode == opus_mode_celt_only) {
+    return celt_dec->postfilter_gain > 0 && celt_dec->postfilter_period >= 15;
+  }
+  const auto* silk_dec = static_cast<const silk_decoder_state*>(decoder_silk_state(st));
+  return silk_dec->lossCnt == 0 && silk_dec->prevSignalType != 0;
 }
 
 [[nodiscard]] static bool decoder_should_apply_output_postfilter(ref_OpusDecoder* st) noexcept {
@@ -6544,6 +6555,8 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
     } else {
       celt_dec->output_postfilter_auto_gain = st->last_packet_bitrate_bps >= 80000 ? 0.10f : 0.080f;
     }
+    celt_dec->output_postfilter_auto_hold =
+        decoder_has_speech_activity(st) ? 3 : std::max(0, celt_dec->output_postfilter_auto_hold - 1);
     return true;
   }
 
@@ -6563,27 +6576,11 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
 }
 
 static void celt_decoder_set_output_postfilter(CeltDecoderInternal* st, int level) noexcept {
+  if (st->output_postfilter_level != level) {
+    st->output_postfilter_auto_hold = 0;
+    st->output_postfilter_smoothed_gain = 0;
+  }
   st->output_postfilter_level = level;
-}
-
-[[nodiscard]] static bool celt_output_postfilter_has_speech_detail(const opus_res* pcm, int samples) noexcept {
-  if (pcm == nullptr || samples < 2) {
-    return false;
-  }
-
-  opus_val32 energy = 0;
-  opus_val32 diff_energy = 0;
-  opus_res previous = pcm[0];
-  energy = previous * previous;
-  for (int i = 1; i < samples; ++i) {
-    const opus_res x = pcm[i];
-    const opus_res d = x - previous;
-    energy += x * x;
-    diff_energy += d * d;
-    previous = x;
-  }
-
-  return energy > 1e-7f && diff_energy > 0.0035f * energy;
 }
 
 static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels,
@@ -6593,16 +6590,19 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
     return;
   }
 
+  const opus_val16 target_gain =
+      apply_filter ? (level == 1 ? 0.025f : level == 3 ? st->output_postfilter_auto_gain : 0.10f) : 0.0f;
+  opus_val16 gain = target_gain;
   if (level == 3 && channels == 1) {
-    if (apply_filter && celt_output_postfilter_has_speech_detail(pcm, samples)) {
-      st->output_postfilter_auto_hold = 3;
-    } else {
-      st->output_postfilter_auto_hold = std::max(0, st->output_postfilter_auto_hold - 1);
+    if (st->output_postfilter_smoothed_gain == 0) {
+      st->output_postfilter_smoothed_gain = target_gain;
     }
-    apply_filter = st->output_postfilter_auto_hold > 0;
+    const auto smoothing = st->output_postfilter_auto_hold > 0 ? 0.75f : 0.25f;
+    st->output_postfilter_smoothed_gain += smoothing * (target_gain - st->output_postfilter_smoothed_gain);
+    gain = st->output_postfilter_smoothed_gain;
   }
-
-  const opus_val16 gain = level == 1 ? 0.025f : level == 3 ? st->output_postfilter_auto_gain : 0.10f;
+  const bool smoothing_active = level == 3 && channels == 1 && std::abs(target_gain - gain) > 1e-5f;
+  const opus_val16 energy_scale = smoothing_active ? 1.0f + std::min(0.01f, 0.04f * gain) : 1.0f;
   const opus_val16 pole = level == 3 && channels == 2 && gain < 0.05f ? 0.076f : 0.08f;
   for (int i = 0; i < samples; ++i) {
     const auto base = i * channels;
@@ -6610,8 +6610,9 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
       auto& low = st->output_postfilter_mem[c];
       const opus_res x = pcm[base + c];
       low += pole * (x - low);
-      if (apply_filter) {
-        pcm[base + c] = clamp_value(x - gain * (x - low), -1.0f, 1.0f);
+      if (gain > 0) {
+        const opus_res filtered = x - gain * (x - low);
+        pcm[base + c] = clamp_value(filtered * energy_scale, -1.0f, 1.0f);
       }
     }
   }
@@ -12692,12 +12693,30 @@ static void silk_NSQ_del_dec_c(const silk_encoder_state* psEncC, silk_nsq_state*
   return loss_count == 0 ? 32440 : 29491;
 }
 
+[[nodiscard]] static int stable_pitch_average(const std::array<opus_uint16, 3>& history) noexcept {
+  int sum = 0;
+  int minimum = opus_int32_max;
+  int maximum = 0;
+  for (const int pitch : history) {
+    if (pitch == 0) {
+      return 0;
+    }
+    sum += pitch;
+    minimum = std::min(minimum, pitch);
+    maximum = std::max(maximum, pitch);
+  }
+  const int average = (sum + 1) / 3;
+  return (maximum - minimum) * 32 <= average ? average : 0;
+}
+
 static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl);
 static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame);
 void silk_PLC_Reset(silk_decoder_state* psDec) {
   psDec->sPLC.pitchL_Q8 = ((opus_int32)((opus_uint32)(psDec->frame_length) << (8 - 1)));
   psDec->sPLC.prevGain_Q16[0] = ((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5));
   psDec->sPLC.prevGain_Q16[1] = ((opus_int32)((1) * ((opus_int64)1 << (16)) + 0.5));
+  psDec->sPLC.pitch_history.fill(0);
+  psDec->sPLC.pitch_history_index = 0;
   psDec->sPLC.subfr_length = 20;
   psDec->sPLC.nb_subfr = 2;
 }
@@ -12764,6 +12783,9 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
   copy_n_bytes(psDecCtrl->Gains_Q16 + psDec->nb_subfr - 2, static_cast<std::size_t>(2 * sizeof(opus_int32)), psPLC->prevGain_Q16);
   psPLC->subfr_length = psDec->subfr_length;
   psPLC->nb_subfr = psDec->nb_subfr;
+  psPLC->pitch_history[static_cast<std::size_t>(psPLC->pitch_history_index)] =
+      psDec->indices.signalType == 2 ? static_cast<opus_uint16>(rounded_rshift<8>(psPLC->pitchL_Q8)) : 0;
+  psPLC->pitch_history_index = (psPLC->pitch_history_index + 1) & 3;
 }
 
 static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_int32> exc_Q14,
@@ -12801,6 +12823,17 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   prevGain_Q10[1] = ((psPLC->prevGain_Q16[1]) >> (6));
   if (psDec->first_frame_after_reset) {
     zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
+  }
+  if (psDec->lossCnt == 0 && psDec->prevSignalType == 2) {
+    const auto next = static_cast<std::size_t>(psPLC->pitch_history_index);
+    const std::array<opus_uint16, 3> previous_pitch{
+        psPLC->pitch_history[next], psPLC->pitch_history[(next + 1) & 3], psPLC->pitch_history[(next + 2) & 3]};
+    const int history_pitch = stable_pitch_average(previous_pitch);
+    const int current_pitch = rounded_rshift<8>(psPLC->pitchL_Q8);
+    const int pitch_delta = std::abs(history_pitch - current_pitch);
+    if (history_pitch > 0 && pitch_delta * 4 >= current_pitch && pitch_delta <= current_pitch) {
+      psPLC->pitchL_Q8 = static_cast<opus_int32>(history_pitch << 8);
+    }
   }
   silk_PLC_energy(&energy1, &shift1, &energy2, &shift2, {psDec->exc_Q14, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)},
                   prevGain_Q10, psDec->subfr_length, psDec->nb_subfr);

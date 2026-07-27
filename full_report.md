@@ -31,19 +31,17 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 ## Speed metrics vs official Opus
 
-Reported values are medians of three complete 60-second benchmark runs.
-
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.436402x | 1.744548x |
-| 24 kbps | 1.652061x | 1.357903x |
-| 32 kbps | 1.632295x | 1.221815x |
-| 48 kbps | 1.555163x | 1.228437x |
-| 64 kbps | 1.666840x | 1.242727x |
-| 96 kbps | 1.729002x | 1.279398x |
-| 128 kbps | 1.948626x | 1.231471x |
-| 192 kbps | 1.754791x | 1.216640x |
-| 256 kbps | 1.677871x | 1.141893x |
+| 16 kbps | 2.292905x | 1.845001x |
+| 24 kbps | 1.591048x | 1.373896x |
+| 32 kbps | 1.607642x | 1.320064x |
+| 48 kbps | 1.597745x | 1.249338x |
+| 64 kbps | 1.654229x | 1.210356x |
+| 96 kbps | 1.668698x | 1.245171x |
+| 128 kbps | 1.900072x | 1.247833x |
+| 192 kbps | 1.740420x | 1.216876x |
+| 256 kbps | 1.681382x | 1.118687x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -63,15 +61,15 @@ Reported values are medians of three complete 60-second benchmark runs.
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.3138 | -0.0097 | -0.0060 | 0.0216 | 0.0031 | 0.0002 | 0.0628 | 16.000 kbps | 16.255 kbps |
-| 24 kbps | 0.1289 | -0.0040 | -0.0026 | 0.0094 | 0.0007 | 0.0005 | 0.3045 | 24.000 kbps | 24.148 kbps |
-| 32 kbps | 0.3163 | -0.0098 | -0.0064 | 0.0244 | 0.0016 | 0.0001 | 0.1715 | 32.000 kbps | 32.184 kbps |
-| 48 kbps | 0.1639 | -0.0051 | -0.0034 | 0.0128 | 0.0023 | 0.0007 | -0.0847 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 0.1268 | -0.0040 | -0.0026 | 0.0105 | 0.0011 | 0.0006 | 0.1660 | 64.000 kbps | 64.501 kbps |
-| 96 kbps | 0.1429 | -0.0045 | -0.0030 | 0.0107 | 0.0012 | 0.0001 | 0.0546 | 96.000 kbps | 96.595 kbps |
-| 128 kbps | 0.1402 | -0.0044 | -0.0030 | 0.0108 | 0.0025 | 0.0006 | 0.0245 | 128.000 kbps | 128.503 kbps |
-| 192 kbps | 0.1434 | -0.0045 | -0.0030 | 0.0111 | 0.0012 | -0.0001 | 0.1763 | 192.000 kbps | 192.421 kbps |
-| 256 kbps | 0.1402 | -0.0044 | -0.0029 | 0.0107 | 0.0013 | -0.0001 | 0.1400 | 256.000 kbps | 256.415 kbps |
+| 16 kbps | 0.3290 | -0.0102 | -0.0064 | 0.0227 | 0.0032 | 0.0003 | 0.0630 | 16.000 kbps | 16.255 kbps |
+| 24 kbps | 0.1340 | -0.0042 | -0.0027 | 0.0097 | 0.0008 | 0.0005 | 0.3071 | 24.000 kbps | 24.148 kbps |
+| 32 kbps | 0.3316 | -0.0103 | -0.0068 | 0.0252 | 0.0016 | 0.0000 | 0.1875 | 32.000 kbps | 32.184 kbps |
+| 48 kbps | 0.1691 | -0.0053 | -0.0035 | 0.0132 | 0.0023 | 0.0007 | -0.0845 | 48.000 kbps | 48.244 kbps |
+| 64 kbps | 0.1309 | -0.0041 | -0.0027 | 0.0108 | 0.0012 | 0.0006 | 0.1660 | 64.000 kbps | 64.501 kbps |
+| 96 kbps | 0.1488 | -0.0047 | -0.0031 | 0.0111 | 0.0013 | 0.0001 | 0.0547 | 96.000 kbps | 96.595 kbps |
+| 128 kbps | 0.1461 | -0.0046 | -0.0031 | 0.0112 | 0.0026 | 0.0006 | 0.0246 | 128.000 kbps | 128.503 kbps |
+| 192 kbps | 0.1491 | -0.0047 | -0.0031 | 0.0115 | 0.0013 | -0.0002 | 0.1764 | 192.000 kbps | 192.421 kbps |
+| 256 kbps | 0.1460 | -0.0046 | -0.0030 | 0.0111 | 0.0013 | -0.0001 | 0.1401 | 256.000 kbps | 256.415 kbps |
 
 ## Detector mode-balance spot check
 
@@ -93,11 +91,11 @@ Reported values are medians of three complete 60-second benchmark runs.
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 294868 B | 0 B | 294868 B |
+| Host C++23 `-O2` | 295752 B | 0 B | 295752 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
+| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\c++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |

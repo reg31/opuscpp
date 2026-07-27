@@ -86,13 +86,16 @@ int main() {
   ok &= expect(mono_bytes > 0, "encode mono packet");
   const auto stereo_samples = opus_decode(stereo_decoder.get(), mono_packet.data(), mono_bytes, stereo_out.data(), 320, 0);
   ok &= expect(stereo_samples == 320, "stereo decoder accepts mono packet");
-  ok &= expect(count_nonzero(stereo_out) > 0, "mono packet duplicate has signal");
+  const auto stereo_nonzero = count_nonzero(stereo_out);
+  ok &= expect(stereo_nonzero > 0, "mono packet duplicate has signal");
   ok &= expect(stereo_abs_difference(stereo_out) == 0, "mono packet duplicated equally to stereo");
+  ok &= expect(opus_decode(stereo_decoder.get(), nullptr, 0, stereo_out.data(), 320, 0) == 320,
+               "packet loss produces one concealed frame");
 
   if (!ok) {
     return 1;
   }
   std::cout << "decoder_channel_remap=PASS stereo_bytes=" << stereo_bytes << " mono_bytes=" << mono_bytes
-            << " mono_nonzero=" << count_nonzero(mono_out) << " stereo_nonzero=" << count_nonzero(stereo_out) << '\n';
+            << " mono_nonzero=" << count_nonzero(mono_out) << " stereo_nonzero=" << stereo_nonzero << '\n';
   return 0;
 }
