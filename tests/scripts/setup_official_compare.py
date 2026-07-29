@@ -632,12 +632,17 @@ def run_detector_mode_balance(cxx: str, repo_root: pathlib.Path, report_dir: pat
     return [line for line in output.splitlines() if line.strip()]
 
 
-def run_api_behavior_validation(cxx: str, repo_root: pathlib.Path, report_dir: pathlib.Path) -> list[str]:
+def run_api_behavior_validation(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_lib: pathlib.Path,
+    report_dir: pathlib.Path,
+) -> list[str]:
     build_dir = report_dir / "api_behavior"
     build_dir.mkdir(parents=True, exist_ok=True)
     results: list[str] = []
     suffix = ".exe" if os.name == "nt" else ""
-    for name in ("decoder_channel_remap", "packet_duration_behavior", "vbr_budget_behavior"):
+    for name in ("decoder_channel_remap", "packet_duration_behavior", "vbr_budget_behavior", "dtx_behavior"):
         exe = link_executable(
             cxx,
             [repo_root / "tests" / f"{name}.cpp", repo_root / "src" / "opus_codec.cpp"],
@@ -648,6 +653,24 @@ def run_api_behavior_validation(cxx: str, repo_root: pathlib.Path, report_dir: p
         )
         output = capture([str(exe)])
         results.extend(line for line in output.splitlines() if line.strip())
+    curr_obj = compile_object(
+        cxx,
+        repo_root / "src" / "opus_codec.cpp",
+        build_dir / "dtx_current.o",
+        [repo_root / "src"],
+        current_alias_macros("curr"),
+    )
+    dtx_exe = link_executable(
+        cxx,
+        [repo_root / "tests" / "dtx_vs_official.cpp"],
+        [curr_obj],
+        [repo_root / "tests"],
+        build_dir / f"dtx_vs_official{suffix}",
+        [official_lib],
+    )
+    dtx_output = capture([str(dtx_exe)])
+    (build_dir / "dtx_vs_official.txt").write_text(dtx_output, encoding="utf-8")
+    results.extend(line for line in dtx_output.splitlines() if line.startswith("dtx_comparison="))
     return results
 
 
@@ -830,7 +853,7 @@ def main() -> int:
 
     rfc = run_rfc_decode_conformance(harness_path, opus_compare, vector_dir, report_dir)
     encode = run_encode_validation_conformance(args.cxx, repo_root, official_lib, vector_dir, report_dir)
-    api_behavior = run_api_behavior_validation(args.cxx, repo_root, report_dir)
+    api_behavior = run_api_behavior_validation(args.cxx, repo_root, official_lib, report_dir)
     perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_lib, report_dir)
     benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_lib, report_dir)
     detector_rows = run_detector_mode_balance(args.cxx, repo_root, report_dir)

@@ -1976,6 +1976,8 @@ struct ref_OpusEncoder {
   opus_val32 peak_signal_energy;
   int nonfinal_frame;
   opus_uint32 rangeFinal;
+  int use_dtx, nb_no_activity_ms_Q1;
+  opus_val32 dtx_smoothed_energy;
   opus_res delay_buffer[480 * 2];
 };
 [[nodiscard]] static inline auto encoder_silk_state(ref_OpusEncoder* st) noexcept -> void* {
@@ -2700,6 +2702,64 @@ struct encoder_quality_decision {
   return music_threshold + ((quality.voice_weight_Q14() * (voice_threshold - music_threshold)) >> 14);
 }
 
+constexpr int dtx_entry_ms_Q1 = 10 * 20 * 2;
+constexpr int dtx_refresh_ms_Q1 = (10 + 20) * 20 * 2;
+constexpr opus_val32 dtx_digital_silence_max_energy = 2e-8f;
+constexpr opus_val32 dtx_audible_activity_min_energy = 1e-5f;
+
+[[nodiscard]] static bool dtx_frame_is_digital_silence(const frame_activity_metrics& metrics) noexcept {
+  return metrics.energy <= dtx_digital_silence_max_energy && metrics.mono_zero_cross_rate == 0;
+}
+
+[[nodiscard]] static bool dtx_frame_is_active(ref_OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
+  if (metrics.is_silence || dtx_frame_is_digital_silence(metrics)) {
+    st->dtx_smoothed_energy *= .875f;
+    return false;
+  }
+
+  const auto previous_energy = st->dtx_smoothed_energy;
+  st->dtx_smoothed_energy += .125f * (metrics.energy - st->dtx_smoothed_energy);
+  const bool changing_ambience =
+      previous_energy > 1e-9f && std::abs(metrics.energy - previous_energy) > .5f * (metrics.energy + previous_energy);
+  const bool protected_history =
+      st->lightweight_voice_score_Q7 >= 24 || st->lightweight_vad_score_Q7 >= 24 || st->lightweight_music_score_Q7 >= 24 ||
+      st->lightweight_harmonic_music_Q7 >= 24 || st->lightweight_high_z_tonal_Q7 >= 24 || st->lightweight_pitch_stability_Q7 >= 48;
+  const bool quiet_speech_shape = metrics.mono_diff_ratio > .0001f && metrics.mono_diff_ratio < .18f &&
+                                  metrics.mono_zero_cross_rate > .001f && metrics.mono_zero_cross_rate < .22f;
+  return metrics.energy >= dtx_audible_activity_min_energy || changing_ambience || protected_history || quiet_speech_shape;
+}
+
+[[nodiscard]] static bool should_emit_dtx(ref_OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size) noexcept {
+  if (dtx_frame_is_active(st, metrics)) {
+    st->nb_no_activity_ms_Q1 = 0;
+    return false;
+  }
+
+  st->nb_no_activity_ms_Q1 += 2 * 1000 * frame_size / st->Fs;
+  if (st->nb_no_activity_ms_Q1 <= dtx_entry_ms_Q1) {
+    return false;
+  }
+  if (st->nb_no_activity_ms_Q1 <= dtx_refresh_ms_Q1) {
+    return true;
+  }
+  st->nb_no_activity_ms_Q1 = dtx_entry_ms_Q1;
+  return false;
+}
+
+[[nodiscard]] static bool encoder_is_in_dtx(const ref_OpusEncoder* st) noexcept {
+  return st->use_dtx && st->nb_no_activity_ms_Q1 >= dtx_entry_ms_Q1;
+}
+
+[[nodiscard]] static opus_int32 finalize_dtx_packet(ref_OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size,
+                                                    unsigned char* data, opus_int32 length) noexcept {
+  if (!st->use_dtx || length <= 0 || !should_emit_dtx(st, metrics, frame_size)) {
+    return length;
+  }
+  st->rangeFinal = 0;
+  data[0] &= 0xFC;
+  return 1;
+}
+
 [[nodiscard]] static int choose_audio_preprocess_mode(ref_OpusEncoder* st) noexcept {
   if (st->audio_preprocess_hold > 0) {
     --st->audio_preprocess_hold;
@@ -2992,7 +3052,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
     curr_max = std::min(max_len_sum - tot_size, curr_max);
     const auto* frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
-    const int tmp_len =
+    int tmp_len =
         opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_metrics, frame_redundancy,
                                  params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt, stage_storage);
     if (tmp_len < 0) {
@@ -3000,6 +3060,7 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
       st->silk_mode.toMono = bak_to_mono;
       return -3;
     }
+    tmp_len = finalize_dtx_packet(st, frame_metrics, enc_frame_size, curr_data, tmp_len);
     if (tmp_len == 1) {
       ++dtx_count;
     }
@@ -3018,7 +3079,9 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   stage_storage.commit_to_encoder(st);
   const int ret = write_packet_frames(&packet_frames, 0, nb_frames, data, repacketize_len, !st->use_vbr && (dtx_count != nb_frames));
   st->silk_mode.toMono = bak_to_mono;
-  if (params.governed_vbr && ret > 0) {
+  if (encoder_is_in_dtx(st)) {
+    st->vbr_budget_reservoir_bits = 0;
+  } else if (params.governed_vbr && ret > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, packet_target_bits);
   }
   return ret < 0 ? -3 : ret;
@@ -3293,8 +3356,11 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
   }
   ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, frame_metrics, redundancy, celt_to_silk, prefill,
                                  equiv_rate, to_celt, stage_storage);
+  ret = finalize_dtx_packet(st, frame_metrics, frame_size, data, ret);
   stage_storage.commit_to_encoder(st);
-  if (governed_vbr && ret > 0) {
+  if (encoder_is_in_dtx(st)) {
+    st->vbr_budget_reservoir_bits = 0;
+  } else if (governed_vbr && ret > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, requested_frame_bits);
   }
   return ret;
@@ -3432,6 +3498,9 @@ static opus_int32 opus_encode_frame_native(ref_OpusEncoder* st, const opus_res* 
   data += 1;
   ec_enc_init(&enc, data, orig_max_data_bytes - 1);
   opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
+  if (st->use_dtx && dtx_frame_is_digital_silence(metrics)) [[unlikely]] {
+    zero_n_items(frame_pcm.data(), static_cast<std::size_t>(frame_size * st->channels));
+  }
   if (float_api) {
     opus_val32 sum = celt_inner_prod_c(frame_pcm.data(), frame_pcm.data(), frame_size * st->channels);
     if (!(sum < 1e9f) || ((sum) != (sum))) {
@@ -3729,10 +3798,12 @@ static opus_int32 ref_opus_encode_float(ref_OpusEncoder* st, const float* pcm, i
 
 static void reset_ref_encoder_state(ref_OpusEncoder* st, CeltEncoderInternal* celt_enc) {
   auto* silk_enc = encoder_silk_state(st);
+  const int use_dtx = st->use_dtx;
   st->vbr_budget_reservoir_bits = 0;
   auto* start = reinterpret_cast<std::byte*>(&st->stream_channels);
   const auto reset_bytes = static_cast<std::size_t>(st->silk_enc_offset - (start - reinterpret_cast<std::byte*>(st)));
   zero_n_bytes(start, reset_bytes);
+  st->use_dtx = use_dtx;
   celt_encoder_reset_state(celt_enc);
   if (encoder_uses_silk(st->application)) {
     silk_InitEncoder(silk_enc, st->channels);
@@ -5471,8 +5542,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
 static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_glog* bandLogE2, const celt_glog* oldBandE, int nbEBands,
                                            int start, int end, int C, int* offsets, int lsb_depth, int isTransient, int vbr,
                                            int constrained_vbr, const opus_int16* eBands, int LM, int effectiveBytes, opus_int32* tot_boost_,
-                                           int* importance, int* spread_weight, opus_val16 tone_freq, opus_val32 toneishness,
-                                           int lowrate_refinement) {
+                                           opus_val16 tone_freq, opus_val32 toneishness, int lowrate_refinement) {
   int i, c;
   opus_int32 tot_boost = 0;
   celt_glog maxDepth;
@@ -5490,37 +5560,6 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
   for (c = 0; c < C; ++c) {
     for (i = 0; i < end; i++) {
       maxDepth = std::max(maxDepth, bandLogE[c * nbEBands + i] - noise_floor[i]);
-    }
-  }
-  {
-    std::array<celt_glog, celt_default_nb_ebands> mask_storage;
-    std::array<celt_glog, celt_default_nb_ebands> sig_storage;
-    auto* mask = mask_storage.data();
-    auto* sig = sig_storage.data();
-    for (i = 0; i < end; i++) {
-      mask[i] = bandLogE[i] - noise_floor[i];
-    }
-    if (C == 2) {
-      for (i = 0; i < end; i++) {
-        mask[i] = std::max(mask[i], bandLogE[nbEBands + i] - noise_floor[i]);
-      }
-    }
-    // Keep this bounded copy explicit so the local eBands limit stays visible.
-    for (i = 0; i < end; ++i) {
-      sig[i] = mask[i];
-    }
-    for (i = 1; i < end; i++) {
-      mask[i] = std::max(mask[i], mask[i - 1] - 2.f);
-    }
-    for (i = end - 2; i >= 0; i--) {
-      mask[i] = std::max(mask[i], mask[i + 1] - 3.f);
-    }
-    const celt_glog mask_floor = std::max(0.f, maxDepth - (12.f));
-    for (i = 0; i < end; i++) {
-      celt_glog smr = sig[i] - std::max(mask_floor, mask[i]);
-      const int raw_shift = std::max(0, -(int)std::floor(.5f + smr));
-      int shift = std::min(5, raw_shift);
-      spread_weight[i] = 32 >> shift;
     }
   }
   if (effectiveBytes >= (30 + 5 * LM) || lowrate_refinement) {
@@ -5570,9 +5609,6 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
         follower[i] = std::max(0.f, bandLogE[i] - follower[i]);
       }
     }
-    for (i = start; i < end; i++) {
-      importance[i] = (int)std::floor(.5f + 13 * ((float)std::exp(0.6931471805599453094 * (((follower[i]) < ((4.f)) ? (follower[i]) : ((4.f)))))));
-    }
     if ((!vbr || constrained_vbr) && !isTransient) {
       for (i = start; i < end; i++) {
         follower[i] = (.5f * (follower[i]));
@@ -5615,10 +5651,6 @@ static inline celt_glog dynalloc_analysis(const celt_glog* bandLogE, const celt_
         offsets[i] = boost;
         tot_boost += boost_bits;
       }
-    }
-  } else {
-    for (i = start; i < end; i++) {
-      importance[i] = 13;
     }
   }
   *tot_boost_ = tot_boost;
@@ -6252,20 +6284,18 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   const auto band_count = static_cast<std::size_t>(nbEBands);
   auto* X = freq;
   normalise_bands(mode, freq, X, bandE, effEnd, C, M);
-  std::array<int, 8 * celt_default_nb_ebands> celt_band_storage;
+  std::array<int, 6 * celt_default_nb_ebands> celt_band_storage;
   auto* const band_base = celt_band_storage.data();
-  zero_n_items(band_base, 8 * band_count);
+  zero_n_items(band_base, 6 * band_count);
   std::span<int> offsets{band_base + 0 * band_count, band_count};
-  std::span<int> importance{band_base + 1 * band_count, band_count};
-  std::span<int> spread_weight{band_base + 2 * band_count, band_count};
-  std::span<int> tf_res{band_base + 3 * band_count, band_count};
-  std::span<int> cap{band_base + 4 * band_count, band_count};
-  std::span<int> fine_quant{band_base + 5 * band_count, band_count};
-  std::span<int> pulses{band_base + 6 * band_count, band_count};
-  std::span<int> fine_priority{band_base + 7 * band_count, band_count};
+  std::span<int> tf_res{band_base + 1 * band_count, band_count};
+  std::span<int> cap{band_base + 2 * band_count, band_count};
+  std::span<int> fine_quant{band_base + 3 * band_count, band_count};
+  std::span<int> pulses{band_base + 4 * band_count, band_count};
+  std::span<int> fine_priority{band_base + 5 * band_count, band_count};
   maxDepth = dynalloc_analysis(bandLogE, bandLogE2, oldBandE, nbEBands, start, end, C, offsets.data(), st->lsb_depth, isTransient, st->vbr,
-                               st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, importance.data(), spread_weight.data(),
-                               tone_freq, toneishness, st->lowrate_refinement);
+                               st->constrained_vbr, eBands, LM, effectiveBytes, &tot_boost, tone_freq, toneishness,
+                               st->lowrate_refinement);
   fill_n_items(tf_res.data(), static_cast<std::size_t>(end), st->lowrate_refinement ? 1 : 0);
   tf_select = 0;
   auto* error = bandLogE2;
@@ -16790,6 +16820,19 @@ template <opus_ctl_value T> [[nodiscard]] static inline auto ctl_write_value(va_
   case OPUS_GET_VBR_REQUEST: {
     return ctl_write_value(ap, static_cast<opus_int32>(st->use_vbr));
   }
+  case OPUS_SET_DTX_REQUEST: {
+    const auto value = va_arg(ap, opus_int32);
+    if (value < 0 || value > 1) {
+      return OPUS_BAD_ARG;
+    }
+    st->use_dtx = value;
+    st->nb_no_activity_ms_Q1 = 0;
+    st->dtx_smoothed_energy = 0;
+    return OPUS_OK;
+  }
+  case OPUS_GET_DTX_REQUEST: {
+    return ctl_write_value(ap, static_cast<opus_int32>(st->use_dtx));
+  }
   case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
     const auto value = va_arg(ap, opus_int32);
     if (value < 0 || value > 1) {
@@ -16818,6 +16861,9 @@ template <opus_ctl_value T> [[nodiscard]] static inline auto ctl_write_value(va_
   }
   case OPUS_GET_FINAL_RANGE_REQUEST: {
     return ctl_write_value(ap, st->rangeFinal);
+  }
+  case OPUS_GET_IN_DTX_REQUEST: {
+    return ctl_write_value(ap, static_cast<opus_int32>(encoder_is_in_dtx(st)));
   }
   case OPUS_RESET_STATE:
     reset_ref_encoder_state(st, celt_enc);

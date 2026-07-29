@@ -22,6 +22,8 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 - `decoder_channel_remap=PASS stereo_bytes=248 mono_bytes=83 mono_nonzero=951 stereo_nonzero=610`
 - `packet_duration_behavior=PASS`
 - `vbr_budget_behavior=PASS`
+- `dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725390 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.458774 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
 
 ## Perceptual and memory harness
 
@@ -33,15 +35,15 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.292905x | 1.845001x |
-| 24 kbps | 1.591048x | 1.373896x |
-| 32 kbps | 1.607642x | 1.320064x |
-| 48 kbps | 1.597745x | 1.249338x |
-| 64 kbps | 1.654229x | 1.210356x |
-| 96 kbps | 1.668698x | 1.245171x |
-| 128 kbps | 1.900072x | 1.247833x |
-| 192 kbps | 1.740420x | 1.216876x |
-| 256 kbps | 1.681382x | 1.118687x |
+| 16 kbps | 2.364491x | 1.766665x |
+| 24 kbps | 1.640160x | 1.322534x |
+| 32 kbps | 1.607157x | 1.323364x |
+| 48 kbps | 1.585901x | 1.237636x |
+| 64 kbps | 1.588654x | 1.265691x |
+| 96 kbps | 1.687304x | 1.250015x |
+| 128 kbps | 2.118571x | 1.245968x |
+| 192 kbps | 1.765869x | 1.195614x |
+| 256 kbps | 1.660325x | 1.239376x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -91,11 +93,11 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 295752 B | 0 B | 295752 B |
+| Host C++23 `-O2` | 295344 B | 0 B | 295344 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\c++.exe | checked |
+| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |

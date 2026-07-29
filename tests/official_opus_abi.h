@@ -18,6 +18,7 @@ inline constexpr int OPUS_APPLICATION_RESTRICTED_LOWDELAY = 2051;
 inline constexpr int OPUS_SET_BITRATE_REQUEST = 4002;
 inline constexpr int OPUS_SET_VBR_REQUEST = 4006;
 inline constexpr int OPUS_SET_COMPLEXITY_REQUEST = 4010;
+inline constexpr int OPUS_SET_DTX_REQUEST = 4016;
 inline constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
 
 extern "C" {

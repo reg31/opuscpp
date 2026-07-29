@@ -93,12 +93,19 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_BITRATE_REQUEST` | `OPUS_GET_BITRATE(&x)` | Returns current effective bitrate. |
 | `OPUS_SET_VBR_REQUEST` | `OPUS_SET_VBR(x)` | `1` for VBR, `0` for CBR-style packet padding; default is VBR on. |
 | `OPUS_GET_VBR_REQUEST` | `OPUS_GET_VBR(&x)` | Returns VBR setting. |
+| `OPUS_SET_DTX_REQUEST` | `OPUS_SET_DTX(x)` | Enables guarded discontinuous transmission; default is off. |
+| `OPUS_GET_DTX_REQUEST` | `OPUS_GET_DTX(&x)` | Returns the DTX setting. |
+| `OPUS_GET_IN_DTX_REQUEST` | `OPUS_GET_IN_DTX(&x)` | Reports whether the encoder is currently suppressing inactive frames. |
 | `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. |
 | `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |
 | `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |
 | `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state. |
+| `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state while preserving encoder configuration CTLs. |
+
+DTX reuses the existing speech/music analysis, protects quiet or tonal content, and emits standard
+one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
+suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
 
 ## Supported decoder CTLs
 
@@ -122,7 +129,7 @@ Unsupported requests return `OPUS_UNIMPLEMENTED` or `OPUS_BAD_ARG` depending on 
 - Custom Opus (`opus_custom_*`).
 - Multistream/projection APIs.
 - Repacketizer APIs.
-- DTX/FEC/bandwidth/signal/gain/LSB-depth CTLs not listed above.
+- FEC/bandwidth/signal/gain/LSB-depth CTLs not listed above.
 - Decoder-side FEC output beyond accepting the standard decode argument shape.
 
 This is deliberate: the implementation focuses on the common single-stream Opus API and keeps unused feature surfaces out of the public contract.
