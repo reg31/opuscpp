@@ -44,7 +44,8 @@ Minimal integration looks like:
 - Lightweight speech/music detector moves sustained harmonic/music content toward CELT and is
   tracked by a mode-balance harness.
 - Optional guarded DTX matches official Opus's zero false-DTX result on the tracked active-content
-  corpus and has lower aggregate wake-up error in the current 16/24&nbsp;kbps comparison.
+  corpus, with 4.4% lower re-entry error when sound returns after silence and 9.3% lower gain error
+  (volume mismatch) in the current 16/24&nbsp;kbps comparison.
 - Optional decoder postfilter modes are available through an `opuscpp` CTL; the default decoder
   output stays RFC-compatible.
 - Lower memory footprint than official Opus in the measured configurations (21.9% to 49.0%

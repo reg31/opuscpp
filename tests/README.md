@@ -179,7 +179,13 @@ the RFC decode vectors:
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
 signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.7254` vs `0.7588`)
-and gain error (`1.4588` vs `1.6082` dB), while both suppress the same 406 silence frames.
+and gain error (`1.4588` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
+approximately 4.4% less re-entry error and 9.3% less gain error than official Opus.
+
+In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
+silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
+temporarily too loud or too quiet. This comparison is run automatically by the full-report scripts
+above, with detailed output saved under `build/official_compare_report/api_behavior/`.
 
 ## Perceptual and memory harness
 
