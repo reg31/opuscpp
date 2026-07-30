@@ -278,7 +278,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. It runs only
 where the focused A/B gate found a worthwhile benefit. On tracked mono VOIP at 16/32&nbsp;kbps,
 PESQ-style improves by `+0.0258`/`+0.0255` and ViSQOL-style by `+0.0053`/`+0.0017`; continuous
-mono decode overhead measured about 7%/37% while active. Other tested mono rates and CELT-only
+mono decode overhead measured between 7% and 37% while active. Other tested mono rates and CELT-only
 stereo bypass the filter, while hybrid stereo VOIP at 24/32&nbsp;kbps retains positive PESQ- and
 ViSQOL-style deltas. Auto mode now applies to both PCM16 and float decoding. The public default and
 headline metrics remain unfiltered.
