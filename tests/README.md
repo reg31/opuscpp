@@ -213,15 +213,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.426x | 1.772x | 769x | 317x | 2078x | 1173x |
-| 24&nbsp;kbps | 1.678x | 1.349x | 490x | 292x | 1400x | 1038x |
-| 32&nbsp;kbps | 1.646x | 1.319x | 487x | 296x | 1340x | 1016x |
-| 48&nbsp;kbps | 1.600x | 1.247x | 433x | 271x | 1097x | 880x |
-| 64&nbsp;kbps | 1.618x | 1.251x | 390x | 241x | 955x | 763x |
-| 96&nbsp;kbps | 1.698x | 1.226x | 328x | 193x | 739x | 603x |
-| 128&nbsp;kbps | 2.040x | 1.189x | 342x | 168x | 628x | 528x |
-| 192&nbsp;kbps | 1.713x | 1.176x | 275x | 160x | 541x | 460x |
-| 256&nbsp;kbps | 1.683x | 1.108x | 280x | 166x | 498x | 450x |
+| 16&nbsp;kbps | 2.277x | 1.814x | 689x | 303x | 2025x | 1116x |
+| 24&nbsp;kbps | 1.646x | 1.351x | 522x | 317x | 1507x | 1116x |
+| 32&nbsp;kbps | 1.629x | 1.324x | 522x | 320x | 1459x | 1101x |
+| 48&nbsp;kbps | 1.603x | 1.246x | 466x | 291x | 1185x | 952x |
+| 64&nbsp;kbps | 1.619x | 1.234x | 419x | 259x | 1020x | 826x |
+| 96&nbsp;kbps | 1.704x | 1.241x | 355x | 208x | 804x | 648x |
+| 128&nbsp;kbps | 1.956x | 1.094x | 372x | 190x | 623x | 570x |
+| 192&nbsp;kbps | 1.697x | 1.185x | 288x | 169x | 581x | 490x |
+| 256&nbsp;kbps | 1.675x | 1.126x | 275x | 164x | 496x | 440x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -240,19 +240,20 @@ A supplemental real-time-factor snapshot is also tracked in
 AUDIO quality proxy metrics were measured on the synthetic music-like validation corpus used during
 development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns.
 Effective bitrate columns show measured payload bitrate for the same validation run.
-The harness uses the public decoder default: unfiltered output.
+The harness uses the public decoder default: unfiltered output. The CELT proxy excludes the first
+unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0050 | +0.0009 | +0.6648 | 16.0 kbps | 17.1 kbps |
-| 24&nbsp;kbps | -0.0023 | +0.0267 | +0.3331 | 24.0 kbps | 25.2 kbps |
-| 32&nbsp;kbps | +0.0052 | +0.0431 | +0.4579 | 32.0 kbps | 33.6 kbps |
-| 48&nbsp;kbps | +0.0012 | +0.0126 | +0.0658 | 48.0 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0011 | +0.0050 | -0.0449 | 64.0 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0004 | +0.0040 | -0.0536 | 96.0 kbps | 96.7 kbps |
-| 128&nbsp;kbps | +0.0010 | +0.0015 | -0.0378 | 128.0 kbps | 128.8 kbps |
-| 192&nbsp;kbps | +0.0007 | +0.0005 | -0.0327 | 192.0 kbps | 192.9 kbps |
-| 256&nbsp;kbps | +0.0008 | +0.0001 | +0.0061 | 256.0 kbps | 256.7 kbps |
+| 16&nbsp;kbps | +0.0073 | +0.0013 | +0.4863 | 16.0 kbps | 17.1 kbps |
+| 24&nbsp;kbps | +0.0017 | +0.0267 | +1.0525 | 24.0 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0089 | +0.0424 | +0.6391 | 32.0 kbps | 33.6 kbps |
+| 48&nbsp;kbps | +0.0012 | +0.0126 | +0.0019 | 48.0 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0011 | +0.0050 | +0.0017 | 64.0 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0003 | +0.0042 | +0.0009 | 96.0 kbps | 96.7 kbps |
+| 128&nbsp;kbps | +0.0010 | +0.0015 | +0.0026 | 128.0 kbps | 128.8 kbps |
+| 192&nbsp;kbps | +0.0007 | +0.0005 | +0.0029 | 192.0 kbps | 192.9 kbps |
+| 256&nbsp;kbps | +0.0008 | +0.0001 | +0.0045 | 256.0 kbps | 256.7 kbps |
 
 
 ## VOIP quality metrics vs official Opus
@@ -262,15 +263,15 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | -0.0071 | -0.0025 | -0.2295 | 16.0 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0006 | -0.0003 | +0.0766 | 24.0 kbps | 24.1 kbps |
-| 32&nbsp;kbps | -0.0003 | -0.0001 | +0.0479 | 32.0 kbps | 32.2 kbps |
+| 16&nbsp;kbps | +0.0083 | +0.0010 | +0.0609 | 16.0 kbps | 16.3 kbps |
+| 24&nbsp;kbps | +0.0019 | +0.0050 | +0.0841 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0005 | +0.0017 | +0.0447 | 32.0 kbps | 32.2 kbps |
 | 48&nbsp;kbps | +0.0042 | +0.0017 | +0.0293 | 48.0 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0015 | -0.0001 | -0.1039 | 64.0 kbps | 64.5 kbps |
-| 96&nbsp;kbps | -0.0001 | 0.0000 | +0.0137 | 96.0 kbps | 96.6 kbps |
-| 128&nbsp;kbps | 0.0000 | +0.0012 | -0.0033 | 128.0 kbps | 128.5 kbps |
-| 192&nbsp;kbps | +0.0003 | 0.0000 | +0.0107 | 192.0 kbps | 192.4 kbps |
-| 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0008 | 256.0 kbps | 256.4 kbps |
+| 64&nbsp;kbps | +0.0075 | +0.0008 | +0.0228 | 64.0 kbps | 64.5 kbps |
+| 96&nbsp;kbps | +0.0019 | +0.0002 | +0.0127 | 96.0 kbps | 96.6 kbps |
+| 128&nbsp;kbps | +0.0022 | +0.0009 | +0.0132 | 128.0 kbps | 128.5 kbps |
+| 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.0 kbps | 192.4 kbps |
+| 256&nbsp;kbps | +0.0007 | +0.0002 | +0.0050 | 256.0 kbps | 256.4 kbps |
 
 ### Optional speech postfilter A/B
 
@@ -299,7 +300,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 295,168 B | 0 B | 295,168 B |
+| Host MinGW GCC `-O2` | 295,488 B | 0 B | 295,488 B |
 
 ## Toolchains checked
 

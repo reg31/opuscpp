@@ -426,7 +426,9 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
   }
 
   auto previous_mask = std::array<std::array<double, 2>, nbands>{};
-  for (std::size_t start = 0; start + celt_metric_tables::window_size <= frames; start += celt_metric_tables::window_size) {
+  // Ignore codec startup; its unprimed first 10 ms otherwise dominates the 16th-order score.
+  for (std::size_t start = celt_metric_tables::window_size; start + celt_metric_tables::window_size <= frames;
+       start += celt_metric_tables::window_size) {
     auto ref_energy = std::array<std::array<double, 2>, nbands>{};
     auto deg_energy = std::array<std::array<double, 2>, nbands>{};
     for (int bin = 0; bin < celt_metric_tables::freq_bins; ++bin) {

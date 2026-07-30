@@ -127,9 +127,9 @@ extra decoder work and potentially softer treble while filtering is active.
 | Level | Recommended use |
 |---:|---|
 | `0` (off) | General audio, music, validation, speech-to-text, and applications requiring the plainest decoder output. This is the default. |
-| `1` (light) | Mild harshness or ringing where preserving treble is more important than maximum smoothing. Applies to float and PCM16 output. |
-| `2` (stronger) | Clearly noisy low-bitrate speech where stronger smoothing is preferred despite a greater risk of dulling treble. Applies to float and PCM16 output. |
-| `3` (adaptive) | Speech playback through either PCM16 or float decoding. It filters only low/mid-rate packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not a universal music mode. |
+| `1` (light) | Mild harshness or ringing where preserving treble is more important than maximum smoothing. |
+| `2` (stronger) | Clearly noisy low-bitrate speech where stronger smoothing is preferred despite a greater risk of dulling treble. |
+| `3` (adaptive) | Recommended for low/mid-rate speech. It filters only packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not recommended for music, where it usually has no effect and may soften tonal detail when active. |
 
 Published quality metrics use the default unfiltered output.
 

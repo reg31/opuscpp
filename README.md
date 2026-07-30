@@ -50,7 +50,7 @@ Minimal integration looks like:
   off by default because it is not a universal music-quality improvement.
 - Lower memory footprint than official Opus in the measured configurations (21.9% to 49.0%
   lower private state in the current memory snapshot).
-- Host MinGW GCC `-O2` measured object image in the current snapshot: `295,168 B` total.
+- Host MinGW GCC `-O2` measured object image in the current snapshot: `295,488 B` total.
 
 ## Pros and cons
 
@@ -112,30 +112,30 @@ official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.426x | 1.772x | +0.0050 | +0.0009 | 16.000 kbps | 16.462 kbps |
-| 24&nbsp;kbps | 1.678x | 1.349x | -0.0023 | +0.0267 | 24.000 kbps | 24.476 kbps |
-| 32&nbsp;kbps | 1.646x | 1.319x | +0.0052 | +0.0431 | 32.000 kbps | 32.512 kbps |
-| 48&nbsp;kbps | 1.600x | 1.247x | +0.0012 | +0.0126 | 48.000 kbps | 48.402 kbps |
-| 64&nbsp;kbps | 1.618x | 1.251x | +0.0011 | +0.0050 | 64.000 kbps | 64.402 kbps |
-| 96&nbsp;kbps | 1.698x | 1.226x | +0.0004 | +0.0040 | 96.000 kbps | 96.404 kbps |
-| 128&nbsp;kbps | 2.040x | 1.189x | +0.0010 | +0.0015 | 128.000 kbps | 128.405 kbps |
-| 192&nbsp;kbps | 1.713x | 1.176x | +0.0007 | +0.0005 | 192.000 kbps | 192.416 kbps |
-| 256&nbsp;kbps | 1.683x | 1.108x | +0.0008 | +0.0001 | 256.000 kbps | 256.436 kbps |
+| 16&nbsp;kbps | 2.277x | 1.814x | +0.0073 | +0.0013 | 16.000 kbps | 16.462 kbps |
+| 24&nbsp;kbps | 1.646x | 1.351x | +0.0017 | +0.0267 | 24.000 kbps | 24.476 kbps |
+| 32&nbsp;kbps | 1.629x | 1.324x | +0.0089 | +0.0424 | 32.000 kbps | 32.512 kbps |
+| 48&nbsp;kbps | 1.603x | 1.246x | +0.0012 | +0.0126 | 48.000 kbps | 48.402 kbps |
+| 64&nbsp;kbps | 1.619x | 1.234x | +0.0011 | +0.0050 | 64.000 kbps | 64.402 kbps |
+| 96&nbsp;kbps | 1.704x | 1.241x | +0.0003 | +0.0042 | 96.000 kbps | 96.404 kbps |
+| 128&nbsp;kbps | 1.956x | 1.094x | +0.0010 | +0.0015 | 128.000 kbps | 128.405 kbps |
+| 192&nbsp;kbps | 1.697x | 1.185x | +0.0007 | +0.0005 | 192.000 kbps | 192.416 kbps |
+| 256&nbsp;kbps | 1.675x | 1.126x | +0.0008 | +0.0001 | 256.000 kbps | 256.436 kbps |
 
 
 VOIP mono speech-like quality spot check:
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | -0.0071 | -0.0025 | 16.000 kbps | 16.255 kbps |
-| 24&nbsp;kbps | +0.0006 | -0.0003 | 24.000 kbps | 24.148 kbps |
-| 32&nbsp;kbps | -0.0003 | -0.0001 | 32.000 kbps | 32.184 kbps |
+| 16&nbsp;kbps | +0.0083 | +0.0010 | 15.999 kbps | 16.255 kbps |
+| 24&nbsp;kbps | +0.0019 | +0.0050 | 24.000 kbps | 24.148 kbps |
+| 32&nbsp;kbps | +0.0005 | +0.0017 | 32.000 kbps | 32.184 kbps |
 | 48&nbsp;kbps | +0.0042 | +0.0017 | 48.000 kbps | 48.244 kbps |
-| 64&nbsp;kbps | +0.0015 | -0.0001 | 64.000 kbps | 64.501 kbps |
-| 96&nbsp;kbps | -0.0001 | 0.0000 | 96.000 kbps | 96.595 kbps |
-| 128&nbsp;kbps | 0.0000 | +0.0012 | 128.000 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0003 | 0.0000 | 192.000 kbps | 192.421 kbps |
-| 256&nbsp;kbps | -0.0001 | +0.0001 | 256.000 kbps | 256.415 kbps |
+| 64&nbsp;kbps | +0.0075 | +0.0008 | 63.969 kbps | 64.501 kbps |
+| 96&nbsp;kbps | +0.0019 | +0.0002 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | +0.0022 | +0.0009 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0009 | +0.0001 | 192.000 kbps | 192.421 kbps |
+| 256&nbsp;kbps | +0.0007 | +0.0002 | 256.000 kbps | 256.415 kbps |
 
 The optional adaptive speech postfilter is not included in these default-output figures. It bypasses
 packet modes and rates where its measured benefit did not justify the decode cost. On the tracked
