@@ -178,9 +178,9 @@ the RFC decode vectors:
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
-signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.7254` vs `0.7588`)
-and gain error (`1.4588` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
-approximately 4.4% less re-entry error and 9.3% less gain error than official Opus.
+signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.6796` vs `0.7588`)
+and gain error (`1.5484` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
+approximately 10.4% less re-entry error and 3.7% less gain error than official Opus.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -213,15 +213,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.277x | 1.814x | 689x | 303x | 2025x | 1116x |
-| 24&nbsp;kbps | 1.646x | 1.351x | 522x | 317x | 1507x | 1116x |
-| 32&nbsp;kbps | 1.629x | 1.324x | 522x | 320x | 1459x | 1101x |
-| 48&nbsp;kbps | 1.603x | 1.246x | 466x | 291x | 1185x | 952x |
-| 64&nbsp;kbps | 1.619x | 1.234x | 419x | 259x | 1020x | 826x |
-| 96&nbsp;kbps | 1.704x | 1.241x | 355x | 208x | 804x | 648x |
-| 128&nbsp;kbps | 1.956x | 1.094x | 372x | 190x | 623x | 570x |
-| 192&nbsp;kbps | 1.697x | 1.185x | 288x | 169x | 581x | 490x |
-| 256&nbsp;kbps | 1.675x | 1.126x | 275x | 164x | 496x | 440x |
+| 16&nbsp;kbps | 2.343x | 1.777x | 769x | 328x | 2139x | 1203x |
+| 24&nbsp;kbps | 1.697x | 1.335x | 489x | 288x | 1362x | 1020x |
+| 32&nbsp;kbps | 1.622x | 1.228x | 312x | 193x | 759x | 618x |
+| 48&nbsp;kbps | 1.590x | 1.262x | 276x | 174x | 676x | 536x |
+| 64&nbsp;kbps | 1.648x | 1.219x | 252x | 153x | 551x | 452x |
+| 96&nbsp;kbps | 1.627x | 1.229x | 209x | 129x | 459x | 373x |
+| 128&nbsp;kbps | 1.881x | 1.191x | 219x | 117x | 389x | 326x |
+| 192&nbsp;kbps | 2.152x | 1.165x | 237x | 110x | 508x | 436x |
+| 256&nbsp;kbps | 1.660x | 1.196x | 242x | 146x | 448x | 375x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -300,7 +300,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 295,488 B | 0 B | 295,488 B |
+| Host MinGW GCC `-O2` | 296,256 B | 0 B | 296,256 B |
 
 ## Toolchains checked
 

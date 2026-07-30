@@ -2214,6 +2214,8 @@ struct stereo_width_measurement {
   opus_val16 width;
   opus_val32 energy;
   opus_val16 sample_max;
+  opus_val32 mono_diff_ratio;
+  int mono_zero_crossings;
 };
 
 static stereo_width_measurement measure_stereo_width(const opus_res* pcm, int frame_size, opus_int32 Fs, StereoWidthState* mem,
@@ -2221,13 +2223,24 @@ static stereo_width_measurement measure_stereo_width(const opus_res* pcm, int fr
   const int frame_rate = Fs / frame_size;
   const opus_val16 short_alpha = 25.0f / std::max(50, frame_rate);
   opus_val32 xx = 0, xy = 0, yy = 0, energy = 0;
+  opus_val64 mono_energy = 0, mono_diff_energy = 0;
   opus_val16 sample_max = 0;
+  opus_val32 previous_mono = 0;
+  int mono_zero_crossings = 0;
   if (measure_activity) {
     for (int i = 0; i < frame_size; ++i) {
       const auto x = pcm[2 * i];
       const auto y = pcm[2 * i + 1];
       energy += x * x + y * y;
       sample_max = std::max(sample_max, std::max(std::abs(x), std::abs(y)));
+      const auto mono = .5f * (x + y);
+      mono_energy += static_cast<opus_val64>(mono) * mono;
+      if (i != 0) {
+        mono_zero_crossings += (mono >= 0) != (previous_mono >= 0);
+        const auto delta = mono - previous_mono;
+        mono_diff_energy += static_cast<opus_val64>(delta) * delta;
+      }
+      previous_mono = mono;
     }
   }
 
@@ -2283,7 +2296,8 @@ static stereo_width_measurement measure_stereo_width(const opus_res* pcm, int fr
     mem->smoothed_width += (width - mem->smoothed_width) / frame_rate;
     mem->max_follower = std::max(mem->max_follower - 0.02f / frame_rate, mem->smoothed_width);
   }
-  return {std::min(1.0f, 20.0f * mem->max_follower), energy, sample_max};
+  return {std::min(1.0f, 20.0f * mem->max_follower), energy, sample_max,
+          static_cast<opus_val32>(mono_diff_energy / (mono_energy + 1e-12f)), mono_zero_crossings};
 }
 
 static int compute_silk_rate_for_hybrid(int rate, int bandwidth, int frame20ms, int vbr, int channels) {
@@ -2421,6 +2435,11 @@ struct frame_activity_metrics {
   int mono_zero_crossings;
   opus_val32 mono_diff_ratio, mono_zero_cross_rate;
 };
+
+[[nodiscard]] static constexpr bool is_sparse_high_z_tonal_frame(const frame_activity_metrics& metrics) noexcept {
+  return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
+}
+
 static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int frame_size, int channels, int lsb_depth) {
   opus_val32 energy = 0, sample_max = 0;
   opus_val64 mono_energy = 0, mono_diff_energy = 0;
@@ -2571,6 +2590,15 @@ static int update_lightweight_voice_estimate(ref_OpusEncoder* st, const opus_res
   auto vad_score = st->lightweight_vad_score_Q7;
   st->lightweight_analysis_frames = std::min(st->lightweight_analysis_frames + 1, lightweight_analysis_frame_limit);
   if (st->channels == 2 && stereo_width > .05f) {
+    auto high_z_tonal = st->lightweight_high_z_tonal_Q7;
+    // Require active consecutive frames before holding a sparse high-frequency segment.
+    if (is_sparse_high_z_tonal_frame(frame_metrics)) {
+      high_z_tonal += std::max(1, (115 - high_z_tonal) >> 2);
+    } else {
+      const int decay = high_z_tonal > 64 ? (st->bitrate_bps < 40000 ? 124 : 104) : 80;
+      high_z_tonal = (high_z_tonal * decay) >> 7;
+    }
+    st->lightweight_high_z_tonal_Q7 = clamp_value(high_z_tonal, 0, 115);
     st->lightweight_voice_score_Q7 = 0;
     st->lightweight_vad_score_Q7 = 0;
     st->lightweight_pitch_stability_Q7 = 0;
@@ -3125,8 +3153,12 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
     if (detector_needs_detail || balance_needs_detail) {
       frame_metrics = measure_frame_activity(pcm, frame_size, st->channels, lsb_depth);
     } else {
-      frame_metrics = {
-          stereo.sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth), stereo.energy / (2 * frame_size), 0, 0, 0, 0};
+      frame_metrics = {stereo.sample_max <= static_cast<opus_val16>(1) / (1 << lsb_depth),
+                       stereo.energy / (2 * frame_size),
+                       0,
+                       stereo.mono_zero_crossings,
+                       stereo.mono_diff_ratio,
+                       static_cast<opus_val32>(stereo.mono_zero_crossings) / std::max(1, frame_size - 1)};
     }
   } else {
     stereo_width = 0;
@@ -3189,6 +3221,8 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
       st->mode = opus_mode_silk_only;
     } else if (voip_style && st->channels == 1 && st->bitrate_bps < voip_mono_speech_silk_max_bps && quality.harmonic_music_Q7 < 80 &&
                !quality.high_z_tonal_confident()) {
+      st->mode = opus_mode_silk_only;
+    } else if (!voip_style && st->channels == 2 && st->bitrate_bps <= 48000 && quality.high_z_tonal_confident()) {
       st->mode = opus_mode_silk_only;
     } else if (quality.strong_music()) {
       const bool high_energy_stereo_music =
@@ -3420,7 +3454,11 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
   } else if (st->application == OPUS_APPLICATION_AUDIO) {
     if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
       dc_reject(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
-    } else if (st->mode == opus_mode_celt_only && st->channels == 2 && (st->bitrate_bps < 20000 || st->bitrate_bps >= 128000)) {
+    } else if (st->channels == 2 && st->mode == opus_mode_celt_only &&
+               (st->bitrate_bps < 20000 || st->bitrate_bps >= 128000)) {
+      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
+    } else if (st->channels == 2 && st->bitrate_bps >= 20000 && st->bitrate_bps < 80000 &&
+               st->lightweight_high_z_tonal_Q7 > 64 && is_sparse_high_z_tonal_frame(frame_metrics)) {
       copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else {
       hp_cutoff(pcm, audio_clean_hp_cutoff_hz, frame_pcm, st->audio_music_hp_mem, frame_size, st->channels, st->Fs);
@@ -6116,7 +6154,7 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
 
 [[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, int channels) noexcept -> int {
   if (hybrid) {
-    return alloc_trim;
+    return st->high_z_tonal_Q7 > 64 ? clamp_value(alloc_trim - 4, 0, 10) : alloc_trim;
   }
   if (st->high_z_tonal_Q7 > 64 && st->bitrate >= 40000 && st->bitrate < 56000) {
     alloc_trim = clamp_value(alloc_trim - 2, 0, 10);
@@ -6135,7 +6173,7 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
     alloc_trim = clamp_value(alloc_trim + std::max(bandwidth_boost, scarcity_boost), 0, 10);
   }
   if (channels == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
-    alloc_trim = clamp_value(alloc_trim + 1, 0, 10);
+    alloc_trim = clamp_value(alloc_trim + (st->high_z_tonal_Q7 > 64 ? -1 : 1), 0, 10);
   }
   if (st->bitrate >= 80000 && st->bitrate < 112000) {
     alloc_trim = clamp_value(alloc_trim + 2, 0, 10);
