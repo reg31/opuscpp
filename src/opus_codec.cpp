@@ -388,7 +388,6 @@ static void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opus_int32
 [[nodiscard]] static bool decoder_should_apply_output_postfilter(ref_OpusDecoder* st) noexcept;
 static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels,
                                                  bool apply_filter) noexcept;
-static void celt_decoder_update_output_postfilter(CeltDecoderInternal* st, const opus_int16* pcm, int samples, int channels) noexcept;
 [[nodiscard]] static opus_uint32 celt_decoder_final_range(const CeltDecoderInternal* st) noexcept;
 [[nodiscard]] static const CeltModeInternal* celt_decoder_mode(const CeltDecoderInternal* st) noexcept;
 consteval void numeric_blob_fail() {
@@ -1603,15 +1602,10 @@ static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_
   }
   auto* celt_dec = decoder_celt_state(st);
   const bool output_postfilter_enabled = celt_decoder_output_postfilter_level(celt_dec) != 0;
-  const bool output_postfilter_forces_scratch = celt_decoder_output_postfilter_level(celt_dec) == 1 ||
-                                                celt_decoder_output_postfilter_level(celt_dec) == 2;
-  if (!output_postfilter_forces_scratch) {
+  if (!output_postfilter_enabled) {
     const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
     if (fast_ret != opus_decode_fast_unavailable) {
       decoder_remember_packet_bitrate(st, len, fast_ret);
-      if (output_postfilter_enabled) {
-        celt_decoder_update_output_postfilter(celt_dec, pcm, fast_ret, st->channels);
-      }
       return fast_ret;
     }
   }
@@ -1619,13 +1613,8 @@ static int ref_opus_decode(ref_OpusDecoder* st, const unsigned char* data, opus_
   const int ret = decode_native(st, data, len, out, frame_size, decode_fec);
   if (ret > 0) {
     decoder_remember_packet_bitrate(st, len, ret);
-    // Keep auto smoothing off the int16 API: it helps the float quality proxy,
-    // but the speech-to-text gate is more stable with the unfiltered PCM16 path.
-    if (output_postfilter_enabled && celt_decoder_output_postfilter_level(celt_dec) != 3) {
-      const bool apply_filter = decoder_should_apply_output_postfilter(st);
-      if (apply_filter) {
-        celt_decoder_apply_output_postfilter(celt_dec, out, ret, st->channels, apply_filter);
-      }
+    if (output_postfilter_enabled) {
+      celt_decoder_apply_output_postfilter(celt_dec, out, ret, st->channels, decoder_should_apply_output_postfilter(st));
     }
     celt_float2int16_c(out, pcm, static_cast<std::size_t>(ret * st->channels));
   }
@@ -1653,10 +1642,7 @@ static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data,
   if (fast_ret != opus_decode_fast_unavailable) {
     decoder_remember_packet_bitrate(st, len, fast_ret);
     if (output_postfilter_enabled) {
-      const bool apply_filter = decoder_should_apply_output_postfilter(st);
-      if (apply_filter || (celt_decoder_output_postfilter_level(celt_dec) == 3 && st->channels == 1)) {
-        celt_decoder_apply_output_postfilter(celt_dec, pcm, fast_ret, st->channels, apply_filter);
-      }
+      celt_decoder_apply_output_postfilter(celt_dec, pcm, fast_ret, st->channels, decoder_should_apply_output_postfilter(st));
     }
     return fast_ret;
   }
@@ -1665,10 +1651,7 @@ static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data,
     decoder_remember_packet_bitrate(st, len, ret);
   }
   if (ret > 0 && output_postfilter_enabled) {
-    const bool apply_filter = decoder_should_apply_output_postfilter(st);
-    if (apply_filter || (celt_decoder_output_postfilter_level(celt_dec) == 3 && st->channels == 1)) {
-      celt_decoder_apply_output_postfilter(celt_dec, pcm, ret, st->channels, apply_filter);
-    }
+    celt_decoder_apply_output_postfilter(celt_dec, pcm, ret, st->channels, decoder_should_apply_output_postfilter(st));
   }
   return ret;
 }
@@ -6583,23 +6566,20 @@ static inline void celt_decoder_set_stream_channels(CeltDecoderInternal* st, opu
     } else if (st->last_packet_bitrate_bps >= 28000 && st->last_packet_bitrate_bps < 40000) {
       celt_dec->output_postfilter_auto_gain = 0.245f;
     } else {
-      celt_dec->output_postfilter_auto_gain = st->last_packet_bitrate_bps >= 80000 ? 0.10f : 0.080f;
+      celt_dec->output_postfilter_auto_gain = 0;
+      celt_dec->output_postfilter_auto_hold = std::max(0, celt_dec->output_postfilter_auto_hold - 1);
+      return false;
     }
+    const bool speech_active = decoder_has_speech_activity(st);
     celt_dec->output_postfilter_auto_hold =
-        decoder_has_speech_activity(st) ? 3 : std::max(0, celt_dec->output_postfilter_auto_hold - 1);
-    return true;
+        speech_active ? 3 : std::max(0, celt_dec->output_postfilter_auto_hold - 1);
+    return speech_active || celt_dec->output_postfilter_auto_hold > 0;
   }
 
-  if (st->channels == 2 && st->last_packet_bitrate_bps >= 20000 && st->last_packet_bitrate_bps < 36000) {
+  if (st->channels == 2 && st->mode != opus_mode_celt_only && st->last_packet_bitrate_bps >= 20000 &&
+      st->last_packet_bitrate_bps < 36000 &&
+      decoder_has_speech_activity(st)) {
     celt_dec->output_postfilter_auto_gain = 0.125f;
-    return true;
-  }
-
-  const auto rate = st->last_packet_bitrate_bps;
-  // Fullband CELT needs only a light correction outside the 80-224 kbps middle range.
-  const bool middle_rate = static_cast<opus_uint32>(rate - 80000) < 144000;
-  if (st->channels == 2 && st->mode == opus_mode_celt_only && st->bandwidth == 1105 && rate >= 36000) {
-    celt_dec->output_postfilter_auto_gain = middle_rate ? 0.0255f : 0.0025f;
     return true;
   }
   return false;
@@ -6631,34 +6611,23 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
     st->output_postfilter_smoothed_gain += smoothing * (target_gain - st->output_postfilter_smoothed_gain);
     gain = st->output_postfilter_smoothed_gain;
   }
+  if (gain <= 1e-5f) {
+    st->output_postfilter_smoothed_gain = 0;
+    for (int channel = 0; channel < channels; ++channel) {
+      st->output_postfilter_mem[channel] = pcm[(samples - 1) * channels + channel];
+    }
+    return;
+  }
   const bool smoothing_active = level == 3 && channels == 1 && std::abs(target_gain - gain) > 1e-5f;
   const opus_val16 energy_scale = smoothing_active ? 1.0f + std::min(0.01f, 0.04f * gain) : 1.0f;
   const opus_val16 pole = level == 3 && channels == 2 && gain < 0.05f ? 0.076f : 0.08f;
   for (int i = 0; i < samples; ++i) {
     const auto base = i * channels;
-    for (int c = 0; c < channels; ++c) {
-      auto& low = st->output_postfilter_mem[c];
-      const opus_res x = pcm[base + c];
+    for (int channel = 0; channel < channels; ++channel) {
+      auto& low = st->output_postfilter_mem[channel];
+      const opus_res x = pcm[base + channel];
       low += pole * (x - low);
-      if (gain > 0) {
-        const opus_res filtered = x - gain * (x - low);
-        pcm[base + c] = clamp_value(filtered * energy_scale, -1.0f, 1.0f);
-      }
-    }
-  }
-}
-
-static void celt_decoder_update_output_postfilter(CeltDecoderInternal* st, const opus_int16* pcm, int samples, int channels) noexcept {
-  if (st->output_postfilter_level != 3 || pcm == nullptr || samples <= 0 || channels != 1) {
-    return;
-  }
-  st->output_postfilter_auto_hold = std::max(0, st->output_postfilter_auto_hold - 1);
-  for (int i = 0; i < samples; ++i) {
-    const auto base = i * channels;
-    for (int c = 0; c < channels; ++c) {
-      auto& low = st->output_postfilter_mem[c];
-      const opus_res x = static_cast<opus_res>(pcm[base + c]) * (1.0f / 32768.0f);
-      low += 0.08f * (x - low);
+      pcm[base + channel] = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
     }
   }
 }

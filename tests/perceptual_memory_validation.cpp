@@ -61,7 +61,7 @@ struct options final {
   int official_decoder_complexity = 0;
   int memory_instances = 256;
   double max_seconds = 0.0;
-  int current_postfilter_level = 3;
+  int current_postfilter_level = 0;
   bool memory_only = false;
   bool skip_memory = false;
 };
@@ -385,6 +385,9 @@ template <typename Samples>
 struct celt_metric_tables final {
   static constexpr int window_size = 480;
   static constexpr int freq_bins = 200;
+  static constexpr double absolute_mask_amplitude = 1.0 / 1024.0; // Roughly -60 dBFS.
+  static constexpr double absolute_mask_magnitude = absolute_mask_amplitude * (window_size - 1) / 4.0;
+  static constexpr double absolute_mask_energy = absolute_mask_magnitude * absolute_mask_magnitude;
   std::array<double, window_size> window{};
   std::array<std::array<double, window_size>, freq_bins> cos_table{};
   std::array<std::array<double, window_size>, freq_bins> sin_table{};
@@ -482,10 +485,13 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
     int frame_count = 0;
     for (int band = 0; band < nbands; ++band) {
       for (int ch = 0; ch < channels; ++ch) {
+        // Do not let inaudible energy in a spectral null dominate the whole-file score.
         const auto masked_ref = ref_energy[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
-                                0.1 * mask[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
+                                0.1 * mask[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
+                                celt_metric_tables::absolute_mask_energy;
         const auto masked_deg = deg_energy[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
-                                0.1 * mask[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
+                                0.1 * mask[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
+                                celt_metric_tables::absolute_mask_energy;
         const auto ratio = std::max(1e-12, masked_deg / std::max(masked_ref, 1e-12));
         const auto disturbance = ratio - std::log(ratio) - 1.0;
         frame_mse += disturbance * disturbance;

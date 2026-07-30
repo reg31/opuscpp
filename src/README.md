@@ -113,14 +113,25 @@ suppresses tiny digital-silence residue before encoding so it cannot excite deco
 |---|---|---|
 | `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` auto; default is off for RFC-compatible decoder output. |
+| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | Speech-oriented `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` adaptive; default is off for RFC-compatible decoder output. |
 | `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the output-postfilter level. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |
 
 The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
 encoder interoperability. The default level is `0`, so normal decoder output remains RFC-compatible.
-Auto mode (`3`) is opt-in and only applies the filter when the runtime detector considers the packet
-likely to benefit. Use level `0` for validation runs and for the plainest possible decoder output.
+It gently suppresses high-frequency quantization noise, harshness, and ringing, mainly at low and
+mid bitrates. Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity, and
+bypasses combinations where its measured benefit did not justify the decode cost. The trade-off is
+extra decoder work and potentially softer treble while filtering is active.
+
+| Level | Recommended use |
+|---:|---|
+| `0` (off) | General audio, music, validation, speech-to-text, and applications requiring the plainest decoder output. This is the default. |
+| `1` (light) | Mild harshness or ringing where preserving treble is more important than maximum smoothing. Applies to float and PCM16 output. |
+| `2` (stronger) | Clearly noisy low-bitrate speech where stronger smoothing is preferred despite a greater risk of dulling treble. Applies to float and PCM16 output. |
+| `3` (adaptive) | Speech playback through either PCM16 or float decoding. It filters only low/mid-rate packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not a universal music mode. |
+
+Published quality metrics use the default unfiltered output.
 
 ## Unsupported API areas
 

@@ -29,9 +29,9 @@ Minimal integration looks like:
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.59x to 2.36x).
+  run (1.60x to 2.43x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.20x to 1.77x).
+  run (1.11x to 1.77x).
 - AUDIO and VOIP quality proxy deltas are tracked separately; AUDIO stays close to official Opus
   with stronger CELT-oriented proxy scores at 24/32&nbsp;kbps in the current harness.
 - Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at
@@ -46,19 +46,19 @@ Minimal integration looks like:
 - Optional guarded DTX matches official Opus's zero false-DTX result on the tracked active-content
   corpus, with 4.4% lower re-entry error when sound returns after silence and 9.3% lower gain error
   (volume mismatch) in the current 16/24&nbsp;kbps comparison.
-- Optional decoder postfilter modes are available through an `opuscpp` CTL; the default decoder
-  output stays RFC-compatible.
+- An optional speech-oriented decoder postfilter is available through an `opuscpp` CTL; it remains
+  off by default because it is not a universal music-quality improvement.
 - Lower memory footprint than official Opus in the measured configurations (21.9% to 49.0%
   lower private state in the current memory snapshot).
-- Host MinGW GCC `-O2` measured object image in the current snapshot: `295,344 B` total.
+- Host MinGW GCC `-O2` measured object image in the current snapshot: `295,168 B` total.
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.59x to 2.36x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.20x to 1.77x). | A few CELT-heavy decode points are close to parity and official Opus remains extremely mature. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.60x to 2.43x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.11x to 1.77x). | A few CELT-heavy decode points are close to parity and official Opus remains extremely mature. |
 | Lower encoder and decoder memory use in the measured configurations (21.9% to 49.0% lower private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -106,37 +106,41 @@ baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsi
 `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.1 / AMD Ryzen 7 8845HS. Encode and decode speed
 are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The
 current speed ratios are medians of three repository 60-second stereo synthetic benchmark runs;
-effective-bitrate columns use the same portable O2 performance profile. Quality metrics are synthetic
-objective proxy scores from the validation harness with the opt-in automatic decoder postfilter;
-they are not a replacement for official PESQ/ViSQOL tooling or listening tests. Default decoding
-remains unfiltered.
+effective-bitrate columns use the same portable O2 performance profile. Quality metrics use the
+default unfiltered decoder output and are synthetic objective proxy scores, not a replacement for
+official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.364x | 1.767x | +0.0050 | +0.0009 | 16.000 kbps | 16.462 kbps |
-| 24&nbsp;kbps | 1.640x | 1.323x | +0.0049 | +0.0229 | 24.000 kbps | 24.476 kbps |
-| 32&nbsp;kbps | 1.607x | 1.323x | +0.0129 | +0.0403 | 32.000 kbps | 32.512 kbps |
-| 48&nbsp;kbps | 1.586x | 1.238x | +0.0014 | +0.0127 | 48.000 kbps | 48.402 kbps |
-| 64&nbsp;kbps | 1.589x | 1.266x | +0.0013 | +0.0050 | 64.000 kbps | 64.402 kbps |
-| 96&nbsp;kbps | 1.687x | 1.250x | +0.0022 | +0.0038 | 96.000 kbps | 96.404 kbps |
-| 128&nbsp;kbps | 2.119x | 1.246x | +0.0028 | +0.0011 | 128.000 kbps | 128.405 kbps |
-| 192&nbsp;kbps | 1.766x | 1.196x | +0.0025 | 0.0000 | 192.000 kbps | 192.416 kbps |
-| 256&nbsp;kbps | 1.660x | 1.239x | +0.0010 | +0.0001 | 256.000 kbps | 256.436 kbps |
+| 16&nbsp;kbps | 2.426x | 1.772x | +0.0050 | +0.0009 | 16.000 kbps | 16.462 kbps |
+| 24&nbsp;kbps | 1.678x | 1.349x | -0.0023 | +0.0267 | 24.000 kbps | 24.476 kbps |
+| 32&nbsp;kbps | 1.646x | 1.319x | +0.0052 | +0.0431 | 32.000 kbps | 32.512 kbps |
+| 48&nbsp;kbps | 1.600x | 1.247x | +0.0012 | +0.0126 | 48.000 kbps | 48.402 kbps |
+| 64&nbsp;kbps | 1.618x | 1.251x | +0.0011 | +0.0050 | 64.000 kbps | 64.402 kbps |
+| 96&nbsp;kbps | 1.698x | 1.226x | +0.0004 | +0.0040 | 96.000 kbps | 96.404 kbps |
+| 128&nbsp;kbps | 2.040x | 1.189x | +0.0010 | +0.0015 | 128.000 kbps | 128.405 kbps |
+| 192&nbsp;kbps | 1.713x | 1.176x | +0.0007 | +0.0005 | 192.000 kbps | 192.416 kbps |
+| 256&nbsp;kbps | 1.683x | 1.108x | +0.0008 | +0.0001 | 256.000 kbps | 256.436 kbps |
 
 
 VOIP mono speech-like quality spot check:
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0227 | +0.0032 | 16.000 kbps | 16.255 kbps |
-| 24&nbsp;kbps | +0.0097 | +0.0008 | 24.000 kbps | 24.148 kbps |
-| 32&nbsp;kbps | +0.0252 | +0.0016 | 32.000 kbps | 32.184 kbps |
-| 48&nbsp;kbps | +0.0132 | +0.0023 | 48.000 kbps | 48.244 kbps |
-| 64&nbsp;kbps | +0.0108 | +0.0012 | 64.000 kbps | 64.501 kbps |
-| 96&nbsp;kbps | +0.0111 | +0.0013 | 96.000 kbps | 96.595 kbps |
-| 128&nbsp;kbps | +0.0112 | +0.0026 | 128.000 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0115 | +0.0013 | 192.000 kbps | 192.421 kbps |
-| 256&nbsp;kbps | +0.0111 | +0.0013 | 256.000 kbps | 256.415 kbps |
+| 16&nbsp;kbps | -0.0071 | -0.0025 | 16.000 kbps | 16.255 kbps |
+| 24&nbsp;kbps | +0.0006 | -0.0003 | 24.000 kbps | 24.148 kbps |
+| 32&nbsp;kbps | -0.0003 | -0.0001 | 32.000 kbps | 32.184 kbps |
+| 48&nbsp;kbps | +0.0042 | +0.0017 | 48.000 kbps | 48.244 kbps |
+| 64&nbsp;kbps | +0.0015 | -0.0001 | 64.000 kbps | 64.501 kbps |
+| 96&nbsp;kbps | -0.0001 | 0.0000 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | 0.0000 | +0.0012 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0003 | 0.0000 | 192.000 kbps | 192.421 kbps |
+| 256&nbsp;kbps | -0.0001 | +0.0001 | 256.000 kbps | 256.415 kbps |
+
+The optional adaptive speech postfilter is not included in these default-output figures. It bypasses
+packet modes and rates where its measured benefit did not justify the decode cost. On the tracked
+mono VOIP sample, the retained 16/32&nbsp;kbps cases add about `+0.0255` PESQ-style and `+0.0017`
+to `+0.0053` ViSQOL-style; it remains opt-in because mono music can still lose fidelity.
 
 Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy
 routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely

@@ -28,50 +28,51 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 ## Perceptual and memory harness
 
 - Local run includes perceptual proxy metrics, effective-bitrate measurements, encode timing, and memory figures.
-- Proxy quality uses the opt-in automatic opuscpp decoder postfilter; default decoding remains unfiltered.
+- Proxy quality uses the default unfiltered decoder output.
+- The CELT-style spectral proxy applies a roughly -60 dBFS audibility floor.
 - Source harness: `tests/perceptual_memory_validation.cpp`.
 
 ## Speed metrics vs official Opus
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.364491x | 1.766665x |
-| 24 kbps | 1.640160x | 1.322534x |
-| 32 kbps | 1.607157x | 1.323364x |
-| 48 kbps | 1.585901x | 1.237636x |
-| 64 kbps | 1.588654x | 1.265691x |
-| 96 kbps | 1.687304x | 1.250015x |
-| 128 kbps | 2.118571x | 1.245968x |
-| 192 kbps | 1.765869x | 1.195614x |
-| 256 kbps | 1.660325x | 1.239376x |
+| 16 kbps | 2.426019x | 1.771608x |
+| 24 kbps | 1.677719x | 1.348728x |
+| 32 kbps | 1.645614x | 1.318608x |
+| 48 kbps | 1.599775x | 1.246774x |
+| 64 kbps | 1.618004x | 1.251431x |
+| 96 kbps | 1.698409x | 1.225913x |
+| 128 kbps | 2.039922x | 1.189380x |
+| 192 kbps | 1.713200x | 1.175807x |
+| 256 kbps | 1.683045x | 1.108353x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.0665 | -0.0020 | -0.0013 | 0.0050 | 0.0009 | -0.0005 | 11.2709 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | 0.0455 | -0.0016 | -0.0003 | 0.0049 | 0.0229 | 0.0041 | 27.5027 | 24.000 kbps | 25.220 kbps |
-| 32 kbps | 0.1406 | -0.0050 | -0.0029 | 0.0129 | 0.0403 | 0.0058 | 20.6017 | 32.000 kbps | 33.613 kbps |
-| 48 kbps | 0.0104 | -0.0004 | -0.0004 | 0.0014 | 0.0127 | 0.0023 | 0.6830 | 48.000 kbps | 48.560 kbps |
-| 64 kbps | 0.0134 | -0.0005 | -0.0004 | 0.0013 | 0.0050 | 0.0006 | 0.3020 | 64.000 kbps | 64.613 kbps |
-| 96 kbps | 0.0216 | -0.0008 | -0.0006 | 0.0022 | 0.0038 | 0.0010 | 0.7335 | 96.000 kbps | 96.697 kbps |
-| 128 kbps | 0.0364 | -0.0013 | -0.0006 | 0.0028 | 0.0011 | 0.0002 | 0.5515 | 128.000 kbps | 128.759 kbps |
-| 192 kbps | 0.0275 | -0.0010 | -0.0005 | 0.0025 | 0.0000 | 0.0000 | 0.5958 | 192.000 kbps | 192.900 kbps |
-| 256 kbps | 0.0110 | -0.0004 | -0.0002 | 0.0010 | 0.0001 | 0.0000 | 0.1919 | 256.000 kbps | 256.736 kbps |
+| 16 kbps | 0.0665 | -0.0020 | -0.0013 | 0.0050 | 0.0009 | -0.0005 | 0.6648 | 16.000 kbps | 17.065 kbps |
+| 24 kbps | -0.0440 | 0.0015 | 0.0015 | -0.0023 | 0.0267 | 0.0044 | 0.3331 | 24.000 kbps | 25.220 kbps |
+| 32 kbps | 0.0461 | -0.0017 | -0.0010 | 0.0052 | 0.0431 | 0.0059 | 0.4579 | 32.000 kbps | 33.613 kbps |
+| 48 kbps | 0.0083 | -0.0003 | -0.0003 | 0.0012 | 0.0126 | 0.0023 | 0.0658 | 48.000 kbps | 48.560 kbps |
+| 64 kbps | 0.0113 | -0.0004 | -0.0003 | 0.0011 | 0.0050 | 0.0006 | -0.0449 | 64.000 kbps | 64.613 kbps |
+| 96 kbps | 0.0000 | 0.0000 | -0.0001 | 0.0004 | 0.0040 | 0.0010 | -0.0536 | 96.000 kbps | 96.697 kbps |
+| 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | -0.0378 | 128.000 kbps | 128.759 kbps |
+| 192 kbps | 0.0059 | -0.0002 | 0.0000 | 0.0007 | 0.0005 | 0.0000 | -0.0327 | 192.000 kbps | 192.900 kbps |
+| 256 kbps | 0.0089 | -0.0003 | -0.0001 | 0.0008 | 0.0001 | 0.0000 | 0.0061 | 256.000 kbps | 256.736 kbps |
 
 ## VOIP quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.3290 | -0.0102 | -0.0064 | 0.0227 | 0.0032 | 0.0003 | 0.0630 | 16.000 kbps | 16.255 kbps |
-| 24 kbps | 0.1340 | -0.0042 | -0.0027 | 0.0097 | 0.0008 | 0.0005 | 0.3071 | 24.000 kbps | 24.148 kbps |
-| 32 kbps | 0.3316 | -0.0103 | -0.0068 | 0.0252 | 0.0016 | 0.0000 | 0.1875 | 32.000 kbps | 32.184 kbps |
-| 48 kbps | 0.1691 | -0.0053 | -0.0035 | 0.0132 | 0.0023 | 0.0007 | -0.0845 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 0.1309 | -0.0041 | -0.0027 | 0.0108 | 0.0012 | 0.0006 | 0.1660 | 64.000 kbps | 64.501 kbps |
-| 96 kbps | 0.1488 | -0.0047 | -0.0031 | 0.0111 | 0.0013 | 0.0001 | 0.0547 | 96.000 kbps | 96.595 kbps |
-| 128 kbps | 0.1461 | -0.0046 | -0.0031 | 0.0112 | 0.0026 | 0.0006 | 0.0246 | 128.000 kbps | 128.503 kbps |
-| 192 kbps | 0.1491 | -0.0047 | -0.0031 | 0.0115 | 0.0013 | -0.0002 | 0.1764 | 192.000 kbps | 192.421 kbps |
-| 256 kbps | 0.1460 | -0.0046 | -0.0030 | 0.0111 | 0.0013 | -0.0001 | 0.1401 | 256.000 kbps | 256.415 kbps |
+| 16 kbps | -0.0744 | 0.0024 | 0.0018 | -0.0071 | -0.0025 | 0.0002 | -0.2295 | 16.000 kbps | 16.255 kbps |
+| 24 kbps | 0.0194 | -0.0006 | -0.0003 | 0.0006 | -0.0003 | 0.0005 | 0.0766 | 24.000 kbps | 24.148 kbps |
+| 32 kbps | -0.0017 | 0.0001 | 0.0000 | -0.0003 | -0.0001 | 0.0004 | 0.0479 | 32.000 kbps | 32.184 kbps |
+| 48 kbps | 0.0555 | -0.0017 | -0.0011 | 0.0042 | 0.0017 | 0.0008 | 0.0293 | 48.000 kbps | 48.244 kbps |
+| 64 kbps | 0.0148 | -0.0005 | -0.0003 | 0.0015 | -0.0001 | 0.0007 | -0.1039 | 64.000 kbps | 64.501 kbps |
+| 96 kbps | 0.0032 | -0.0001 | 0.0000 | -0.0001 | 0.0000 | 0.0002 | 0.0137 | 96.000 kbps | 96.595 kbps |
+| 128 kbps | 0.0006 | 0.0000 | -0.0001 | 0.0000 | 0.0012 | 0.0007 | -0.0033 | 128.000 kbps | 128.503 kbps |
+| 192 kbps | 0.0035 | -0.0001 | -0.0001 | 0.0003 | 0.0000 | 0.0000 | 0.0107 | 192.000 kbps | 192.421 kbps |
+| 256 kbps | 0.0004 | 0.0000 | 0.0000 | -0.0001 | 0.0001 | 0.0000 | 0.0008 | 256.000 kbps | 256.415 kbps |
 
 ## Detector mode-balance spot check
 
@@ -93,7 +94,7 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 295344 B | 0 B | 295344 B |
+| Host C++23 `-O2` | 295168 B | 0 B | 295168 B |
 
 ## Toolchains checked
 

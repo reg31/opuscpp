@@ -195,7 +195,7 @@ user-provided 16-bit PCM WAV input. It reports:
 - SNR, segmental SNR, RMS error, and mean absolute error.
 - PESQ-style proxy score.
 - ViSQOL-style proxy score.
-- CELT-style high-band proxy score.
+- CELT-style masked spectral proxy score, with a roughly -60 dBFS audibility floor so spectral nulls do not dominate.
 - Average payload bytes, reported publicly as effective bitrate.
 - Encode time.
 - Optional process memory measurements.
@@ -213,15 +213,15 @@ official build. This keeps the optimization level matched while comparing agains
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.364x | 1.767x | 841x | 356x | 2325x | 1316x |
-| 24&nbsp;kbps | 1.640x | 1.323x | 530x | 323x | 1483x | 1121x |
-| 32&nbsp;kbps | 1.607x | 1.323x | 360x | 224x | 1038x | 784x |
-| 48&nbsp;kbps | 1.586x | 1.238x | 323x | 204x | 830x | 671x |
-| 64&nbsp;kbps | 1.589x | 1.266x | 290x | 182x | 732x | 578x |
-| 96&nbsp;kbps | 1.687x | 1.250x | 248x | 147x | 560x | 448x |
-| 128&nbsp;kbps | 2.119x | 1.246x | 256x | 121x | 479x | 385x |
-| 192&nbsp;kbps | 1.766x | 1.196x | 207x | 117x | 399x | 334x |
-| 256&nbsp;kbps | 1.660x | 1.239x | 189x | 114x | 349x | 282x |
+| 16&nbsp;kbps | 2.426x | 1.772x | 769x | 317x | 2078x | 1173x |
+| 24&nbsp;kbps | 1.678x | 1.349x | 490x | 292x | 1400x | 1038x |
+| 32&nbsp;kbps | 1.646x | 1.319x | 487x | 296x | 1340x | 1016x |
+| 48&nbsp;kbps | 1.600x | 1.247x | 433x | 271x | 1097x | 880x |
+| 64&nbsp;kbps | 1.618x | 1.251x | 390x | 241x | 955x | 763x |
+| 96&nbsp;kbps | 1.698x | 1.226x | 328x | 193x | 739x | 603x |
+| 128&nbsp;kbps | 2.040x | 1.189x | 342x | 168x | 628x | 528x |
+| 192&nbsp;kbps | 1.713x | 1.176x | 275x | 160x | 541x | 460x |
+| 256&nbsp;kbps | 1.683x | 1.108x | 280x | 166x | 498x | 450x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -240,20 +240,19 @@ A supplemental real-time-factor snapshot is also tracked in
 AUDIO quality proxy metrics were measured on the synthetic music-like validation corpus used during
 development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns.
 Effective bitrate columns show measured payload bitrate for the same validation run.
-The harness enables the opt-in automatic decoder postfilter; the public decoder default remains
-unfiltered.
+The harness uses the public decoder default: unfiltered output.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0050 | +0.0009 | +11.2709 | 16.0 kbps | 17.1 kbps |
-| 24&nbsp;kbps | +0.0049 | +0.0229 | +27.5027 | 24.0 kbps | 25.2 kbps |
-| 32&nbsp;kbps | +0.0129 | +0.0403 | +20.6017 | 32.0 kbps | 33.6 kbps |
-| 48&nbsp;kbps | +0.0014 | +0.0127 | +0.6830 | 48.0 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0013 | +0.0050 | +0.3020 | 64.0 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0022 | +0.0038 | +0.7335 | 96.0 kbps | 96.7 kbps |
-| 128&nbsp;kbps | +0.0028 | +0.0011 | +0.5515 | 128.0 kbps | 128.8 kbps |
-| 192&nbsp;kbps | +0.0025 | 0.0000 | +0.5958 | 192.0 kbps | 192.9 kbps |
-| 256&nbsp;kbps | +0.0010 | +0.0001 | +0.1919 | 256.0 kbps | 256.7 kbps |
+| 16&nbsp;kbps | +0.0050 | +0.0009 | +0.6648 | 16.0 kbps | 17.1 kbps |
+| 24&nbsp;kbps | -0.0023 | +0.0267 | +0.3331 | 24.0 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0052 | +0.0431 | +0.4579 | 32.0 kbps | 33.6 kbps |
+| 48&nbsp;kbps | +0.0012 | +0.0126 | +0.0658 | 48.0 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0011 | +0.0050 | -0.0449 | 64.0 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0004 | +0.0040 | -0.0536 | 96.0 kbps | 96.7 kbps |
+| 128&nbsp;kbps | +0.0010 | +0.0015 | -0.0378 | 128.0 kbps | 128.8 kbps |
+| 192&nbsp;kbps | +0.0007 | +0.0005 | -0.0327 | 192.0 kbps | 192.9 kbps |
+| 256&nbsp;kbps | +0.0008 | +0.0001 | +0.0061 | 256.0 kbps | 256.7 kbps |
 
 
 ## VOIP quality metrics vs official Opus
@@ -263,15 +262,25 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0227 | +0.0032 | +0.0630 | 16.0 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0097 | +0.0008 | +0.3071 | 24.0 kbps | 24.1 kbps |
-| 32&nbsp;kbps | +0.0252 | +0.0016 | +0.1875 | 32.0 kbps | 32.2 kbps |
-| 48&nbsp;kbps | +0.0132 | +0.0023 | -0.0845 | 48.0 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0108 | +0.0012 | +0.1660 | 64.0 kbps | 64.5 kbps |
-| 96&nbsp;kbps | +0.0111 | +0.0013 | +0.0547 | 96.0 kbps | 96.6 kbps |
-| 128&nbsp;kbps | +0.0112 | +0.0026 | +0.0246 | 128.0 kbps | 128.5 kbps |
-| 192&nbsp;kbps | +0.0115 | +0.0013 | +0.1764 | 192.0 kbps | 192.4 kbps |
-| 256&nbsp;kbps | +0.0111 | +0.0013 | +0.1401 | 256.0 kbps | 256.4 kbps |
+| 16&nbsp;kbps | -0.0071 | -0.0025 | -0.2295 | 16.0 kbps | 16.3 kbps |
+| 24&nbsp;kbps | +0.0006 | -0.0003 | +0.0766 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | -0.0003 | -0.0001 | +0.0479 | 32.0 kbps | 32.2 kbps |
+| 48&nbsp;kbps | +0.0042 | +0.0017 | +0.0293 | 48.0 kbps | 48.2 kbps |
+| 64&nbsp;kbps | +0.0015 | -0.0001 | -0.1039 | 64.0 kbps | 64.5 kbps |
+| 96&nbsp;kbps | -0.0001 | 0.0000 | +0.0137 | 96.0 kbps | 96.6 kbps |
+| 128&nbsp;kbps | 0.0000 | +0.0012 | -0.0033 | 128.0 kbps | 128.5 kbps |
+| 192&nbsp;kbps | +0.0003 | 0.0000 | +0.0107 | 192.0 kbps | 192.4 kbps |
+| 256&nbsp;kbps | -0.0001 | +0.0001 | +0.0008 | 256.0 kbps | 256.4 kbps |
+
+### Optional speech postfilter A/B
+
+Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. It runs only
+where the focused A/B gate found a worthwhile benefit. On tracked mono VOIP at 16/32&nbsp;kbps,
+PESQ-style improves by `+0.0258`/`+0.0255` and ViSQOL-style by `+0.0053`/`+0.0017`; continuous
+mono decode overhead measured about 7%/37% while active. Other tested mono rates and CELT-only
+stereo bypass the filter, while hybrid stereo VOIP at 24/32&nbsp;kbps retains positive PESQ- and
+ViSQOL-style deltas. Auto mode now applies to both PCM16 and float decoding. The public default and
+headline metrics remain unfiltered.
 
 ## Memory metrics
 
@@ -290,7 +299,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 295,344 B | 0 B | 295,344 B |
+| Host MinGW GCC `-O2` | 295,168 B | 0 B | 295,168 B |
 
 ## Toolchains checked
 
