@@ -280,7 +280,7 @@ where the focused A/B gate found a worthwhile benefit. On tracked mono VOIP at 1
 PESQ-style improves by `+0.0258`/`+0.0255` and ViSQOL-style by `+0.0053`/`+0.0017`; continuous
 mono decode overhead measured between 7% and 37% while active. Other tested mono rates and CELT-only
 stereo bypass the filter, while hybrid stereo VOIP at 24/32&nbsp;kbps retains positive PESQ- and
-ViSQOL-style deltas. Auto mode now applies to both PCM16 and float decoding. The public default and
+ViSQOL-style deltas. Auto mode applies to both PCM16 and float decoding. The public default and
 headline metrics remain unfiltered.
 
 ## Memory metrics

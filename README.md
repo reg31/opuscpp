@@ -142,9 +142,9 @@ packet modes and rates where its measured benefit did not justify the decode cos
 mono VOIP sample, the retained 16/32&nbsp;kbps cases add about `+0.0255` PESQ-style and `+0.0017`
 to `+0.0053` ViSQOL-style; it remains opt-in because mono music can still lose fidelity.
 
-Detector validation on representative material: at 32&nbsp;kbps mono, the current AUDIO policy
-routes speech-like synthetic material mostly to CELT and sustained harmonic/music material entirely
-to CELT; restricted-lowdelay remains CELT-only as expected.
+Mode-selection check at 32&nbsp;kbps mono: for the synthetic spoken-voice sample, AUDIO mode selected
+CELT for 91.3% of frames and hybrid for 8.7%. For the sustained harmonic/music sample, it selected
+CELT for every frame. Restricted-lowdelay also remained CELT-only, as required.
 
 ## Memory snapshot
 
