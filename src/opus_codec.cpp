@@ -1,6 +1,3 @@
-// opuscpp: source-embeddable C++23 implementation of the standard Opus
-// single-stream API. This translation unit intentionally has no platform
-// intrinsics, external generated data, external runtime data, or link-time helpers.
 #include "opus_codec.h"
 
 #include <algorithm>
@@ -19,8 +16,6 @@
 #include <string_view>
 #include <type_traits>
 
-// Internal fixed-width aliases matching the names used by the Opus reference
-// code and RFC pseudocode. Public aliases come from opus_codec.h.
 using opus_int8 = std::int8_t;
 using opus_uint8 = std::uint8_t;
 using opus_uint16 = std::uint16_t;
@@ -70,7 +65,6 @@ concept celt_pvq_row_ref = requires(Row row, int column) {
 template <typename PulseSpan>
 concept silk_sign_pulse_span = std::same_as<PulseSpan, std::span<const opus_int8>> || std::same_as<PulseSpan, std::span<opus_int16>>;
 
-// Shared integer/range-coder constants.
 constexpr auto opus_int32_min = std::numeric_limits<opus_int32>::min();
 constexpr auto opus_int32_max = std::numeric_limits<opus_int32>::max();
 
@@ -82,8 +76,6 @@ constexpr auto ec_byte_mask = (1U << 8U) - 1U;
 constexpr auto q7_shift = 7;
 constexpr auto q7_scale = 1 << q7_shift;
 
-// SILK tuning constants kept as named values to avoid magic numbers in the hot
-// encoder and decoder paths below.
 constexpr opus_int32 silk_log_60_q7 = 756;
 constexpr opus_int32 silk_log_100_q7 = 851;
 constexpr opus_int32 silk_log_60_q15 = silk_log_60_q7 << 8;
@@ -92,17 +84,14 @@ constexpr opus_int32 silk_log_100_q15 = silk_log_100_q7 << 8;
 constexpr auto silk_mid_only_score_bias = 0.02f;
 constexpr auto silk_mid_only_low_speech_bias = 0.01f;
 
-// Internal mode identifiers mirror the public Opus mode constants.
 constexpr int opus_mode_silk_only = 1000;
 constexpr int opus_mode_hybrid = 1001;
 constexpr int opus_mode_celt_only = 1002;
 
-// Standard Opus limits for the single-stream API implemented by this file.
 constexpr int opus_max_frame_samples_48k = 5760;
 constexpr int opus_max_pcm_samples = opus_max_frame_samples_48k * 2;
 constexpr int opus_max_multiframe_packet_bytes = 1276 * 6;
 
-// CELT/SILK structural limits used to size fixed scratch and state storage.
 constexpr int celt_default_overlap = 120;
 constexpr int celt_default_nb_ebands = 21;
 constexpr int celt_max_channels = 2;
@@ -191,7 +180,6 @@ template <opus_trivially_copyable_object T> static void copy_n_items(const T* so
   if (count == 0 || source == destination) {
     return;
   }
-  // Callers use move_n_items() for overlapping ranges.
   std::memcpy(destination, source, count * sizeof(T));
 }
 
@@ -1568,7 +1556,6 @@ static int decode_native_direct_fast(ref_OpusDecoder* st, const unsigned char* d
 }
 
 static int validated_packet_sample_count(const ref_OpusDecoder* st, const unsigned char* data, opus_int32 len) noexcept {
-  // `len == 0` is packet loss concealment in the Opus API, not a malformed packet.
   if (data == nullptr || len <= 0) {
     return 0;
   }
@@ -1854,7 +1841,8 @@ extern const u8_matrix<2, 2> silk_Quantization_Offsets_Q10;
 extern const std::array<std::array<opus_int32, 3>, 5> silk_Transition_LP_B_Q28;
 extern const std::array<std::array<opus_int32, 2>, 5> silk_Transition_LP_A_Q28;
 extern const i16_table<128 + 1> silk_LSFCosTab_FIX_Q12;
-} // namespace
+}
+
 consteval auto make_silk_nlsf_cb(const int vectors, const int order, const int quant_step_q16, const int inv_quant_step_q6,
                                  const auto& cb1_q8, const auto& weights_q9, const auto& cb1_icdf, const auto& pred_q8,
                                  const auto& ec_sel, const auto& ec_icdf, const auto& ec_rates_q5, const auto& delta_min_q15)
@@ -2111,7 +2099,6 @@ static void silk_biquad_res(const opus_res* in, opus_int32 r_Q28, const opus_int
                             const opus_int32 len, int stride) {
   constexpr float inv28 = 1.f / (1 << 28);
   const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
-  // The numerator is [r, -2r, r], so one product supplies all three taps.
   const opus_val32 r = r_Q28 * inv28;
   for (int k = 0; k < len; k++) {
     const opus_val32 inval = in[k * stride];
@@ -2651,7 +2638,6 @@ static int update_lightweight_voice_estimate(ref_OpusEncoder* st, const opus_res
   st->lightweight_analysis_frames = std::min(st->lightweight_analysis_frames + 1, lightweight_analysis_frame_limit);
   if (st->channels == 2 && stereo_width > .05f) {
     auto high_z_tonal = st->lightweight_high_z_tonal_Q7;
-    // Require active consecutive frames before holding a sparse high-frequency segment.
     if (is_sparse_high_z_tonal_frame(frame_metrics)) {
       high_z_tonal += std::max(1, (115 - high_z_tonal) >> 2);
     } else {
@@ -3055,7 +3041,8 @@ struct encoder_stage_storage {
                                                      const int frame_size) noexcept -> encoder_stage_storage {
   return {{storage, encoder_stage_storage_size(st, frame_size)}, 0, st->encoder_buffer, total_buffer, frame_size, st->channels};
 }
-} // namespace
+}
+
 [[nodiscard]] constexpr auto multiframe_encoder_frame_size(const ref_OpusEncoder* st, const int frame_size) noexcept -> int {
   if (st->mode != opus_mode_silk_only) {
     return st->Fs / 50;
@@ -3410,7 +3397,6 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
       st->mode = opus_mode_celt_only;
     }
   }
-  // Recover spectral detail only on the low-rate CELT segment that needs it.
   const bool refine_lowrate_voip_celt =
       st->use_vbr && voip_style && st->channels == 1 && st->silk_mode.complexity >= 5 && st->bitrate_bps <= 16000 &&
       frame_size == st->Fs / 50 && st->mode == opus_mode_celt_only &&
@@ -4296,7 +4282,7 @@ extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
   return pulses == 0 ? 0 : cache[pulses] + 1;
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc);
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, bool refine);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -4600,6 +4586,7 @@ struct band_ctx {
   const celt_ener* bandE;
   opus_uint32 seed;
   opus_int16* decode_pulse_scratch;
+  bool pvq_refine;
 };
 struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
@@ -4865,7 +4852,7 @@ static unsigned quant_partition(struct band_ctx* ctx, celt_norm* X, int N, int b
     if (q != 0) {
       int K = get_pulses(q);
       if (encode) {
-        cm = alg_quant(X, N, K, spread, B, ec);
+        cm = alg_quant(X, N, K, spread, B, ec, ctx->pvq_refine != 0);
       } else {
         cm = alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
       }
@@ -5103,7 +5090,7 @@ static void special_hybrid_folding(const CeltModeInternal* m, celt_norm* norm, c
 static void quant_all_bands(int encode, const CeltModeInternal* m, int start, int end, celt_norm* X_, celt_norm* Y_,
                             unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread,
                             int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM,
-                            int codedBands, opus_uint32* seed, int disable_inv) {
+                            int codedBands, opus_uint32* seed, int disable_inv, bool pvq_refine) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = m->eBands;
@@ -5138,6 +5125,7 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
   ctx.theta_round = 0;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
+  ctx.pvq_refine = pvq_refine;
   for (i = start; i < end; i++) {
     opus_int32 tell;
     int b, N;
@@ -5534,11 +5522,12 @@ static void compute_mdcts(const CeltModeInternal* mode, int shortBlocks, celt_si
   }
 }
 
-static void celt_preemphasis(const opus_res* pcmp, celt_sig* inp, int N, int CC, int upsample, const opus_val16* coef, celt_sig* mem,
-                             int clip) {
+static auto celt_preemphasis(const opus_res* pcmp, celt_sig* inp, int N, int CC, int upsample, const opus_val16* coef, celt_sig* mem,
+                             int clip) -> opus_val32 {
   int i;
   opus_val16 coef0;
   celt_sig m;
+  opus_val32 abs_sum = 0;
   int Nu;
   coef0 = coef[0];
   m = *mem;
@@ -5547,10 +5536,11 @@ static void celt_preemphasis(const opus_res* pcmp, celt_sig* inp, int N, int CC,
       celt_sig x;
       x = (32768.f * (pcmp[CC * i]));
       inp[i] = x - m;
+      abs_sum += std::abs(inp[i]);
       m = ((coef0) * (x));
     }
     *mem = m;
-    return;
+    return abs_sum;
   }
   Nu = N / upsample;
   if (upsample != 1) {
@@ -5570,10 +5560,12 @@ static void celt_preemphasis(const opus_res* pcmp, celt_sig* inp, int N, int CC,
       celt_sig x;
       x = inp[i];
       inp[i] = x - m;
+      abs_sum += std::abs(inp[i]);
       m = ((coef0) * (x));
     }
   }
   *mem = m;
+  return abs_sum;
 }
 
 static inline void tf_encode(int start, int end, int isTransient, int* tf_res, int LM, int tf_select, ec_enc* enc) {
@@ -6000,20 +5992,19 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
 
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int prefilter_tapset, int* pitch,
                          opus_val16* gain, int* qgain, int enabled, int complexity, opus_val16 tf_estimate, int nbAvailableBytes,
-                         opus_val16 tone_freq, opus_val32 toneishness) {
+                         opus_val16 tone_freq, opus_val32 toneishness,
+                         const std::array<opus_val32, celt_max_channels>& input_abs_sum) {
   int c;
   celt_sig* pre[2]{};
   const CeltModeInternal* mode;
   int pitch_index;
   opus_val16 gain1, pf_threshold;
   int pf_on, qg, overlap;
-  std::array<opus_val32, 2> before{}, after{};
+  std::array<opus_val32, celt_max_channels> output_abs_sum{};
   int cancel_pitch = 0;
   constexpr auto max_period = 1024, min_period = 15;
   mode = st->mode;
   overlap = mode->overlap;
-  // Complexity <5 never performs pitch search; when no old prefilter is active,
-  // keep only the histories instead of building the full scratch/filter path.
   if (complexity < 5 && (!enabled || toneishness <= (.99f)) && st->prefilter_gain == 0) {
     for (c = 0; c < CC; ++c) {
       copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
@@ -6053,7 +6044,6 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     }
     gain1 = (.75f);
   } else if (enabled && complexity >= 5) {
-    // Reuse stable pitch unless low-rate quality refinement requests a fresh estimate.
     if (!st->lowrate_refinement && st->prefilter_gain > (.2f) && st->prefilter_period >= min_period) {
       pitch_index = st->prefilter_period;
       gain1 = st->prefilter_gain;
@@ -6110,30 +6100,27 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     int i, offset = mode->shortMdctSize - overlap;
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
     copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-    for (i = 0; i < N; i++) {
-      before[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
-    }
     if (offset)
       comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, st->prefilter_period, offset,
                   -st->prefilter_gain, -st->prefilter_gain, st->prefilter_tapset, st->prefilter_tapset, nullptr, 0);
     comb_filter(in + c * (N + overlap) + overlap + offset, pre[c] + max_period + offset, st->prefilter_period, pitch_index, N - offset,
                 -st->prefilter_gain, -gain1, st->prefilter_tapset, prefilter_tapset, mode->window, overlap);
     for (i = 0; i < N; i++) {
-      after[c] += ((float)std::fabs((in[c * (N + overlap) + overlap + i])));
+      output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
     }
   }
   if (CC == 2) {
     std::array<opus_val16, 2> thresh;
-    thresh[0] = (((((.25f)) * (gain1))) * (before[0])) + (((.01f)) * (before[1]));
-    thresh[1] = (((((.25f)) * (gain1))) * (before[1])) + (((.01f)) * (before[0]));
-    if (after[0] - before[0] > thresh[0] || after[1] - before[1] > thresh[1]) {
+    thresh[0] = .25f * gain1 * input_abs_sum[0] + .01f * input_abs_sum[1];
+    thresh[1] = .25f * gain1 * input_abs_sum[1] + .01f * input_abs_sum[0];
+    if (output_abs_sum[0] - input_abs_sum[0] > thresh[0] || output_abs_sum[1] - input_abs_sum[1] > thresh[1]) {
       cancel_pitch = 1;
     }
-    if (before[0] - after[0] < thresh[0] && before[1] - after[1] < thresh[1]) {
+    if (input_abs_sum[0] - output_abs_sum[0] < thresh[0] && input_abs_sum[1] - output_abs_sum[1] < thresh[1]) {
       cancel_pitch = 1;
     }
   } else {
-    if (after[0] > before[0]) {
+    if (output_abs_sum[0] > input_abs_sum[0]) {
       cancel_pitch = 1;
     }
   }
@@ -6213,27 +6200,33 @@ static inline int compute_vbr(const CeltModeInternal* mode, opus_int32 base_targ
   target = std::min(2 * base_target, target);
   return target;
 }
+
 struct celt_encode_layout {
   const CeltModeInternal* mode{};
   const opus_int16* eBands{};
   int nbEBands{}, overlap{}, start{}, end{}, effEnd{}, LM{}, M{}, N{}, CC{}, C{}, hybrid{};
 };
-struct celt_input_peak {
+
+struct celt_input_metrics {
   opus_val32 sample_max{};
+  std::array<opus_val32, celt_max_channels> abs_sum{};
   int silence{};
 };
+
 [[nodiscard]] static inline auto celt_measure_input_peak(CeltEncoderInternal* st, const opus_res* pcm,
-                                                         const celt_encode_layout& layout) noexcept -> celt_input_peak {
-  auto peak = celt_input_peak{};
-  peak.sample_max = std::max<opus_val32>(st->overlap_max, celt_maxabs16(pcm, layout.CC * (layout.N - layout.overlap) / st->upsample));
+                                                         const celt_encode_layout& layout) noexcept -> celt_input_metrics {
+  celt_input_metrics metrics;
+  metrics.sample_max =
+      std::max<opus_val32>(st->overlap_max, celt_maxabs16(pcm, layout.CC * (layout.N - layout.overlap) / st->upsample));
   st->overlap_max = celt_maxabs16(pcm + layout.CC * (layout.N - layout.overlap) / st->upsample, layout.CC * layout.overlap / st->upsample);
-  peak.sample_max = std::max(peak.sample_max, st->overlap_max);
-  peak.silence = peak.sample_max <= (opus_val16)1 / (1 << st->lsb_depth);
-  return peak;
+  metrics.sample_max = std::max(metrics.sample_max, st->overlap_max);
+  metrics.silence = metrics.sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
+  return metrics;
 }
 
 [[nodiscard]] static inline auto celt_preemphasise_input(CeltEncoderInternal* st, const opus_res* pcm, celt_sig* in,
-                                                         celt_sig* prefilter_mem, const celt_encode_layout& layout) -> celt_input_peak {
+                                                         celt_sig* prefilter_mem, const celt_encode_layout& layout) -> celt_input_metrics {
+  celt_input_metrics metrics;
   if (layout.mode->preemph[1] == 0 && st->upsample == 1) {
     std::array<celt_sig, 2> old_mem{};
     for (int c = 0; c < layout.CC; ++c) {
@@ -6263,6 +6256,7 @@ struct celt_input_peak {
         need_clip |= sample > 65536.f || sample < -65536.f;
         const celt_sig x = 32768.f * sample;
         dst[i] = x - m;
+        metrics.abs_sum[static_cast<std::size_t>(c)] += std::abs(dst[i]);
         m = coef0 * x;
       }
       st->preemph_memE[static_cast<std::size_t>(c)] = m;
@@ -6273,27 +6267,32 @@ struct celt_input_peak {
     st->overlap_max = tail_seen ? (tail_mx > -tail_mn ? tail_mx : -tail_mn) : 0;
     const opus_val32 sample_max = std::max(std::max(frame_max, st->overlap_max), old_overlap_max);
     if (!need_clip) {
-      return {sample_max, sample_max <= (opus_val16)1 / (1 << st->lsb_depth)};
+      metrics.sample_max = sample_max;
+      metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
+      return metrics;
     }
     for (int c = 0; c < layout.CC; ++c) {
       st->preemph_memE[static_cast<std::size_t>(c)] = old_mem[static_cast<std::size_t>(c)];
     }
     st->overlap_max = old_overlap_max;
   }
-  const auto peak = celt_measure_input_peak(st, pcm, layout);
-  const int need_clip = peak.sample_max > 65536.f;
+  metrics = celt_measure_input_peak(st, pcm, layout);
+  const bool need_clip = metrics.sample_max > 65536.f;
   for (int c = 0; c < layout.CC; ++c) {
-    celt_preemphasis(pcm + c, in + c * (layout.N + layout.overlap) + layout.overlap, layout.N, layout.CC, st->upsample,
-                     layout.mode->preemph, st->preemph_memE + c, need_clip);
+    metrics.abs_sum[static_cast<std::size_t>(c)] =
+        celt_preemphasis(pcm + c, in + c * (layout.N + layout.overlap) + layout.overlap, layout.N, layout.CC, st->upsample,
+                         layout.mode->preemph, st->preemph_memE + c, need_clip);
     copy_n_items(&prefilter_mem[(1 + c) * (1024) - layout.overlap], static_cast<std::size_t>(layout.overlap),
                  in + c * (layout.N + layout.overlap));
   }
-  return peak;
+  return metrics;
 }
+
 struct celt_tone_analysis {
   opus_val16 frequency{-1};
   opus_val32 toneishness{};
 };
+
 [[nodiscard]] static inline auto celt_analyse_tone(celt_sig* in, const celt_encode_layout& layout, opus_val16 tf_estimate)
     -> celt_tone_analysis {
   auto tone = celt_tone_analysis{};
@@ -6301,22 +6300,25 @@ struct celt_tone_analysis {
   tone.toneishness = std::min(tone.toneishness, (1.f) - tf_estimate);
   return tone;
 }
+
 struct celt_prefilter_result {
   int pitch_index{15};
   int tapset{};
   int enabled{};
   opus_val16 gain{};
 };
+
 static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, ec_enc* enc,
                                   const celt_encode_layout& layout, int nbAvailableBytes, opus_int32 total_bits, opus_int32 tell,
-                                  int silence, opus_val16 tf_estimate, opus_val16 tone_freq, opus_val32 toneishness)
+                                  int silence, opus_val16 tf_estimate, opus_val16 tone_freq, opus_val32 toneishness,
+                                  const std::array<opus_val32, celt_max_channels>& input_abs_sum)
     -> celt_prefilter_result {
   auto result = celt_prefilter_result{};
   int qg = 0;
   const int can_signal = !layout.hybrid && tell + 16 <= total_bits;
   const int enabled = nbAvailableBytes > 12 * layout.C && can_signal && !silence && !st->disable_pf;
   result.enabled = run_prefilter(st, in, prefilter_mem, layout.CC, layout.N, result.tapset, &result.pitch_index, &result.gain, &qg, enabled,
-                                 st->complexity, tf_estimate, nbAvailableBytes, tone_freq, toneishness);
+                                 st->complexity, tf_estimate, nbAvailableBytes, tone_freq, toneishness, input_abs_sum);
   if (result.enabled == 0) {
     if (can_signal) {
       ec_enc_bit_logp(enc, 0, 1);
@@ -6375,8 +6377,6 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
     }
   }
   if (st->bitrate > 0) {
-    // Use the actual spectral budget instead of giving fixed bitrate windows
-    // special treatment. Scarce or bandwidth-limited spectra favour low bands.
     const int missing_bands = clamp_value(celt_default_nb_ebands - st->end, 0, 3);
     const int spectral_budget = st->bitrate / std::max(1, st->end);
     const int lowrate_diff_limit = st->bitrate <= 16000 ? 22 : 56;
@@ -6458,8 +6458,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   auto* oldLogE = views.oldLogE;
   auto* oldLogE2 = views.oldLogE2;
   auto* energyError = views.energyError;
-  // Packet accounting comes first because the later analysis phases consume the
-  // final byte ceiling when deciding which side information can be signalled.
   if (enc == nullptr) {
     tell0_frac = tell = 1;
     nbFilledBytes = 0;
@@ -6503,12 +6501,10 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   }
   total_bits = nbCompressedBytes * 8;
   effEnd = layout.effEnd;
-  // Time-domain preparation: measure silence, pre-emphasise, then decide the
-  // optional pitch prefilter before the MDCT consumes the prepared buffer.
   std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  const auto peak = celt_preemphasise_input(st, pcm, in, prefilter_mem, layout);
-  silence = peak.silence;
+  const auto input_metrics = celt_preemphasise_input(st, pcm, in, prefilter_mem, layout);
+  silence = input_metrics.silence;
   if (tell == 1) {
     ec_enc_bit_logp(enc, silence, 15);
   } else
@@ -6528,13 +6524,11 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   toneishness = tone.toneishness;
   isTransient = 0;
   const auto prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, layout, nbAvailableBytes, total_bits, tell, silence, tf_estimate,
-                                               tone_freq, toneishness);
+                                               tone_freq, toneishness, input_metrics.abs_sum);
   pitch_index = prefilter.pitch_index;
   prefilter_tapset = prefilter.tapset;
   gain1 = prefilter.gain;
   shortBlocks = celt_choose_short_blocks(enc, LM, total_bits, isTransient, &transient_got_disabled);
-  // Frequency-domain analysis creates the band energies and scratch workset
-  // used by dynalloc, TF signalling, trim, and pulse allocation.
   std::array<celt_sig, celt_max_channels * celt_max_frame_samples> frequency_storage;
   auto* freq = frequency_storage.data();
   compute_mdcts(mode, shortBlocks, in, freq, C, CC, LM, st->upsample);
@@ -6607,8 +6601,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   }
   auto base_target = opus_int32{0};
   auto target = opus_int32{0};
-  // VBR target selection is intentionally kept as one block: it owns the
-  // reservoir/drift state and is sensitive to bit-exact packet sizing.
   if (vbr_rate > 0) {
     opus_val16 alpha;
     opus_int32 delta;
@@ -6684,8 +6676,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   } else {
     st->lastCodedBands = static_cast<opus_uint8>(codedBands);
   }
-  // Quantisation writes the final spectral payload; the remaining steps only
-  // close side-channel reserves and commit predictor state for the next frame.
   { quant_fine_energy(mode, start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C); }
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks_storage;
@@ -6693,7 +6683,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   {
     quant_all_bands(1, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, bandE, pulses.data(), shortBlocks,
                     st->spread_decision, dual_stereo, st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv,
-                    balance, enc, LM, codedBands, &st->rng, 0);
+                    balance, enc, LM, codedBands, &st->rng, 0, st->bitrate >= 22000 && st->bitrate <= 36000);
   }
   if (anti_collapse_rsv > 0) {
     anti_collapse_on = st->consec_transient < 2;
@@ -7552,7 +7542,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   auto* collapse_masks = collapse_masks_storage.data();
   quant_all_bands(0, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, nullptr, pulses.data(), shortBlocks, spread_decision,
                   dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM, codedBands, &st->rng,
-                  st->disable_inv);
+                  st->disable_inv, 0);
   if (anti_collapse_rsv > 0) {
     anti_collapse_on = ec_dec_bits(dec, 1);
   }
@@ -7646,8 +7636,6 @@ static constexpr const auto* celt_pvq_fast_row_offsets = celt_pvq_fast_row_offse
 }
 
 static constexpr auto celt_pvq_u_fast_rows_storage = make_celt_pvq_u_fast_rows();
-// Keep static storage, but address it through a pointer so hot PVQ row lookups
-// compile to compact indexed loads instead of larger array-address sequences.
 static constexpr const opus_uint32* celt_pvq_u_fast_rows = celt_pvq_u_fast_rows_storage.data();
 
 [[nodiscard]] static auto celt_pvq_u_entry_known_row(unsigned row_index, unsigned column_index) noexcept -> opus_uint32 {
@@ -10466,9 +10454,8 @@ struct celt_pvq_quant_result {
   opus_uint32 index;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, bool refine) -> celt_pvq_quant_result {
   const auto sample_count = static_cast<std::size_t>(N);
-  // Pack the original sign into bit zero and keep the pulse count above it.
   std::array<int, celt_max_band_samples> pulse_storage;
   std::array<celt_norm, celt_max_band_samples> target_storage;
   auto* iy = pulse_storage.data();
@@ -10537,6 +10524,42 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
     y[best_id] += 2;
     iy[best_id] += 2;
   }
+  for (int pass = 0; pass < 2 && refine && K >= 5 && K <= 24; ++pass) {
+    int best_from = -1;
+    int best_to = -1;
+    opus_val32 best_num = xy * xy;
+    opus_val16 best_den = yy;
+    for (int from = 0; from < N; ++from) {
+      const int from_pulses = iy[from] >> 1;
+      if (from_pulses == 0) {
+        continue;
+      }
+      for (int to = 0; to < N; ++to) {
+        if (to == from) {
+          continue;
+        }
+        const int to_pulses = iy[to] >> 1;
+        const opus_val32 candidate_xy = xy - X[from] + X[to];
+        const opus_val16 candidate_yy = yy + 2 * (to_pulses - from_pulses + 1);
+        const opus_val32 candidate_num = candidate_xy * candidate_xy;
+        if (candidate_yy > 0 && candidate_num * best_den > best_num * candidate_yy) {
+          best_from = from;
+          best_to = to;
+          best_num = candidate_num;
+          best_den = candidate_yy;
+        }
+      }
+    }
+    if (best_from < 0) {
+      break;
+    }
+    iy[best_from] -= 2;
+    iy[best_to] += 2;
+    y[best_from] -= 2;
+    y[best_to] += 2;
+    xy += X[best_to] - X[best_from];
+    yy = best_den;
+  }
   auto collapse_mask = B <= 1 ? 1U : 0U;
   const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
   const int collapse_limit = B <= 1 ? 0 : B * N0;
@@ -10564,7 +10587,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
   return {collapse_mask, index};
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc) {
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, bool refine) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
     int best_id = 0;
@@ -10581,7 +10604,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const int N0 = celt_udiv(N, B);
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
-  const auto quant = op_pvq_search_c(X, K, N, B);
+  const auto quant = op_pvq_search_c(X, K, N, B, refine);
   ec_enc_uint(enc, quant.index, celt_pvq_u_total(N, K));
   return quant.collapse_mask;
 }
@@ -11812,9 +11835,6 @@ static int silk_Encode(void* encState, silk_EncControlStruct* encControl, const 
           const bool side_residual_fast_path =
               encControl->nChannelsInternal == 2 && n == 1 && saved_complexity > 0 && channelRate_bps <= 12000;
           if (side_residual_fast_path) {
-            // The side channel is a decorrelated residual after LR->MS. Keep the
-            // mid channel at the requested complexity and avoid full speech
-            // search/noise-shaping work on the residual when it is coded.
             silk_setup_complexity(&state_Fxx[n].sCmn, 0);
           }
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
@@ -13517,7 +13537,8 @@ constinit const std::array<opus_uint8, 17> silk_shell_code_table_offsets =
     numeric_blob_array<opus_uint8, 17>(R"blob(00000205090E141B232C36414D5A687787)blob");
 constinit const std::array<opus_uint8, 42> silk_sign_iCDF =
     numeric_blob_array<opus_uint8, 42>(R"blob(FE31434D525D63C60B12181F242DFF2E424E575E68D00E15202A3342FF5E686D707376F8354550585F66)blob");
-} // namespace
+}
+
 static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD);
 static void silk_VAD_Init(silk_VAD_state* psSilk_VAD) {
   int b;
@@ -14235,7 +14256,8 @@ extern constinit const std::array<opus_int8, 2 + 1> silk_nb_cbk_searchs_stage3;
 extern constinit const std::array<std::array<opus_int8, 3>, 2> silk_CB_lags_stage2_10_ms;
 extern constinit const std::array<std::array<opus_int8, 12>, 2> silk_CB_lags_stage3_10_ms;
 extern constinit const std::array<std::array<opus_int8, 2>, 2> silk_Lag_range_stage3_10_ms;
-} // namespace
+}
+
 static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz);
 static void silk_setup_fs(silk_encoder_state_FLP* psEnc, int fs_kHz, int PacketSize_ms);
 void silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch,
@@ -14924,7 +14946,8 @@ constinit const std::array<std::array<opus_int8, 34>, 4> silk_CB_lags_stage3 = n
 constinit const std::array<std::array<opus_int8, 4 * 2>, 3> silk_Lag_range_stage3 =
     numeric_blob_matrix<opus_int8, 3, 4 * 2>(R"blob(FB08FF06FF06FC0AFA0AFE06FF06FB0AF70CFD07FE07F90D)blob");
 constinit const std::array<opus_int8, 2 + 1> silk_nb_cbk_searchs_stage3 = numeric_blob_array<opus_int8, 3>(R"blob(101822)blob");
-} // namespace
+}
+
 constexpr opus_int16 silk_resampler_down2_0 = 9872;
 constexpr opus_int16 silk_resampler_down2_1 = 39809 - 65536;
 constexpr std::array<opus_int16, 3> silk_resampler_up2_hq_0 = numeric_blob_array<opus_int16, 3>(R"blob(06D23A8A98AB)blob");
@@ -14936,7 +14959,8 @@ extern constinit const std::array<opus_int16, 2 + 24 / 2> silk_Resampler_1_2_COE
 extern constinit const std::array<opus_int16, 2 + 36 / 2> silk_Resampler_1_3_COEFS, silk_Resampler_1_4_COEFS, silk_Resampler_1_6_COEFS;
 extern constinit const std::array<opus_int16, 2 + 2 * 2> silk_Resampler_2_3_COEFS_LQ;
 extern constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_frac_FIR_12;
-} // namespace
+}
+
 [[nodiscard]] static constexpr auto silk_select_resampler_config(const int input_hz, const int output_hz) noexcept
     -> silk_resampler_ratio_config {
   if (output_hz * 4 == input_hz * 3) {
@@ -15144,7 +15168,8 @@ template <std::size_t HalfOrder>
   }
   return acc;
 }
-} // namespace
+}
+
 static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Order,
                                                      int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept
     -> opus_int16* {
@@ -15295,7 +15320,8 @@ constinit const std::array<opus_int16, 2 + 2 * 2> silk_Resampler_2_3_COEFS_LQ =
     numeric_blob_array<opus_int16, 6>(R"blob(F513E695125929F3061F2054)blob");
 constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_frac_FIR_12 = numeric_blob_matrix<opus_int16, 12, 4>(
     R"blob(00BDFDA8026977670075FF61FBD27408003400DDF6A86E74FFFC0211F2EA66E5FFD002F6F08C5DA5FFB00389EF755306FF9D03CCEF824766FF9503C7F08B3B27FF990380F2612EAEFFA50305F4CF225EFFB90263F7A11698FFD201A9FAA10BB4)blob");
-} // namespace
+}
+
 constexpr std::array<opus_int16, 6> sigm_LUT_slope_Q10{237, 153, 73, 30, 12, 7};
 constexpr std::array<opus_int16, 6> sigm_LUT_pos_Q15{16384, 23955, 28861, 31213, 32178, 32548};
 constexpr std::array<opus_int16, 6> sigm_LUT_neg_Q15{16384, 8812, 3906, 1554, 589, 219};
@@ -16175,7 +16201,8 @@ struct max_abs_result {
   }
   return {max_abs, max_index};
 }
-} // namespace
+}
+
 void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], const float s[], const int length, const int Order) {
   auto residual = std::span<float>{r_LPC, static_cast<std::size_t>(length)};
   auto signal = std::span<const float>{s, static_cast<std::size_t>(length)};
@@ -16214,7 +16241,6 @@ void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[
 void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
   constexpr auto code_independently = 0;
   constexpr auto plc_assumed_packet_loss_percent = 3;
-  // Bias only the 32 kbps stereo SILK window toward cleaner post-loss recovery.
   if (condCoding == code_independently && psEnc->sCmn.nChannelsInternal == 2 &&
       psEnc->sCmn.TargetRate_bps >= hybrid_silk_lowrate_boost_min_bps && psEnc->sCmn.TargetRate_bps <= hybrid_silk_lowrate_boost_max_bps) {
     const auto round_loss = plc_assumed_packet_loss_percent * psEnc->sCmn.nFramesPerPacket;
@@ -17247,7 +17273,8 @@ template <opus_ctl_value T> [[nodiscard]] static inline auto ctl_write_value(va_
     return OPUS_UNIMPLEMENTED;
   }
 }
-} // namespace
+}
+
 OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* error) noexcept {
   return create_encoder_state(Fs, channels, application, error);
 }
