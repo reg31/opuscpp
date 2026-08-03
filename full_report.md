@@ -37,15 +37,15 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.373972x | 1.874320x |
-| 24 kbps | 1.599633x | 1.338195x |
-| 32 kbps | 1.649429x | 1.423333x |
-| 48 kbps | 1.689073x | 1.289519x |
-| 64 kbps | 1.789354x | 1.523058x |
-| 96 kbps | 2.004917x | 1.189604x |
-| 128 kbps | 1.858458x | 1.376236x |
-| 192 kbps | 1.831449x | 1.215323x |
-| 256 kbps | 1.524755x | 1.133462x |
+| 16 kbps | 2.446791x | 1.690705x |
+| 24 kbps | 1.832966x | 1.399695x |
+| 32 kbps | 1.817764x | 1.329508x |
+| 48 kbps | 1.735135x | 1.289747x |
+| 64 kbps | 1.709523x | 1.285652x |
+| 96 kbps | 1.763826x | 1.248336x |
+| 128 kbps | 1.985733x | 1.264600x |
+| 192 kbps | 1.740842x | 1.242060x |
+| 256 kbps | 1.727609x | 1.240197x |
 
 ## AUDIO quality metrics vs official Opus
 

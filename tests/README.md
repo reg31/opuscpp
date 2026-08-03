@@ -215,15 +215,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.374x | 1.874x | 821x | 346x | 2329x | 1243x |
-| 24&nbsp;kbps | 1.600x | 1.338x | 495x | 310x | 1555x | 1162x |
-| 32&nbsp;kbps | 1.649x | 1.423x | 548x | 332x | 1483x | 1042x |
-| 48&nbsp;kbps | 1.689x | 1.290x | 482x | 285x | 1244x | 965x |
-| 64&nbsp;kbps | 1.789x | 1.523x | 450x | 251x | 1068x | 701x |
-| 96&nbsp;kbps | 2.005x | 1.190x | 389x | 194x | 803x | 675x |
-| 128&nbsp;kbps | 1.858x | 1.376x | 363x | 196x | 726x | 528x |
-| 192&nbsp;kbps | 1.831x | 1.215x | 306x | 167x | 610x | 502x |
-| 256&nbsp;kbps | 1.525x | 1.133x | 256x | 168x | 517x | 456x |
+| 16&nbsp;kbps | 2.447x | 1.691x | 602x | 246x | 1506x | 891x |
+| 24&nbsp;kbps | 1.833x | 1.400x | 399x | 218x | 1080x | 772x |
+| 32&nbsp;kbps | 1.818x | 1.330x | 399x | 220x | 1024x | 771x |
+| 48&nbsp;kbps | 1.735x | 1.290x | 344x | 198x | 863x | 669x |
+| 64&nbsp;kbps | 1.710x | 1.286x | 310x | 181x | 731x | 569x |
+| 96&nbsp;kbps | 1.764x | 1.248x | 258x | 146x | 574x | 460x |
+| 128&nbsp;kbps | 1.986x | 1.265x | 260x | 131x | 495x | 391x |
+| 192&nbsp;kbps | 1.741x | 1.242x | 208x | 119x | 408x | 328x |
+| 256&nbsp;kbps | 1.728x | 1.240x | 189x | 109x | 356x | 287x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
