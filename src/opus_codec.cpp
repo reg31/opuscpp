@@ -1977,6 +1977,7 @@ struct ref_OpusEncoder {
   opus_uint32 rangeFinal;
   int use_dtx, nb_no_activity_ms_Q1;
   opus_val32 dtx_smoothed_energy;
+  int voip_noise_confidence_Q7;
 };
 
 [[nodiscard]] static constexpr auto encoder_delay_buffer_count(int channels, int application) noexcept -> std::size_t {
@@ -2448,6 +2449,8 @@ constexpr opus_val32 voip_noisy_voice_energy_max = 0.001f;
 constexpr opus_val32 voip_noisy_voice_diff_ratio_min = 0.18f;
 constexpr opus_val32 voip_noisy_voice_zero_cross_min = 0.14f;
 constexpr opus_val16 voip_noisy_voice_smoothing = 0.18f;
+constexpr opus_val16 voip_confident_noise_smoothing = 0.25f;
+constexpr int voip_noise_confidence_apply_Q7 = 90;
 constexpr opus_val32 voip_quiet_hissy_voice_diff_ratio_min = 0.40f;
 constexpr opus_val16 voip_quiet_hissy_voice_low_band_keep = 0.50f;
 constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
@@ -2736,6 +2739,31 @@ static int update_lightweight_voice_estimate(ref_OpusEncoder* st, const opus_res
   }
   return 48;
 }
+
+static void update_voip_noise_confidence(ref_OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
+  if (st->channels != 1 || st->voip_noise_confidence_Q7 < 0) {
+    return;
+  }
+  auto& confidence = st->voip_noise_confidence_Q7;
+
+  const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .006f &&
+                               metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&
+                               metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min &&
+                               st->lightweight_harmonic_music_Q7 < 48 && st->lightweight_high_z_tonal_Q7 < 48 &&
+                               st->lightweight_music_score_Q7 < 48;
+  if (confidence < voip_noise_confidence_apply_Q7) {
+    const bool probe_expired = st->lightweight_analysis_frames > audio_preprocess_warmup_frames ||
+                               st->lightweight_voice_score_Q7 >= 32 || st->lightweight_vad_score_Q7 >= 32;
+    if (probe_expired || (broadband_noise && metrics.mono_diff_ratio >= .8f)) {
+      confidence = -1;
+      return;
+    }
+  }
+  if (broadband_noise) {
+    confidence = std::min(115, confidence + std::max(1, (115 - confidence) >> 2));
+  }
+}
+
 struct encoder_quality_decision {
   int voice_est, voice_score_Q7, music_score_Q7, harmonic_music_Q7, high_z_tonal_Q7, analysis_frames;
 
@@ -3243,6 +3271,7 @@ static opus_int32 encode_native(ref_OpusEncoder* st, const opus_res* pcm, int fr
     voice_est = update_lightweight_voice_estimate(st, pcm, frame_size, stereo_width, frame_metrics);
     if (voip_style) {
       voice_est = voice_est > 48 ? 115 : 0;
+      update_voip_noise_confidence(st, frame_metrics);
     }
   } else
     voice_est = 48;
@@ -3556,7 +3585,11 @@ static void opus_prepare_frame_highpass(ref_OpusEncoder* st, void* silk_enc, con
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
           frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&
           frame_metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, voip_noisy_voice_smoothing);
+        const auto confidence = std::max(0, st->voip_noise_confidence_Q7 - voip_noise_confidence_apply_Q7);
+        const auto confidence_mix = static_cast<opus_val16>(confidence) / (115 - voip_noise_confidence_apply_Q7);
+        const auto smoothing =
+            voip_noisy_voice_smoothing + confidence_mix * (voip_confident_noise_smoothing - voip_noisy_voice_smoothing);
+        apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
       }
       if (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous && frame_metrics.energy > .004f &&
           frame_metrics.energy < .015f && frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f &&

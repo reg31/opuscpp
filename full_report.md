@@ -19,11 +19,11 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 ## API behavior validation
 
-- `decoder_channel_remap=PASS stereo_bytes=248 mono_bytes=83 mono_nonzero=951 stereo_nonzero=610`
+- `decoder_channel_remap=PASS stereo_bytes=248 mono_bytes=83 mono_nonzero=938 stereo_nonzero=610`
 - `packet_duration_behavior=PASS`
 - `vbr_budget_behavior=PASS`
 - `dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86`
-- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725390 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.458774 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725845 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.506043 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
 
 ## Perceptual and memory harness
 
@@ -36,43 +36,43 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.426019x | 1.771608x |
-| 24 kbps | 1.677719x | 1.348728x |
-| 32 kbps | 1.645614x | 1.318608x |
-| 48 kbps | 1.599775x | 1.246774x |
-| 64 kbps | 1.618004x | 1.251431x |
-| 96 kbps | 1.698409x | 1.225913x |
-| 128 kbps | 2.039922x | 1.189380x |
-| 192 kbps | 1.713200x | 1.175807x |
-| 256 kbps | 1.683045x | 1.108353x |
+| 16 kbps | 2.306250x | 1.790492x |
+| 24 kbps | 1.651903x | 1.352685x |
+| 32 kbps | 1.639810x | 1.321855x |
+| 48 kbps | 1.566174x | 1.263847x |
+| 64 kbps | 1.612965x | 1.260608x |
+| 96 kbps | 1.672968x | 1.176132x |
+| 128 kbps | 1.922357x | 1.243997x |
+| 192 kbps | 1.783361x | 1.189670x |
+| 256 kbps | 1.650489x | 1.118905x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 0.0665 | -0.0020 | -0.0013 | 0.0050 | 0.0009 | -0.0005 | 0.6648 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | -0.0440 | 0.0015 | 0.0015 | -0.0023 | 0.0267 | 0.0044 | 0.3331 | 24.000 kbps | 25.220 kbps |
-| 32 kbps | 0.0461 | -0.0017 | -0.0010 | 0.0052 | 0.0431 | 0.0059 | 0.4579 | 32.000 kbps | 33.613 kbps |
-| 48 kbps | 0.0083 | -0.0003 | -0.0003 | 0.0012 | 0.0126 | 0.0023 | 0.0658 | 48.000 kbps | 48.560 kbps |
-| 64 kbps | 0.0113 | -0.0004 | -0.0003 | 0.0011 | 0.0050 | 0.0006 | -0.0449 | 64.000 kbps | 64.613 kbps |
-| 96 kbps | 0.0000 | 0.0000 | -0.0001 | 0.0004 | 0.0040 | 0.0010 | -0.0536 | 96.000 kbps | 96.697 kbps |
-| 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | -0.0378 | 128.000 kbps | 128.759 kbps |
-| 192 kbps | 0.0059 | -0.0002 | 0.0000 | 0.0007 | 0.0005 | 0.0000 | -0.0327 | 192.000 kbps | 192.900 kbps |
-| 256 kbps | 0.0089 | -0.0003 | -0.0001 | 0.0008 | 0.0001 | 0.0000 | 0.0061 | 256.000 kbps | 256.736 kbps |
+| 16 kbps | 0.0734 | -0.0022 | -0.0015 | 0.0059 | 0.0024 | 0.0004 | 0.4116 | 16.000 kbps | 17.065 kbps |
+| 24 kbps | 0.0036 | -0.0001 | 0.0001 | 0.0017 | 0.0267 | 0.0043 | 1.0525 | 24.000 kbps | 25.220 kbps |
+| 32 kbps | 0.2403 | -0.0086 | -0.0064 | 0.0207 | 0.0391 | 0.0053 | 0.6736 | 32.000 kbps | 33.613 kbps |
+| 48 kbps | -0.0001 | 0.0000 | -0.0001 | 0.0006 | 0.0142 | 0.0026 | 0.0032 | 48.000 kbps | 48.560 kbps |
+| 64 kbps | 0.0088 | -0.0003 | -0.0003 | 0.0010 | 0.0051 | 0.0008 | 0.0032 | 64.000 kbps | 64.613 kbps |
+| 96 kbps | 0.0004 | 0.0000 | -0.0001 | 0.0002 | 0.0035 | 0.0009 | 0.0013 | 96.000 kbps | 96.697 kbps |
+| 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | 0.0026 | 128.000 kbps | 128.759 kbps |
+| 192 kbps | 0.0059 | -0.0002 | 0.0000 | 0.0007 | 0.0005 | 0.0000 | 0.0029 | 192.000 kbps | 192.900 kbps |
+| 256 kbps | 0.0089 | -0.0003 | -0.0001 | 0.0008 | 0.0001 | 0.0000 | 0.0045 | 256.000 kbps | 256.736 kbps |
 
 ## VOIP quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | -0.0744 | 0.0024 | 0.0018 | -0.0071 | -0.0025 | 0.0002 | -0.2295 | 16.000 kbps | 16.255 kbps |
-| 24 kbps | 0.0194 | -0.0006 | -0.0003 | 0.0006 | -0.0003 | 0.0005 | 0.0766 | 24.000 kbps | 24.148 kbps |
-| 32 kbps | -0.0017 | 0.0001 | 0.0000 | -0.0003 | -0.0001 | 0.0004 | 0.0479 | 32.000 kbps | 32.184 kbps |
+| 16 kbps | 0.0877 | -0.0028 | -0.0018 | 0.0083 | 0.0010 | 0.0020 | 0.0609 | 15.999 kbps | 16.255 kbps |
+| 24 kbps | 0.0289 | -0.0009 | -0.0006 | 0.0021 | 0.0025 | 0.0012 | 0.0964 | 24.000 kbps | 24.148 kbps |
+| 32 kbps | 0.0191 | -0.0006 | -0.0004 | 0.0013 | 0.0000 | 0.0001 | 0.0488 | 32.000 kbps | 32.184 kbps |
 | 48 kbps | 0.0555 | -0.0017 | -0.0011 | 0.0042 | 0.0017 | 0.0008 | 0.0293 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 0.0148 | -0.0005 | -0.0003 | 0.0015 | -0.0001 | 0.0007 | -0.1039 | 64.000 kbps | 64.501 kbps |
-| 96 kbps | 0.0032 | -0.0001 | 0.0000 | -0.0001 | 0.0000 | 0.0002 | 0.0137 | 96.000 kbps | 96.595 kbps |
-| 128 kbps | 0.0006 | 0.0000 | -0.0001 | 0.0000 | 0.0012 | 0.0007 | -0.0033 | 128.000 kbps | 128.503 kbps |
-| 192 kbps | 0.0035 | -0.0001 | -0.0001 | 0.0003 | 0.0000 | 0.0000 | 0.0107 | 192.000 kbps | 192.421 kbps |
-| 256 kbps | 0.0004 | 0.0000 | 0.0000 | -0.0001 | 0.0001 | 0.0000 | 0.0008 | 256.000 kbps | 256.415 kbps |
+| 64 kbps | 0.0879 | -0.0028 | -0.0019 | 0.0075 | 0.0008 | 0.0004 | 0.0228 | 63.969 kbps | 64.501 kbps |
+| 96 kbps | 0.0291 | -0.0009 | -0.0006 | 0.0019 | 0.0002 | 0.0002 | 0.0127 | 96.000 kbps | 96.595 kbps |
+| 128 kbps | 0.0273 | -0.0009 | -0.0006 | 0.0022 | 0.0009 | 0.0005 | 0.0132 | 128.000 kbps | 128.503 kbps |
+| 192 kbps | 0.0109 | -0.0003 | -0.0002 | 0.0009 | 0.0001 | 0.0000 | 0.0114 | 192.000 kbps | 192.421 kbps |
+| 256 kbps | 0.0086 | -0.0003 | -0.0002 | 0.0007 | 0.0002 | 0.0000 | 0.0050 | 256.000 kbps | 256.415 kbps |
 
 ## Detector mode-balance spot check
 
@@ -86,15 +86,15 @@ Benchmark setup: `opuscpp` is built with `-O2 -DNDEBUG`; official Opus is built 
 | State | Difference |
 |---|---:|
 | Encoder mono | -49.0% |
-| Encoder stereo | -33.7% |
-| Decoder mono | -22.7% |
-| Decoder stereo | -21.9% |
+| Encoder stereo | -34.1% |
+| Decoder mono | -23.2% |
+| Decoder stereo | -21.8% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 295168 B | 0 B | 295168 B |
+| Host C++23 `-O2` | 310628 B | 0 B | 310628 B |
 
 ## Toolchains checked
 
