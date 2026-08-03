@@ -4282,7 +4282,7 @@ extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
   return pulses == 0 ? 0 : cache[pulses] + 1;
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, bool refine);
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -4586,7 +4586,6 @@ struct band_ctx {
   const celt_ener* bandE;
   opus_uint32 seed;
   opus_int16* decode_pulse_scratch;
-  bool pvq_refine;
 };
 struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
@@ -4852,7 +4851,7 @@ static unsigned quant_partition(struct band_ctx* ctx, celt_norm* X, int N, int b
     if (q != 0) {
       int K = get_pulses(q);
       if (encode) {
-        cm = alg_quant(X, N, K, spread, B, ec, ctx->pvq_refine != 0);
+        cm = alg_quant(X, N, K, spread, B, ec);
       } else {
         cm = alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
       }
@@ -5090,7 +5089,7 @@ static void special_hybrid_folding(const CeltModeInternal* m, celt_norm* norm, c
 static void quant_all_bands(int encode, const CeltModeInternal* m, int start, int end, celt_norm* X_, celt_norm* Y_,
                             unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread,
                             int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM,
-                            int codedBands, opus_uint32* seed, int disable_inv, bool pvq_refine) {
+                            int codedBands, opus_uint32* seed, int disable_inv) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = m->eBands;
@@ -5125,7 +5124,6 @@ static void quant_all_bands(int encode, const CeltModeInternal* m, int start, in
   ctx.theta_round = 0;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
-  ctx.pvq_refine = pvq_refine;
   for (i = start; i < end; i++) {
     opus_int32 tell;
     int b, N;
@@ -6683,7 +6681,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   {
     quant_all_bands(1, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, bandE, pulses.data(), shortBlocks,
                     st->spread_decision, dual_stereo, st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv,
-                    balance, enc, LM, codedBands, &st->rng, 0, st->bitrate >= 22000 && st->bitrate <= 36000);
+                    balance, enc, LM, codedBands, &st->rng, 0);
   }
   if (anti_collapse_rsv > 0) {
     anti_collapse_on = st->consec_transient < 2;
@@ -7542,7 +7540,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   auto* collapse_masks = collapse_masks_storage.data();
   quant_all_bands(0, mode, start, end, X, C == 2 ? X + N : nullptr, collapse_masks, nullptr, pulses.data(), shortBlocks, spread_decision,
                   dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM, codedBands, &st->rng,
-                  st->disable_inv, 0);
+                  st->disable_inv);
   if (anti_collapse_rsv > 0) {
     anti_collapse_on = ec_dec_bits(dec, 1);
   }
@@ -10454,7 +10452,7 @@ struct celt_pvq_quant_result {
   opus_uint32 index;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, bool refine) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant_result {
   const auto sample_count = static_cast<std::size_t>(N);
   std::array<int, celt_max_band_samples> pulse_storage;
   std::array<celt_norm, celt_max_band_samples> target_storage;
@@ -10524,42 +10522,6 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, bool refine) -> c
     y[best_id] += 2;
     iy[best_id] += 2;
   }
-  for (int pass = 0; pass < 2 && refine && K >= 5 && K <= 24; ++pass) {
-    int best_from = -1;
-    int best_to = -1;
-    opus_val32 best_num = xy * xy;
-    opus_val16 best_den = yy;
-    for (int from = 0; from < N; ++from) {
-      const int from_pulses = iy[from] >> 1;
-      if (from_pulses == 0) {
-        continue;
-      }
-      for (int to = 0; to < N; ++to) {
-        if (to == from) {
-          continue;
-        }
-        const int to_pulses = iy[to] >> 1;
-        const opus_val32 candidate_xy = xy - X[from] + X[to];
-        const opus_val16 candidate_yy = yy + 2 * (to_pulses - from_pulses + 1);
-        const opus_val32 candidate_num = candidate_xy * candidate_xy;
-        if (candidate_yy > 0 && candidate_num * best_den > best_num * candidate_yy) {
-          best_from = from;
-          best_to = to;
-          best_num = candidate_num;
-          best_den = candidate_yy;
-        }
-      }
-    }
-    if (best_from < 0) {
-      break;
-    }
-    iy[best_from] -= 2;
-    iy[best_to] += 2;
-    y[best_from] -= 2;
-    y[best_to] += 2;
-    xy += X[best_to] - X[best_from];
-    yy = best_den;
-  }
   auto collapse_mask = B <= 1 ? 1U : 0U;
   const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
   const int collapse_limit = B <= 1 ? 0 : B * N0;
@@ -10587,7 +10549,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, bool refine) -> c
   return {collapse_mask, index};
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, bool refine) {
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
     int best_id = 0;
@@ -10604,7 +10566,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const int N0 = celt_udiv(N, B);
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
-  const auto quant = op_pvq_search_c(X, K, N, B, refine);
+  const auto quant = op_pvq_search_c(X, K, N, B);
   ec_enc_uint(enc, quant.index, celt_pvq_u_total(N, K));
   return quant.collapse_mask;
 }

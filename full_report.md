@@ -37,23 +37,23 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.184444x | 1.815050x |
-| 24 kbps | 1.843468x | 1.211748x |
-| 32 kbps | 1.711564x | 1.307689x |
-| 48 kbps | 1.809307x | 1.420949x |
-| 64 kbps | 1.951112x | 1.433100x |
-| 96 kbps | 1.485258x | 1.059286x |
-| 128 kbps | 1.683676x | 1.248838x |
-| 192 kbps | 1.614881x | 1.069548x |
-| 256 kbps | 1.847615x | 1.173719x |
+| 16 kbps | 2.373972x | 1.874320x |
+| 24 kbps | 1.599633x | 1.338195x |
+| 32 kbps | 1.649429x | 1.423333x |
+| 48 kbps | 1.689073x | 1.289519x |
+| 64 kbps | 1.789354x | 1.523058x |
+| 96 kbps | 2.004917x | 1.189604x |
+| 128 kbps | 1.858458x | 1.376236x |
+| 192 kbps | 1.831449x | 1.215323x |
+| 256 kbps | 1.524755x | 1.133462x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.0734 | -0.0022 | -0.0015 | 0.0059 | 0.0024 | 0.0004 | 0.4116 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | 0.0087 | -0.0003 | 0.0000 | 0.0023 | 0.0274 | 0.0042 | 1.0535 | 24.000 kbps | 25.220 kbps |
-| 32 kbps | 0.2414 | -0.0086 | -0.0064 | 0.0208 | 0.0392 | 0.0054 | 0.6737 | 32.000 kbps | 33.613 kbps |
+| 24 kbps | 0.0036 | -0.0001 | 0.0001 | 0.0017 | 0.0267 | 0.0043 | 1.0525 | 24.000 kbps | 25.220 kbps |
+| 32 kbps | 0.2403 | -0.0086 | -0.0064 | 0.0207 | 0.0391 | 0.0053 | 0.6736 | 32.000 kbps | 33.613 kbps |
 | 48 kbps | -0.0001 | 0.0000 | -0.0001 | 0.0006 | 0.0142 | 0.0026 | 0.0032 | 48.000 kbps | 48.560 kbps |
 | 64 kbps | 0.0088 | -0.0003 | -0.0003 | 0.0010 | 0.0051 | 0.0008 | 0.0032 | 64.000 kbps | 64.613 kbps |
 | 96 kbps | 0.0004 | 0.0000 | -0.0001 | 0.0002 | 0.0035 | 0.0009 | 0.0013 | 96.000 kbps | 96.697 kbps |
@@ -95,7 +95,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 310988 B | 0 B | 310988 B |
+| Host C++23 `-O2` | 310540 B | 0 B | 310540 B |
 
 ## Toolchains checked
 
