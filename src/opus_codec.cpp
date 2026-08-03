@@ -10469,16 +10469,14 @@ struct celt_pvq_quant_result {
 
 static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant_result {
   const auto sample_count = static_cast<std::size_t>(N);
-  std::array<int, celt_max_band_samples> sign_storage;
+  // Pack the original sign into bit zero and keep the pulse count above it.
   std::array<int, celt_max_band_samples> pulse_storage;
   std::array<celt_norm, celt_max_band_samples> target_storage;
-  auto* signx = sign_storage.data();
   auto* iy = pulse_storage.data();
   auto* y = target_storage.data();
   for (int j = 0; j < N; ++j) {
-    signx[j] = -(X[j] < 0);
+    iy[j] = X[j] < 0;
     X[j] = std::abs(X[j]);
-    iy[j] = 0;
   }
   opus_val32 xy = 0;
   opus_val16 yy = 0;
@@ -10499,7 +10497,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
     for (int j = 0; j < N; ++j) {
       const int pulse_int = static_cast<int>(std::floor(rcp * X[j]));
       const auto pulse = static_cast<celt_norm>(pulse_int);
-      iy[j] = pulse_int;
+      iy[j] = (pulse_int << 1) | (iy[j] & 1);
       yy += static_cast<opus_val32>(pulse) * static_cast<opus_val32>(pulse);
       xy += static_cast<opus_val32>(X[j]) * static_cast<opus_val32>(pulse);
       y[j] = 2 * pulse;
@@ -10513,7 +10511,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
     yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(tmp);
     yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(y[0]);
     y[0] += 2 * pulsesLeft;
-    iy[0] += pulsesLeft;
+    iy[0] += 2 * pulsesLeft;
     pulsesLeft = 0;
   }
   for (int i = 0; i < pulsesLeft; ++i) {
@@ -10538,26 +10536,28 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
     xy += X[best_id];
     yy += y[best_id];
     y[best_id] += 2;
-    iy[best_id]++;
+    iy[best_id] += 2;
   }
   auto collapse_mask = B <= 1 ? 1U : 0U;
   const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
   const int collapse_limit = B <= 1 ? 0 : B * N0;
   int j = N - 1;
-  int k = iy[j];
-  opus_uint32 index = (k != 0 && signx[j] != 0) ? 1U : 0U;
+  int packed_pulse = iy[j];
+  int k = packed_pulse >> 1;
+  opus_uint32 index = (k != 0 && (packed_pulse & 1) != 0) ? 1U : 0U;
   if (j < collapse_limit && k != 0) {
     collapse_mask |= 1U << celt_udiv(j, N0);
   }
   for (; j-- > 0;) {
-    const int pulse = iy[j];
+    packed_pulse = iy[j];
+    const int pulse = packed_pulse >> 1;
     index += celt_pvq_u_entry(N - j, k);
     k += pulse;
     if (pulse != 0) {
       if (j < collapse_limit) {
         collapse_mask |= 1U << celt_udiv(j, N0);
       }
-      if (signx[j] != 0) {
+      if ((packed_pulse & 1) != 0) {
         index += celt_pvq_u_entry(N - j, k + 1);
       }
     }
