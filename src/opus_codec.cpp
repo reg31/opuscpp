@@ -2107,16 +2107,18 @@ static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channel
   return toc;
 }
 
-static void silk_biquad_res(const opus_res* in, const opus_int32* B_Q28, const opus_int32* A_Q28, opus_val32* S, opus_res* out,
+static void silk_biquad_res(const opus_res* in, opus_int32 r_Q28, const opus_int32* A_Q28, opus_val32* S, opus_res* out,
                             const opus_int32 len, int stride) {
   constexpr float inv28 = 1.f / (1 << 28);
   const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
-  const std::array<opus_val32, 3> B{B_Q28[0] * inv28, B_Q28[1] * inv28, B_Q28[2] * inv28};
+  // The numerator is [r, -2r, r], so one product supplies all three taps.
+  const opus_val32 r = r_Q28 * inv28;
   for (int k = 0; k < len; k++) {
     const opus_val32 inval = in[k * stride];
-    const opus_val32 vout = S[0] + B[0] * inval;
-    S[0] = S[1] - vout * A[0] + B[1] * inval;
-    S[1] = -vout * A[1] + B[2] * inval + 1e-30f;
+    const opus_val32 filtered_input = r * inval;
+    const opus_val32 vout = S[0] + filtered_input;
+    S[0] = S[1] - vout * A[0] - 2.f * filtered_input;
+    S[1] = -vout * A[1] + filtered_input + 1e-30f;
     out[k * stride] = vout;
   }
   S[0] = zero_tiny_float_mem(S[0]);
@@ -2124,23 +2126,20 @@ static void silk_biquad_res(const opus_res* in, const opus_int32* B_Q28, const o
 }
 
 static void hp_cutoff(const opus_res* in, opus_int32 cutoff_Hz, opus_res* out, opus_val32* hp_mem, int len, int channels, opus_int32 Fs) {
-  opus_int32 B_Q28[3], A_Q28[2];
+  opus_int32 A_Q28[2];
   opus_int32 Fc_Q19, r_Q28, r_Q22;
   Fc_Q19 = ((opus_int32)((((opus_int32)((opus_int16)(((opus_int32)((1.5 * 3.14159 / 1000) * ((opus_int64)1 << (19)) + 0.5)))) *
                            (opus_int32)((opus_int16)(cutoff_Hz)))) /
                          (Fs / 1000)));
   r_Q28 = ((opus_int32)((1.0) * ((opus_int64)1 << (28)) + 0.5)) - ((((opus_int32)((0.92) * ((opus_int64)1 << (9)) + 0.5))) * (Fc_Q19));
-  B_Q28[0] = r_Q28;
-  B_Q28[1] = ((opus_int32)((opus_uint32)(-r_Q28) << (1)));
-  B_Q28[2] = r_Q28;
   r_Q22 = ((r_Q28) >> (6));
   A_Q28[0] = ((opus_int32)(((opus_int64)(r_Q22) * (((opus_int32)(((opus_int64)(Fc_Q19) * (Fc_Q19)) >> 16)) -
                                                    ((opus_int32)((2.0) * ((opus_int64)1 << (22)) + 0.5)))) >>
                            16));
   A_Q28[1] = ((opus_int32)(((opus_int64)(r_Q22) * (r_Q22)) >> 16));
-  silk_biquad_res(in, B_Q28, A_Q28, hp_mem, out, len, channels);
+  silk_biquad_res(in, r_Q28, A_Q28, hp_mem, out, len, channels);
   if (channels == 2) {
-    silk_biquad_res(in + 1, B_Q28, A_Q28, hp_mem + 2, out + 1, len, channels);
+    silk_biquad_res(in + 1, r_Q28, A_Q28, hp_mem + 2, out + 1, len, channels);
   }
 }
 
@@ -4367,14 +4366,14 @@ static void compute_band_energies(const CeltModeInternal* m, const celt_sig* X, 
   }
 }
 
-static void normalise_bands(const CeltModeInternal* m, const celt_sig* freq, celt_norm* X, const celt_ener* bandE, int end, int C, int M) {
+static void normalise_bands(const CeltModeInternal* m, celt_norm* X, const celt_ener* bandE, int end, int C, int M) {
   const opus_int16* eBands = m->eBands;
   const int N = M * m->shortMdctSize;
   for (int c = 0; c < C; ++c)
     for (int i = 0; i < end; i++) {
       opus_val16 g = 1.f / (1e-27f + bandE[i + c * m->nbEBands]);
       for (int j = M * eBands[i]; j < M * eBands[i + 1]; j++) {
-        X[j + c * N] = freq[j + c * N] * g;
+        X[j + c * N] *= g;
       }
     }
 }
@@ -6551,7 +6550,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   }
   const auto band_count = static_cast<std::size_t>(nbEBands);
   auto* X = freq;
-  normalise_bands(mode, freq, X, bandE, effEnd, C, M);
+  normalise_bands(mode, X, bandE, effEnd, C, M);
   std::array<int, 6 * celt_default_nb_ebands> celt_band_storage;
   auto* const band_base = celt_band_storage.data();
   zero_n_items(band_base, 6 * band_count);

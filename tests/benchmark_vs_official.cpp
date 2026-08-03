@@ -123,6 +123,16 @@ struct packet_stream final {
   std::uint64_t bytes = 0;
 };
 
+struct benchmark_case final {
+  int bitrate;
+  packet_stream current_packets;
+  packet_stream official_packets;
+  std::vector<double> current_encode_runs;
+  std::vector<double> official_encode_runs;
+  std::vector<double> current_decode_runs;
+  std::vector<double> official_decode_runs;
+};
+
 template <typename Encoder, typename EncodeFn>
 auto encode_stream(Encoder* enc, EncodeFn encode, std::span<const std::int16_t> pcm, int channels) -> packet_stream {
   packet_stream out{};
@@ -181,55 +191,66 @@ int main() {
   try {
     constexpr int channels = 2;
     const auto pcm = make_music_like_pcm(channels, benchmark_seconds);
-    std::cout << "bitrate,encode_speedx,current_encode_ms,official_encode_ms,opuscpp_effective_kbps,official_effective_kbps,decode_speedx,"
-                 "current_decode_ms,official_decode_ms\n";
+    std::vector<benchmark_case> cases;
+    cases.reserve(bitrates.size());
     for (const auto bitrate : bitrates) {
       auto current_enc = make_current_encoder(channels, bitrate);
       auto official_enc = make_official_encoder(channels, bitrate);
-      const auto current_packets = encode_stream(current_enc.get(), curr_opus_encode, pcm, channels);
-      const auto official_packets = encode_stream(official_enc.get(), opus_encode, pcm, channels);
+      auto current_packets = encode_stream(current_enc.get(), curr_opus_encode, pcm, channels);
+      auto official_packets = encode_stream(official_enc.get(), opus_encode, pcm, channels);
+      cases.push_back({bitrate, std::move(current_packets), std::move(official_packets), {}, {}, {}, {}});
+      cases.back().current_encode_runs.reserve(benchmark_repetitions);
+      cases.back().official_encode_runs.reserve(benchmark_repetitions);
+      cases.back().current_decode_runs.reserve(benchmark_repetitions);
+      cases.back().official_decode_runs.reserve(benchmark_repetitions);
+    }
 
-      std::vector<double> current_encode_runs, official_encode_runs;
-      std::vector<double> current_decode_runs, official_decode_runs;
-      current_encode_runs.reserve(benchmark_repetitions);
-      official_encode_runs.reserve(benchmark_repetitions);
-      current_decode_runs.reserve(benchmark_repetitions);
-      official_decode_runs.reserve(benchmark_repetitions);
-      for (int run = 0; run < benchmark_repetitions; ++run) {
-        if ((run & 1) == 0) {
-          current_enc = make_current_encoder(channels, bitrate);
-          current_encode_runs.push_back(measure_encode(current_enc.get(), curr_opus_encode, pcm, channels));
-          official_enc = make_official_encoder(channels, bitrate);
-          official_encode_runs.push_back(measure_encode(official_enc.get(), opus_encode, pcm, channels));
-          auto current_dec = make_current_decoder(channels);
-          current_decode_runs.push_back(decode_stream(current_dec.get(), curr_opus_decode, official_packets, channels));
-          auto official_dec = make_official_decoder(channels);
-          official_decode_runs.push_back(decode_stream(official_dec.get(), opus_decode, official_packets, channels));
+    // Sweep in different orders so CPU boost and thermal drift do not favour
+    // the same bitrate in every repetition.
+    for (int run = 0; run < benchmark_repetitions; ++run) {
+      for (std::size_t step = 0; step < cases.size(); ++step) {
+        const auto index =
+            run == 0 ? step : run == 1 ? cases.size() - 1 - step : (step + cases.size() / 2) % cases.size();
+        auto& test = cases[index];
+        const auto measure_current = [&] {
+          auto enc = make_current_encoder(channels, test.bitrate);
+          test.current_encode_runs.push_back(measure_encode(enc.get(), curr_opus_encode, pcm, channels));
+          auto dec = make_current_decoder(channels);
+          test.current_decode_runs.push_back(decode_stream(dec.get(), curr_opus_decode, test.official_packets, channels));
+        };
+        const auto measure_official = [&] {
+          auto enc = make_official_encoder(channels, test.bitrate);
+          test.official_encode_runs.push_back(measure_encode(enc.get(), opus_encode, pcm, channels));
+          auto dec = make_official_decoder(channels);
+          test.official_decode_runs.push_back(decode_stream(dec.get(), opus_decode, test.official_packets, channels));
+        };
+        if (((run + step) & 1) == 0) {
+          measure_current();
+          measure_official();
         } else {
-          official_enc = make_official_encoder(channels, bitrate);
-          official_encode_runs.push_back(measure_encode(official_enc.get(), opus_encode, pcm, channels));
-          current_enc = make_current_encoder(channels, bitrate);
-          current_encode_runs.push_back(measure_encode(current_enc.get(), curr_opus_encode, pcm, channels));
-          auto official_dec = make_official_decoder(channels);
-          official_decode_runs.push_back(decode_stream(official_dec.get(), opus_decode, official_packets, channels));
-          auto current_dec = make_current_decoder(channels);
-          current_decode_runs.push_back(decode_stream(current_dec.get(), curr_opus_decode, official_packets, channels));
+          measure_official();
+          measure_current();
         }
       }
-      const auto current_encode_ms = median_ms(std::move(current_encode_runs));
-      const auto official_encode_ms = median_ms(std::move(official_encode_runs));
-      const auto current_decode_ms = median_ms(std::move(current_decode_runs));
-      const auto official_decode_ms = median_ms(std::move(official_decode_runs));
+    }
 
-      const auto frame_count = static_cast<double>(official_packets.packets.size());
-      const auto current_avg_bytes = static_cast<double>(current_packets.bytes) / frame_count;
-      const auto official_avg_bytes = static_cast<double>(official_packets.bytes) / frame_count;
+    std::cout << "bitrate,encode_speedx,current_encode_ms,official_encode_ms,opuscpp_effective_kbps,official_effective_kbps,decode_speedx,"
+                 "current_decode_ms,official_decode_ms\n";
+    for (auto& test : cases) {
+      const auto current_encode_ms = median_ms(std::move(test.current_encode_runs));
+      const auto official_encode_ms = median_ms(std::move(test.official_encode_runs));
+      const auto current_decode_ms = median_ms(std::move(test.current_decode_runs));
+      const auto official_decode_ms = median_ms(std::move(test.official_decode_runs));
       const auto encode_speedx = official_encode_ms / std::max(1e-9, current_encode_ms);
       const auto decode_speedx = official_decode_ms / std::max(1e-9, current_decode_ms);
+
+      const auto frame_count = static_cast<double>(test.official_packets.packets.size());
+      const auto current_avg_bytes = static_cast<double>(test.current_packets.bytes) / frame_count;
+      const auto official_avg_bytes = static_cast<double>(test.official_packets.bytes) / frame_count;
       const auto current_effective_kbps = current_avg_bytes * 0.4;
       const auto official_effective_kbps = official_avg_bytes * 0.4;
 
-      std::cout << bitrate << ',' << std::fixed << std::setprecision(6) << encode_speedx << ',' << current_encode_ms << ','
+      std::cout << test.bitrate << ',' << std::fixed << std::setprecision(6) << encode_speedx << ',' << current_encode_ms << ','
                 << official_encode_ms << ',' << current_effective_kbps << ',' << official_effective_kbps << ',' << decode_speedx << ','
                 << current_decode_ms << ',' << official_decode_ms << '\n';
     }
