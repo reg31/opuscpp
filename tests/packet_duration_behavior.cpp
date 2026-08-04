@@ -44,6 +44,19 @@ int main() {
                   OPUS_INVALID_PACKET, "CELT fast-path shaped packet rejects packets above 120ms");
   ok &= expect_eq(opus_packet_get_nb_samples(nullptr, 0, 48000), OPUS_BAD_ARG, "null/empty packet rejected");
 
+  int encoder_error = OPUS_OK;
+  OpusEncoder* encoder = opus_encoder_create(8000, 1, OPUS_APPLICATION_VOIP, &encoder_error);
+  std::array<opus_int16, 1> encoder_pcm{};
+  std::array<float, 1> encoder_pcm_float{};
+  std::array<unsigned char, 16> encoder_packet{};
+  constexpr int overflowing_frame_size = 1073741864;
+  ok &= expect_eq(encoder_error, OPUS_OK, "create encoder");
+  ok &= expect_eq(opus_encode(encoder, encoder_pcm.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
+                  OPUS_BAD_ARG, "reject overflowing PCM16 frame size");
+  ok &= expect_eq(opus_encode_float(encoder, encoder_pcm_float.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
+                  OPUS_BAD_ARG, "reject overflowing float frame size");
+  opus_encoder_destroy(encoder);
+
   int error = OPUS_OK;
   OpusDecoder* decoder = opus_decoder_create(48000, 2, &error);
   std::array<opus_int16, 5760 * 2> pcm{};

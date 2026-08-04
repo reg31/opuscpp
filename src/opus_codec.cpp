@@ -1676,8 +1676,9 @@ static int ref_opus_decode_float(ref_OpusDecoder* st, const unsigned char* data,
 }
 
 [[nodiscard]] constexpr auto is_supported_opus_frame_size(const opus_int32 Fs, const opus_int32 frame_size) noexcept -> bool {
-  const auto scaled_by_50 = 50 * frame_size;
-  return 400 * frame_size == Fs || 200 * frame_size == Fs || 100 * frame_size == Fs || scaled_by_50 == Fs || 25 * frame_size == Fs ||
+  const auto samples = static_cast<opus_int64>(frame_size);
+  const auto scaled_by_50 = 50 * samples;
+  return 400 * samples == Fs || 200 * samples == Fs || 100 * samples == Fs || scaled_by_50 == Fs || 25 * samples == Fs ||
          scaled_by_50 == 3 * Fs || scaled_by_50 == 4 * Fs || scaled_by_50 == 5 * Fs || scaled_by_50 == 6 * Fs;
 }
 

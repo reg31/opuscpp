@@ -171,6 +171,7 @@ the RFC decode vectors:
 |---|---:|
 | Decoder channel remap | Passed |
 | Packet-duration helper behavior | Passed |
+| Invalid and overflowing encoder frame sizes | Passed |
 | VBR budget behavior | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |
@@ -215,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.447x | 1.691x | 602x | 246x | 1506x | 891x |
-| 24&nbsp;kbps | 1.833x | 1.400x | 399x | 218x | 1080x | 772x |
-| 32&nbsp;kbps | 1.818x | 1.330x | 399x | 220x | 1024x | 771x |
-| 48&nbsp;kbps | 1.735x | 1.290x | 344x | 198x | 863x | 669x |
-| 64&nbsp;kbps | 1.710x | 1.286x | 310x | 181x | 731x | 569x |
-| 96&nbsp;kbps | 1.764x | 1.248x | 258x | 146x | 574x | 460x |
-| 128&nbsp;kbps | 1.986x | 1.265x | 260x | 131x | 495x | 391x |
-| 192&nbsp;kbps | 1.741x | 1.242x | 208x | 119x | 408x | 328x |
-| 256&nbsp;kbps | 1.728x | 1.240x | 189x | 109x | 356x | 287x |
+| 16&nbsp;kbps | 2.499x | 1.855x | 705x | 282x | 1824x | 983x |
+| 24&nbsp;kbps | 1.773x | 1.364x | 436x | 246x | 1214x | 890x |
+| 32&nbsp;kbps | 1.686x | 1.186x | 483x | 287x | 1192x | 1005x |
+| 48&nbsp;kbps | 1.682x | 1.154x | 409x | 243x | 997x | 864x |
+| 64&nbsp;kbps | 2.089x | 1.298x | 381x | 183x | 843x | 650x |
+| 96&nbsp;kbps | 1.803x | 1.146x | 309x | 171x | 622x | 542x |
+| 128&nbsp;kbps | 2.174x | 1.250x | 332x | 153x | 586x | 468x |
+| 192&nbsp;kbps | 1.894x | 1.205x | 265x | 140x | 472x | 391x |
+| 256&nbsp;kbps | 1.562x | 1.266x | 218x | 139x | 447x | 353x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -302,7 +303,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 310,540 B | 0 B | 310,540 B |
+| Host MinGW GCC `-O2` | 310,544 B | 0 B | 310,544 B |
 
 ## Toolchains checked
 

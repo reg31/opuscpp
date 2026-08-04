@@ -37,15 +37,15 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.446791x | 1.690705x |
-| 24 kbps | 1.832966x | 1.399695x |
-| 32 kbps | 1.817764x | 1.329508x |
-| 48 kbps | 1.735135x | 1.289747x |
-| 64 kbps | 1.709523x | 1.285652x |
-| 96 kbps | 1.763826x | 1.248336x |
-| 128 kbps | 1.985733x | 1.264600x |
-| 192 kbps | 1.740842x | 1.242060x |
-| 256 kbps | 1.727609x | 1.240197x |
+| 16 kbps | 2.499317x | 1.854991x |
+| 24 kbps | 1.772861x | 1.364438x |
+| 32 kbps | 1.685920x | 1.185822x |
+| 48 kbps | 1.682317x | 1.153667x |
+| 64 kbps | 2.089395x | 1.297691x |
+| 96 kbps | 1.802595x | 1.146244x |
+| 128 kbps | 2.174160x | 1.250049x |
+| 192 kbps | 1.894092x | 1.205251x |
+| 256 kbps | 1.561775x | 1.266154x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -95,7 +95,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 310540 B | 0 B | 310540 B |
+| Host C++23 `-O2` | 310544 B | 0 B | 310544 B |
 
 ## Toolchains checked
 
