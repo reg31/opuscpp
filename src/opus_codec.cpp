@@ -611,20 +611,17 @@ static int parse_size(const unsigned char* data, opus_int32 len, opus_int16* siz
 }
 
 static int ref_opus_packet_get_samples_per_frame(const unsigned char* data, opus_int32 Fs) {
-  int audiosize;
+  const auto sample_rate = static_cast<opus_int64>(Fs);
   if (data[0] & 0x80) {
-    audiosize = ((data[0] >> 3) & 0x3);
-    audiosize = (Fs << audiosize) / 400;
-  } else if ((data[0] & 0x60) == 0x60) {
-    audiosize = (data[0] & 0x08) ? Fs / 50 : Fs / 100;
-  } else {
-    audiosize = ((data[0] >> 3) & 0x3);
-    if (audiosize == 3) {
-      audiosize = Fs * 60 / 1000;
-    } else
-      audiosize = (Fs << audiosize) / 100;
+    const int frame_shift = (data[0] >> 3) & 0x3;
+    return static_cast<int>(sample_rate * (1 << frame_shift) / 400);
   }
-  return audiosize;
+  if ((data[0] & 0x60) == 0x60) {
+    return (data[0] & 0x08) ? Fs / 50 : Fs / 100;
+  }
+  const int frame_shift = (data[0] >> 3) & 0x3;
+  return frame_shift == 3 ? static_cast<int>(sample_rate * 60 / 1000)
+                          : static_cast<int>(sample_rate * (1 << frame_shift) / 100);
 }
 
 static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len, unsigned char* out_toc, const unsigned char* frames[48],
@@ -1739,16 +1736,15 @@ static constexpr int ref_opus_packet_get_nb_frames(const unsigned char packet[],
 }
 
 static int ref_opus_packet_get_nb_samples(const unsigned char packet[], opus_int32 len, opus_int32 Fs) {
-  int samples;
-  int count = ref_opus_packet_get_nb_frames(packet, len);
+  const int count = ref_opus_packet_get_nb_frames(packet, len);
   if (count < 0) {
     return count;
   }
-  samples = count * ref_opus_packet_get_samples_per_frame(packet, Fs);
-  if (samples * 25 > Fs * 3) {
+  const auto samples = static_cast<opus_int64>(count) * ref_opus_packet_get_samples_per_frame(packet, Fs);
+  if (samples < opus_int32_min || samples > opus_int32_max || samples * 25 > static_cast<opus_int64>(Fs) * 3) {
     return -4;
-  } else
-    return samples;
+  }
+  return static_cast<int>(samples);
 }
 
 static constexpr int ref_opus_decoder_get_nb_samples(const ref_OpusDecoder* dec, const unsigned char packet[], opus_int32 len) {
@@ -5993,19 +5989,17 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
                          opus_val16* gain, int* qgain, int enabled, int complexity, opus_val16 tf_estimate, int nbAvailableBytes,
                          opus_val16 tone_freq, opus_val32 toneishness,
                          const std::array<opus_val32, celt_max_channels>& input_abs_sum) {
-  int c;
-  celt_sig* pre[2]{};
-  const CeltModeInternal* mode;
+  std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
   opus_val16 gain1, pf_threshold;
-  int pf_on, qg, overlap;
+  int pf_on, qg;
   std::array<opus_val32, celt_max_channels> output_abs_sum{};
-  int cancel_pitch = 0;
+  bool cancel_pitch = false;
   constexpr auto max_period = 1024, min_period = 15;
-  mode = st->mode;
-  overlap = mode->overlap;
-  if (complexity < 5 && (!enabled || toneishness <= (.99f)) && st->prefilter_gain == 0) {
-    for (c = 0; c < CC; ++c) {
+  const auto* mode = st->mode;
+  const int overlap = mode->overlap;
+  if (st->prefilter_gain == 0 && (!enabled || (complexity < 5 && toneishness <= (.99f)))) {
+    for (int c = 0; c < CC; ++c) {
       copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
       copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), celt_encoder_storage(st) + c * overlap);
       if (N > max_period) {
@@ -6022,10 +6016,9 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     return 0;
   }
   std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period)> prefilter_storage;
-  auto* _pre = prefilter_storage.data();
-  pre[0] = _pre;
-  pre[1] = _pre + (N + max_period);
-  for (c = 0; c < CC; ++c) {
+  pre[0] = prefilter_storage.data();
+  pre[1] = pre[0] + N + max_period;
+  for (int c = 0; c < CC; ++c) {
     copy_n_items(prefilter_mem + c * max_period, static_cast<std::size_t>(max_period), pre[c]);
     copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), pre[c] + max_period);
   }
@@ -6037,7 +6030,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     for (; (tone_freq) >= multiple * (0.39f); ++multiple) {}
     if ((tone_freq) > (0.006148f)) {
       const int tone_pitch = (int)std::floor(.5 + 2.f * 3.141592653 * multiple / (tone_freq));
-      pitch_index = std::min(tone_pitch, 1024 - 2);
+      pitch_index = std::min(tone_pitch, max_period - 2);
     } else {
       pitch_index = 15;
     }
@@ -6049,7 +6042,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     } else {
       std::array<opus_val16, (celt_max_pitch_period + celt_max_frame_samples) / 2> pitch_storage;
       auto* pitch_buf = pitch_storage.data();
-      pitch_downsample(pre, CC, pitch_buf, (max_period + N) >> 1, 2);
+      pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1, 2);
       pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index);
       pitch_index = max_period - pitch_index;
       gain1 = remove_doubling(pitch_buf, max_period, min_period, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
@@ -6081,30 +6074,31 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   if (st->prefilter_gain > (.55f)) {
     pf_threshold -= (.1f);
   }
-  pf_threshold = ((pf_threshold) > ((.2f)) ? (pf_threshold) : ((.2f)));
+  pf_threshold = std::max(pf_threshold, .2f);
   if (gain1 < pf_threshold) {
     gain1 = 0;
     pf_on = 0;
     qg = 0;
   } else {
-    if (((float)std::fabs(gain1 - st->prefilter_gain)) < (.1f)) {
+    if (std::abs(gain1 - st->prefilter_gain) < .1f) {
       gain1 = st->prefilter_gain;
     }
     qg = (int)std::floor(.5f + gain1 * 32 / 3) - 1;
-    qg = std::max(0, std::min(7, qg));
+    qg = std::clamp(qg, 0, 7);
     gain1 = (0.09375f) * (qg + 1);
     pf_on = 1;
   }
-  for (c = 0; c < CC; ++c) {
-    int i, offset = mode->shortMdctSize - overlap;
+  for (int c = 0; c < CC; ++c) {
+    const int offset = mode->shortMdctSize - overlap;
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
     copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-    if (offset)
+    if (offset) {
       comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, st->prefilter_period, offset,
                   -st->prefilter_gain, -st->prefilter_gain, st->prefilter_tapset, st->prefilter_tapset, nullptr, 0);
+    }
     comb_filter(in + c * (N + overlap) + overlap + offset, pre[c] + max_period + offset, st->prefilter_period, pitch_index, N - offset,
                 -st->prefilter_gain, -gain1, st->prefilter_tapset, prefilter_tapset, mode->window, overlap);
-    for (i = 0; i < N; i++) {
+    for (int i = 0; i < N; ++i) {
       output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
     }
   }
@@ -6113,28 +6107,26 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     thresh[0] = .25f * gain1 * input_abs_sum[0] + .01f * input_abs_sum[1];
     thresh[1] = .25f * gain1 * input_abs_sum[1] + .01f * input_abs_sum[0];
     if (output_abs_sum[0] - input_abs_sum[0] > thresh[0] || output_abs_sum[1] - input_abs_sum[1] > thresh[1]) {
-      cancel_pitch = 1;
+      cancel_pitch = true;
     }
     if (input_abs_sum[0] - output_abs_sum[0] < thresh[0] && input_abs_sum[1] - output_abs_sum[1] < thresh[1]) {
-      cancel_pitch = 1;
+      cancel_pitch = true;
     }
-  } else {
-    if (output_abs_sum[0] > input_abs_sum[0]) {
-      cancel_pitch = 1;
-    }
+  } else if (output_abs_sum[0] > input_abs_sum[0]) {
+    cancel_pitch = true;
   }
   if (cancel_pitch) {
-    for (c = 0; c < CC; ++c) {
-      int offset = mode->shortMdctSize - overlap;
+    for (int c = 0; c < CC; ++c) {
+      const int offset = mode->shortMdctSize - overlap;
       copy_n_items(pre[c] + max_period, static_cast<std::size_t>(N), in + c * (N + overlap) + overlap);
       comb_filter(in + c * (N + overlap) + overlap + offset, pre[c] + max_period + offset, st->prefilter_period, pitch_index, overlap,
-                  -st->prefilter_gain, -0, st->prefilter_tapset, prefilter_tapset, mode->window, overlap);
+                  -st->prefilter_gain, 0, st->prefilter_tapset, prefilter_tapset, mode->window, overlap);
     }
     gain1 = 0;
     pf_on = 0;
     qg = 0;
   }
-  for (c = 0; c < CC; ++c) {
+  for (int c = 0; c < CC; ++c) {
     copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), celt_encoder_storage(st) + c * overlap);
     if (N > max_period) {
       copy_n_items(pre[c] + N, static_cast<std::size_t>(max_period), prefilter_mem + c * max_period);
@@ -6211,6 +6203,23 @@ struct celt_input_metrics {
   std::array<opus_val32, celt_max_channels> abs_sum{};
   int silence{};
 };
+
+[[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels) noexcept -> bool {
+  for (int channel = 0; channel < channels; ++channel) {
+    const auto* input = in + channel * length;
+    opus_val32 total = 0;
+    opus_val32 maximum = 0;
+    for (int i = 4; i < length; i += 4) {
+      const opus_val32 difference = std::abs(input[i] - input[i - 4]);
+      total += difference;
+      maximum = std::max(maximum, difference);
+    }
+    if (maximum * (length / 4) > 8.f * total) {
+      return true;
+    }
+  }
+  return false;
+}
 
 [[nodiscard]] static inline auto celt_measure_input_peak(CeltEncoderInternal* st, const opus_res* pcm,
                                                          const celt_encode_layout& layout) noexcept -> celt_input_metrics {
@@ -6521,7 +6530,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   const auto tone = silence ? celt_tone_analysis{} : celt_analyse_tone(in, layout, tf_estimate);
   tone_freq = tone.frequency;
   toneishness = tone.toneishness;
-  isTransient = 0;
+  isTransient = !silence && hybrid && st->complexity >= 1 && celt_transient_hint(in, N + overlap, CC);
   const auto prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, layout, nbAvailableBytes, total_bits, tell, silence, tf_estimate,
                                                tone_freq, toneishness, input_metrics.abs_sum);
   pitch_index = prefilter.pitch_index;

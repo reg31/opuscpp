@@ -171,7 +171,7 @@ the RFC decode vectors:
 |---|---:|
 | Decoder channel remap | Passed |
 | Packet-duration helper behavior | Passed |
-| Invalid and overflowing encoder frame sizes | Passed |
+| Overflow-safe encoder frame and packet-duration validation | Passed |
 | VBR budget behavior | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |
@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.499x | 1.855x | 705x | 282x | 1824x | 983x |
-| 24&nbsp;kbps | 1.773x | 1.364x | 436x | 246x | 1214x | 890x |
-| 32&nbsp;kbps | 1.686x | 1.186x | 483x | 287x | 1192x | 1005x |
-| 48&nbsp;kbps | 1.682x | 1.154x | 409x | 243x | 997x | 864x |
-| 64&nbsp;kbps | 2.089x | 1.298x | 381x | 183x | 843x | 650x |
-| 96&nbsp;kbps | 1.803x | 1.146x | 309x | 171x | 622x | 542x |
-| 128&nbsp;kbps | 2.174x | 1.250x | 332x | 153x | 586x | 468x |
-| 192&nbsp;kbps | 1.894x | 1.205x | 265x | 140x | 472x | 391x |
-| 256&nbsp;kbps | 1.562x | 1.266x | 218x | 139x | 447x | 353x |
+| 16&nbsp;kbps | 2.410x | 1.783x | 852x | 354x | 2309x | 1295x |
+| 24&nbsp;kbps | 1.803x | 1.367x | 584x | 324x | 1549x | 1133x |
+| 32&nbsp;kbps | 1.781x | 1.344x | 580x | 326x | 1495x | 1112x |
+| 48&nbsp;kbps | 1.678x | 1.257x | 502x | 299x | 1226x | 976x |
+| 64&nbsp;kbps | 1.720x | 1.253x | 452x | 263x | 1052x | 840x |
+| 96&nbsp;kbps | 1.792x | 1.223x | 380x | 212x | 818x | 669x |
+| 128&nbsp;kbps | 1.972x | 1.216x | 378x | 191x | 702x | 578x |
+| 192&nbsp;kbps | 1.781x | 1.209x | 312x | 175x | 595x | 492x |
+| 256&nbsp;kbps | 1.680x | 1.135x | 283x | 169x | 512x | 451x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -303,7 +303,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 310,544 B | 0 B | 310,544 B |
+| Host MinGW GCC `-O2` | 313,316 B | 0 B | 313,316 B |
 
 ## Toolchains checked
 

@@ -26,6 +26,9 @@ int main() {
   constexpr std::array<unsigned char, 2> code3_120ms{0x83, 48};
   constexpr std::array<unsigned char, 2> code3_too_long{0x7B, 7};
   constexpr std::array<unsigned char, 2> celt_code3_too_long{0x83, 63};
+  constexpr std::array<unsigned char, 1> celt_20ms{0x98};
+  constexpr std::array<unsigned char, 1> silk_60ms{0x18};
+  constexpr int large_sample_rate = 2147483200;
 
   ok &= expect_eq(opus_packet_get_nb_samples(code0_20ms.data(), static_cast<int>(code0_20ms.size()), 48000), 960, "code0 one 20ms frame");
   ok &= expect_eq(opus_packet_get_nb_samples(code1_20ms.data(), static_cast<int>(code1_20ms.size()), 48000), 1920,
@@ -42,6 +45,12 @@ int main() {
                   "code3 rejects packets above 120ms");
   ok &= expect_eq(opus_packet_get_nb_samples(celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), 48000),
                   OPUS_INVALID_PACKET, "CELT fast-path shaped packet rejects packets above 120ms");
+  ok &= expect_eq(opus_packet_get_nb_samples(celt_20ms.data(), static_cast<int>(celt_20ms.size()), large_sample_rate), 42949664,
+                  "large sample rate accepts 20ms CELT packet without overflow");
+  ok &= expect_eq(opus_packet_get_nb_samples(silk_60ms.data(), static_cast<int>(silk_60ms.size()), large_sample_rate), 128848992,
+                  "large sample rate accepts 60ms SILK packet without overflow");
+  ok &= expect_eq(opus_packet_get_nb_samples(code3_120ms.data(), static_cast<int>(code3_120ms.size()), large_sample_rate), 257697984,
+                  "large sample rate accepts 120ms packet without overflow");
   ok &= expect_eq(opus_packet_get_nb_samples(nullptr, 0, 48000), OPUS_BAD_ARG, "null/empty packet rejected");
 
   int encoder_error = OPUS_OK;

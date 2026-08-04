@@ -24,7 +24,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 - `packet_duration_behavior=PASS`
 - `vbr_budget_behavior=PASS`
 - `dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86`
-- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725845 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.506043 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725845 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.506044 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
 
 ## Perceptual and memory harness
 
@@ -37,15 +37,15 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.499317x | 1.854991x |
-| 24 kbps | 1.772861x | 1.364438x |
-| 32 kbps | 1.685920x | 1.185822x |
-| 48 kbps | 1.682317x | 1.153667x |
-| 64 kbps | 2.089395x | 1.297691x |
-| 96 kbps | 1.802595x | 1.146244x |
-| 128 kbps | 2.174160x | 1.250049x |
-| 192 kbps | 1.894092x | 1.205251x |
-| 256 kbps | 1.561775x | 1.266154x |
+| 16 kbps | 2.409851x | 1.782724x |
+| 24 kbps | 1.803044x | 1.367045x |
+| 32 kbps | 1.781222x | 1.344478x |
+| 48 kbps | 1.677724x | 1.256754x |
+| 64 kbps | 1.720194x | 1.252927x |
+| 96 kbps | 1.791757x | 1.222731x |
+| 128 kbps | 1.971832x | 1.215630x |
+| 192 kbps | 1.780690x | 1.209122x |
+| 256 kbps | 1.679563x | 1.134712x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -95,7 +95,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 310544 B | 0 B | 310544 B |
+| Host C++23 `-O2` | 313316 B | 0 B | 313316 B |
 
 ## Toolchains checked
 
