@@ -68,7 +68,6 @@ constexpr int silk_nlsf_max_survivors = 16;
 constexpr int silk_nlsf_max_order = 16;
 constexpr int silk_vad_max_work_samples = 400;
 
-
 [[nodiscard]] constexpr auto is_supported_sample_rate(const opus_int32 Fs) noexcept -> bool {
   return Fs == 48000 || Fs == 24000 || Fs == 16000 || Fs == 12000 || Fs == 8000;
 }
@@ -136,7 +135,10 @@ template <int FractionBits, std::floating_point T>
   return static_cast<opus_int32>(value * static_cast<T>(opus_int64{1} << FractionBits) + static_cast<T>(0.5));
 }
 
-[[nodiscard]] constexpr auto bandwidth_to_endband(int bandwidth) noexcept -> int;
+[[nodiscard]] constexpr auto bandwidth_to_endband(const int bandwidth) noexcept -> int {
+  constexpr std::array end_bands{13, 17, 17, 19, 21};
+  return bandwidth >= 1101 && bandwidth <= 1105 ? end_bands[static_cast<std::size_t>(bandwidth - 1101)] : 21;
+}
 template <int Shift, std::signed_integral Integer>
   requires(Shift > 0)
 [[nodiscard]] static auto rounded_rshift(Integer value) noexcept -> Integer {
@@ -1396,11 +1398,6 @@ int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float
 
 [[nodiscard]] constexpr auto encoder_uses_silk(int application) noexcept -> bool {
   return application != OPUS_APPLICATION_RESTRICTED_LOWDELAY;
-}
-
-[[nodiscard]] constexpr auto bandwidth_to_endband(const int bandwidth) noexcept -> int {
-  constexpr std::array end_bands{13, 17, 17, 19, 21};
-  return bandwidth >= 1101 && bandwidth <= 1105 ? end_bands[static_cast<std::size_t>(bandwidth - 1101)] : 21;
 }
 
 static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data) {
@@ -3693,7 +3690,7 @@ struct band_ctx {
 struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
 };
-static void compute_theta(struct band_ctx* ctx, struct split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM,
+static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM,
                           int stereo, int* fill) {
   int qn, itheta = 0, itheta_q30 = 0;
   int delta, imid, iside;
@@ -3822,7 +3819,7 @@ static void compute_theta(struct band_ctx* ctx, struct split_ctx* sctx, celt_nor
   *sctx = {inv, imid, iside, delta, itheta, qalloc};
 }
 
-static unsigned quant_band_n1(struct band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_norm* lowband_out) {
+static unsigned quant_band_n1(band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_norm* lowband_out) {
   int c;
   celt_norm* x = X;
   const int encode = ctx->encode;
@@ -3850,7 +3847,7 @@ static unsigned quant_band_n1(struct band_ctx* ctx, celt_norm* X, celt_norm* Y, 
   return 1;
 }
 
-static unsigned quant_partition(struct band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain,
+static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain,
                                 int fill) {
   const unsigned char* cache;
   int q, curr_bits;
@@ -3952,7 +3949,7 @@ static unsigned quant_partition(struct band_ctx* ctx, celt_norm* X, int N, int b
   return cm;
 }
 
-static unsigned quant_band(struct band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out,
+static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out,
                            opus_val32 gain, celt_norm* lowband_scratch, int fill) {
   int N0 = N, N_B = N, N_B0, B0 = B, time_divide = 0, recombine = 0, longBlocks;
   unsigned cm = 0;
@@ -4034,7 +4031,7 @@ static unsigned quant_band(struct band_ctx* ctx, celt_norm* X, int N, int b, int
   return cm;
 }
 
-static unsigned quant_band_stereo(struct band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM,
+static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM,
                                   celt_norm* lowband_out, celt_norm* lowband_scratch, int fill) {
   unsigned cm = 0;
   int mbits, sbits;
@@ -4159,7 +4156,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   norm = norm_storage.data();
   norm2 = norm + norm_size;
   lowband_scratch = X_ + M * eBands[celt_default_nb_ebands - 1];
-  std::array<opus_int16, OPUS_FRAME_SIZE_20MS> decode_pulse_scratch_storage;
+  std::array<opus_int16, celt_max_band_samples> decode_pulse_scratch_storage;
   auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage.data() : nullptr;
   lowband_offset = 0;
   ctx.bandE = bandE;
@@ -8003,7 +8000,6 @@ struct celt_pvq_quant_result {
 };
 
 static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant_result {
-  const auto sample_count = static_cast<std::size_t>(N);
   std::array<int, celt_max_band_samples> iy;
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
@@ -8034,7 +8030,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
       pulsesLeft -= pulse_int;
     }
   } else {
-    zero_n_items(y.data(), sample_count);
+    zero_n_items(y.data(), static_cast<std::size_t>(N));
   }
   if (pulsesLeft > N + 3) {
     const auto tmp = static_cast<opus_val16>(pulsesLeft);

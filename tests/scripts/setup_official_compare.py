@@ -42,9 +42,12 @@ def capture(cmd: list[str], cwd: pathlib.Path | None = None) -> str:
     return result.stdout
 
 
-def load_csv_rows(path: pathlib.Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8", newline="") as handle:
-        return list(csv.DictReader(handle))
+def write_csv_rows(path: pathlib.Path, rows: list[dict[str, str]], fieldnames: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def resolve_tool_path(tool: str) -> pathlib.Path | None:
@@ -96,7 +99,6 @@ def normalize_signed_zero(value: str) -> str:
 
 
 def emit_metrics_report(
-    repo_root: pathlib.Path,
     output_dir: pathlib.Path,
     rfc: dict[str, str],
     encode: dict[str, str],
@@ -105,14 +107,12 @@ def emit_metrics_report(
     voip_perceptual_rows: list[dict[str, str]],
     benchmark_rows: list[dict[str, str]],
     detector_rows: list[str],
+    memory_rows: list[dict[str, str]],
     binary_size: dict[str, str],
     toolchains: list[str],
 ) -> pathlib.Path:
-    metrics_dir = repo_root / "tests" / "metrics"
     report_dir = output_dir
     report_dir.mkdir(parents=True, exist_ok=True)
-
-    memory_rows = load_csv_rows(metrics_dir / "memory_vs_official.csv")
     sections = {
         "speed_vs_official": benchmark_rows,
         "quality_vs_official_audio": perceptual_rows,
@@ -581,7 +581,76 @@ def run_perceptual_and_memory(
 
     rows = measure_rows("audio", "synthetic_music_like_stereo.wav", True)
     voip_rows = measure_rows("voip", "synthetic_voice_like_mono.wav", False)
-    return {"rows": rows, "voip_rows": voip_rows, "memory_output": memory_output}
+    memory_pattern = re.compile(
+        r"^memory label=([^\s]+).*?private_per_instance=([^\s]+).*?"
+        r"working_set_per_instance=([^\s]+)(?:.*?official_api_state_bytes=([^\s]+))?$",
+        re.MULTILINE,
+    )
+    memory_rows = [
+        {
+            "label": match.group(1),
+            "private_per_instance": match.group(2),
+            "working_set_per_instance": match.group(3),
+            "official_api_state_bytes": match.group(4) or "",
+        }
+        for match in memory_pattern.finditer(memory_output)
+    ]
+    if len(memory_rows) != 8:
+        raise RuntimeError("Could not parse memory footprint output")
+    return {"rows": rows, "voip_rows": voip_rows, "memory_rows": memory_rows}
+
+
+def publish_metrics_csvs(
+    repo_root: pathlib.Path,
+    perceptual_rows: list[dict[str, str]],
+    voip_rows: list[dict[str, str]],
+    memory_rows: list[dict[str, str]],
+    benchmark_rows: list[dict[str, str]],
+) -> None:
+    metrics_dir = repo_root / "tests" / "metrics"
+    quality_fields = list(perceptual_rows[0])
+    write_csv_rows(metrics_dir / "quality_vs_official.csv", perceptual_rows, quality_fields)
+    write_csv_rows(metrics_dir / "quality_vs_official_voip.csv", voip_rows, quality_fields)
+    write_csv_rows(
+        metrics_dir / "memory_vs_official.csv",
+        memory_rows,
+        ["label", "private_per_instance", "working_set_per_instance", "official_api_state_bytes"],
+    )
+    encode_rows = [
+        {
+            "bitrate": row["bitrate"],
+            "opuscpp_encode_ms": row["current_encode_ms"],
+            "official_encode_ms": row["official_encode_ms"],
+            "speed_ratio": row["encode_speedx"],
+            "opuscpp_effective_kbps": row["opuscpp_effective_kbps"],
+            "official_effective_kbps": row["official_effective_kbps"],
+        }
+        for row in benchmark_rows
+    ]
+    decode_rows = [
+        {
+            "bitrate": row["bitrate"],
+            "opuscpp_decode_ms": row["current_decode_ms"],
+            "official_decode_ms": row["official_decode_ms"],
+            "speed_ratio": row["decode_speedx"],
+        }
+        for row in benchmark_rows
+    ]
+    write_csv_rows(metrics_dir / "encode_speed_vs_official.csv", encode_rows, list(encode_rows[0]))
+    write_csv_rows(metrics_dir / "decode_speed_vs_official.csv", decode_rows, list(decode_rows[0]))
+    realtime_rows = [
+        {
+            "bitrate": row["bitrate"],
+            "encode_speed_ratio": row["encode_speedx"],
+            "decode_speed_ratio": row["decode_speedx"],
+            "opuscpp_encode_realtime": f"{60000.0 / float(row['current_encode_ms']):.3f}",
+            "official_encode_realtime": f"{60000.0 / float(row['official_encode_ms']):.3f}",
+            "opuscpp_decode_realtime": f"{60000.0 / float(row['current_decode_ms']):.3f}",
+            "official_decode_realtime": f"{60000.0 / float(row['official_decode_ms']):.3f}",
+        }
+        for row in benchmark_rows
+    ]
+    write_csv_rows(metrics_dir / "speed_vs_official_intrinsics_60s.csv", realtime_rows, list(realtime_rows[0]))
 
 
 def run_benchmark_vs_official(
@@ -858,11 +927,11 @@ def main() -> int:
     api_behavior = run_api_behavior_validation(args.cxx, repo_root, official_lib, report_dir)
     perceptual = run_perceptual_and_memory(args.cxx, repo_root, official_lib, report_dir)
     benchmark_rows = run_benchmark_vs_official(args.cxx, repo_root, official_lib, report_dir)
+    publish_metrics_csvs(repo_root, perceptual["rows"], perceptual["voip_rows"], perceptual["memory_rows"], benchmark_rows)
     detector_rows = run_detector_mode_balance(args.cxx, repo_root, report_dir)
     binary_size = run_binary_size(args.cxx, repo_root, report_dir)
     toolchains = run_toolchain_checks(repo_root, args.cxx, report_dir)
     metrics_report = emit_metrics_report(
-        repo_root,
         report_dir,
         rfc,
         encode,
@@ -871,6 +940,7 @@ def main() -> int:
         perceptual["voip_rows"],
         benchmark_rows,
         detector_rows,
+        perceptual["memory_rows"],
         binary_size,
         toolchains,
     )

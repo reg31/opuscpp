@@ -216,19 +216,19 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.463x | 1.794x | 844x | 343x | 2220x | 1237x |
-| 24&nbsp;kbps | 1.902x | 1.287x | 587x | 309x | 1399x | 1087x |
-| 32&nbsp;kbps | 1.790x | 1.281x | 563x | 314x | 1395x | 1089x |
-| 48&nbsp;kbps | 1.680x | 1.192x | 481x | 286x | 1114x | 934x |
-| 64&nbsp;kbps | 1.694x | 1.205x | 430x | 254x | 981x | 814x |
-| 96&nbsp;kbps | 1.844x | 1.155x | 377x | 204x | 736x | 637x |
-| 128&nbsp;kbps | 2.063x | 1.125x | 386x | 187x | 632x | 562x |
-| 192&nbsp;kbps | 1.856x | 1.149x | 313x | 169x | 548x | 477x |
-| 256&nbsp;kbps | 1.773x | 1.132x | 285x | 161x | 489x | 432x |
+| 16&nbsp;kbps | 2.429x | 1.530x | 594x | 245x | 1324x | 865x |
+| 24&nbsp;kbps | 1.864x | 1.333x | 416x | 223x | 1024x | 768x |
+| 32&nbsp;kbps | 1.811x | 1.300x | 405x | 223x | 998x | 768x |
+| 48&nbsp;kbps | 1.709x | 1.253x | 353x | 207x | 837x | 668x |
+| 64&nbsp;kbps | 1.683x | 1.221x | 306x | 182x | 696x | 570x |
+| 96&nbsp;kbps | 1.838x | 1.144x | 269x | 146x | 518x | 453x |
+| 128&nbsp;kbps | 2.070x | 1.131x | 276x | 133x | 448x | 396x |
+| 192&nbsp;kbps | 1.846x | 1.145x | 222x | 120x | 389x | 340x |
+| 256&nbsp;kbps | 1.763x | 1.137x | 203x | 115x | 348x | 306x |
 
 
-The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
-refresh runs may also write temporary Markdown reports under `build/` or the working directory.
+The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
+generated Markdown report under `build/` or the requested working-directory path.
 
 Source CSV:
 
@@ -290,10 +290,10 @@ headline metrics remain unfiltered.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,256 B | 31,856 B | -49.0% |
-| Encoder stereo | 32,320 B | 49,072 B | -34.1% |
-| Decoder mono | 14,128 B | 18,384 B | -23.2% |
-| Decoder stereo | 21,360 B | 27,312 B | -21.8% |
+| Encoder mono | 16,944 B | 31,840 B | -46.8% |
+| Encoder stereo | 32,192 B | 48,912 B | -34.2% |
+| Decoder mono | 14,032 B | 18,304 B | -23.3% |
+| Decoder stereo | 21,360 B | 27,344 B | -21.9% |
 
 Source CSV:
 
