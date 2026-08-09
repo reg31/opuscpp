@@ -20,11 +20,11 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 ## API behavior validation
 
-- `decoder_channel_remap=PASS stereo_bytes=248 mono_bytes=83 mono_nonzero=938 stereo_nonzero=610`
+- `decoder_channel_remap=PASS stereo_bytes=232 mono_bytes=83 mono_nonzero=925 stereo_nonzero=610`
 - `packet_duration_behavior=PASS`
 - `vbr_budget_behavior=PASS`
 - `dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86`
-- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.725845 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=1.506044 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.669213 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.575574 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
 
 ## Perceptual and memory harness
 
@@ -37,26 +37,26 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.409851x | 1.782724x |
-| 24 kbps | 1.803044x | 1.367045x |
-| 32 kbps | 1.781222x | 1.344478x |
-| 48 kbps | 1.677724x | 1.256754x |
-| 64 kbps | 1.720194x | 1.252927x |
-| 96 kbps | 1.791757x | 1.222731x |
-| 128 kbps | 1.971832x | 1.215630x |
-| 192 kbps | 1.780690x | 1.209122x |
-| 256 kbps | 1.679563x | 1.134712x |
+| 16 kbps | 2.463419x | 1.794306x |
+| 24 kbps | 1.902072x | 1.287072x |
+| 32 kbps | 1.790138x | 1.281034x |
+| 48 kbps | 1.679783x | 1.192397x |
+| 64 kbps | 1.693990x | 1.205285x |
+| 96 kbps | 1.843706x | 1.155101x |
+| 128 kbps | 2.062962x | 1.125254x |
+| 192 kbps | 1.855849x | 1.148786x |
+| 256 kbps | 1.772913x | 1.131914x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.0734 | -0.0022 | -0.0015 | 0.0059 | 0.0024 | 0.0004 | 0.4116 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | 0.0036 | -0.0001 | 0.0001 | 0.0017 | 0.0267 | 0.0043 | 1.0525 | 24.000 kbps | 25.220 kbps |
-| 32 kbps | 0.2403 | -0.0086 | -0.0064 | 0.0207 | 0.0391 | 0.0053 | 0.6736 | 32.000 kbps | 33.613 kbps |
-| 48 kbps | -0.0001 | 0.0000 | -0.0001 | 0.0006 | 0.0142 | 0.0026 | 0.0032 | 48.000 kbps | 48.560 kbps |
-| 64 kbps | 0.0088 | -0.0003 | -0.0003 | 0.0010 | 0.0051 | 0.0008 | 0.0032 | 64.000 kbps | 64.613 kbps |
-| 96 kbps | 0.0004 | 0.0000 | -0.0001 | 0.0002 | 0.0035 | 0.0009 | 0.0013 | 96.000 kbps | 96.697 kbps |
+| 24 kbps | 0.1579 | -0.0054 | -0.0041 | 0.0148 | 0.0332 | 0.0062 | 1.0422 | 24.000 kbps | 25.220 kbps |
+| 32 kbps | 0.2482 | -0.0088 | -0.0065 | 0.0211 | 0.0404 | 0.0060 | 0.6725 | 32.000 kbps | 33.613 kbps |
+| 48 kbps | 0.0390 | -0.0014 | -0.0010 | 0.0037 | 0.0128 | 0.0024 | -0.0081 | 48.000 kbps | 48.560 kbps |
+| 64 kbps | 0.0881 | -0.0032 | -0.0025 | 0.0072 | 0.0006 | 0.0002 | -0.0621 | 64.000 kbps | 64.613 kbps |
+| 96 kbps | 0.0307 | -0.0011 | -0.0009 | 0.0030 | 0.0022 | 0.0003 | -0.0959 | 96.000 kbps | 96.697 kbps |
 | 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | 0.0026 | 128.000 kbps | 128.759 kbps |
 | 192 kbps | 0.0059 | -0.0002 | 0.0000 | 0.0007 | 0.0005 | 0.0000 | 0.0029 | 192.000 kbps | 192.900 kbps |
 | 256 kbps | 0.0089 | -0.0003 | -0.0001 | 0.0008 | 0.0001 | 0.0000 | 0.0045 | 256.000 kbps | 256.736 kbps |
@@ -66,10 +66,10 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.0877 | -0.0028 | -0.0018 | 0.0083 | 0.0010 | 0.0020 | 0.0609 | 15.999 kbps | 16.255 kbps |
-| 24 kbps | 0.0289 | -0.0009 | -0.0006 | 0.0021 | 0.0025 | 0.0012 | 0.0964 | 24.000 kbps | 24.148 kbps |
-| 32 kbps | 0.0191 | -0.0006 | -0.0004 | 0.0013 | 0.0000 | 0.0001 | 0.0488 | 32.000 kbps | 32.184 kbps |
-| 48 kbps | 0.0555 | -0.0017 | -0.0011 | 0.0042 | 0.0017 | 0.0008 | 0.0293 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 0.0879 | -0.0028 | -0.0019 | 0.0075 | 0.0008 | 0.0004 | 0.0228 | 63.969 kbps | 64.501 kbps |
+| 24 kbps | -0.0373 | 0.0012 | 0.0013 | -0.0055 | 0.0038 | 0.0038 | -0.0174 | 24.000 kbps | 24.148 kbps |
+| 32 kbps | -0.0354 | 0.0011 | 0.0010 | -0.0047 | -0.0006 | 0.0015 | -0.0913 | 32.000 kbps | 32.184 kbps |
+| 48 kbps | -0.0154 | 0.0005 | 0.0007 | -0.0038 | -0.0006 | 0.0020 | -0.0759 | 48.000 kbps | 48.244 kbps |
+| 64 kbps | 0.0261 | -0.0008 | -0.0004 | 0.0015 | 0.0028 | 0.0020 | -0.0825 | 63.929 kbps | 64.501 kbps |
 | 96 kbps | 0.0291 | -0.0009 | -0.0006 | 0.0019 | 0.0002 | 0.0002 | 0.0127 | 96.000 kbps | 96.595 kbps |
 | 128 kbps | 0.0273 | -0.0009 | -0.0006 | 0.0022 | 0.0009 | 0.0005 | 0.0132 | 128.000 kbps | 128.503 kbps |
 | 192 kbps | 0.0109 | -0.0003 | -0.0002 | 0.0009 | 0.0001 | 0.0000 | 0.0114 | 192.000 kbps | 192.421 kbps |
@@ -79,7 +79,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Material class | SILK | Hybrid | CELT |
 |---|---:|---:|---:|
-| speech like | 0.0% | 8.7% | 91.3% |
+| speech like | 0.0% | 4.3% | 95.7% |
 | harmonic music | 0.0% | 0.0% | 100.0% |
 
 ## Memory metrics
@@ -95,7 +95,7 @@ The speed harness changes bitrate sweep order between repetitions and alternates
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 313316 B | 0 B | 313316 B |
+| Host C++23 `-O2` | 279908 B | 0 B | 279908 B |
 
 ## Toolchains checked
 

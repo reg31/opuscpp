@@ -65,20 +65,24 @@ void check_cwrs_roundtrip() {
   std::array<opus_int16, 176> decoded{};
   for (int n = 2; n <= 48; ++n) {
     for (int k = 0; k <= 32; ++k) {
-      const auto total = celt_pvq_u_total(n, k);
+      const auto row = static_cast<unsigned>(std::min(n, k));
+      const auto column = static_cast<unsigned>(std::max(n, k));
+      if (row >= celt_pvq_fast_row_count || column > celt_pvq_fast_row_max_columns[row]) {
+        continue;
+      }
+      const auto total = celt_pvq_u_entry(n, k) + celt_pvq_u_entry(n, k + 1);
       const std::array<opus_uint32, 7> samples{
           0U, total / 7U, total / 3U, total / 2U, (total * 5U) / 7U, total > 1U ? total - 2U : 0U, total - 1U};
       for (const auto index : samples) {
-        fill_n_items(decoded.data(), decoded.size(), opus_int16{});
-        auto writer = celt_pvq_dense_writer{decoded.data()};
-        if (celt_pvq_decode_work_for(n, k).fast) {
-          celt_pvq_unrank_impl<true>(n, k, index, writer);
-        } else {
-          celt_pvq_unrank_impl<false>(n, k, index, writer);
-        }
+        zero_n_items(decoded.data(), decoded.size());
+        auto writer = [&](int position, opus_int16 value) noexcept {
+          decoded[static_cast<std::size_t>(position)] = value;
+        };
+        celt_pvq_unrank_impl(n, k, index, writer);
         const auto roundtrip = rank_cwrs(std::span{decoded}.first(static_cast<std::size_t>(n)));
         if (roundtrip != index) {
-          throw std::runtime_error("CWRS roundtrip failed");
+          throw std::runtime_error("CWRS roundtrip failed: n=" + std::to_string(n) + " k=" + std::to_string(k) +
+                                   " index=" + std::to_string(index) + " roundtrip=" + std::to_string(roundtrip));
         }
       }
     }
@@ -87,7 +91,7 @@ void check_cwrs_roundtrip() {
 
 void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, std::vector<celt_norm>& source,
                   std::vector<celt_ener>& band_energy, std::vector<int>& pulses, std::vector<int>& tf_res) {
-  const int N = (1 << LM) * mode->shortMdctSize;
+  const int N = (1 << LM) * celt_default_overlap;
   source.assign(static_cast<std::size_t>(test.channels * N), 0.0f);
   for (int c = 0; c < test.channels; ++c) {
     for (int i = 0; i < N; ++i) {
@@ -96,54 +100,55 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
     }
   }
 
-  band_energy.assign(static_cast<std::size_t>(test.channels * mode->nbEBands), 1.0f);
+  band_energy.assign(static_cast<std::size_t>(test.channels * celt_default_nb_ebands), 1.0f);
   for (int c = 0; c < test.channels; ++c) {
-    for (int b = 0; b < mode->nbEBands; ++b) {
-      band_energy[static_cast<std::size_t>(c * mode->nbEBands + b)] = 1.0f + 0.05f * static_cast<float>((b + c) % 7);
+    for (int b = 0; b < celt_default_nb_ebands; ++b) {
+      band_energy[static_cast<std::size_t>(c * celt_default_nb_ebands + b)] = 1.0f + 0.05f * static_cast<float>((b + c) % 7);
     }
   }
 
-  pulses.assign(static_cast<std::size_t>(mode->nbEBands), 0);
-  for (int b = 0; b < mode->nbEBands; ++b) {
+  pulses.assign(static_cast<std::size_t>(celt_default_nb_ebands), 0);
+  for (int b = 0; b < celt_default_nb_ebands; ++b) {
     const int width = (mode->eBands[b + 1] - mode->eBands[b]) << LM;
     pulses[static_cast<std::size_t>(b)] = std::min(760, 24 + width * test.channels * test.bits_per_bin_q3);
   }
-  tf_res.assign(static_cast<std::size_t>(mode->nbEBands), 0);
+  tf_res.assign(static_cast<std::size_t>(celt_default_nb_ebands), 0);
 }
 
-[[nodiscard]] auto quant_encode_once(const CeltModeInternal* mode, const QuantCase& test, int LM, const std::vector<celt_norm>& source,
+[[nodiscard]] auto quant_encode_once(const QuantCase& test, int LM, const std::vector<celt_norm>& source,
                                      const std::vector<celt_ener>& band_energy, std::vector<int>& pulses, std::vector<int>& tf_res,
                                      unsigned char* packet, int packet_bytes, opus_uint32 seed) -> int {
-  const int N = (1 << LM) * mode->shortMdctSize;
+  const int N = (1 << LM) * celt_default_overlap;
   auto work = source;
   std::array<unsigned char, 2 * 64> collapse_masks{};
   ec_enc enc{};
   ec_enc_init(&enc, packet, static_cast<opus_uint32>(packet_bytes));
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
-  quant_all_bands(1, mode, 0, mode->effEBands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
-                  band_energy.data(), pulses.data(), 0, 2, 0, mode->effEBands, tf_res.data(), total_bits, 0, &enc, LM, mode->effEBands,
+  quant_all_bands(1, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
+                  band_energy.data(), pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &enc, LM,
+                  celt_default_nb_ebands,
                   &seed, 0);
   ec_enc_done(&enc);
   return (ec_tell(&enc) + 7) >> 3;
 }
 
-[[nodiscard]] auto quant_decode_once(const CeltModeInternal* mode, const QuantCase& test, int LM, const unsigned char* packet,
+[[nodiscard]] auto quant_decode_once(const QuantCase& test, int LM, const unsigned char* packet,
                                      int packet_bytes, std::vector<int>& pulses, std::vector<int>& tf_res, opus_uint32 seed,
                                      std::uint32_t& checksum) -> int {
-  const int N = (1 << LM) * mode->shortMdctSize;
+  const int N = (1 << LM) * celt_default_overlap;
   std::vector<celt_norm> work(static_cast<std::size_t>(test.channels * N), 0.0f);
   std::array<unsigned char, 2 * 64> collapse_masks{};
   ec_dec dec{};
   ec_dec_init(&dec, const_cast<unsigned char*>(packet), static_cast<opus_uint32>(packet_bytes));
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
-  quant_all_bands(0, mode, 0, mode->effEBands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(), nullptr,
-                  pulses.data(), 0, 2, 0, mode->effEBands, tf_res.data(), total_bits, 0, &dec, LM, mode->effEBands, &seed, 0);
+  quant_all_bands(0, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(), nullptr,
+                  pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &dec, LM, celt_default_nb_ebands, &seed, 0);
   checksum = checksum_norms(work, checksum);
   return dec.error;
 }
 
 [[nodiscard]] auto run_case(const QuantCase& test) -> BenchResult {
-  const auto* mode = default_custom_mode();
+  const auto* mode = celt_mode();
   constexpr int LM = 3;
   std::vector<celt_norm> source;
   std::vector<celt_ener> band_energy;
@@ -154,12 +159,12 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   std::array<unsigned char, 4096> packet{};
   const int packet_bytes = static_cast<int>(packet.size());
   auto result = BenchResult{};
-  result.bytes = quant_encode_once(mode, test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes, 0x12345678u);
+  result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes, 0x12345678u);
   result.checksum = checksum_bytes(packet.data(), result.bytes, 0);
 
   const auto encode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    result.bytes = quant_encode_once(mode, test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes,
+    result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes,
                                      0x12345678u + static_cast<opus_uint32>(i));
     result.checksum = checksum_bytes(packet.data(), result.bytes, result.checksum);
   }
@@ -167,7 +172,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
 
   const auto decode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    const int error = quant_decode_once(mode, test, LM, packet.data(), result.bytes, pulses, tf_res,
+    const int error = quant_decode_once(test, LM, packet.data(), result.bytes, pulses, tf_res,
                                         0x12345678u + static_cast<opus_uint32>(i), result.checksum);
     if (error != 0) {
       throw std::runtime_error(std::string{"decode error in "} + test.name);

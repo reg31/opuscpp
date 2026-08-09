@@ -179,9 +179,9 @@ the RFC decode vectors:
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
-signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.7258` vs `0.7588`)
-and gain error (`1.5060` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
-approximately 4.4% less re-entry error and 6.4% less gain error than official Opus.
+signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.6692` vs `0.7588`)
+and gain error (`0.5756` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
+approximately 11.8% less re-entry error and 64.2% less gain error than official Opus.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.410x | 1.783x | 852x | 354x | 2309x | 1295x |
-| 24&nbsp;kbps | 1.803x | 1.367x | 584x | 324x | 1549x | 1133x |
-| 32&nbsp;kbps | 1.781x | 1.344x | 580x | 326x | 1495x | 1112x |
-| 48&nbsp;kbps | 1.678x | 1.257x | 502x | 299x | 1226x | 976x |
-| 64&nbsp;kbps | 1.720x | 1.253x | 452x | 263x | 1052x | 840x |
-| 96&nbsp;kbps | 1.792x | 1.223x | 380x | 212x | 818x | 669x |
-| 128&nbsp;kbps | 1.972x | 1.216x | 378x | 191x | 702x | 578x |
-| 192&nbsp;kbps | 1.781x | 1.209x | 312x | 175x | 595x | 492x |
-| 256&nbsp;kbps | 1.680x | 1.135x | 283x | 169x | 512x | 451x |
+| 16&nbsp;kbps | 2.463x | 1.794x | 844x | 343x | 2220x | 1237x |
+| 24&nbsp;kbps | 1.902x | 1.287x | 587x | 309x | 1399x | 1087x |
+| 32&nbsp;kbps | 1.790x | 1.281x | 563x | 314x | 1395x | 1089x |
+| 48&nbsp;kbps | 1.680x | 1.192x | 481x | 286x | 1114x | 934x |
+| 64&nbsp;kbps | 1.694x | 1.205x | 430x | 254x | 981x | 814x |
+| 96&nbsp;kbps | 1.844x | 1.155x | 377x | 204x | 736x | 637x |
+| 128&nbsp;kbps | 2.063x | 1.125x | 386x | 187x | 632x | 562x |
+| 192&nbsp;kbps | 1.856x | 1.149x | 313x | 169x | 548x | 477x |
+| 256&nbsp;kbps | 1.773x | 1.132x | 285x | 161x | 489x | 432x |
 
 
 The source CSV for the published intrinsics speed table is tracked under `tests/metrics/`; local
@@ -249,11 +249,11 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0059 | +0.0024 | +0.4116 | 16.0 kbps | 17.1 kbps |
-| 24&nbsp;kbps | +0.0017 | +0.0267 | +1.0525 | 24.0 kbps | 25.2 kbps |
-| 32&nbsp;kbps | +0.0207 | +0.0391 | +0.6736 | 32.0 kbps | 33.6 kbps |
-| 48&nbsp;kbps | +0.0006 | +0.0142 | +0.0032 | 48.0 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0010 | +0.0051 | +0.0032 | 64.0 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0002 | +0.0035 | +0.0013 | 96.0 kbps | 96.7 kbps |
+| 24&nbsp;kbps | +0.0148 | +0.0332 | +1.0422 | 24.0 kbps | 25.2 kbps |
+| 32&nbsp;kbps | +0.0211 | +0.0404 | +0.6725 | 32.0 kbps | 33.6 kbps |
+| 48&nbsp;kbps | +0.0037 | +0.0128 | -0.0081 | 48.0 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0072 | +0.0006 | -0.0621 | 64.0 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0030 | +0.0022 | -0.0959 | 96.0 kbps | 96.7 kbps |
 | 128&nbsp;kbps | +0.0010 | +0.0015 | +0.0026 | 128.0 kbps | 128.8 kbps |
 | 192&nbsp;kbps | +0.0007 | +0.0005 | +0.0029 | 192.0 kbps | 192.9 kbps |
 | 256&nbsp;kbps | +0.0008 | +0.0001 | +0.0045 | 256.0 kbps | 256.7 kbps |
@@ -267,10 +267,10 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0083 | +0.0010 | +0.0609 | 16.0 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0021 | +0.0025 | +0.0964 | 24.0 kbps | 24.1 kbps |
-| 32&nbsp;kbps | +0.0013 | +0.0000 | +0.0488 | 32.0 kbps | 32.2 kbps |
-| 48&nbsp;kbps | +0.0042 | +0.0017 | +0.0293 | 48.0 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0075 | +0.0008 | +0.0228 | 64.0 kbps | 64.5 kbps |
+| 24&nbsp;kbps | -0.0055 | +0.0038 | -0.0174 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | -0.0047 | -0.0006 | -0.0913 | 32.0 kbps | 32.2 kbps |
+| 48&nbsp;kbps | -0.0038 | -0.0006 | -0.0759 | 48.0 kbps | 48.2 kbps |
+| 64&nbsp;kbps | +0.0015 | +0.0028 | -0.0825 | 63.9 kbps | 64.5 kbps |
 | 96&nbsp;kbps | +0.0019 | +0.0002 | +0.0127 | 96.0 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0022 | +0.0009 | +0.0132 | 128.0 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.0 kbps | 192.4 kbps |
@@ -303,7 +303,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 313,316 B | 0 B | 313,316 B |
+| Host MinGW GCC `-O2` | 279,908 B | 0 B | 279,908 B |
 
 ## Toolchains checked
 
