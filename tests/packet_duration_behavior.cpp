@@ -62,8 +62,9 @@ int main() {
   ok &= expect_eq(encoder_error, OPUS_OK, "create encoder");
   ok &= expect_eq(opus_encode(encoder, encoder_pcm.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
                   OPUS_BAD_ARG, "reject overflowing PCM16 frame size");
-  ok &= expect_eq(opus_encode_float(encoder, encoder_pcm_float.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
-                  OPUS_BAD_ARG, "reject overflowing float frame size");
+  ok &=
+      expect_eq(opus_encode_float(encoder, encoder_pcm_float.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
+                OPUS_BAD_ARG, "reject overflowing float frame size");
   opus_encoder_destroy(encoder);
 
   int error = OPUS_OK;
@@ -72,24 +73,21 @@ int main() {
   std::array<float, 5760 * 2> pcm_float{};
   opus_int32 postfilter_level = -1;
   ok &= expect_eq(error, OPUS_OK, "create decoder");
-  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
-                  "default postfilter get");
+  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK, "default postfilter get");
   ok &= expect_eq(postfilter_level, 0, "default postfilter off");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(2)), OPUS_OK, "set postfilter");
-  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
-                  "configured postfilter get");
+  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK, "configured postfilter get");
   ok &= expect_eq(postfilter_level, 2, "configured postfilter level");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(3)), OPUS_OK, "set adaptive postfilter");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(4)), OPUS_BAD_ARG, "invalid postfilter level");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUS_RESET_STATE), OPUS_OK, "reset decoder");
-  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK,
-                  "postfilter survives reset get");
+  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK, "postfilter survives reset get");
   ok &= expect_eq(postfilter_level, 3, "postfilter setting survives reset");
   ok &= expect_eq(opus_decode(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), pcm.data(), 5760, 0),
                   OPUS_INVALID_PACKET, "invalid CELT-shaped packet is rejected before decode");
-  ok &= expect_eq(opus_decode_float(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()),
-                                    pcm_float.data(), 5760, 0),
-                  OPUS_INVALID_PACKET, "invalid CELT-shaped float packet is rejected before decode");
+  ok &= expect_eq(
+      opus_decode_float(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), pcm_float.data(), 5760, 0),
+      OPUS_INVALID_PACKET, "invalid CELT-shaped float packet is rejected before decode");
   opus_decoder_destroy(decoder);
 
   if (!ok) {

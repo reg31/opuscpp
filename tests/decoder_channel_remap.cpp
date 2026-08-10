@@ -89,8 +89,7 @@ int main() {
   const auto stereo_nonzero = count_nonzero(stereo_out);
   ok &= expect(stereo_nonzero > 0, "mono packet duplicate has signal");
   ok &= expect(stereo_abs_difference(stereo_out) == 0, "mono packet duplicated equally to stereo");
-  ok &= expect(opus_decode(stereo_decoder.get(), nullptr, 0, stereo_out.data(), 320, 0) == 320,
-               "packet loss produces one concealed frame");
+  ok &= expect(opus_decode(stereo_decoder.get(), nullptr, 0, stereo_out.data(), 320, 0) == 320, "packet loss produces one concealed frame");
 
   if (!ok) {
     return 1;

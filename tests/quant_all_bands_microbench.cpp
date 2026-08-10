@@ -126,15 +126,13 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
   quant_all_bands(1, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
                   band_energy.data(), pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &enc, LM,
-                  celt_default_nb_ebands,
-                  &seed, 0);
+                  celt_default_nb_ebands, &seed, 0);
   ec_enc_done(&enc);
   return (ec_tell(&enc) + 7) >> 3;
 }
 
-[[nodiscard]] auto quant_decode_once(const QuantCase& test, int LM, const unsigned char* packet,
-                                     int packet_bytes, std::vector<int>& pulses, std::vector<int>& tf_res, opus_uint32 seed,
-                                     std::uint32_t& checksum) -> int {
+[[nodiscard]] auto quant_decode_once(const QuantCase& test, int LM, const unsigned char* packet, int packet_bytes, std::vector<int>& pulses,
+                                     std::vector<int>& tf_res, opus_uint32 seed, std::uint32_t& checksum) -> int {
   const int N = (1 << LM) * celt_default_overlap;
   std::vector<celt_norm> work(static_cast<std::size_t>(test.channels * N), 0.0f);
   std::array<unsigned char, 2 * 64> collapse_masks{};
@@ -172,8 +170,8 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
 
   const auto decode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    const int error = quant_decode_once(test, LM, packet.data(), result.bytes, pulses, tf_res,
-                                        0x12345678u + static_cast<opus_uint32>(i), result.checksum);
+    const int error = quant_decode_once(test, LM, packet.data(), result.bytes, pulses, tf_res, 0x12345678u + static_cast<opus_uint32>(i),
+                                        result.checksum);
     if (error != 0) {
       throw std::runtime_error(std::string{"decode error in "} + test.name);
     }

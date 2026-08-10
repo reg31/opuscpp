@@ -37,7 +37,7 @@ enum class material {
 };
 
 constexpr std::array materials{
-    material::voice,       material::quiet_voice, material::far_field,   material::noisy_voice,
+    material::voice,        material::quiet_voice,  material::far_field,       material::noisy_voice,
     material::two_speakers, material::speech_music, material::fricative_voice,
 };
 
@@ -115,11 +115,11 @@ struct packet_stream {
 template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode>
 [[nodiscard]] auto encode(std::span<const std::int16_t> pcm, int bitrate, bool dtx) -> packet_stream {
   int error = OPUS_OK;
-  std::unique_ptr<Encoder, void (*)(Encoder*)> encoder{Create(sample_rate, 1, OPUS_APPLICATION_VOIP, &error),
-                                                      [](Encoder* value) { Destroy(value); }};
+  std::unique_ptr<Encoder, void (*)(Encoder*)> encoder{Create(sample_rate, 1, OPUS_APPLICATION_VOIP, &error), [](Encoder* value) {
+                                                         Destroy(value);
+                                                       }};
   if (!encoder || error != OPUS_OK || Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK ||
-      Control(encoder.get(), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK ||
-      Control(encoder.get(), OPUS_SET_VBR_REQUEST, 1) != OPUS_OK ||
+      Control(encoder.get(), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK || Control(encoder.get(), OPUS_SET_VBR_REQUEST, 1) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_DTX_REQUEST, dtx ? 1 : 0) != OPUS_OK) {
     throw std::runtime_error("encoder setup failed");
   }
@@ -149,8 +149,9 @@ template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode
 
 [[nodiscard]] auto decode_official(const packet_stream& stream) -> std::vector<std::int16_t> {
   int error = OPUS_OK;
-  std::unique_ptr<OpusDecoder, void (*)(OpusDecoder*)> decoder{opus_decoder_create(sample_rate, 1, &error),
-                                                              [](OpusDecoder* value) { opus_decoder_destroy(value); }};
+  std::unique_ptr<OpusDecoder, void (*)(OpusDecoder*)> decoder{opus_decoder_create(sample_rate, 1, &error), [](OpusDecoder* value) {
+                                                                 opus_decoder_destroy(value);
+                                                               }};
   if (!decoder || error != OPUS_OK) {
     throw std::runtime_error("decoder setup failed");
   }
@@ -168,8 +169,9 @@ template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode
 
 [[nodiscard]] auto count_dtx(const packet_stream& stream, int first_frame, int frame_count) noexcept -> int {
   const auto first = stream.packets.begin() + first_frame;
-  return static_cast<int>(std::count_if(first, first + frame_count,
-                                        [](const auto& packet) { return packet.size() == 1; }));
+  return static_cast<int>(std::count_if(first, first + frame_count, [](const auto& packet) {
+    return packet.size() == 1;
+  }));
 }
 
 struct reentry_score {
@@ -232,8 +234,8 @@ int main() {
         const int official_false = count_dtx(official_packets, warmup_frames, active_frames);
         current_false_dtx += current_false;
         official_false_dtx += official_false;
-        std::cout << "dtx_false_positive bitrate=" << bitrate << " material=" << material_name(value)
-                  << " opuscpp=" << current_false << " official=" << official_false << '\n';
+        std::cout << "dtx_false_positive bitrate=" << bitrate << " material=" << material_name(value) << " opuscpp=" << current_false
+                  << " official=" << official_false << '\n';
 
         const auto reentry = make_reentry_clip(value);
         const auto current_reentry_packets = encode_current(reentry, bitrate, true);
@@ -266,11 +268,10 @@ int main() {
         current_gain_error > official_gain_error || current_silence_dtx < official_silence_dtx) {
       throw std::runtime_error("DTX comparison regressed against official Opus");
     }
-    std::cout << "dtx_comparison=PASS false_positive_opuscpp=" << current_false_dtx
-              << " false_positive_official=" << official_false_dtx << " reentry_nrmse_opuscpp=" << current_reentry_error
-              << " reentry_nrmse_official=" << official_reentry_error << " reentry_gain_db_opuscpp=" << current_gain_error
-              << " reentry_gain_db_official=" << official_gain_error << " silence_dtx_opuscpp=" << current_silence_dtx
-              << " silence_dtx_official=" << official_silence_dtx << '\n';
+    std::cout << "dtx_comparison=PASS false_positive_opuscpp=" << current_false_dtx << " false_positive_official=" << official_false_dtx
+              << " reentry_nrmse_opuscpp=" << current_reentry_error << " reentry_nrmse_official=" << official_reentry_error
+              << " reentry_gain_db_opuscpp=" << current_gain_error << " reentry_gain_db_official=" << official_gain_error
+              << " silence_dtx_opuscpp=" << current_silence_dtx << " silence_dtx_official=" << official_silence_dtx << '\n';
     return 0;
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

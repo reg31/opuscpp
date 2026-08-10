@@ -93,7 +93,7 @@ template <> struct default_delete<OpusDecoder> {
     opus_decoder_destroy(st);
   }
 };
-}
+} // namespace std
 
 [[nodiscard]] inline auto make_opus_encoder(int Fs, int channels, int application, int* error) noexcept -> std::unique_ptr<OpusEncoder> {
   return std::unique_ptr<OpusEncoder>{opus_encoder_create(Fs, channels, application, error)};

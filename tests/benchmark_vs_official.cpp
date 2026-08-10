@@ -39,8 +39,7 @@ template <typename T, void (*Destroy)(T*)> struct handle_deleter final {
   }
 };
 
-template <typename T, void (*Destroy)(T*)>
-using handle = std::unique_ptr<T, handle_deleter<T, Destroy>>;
+template <typename T, void (*Destroy)(T*)> using handle = std::unique_ptr<T, handle_deleter<T, Destroy>>;
 
 auto make_music_like_pcm(int channels, double seconds) -> std::vector<std::int16_t> {
   const auto frames = static_cast<int>(seconds * sample_rate);
@@ -65,8 +64,8 @@ auto make_music_like_pcm(int channels, double seconds) -> std::vector<std::int16
 
 auto make_current_encoder(int channels, int bitrate) -> handle<curr_OpusEncoder, curr_opus_encoder_destroy> {
   int err = OPUS_OK;
-  auto enc = handle<curr_OpusEncoder, curr_opus_encoder_destroy>{
-      curr_opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_AUDIO, &err)};
+  auto enc =
+      handle<curr_OpusEncoder, curr_opus_encoder_destroy>{curr_opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_AUDIO, &err)};
   if (!enc || err != OPUS_OK) {
     throw std::runtime_error("current encoder create failed");
   }
@@ -209,8 +208,7 @@ int main() {
     // the same bitrate in every repetition.
     for (int run = 0; run < benchmark_repetitions; ++run) {
       for (std::size_t step = 0; step < cases.size(); ++step) {
-        const auto index =
-            run == 0 ? step : run == 1 ? cases.size() - 1 - step : (step + cases.size() / 2) % cases.size();
+        const auto index = run == 0 ? step : run == 1 ? cases.size() - 1 - step : (step + cases.size() / 2) % cases.size();
         auto& test = cases[index];
         const auto measure_current = [&] {
           auto enc = make_current_encoder(channels, test.bitrate);

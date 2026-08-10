@@ -332,8 +332,7 @@ struct result final {
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("official decoder create failed");
   }
-  if (complexity != 0 &&
-      opus_decoder_ctl(static_cast<OpusDecoder*>(decoder.get()), OPUS_SET_COMPLEXITY_REQUEST, complexity) != OPUS_OK) {
+  if (complexity != 0 && opus_decoder_ctl(static_cast<OpusDecoder*>(decoder.get()), OPUS_SET_COMPLEXITY_REQUEST, complexity) != OPUS_OK) {
     throw std::runtime_error("official decoder complexity failed");
   }
   return decoder;
@@ -347,8 +346,8 @@ struct result final {
   if (decoder == nullptr || error != OPUS_OK) {
     throw std::runtime_error("current decoder create failed");
   }
-  if (curr_opus_decoder_ctl(static_cast<curr_OpusDecoder*>(decoder.get()), opuscpp_set_decode_postfilter_request,
-                            postfilter_level) != OPUS_OK) {
+  if (curr_opus_decoder_ctl(static_cast<curr_OpusDecoder*>(decoder.get()), opuscpp_set_decode_postfilter_request, postfilter_level) !=
+      OPUS_OK) {
     throw std::runtime_error("current decoder postfilter failed");
   }
   return decoder;
@@ -846,9 +845,9 @@ void run_memory(const options& opt) {
 void run_quality(const options& opt) {
   const auto clip = load_wav(opt.input, opt.max_seconds);
   const int official_bitrate = opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
-  std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate << " input=" << opt.input.string()
-            << " official_decoder_complexity=" << opt.official_decoder_complexity << " channels=" << clip.channels
-            << " current_postfilter_level=" << opt.current_postfilter_level
+  std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate
+            << " input=" << opt.input.string() << " official_decoder_complexity=" << opt.official_decoder_complexity
+            << " channels=" << clip.channels << " current_postfilter_level=" << opt.current_postfilter_level
             << " frames=" << (clip.samples.size() / static_cast<std::size_t>(frame_size * clip.channels)) << '\n';
   const auto current = run_variant("current", clip, opt, false);
   const auto official = run_variant("official", clip, opt, true);

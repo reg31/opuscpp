@@ -38,7 +38,8 @@ auto write_u16(std::ostream& output, std::uint16_t value) -> void {
 
 auto write_u32(std::ostream& output, std::uint32_t value) -> void {
   const std::array<unsigned char, 4> bytes{static_cast<unsigned char>(value & 0xFF), static_cast<unsigned char>((value >> 8) & 0xFF),
-                                          static_cast<unsigned char>((value >> 16) & 0xFF), static_cast<unsigned char>((value >> 24) & 0xFF)};
+                                           static_cast<unsigned char>((value >> 16) & 0xFF),
+                                           static_cast<unsigned char>((value >> 24) & 0xFF)};
   output.write(reinterpret_cast<const char*>(bytes.data()), static_cast<std::streamsize>(bytes.size()));
 }
 

@@ -22,9 +22,9 @@ namespace {
   for (int i = 0; i < samples; ++i) {
     const double t = static_cast<double>(i) / 48000.0;
     const double envelope = 0.55 + 0.35 * std::sin(2.0 * 3.141592653589793 * 2.7 * t);
-    const double base = envelope * (0.55 * std::sin(2.0 * 3.141592653589793 * 220.0 * t) +
-                                    0.20 * std::sin(2.0 * 3.141592653589793 * 880.0 * t) +
-                                    0.08 * std::sin(2.0 * 3.141592653589793 * 1720.0 * t));
+    const double base =
+        envelope * (0.55 * std::sin(2.0 * 3.141592653589793 * 220.0 * t) + 0.20 * std::sin(2.0 * 3.141592653589793 * 880.0 * t) +
+                    0.08 * std::sin(2.0 * 3.141592653589793 * 1720.0 * t));
     for (int channel = 0; channel < channels; ++channel) {
       const double width = channels == 2 ? (channel == 0 ? 1.0 : 0.72) : 1.0;
       pcm[static_cast<std::size_t>(i * channels + channel)] =

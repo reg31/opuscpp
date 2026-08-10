@@ -31,15 +31,18 @@ struct random_source {
   }
 };
 
-template <typename Sample>
-[[nodiscard]] auto guarded_output(int channels, Sample guard) -> std::vector<Sample> {
+template <typename Sample> [[nodiscard]] auto guarded_output(int channels, Sample guard) -> std::vector<Sample> {
   return std::vector<Sample>(2 * guard_samples + max_frame_size * channels, guard);
 }
 
-template <typename Sample>
-[[nodiscard]] auto guards_intact(const std::vector<Sample>& output, Sample guard) noexcept -> bool {
-  return std::all_of(output.begin(), output.begin() + guard_samples, [guard](Sample value) { return value == guard; }) &&
-         std::all_of(output.end() - guard_samples, output.end(), [guard](Sample value) { return value == guard; });
+template <typename Sample> [[nodiscard]] auto guards_intact(const std::vector<Sample>& output, Sample guard) noexcept -> bool {
+  return std::all_of(output.begin(), output.begin() + guard_samples,
+                     [guard](Sample value) {
+                       return value == guard;
+                     }) &&
+         std::all_of(output.end() - guard_samples, output.end(), [guard](Sample value) {
+           return value == guard;
+         });
 }
 
 [[nodiscard]] auto make_seed_packets() -> std::vector<std::vector<unsigned char>> {
@@ -53,8 +56,8 @@ template <typename Sample>
   for (const int channels : {1, 2}) {
     for (const int application : applications) {
       int error = OPUS_OK;
-      auto encoder = std::unique_ptr<OpusEncoder, void (*)(OpusEncoder*)>{
-          opus_encoder_create(sample_rate, channels, application, &error), opus_encoder_destroy};
+      auto encoder = std::unique_ptr<OpusEncoder, void (*)(OpusEncoder*)>{opus_encoder_create(sample_rate, channels, application, &error),
+                                                                          opus_encoder_destroy};
       if (!encoder || error != OPUS_OK) {
         throw std::runtime_error("encoder creation failed");
       }
@@ -78,8 +81,7 @@ template <typename Sample>
 class decoder_fuzzer {
 public:
   explicit decoder_fuzzer(int channels)
-      : decoder_{nullptr, opus_decoder_destroy},
-        i16_output_{guarded_output(channels, guard_i16)},
+      : decoder_{nullptr, opus_decoder_destroy}, i16_output_{guarded_output(channels, guard_i16)},
         f32_output_{guarded_output(channels, std::bit_cast<float>(guard_f32_bits))} {
     int error = OPUS_OK;
     decoder_.reset(opus_decoder_create(sample_rate, channels, &error));
@@ -90,8 +92,8 @@ public:
 
   auto test(std::span<const unsigned char> packet, bool decode_float) -> bool {
     std::fill(i16_output_.begin(), i16_output_.end(), guard_i16);
-    const int result = opus_decode(decoder_.get(), packet.data(), static_cast<int>(packet.size()),
-                                   i16_output_.data() + guard_samples, max_frame_size, 0);
+    const int result =
+        opus_decode(decoder_.get(), packet.data(), static_cast<int>(packet.size()), i16_output_.data() + guard_samples, max_frame_size, 0);
     if (result > max_frame_size || !guards_intact(i16_output_, guard_i16)) {
       return false;
     }
