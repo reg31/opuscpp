@@ -3373,24 +3373,27 @@ extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
   return low_distance <= high_distance ? lo : hi;
 }
 
-[[nodiscard]] constexpr auto bits2pulses(int band, int lm, int bits) noexcept -> int {
+struct celt_pulse_budget {
+  int pulses;
+  int bits;
+  const unsigned char* cache;
+};
+
+[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept
+    -> celt_pulse_budget {
   ++lm;
-  const unsigned char* cache = celt_mode()->cache_bits + celt_mode()->cache_index[lm * celt_default_nb_ebands + band];
+  int pulses;
   if (bits >= 0 && lm > 0 && lm <= celt_bits2pulses_lut_lm_count) {
     const auto row = static_cast<std::size_t>((lm - 1) * celt_default_nb_ebands + band);
     const auto begin = celt_bits2pulses_lut.offsets[row];
     const auto end = celt_bits2pulses_lut.offsets[row + 1];
-    return static_cast<unsigned>(bits) < static_cast<unsigned>(end - begin)
-               ? celt_bits2pulses_lut.values[begin + static_cast<unsigned>(bits)]
-               : cache[0];
+    pulses = static_cast<unsigned>(bits) < static_cast<unsigned>(end - begin)
+                 ? celt_bits2pulses_lut.values[begin + static_cast<unsigned>(bits)]
+                 : cache[0];
+  } else {
+    pulses = celt_bits2pulses_search(cache, bits);
   }
-  return celt_bits2pulses_search(cache, bits);
-}
-
-[[nodiscard]] static constexpr auto pulses2bits(int band, int lm, int pulses) noexcept -> int {
-  ++lm;
-  const unsigned char* cache = celt_mode()->cache_bits + celt_mode()->cache_index[lm * celt_default_nb_ebands + band];
-  return pulses == 0 ? 0 : cache[pulses] + 1;
+  return {pulses, pulses == 0 ? 0 : cache[pulses] + 1, cache};
 }
 
 static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc);
@@ -3826,8 +3829,8 @@ static unsigned quant_band_n1(band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_no
   return 1;
 }
 
-static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain, int fill) {
-  const unsigned char* cache;
+static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain, int fill,
+                                const unsigned char* cache) {
   int q, curr_bits;
   int B0 = B;
   unsigned cm = 0;
@@ -3837,7 +3840,6 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
   i = ctx->i;
   spread = ctx->spread;
   auto* ec = ctx->ec;
-  cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + i];
   if (LM != -1 && b > cache[cache[0]] + 12 && N > 2) {
     int mbits, sbits;
     celt_norm* next_lowband2 = nullptr;
@@ -3845,6 +3847,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     N >>= 1;
     Y = X + N;
     LM -= 1;
+    const auto* child_cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + i];
     if (B == 1) {
       fill = (fill & 1) | (fill << 1);
     }
@@ -3869,28 +3872,29 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     ctx->remaining_bits -= split.qalloc;
     rebalance = ctx->remaining_bits;
     if (mbits >= sbits) {
-      cm = quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill);
+      cm = quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill, child_cache);
       rebalance = mbits - (rebalance - ctx->remaining_bits);
       if (rebalance > 3 << 3 && split.itheta != 0) {
         sbits += rebalance - (3 << 3);
       }
-      cm |= quant_partition(ctx, Y, N, sbits, B, next_lowband2, LM, gain * side, fill >> B) << (B0 >> 1);
+      cm |= quant_partition(ctx, Y, N, sbits, B, next_lowband2, LM, gain * side, fill >> B, child_cache) << (B0 >> 1);
     } else {
-      cm = quant_partition(ctx, Y, N, sbits, B, next_lowband2, LM, gain * side, fill >> B) << (B0 >> 1);
+      cm = quant_partition(ctx, Y, N, sbits, B, next_lowband2, LM, gain * side, fill >> B, child_cache) << (B0 >> 1);
       rebalance = sbits - (rebalance - ctx->remaining_bits);
       if (rebalance > 3 << 3 && split.itheta != 16384) {
         mbits += rebalance - (3 << 3);
       }
-      cm |= quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill);
+      cm |= quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill, child_cache);
     }
   } else {
-    q = bits2pulses(i, LM, b);
-    curr_bits = pulses2bits(i, LM, q);
+    const auto pulse_budget = compute_celt_pulse_budget(cache, i, LM, b);
+    q = pulse_budget.pulses;
+    curr_bits = pulse_budget.bits;
     ctx->remaining_bits -= curr_bits;
     for (; ctx->remaining_bits < 0 && q > 0;) {
       ctx->remaining_bits += curr_bits;
       q--;
-      curr_bits = pulses2bits(i, LM, q);
+      curr_bits = q == 0 ? 0 : pulse_budget.cache[q] + 1;
       ctx->remaining_bits -= curr_bits;
     }
     if (q != 0) {
@@ -3979,7 +3983,8 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
       deinterleave_hadamard(lowband, N_B >> recombine, B0 << recombine, longBlocks);
     }
   }
-  cm = quant_partition(ctx, X, N, b, B, lowband, LM, gain, fill);
+  const auto* cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + ctx->i];
+  cm = quant_partition(ctx, X, N, b, B, lowband, LM, gain, fill, cache);
   if (ctx->resynth) {
     if (B0 > 1) {
       remap_hadamard(X, N_B >> recombine, B0 << recombine, longBlocks, true);
@@ -6129,7 +6134,6 @@ static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_r
 
 static constexpr auto celt_pvq_fast_row_offsets_storage = make_celt_pvq_fast_row_offsets();
 static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_storage.back();
-static constexpr const auto* celt_pvq_fast_row_offsets = celt_pvq_fast_row_offsets_storage.data();
 
 [[nodiscard]] consteval auto make_celt_pvq_u_fast_rows() noexcept {
   std::array<opus_uint32, celt_pvq_fast_data_count> rows{};
@@ -6154,11 +6158,30 @@ static constexpr const auto* celt_pvq_fast_row_offsets = celt_pvq_fast_row_offse
 static constexpr auto celt_pvq_u_fast_rows_storage = make_celt_pvq_u_fast_rows();
 static constexpr const opus_uint32* celt_pvq_u_fast_rows = celt_pvq_u_fast_rows_storage.data();
 
+[[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
+  std::array<const opus_uint32*, celt_pvq_fast_row_count> rows{};
+  for (std::size_t row = 0; row < rows.size(); ++row) {
+    rows[row] = celt_pvq_u_fast_rows_storage.data() + celt_pvq_fast_row_offsets_storage[row];
+  }
+  return rows;
+}
+
+static constexpr auto celt_pvq_fast_rows = make_celt_pvq_fast_rows();
+
 [[nodiscard]] static auto celt_pvq_u_entry(int row, int column) noexcept -> opus_uint32 {
   if (row > column) {
     std::swap(row, column);
   }
-  return celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[static_cast<unsigned>(row)] + static_cast<unsigned>(column)];
+  return celt_pvq_fast_rows[static_cast<unsigned>(row)][static_cast<unsigned>(column)];
+}
+
+[[nodiscard]] static inline auto celt_pvq_v_entry(int dimensions, int pulses) noexcept -> opus_uint32 {
+  if (dimensions <= pulses) {
+    const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(dimensions)];
+    return row[pulses] + row[pulses + 1];
+  }
+  return celt_pvq_fast_rows[static_cast<unsigned>(pulses)][dimensions] +
+         celt_pvq_fast_rows[static_cast<unsigned>(pulses + 1)][dimensions];
 }
 
 struct celt_pvq_search_result {
@@ -6176,14 +6199,15 @@ struct celt_pvq_search_result {
   return {high, value};
 }
 
-[[nodiscard]] static auto celt_pvq_find_last_leq_column(int high, unsigned column, opus_uint32 index) noexcept -> celt_pvq_search_result {
+[[nodiscard]] static inline auto celt_pvq_find_last_leq_column(int high, unsigned column, opus_uint32 index) noexcept
+    -> celt_pvq_search_result {
   if (high <= 0) {
     return {0, celt_pvq_u_entry(0, static_cast<int>(column))};
   }
   auto row = static_cast<unsigned>(high);
-  auto value = celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[row] + column];
+  auto value = celt_pvq_fast_rows[row][column];
   while (value > index) {
-    value = celt_pvq_u_fast_rows[celt_pvq_fast_row_offsets[--row] + column];
+    value = celt_pvq_fast_rows[--row][column];
     --high;
   }
   return {high, value};
@@ -6217,7 +6241,7 @@ template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_u
     int s;
     const int k0 = k;
     if (k >= n) {
-      const auto* row = celt_pvq_u_fast_rows + celt_pvq_fast_row_offsets[static_cast<unsigned>(n)];
+      const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(n)];
       p = row[k + 1];
       s = -(index >= p);
       index -= p & s;
@@ -6231,8 +6255,8 @@ template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_u
         p = found.u;
       }
     } else {
-      p = celt_pvq_u_entry(k, n);
-      const opus_uint32 q = celt_pvq_u_entry(k + 1, n);
+      p = celt_pvq_fast_rows[static_cast<unsigned>(k)][n];
+      const opus_uint32 q = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)][n];
       if (p <= index && index < q) {
         index -= p;
         writer(position, 0);
@@ -6254,8 +6278,7 @@ template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_u
 }
 
 template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int k, ec_dec* dec, Writer& writer) noexcept -> opus_val32 {
-  const auto total = celt_pvq_u_entry(n, k) + celt_pvq_u_entry(n, k + 1);
-  const auto index = ec_dec_uint(dec, total);
+  const auto index = ec_dec_uint(dec, celt_pvq_v_entry(n, k));
   return celt_pvq_unrank_impl(n, k, index, writer);
 }
 
@@ -8088,7 +8111,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
   const auto quant = op_pvq_search_c(X, K, N, B);
-  ec_enc_uint(enc, quant.index, celt_pvq_u_entry(N, K) + celt_pvq_u_entry(N, K + 1));
+  ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   return quant.collapse_mask;
 }
 
