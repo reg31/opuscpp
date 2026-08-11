@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.355x | 1.780x | 463x | 197x | 1135x | 638x |
-| 24&nbsp;kbps | 1.795x | 1.277x | 326x | 181x | 763x | 597x |
-| 32&nbsp;kbps | 1.838x | 1.180x | 340x | 185x | 705x | 597x |
-| 48&nbsp;kbps | 1.657x | 1.273x | 281x | 169x | 644x | 506x |
-| 64&nbsp;kbps | 1.656x | 1.212x | 241x | 146x | 503x | 415x |
-| 96&nbsp;kbps | 1.786x | 1.167x | 218x | 122x | 425x | 365x |
-| 128&nbsp;kbps | 2.062x | 1.207x | 223x | 108x | 365x | 302x |
-| 192&nbsp;kbps | 1.918x | 1.212x | 178x | 93x | 309x | 255x |
-| 256&nbsp;kbps | 1.633x | 1.252x | 157x | 96x | 293x | 234x |
+| 16&nbsp;kbps | 2.511x | 1.811x | 607x | 242x | 1609x | 888x |
+| 24&nbsp;kbps | 1.889x | 1.338x | 416x | 220x | 1038x | 776x |
+| 32&nbsp;kbps | 1.841x | 1.312x | 410x | 223x | 1008x | 768x |
+| 48&nbsp;kbps | 1.732x | 1.263x | 354x | 204x | 842x | 667x |
+| 64&nbsp;kbps | 1.697x | 1.247x | 305x | 180x | 719x | 576x |
+| 96&nbsp;kbps | 1.848x | 1.234x | 268x | 145x | 562x | 455x |
+| 128&nbsp;kbps | 2.083x | 1.230x | 275x | 132x | 488x | 396x |
+| 192&nbsp;kbps | 1.861x | 1.214x | 223x | 120x | 412x | 339x |
+| 256&nbsp;kbps | 1.781x | 1.153x | 204x | 115x | 354x | 307x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -294,9 +294,9 @@ headline metrics remain unfiltered.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,744 B | -46.7% |
-| Encoder stereo | 32,176 B | 48,880 B | -34.2% |
-| Decoder mono | 14,064 B | 18,432 B | -23.7% |
+| Encoder mono | 16,928 B | 31,728 B | -46.6% |
+| Encoder stereo | 32,192 B | 48,880 B | -34.1% |
+| Decoder mono | 14,080 B | 18,416 B | -23.5% |
 | Decoder stereo | 21,360 B | 27,280 B | -21.7% |
 
 Source CSV:
@@ -307,7 +307,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 280,116 B | 0 B | 280,116 B |
+| Host MinGW GCC `-O2` | 280,200 B | 0 B | 280,200 B |
 
 ## Toolchains checked
 

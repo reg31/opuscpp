@@ -50,6 +50,7 @@ constexpr int opus_max_multiframe_packet_bytes = 1276 * 6;
 
 constexpr int celt_default_overlap = 120;
 constexpr int celt_default_nb_ebands = 21;
+constexpr int celt_stereo_analysis_bands = 13;
 constexpr int celt_max_channels = 2;
 constexpr int celt_sample_rate = 48000;
 constexpr int celt_short_mdct_size = 120;
@@ -3435,19 +3436,19 @@ static opus_int16 bitexact_cos(opus_int16 x) {
 }
 
 static int bitexact_log2tan(int isin, int icos) {
-  int lc, ls;
-  lc = std::bit_width(static_cast<opus_uint32>(icos));
-  ls = std::bit_width(static_cast<opus_uint32>(isin));
+  const int lc = std::bit_width(static_cast<opus_uint32>(icos));
+  const int ls = std::bit_width(static_cast<opus_uint32>(isin));
   icos <<= 15 - lc;
   isin <<= 15 - ls;
   return (ls - lc) * (1 << 11) + bitexact_log2tan_poly(isin) - bitexact_log2tan_poly(icos);
 }
 
-static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int end, int C, int LM) {
+static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
   const int M = 1 << LM;
   const int N = M * celt_short_mdct_size;
+  const int analysis_prefix = C == 2 ? celt_stereo_analysis_bands : 0;
   for (int c = 0; c < C; ++c) {
     const int channel_offset = c * N;
     const int energy_offset = c * nbEBands;
@@ -3459,9 +3460,11 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
       bandE[i + energy_offset] = std::sqrt(sum);
       bandLogE[i + energy_offset] =
           static_cast<float>(1.442695040888963387 * std::log(static_cast<double>(bandE[i + energy_offset]))) - eMeans[i];
-      const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
-      for (int j = 0; j < band_width; ++j) {
-        band[j] *= gain;
+      if (i < analysis_prefix || i >= start) {
+        const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
+        for (int j = 0; j < band_width; ++j) {
+          band[j] *= gain;
+        }
       }
     }
   }
@@ -4553,27 +4556,23 @@ static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandL
 }
 
 static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
-  int i, thetas;
   opus_val32 sumLR = 1e-15f, sumMS = 1e-15f;
   const auto* eBands = celt_mode()->eBands;
-  for (i = 0; i < 13; i++) {
-    int j;
-    for (j = eBands[i] << LM; j < eBands[i + 1] << LM; j++) {
-      opus_val32 L, R, M, S;
-      L = (X[j]);
-      R = (X[N0 + j]);
-      M = ((L) + (R));
-      S = ((L) - (R));
-      sumLR = ((sumLR) + ((((std::fabs(L))) + ((std::fabs(R))))));
-      sumMS = ((sumMS) + ((((std::fabs(M))) + ((std::fabs(S))))));
+  for (int i = 0; i < celt_stereo_analysis_bands; ++i) {
+    for (int j = eBands[i] << LM; j < eBands[i + 1] << LM; ++j) {
+      const opus_val32 left = X[j];
+      const opus_val32 right = X[N0 + j];
+      sumLR += std::fabs(left) + std::fabs(right);
+      sumMS += std::fabs(left + right) + std::fabs(left - right);
     }
   }
-  sumMS = (((0.707107f)) * (sumMS));
-  thetas = 13;
+  sumMS *= 0.707107f;
+  int thetas = celt_stereo_analysis_bands;
   if (LM <= 1) {
     thetas -= 8;
   }
-  return (((eBands[13] << (LM + 1)) + thetas) * (sumMS)) > ((eBands[13] << (LM + 1)) * (sumLR));
+  const int band_width = eBands[celt_stereo_analysis_bands] << (LM + 1);
+  return (band_width + thetas) * sumMS > band_width * sumLR;
 }
 
 static celt_glog median_of_5(const celt_glog* x) {
@@ -4988,8 +4987,7 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
   if (C == 2) {
     const int coded_stereo_bands = std::min(intensity, coded_bands);
     const int coded_stereo_dof = (eBands[coded_stereo_bands] << LM) - coded_stereo_bands;
-    const opus_val16 max_frac =
-        ((((static_cast<opus_val32>((0.8f)) * static_cast<opus_val32>(coded_stereo_dof)))) / static_cast<opus_val16>(coded_bins));
+    const opus_val16 max_frac = 0.8f * static_cast<opus_val32>(coded_stereo_dof) / static_cast<opus_val16>(coded_bins);
     stereo_saving = std::min(stereo_saving, 1.0f);
     target -= static_cast<opus_int32>(
         (((max_frac) * (target))) < (((static_cast<opus_val32>(stereo_saving - (0.1f)) * static_cast<opus_val32>((coded_stereo_dof << 3)))))
@@ -5001,7 +4999,7 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
   target += static_cast<opus_int32>((-tf_calibration) * target);
   {
     const int bins = eBands[nbEBands - 2] << LM;
-    opus_int32 floor_depth = static_cast<opus_int32>((((C * bins << 3)) * (maxDepth)));
+    opus_int32 floor_depth = static_cast<opus_int32>((C * bins << 3) * maxDepth);
     floor_depth = std::max(floor_depth, target >> 2);
     target = std::min(target, floor_depth);
   }
@@ -5337,7 +5335,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
-  compute_band_energies_and_normalise(freq, bandE, bandLogE, end, C, LM);
+  compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
   const auto temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
   copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
   if (transient_enabled) {
@@ -7291,11 +7289,12 @@ static opus_val16 remove_doubling(opus_val16* x, int N, int* T0_, int prev_perio
     const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain
                             : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain
                                                                                 : 0;
-    opus_val16 thresh = (((.3f)) > ((((.7f)) * (g0)) - cont) ? ((.3f)) : ((((.7f)) * (g0)) - cont));
+    opus_val16 thresh = std::max(.3f, .7f * g0 - cont);
     if (T1 < 3 * minperiod) {
-      thresh = (((.4f)) > ((((.85f)) * (g0)) - cont) ? ((.4f)) : ((((.85f)) * (g0)) - cont));
-    } else if (T1 < 2 * minperiod)
-      thresh = (((.5f)) > ((((.9f)) * (g0)) - cont) ? ((.5f)) : ((((.9f)) * (g0)) - cont));
+      thresh = std::max(.4f, .85f * g0 - cont);
+    } else if (T1 < 2 * minperiod) {
+      thresh = std::max(.5f, .9f * g0 - cont);
+    }
     if (g1 > thresh) {
       best_xy = xy;
       best_yy = yy;
@@ -7344,14 +7343,14 @@ static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p) {
       }
       rr += (ac[i + 1]);
       const opus_val32 r = -(static_cast<float>((rr)) / (error));
-      lpc[i] = (r);
+      lpc[i] = r;
       for (int j = 0; j < (i + 1) >> 1; j++) {
         const opus_val32 tmp1 = lpc[j];
         const opus_val32 tmp2 = lpc[i - 1 - j];
-        lpc[j] = tmp1 + ((r) * (tmp2));
-        lpc[i - 1 - j] = tmp2 + ((r) * (tmp1));
+        lpc[j] = tmp1 + r * tmp2;
+        lpc[i - 1 - j] = tmp2 + r * tmp1;
       }
-      error = error - ((((r) * (r))) * (error));
+      error -= r * r * error;
       if (error <= .001f * ac[0]) {
         break;
       }
@@ -7574,8 +7573,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
                               error, enc, C, LM, intra, max_decay);
   if (intra) {
     *delayedIntra = new_distortion;
-  } else
-    *delayedIntra = ((((((pred_coef[LM]) * (pred_coef[LM]))) * (*delayedIntra))) + (new_distortion));
+  } else {
+    *delayedIntra = pred_coef[LM] * pred_coef[LM] * *delayedIntra + new_distortion;
+  }
 }
 
 template <bool Encode>
@@ -7880,15 +7880,30 @@ static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_
   const auto rotate = [&](int i) {
     const celt_norm x1 = X[i];
     const celt_norm x2 = X[i + stride];
-    X[i + stride] =
-        (((((static_cast<opus_val32>(c) * static_cast<opus_val32>(x2))) + static_cast<opus_val32>(s) * static_cast<opus_val32>(x1))));
-    X[i] = (((((static_cast<opus_val32>(c) * static_cast<opus_val32>(x1))) + static_cast<opus_val32>(ms) * static_cast<opus_val32>(x2))));
+    X[i + stride] = c * x2 + s * x1;
+    X[i] = c * x1 + ms * x2;
   };
   for (int i = 0; i < len - stride; ++i) {
     rotate(i);
   }
   for (int i = len - 2 * stride - 1; i >= 0; --i) {
     rotate(i);
+  }
+}
+
+static void exp_rotation1_stride1(celt_norm* X, int len, opus_val16 c, opus_val16 s) {
+  const opus_val16 ms = -s;
+  for (int i = 0; i < len - 1; ++i) {
+    const celt_norm x1 = X[i];
+    const celt_norm x2 = X[i + 1];
+    X[i + 1] = c * x2 + s * x1;
+    X[i] = c * x1 + ms * x2;
+  }
+  for (int i = len - 3; i >= 0; --i) {
+    const celt_norm x1 = X[i];
+    const celt_norm x2 = X[i + 1];
+    X[i + 1] = c * x2 + s * x1;
+    X[i] = c * x1 + ms * x2;
   }
 }
 
@@ -7914,9 +7929,9 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
       if (stride2) {
         exp_rotation1(X + i * len, len, stride2, s, c);
       }
-      exp_rotation1(X + i * len, len, 1, c, s);
+      exp_rotation1_stride1(X + i * len, len, c, s);
     } else {
-      exp_rotation1(X + i * len, len, 1, c, -s);
+      exp_rotation1_stride1(X + i * len, len, c, -s);
       if (stride2) {
         exp_rotation1(X + i * len, len, stride2, s, -c);
       }
@@ -8128,9 +8143,9 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
 
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain) {
   const opus_val32 E = 1e-15f + celt_inner_prod_c(X, X, N);
-  const opus_val16 g = ((((1.f / (std::sqrt(E)))) * (gain)));
+  const opus_val16 g = (1.f / std::sqrt(E)) * gain;
   for (int i = 0; i < N; ++i) {
-    X[i] = (((static_cast<opus_val32>(g) * static_cast<opus_val32>(X[i]))));
+    X[i] = g * X[i];
   }
 }
 
@@ -8414,7 +8429,7 @@ static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_contr
   }
   if (state.indices.NLSFInterpCoef_Q2 < 4) {
     for (int i = 0; i < state.LPC_order; i++) {
-      pNLSF0_Q15[i] = state.prevNLSF_Q15[i] + ((((state.indices.NLSFInterpCoef_Q2) * (pNLSF_Q15[i] - state.prevNLSF_Q15[i]))) >> (2));
+      pNLSF0_Q15[i] = state.prevNLSF_Q15[i] + (state.indices.NLSFInterpCoef_Q2 * (pNLSF_Q15[i] - state.prevNLSF_Q15[i]) >> 2);
     }
     silk_NLSF2A(control.PredCoef_Q12[0], pNLSF0_Q15, state.LPC_order);
   } else {
@@ -9231,7 +9246,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           ec_enc_patch_initial_bits(psRangeEnc, flags, (state0.nFramesPerPacket + 1) * encControl->nChannelsInternal);
         }
         psEnc->nBitsExceeded += *nBytesOut * 8;
-        psEnc->nBitsExceeded -= (static_cast<opus_int32>((((encControl->bitRate) * (encControl->payloadSize_ms))) / (1000)));
+        psEnc->nBitsExceeded -= static_cast<opus_int32>(encControl->bitRate * encControl->payloadSize_ms / 1000);
         psEnc->nBitsExceeded = clamp_value(psEnc->nBitsExceeded, 0, 10000);
         const int switch_threshold =
             fixed_q<8>(0.05f) + silk_mul_wb(fixed_q<24>((1.0f - 0.05f) / 5000.0f), psEnc->timeSinceSwitchAllowed_ms);
@@ -11412,7 +11427,7 @@ constexpr std::array<std::array<opus_uint8, 3>, 6> delay_matrix_enc =
 constexpr std::array<std::array<opus_uint8, 6>, 3> delay_matrix_dec =
     numeric_blob_matrix<opus_uint8, 6>(R"blob(04000200000000090407040400030C070707)blob");
 [[nodiscard]] constexpr auto silk_resampler_rate_index(opus_int32 hz) noexcept -> int {
-  return std::min(5, ((((hz >> 12) - (hz > 16000)) >> (hz > 24000)) - 1));
+  return std::min(5, (((hz >> 12) - (hz > 16000)) >> (hz > 24000)) - 1);
 }
 
 void silk_resampler_init(silk_resampler_state_struct* S, opus_int32 Fs_Hz_in, opus_int32 Fs_Hz_out, int forEnc) {
