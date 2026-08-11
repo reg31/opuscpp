@@ -2817,8 +2817,8 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         low_band_keep = st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f
                         : diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
                                                                                         : 0.f;
-      } else if (st->bitrate_bps == 64000 && st->preprocess_filter_state != preprocess_filter_quiet_voice) {
-        low_band_keep = .10f;
+      } else if (st->bitrate_bps <= 64000 && !st->use_dtx && st->preprocess_filter_state != preprocess_filter_quiet_voice) {
+        low_band_keep = .30f;
       }
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps < voip_noisy_voice_low_band_min_bps &&
           frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
@@ -2826,6 +2826,9 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       }
       if (low_band_keep > 0) {
         blend_filtered_input(frame_pcm, pcm, frame_size, low_band_keep);
+        if (st->bitrate_bps > 16000) {
+          dc_reject(frame_pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, 1, st->Fs);
+        }
       }
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
           frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&

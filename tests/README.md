@@ -208,7 +208,7 @@ PESQ/ViSQOL tooling or listening tests.
 
 This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 -DNDEBUG` and x86
 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` uses the same pure C++23 `-O2 -DNDEBUG` profile, with no assembly and no SIMD intrinsics. Measurements
-are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using medians of three repository
+are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using medians of nine repository
 60-second stereo synthetic music-like benchmark runs. A value above `1.00x` means `opuscpp` is faster than the optimized
 official build. Each repetition changes the bitrate sweep order and alternates which implementation
 runs first to reduce CPU boost and thermal-order bias. This keeps the optimization level matched while
@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.429x | 1.530x | 594x | 245x | 1324x | 865x |
-| 24&nbsp;kbps | 1.864x | 1.333x | 416x | 223x | 1024x | 768x |
-| 32&nbsp;kbps | 1.811x | 1.300x | 405x | 223x | 998x | 768x |
-| 48&nbsp;kbps | 1.709x | 1.253x | 353x | 207x | 837x | 668x |
-| 64&nbsp;kbps | 1.683x | 1.221x | 306x | 182x | 696x | 570x |
-| 96&nbsp;kbps | 1.838x | 1.144x | 269x | 146x | 518x | 453x |
-| 128&nbsp;kbps | 2.070x | 1.131x | 276x | 133x | 448x | 396x |
-| 192&nbsp;kbps | 1.846x | 1.145x | 222x | 120x | 389x | 340x |
-| 256&nbsp;kbps | 1.763x | 1.137x | 203x | 115x | 348x | 306x |
+| 16&nbsp;kbps | 2.355x | 1.780x | 463x | 197x | 1135x | 638x |
+| 24&nbsp;kbps | 1.795x | 1.277x | 326x | 181x | 763x | 597x |
+| 32&nbsp;kbps | 1.838x | 1.180x | 340x | 185x | 705x | 597x |
+| 48&nbsp;kbps | 1.657x | 1.273x | 281x | 169x | 644x | 506x |
+| 64&nbsp;kbps | 1.656x | 1.212x | 241x | 146x | 503x | 415x |
+| 96&nbsp;kbps | 1.786x | 1.167x | 218x | 122x | 425x | 365x |
+| 128&nbsp;kbps | 2.062x | 1.207x | 223x | 108x | 365x | 302x |
+| 192&nbsp;kbps | 1.918x | 1.212x | 178x | 93x | 309x | 255x |
+| 256&nbsp;kbps | 1.633x | 1.252x | 157x | 96x | 293x | 234x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -267,14 +267,18 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0083 | +0.0010 | +0.0609 | 16.0 kbps | 16.3 kbps |
-| 24&nbsp;kbps | -0.0055 | +0.0038 | -0.0174 | 24.0 kbps | 24.1 kbps |
-| 32&nbsp;kbps | -0.0047 | -0.0006 | -0.0913 | 32.0 kbps | 32.2 kbps |
-| 48&nbsp;kbps | -0.0038 | -0.0006 | -0.0759 | 48.0 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0015 | +0.0028 | -0.0825 | 63.9 kbps | 64.5 kbps |
+| 24&nbsp;kbps | +0.0004 | +0.0045 | +0.0396 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0016 | +0.0084 | +0.0036 | 32.0 kbps | 32.2 kbps |
+| 48&nbsp;kbps | +0.0044 | +0.0021 | -0.0836 | 48.0 kbps | 48.2 kbps |
+| 64&nbsp;kbps | +0.0049 | +0.0059 | -0.0414 | 63.9 kbps | 64.5 kbps |
 | 96&nbsp;kbps | +0.0019 | +0.0002 | +0.0127 | 96.0 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0022 | +0.0009 | +0.0132 | 128.0 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.0 kbps | 192.4 kbps |
 | 256&nbsp;kbps | +0.0007 | +0.0002 | +0.0050 | 256.0 kbps | 256.4 kbps |
+
+The narrower CELT spectral proxy remains slightly negative at AUDIO 48/64/96&nbsp;kbps and VOIP
+48/64&nbsp;kbps. Those tradeoffs are published rather than hidden: tested alternatives that raised
+this proxy regressed the broader PESQ-style, ViSQOL-style, or speed gates.
 
 ### Optional speech postfilter A/B
 
@@ -290,10 +294,10 @@ headline metrics remain unfiltered.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,944 B | 31,840 B | -46.8% |
-| Encoder stereo | 32,192 B | 48,912 B | -34.2% |
-| Decoder mono | 14,032 B | 18,304 B | -23.3% |
-| Decoder stereo | 21,360 B | 27,344 B | -21.9% |
+| Encoder mono | 16,928 B | 31,744 B | -46.7% |
+| Encoder stereo | 32,176 B | 48,880 B | -34.2% |
+| Decoder mono | 14,064 B | 18,432 B | -23.7% |
+| Decoder stereo | 21,360 B | 27,280 B | -21.7% |
 
 Source CSV:
 
@@ -303,7 +307,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 279,908 B | 0 B | 279,908 B |
+| Host MinGW GCC `-O2` | 280,116 B | 0 B | 280,116 B |
 
 ## Toolchains checked
 

@@ -183,7 +183,7 @@ def emit_metrics_report(
         "It records the locally measured comparison produced by this run.",
         "",
         f"Benchmark setup: `opuscpp` is built with `{OPUSCPP_OPT_FLAG} -DNDEBUG`; official Opus is built with `-O2 -DNDEBUG` and intrinsics enabled for the public comparison.",
-        "The speed harness changes bitrate sweep order between repetitions and alternates implementation order to reduce CPU boost and thermal-order bias.",
+        "The speed harness uses nine repetitions, changes bitrate sweep order, and alternates implementation order to reduce CPU boost and thermal-order bias.",
         "",
         "## RFC decode conformance",
         "",

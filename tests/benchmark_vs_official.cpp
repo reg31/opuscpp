@@ -27,7 +27,7 @@ namespace {
 constexpr int sample_rate = 48000;
 constexpr int frame_size = 960;
 constexpr double benchmark_seconds = 60.0;
-constexpr int benchmark_repetitions = 3;
+constexpr int benchmark_repetitions = 9;
 constexpr double pi = 3.141592653589793238462643383279502884;
 constexpr std::array bitrates{16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000};
 
