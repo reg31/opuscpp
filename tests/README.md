@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.549x | 1.890x | 732x | 287x | 1958x | 1036x |
-| 24&nbsp;kbps | 1.882x | 1.350x | 503x | 267x | 1250x | 927x |
-| 32&nbsp;kbps | 1.857x | 1.362x | 488x | 263x | 1193x | 876x |
-| 48&nbsp;kbps | 1.687x | 1.293x | 421x | 250x | 1025x | 793x |
-| 64&nbsp;kbps | 1.703x | 1.239x | 355x | 209x | 828x | 668x |
-| 96&nbsp;kbps | 1.852x | 1.302x | 319x | 173x | 695x | 533x |
-| 128&nbsp;kbps | 2.091x | 1.378x | 325x | 156x | 609x | 442x |
-| 192&nbsp;kbps | 1.843x | 1.220x | 267x | 145x | 499x | 409x |
-| 256&nbsp;kbps | 1.731x | 1.208x | 243x | 141x | 444x | 367x |
+| 16&nbsp;kbps | 2.297x | 1.791x | 634x | 276x | 1705x | 952x |
+| 24&nbsp;kbps | 1.785x | 1.276x | 476x | 267x | 1094x | 857x |
+| 32&nbsp;kbps | 1.943x | 1.258x | 482x | 248x | 1052x | 837x |
+| 48&nbsp;kbps | 1.722x | 1.287x | 419x | 243x | 944x | 733x |
+| 64&nbsp;kbps | 1.791x | 1.322x | 378x | 211x | 849x | 643x |
+| 96&nbsp;kbps | 1.882x | 1.211x | 316x | 168x | 612x | 505x |
+| 128&nbsp;kbps | 1.992x | 1.285x | 311x | 156x | 568x | 442x |
+| 192&nbsp;kbps | 1.818x | 1.228x | 259x | 143x | 467x | 380x |
+| 256&nbsp;kbps | 1.768x | 1.227x | 233x | 132x | 407x | 331x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -251,9 +251,9 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | 16&nbsp;kbps | +0.0059 | +0.0024 | +0.4116 | 16.0 kbps | 17.1 kbps |
 | 24&nbsp;kbps | +0.0148 | +0.0332 | +1.0422 | 24.0 kbps | 25.2 kbps |
 | 32&nbsp;kbps | +0.0211 | +0.0404 | +0.6725 | 32.0 kbps | 33.6 kbps |
-| 48&nbsp;kbps | +0.0037 | +0.0128 | -0.0081 | 48.0 kbps | 48.6 kbps |
-| 64&nbsp;kbps | +0.0072 | +0.0006 | -0.0621 | 64.0 kbps | 64.6 kbps |
-| 96&nbsp;kbps | +0.0030 | +0.0022 | -0.0959 | 96.0 kbps | 96.7 kbps |
+| 48&nbsp;kbps | +0.0006 | +0.0142 | +0.0032 | 48.0 kbps | 48.6 kbps |
+| 64&nbsp;kbps | +0.0075 | +0.0055 | +0.0262 | 64.0 kbps | 64.6 kbps |
+| 96&nbsp;kbps | +0.0002 | +0.0035 | +0.0013 | 96.0 kbps | 96.7 kbps |
 | 128&nbsp;kbps | +0.0010 | +0.0015 | +0.0026 | 128.0 kbps | 128.8 kbps |
 | 192&nbsp;kbps | +0.0007 | +0.0005 | +0.0029 | 192.0 kbps | 192.9 kbps |
 | 256&nbsp;kbps | +0.0008 | +0.0001 | +0.0045 | 256.0 kbps | 256.7 kbps |
@@ -267,18 +267,17 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0083 | +0.0010 | +0.0609 | 16.0 kbps | 16.3 kbps |
-| 24&nbsp;kbps | +0.0004 | +0.0045 | +0.0396 | 24.0 kbps | 24.1 kbps |
-| 32&nbsp;kbps | +0.0016 | +0.0084 | +0.0036 | 32.0 kbps | 32.2 kbps |
-| 48&nbsp;kbps | +0.0044 | +0.0021 | -0.0836 | 48.0 kbps | 48.2 kbps |
-| 64&nbsp;kbps | +0.0049 | +0.0059 | -0.0414 | 63.9 kbps | 64.5 kbps |
+| 24&nbsp;kbps | +0.0097 | +0.0057 | +0.1416 | 24.0 kbps | 24.1 kbps |
+| 32&nbsp;kbps | +0.0092 | +0.0069 | +0.0678 | 32.0 kbps | 32.2 kbps |
+| 48&nbsp;kbps | +0.0123 | +0.0073 | +0.0436 | 48.0 kbps | 48.2 kbps |
+| 64&nbsp;kbps | +0.0128 | +0.0039 | +0.0277 | 64.0 kbps | 64.5 kbps |
 | 96&nbsp;kbps | +0.0019 | +0.0002 | +0.0127 | 96.0 kbps | 96.6 kbps |
 | 128&nbsp;kbps | +0.0022 | +0.0009 | +0.0132 | 128.0 kbps | 128.5 kbps |
 | 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.0 kbps | 192.4 kbps |
 | 256&nbsp;kbps | +0.0007 | +0.0002 | +0.0050 | 256.0 kbps | 256.4 kbps |
 
-The narrower CELT spectral proxy remains slightly negative at AUDIO 48/64/96&nbsp;kbps and VOIP
-48/64&nbsp;kbps. Those tradeoffs are published rather than hidden: tested alternatives that raised
-this proxy regressed the broader PESQ-style, ViSQOL-style, or speed gates.
+All tracked AUDIO and VOIP PESQ-style, ViSQOL-style, and CELT-style proxy deltas are positive in the
+current validation run.
 
 ### Optional speech postfilter A/B
 
@@ -294,9 +293,9 @@ headline metrics remain unfiltered.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 17,312 B | 31,728 B | -45.4% |
-| Encoder stereo | 32,176 B | 49,072 B | -34.4% |
-| Decoder mono | 14,080 B | 18,304 B | -23.1% |
+| Encoder mono | 16,976 B | 31,696 B | -46.4% |
+| Encoder stereo | 32,192 B | 49,072 B | -34.4% |
+| Decoder mono | 14,096 B | 18,288 B | -22.9% |
 | Decoder stereo | 21,184 B | 27,440 B | -22.8% |
 
 Source CSV:
@@ -307,7 +306,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 279,960 B | 0 B | 279,960 B |
+| Host MinGW GCC `-O2` | 280,280 B | 0 B | 280,280 B |
 
 ## Toolchains checked
 

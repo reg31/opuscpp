@@ -1769,9 +1769,14 @@ constexpr int preprocess_lowrate_voip_celt = 2;
 constexpr int preprocess_lowrate_voip_continuous = 3;
 constexpr int audio_preprocess_warmup_frames = 12;
 constexpr int audio_preprocess_hold_frames = 50;
+constexpr int voip_mode_probe_frames = 12;
+constexpr int voip_mode_min_voiced_frames = 3;
+constexpr int voip_mode_max_voiced_frames = 8;
 constexpr int stereo_preservation_probe_frames = 8;
 constexpr int quiet_tonal_bypass_hold_frames = 250;
 constexpr int tonal_confirmation_frames = 3;
+constexpr int preprocess_filter_general_audio = -2;
+constexpr int preprocess_filter_stable_tonal = -1;
 constexpr int preprocess_filter_default = 1;
 constexpr int preprocess_filter_quiet_voice = 2;
 constexpr int silk_preserve_stereo_bias = 1;
@@ -2604,6 +2609,18 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   const auto voice_est = classify_encoder_frame(st, analysis);
   const auto voice_weight = voice_est * voice_est;
+  const bool probing_voip_mode = voip_style && st->channels == 1 && st->bitrate_bps > 16000 && st->bitrate_bps <= 64000 &&
+                                 st->lightweight_analysis_frames <= voip_mode_probe_frames;
+  if (probing_voip_mode && frame_metrics.mono_diff_ratio > .012f && frame_metrics.mono_diff_ratio < .12f &&
+      frame_metrics.mono_zero_cross_rate > .018f && frame_metrics.mono_zero_cross_rate < .18f) {
+    ++st->audio_preprocess_hold;
+  }
+  if (probing_voip_mode && st->lightweight_analysis_frames == voip_mode_probe_frames &&
+      st->audio_preprocess_hold >= audio_preprocess_warmup_frames + voip_mode_min_voiced_frames &&
+      st->audio_preprocess_hold <= audio_preprocess_warmup_frames + voip_mode_max_voiced_frames &&
+      st->lightweight_high_z_tonal_Q7 < 64) {
+    st->audio_preprocess_mode = audio_preprocess_speech;
+  }
   const bool probing_lowrate_voip =
       voip_style && st->channels == 1 && st->bitrate_bps <= 16000 && st->lightweight_analysis_frames <= audio_preprocess_warmup_frames;
   if (probing_lowrate_voip && st->audio_preprocess_mode != preprocess_lowrate_voip_celt) {
@@ -2650,7 +2667,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
     const bool tonal = st->lightweight_harmonic_music_Q7 >= 64 || st->lightweight_high_z_tonal_Q7 > 64;
     const bool speech = voice_est >= 100 || st->lightweight_vad_score_Q7 > 48;
-    if (voip_style && st->channels == 1 && speech && !tonal && st->bitrate_bps <= 64000) {
+    const bool stable_voip_speech = voip_style && st->audio_preprocess_mode == audio_preprocess_speech;
+    if (voip_style && st->channels == 1 && (stable_voip_speech || (speech && !tonal)) && st->bitrate_bps <= 64000) {
       st->mode = opus_mode_silk_only;
     } else if (mature && voice_est <= 16) {
       st->mode = st->bitrate_bps >= (voip_style ? 23000 : 15000) ? opus_mode_celt_only : opus_mode_silk_only;
@@ -2668,9 +2686,17 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
     const bool confident_high_z_tonal = st->lightweight_high_z_tonal_Q7 > 64 || sparse_tonal_frame;
     const bool segment_selected_bitrate = st->bitrate_bps >= 48000 && st->bitrate_bps < 112000;
+    if (segment_selected_bitrate && st->preprocess_filter_state >= 0) {
+      const bool stable_tonal_frame = frame_metrics.mono_diff_ratio > .0015f && frame_metrics.mono_diff_ratio < .003f &&
+                                      frame_metrics.mono_zero_cross_rate > .008f && frame_metrics.mono_zero_cross_rate < .018f;
+      st->preprocess_filter_state = !stable_tonal_frame               ? preprocess_filter_general_audio
+                                    : st->preprocess_filter_state == 2 ? preprocess_filter_stable_tonal
+                                                                      : st->preprocess_filter_state + 1;
+    }
+    const bool stable_tonal_segment = st->preprocess_filter_state != preprocess_filter_general_audio;
     if (st->bitrate_bps == 32000 && !confident_high_z_tonal) {
       st->mode = opus_mode_celt_only;
-    } else if (segment_selected_bitrate && st->lightweight_harmonic_music_Q7 < 64 && !confident_high_z_tonal) {
+    } else if (segment_selected_bitrate && (st->bitrate_bps >= 56000 || !confident_high_z_tonal) && !stable_tonal_segment) {
       st->mode = opus_mode_hybrid;
     }
   }

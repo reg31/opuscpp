@@ -561,22 +561,24 @@ def run_perceptual_and_memory(
             official_match = re.search(r"^\s*official\s+.*?avg_packet_bytes=([^\s]+)", output, re.MULTILINE)
             if not current_match or not official_match:
                 raise RuntimeError(f"Could not parse effective bitrate for {application} bitrate {bitrate}")
-            measured.append(
-                {
-                    "application": application,
-                    "bitrate": str(bitrate),
-                    "snr_delta": normalize_signed_zero(delta_match.group(1)),
-                    "rms_error_delta": normalize_signed_zero(delta_match.group(2)),
-                    "mean_abs_error_delta": normalize_signed_zero(delta_match.group(3)),
-                    "pesq_delta": normalize_signed_zero(delta_match.group(4)),
-                    "visqol_delta": normalize_signed_zero(delta_match.group(5)),
-                    "logband_corr_delta": normalize_signed_zero(delta_match.group(6)),
-                    "celt_delta": normalize_signed_zero(delta_match.group(7)),
-                    "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
-                    "official_effective_kbps": effective_kbps(official_match.group(1)),
-                    "encode_speed_ratio": delta_match.group(8),
-                }
-            )
+            row = {
+                "application": application,
+                "bitrate": str(bitrate),
+                "snr_delta": normalize_signed_zero(delta_match.group(1)),
+                "rms_error_delta": normalize_signed_zero(delta_match.group(2)),
+                "mean_abs_error_delta": normalize_signed_zero(delta_match.group(3)),
+                "pesq_delta": normalize_signed_zero(delta_match.group(4)),
+                "visqol_delta": normalize_signed_zero(delta_match.group(5)),
+                "logband_corr_delta": normalize_signed_zero(delta_match.group(6)),
+                "celt_delta": normalize_signed_zero(delta_match.group(7)),
+                "opuscpp_effective_kbps": effective_kbps(current_match.group(1)),
+                "official_effective_kbps": effective_kbps(official_match.group(1)),
+                "encode_speed_ratio": delta_match.group(8),
+            }
+            for metric in ("pesq_delta", "visqol_delta", "celt_delta"):
+                if float(row[metric]) < 0:
+                    raise RuntimeError(f"Negative {metric} for {application} bitrate {bitrate}: {row[metric]}")
+            measured.append(row)
         return measured
 
     rows = measure_rows("audio", "synthetic_music_like_stereo.wav", True)
