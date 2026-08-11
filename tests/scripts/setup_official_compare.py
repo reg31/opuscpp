@@ -729,7 +729,7 @@ def run_api_behavior_validation(
     curr_obj = compile_object(
         cxx,
         repo_root / "src" / "opus_codec.cpp",
-        build_dir / "dtx_current.o",
+        build_dir / "current_codec.o",
         [repo_root / "src"],
         current_alias_macros("curr"),
     )
@@ -744,6 +744,17 @@ def run_api_behavior_validation(
     dtx_output = capture([str(dtx_exe)])
     (build_dir / "dtx_vs_official.txt").write_text(dtx_output, encoding="utf-8")
     results.extend(line for line in dtx_output.splitlines() if line.startswith("dtx_comparison="))
+    fec_exe = link_executable(
+        cxx,
+        [repo_root / "tests" / "fec_vs_official.cpp"],
+        [curr_obj],
+        [repo_root / "tests"],
+        build_dir / f"fec_vs_official{suffix}",
+        [official_lib],
+    )
+    fec_output = capture([str(fec_exe)])
+    (build_dir / "fec_vs_official.txt").write_text(fec_output, encoding="utf-8")
+    results.extend(line for line in fec_output.splitlines() if line.startswith(("fec_interop=", "fec_summary ")))
     return results
 
 

@@ -93,6 +93,10 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_BITRATE_REQUEST` | `OPUS_GET_BITRATE(&x)` | Returns current effective bitrate. |
 | `OPUS_SET_VBR_REQUEST` | `OPUS_SET_VBR(x)` | `1` for VBR, `0` for CBR-style packet padding; default is VBR on. |
 | `OPUS_GET_VBR_REQUEST` | `OPUS_GET_VBR(&x)` | Returns VBR setting. |
+| `OPUS_SET_INBAND_FEC_REQUEST` | `OPUS_SET_INBAND_FEC(x)` | Enables SILK/hybrid in-band forward error correction; default is off. |
+| `OPUS_GET_INBAND_FEC_REQUEST` | `OPUS_GET_INBAND_FEC(&x)` | Returns the in-band FEC setting. |
+| `OPUS_SET_PACKET_LOSS_PERC_REQUEST` | `OPUS_SET_PACKET_LOSS_PERC(x)` | Sets expected packet loss from `0..100`; used to decide when FEC is worthwhile. |
+| `OPUS_GET_PACKET_LOSS_PERC_REQUEST` | `OPUS_GET_PACKET_LOSS_PERC(&x)` | Returns expected packet loss. |
 | `OPUS_SET_DTX_REQUEST` | `OPUS_SET_DTX(x)` | Enables guarded discontinuous transmission; default is off. |
 | `OPUS_GET_DTX_REQUEST` | `OPUS_GET_DTX(&x)` | Returns the DTX setting. |
 | `OPUS_GET_IN_DTX_REQUEST` | `OPUS_GET_IN_DTX(&x)` | Reports whether the encoder is currently suppressing inactive frames. |
@@ -106,6 +110,29 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 DTX reuses the existing speech/music analysis, protects quiet or tonal content, and emits standard
 one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
 suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
+
+## In-band FEC
+
+In-band FEC is optional and disabled by default. When enabled for SILK or hybrid packets, the
+encoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only
+packets cannot carry this redundancy. Its extra encoder state is allocated lazily on first enable
+and released with the encoder. `opuscpp` spends more of the redundancy budget on recoverable
+detail than official Opus and keeps a settled mono VOIP stream in a FEC-capable mode through
+32&nbsp;kbps when packet protection is explicitly requested.
+
+```cpp
+opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));
+opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(10));
+```
+
+Recovery requires one packet of delay. If packet `N` is missing and packet `N+1` arrives, decode
+`N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with
+`decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
+concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
+packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
+quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` has 38.5% lower aggregate recovery
+error, wins 14/18 cases, carries FEC in 16/18 cases versus 15/18 for official Opus, and uses 1.5% fewer
+packet bytes.
 
 ## Supported decoder CTLs
 
@@ -140,7 +167,6 @@ Unsupported requests return `OPUS_UNIMPLEMENTED` or `OPUS_BAD_ARG` depending on 
 - Custom Opus (`opus_custom_*`).
 - Multistream/projection APIs.
 - Repacketizer APIs.
-- FEC/bandwidth/signal/gain/LSB-depth CTLs not listed above.
-- Decoder-side FEC output beyond accepting the standard decode argument shape.
+- Bandwidth/signal/gain/LSB-depth CTLs not listed above.
 
 This is deliberate: the implementation focuses on the common single-stream Opus API and keeps unused feature surfaces out of the public contract.

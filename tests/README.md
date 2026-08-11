@@ -175,6 +175,7 @@ the RFC decode vectors:
 | VBR budget behavior | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |
+| In-band FEC encode/decode interoperability vs official Opus | Passed |
 
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
@@ -187,6 +188,16 @@ In everyday terms, re-entry is the moment speech or music returns after DTX stop
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
 temporarily too loud or too quiet. This comparison is run automatically by the full-report scripts
 above, with detailed output saved under `build/official_compare_report/api_behavior/`.
+
+`fec_vs_official.cpp` enables FEC and a 15% expected-loss setting, drops one packet, recovers it
+from the following packet, and then decodes that following packet normally. It checks nominal,
+quiet, and noisy speech at mono 10/20/40/60 ms and stereo 20 ms, including VBR and CBR, in both
+directions: `opuscpp` encoder to official decoder and official encoder to `opuscpp` decoder. Every
+carried `opuscpp` FEC frame must improve on ordinary packet-loss concealment. The 10/20 ms aggregate
+quality gate also requires lower recovery error, at least two-thirds of individual comparisons won,
+equal-or-better FEC coverage, and no more packet bytes than official Opus. The current result is 38.5%
+lower aggregate recovery error, 14/18 comparisons won, 16/18 protected cases versus 15/18, and 1.5%
+fewer packet bytes.
 
 ## Perceptual and memory harness
 
@@ -216,15 +227,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.297x | 1.791x | 634x | 276x | 1705x | 952x |
-| 24&nbsp;kbps | 1.785x | 1.276x | 476x | 267x | 1094x | 857x |
-| 32&nbsp;kbps | 1.943x | 1.258x | 482x | 248x | 1052x | 837x |
-| 48&nbsp;kbps | 1.722x | 1.287x | 419x | 243x | 944x | 733x |
-| 64&nbsp;kbps | 1.791x | 1.322x | 378x | 211x | 849x | 643x |
-| 96&nbsp;kbps | 1.882x | 1.211x | 316x | 168x | 612x | 505x |
-| 128&nbsp;kbps | 1.992x | 1.285x | 311x | 156x | 568x | 442x |
-| 192&nbsp;kbps | 1.818x | 1.228x | 259x | 143x | 467x | 380x |
-| 256&nbsp;kbps | 1.768x | 1.227x | 233x | 132x | 407x | 331x |
+| 16&nbsp;kbps | 2.460x | 1.876x | 836x | 340x | 2280x | 1215x |
+| 24&nbsp;kbps | 1.876x | 1.330x | 582x | 310x | 1448x | 1088x |
+| 32&nbsp;kbps | 1.854x | 1.328x | 578x | 312x | 1423x | 1071x |
+| 48&nbsp;kbps | 1.792x | 1.265x | 512x | 286x | 1184x | 936x |
+| 64&nbsp;kbps | 1.984x | 1.255x | 451x | 227x | 1008x | 803x |
+| 96&nbsp;kbps | 1.876x | 1.252x | 385x | 205x | 793x | 633x |
+| 128&nbsp;kbps | 2.051x | 1.249x | 382x | 186x | 693x | 555x |
+| 192&nbsp;kbps | 1.842x | 1.235x | 312x | 169x | 590x | 478x |
+| 256&nbsp;kbps | 1.816x | 1.076x | 283x | 156x | 464x | 431x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -291,11 +302,14 @@ headline metrics remain unfiltered.
 
 ## Memory metrics
 
+The optional encoder FEC state is allocated lazily and is not included in this default-FEC-off
+snapshot.
+
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,976 B | 31,696 B | -46.4% |
+| Encoder mono | 16,976 B | 31,712 B | -46.5% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,096 B | 18,288 B | -22.9% |
+| Decoder mono | 14,080 B | 18,288 B | -23.0% |
 | Decoder stereo | 21,184 B | 27,440 B | -22.8% |
 
 Source CSV:
@@ -306,7 +320,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 280,280 B | 0 B | 280,280 B |
+| Host MinGW GCC `-O2` | 284,432 B | 0 B | 284,432 B |
 
 ## Toolchains checked
 

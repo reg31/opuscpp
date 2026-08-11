@@ -29,6 +29,10 @@ inline constexpr int OPUS_SET_VBR_REQUEST = 4006;
 inline constexpr int OPUS_GET_VBR_REQUEST = 4007;
 inline constexpr int OPUS_SET_COMPLEXITY_REQUEST = 4010;
 inline constexpr int OPUS_GET_COMPLEXITY_REQUEST = 4011;
+inline constexpr int OPUS_SET_INBAND_FEC_REQUEST = 4012;
+inline constexpr int OPUS_GET_INBAND_FEC_REQUEST = 4013;
+inline constexpr int OPUS_SET_PACKET_LOSS_PERC_REQUEST = 4014;
+inline constexpr int OPUS_GET_PACKET_LOSS_PERC_REQUEST = 4015;
 inline constexpr int OPUS_SET_DTX_REQUEST = 4016;
 inline constexpr int OPUS_GET_DTX_REQUEST = 4017;
 inline constexpr int OPUS_SET_VBR_CONSTRAINT_REQUEST = 4020;
@@ -46,6 +50,10 @@ inline constexpr int OPUSCPP_GET_DECODE_POSTFILTER_REQUEST = 5101;
 #define OPUS_GET_COMPLEXITY(x) OPUS_GET_COMPLEXITY_REQUEST, (x)
 #define OPUS_SET_VBR(x) OPUS_SET_VBR_REQUEST, static_cast<int>(x)
 #define OPUS_GET_VBR(x) OPUS_GET_VBR_REQUEST, (x)
+#define OPUS_SET_INBAND_FEC(x) OPUS_SET_INBAND_FEC_REQUEST, static_cast<int>(x)
+#define OPUS_GET_INBAND_FEC(x) OPUS_GET_INBAND_FEC_REQUEST, (x)
+#define OPUS_SET_PACKET_LOSS_PERC(x) OPUS_SET_PACKET_LOSS_PERC_REQUEST, static_cast<int>(x)
+#define OPUS_GET_PACKET_LOSS_PERC(x) OPUS_GET_PACKET_LOSS_PERC_REQUEST, (x)
 #define OPUS_SET_DTX(x) OPUS_SET_DTX_REQUEST, static_cast<int>(x)
 #define OPUS_GET_DTX(x) OPUS_GET_DTX_REQUEST, (x)
 #define OPUS_SET_VBR_CONSTRAINT(x) OPUS_SET_VBR_CONSTRAINT_REQUEST, static_cast<int>(x)

@@ -67,6 +67,30 @@ int main() {
                 OPUS_BAD_ARG, "reject overflowing float frame size");
   opus_encoder_destroy(encoder);
 
+  int long_encoder_error = OPUS_OK;
+  OpusEncoder* long_encoder = opus_encoder_create(8000, 1, OPUS_APPLICATION_VOIP, &long_encoder_error);
+  std::array<opus_int16, 320> long_pcm{};
+  std::array<unsigned char, 1276> long_packet{};
+  ok &= expect_eq(long_encoder_error, OPUS_OK, "create long-frame encoder");
+  ok &= expect_eq(opus_encoder_ctl(long_encoder, OPUS_SET_BITRATE(12000)), OPUS_OK, "configure long-frame encoder");
+  const int long_packet_bytes = opus_encode(long_encoder, long_pcm.data(), 320, long_packet.data(), static_cast<int>(long_packet.size()));
+  ok &= long_packet_bytes > 0;
+  if (long_packet_bytes <= 0) {
+    std::cout << "FAIL encode one 40ms SILK frame actual=" << long_packet_bytes << '\n';
+  } else {
+    ok &= expect_eq(long_packet[0] & 3, 0, "single-frame 40ms SILK packet");
+    ok &= expect_eq(opus_packet_get_nb_samples(long_packet.data(), long_packet_bytes, 8000), 320, "encoded 40ms SILK duration");
+    int long_decoder_error = OPUS_OK;
+    OpusDecoder* long_decoder = opus_decoder_create(8000, 1, &long_decoder_error);
+    std::array<opus_int16, 320> long_output{};
+    ok &= expect_eq(long_decoder_error, OPUS_OK, "create long-frame decoder");
+    ok &= expect_eq(
+        opus_decode(long_decoder, long_packet.data(), long_packet_bytes, long_output.data(), static_cast<int>(long_output.size()), 0), 320,
+        "decode one 40ms SILK frame");
+    opus_decoder_destroy(long_decoder);
+  }
+  opus_encoder_destroy(long_encoder);
+
   int error = OPUS_OK;
   OpusDecoder* decoder = opus_decoder_create(48000, 2, &error);
   std::array<opus_int16, 5760 * 2> pcm{};
