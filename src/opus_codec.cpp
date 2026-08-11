@@ -2617,8 +2617,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if (probing_voip_mode && st->lightweight_analysis_frames == voip_mode_probe_frames &&
       st->audio_preprocess_hold >= audio_preprocess_warmup_frames + voip_mode_min_voiced_frames &&
-      st->audio_preprocess_hold <= audio_preprocess_warmup_frames + voip_mode_max_voiced_frames &&
-      st->lightweight_high_z_tonal_Q7 < 64) {
+      st->audio_preprocess_hold <= audio_preprocess_warmup_frames + voip_mode_max_voiced_frames && st->lightweight_high_z_tonal_Q7 < 64) {
     st->audio_preprocess_mode = audio_preprocess_speech;
   }
   const bool probing_lowrate_voip =
@@ -2689,9 +2688,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     if (segment_selected_bitrate && st->preprocess_filter_state >= 0) {
       const bool stable_tonal_frame = frame_metrics.mono_diff_ratio > .0015f && frame_metrics.mono_diff_ratio < .003f &&
                                       frame_metrics.mono_zero_cross_rate > .008f && frame_metrics.mono_zero_cross_rate < .018f;
-      st->preprocess_filter_state = !stable_tonal_frame               ? preprocess_filter_general_audio
+      st->preprocess_filter_state = !stable_tonal_frame                ? preprocess_filter_general_audio
                                     : st->preprocess_filter_state == 2 ? preprocess_filter_stable_tonal
-                                                                      : st->preprocess_filter_state + 1;
+                                                                       : st->preprocess_filter_state + 1;
     }
     const bool stable_tonal_segment = st->preprocess_filter_state != preprocess_filter_general_audio;
     if (st->bitrate_bps == 32000 && !confident_high_z_tonal) {
