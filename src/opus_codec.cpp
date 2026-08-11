@@ -2790,8 +2790,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   }
   if (voip_style && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
-      st->channels == 1 &&
-      st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 && st->bitrate_bps <= 32000) {
+      st->channels == 1 && st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
+      st->bitrate_bps <= 32000) {
     st->mode = opus_mode_silk_only;
   }
   const bool refine_lowrate_voip_celt = st->use_vbr && voip_style && st->channels == 1 && st->silk_mode.complexity >= 5 &&
@@ -2877,8 +2877,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       frame_metrics.mono_diff_ratio > 0 && frame_metrics.mono_diff_ratio < .006f) {
     st->bandwidth = std::min(st->bandwidth, 1104);
   }
-  st->silk_mode.LBRR_coded =
-      st->silk_mode.useInBandFEC ? decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate) : 0;
+  st->silk_mode.LBRR_coded = st->silk_mode.useInBandFEC ? decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate) : 0;
   if (st->bandwidth == 1102 && st->mode == opus_mode_celt_only) {
     st->bandwidth = 1103;
   } else if (st->bandwidth > 1103 && st->mode == opus_mode_silk_only) {
@@ -3110,7 +3109,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
         st->silk_mode.useCBR = 0;
       } else {
         opus_int32 maxBitRate = compute_silk_rate_for_hybrid(st->silk_mode.maxBits * frame_rate, curr_bandwidth, st->use_vbr,
-                                                            st->stream_channels, st->silk_mode.LBRR_coded != 0);
+                                                             st->stream_channels, st->silk_mode.LBRR_coded != 0);
         if (voip_silk_boost != 0) {
           maxBitRate = std::min<opus_int32>(st->silk_mode.maxBits * frame_rate, maxBitRate + voip_silk_boost);
         }
@@ -9134,9 +9133,8 @@ struct silk_pitch_analysis_result {
 
 static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_correlation, int prevLag, float search_thres1,
                                          float search_thres2, int Fs_kHz, int complexity, int nb_subfr) -> silk_pitch_analysis_result;
-static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut,
-                                  ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction,
-                                  bool protect_quiet_lbrr);
+static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc,
+                                  int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr);
 static void silk_init_encoder(silk_encoder_state_FLP* psEnc);
 static void silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch,
                                  const int force_fs_kHz);
@@ -9249,7 +9247,8 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       if (lbrr.enabled) {
         const int initial_gain = 7;
         const int minimum_gain = initial_gain - 4;
-        lbrr.gain_increase = previously_enabled ? std::max(initial_gain - encControl->packetLossPercentage / 5, minimum_gain) : initial_gain;
+        lbrr.gain_increase =
+            previously_enabled ? std::max(initial_gain - encControl->packetLossPercentage / 5, minimum_gain) : initial_gain;
       }
     }
   }
@@ -9386,8 +9385,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           }
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
           auto* lbrr = psEnc->lbrr == nullptr ? nullptr : &psEnc->lbrr->channels[static_cast<std::size_t>(n)];
-          const int lbrr_gain_reduction =
-              state_Fxx[n].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 || useCBR ? 2 : 0);
+          const int lbrr_gain_reduction = state_Fxx[n].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 || useCBR ? 2 : 0);
           silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction, n == 0);
           if (side_residual_fast_path) {
             silk_setup_complexity(&state_Fxx[n].sCmn, saved_complexity);
@@ -9445,8 +9443,7 @@ static void silk_encode_indices(silk_encoder_state* psEncC, SideInfoIndices& ind
                                 bool lbrr = false) {
   const int type_offset = 2 * indices.signalType + indices.quantOffsetType;
   const auto* icdf = type_offset >= 2 ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data();
-  ec_enc_icdf(psRangeEnc, lbrr || type_offset >= 2 ? type_offset - 2 : type_offset,
-              lbrr ? silk_type_offset_VAD_iCDF.data() : icdf, 8);
+  ec_enc_icdf(psRangeEnc, lbrr || type_offset >= 2 ? type_offset - 2 : type_offset, lbrr ? silk_type_offset_VAD_iCDF.data() : icdf, 8);
   silk_process_indices<true>(psEncC, indices, psRangeEnc, condCoding);
 }
 

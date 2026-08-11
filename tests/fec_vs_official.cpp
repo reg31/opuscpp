@@ -15,8 +15,7 @@ int curr_opus_encoder_ctl(curr_OpusEncoder* st, int request, ...) noexcept;
 int curr_opus_encode(curr_OpusEncoder* st, const std::int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 curr_OpusDecoder* curr_opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void curr_opus_decoder_destroy(curr_OpusDecoder* st) noexcept;
-int curr_opus_decode(curr_OpusDecoder* st, const unsigned char* data, int len, std::int16_t* pcm, int frame_size,
-                     int decode_fec) noexcept;
+int curr_opus_decode(curr_OpusDecoder* st, const unsigned char* data, int len, std::int16_t* pcm, int frame_size, int decode_fec) noexcept;
 
 #include "official_opus_abi.h"
 
@@ -43,9 +42,9 @@ using packet_stream = std::vector<std::vector<unsigned char>>;
       const double envelope = .55 + .35 * std::sin(2.0 * pi * 2.3 * time);
       noise_state = noise_state * 1664525u + 1013904223u;
       const double noise = static_cast<double>(static_cast<std::int32_t>(noise_state)) / 2147483648.0;
-      const auto left = static_cast<std::int16_t>(std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope *
-                                                                 (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
-                                                             noise_levels[static_cast<std::size_t>(profile)] * noise));
+      const auto left = static_cast<std::int16_t>(
+          std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope * (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
+                      noise_levels[static_cast<std::size_t>(profile)] * noise));
       pcm[static_cast<std::size_t>(index * channels)] = left;
       if (channels == 2) {
         pcm[static_cast<std::size_t>(index * channels + 1)] =
@@ -122,8 +121,10 @@ template <typename Decoder, auto Create, auto Destroy, auto Decode>
   }
   recovery_result result{scratch, scratch};
   const auto& recovery_packet = packets[static_cast<std::size_t>(dropped_packet + 1)];
-  if (Decode(decoder.get(), recovery_packet.data(), static_cast<int>(recovery_packet.size()), result.fec.data(), frame_size, 1) != frame_size ||
-      Decode(decoder.get(), recovery_packet.data(), static_cast<int>(recovery_packet.size()), result.current.data(), frame_size, 0) != frame_size) {
+  if (Decode(decoder.get(), recovery_packet.data(), static_cast<int>(recovery_packet.size()), result.fec.data(), frame_size, 1) !=
+          frame_size ||
+      Decode(decoder.get(), recovery_packet.data(), static_cast<int>(recovery_packet.size()), result.current.data(), frame_size, 0) !=
+          frame_size) {
     throw std::runtime_error("FEC recovery decode failed");
   }
   return result;
@@ -229,10 +230,9 @@ int main() {
       int bitrate;
       bool vbr;
     };
-    constexpr std::array cases{
-        test_case{1, 10, 24000, true}, test_case{1, 20, 16000, true}, test_case{1, 20, 24000, true},
-        test_case{1, 20, 32000, true}, test_case{1, 40, 24000, true}, test_case{1, 60, 24000, true},
-        test_case{2, 20, 32000, false}, test_case{2, 20, 48000, true}};
+    constexpr std::array cases{test_case{1, 10, 24000, true},  test_case{1, 20, 16000, true}, test_case{1, 20, 24000, true},
+                               test_case{1, 20, 32000, true},  test_case{1, 40, 24000, true}, test_case{1, 60, 24000, true},
+                               test_case{2, 20, 32000, false}, test_case{2, 20, 48000, true}};
     double opuscpp_error = 0;
     double official_error = 0;
     std::size_t opuscpp_bytes = 0;
@@ -243,9 +243,9 @@ int main() {
     int quality_cases = 0;
     for (int profile = 0; profile < 3; ++profile) {
       for (const auto& test : cases) {
-        const auto opuscpp = validate_direction<curr_OpusEncoder, curr_opus_encoder_create, curr_opus_encoder_destroy,
-                                                curr_opus_encoder_ctl, curr_opus_encode>(test.channels, test.bitrate, test.duration_ms,
-                                                                                        test.vbr, profile, true);
+        const auto opuscpp =
+            validate_direction<curr_OpusEncoder, curr_opus_encoder_create, curr_opus_encoder_destroy, curr_opus_encoder_ctl,
+                               curr_opus_encode>(test.channels, test.bitrate, test.duration_ms, test.vbr, profile, true);
         const auto official = validate_direction<OpusEncoder, opus_encoder_create, opus_encoder_destroy, opus_encoder_ctl, opus_encode>(
             test.channels, test.bitrate, test.duration_ms, test.vbr, profile, false);
         if (test.duration_ms <= 20) {
