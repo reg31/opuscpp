@@ -3379,8 +3379,7 @@ struct celt_pulse_budget {
   const unsigned char* cache;
 };
 
-[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept
-    -> celt_pulse_budget {
+[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept -> celt_pulse_budget {
   ++lm;
   int pulses;
   if (bits >= 0 && lm > 0 && lm <= celt_bits2pulses_lut_lm_count) {
@@ -6180,8 +6179,7 @@ static constexpr auto celt_pvq_fast_rows = make_celt_pvq_fast_rows();
     const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(dimensions)];
     return row[pulses] + row[pulses + 1];
   }
-  return celt_pvq_fast_rows[static_cast<unsigned>(pulses)][dimensions] +
-         celt_pvq_fast_rows[static_cast<unsigned>(pulses + 1)][dimensions];
+  return celt_pvq_fast_rows[static_cast<unsigned>(pulses)][dimensions] + celt_pvq_fast_rows[static_cast<unsigned>(pulses + 1)][dimensions];
 }
 
 struct celt_pvq_search_result {
