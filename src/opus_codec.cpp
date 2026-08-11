@@ -363,7 +363,7 @@ struct CeltEncoderInternal {
   int channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
   int vbr, constrained_vbr, lsb_depth;
-  bool prediction_disabled;
+  bool prediction_disabled, audio_application;
   opus_uint32 rng;
   opus_uint16 prefilter_period;
   opus_uint8 high_z_tonal_Q7, input_diff_Q10, consec_transient, lastCodedBands;
@@ -1802,6 +1802,7 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   celt_enc = encoder_celt_state(st);
   celt_encoder_init(celt_enc, Fs, channels);
   celt_enc->complexity = st->silk_mode.complexity;
+  celt_enc->audio_application = application == OPUS_APPLICATION_AUDIO;
   st->use_vbr = 1;
   st->vbr_constraint = 1;
   st->user_bitrate_bps = -1000;
@@ -5360,8 +5361,14 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                       &st->delayedIntra);
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, enc);
-  const int spread_decision = ec_tell(enc) + 4 <= total_bits ? 0 : 2;
-  if (spread_decision == 0) {
+  const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
+  int spread_decision = 2;
+  if (signal_spread) {
+    spread_decision = 0;
+    if (st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N && toneishness >= .40f &&
+        (hybrid ? 5 * st->bitrate >= st->silk_info.bitrateBps : 16 * effectiveBytes >= C * N)) {
+      spread_decision = 2;
+    }
     ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
   }
   init_caps(cap, LM, C);

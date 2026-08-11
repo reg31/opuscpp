@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.511x | 1.811x | 607x | 242x | 1609x | 888x |
-| 24&nbsp;kbps | 1.889x | 1.338x | 416x | 220x | 1038x | 776x |
-| 32&nbsp;kbps | 1.841x | 1.312x | 410x | 223x | 1008x | 768x |
-| 48&nbsp;kbps | 1.732x | 1.263x | 354x | 204x | 842x | 667x |
-| 64&nbsp;kbps | 1.697x | 1.247x | 305x | 180x | 719x | 576x |
-| 96&nbsp;kbps | 1.848x | 1.234x | 268x | 145x | 562x | 455x |
-| 128&nbsp;kbps | 2.083x | 1.230x | 275x | 132x | 488x | 396x |
-| 192&nbsp;kbps | 1.861x | 1.214x | 223x | 120x | 412x | 339x |
-| 256&nbsp;kbps | 1.781x | 1.153x | 204x | 115x | 354x | 307x |
+| 16&nbsp;kbps | 2.373x | 1.784x | 787x | 331x | 2157x | 1209x |
+| 24&nbsp;kbps | 1.912x | 1.257x | 552x | 289x | 1321x | 1051x |
+| 32&nbsp;kbps | 1.893x | 1.303x | 560x | 296x | 1367x | 1049x |
+| 48&nbsp;kbps | 1.682x | 1.201x | 460x | 273x | 1089x | 907x |
+| 64&nbsp;kbps | 1.643x | 1.168x | 401x | 244x | 916x | 785x |
+| 96&nbsp;kbps | 1.765x | 1.264x | 348x | 197x | 758x | 599x |
+| 128&nbsp;kbps | 2.072x | 1.337x | 366x | 177x | 661x | 494x |
+| 192&nbsp;kbps | 1.865x | 1.225x | 296x | 159x | 545x | 445x |
+| 256&nbsp;kbps | 1.857x | 1.058x | 276x | 148x | 442x | 418x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -307,7 +307,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 280,200 B | 0 B | 280,200 B |
+| Host MinGW GCC `-O2` | 280,264 B | 0 B | 280,264 B |
 
 ## Toolchains checked
 
