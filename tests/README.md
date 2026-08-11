@@ -216,15 +216,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.709x | 1.914x | 826x | 305x | 2275x | 1189x |
-| 24&nbsp;kbps | 1.915x | 1.392x | 579x | 302x | 1451x | 1042x |
-| 32&nbsp;kbps | 1.928x | 1.321x | 572x | 296x | 1414x | 1070x |
-| 48&nbsp;kbps | 1.706x | 1.305x | 476x | 279x | 1161x | 890x |
-| 64&nbsp;kbps | 1.686x | 1.285x | 420x | 249x | 1013x | 788x |
-| 96&nbsp;kbps | 1.898x | 1.272x | 369x | 194x | 795x | 625x |
-| 128&nbsp;kbps | 2.041x | 1.267x | 372x | 182x | 701x | 553x |
-| 192&nbsp;kbps | 1.903x | 1.265x | 309x | 162x | 592x | 468x |
-| 256&nbsp;kbps | 1.767x | 1.174x | 280x | 158x | 497x | 423x |
+| 16&nbsp;kbps | 2.549x | 1.890x | 732x | 287x | 1958x | 1036x |
+| 24&nbsp;kbps | 1.882x | 1.350x | 503x | 267x | 1250x | 927x |
+| 32&nbsp;kbps | 1.857x | 1.362x | 488x | 263x | 1193x | 876x |
+| 48&nbsp;kbps | 1.687x | 1.293x | 421x | 250x | 1025x | 793x |
+| 64&nbsp;kbps | 1.703x | 1.239x | 355x | 209x | 828x | 668x |
+| 96&nbsp;kbps | 1.852x | 1.302x | 319x | 173x | 695x | 533x |
+| 128&nbsp;kbps | 2.091x | 1.378x | 325x | 156x | 609x | 442x |
+| 192&nbsp;kbps | 1.843x | 1.220x | 267x | 145x | 499x | 409x |
+| 256&nbsp;kbps | 1.731x | 1.208x | 243x | 141x | 444x | 367x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -294,10 +294,10 @@ headline metrics remain unfiltered.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,744 B | -46.7% |
-| Encoder stereo | 32,192 B | 48,880 B | -34.1% |
-| Decoder mono | 14,080 B | 18,416 B | -23.5% |
-| Decoder stereo | 21,344 B | 27,296 B | -21.8% |
+| Encoder mono | 17,312 B | 31,728 B | -45.4% |
+| Encoder stereo | 32,176 B | 49,072 B | -34.4% |
+| Decoder mono | 14,080 B | 18,304 B | -23.1% |
+| Decoder stereo | 21,184 B | 27,440 B | -22.8% |
 
 Source CSV:
 
