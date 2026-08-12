@@ -118,7 +118,7 @@ encoder can place a lower-rate copy of the previous speech frame in the next pac
 packets cannot carry this redundancy. Its extra encoder state is allocated lazily on first enable
 and released with the encoder. `opuscpp` spends more of the redundancy budget on recoverable
 detail than official Opus and keeps a settled mono VOIP stream in a FEC-capable mode through
-32&nbsp;kbps when packet protection is explicitly requested.
+32&nbsp;kbps, or stereo through 48&nbsp;kbps, when packet protection is explicitly requested.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));
@@ -130,9 +130,10 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 `decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
-quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` has 38.5% lower aggregate recovery
-error, wins 14/18 cases, carries FEC in 16/18 cases versus 15/18 for official Opus, and uses 1.5% fewer
-packet bytes.
+quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
+more accurately in all 18 scenarios. Its combined reconstruction error is 53.7% lower, it supplies
+recoverable backup audio in all 18 scenarios compared with 15 for official Opus, and it uses 1.8%
+fewer packet bytes.
 
 ## Supported decoder CTLs
 

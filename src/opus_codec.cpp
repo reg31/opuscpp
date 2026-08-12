@@ -2358,9 +2358,8 @@ constexpr opus_val32 dtx_audible_activity_min_energy = 1e-5f;
   return st->use_dtx && st->nb_no_activity_ms_Q1 >= dtx_entry_ms_Q1;
 }
 
-[[nodiscard]] static opus_int32 finalize_dtx_packet(OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size,
-                                                    unsigned char* data, opus_int32 length) noexcept {
-  if (!st->use_dtx || length <= 0 || !should_emit_dtx(st, metrics, frame_size)) {
+[[nodiscard]] static opus_int32 finalize_dtx_packet(OpusEncoder* st, unsigned char* data, opus_int32 length, bool emit_dtx) noexcept {
+  if (!emit_dtx || length <= 0) {
     return length;
   }
   st->rangeFinal = 0;
@@ -2566,9 +2565,9 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes;
 };
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                           opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
-                                           int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame,
-                                           encoder_stage_storage& stage_storage);
+                                            opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
+                                            int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame,
+                                            bool skip_celt_for_dtx, encoder_stage_storage& stage_storage);
 [[nodiscard]] static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data,
                                                    const opus_int32 out_data_bytes, const multiframe_encode_params& params,
                                                    std::array<opus_res, encoder_max_stage_samples>& stage_buffer_storage) -> opus_int32 {
@@ -2610,14 +2609,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     curr_max = std::min(max_len_sum - tot_size, curr_max);
     const auto* frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
+    const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
     int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_metrics,
-                                           frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
-                                           frame_index < nb_frames - 1, stage_storage);
+                                            frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
+                                            frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
     if (tmp_len < 0) {
       result = -3;
       break;
     }
-    tmp_len = finalize_dtx_packet(st, frame_metrics, enc_frame_size, curr_data, tmp_len);
+    tmp_len = finalize_dtx_packet(st, curr_data, tmp_len, emit_dtx);
     if (tmp_len == 1) {
       ++dtx_count;
     }
@@ -2790,8 +2790,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   }
   if (voip_style && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
-      st->channels == 1 && st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
-      st->bitrate_bps <= 32000) {
+      st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
+      st->bitrate_bps <= std::array{32000, 48000}[static_cast<std::size_t>(st->channels - 1)]) {
     st->mode = opus_mode_silk_only;
   }
   const bool refine_lowrate_voip_celt = st->use_vbr && voip_style && st->channels == 1 && st->silk_mode.complexity >= 5 &&
@@ -2895,9 +2895,10 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (governed_vbr) {
     max_data_bytes = std::min(max_data_bytes, vbr_credit_cap_bytes(requested_frame_bits, st->vbr_budget_reservoir_bits));
   }
+  const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, frame_size);
   auto ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, frame_metrics, redundancy, celt_to_silk,
-                                      prefill, equiv_rate, to_celt, false, stage_storage);
-  ret = finalize_dtx_packet(st, frame_metrics, frame_size, data, ret);
+                                      prefill, equiv_rate, to_celt, false, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+  ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   if (encoder_is_in_dtx(st)) {
     st->vbr_budget_reservoir_bits = 0;
   } else if (governed_vbr && ret > 0) {
@@ -3004,9 +3005,9 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
 }
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                           opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
-                                           int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
-                                           bool nonfinal_frame, encoder_stage_storage& stage_storage) {
+                                            opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
+                                            int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
+                                            bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
   ec_enc enc;
@@ -3038,7 +3039,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     st->silk_bw_switch = 0;
     prefill = 2;
   }
-  if (st->mode == opus_mode_celt_only) {
+  if (st->mode == opus_mode_celt_only || skip_celt_for_dtx) {
     redundancy = 0;
   }
   if (redundancy) {
@@ -3141,6 +3142,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_to_silk = 0;
       st->silk_bw_switch = 1;
     }
+    if (skip_celt_for_dtx) {
+      redundancy = 0;
+      redundancy_bytes = 0;
+    }
   }
   celt_enc->end = bandwidth_to_endband(curr_bandwidth);
   celt_enc->stream_channels = st->stream_channels;
@@ -3232,7 +3237,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
     }
-    if (ec_tell(&enc) <= 8 * nb_compr_bytes) {
+    if (!skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes) {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc);
       if (ret < 0) {
         return -3;
@@ -6744,9 +6749,9 @@ static void kf_bfly4_m1(kiss_fft_cpx* output, int count) {
 
 static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
   const int m2 = 2 * m, m3 = 3 * m;
-  for (int i = 0; i < 15; ++i) {
-    auto* output = Fout + i * 4 * m;
-    for (int j = 0; j < m; ++j, ++output) {
+  for (int j = 0; j < m; ++j) {
+    auto* output = Fout + j;
+    for (int i = 0; i < 15; ++i, output += 4 * m) {
       const auto scratch0 = complex_multiply(output[m], st->twiddles[j * fstride]);
       const auto scratch1 = complex_multiply(output[m2], st->twiddles[2 * j * fstride]);
       const auto scratch2 = complex_multiply(output[m3], st->twiddles[3 * j * fstride]);
@@ -6770,9 +6775,9 @@ static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
 static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
   const size_t m2 = 2 * m;
   const kiss_twiddle_cpx epi3 = st->twiddles[fstride * m];
-  for (int i = 0; i < 5; ++i) {
-    auto* output = Fout + i * 3 * m;
-    for (size_t index = 0; index < static_cast<size_t>(m); ++index) {
+  for (size_t index = 0; index < static_cast<size_t>(m); ++index) {
+    auto* output = Fout + index;
+    for (int i = 0; i < 5; ++i, output += 3 * m) {
       const auto scratch1 = complex_multiply(output[m], st->twiddles[index * fstride]);
       const auto scratch2 = complex_multiply(output[m2], st->twiddles[2 * index * fstride]);
       const auto scratch3 = complex_add(scratch1, scratch2);
@@ -6787,7 +6792,6 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
       output[m2].i = output[m].i - scratch0.r;
       output[m].r -= scratch0.i;
       output[m].i += scratch0.r;
-      ++output;
     }
   }
 }
@@ -12352,6 +12356,13 @@ static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* p
                             psEncC->indices.signalType, psEncC->indices.quantOffsetType, psEncC->frame_length);
 }
 
+[[nodiscard]] auto opuscpp_silk_lbrr_lambda_scale(const silk_encoder_state& state) noexcept -> float {
+  return state.nb_subfr != 2                           ? .9f
+         : state.input_tilt_Q15 < -10000               ? .95f
+         : state.speech_activity_Q8 < fixed_q<8>(.75f) ? .8f
+                                                       : .9f;
+}
+
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control,
                                const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet) {
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
@@ -12375,7 +12386,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     control->Gains[index] = gains_Q16[static_cast<std::size_t>(index)] * (1.0f / 65536.0f);
   }
   const float original_lambda = control->Lambda;
-  control->Lambda *= .9f;
+  control->Lambda *= opuscpp_silk_lbrr_lambda_scale(psEnc->sCmn);
   silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr->nsq, lbrr->pulses[frame].data(), samples);
   control->Lambda = original_lambda;
   std::copy_n(original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), control->Gains);

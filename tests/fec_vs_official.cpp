@@ -264,7 +264,7 @@ int main() {
     std::cout << "fec_summary recovery_error_ratio=" << opuscpp_error / official_error << " wins=" << opuscpp_wins << '/' << quality_cases
               << " coverage=" << opuscpp_coverage << '/' << quality_cases << " official_coverage=" << official_coverage << '/'
               << quality_cases << " packet_byte_ratio=" << static_cast<double>(opuscpp_bytes) / official_bytes << '\n';
-    if (opuscpp_error >= official_error || opuscpp_wins * 3 < quality_cases * 2 || opuscpp_coverage < official_coverage ||
+    if (opuscpp_error >= official_error || opuscpp_wins != quality_cases || opuscpp_coverage != quality_cases ||
         opuscpp_bytes > official_bytes) {
       throw std::runtime_error("opuscpp FEC did not outperform official Opus");
     }

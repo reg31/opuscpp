@@ -294,7 +294,7 @@ def emit_metrics_report(
     for line in toolchains:
         lines.append(f"| {line} | checked |")
 
-    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     return md_path
 
 def find_vector_dir(vector_root: pathlib.Path) -> pathlib.Path:
