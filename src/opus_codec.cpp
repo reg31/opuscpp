@@ -2565,9 +2565,9 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes;
 };
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                            opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
-                                            int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame,
-                                            bool skip_celt_for_dtx, encoder_stage_storage& stage_storage);
+                                           opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
+                                           int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame,
+                                           bool skip_celt_for_dtx, encoder_stage_storage& stage_storage);
 [[nodiscard]] static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data,
                                                    const opus_int32 out_data_bytes, const multiframe_encode_params& params,
                                                    std::array<opus_res, encoder_max_stage_samples>& stage_buffer_storage) -> opus_int32 {
@@ -2611,8 +2611,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
     const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
     int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_metrics,
-                                            frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
-                                            frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+                                           frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
+                                           frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
     if (tmp_len < 0) {
       result = -3;
       break;
@@ -3005,9 +3005,9 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
 }
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                            opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
-                                            int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
-                                            bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
+                                           opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
+                                           int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
+                                           bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
   ec_enc enc;
@@ -12357,10 +12357,7 @@ static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* p
 }
 
 [[nodiscard]] auto opuscpp_silk_lbrr_lambda_scale(const silk_encoder_state& state) noexcept -> float {
-  return state.nb_subfr != 2                           ? .9f
-         : state.input_tilt_Q15 < -10000               ? .95f
-         : state.speech_activity_Q8 < fixed_q<8>(.75f) ? .8f
-                                                       : .9f;
+  return state.nb_subfr != 2 ? .9f : state.input_tilt_Q15 < -10000 ? .95f : state.speech_activity_Q8 < fixed_q<8>(.75f) ? .8f : .9f;
 }
 
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control,
