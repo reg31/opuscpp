@@ -2617,8 +2617,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   int dtx_count = 0;
   stage_storage.prime_from_encoder(st);
   opus_int32 repacketize_len = (st->use_vbr || st->user_bitrate_bps == -1) ? out_data_bytes : std::min(params.cbr_bytes, out_data_bytes);
-  const opus_int32 packet_target_bits =
-      params.governed_vbr ? params.target_bits : bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
+  const opus_int32 packet_target_bits = params.governed_vbr ? params.target_bits : bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
   const auto packet_budget = make_vbr_frame_budget(packet_target_bits, st->vbr_budget_reservoir_bits);
   if (params.governed_vbr) {
     repacketize_len = std::min(repacketize_len, packet_budget.max_bytes);
@@ -2647,10 +2646,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
     const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
     const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
-    int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits,
-                                           params.float_api, frame_metrics, frame_redundancy, params.celt_to_silk, params.prefill,
-                                           params.equiv_rate, frame_to_celt, frame_index < nb_frames - 1,
-                                           emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+    int tmp_len =
+        opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits, params.float_api, frame_metrics,
+                                 frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
+                                 frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
     if (tmp_len < 0) {
       result = -3;
       break;
@@ -2932,10 +2931,10 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = opus_mode_silk_only;
   }
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
-    return encode_multiframe_packet(st, pcm, frame_size, data, out_data_bytes,
-                                    {float_api, governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes,
-                                     requested_frame_bits},
-                                    stage_buffer_storage);
+    return encode_multiframe_packet(
+        st, pcm, frame_size, data, out_data_bytes,
+        {float_api, governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits},
+        stage_buffer_storage);
   }
   auto stage_storage = make_encoder_stage_storage(stage_buffer_storage.data(), st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
@@ -2944,9 +2943,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, frame_size);
   const opus_int32 allocator_target_bits = governed_vbr ? frame_budget.allocator_bits : 0;
-  auto ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, float_api, frame_metrics,
-                                      redundancy, celt_to_silk, prefill, equiv_rate, to_celt, false,
-                                      emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+  auto ret =
+      opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, float_api, frame_metrics, redundancy,
+                               celt_to_silk, prefill, equiv_rate, to_celt, false, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
@@ -5910,8 +5909,7 @@ static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* con
         const opus_res x = signal_to_float_pcm(sample);
         const auto delta = x - low;
         low += pole * delta;
-        output[index * channels + channel] =
-            FLOAT2INT16(clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f));
+        output[index * channels + channel] = FLOAT2INT16(clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f));
       }
     }
     st->preemph_memD[channel] = zero_tiny_float_mem(deemphasis_mem);
