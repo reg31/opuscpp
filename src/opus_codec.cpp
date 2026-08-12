@@ -5689,6 +5689,16 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
   const bool smoothing_active = level == 3 && channels == 1 && std::abs(target_gain - gain) > 1e-5f;
   const opus_val16 energy_scale = smoothing_active ? 1.0f + std::min(0.01f, 0.04f * gain) : 1.0f;
   const opus_val16 pole = level == 3 && channels == 2 && gain < 0.05f ? 0.076f : 0.08f;
+  if (channels == 1) {
+    auto low = st->output_postfilter_mem[0];
+    for (int i = 0; i < samples; ++i) {
+      const opus_res x = pcm[i];
+      low += pole * (x - low);
+      pcm[i] = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+    }
+    st->output_postfilter_mem[0] = low;
+    return;
+  }
   for (int i = 0; i < samples; ++i) {
     const auto base = i * channels;
     for (int channel = 0; channel < channels; ++channel) {

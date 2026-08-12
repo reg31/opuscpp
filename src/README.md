@@ -150,7 +150,9 @@ encoder interoperability. The default level is `0`, so normal decoder output rem
 It gently suppresses high-frequency quantization noise, harshness, and ringing at selected bitrates.
 Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity, and
 bypasses combinations where its measured benefit did not justify the decode cost. The trade-off is
-extra decoder work and potentially softer treble while filtering is active.
+potentially softer treble while filtering is active. The mono-specialized implementation added about
+11% to 26% in the focused continuous-filter benchmark and decoded 60 seconds in roughly 0.04 to
+0.09 seconds on the measured Windows/AMD system.
 
 | Level | Recommended use |
 |---:|---|
