@@ -86,15 +86,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.516686x | 1.844763x |
-| 24 kbps | 1.885244x | 1.372745x |
-| 32 kbps | 1.849426x | 1.426856x |
-| 48 kbps | 1.754893x | 1.265760x |
-| 64 kbps | 1.839261x | 1.245578x |
-| 96 kbps | 1.905156x | 1.314463x |
-| 128 kbps | 2.097839x | 1.262989x |
-| 192 kbps | 1.870323x | 1.267522x |
-| 256 kbps | 1.760025x | 1.191790x |
+| 16 kbps | 2.523145x | 1.874015x |
+| 24 kbps | 1.900763x | 1.395657x |
+| 32 kbps | 1.858703x | 1.342991x |
+| 48 kbps | 1.788432x | 1.296092x |
+| 64 kbps | 1.770183x | 1.307464x |
+| 96 kbps | 1.856207x | 1.241033x |
+| 128 kbps | 2.065751x | 1.271721x |
+| 192 kbps | 1.880819x | 1.274463x |
+| 256 kbps | 1.765725x | 1.193099x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -135,20 +135,20 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | State | Difference |
 |---|---:|
-| Encoder mono | -46.7% |
-| Encoder stereo | -34.2% |
-| Decoder mono | -23.3% |
-| Decoder stereo | -21.8% |
+| Encoder mono | -46.6% |
+| Encoder stereo | -34.4% |
+| Decoder mono | -22.5% |
+| Decoder stereo | -22.8% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 288724 B | 0 B | 288724 B |
+| Host C++23 `-O2` | 288996 B | 0 B | 288996 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
+| MinGW/current C++23 compiler: C:/Qt/Tools/mingw64/bin/g++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |

@@ -141,18 +141,18 @@ fewer packet bytes.
 |---|---|---|
 | `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | Speech-oriented `opuscpp` output postfilter: `0` off, `1` light, `2` stronger, `3` adaptive; default is off for RFC-compatible decoder output. |
+| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | Speech-oriented `opuscpp` output postfilter: `0` off, `1` lower-work light, `2` stronger, `3` adaptive; default is off for RFC-compatible decoder output. |
 | `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the output-postfilter level. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |
 
 The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
 encoder interoperability. The default level is `0`, so normal decoder output remains RFC-compatible.
 It gently suppresses high-frequency quantization noise, harshness, and ringing at selected bitrates.
-Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity, and
-bypasses combinations where its measured benefit did not justify the decode cost. The trade-off is
-potentially softer treble while filtering is active. The mono-specialized implementation added about
-11% to 26% in the focused continuous-filter benchmark and decoded 60 seconds in roughly 0.04 to
-0.09 seconds on the measured Windows/AMD system.
+Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity to select bypass,
+light processing, or full-strength processing. The trade-off is potentially softer treble while filtering
+is active. On the common direct PCM16 mono path, light processing updates its low-pass state once per
+sample pair while stronger processing tracks every sample. In the focused continuous-filter benchmark,
+light processing added about 2% to 6% over unfiltered decoding, depending on bitrate.
 
 | Level | Recommended use |
 |---:|---|

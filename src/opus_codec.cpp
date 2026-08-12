@@ -5905,13 +5905,37 @@ static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* con
       low = signal_to_float_pcm(last_sample);
     } else {
       const auto correction = gain * (1.0f - pole);
-      for (int index = 0; index < samples; ++index) {
-        const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
-        deemphasis_mem = celt_preemphasis[0] * sample;
-        const opus_res x = signal_to_float_pcm(sample);
-        const auto delta = x - low;
-        low += pole * delta;
-        output[index * channels + channel] = FLOAT2INT16(clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f));
+      if (gain <= 0.08f && energy_scale == 1.0f) {
+        const auto pair_pole = pole * (2.0f - pole);
+        int index = 0;
+        for (; index + 1 < samples; index += 2) {
+          const celt_sig sample0 = input[channel][index] + 1e-30f + deemphasis_mem;
+          deemphasis_mem = celt_preemphasis[0] * sample0;
+          const opus_res x0 = signal_to_float_pcm(sample0);
+          const celt_sig sample1 = input[channel][index + 1] + 1e-30f + deemphasis_mem;
+          deemphasis_mem = celt_preemphasis[0] * sample1;
+          const opus_res x1 = signal_to_float_pcm(sample1);
+          output[index * channels + channel] = FLOAT2INT16(x0 - correction * (x0 - low));
+          output[(index + 1) * channels + channel] = FLOAT2INT16(x1 - correction * (x1 - low));
+          low += pair_pole * (0.5f * (x0 + x1) - low);
+        }
+        if (index < samples) {
+          const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
+          deemphasis_mem = celt_preemphasis[0] * sample;
+          const opus_res x = signal_to_float_pcm(sample);
+          const auto delta = x - low;
+          low += pole * delta;
+          output[index * channels + channel] = FLOAT2INT16(x - correction * delta);
+        }
+      } else {
+        for (int index = 0; index < samples; ++index) {
+          const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
+          deemphasis_mem = celt_preemphasis[0] * sample;
+          const opus_res x = signal_to_float_pcm(sample);
+          const auto delta = x - low;
+          low += pole * delta;
+          output[index * channels + channel] = FLOAT2INT16(clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f));
+        }
       }
     }
     st->preemph_memD[channel] = zero_tiny_float_mem(deemphasis_mem);

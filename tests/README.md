@@ -224,7 +224,7 @@ PESQ/ViSQOL tooling or listening tests.
 
 This is the public benchmark comparison: official Opus 1.6.1 is built with `-O2 -DNDEBUG` and x86
 runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` uses the same pure C++23 `-O2 -DNDEBUG` profile, with no assembly and no SIMD intrinsics. Measurements
-are from Windows MinGW GCC 16.1 on an AMD Ryzen 7 8845HS, using medians of nine repository
+are from Windows MinGW GCC 16.2 on an AMD Ryzen 7 8845HS, using medians of nine repository
 60-second stereo synthetic music-like benchmark runs. A value above `1.00x` means `opuscpp` is faster than the optimized
 official build. Each repetition changes the bitrate sweep order and alternates which implementation
 runs first to reduce CPU boost and thermal-order bias. This keeps the optimization level matched while
@@ -232,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.517x | 1.845x | 841x | 334x | 2303x | 1249x |
-| 24&nbsp;kbps | 1.885x | 1.373x | 585x | 310x | 1487x | 1083x |
-| 32&nbsp;kbps | 1.849x | 1.427x | 570x | 308x | 1438x | 1008x |
-| 48&nbsp;kbps | 1.755x | 1.266x | 496x | 283x | 1184x | 935x |
-| 64&nbsp;kbps | 1.839x | 1.246x | 441x | 240x | 977x | 784x |
-| 96&nbsp;kbps | 1.905x | 1.314x | 382x | 201x | 808x | 615x |
-| 128&nbsp;kbps | 2.098x | 1.263x | 383x | 183x | 709x | 562x |
-| 192&nbsp;kbps | 1.870x | 1.268x | 314x | 168x | 602x | 475x |
-| 256&nbsp;kbps | 1.760x | 1.192x | 287x | 163x | 515x | 432x |
+| 16&nbsp;kbps | 2.523x | 1.874x | 609x | 242x | 1662x | 887x |
+| 24&nbsp;kbps | 1.901x | 1.396x | 416x | 219x | 1065x | 763x |
+| 32&nbsp;kbps | 1.859x | 1.343x | 410x | 220x | 1032x | 768x |
+| 48&nbsp;kbps | 1.788x | 1.296x | 362x | 203x | 860x | 664x |
+| 64&nbsp;kbps | 1.770x | 1.307x | 314x | 178x | 732x | 560x |
+| 96&nbsp;kbps | 1.856x | 1.241x | 267x | 144x | 561x | 452x |
+| 128&nbsp;kbps | 2.066x | 1.272x | 272x | 132x | 499x | 393x |
+| 192&nbsp;kbps | 1.881x | 1.274x | 223x | 119x | 427x | 335x |
+| 256&nbsp;kbps | 1.766x | 1.193x | 202x | 114x | 363x | 305x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -300,7 +300,7 @@ current validation run.
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
 mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about
 `+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas. The
-current PCM16 path adds 0.2% to 8.7% end-to-end decode time across the measured bitrate ladder; the
+current PCM16 path adds 0.2% to 8.3% end-to-end decode time across the measured bitrate ladder; the
 same test decodes 60 seconds in 0.033 to 0.081 seconds. The zero-gain diagnostic route accounts for
 at most 0.6%; the remainder is the adaptive decision and filter work. At 48/64&nbsp;kbps auto
 mode is inactive on this sample, so sub-percent differences are benchmark noise. Each row is the
@@ -310,7 +310,7 @@ The public default and headline metrics remain unfiltered because mono music can
 | Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
 |---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0000 | +0.0000 | 7.9% |
-| 24&nbsp;kbps | +0.0004 | +0.0001 | 8.7% |
+| 24&nbsp;kbps | +0.0004 | +0.0001 | 6.4% |
 | 32&nbsp;kbps | +0.0249 | +0.0017 | 8.3% |
 | 48&nbsp;kbps | +0.0000 | +0.0000 | 0.2% |
 | 64&nbsp;kbps | +0.0000 | +0.0000 | 0.5% |
@@ -331,10 +331,10 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,744 B | -46.7% |
-| Encoder stereo | 32,192 B | 48,944 B | -34.2% |
-| Decoder mono | 14,064 B | 18,336 B | -23.3% |
-| Decoder stereo | 21,344 B | 27,296 B | -21.8% |
+| Encoder mono | 16,928 B | 31,712 B | -46.6% |
+| Encoder stereo | 32,192 B | 49,072 B | -34.4% |
+| Decoder mono | 14,176 B | 18,288 B | -22.5% |
+| Decoder stereo | 21,184 B | 27,440 B | -22.8% |
 
 Source CSV:
 
@@ -344,12 +344,12 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 288,724 B | 0 B | 288,724 B |
+| Host MinGW GCC `-O2` | 288,996 B | 0 B | 288,996 B |
 
 ## Toolchains checked
 
 | Toolchain | Status |
 |---|---|
-| MinGW GCC 16.1 C++23 | Build check passed in the latest full report. |
+| MinGW GCC 16.2 C++23 | Build check passed in the latest full report. |
 | Android arm64 Clang C++23 | Build check passed in the latest full report. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
