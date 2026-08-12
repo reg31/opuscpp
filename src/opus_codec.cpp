@@ -424,8 +424,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
-                               opus_int16* pcm16 = nullptr, OpusDecoder* output_filter_decoder = nullptr,
-                               int packet_bitrate_bps = 0);
+                               opus_int16* pcm16 = nullptr, OpusDecoder* output_filter_decoder = nullptr, int packet_bitrate_bps = 0);
 static void celt_decoder_reset_state(CeltDecoderInternal* st);
 static void apply_decoder_output_postfilter(OpusDecoder* st, opus_res* pcm, int samples, opus_int32 packet_bytes);
 static void convert_decoder_output_postfilter(OpusDecoder* st, const opus_res* input, opus_int16* output, int samples,
@@ -1360,8 +1359,7 @@ static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data,
 }
 
 [[nodiscard]] static int decoder_packet_bitrate(const OpusDecoder* st, opus_int32 packet_bytes, int samples) noexcept {
-  return static_cast<int>(
-      std::min<opus_int64>((static_cast<opus_int64>(packet_bytes) * 8 * st->Fs) / samples, opus_int32_max));
+  return static_cast<int>(std::min<opus_int64>((static_cast<opus_int64>(packet_bytes) * 8 * st->Fs) / samples, opus_int32_max));
 }
 
 template <std::size_t Capacity>
@@ -5688,8 +5686,8 @@ struct output_postfilter_parameters {
   opus_val16 pole;
 };
 
-[[nodiscard]] static auto prepare_output_postfilter(CeltDecoderInternal* st, int channels,
-                                                    opus_val16 target_gain) noexcept -> output_postfilter_parameters {
+[[nodiscard]] static auto prepare_output_postfilter(CeltDecoderInternal* st, int channels, opus_val16 target_gain) noexcept
+    -> output_postfilter_parameters {
   const int level = st->output_postfilter_level;
   opus_val16 gain = target_gain;
   if (level == 3 && channels == 1) {
@@ -5852,8 +5850,7 @@ static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* con
         deemphasis_mem = celt_preemphasis[0] * sample;
         const opus_res x = signal_to_float_pcm(sample);
         low += pole * (x - low);
-        output[index * channels + channel] =
-            FLOAT2INT16(clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f));
+        output[index * channels + channel] = FLOAT2INT16(clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f));
       }
     }
     st->preemph_memD[channel] = zero_tiny_float_mem(deemphasis_mem);
