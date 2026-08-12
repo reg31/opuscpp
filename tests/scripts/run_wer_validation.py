@@ -106,6 +106,7 @@ class Score:
     snr_db: str
     bitrate: int
     application: str
+    postfilter: int
     reference: str
     hypothesis: str
     wer: float
@@ -248,7 +249,7 @@ def save_asr_cache(path: pathlib.Path | None, cache: dict[str, str]) -> None:
     path.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def asr_cache_key(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, gain_db: str, snr_db: str) -> str:
+def asr_cache_key(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: int, gain_db: str, snr_db: str, postfilter: int) -> str:
     return json.dumps(
         {
             "asr_command": asr_command,
@@ -257,6 +258,7 @@ def asr_cache_key(asr_command: str, wav: pathlib.Path, sample: Sample, bitrate: 
             "sample_id": sample.sample_id,
             "sha256": file_sha256(wav),
             "snr_db": snr_db,
+            "postfilter": postfilter,
         },
         sort_keys=True,
     )
@@ -269,10 +271,11 @@ def run_asr(
     bitrate: int,
     gain_db: str,
     snr_db: str,
+    postfilter: int,
     asr_cache: dict[str, str] | None,
     asr_cache_path: pathlib.Path | None,
 ) -> str:
-    key = asr_cache_key(asr_command, wav, sample, bitrate, gain_db, snr_db) if asr_cache is not None else ""
+    key = asr_cache_key(asr_command, wav, sample, bitrate, gain_db, snr_db, postfilter) if asr_cache is not None else ""
     if asr_cache is not None and key in asr_cache:
         return asr_cache[key]
     command = asr_command.format(
@@ -300,15 +303,16 @@ def parse_csv_strings(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def load_baseline(path: pathlib.Path | None) -> dict[tuple[str, str, str, int, str], float]:
+def load_baseline(path: pathlib.Path | None) -> dict[tuple[str, str, str, int, str, int], float]:
     if path is None or not path.exists():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
     rows = data.get("rows", data if isinstance(data, list) else [])
-    baseline: dict[tuple[str, str, str, int, str], float] = {}
+    baseline: dict[tuple[str, str, str, int, str, int], float] = {}
     for row in rows:
         gain_db = str(row.get("gain_db", "0"))
-        baseline[(str(row["sample_id"]), gain_db, str(row["snr_db"]), int(row["bitrate"]), str(row["application"]))] = float(row["wer"])
+        baseline[(str(row["sample_id"]), gain_db, str(row["snr_db"]), int(row["bitrate"]), str(row["application"]),
+                  int(row.get("postfilter", 0)))] = float(row["wer"])
     return baseline
 
 
@@ -332,13 +336,13 @@ def write_reports(scores: list[Score], output_dir: pathlib.Path) -> None:
         f"- Average WER: {average_wer:.4f}",
         f"- Average CER: {average_cer:.4f}",
         "",
-        "| Sample | Gain | SNR | Bitrate | Application | WER | CER | Hypothesis |",
-        "|---|---:|---:|---:|---|---:|---:|---|",
+        "| Sample | Gain | SNR | Bitrate | Application | Postfilter | WER | CER | Hypothesis |",
+        "|---|---:|---:|---:|---|---:|---:|---:|---|",
     ]
     for score in scores:
         hyp = score.hypothesis.replace("|", "\\|")
         lines.append(
-            f"| {score.sample_id} | {score.gain_db} dB | {score.snr_db} | {score.bitrate} | {score.application} | "
+            f"| {score.sample_id} | {score.gain_db} dB | {score.snr_db} | {score.bitrate} | {score.application} | {score.postfilter} | "
             f"{score.wer:.4f} | {score.cer:.4f} | {hyp} |"
         )
     (output_dir / "wer_report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -357,6 +361,7 @@ def main() -> int:
     parser.add_argument("--frame-size", default=960, type=int)
     parser.add_argument("--vbr", default=1, type=int)
     parser.add_argument("--complexity", default=10, type=int)
+    parser.add_argument("--postfilter", default=0, choices=range(4), type=int)
     parser.add_argument("--max-average-wer", default=None, type=float)
     parser.add_argument("--max-case-wer", default=None, type=float)
     parser.add_argument("--asr-cache", default=None, type=pathlib.Path, help="Optional JSON cache for ASR transcripts keyed by decoded WAV hash.")
@@ -410,16 +415,19 @@ def main() -> int:
                                 str(args.frame_size),
                                 str(args.vbr),
                                 str(args.complexity),
+                                str(args.postfilter),
                             ],
                             check=True,
                         )
-                        hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, gain_db, snr_db, asr_cache, args.asr_cache)
+                        hypothesis = run_asr(args.asr_command, decoded_wav, sample, bitrate, gain_db, snr_db, args.postfilter, asr_cache,
+                                             args.asr_cache)
                         score = Score(
                             sample_id=sample.sample_id,
                             gain_db=gain_db,
                             snr_db=snr_db,
                             bitrate=bitrate,
                             application=application,
+                            postfilter=args.postfilter,
                             reference=sample.transcript,
                             hypothesis=hypothesis,
                             wer=word_error_rate(sample.transcript, hypothesis),
@@ -432,7 +440,7 @@ def main() -> int:
                                 f"{sample.sample_id}/{gain_db}dB/{snr_db}/{application}/{bitrate}: "
                                 f"WER {score.wer:.4f} > {args.max_case_wer:.4f}"
                             )
-                        previous = baseline.get((sample.sample_id, gain_db, snr_db, bitrate, application))
+                        previous = baseline.get((sample.sample_id, gain_db, snr_db, bitrate, application, args.postfilter))
                         if previous is not None and score.wer - previous > args.max_wer_regression:
                             failures.append(
                                 f"{sample.sample_id}/{gain_db}dB/{snr_db}/{application}/{bitrate}: "

@@ -147,8 +147,8 @@ fewer packet bytes.
 
 The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
 encoder interoperability. The default level is `0`, so normal decoder output remains RFC-compatible.
-It gently suppresses high-frequency quantization noise, harshness, and ringing, mainly at low and
-mid bitrates. Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity, and
+It gently suppresses high-frequency quantization noise, harshness, and ringing at selected bitrates.
+Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity, and
 bypasses combinations where its measured benefit did not justify the decode cost. The trade-off is
 extra decoder work and potentially softer treble while filtering is active.
 
@@ -157,7 +157,7 @@ extra decoder work and potentially softer treble while filtering is active.
 | `0` (off) | General audio, music, validation, speech-to-text, and applications requiring the plainest decoder output. This is the default. |
 | `1` (light) | Mild harshness or ringing where preserving treble is more important than maximum smoothing. |
 | `2` (stronger) | Clearly noisy low-bitrate speech where stronger smoothing is preferred despite a greater risk of dulling treble. |
-| `3` (adaptive) | Recommended for speech below 40 kbps. It filters only packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not recommended for music, where it usually has no effect and may soften tonal detail when active. |
+| `3` (adaptive) | Recommended for speech playback when smoothing is preferred. It filters only packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not recommended for music, where it usually has no effect and may soften tonal detail when active. |
 
 Published quality metrics use the default unfiltered output.
 

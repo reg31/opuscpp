@@ -132,7 +132,8 @@ auto write_wav(const std::string& path, const wav_data& wav) -> void {
   return std::stoi(std::string{value});
 }
 
-[[nodiscard]] auto roundtrip(const wav_data& input, int bitrate, int application, int frame_size, int vbr, int complexity) -> wav_data {
+[[nodiscard]] auto roundtrip(const wav_data& input, int bitrate, int application, int frame_size, int vbr, int complexity, int postfilter)
+    -> wav_data {
   auto error = OPUS_OK;
   auto encoder = make_opus_encoder(input.sample_rate, input.channels, application, &error);
   if (!encoder || error != OPUS_OK) {
@@ -141,6 +142,9 @@ auto write_wav(const std::string& path, const wav_data& wav) -> void {
   auto decoder = make_opus_decoder(input.sample_rate, input.channels, &error);
   if (!decoder || error != OPUS_OK) {
     throw std::runtime_error("opus_decoder_create failed");
+  }
+  if (opus_decoder_ctl(decoder.get(), OPUSCPP_SET_DECODE_POSTFILTER(postfilter)) != OPUS_OK) {
+    throw std::runtime_error("decoder postfilter ctl failed");
   }
   if (opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) != OPUS_OK ||
       opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(vbr)) != OPUS_OK ||
@@ -178,9 +182,9 @@ auto write_wav(const std::string& path, const wav_data& wav) -> void {
 
 int main(int argc, char** argv) {
   try {
-    if (argc < 5 || argc > 8) {
+    if (argc < 5 || argc > 9) {
       std::cerr << "usage: wer_roundtrip <input.wav> <output.wav> <bitrate> <voip|audio|lowdelay> [frame_size=960] [vbr=1] "
-                   "[complexity=10]\n";
+                   "[complexity=10] [postfilter=0]\n";
       return 2;
     }
     const auto input = read_wav(argv[1]);
@@ -189,7 +193,8 @@ int main(int argc, char** argv) {
     const auto frame_size = argc > 5 ? std::stoi(argv[5]) : OPUS_FRAME_SIZE_20MS;
     const auto vbr = argc > 6 ? std::stoi(argv[6]) : 1;
     const auto complexity = argc > 7 ? std::stoi(argv[7]) : 10;
-    write_wav(argv[2], roundtrip(input, bitrate, application, frame_size, vbr, complexity));
+    const auto postfilter = argc > 8 ? std::stoi(argv[8]) : 0;
+    write_wav(argv[2], roundtrip(input, bitrate, application, frame_size, vbr, complexity, postfilter));
     return 0;
   } catch (const std::exception& e) {
     std::cerr << "wer_roundtrip: " << e.what() << '\n';

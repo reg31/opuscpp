@@ -103,6 +103,7 @@ python3 tests/scripts/run_wer_validation.py \
     --application voip \
     --gain-db 0,-12,-24 \
     --snr-db clean,20,10,5,0 \
+    --postfilter 3 \
     --max-average-wer 0.12 \
     --max-case-wer 0.30
 ```
@@ -112,6 +113,8 @@ print the recognized text to stdout. Use `OPUSCPP_ASR_COMMAND` instead of `--asr
 prefer environment configuration. Reports are written under `build/wer_validation/`.
 `--gain-db` is applied before encoding and before optional noise injection; use it to validate quiet
 voice robustness without needing separate low-volume source files.
+Use `--postfilter 0` for the public decoder default or `--postfilter 3` to validate adaptive speech
+postfilter output.
 
 For regression gating, pass `--baseline tests/metrics/wer_results.json --max-wer-regression 0.02`.
 Add `--update-baseline` only after listening/ASR review confirms the new result is better.
@@ -229,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.491x | 1.845x | 853x | 343x | 2293x | 1243x |
-| 24&nbsp;kbps | 1.904x | 1.378x | 593x | 311x | 1506x | 1093x |
-| 32&nbsp;kbps | 1.860x | 1.361x | 583x | 313x | 1467x | 1078x |
-| 48&nbsp;kbps | 1.784x | 1.290x | 517x | 289x | 1215x | 942x |
-| 64&nbsp;kbps | 1.781x | 1.286x | 454x | 255x | 1045x | 813x |
-| 96&nbsp;kbps | 1.861x | 1.286x | 386x | 207x | 821x | 638x |
-| 128&nbsp;kbps | 2.062x | 1.274x | 390x | 189x | 716x | 562x |
-| 192&nbsp;kbps | 1.865x | 1.261x | 317x | 170x | 607x | 481x |
-| 256&nbsp;kbps | 1.783x | 1.206x | 290x | 163x | 519x | 430x |
+| 16&nbsp;kbps | 2.492x | 1.885x | 844x | 339x | 2310x | 1225x |
+| 24&nbsp;kbps | 1.882x | 1.341x | 580x | 308x | 1453x | 1084x |
+| 32&nbsp;kbps | 1.848x | 1.345x | 572x | 309x | 1431x | 1064x |
+| 48&nbsp;kbps | 1.779x | 1.326x | 509x | 286x | 1212x | 914x |
+| 64&nbsp;kbps | 1.730x | 1.300x | 430x | 248x | 1030x | 792x |
+| 96&nbsp;kbps | 1.852x | 1.291x | 373x | 202x | 806x | 624x |
+| 128&nbsp;kbps | 2.064x | 1.276x | 384x | 186x | 705x | 553x |
+| 192&nbsp;kbps | 1.856x | 1.251x | 312x | 168x | 596x | 477x |
+| 256&nbsp;kbps | 1.772x | 1.212x | 281x | 159x | 516x | 426x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -294,13 +297,12 @@ current validation run.
 
 ### Optional speech postfilter A/B
 
-Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. It runs only
-where the focused A/B gate found a worthwhile benefit. On tracked mono VOIP at 16/32&nbsp;kbps,
-PESQ-style improves by `+0.0258`/`+0.0255` and ViSQOL-style by `+0.0053`/`+0.0017`; continuous
-mono decode overhead measured between 7% and 37% while active. Other tested mono rates and CELT-only
-stereo bypass the filter, while hybrid stereo VOIP at 24/32&nbsp;kbps retains positive PESQ- and
-ViSQOL-style deltas. Auto mode applies to both PCM16 and float decoding. The public default and
-headline metrics remain unfiltered.
+Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
+mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about
+`+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas.
+A separate real male-voice check remained positive in both proxies at all nine bitrates. Continuous
+mono decode overhead measured between 7% and 37% while active. The public default and headline
+metrics remain unfiltered because mono music can lose fidelity.
 
 ## Memory metrics
 
@@ -309,10 +311,10 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,976 B | 31,840 B | -46.7% |
+| Encoder mono | 16,928 B | 31,744 B | -46.7% |
 | Encoder stereo | 32,192 B | 48,912 B | -34.2% |
-| Decoder mono | 13,952 B | 18,368 B | -24.0% |
-| Decoder stereo | 21,360 B | 27,344 B | -21.9% |
+| Decoder mono | 14,080 B | 18,416 B | -23.5% |
+| Decoder stereo | 21,344 B | 27,280 B | -21.8% |
 
 Source CSV:
 
@@ -322,7 +324,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 285,256 B | 0 B | 285,256 B |
+| Host MinGW GCC `-O2` | 285,384 B | 0 B | 285,384 B |
 
 ## Toolchains checked
 

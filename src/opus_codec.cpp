@@ -1835,7 +1835,7 @@ constexpr int preprocess_filter_default = 1;
 constexpr int preprocess_filter_quiet_voice = 2;
 constexpr int silk_preserve_stereo_bias = 1;
 constexpr int silk_preserve_stereo_force = 2;
-constexpr opus_val32 quiet_voice_probe_energy = .0001f;
+constexpr opus_val32 quiet_voice_probe_energy = .02f;
 static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   void* silk_enc = nullptr;
   CeltEncoderInternal* celt_enc = nullptr;
@@ -2197,7 +2197,6 @@ constexpr opus_val32 voip_noisy_voice_energy_max = 0.001f;
 constexpr opus_val32 voip_noisy_voice_diff_ratio_min = 0.18f;
 constexpr opus_val32 voip_noisy_voice_zero_cross_min = 0.14f;
 constexpr opus_val16 voip_noisy_voice_smoothing = 0.18f;
-constexpr opus_val16 voip_confident_noise_smoothing = 0.25f;
 constexpr int voip_noise_confidence_apply_Q7 = 90;
 constexpr opus_val32 voip_quiet_hissy_voice_diff_ratio_min = 0.40f;
 constexpr opus_val16 voip_quiet_hissy_voice_low_band_keep = 0.50f;
@@ -2211,9 +2210,6 @@ struct quiet_voice_filter_profile {
 };
 
 [[nodiscard]] static constexpr auto quiet_voice_filter_for(opus_int32 bitrate) noexcept -> quiet_voice_filter_profile {
-  if (bitrate <= voip_voice_low_band_keep_min_bps) {
-    return {.972f, -.09f};
-  }
   return bitrate >= 40000 && bitrate < 64000 ? quiet_voice_filter_profile{.984f, .15f} : quiet_voice_filter_profile{};
 }
 
@@ -2268,20 +2264,18 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
   }
   auto& confidence = st->voip_noise_confidence_Q7;
 
-  const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .006f &&
-                               metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&
-                               metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min && st->lightweight_harmonic_music_Q7 < 48 &&
-                               st->lightweight_high_z_tonal_Q7 < 48 && st->lightweight_music_score_Q7 < 48;
-  if (confidence < voip_noise_confidence_apply_Q7) {
-    const bool probe_expired = st->lightweight_analysis_frames > audio_preprocess_warmup_frames || st->lightweight_voice_score_Q7 >= 32 ||
-                               st->lightweight_vad_score_Q7 >= 32;
-    if (probe_expired || (broadband_noise && metrics.mono_diff_ratio >= .8f)) {
-      confidence = -1;
-      return;
-    }
+  if (confidence >= 115) {
+    return;
   }
+  const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .03f &&
+                               metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .22f;
   if (broadband_noise) {
     confidence = std::min(115, confidence + std::max(1, (115 - confidence) >> 2));
+    if (confidence >= 64) {
+      confidence = 115;
+    }
+  } else {
+    confidence = std::max(0, confidence - 4);
   }
 }
 
@@ -2789,6 +2783,13 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       st->mode = opus_mode_celt_only;
     }
   }
+  const bool severe_voip_noise = frame_metrics.mono_diff_ratio > .8f && frame_metrics.mono_zero_cross_rate > .30f;
+  if (voip_style && st->channels == 1 &&
+      (st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 || severe_voip_noise)) {
+    st->mode = st->bitrate_bps <= 24000 ? opus_mode_silk_only
+               : st->bitrate_bps <= 48000 ? opus_mode_hybrid
+                                           : st->mode;
+  }
   if (voip_style && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
       st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
       st->bitrate_bps <= std::array{32000, 48000}[static_cast<std::size_t>(st->channels - 1)]) {
@@ -2910,17 +2911,15 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
 static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size,
                                         const frame_activity_metrics& frame_metrics) {
   if (st->application == OPUS_APPLICATION_VOIP) {
-    const int hp_freq_smth1 = st->mode == opus_mode_celt_only
-                                  ? silk_log_60_q15
-                                  : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
-    st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
-    const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
-    hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
     if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-      const auto quiet_filter = quiet_voice_filter_for(st->bitrate_bps);
-      if (quiet_filter.tilt != 0) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, st->channels, quiet_filter.tilt);
-      }
+      dc_reject(pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
+    } else {
+      const int hp_freq_smth1 = st->mode == opus_mode_celt_only
+                                    ? silk_log_60_q15
+                                    : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
+      st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
+      const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
+      hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
     }
     if (st->channels == 1) {
       auto low_band_keep = opus_val16{0};
@@ -2945,10 +2944,7 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
           frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&
           frame_metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min) {
-        const auto confidence = std::max(0, st->voip_noise_confidence_Q7 - voip_noise_confidence_apply_Q7);
-        const auto confidence_mix = static_cast<opus_val16>(confidence) / (115 - voip_noise_confidence_apply_Q7);
-        const auto smoothing = voip_noisy_voice_smoothing + confidence_mix * (voip_confident_noise_smoothing - voip_noisy_voice_smoothing);
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
+        apply_previous_sample_tilt(frame_pcm, frame_size, 1, voip_noisy_voice_smoothing);
       }
       if (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
           frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
@@ -5652,6 +5648,8 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
       gain = 0.30f;
     } else if (packet_bitrate_bps >= 28000 && packet_bitrate_bps < 40000) {
       gain = 0.245f;
+    } else if (packet_bitrate_bps >= 80000) {
+      gain = 0.15f;
     } else {
       celt_dec->output_postfilter_auto_hold = std::max(0, celt_dec->output_postfilter_auto_hold - 1);
       return 0;
