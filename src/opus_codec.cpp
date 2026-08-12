@@ -390,6 +390,7 @@ struct alignas(8) CeltDecoderInternal {
 };
 
 struct OpusDecoder;
+[[nodiscard]] static int decoder_packet_bitrate(const OpusDecoder* st, opus_int32 packet_bytes, int samples) noexcept;
 [[nodiscard]] constexpr auto bitrate_to_bits(opus_int32 bitrate, opus_int32 sample_rate, opus_int32 frame_size) noexcept -> opus_int32 {
   return bitrate * 6 / (6 * sample_rate / frame_size);
 }
@@ -423,9 +424,12 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
-                               opus_int16* pcm16 = nullptr);
+                               opus_int16* pcm16 = nullptr, OpusDecoder* output_filter_decoder = nullptr,
+                               int packet_bitrate_bps = 0);
 static void celt_decoder_reset_state(CeltDecoderInternal* st);
 static void apply_decoder_output_postfilter(OpusDecoder* st, opus_res* pcm, int samples, opus_int32 packet_bytes);
+static void convert_decoder_output_postfilter(OpusDecoder* st, const opus_res* input, opus_int16* output, int samples,
+                                              opus_int32 packet_bytes);
 consteval auto numeric_blob_hex_value(char ch) -> unsigned {
   return ch <= '9' ? static_cast<unsigned>(ch - '0') : static_cast<unsigned>((ch | 0x20) - 'a' + 10);
 }
@@ -1269,12 +1273,12 @@ constexpr int opus_decode_fast_unavailable = -1000000;
 template <int Mode>
   requires(Mode == opus_mode_silk_only || Mode == opus_mode_celt_only)
 static int decode_native_mode_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                          int frame_size) {
+                                          int frame_size, bool fuse_output_postfilter = false) {
   if constexpr (Mode == opus_mode_celt_only) {
     if (st->Fs != 48000 || (pcm == nullptr && pcm16 == nullptr) || (st->prev_mode > 0 && st->prev_mode != Mode && !st->prev_redundancy)) {
       return opus_decode_fast_unavailable;
     }
-  } else if (st->prev_redundancy || (st->prev_mode > 0 && st->prev_mode != Mode)) {
+  } else if (fuse_output_postfilter || st->prev_redundancy || (st->prev_mode > 0 && st->prev_mode != Mode)) {
     return opus_decode_fast_unavailable;
   }
   const int packet_bandwidth = ref_opus_packet_get_bandwidth(data);
@@ -1283,9 +1287,10 @@ static int decode_native_mode_direct_fast(OpusDecoder* st, const unsigned char* 
   std::array<opus_int16, 48> frame_lengths;
   int payload_offset;
   const int frame_count = ref_opus_packet_parse_impl(data, len, nullptr, frame_lengths.data(), &payload_offset);
-  if (frame_count < 0 || frame_count * packet_frame_size > frame_size) {
+  if (frame_count < 0 || frame_count * packet_frame_size > frame_size || (fuse_output_postfilter && frame_count != 1)) {
     return opus_decode_fast_unavailable;
   }
+  const int packet_bitrate_bps = fuse_output_postfilter ? decoder_packet_bitrate(st, len, frame_count * packet_frame_size) : 0;
   decoder_apply_packet_state(st, Mode, packet_bandwidth, packet_frame_size, packet_stream_channels);
   auto* celt_dec = decoder_celt_state(st);
   auto* silk_dec = decoder_silk_state(st);
@@ -1313,7 +1318,8 @@ static int decode_native_mode_direct_fast(OpusDecoder* st, const unsigned char* 
     if constexpr (Mode == opus_mode_celt_only) {
       const int sample_offset = nb_samples * st->channels;
       decoded_samples = celt_decode_with_ec(celt_dec, data, frame_lengths[index], pcm != nullptr ? pcm + sample_offset : nullptr,
-                                            packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr);
+                                            packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr,
+                                            fuse_output_postfilter ? st : nullptr, packet_bitrate_bps);
       if (decoded_samples < 0) {
         return decoded_samples;
       }
@@ -1340,17 +1346,22 @@ static int decode_native_mode_direct_fast(OpusDecoder* st, const unsigned char* 
 }
 
 static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                     int frame_size, int decode_fec) {
+                                     int frame_size, int decode_fec, bool fuse_output_postfilter = false) {
   if (decode_fec || data == nullptr || len <= 1) {
     return opus_decode_fast_unavailable;
   }
   const int packet_mode = opus_packet_get_mode(data);
   if (packet_mode == opus_mode_celt_only) {
-    return decode_native_mode_direct_fast<opus_mode_celt_only>(st, data, len, pcm, pcm16, frame_size);
+    return decode_native_mode_direct_fast<opus_mode_celt_only>(st, data, len, pcm, pcm16, frame_size, fuse_output_postfilter);
   }
   return pcm16 != nullptr && packet_mode == opus_mode_silk_only
-             ? decode_native_mode_direct_fast<opus_mode_silk_only>(st, data, len, nullptr, pcm16, frame_size)
+             ? decode_native_mode_direct_fast<opus_mode_silk_only>(st, data, len, nullptr, pcm16, frame_size, fuse_output_postfilter)
              : opus_decode_fast_unavailable;
+}
+
+[[nodiscard]] static int decoder_packet_bitrate(const OpusDecoder* st, opus_int32 packet_bytes, int samples) noexcept {
+  return static_cast<int>(
+      std::min<opus_int64>((static_cast<opus_int64>(packet_bytes) * 8 * st->Fs) / samples, opus_int32_max));
 }
 
 template <std::size_t Capacity>
@@ -1360,9 +1371,15 @@ static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opu
   const int ret = decode_native(st, data, len, output_storage.data(), frame_size, decode_fec);
   if (ret > 0) {
     if (output_postfilter_enabled) {
-      apply_decoder_output_postfilter(st, output_storage.data(), ret, len);
+      if (st->channels == 2 && decoder_celt_state(st)->output_postfilter_level == 3) {
+        apply_decoder_output_postfilter(st, output_storage.data(), ret, len);
+        celt_float2int16_c(output_storage.data(), pcm, static_cast<std::size_t>(ret * st->channels));
+      } else {
+        convert_decoder_output_postfilter(st, output_storage.data(), pcm, ret, len);
+      }
+    } else {
+      celt_float2int16_c(output_storage.data(), pcm, static_cast<std::size_t>(ret * st->channels));
     }
-    celt_float2int16_c(output_storage.data(), pcm, static_cast<std::size_t>(ret * st->channels));
   }
   return ret;
 }
@@ -1391,11 +1408,13 @@ static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int
     }
     return ret;
   } else {
-    if (!output_postfilter_enabled) {
-      const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
-      if (fast_ret != opus_decode_fast_unavailable) {
-        return fast_ret;
-      }
+    const bool preserve_stereo_auto = output_postfilter_enabled && st->channels == 2 && celt_dec->output_postfilter_level == 3;
+    const bool fuse_output_postfilter = output_postfilter_enabled && !preserve_stereo_auto;
+    const int fast_ret = preserve_stereo_auto
+                             ? opus_decode_fast_unavailable
+                             : decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec, fuse_output_postfilter);
+    if (fast_ret != opus_decode_fast_unavailable) {
+      return fast_ret;
     }
     if (frame_size <= celt_max_frame_samples) {
       return decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec,
@@ -5663,13 +5682,15 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   return 0;
 }
 
-static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_res* pcm, int samples, int channels,
-                                                 opus_val16 target_gain) noexcept {
-  const int level = st->output_postfilter_level;
-  if (level <= 0 || pcm == nullptr || samples <= 0) {
-    return;
-  }
+struct output_postfilter_parameters {
+  opus_val16 gain;
+  opus_val16 energy_scale;
+  opus_val16 pole;
+};
 
+[[nodiscard]] static auto prepare_output_postfilter(CeltDecoderInternal* st, int channels,
+                                                    opus_val16 target_gain) noexcept -> output_postfilter_parameters {
+  const int level = st->output_postfilter_level;
   opus_val16 gain = target_gain;
   if (level == 3 && channels == 1) {
     if (st->output_postfilter_smoothed_gain == 0) {
@@ -5681,20 +5702,41 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
   }
   if (gain <= 1e-5f) {
     st->output_postfilter_smoothed_gain = 0;
-    for (int channel = 0; channel < channels; ++channel) {
-      st->output_postfilter_mem[channel] = pcm[(samples - 1) * channels + channel];
-    }
-    return;
+    return {0, 1, 0.08f};
   }
   const bool smoothing_active = level == 3 && channels == 1 && std::abs(target_gain - gain) > 1e-5f;
   const opus_val16 energy_scale = smoothing_active ? 1.0f + std::min(0.01f, 0.04f * gain) : 1.0f;
   const opus_val16 pole = level == 3 && channels == 2 && gain < 0.05f ? 0.076f : 0.08f;
+  return {gain, energy_scale, pole};
+}
+
+template <typename Output>
+static void celt_decoder_write_output_postfilter(CeltDecoderInternal* st, const opus_res* input, Output* output, int samples, int channels,
+                                                 opus_val16 target_gain) noexcept {
+  if (st->output_postfilter_level <= 0 || input == nullptr || output == nullptr || samples <= 0) {
+    return;
+  }
+  const auto [gain, energy_scale, pole] = prepare_output_postfilter(st, channels, target_gain);
+  if (gain == 0) {
+    for (int channel = 0; channel < channels; ++channel) {
+      st->output_postfilter_mem[channel] = input[(samples - 1) * channels + channel];
+    }
+    if constexpr (std::same_as<Output, opus_int16>) {
+      celt_float2int16_c(input, output, static_cast<std::size_t>(samples * channels));
+    }
+    return;
+  }
   if (channels == 1) {
     auto low = st->output_postfilter_mem[0];
     for (int i = 0; i < samples; ++i) {
-      const opus_res x = pcm[i];
+      const opus_res x = input[i];
       low += pole * (x - low);
-      pcm[i] = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      const auto filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      if constexpr (std::same_as<Output, opus_int16>) {
+        output[i] = FLOAT2INT16(filtered);
+      } else {
+        output[i] = filtered;
+      }
     }
     st->output_postfilter_mem[0] = low;
     return;
@@ -5703,17 +5745,28 @@ static void celt_decoder_apply_output_postfilter(CeltDecoderInternal* st, opus_r
     const auto base = i * channels;
     for (int channel = 0; channel < channels; ++channel) {
       auto& low = st->output_postfilter_mem[channel];
-      const opus_res x = pcm[base + channel];
+      const opus_res x = input[base + channel];
       low += pole * (x - low);
-      pcm[base + channel] = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      const auto filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      if constexpr (std::same_as<Output, opus_int16>) {
+        output[base + channel] = FLOAT2INT16(filtered);
+      } else {
+        output[base + channel] = filtered;
+      }
     }
   }
 }
 
 static void apply_decoder_output_postfilter(OpusDecoder* st, opus_res* pcm, int samples, opus_int32 packet_bytes) {
-  const auto packet_bitrate_bps =
-      static_cast<int>(std::min<opus_int64>((static_cast<opus_int64>(packet_bytes) * 8 * st->Fs) / samples, opus_int32_max));
-  celt_decoder_apply_output_postfilter(decoder_celt_state(st), pcm, samples, st->channels,
+  const auto packet_bitrate_bps = decoder_packet_bitrate(st, packet_bytes, samples);
+  celt_decoder_write_output_postfilter(decoder_celt_state(st), pcm, pcm, samples, st->channels,
+                                       decoder_output_postfilter_gain(st, packet_bitrate_bps));
+}
+
+static void convert_decoder_output_postfilter(OpusDecoder* st, const opus_res* input, opus_int16* output, int samples,
+                                              opus_int32 packet_bytes) {
+  const auto packet_bitrate_bps = decoder_packet_bitrate(st, packet_bytes, samples);
+  celt_decoder_write_output_postfilter(decoder_celt_state(st), input, output, samples, st->channels,
                                        decoder_output_postfilter_gain(st, packet_bitrate_bps));
 }
 
@@ -5778,6 +5831,34 @@ template <typename Sample> static inline void deemphasis_mono_simple(celt_sig* x
     pcm[j] = deemphasis_output<Sample>(tmp);
   }
   mem[0] = zero_tiny_float_mem(m);
+}
+
+static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* const* input, opus_int16* output, int samples, int channels,
+                                          output_postfilter_parameters parameters) noexcept {
+  const auto [gain, energy_scale, pole] = parameters;
+  for (int channel = 0; channel < channels; ++channel) {
+    celt_sig deemphasis_mem = st->preemph_memD[channel];
+    opus_res low = st->output_postfilter_mem[channel];
+    if (gain == 0) {
+      for (int index = 0; index < samples; ++index) {
+        const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
+        deemphasis_mem = celt_preemphasis[0] * sample;
+        low = signal_to_float_pcm(sample);
+        output[index * channels + channel] = FLOAT2INT16(low);
+      }
+    } else {
+      for (int index = 0; index < samples; ++index) {
+        const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
+        deemphasis_mem = celt_preemphasis[0] * sample;
+        const opus_res x = signal_to_float_pcm(sample);
+        low += pole * (x - low);
+        output[index * channels + channel] =
+            FLOAT2INT16(clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f));
+      }
+    }
+    st->preemph_memD[channel] = zero_tiny_float_mem(deemphasis_mem);
+    st->output_postfilter_mem[channel] = low;
+  }
 }
 
 static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int downsample, celt_sig* mem) {
@@ -6085,7 +6166,7 @@ static void celt_decode_lost(CeltDecoderInternal* st, int N, int LM) {
 }
 
 static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
-                               opus_int16* pcm16) {
+                               opus_int16* pcm16, OpusDecoder* output_filter_decoder, int packet_bitrate_bps) {
   ec_dec _dec;
   const int CC = st->channels;
   const int C = st->stream_channels;
@@ -6223,7 +6304,11 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
     backgroundLogE[index] = std::min(backgroundLogE[index] + max_background_increase, oldBandE[index]);
   }
   st->rng = dec->rng;
-  if (pcm16 != nullptr && st->downsample == 1) {
+  if (output_filter_decoder != nullptr && pcm16 != nullptr && st->downsample == 1) {
+    const auto target_gain = decoder_output_postfilter_gain(output_filter_decoder, packet_bitrate_bps);
+    const auto parameters = prepare_output_postfilter(st, CC, target_gain);
+    deemphasis_postfiltered_pcm16(st, out_syn.data(), pcm16, N, CC, parameters);
+  } else if (pcm16 != nullptr && st->downsample == 1) {
     if (CC == 1) {
       deemphasis_mono_simple(out_syn[0], pcm16, N, st->preemph_memD);
     } else {
