@@ -144,8 +144,8 @@ VOIP mono speech-like quality spot check:
 The optional adaptive speech postfilter is not included in these default-output figures. On the
 tracked mono VOIP sample, mode `3` adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at
 32&nbsp;kbps, and `+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive
-ViSQOL-style deltas. Its current PCM16 path adds 0.2% to 8.3% end-to-end decode time across the
-tracked ladder and decodes 60 seconds in 0.033 to 0.081 seconds on the measured system. It remains
+ViSQOL-style deltas. Its current PCM16 path adds effectively 0% to 7.6% end-to-end decode time across
+the tracked ladder and decodes 60 seconds in 0.051 to 0.080 seconds on the measured system. It remains
 opt-in because mono music can still lose fidelity.
 
 Mode-selection check at 32&nbsp;kbps mono: for the synthetic spoken-voice sample, AUDIO mode selected

@@ -300,24 +300,24 @@ current validation run.
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
 mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about
 `+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas. The
-current PCM16 path adds 0.2% to 8.3% end-to-end decode time across the measured bitrate ladder; the
-same test decodes 60 seconds in 0.033 to 0.081 seconds. The zero-gain diagnostic route accounts for
-at most 0.6%; the remainder is the adaptive decision and filter work. At 48/64&nbsp;kbps auto
-mode is inactive on this sample, so sub-percent differences are benchmark noise. Each row is the
-median of five complete runs; each mode within a run is itself the median of nine 60-second decodes.
+current PCM16 path adds effectively 0% to 7.6% end-to-end decode time across the measured bitrate
+ladder; the same test decodes 60 seconds in 0.051 to 0.080 seconds. At 16/24/48/64&nbsp;kbps auto
+mode is inactive or nearly inactive on this sample, so differences around 1% are benchmark noise.
+Each row uses the same repeated speech sample as the quality comparison and is the median of five
+complete runs; each mode within a run is itself the median of nine 60-second decodes.
 The public default and headline metrics remain unfiltered because mono music can lose fidelity.
 
 | Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0000 | +0.0000 | 7.9% |
-| 24&nbsp;kbps | +0.0004 | +0.0001 | 6.4% |
-| 32&nbsp;kbps | +0.0249 | +0.0017 | 8.3% |
-| 48&nbsp;kbps | +0.0000 | +0.0000 | 0.2% |
-| 64&nbsp;kbps | +0.0000 | +0.0000 | 0.5% |
-| 96&nbsp;kbps | +0.0137 | +0.0016 | 6.1% |
-| 128&nbsp;kbps | +0.0137 | +0.0014 | 4.9% |
-| 192&nbsp;kbps | +0.0138 | +0.0014 | 3.9% |
-| 256&nbsp;kbps | +0.0137 | +0.0013 | 3.8% |
+| 16&nbsp;kbps | +0.0000 | +0.0000 | 1.0% |
+| 24&nbsp;kbps | +0.0004 | +0.0001 | ~0.0% |
+| 32&nbsp;kbps | +0.0249 | +0.0017 | 7.6% |
+| 48&nbsp;kbps | +0.0000 | +0.0000 | 0.3% |
+| 64&nbsp;kbps | +0.0000 | +0.0000 | 0.4% |
+| 96&nbsp;kbps | +0.0137 | +0.0016 | 7.1% |
+| 128&nbsp;kbps | +0.0137 | +0.0014 | 3.1% |
+| 192&nbsp;kbps | +0.0138 | +0.0014 | 5.4% |
+| 256&nbsp;kbps | +0.0137 | +0.0013 | 2.2% |
 
 Source CSVs:
 
