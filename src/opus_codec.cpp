@@ -2267,8 +2267,8 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
   if (confidence >= 115) {
     return;
   }
-  const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .03f &&
-                               metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .22f;
+  const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .03f && metrics.mono_diff_ratio > .40f &&
+                               metrics.mono_zero_cross_rate > .22f;
   if (broadband_noise) {
     confidence = std::min(115, confidence + std::max(1, (115 - confidence) >> 2));
     if (confidence >= 64) {
@@ -2784,11 +2784,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   }
   const bool severe_voip_noise = frame_metrics.mono_diff_ratio > .8f && frame_metrics.mono_zero_cross_rate > .30f;
-  if (voip_style && st->channels == 1 &&
-      (st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 || severe_voip_noise)) {
-    st->mode = st->bitrate_bps <= 24000 ? opus_mode_silk_only
-               : st->bitrate_bps <= 48000 ? opus_mode_hybrid
-                                           : st->mode;
+  if (voip_style && st->channels == 1 && (st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 || severe_voip_noise)) {
+    st->mode = st->bitrate_bps <= 24000 ? opus_mode_silk_only : st->bitrate_bps <= 48000 ? opus_mode_hybrid : st->mode;
   }
   if (voip_style && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
       st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
