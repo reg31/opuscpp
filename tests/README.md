@@ -232,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.481x | 1.834x | 819x | 330x | 2206x | 1203x |
-| 24&nbsp;kbps | 1.900x | 1.374x | 569x | 300x | 1441x | 1049x |
-| 32&nbsp;kbps | 1.871x | 1.320x | 560x | 299x | 1362x | 1032x |
-| 48&nbsp;kbps | 1.806x | 1.298x | 499x | 276x | 1166x | 898x |
-| 64&nbsp;kbps | 1.795x | 1.284x | 439x | 245x | 995x | 775x |
-| 96&nbsp;kbps | 1.896x | 1.269x | 373x | 197x | 781x | 616x |
-| 128&nbsp;kbps | 2.065x | 1.260x | 372x | 180x | 674x | 535x |
-| 192&nbsp;kbps | 1.866x | 1.256x | 304x | 163x | 577x | 459x |
-| 256&nbsp;kbps | 1.771x | 1.192x | 277x | 156x | 497x | 417x |
+| 16&nbsp;kbps | 2.517x | 1.845x | 841x | 334x | 2303x | 1249x |
+| 24&nbsp;kbps | 1.885x | 1.373x | 585x | 310x | 1487x | 1083x |
+| 32&nbsp;kbps | 1.849x | 1.427x | 570x | 308x | 1438x | 1008x |
+| 48&nbsp;kbps | 1.755x | 1.266x | 496x | 283x | 1184x | 935x |
+| 64&nbsp;kbps | 1.839x | 1.246x | 441x | 240x | 977x | 784x |
+| 96&nbsp;kbps | 1.905x | 1.314x | 382x | 201x | 808x | 615x |
+| 128&nbsp;kbps | 2.098x | 1.263x | 383x | 183x | 709x | 562x |
+| 192&nbsp;kbps | 1.870x | 1.268x | 314x | 168x | 602x | 475x |
+| 256&nbsp;kbps | 1.760x | 1.192x | 287x | 163x | 515x | 432x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -300,24 +300,24 @@ current validation run.
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
 mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about
 `+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas. The
-current PCM16 path adds 0.6% to 8.4% end-to-end decode time across the measured bitrate ladder; the
-same test decodes 60 seconds in 0.033 to 0.083 seconds. The zero-gain diagnostic route accounts for
-roughly 0.4% to 1.8%; the remainder is the adaptive decision and filter work. At 48/64&nbsp;kbps auto
+current PCM16 path adds 0.2% to 8.7% end-to-end decode time across the measured bitrate ladder; the
+same test decodes 60 seconds in 0.033 to 0.081 seconds. The zero-gain diagnostic route accounts for
+at most 0.6%; the remainder is the adaptive decision and filter work. At 48/64&nbsp;kbps auto
 mode is inactive on this sample, so sub-percent differences are benchmark noise. Each row is the
 median of five complete runs; each mode within a run is itself the median of nine 60-second decodes.
 The public default and headline metrics remain unfiltered because mono music can lose fidelity.
 
 | Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0000 | +0.0000 | 7.6% |
-| 24&nbsp;kbps | +0.0004 | +0.0001 | 8.4% |
-| 32&nbsp;kbps | +0.0249 | +0.0017 | 8.4% |
-| 48&nbsp;kbps | +0.0000 | +0.0000 | 2.1% |
-| 64&nbsp;kbps | +0.0000 | +0.0000 | 0.6% |
-| 96&nbsp;kbps | +0.0137 | +0.0016 | 5.7% |
+| 16&nbsp;kbps | +0.0000 | +0.0000 | 7.9% |
+| 24&nbsp;kbps | +0.0004 | +0.0001 | 8.7% |
+| 32&nbsp;kbps | +0.0249 | +0.0017 | 8.3% |
+| 48&nbsp;kbps | +0.0000 | +0.0000 | 0.2% |
+| 64&nbsp;kbps | +0.0000 | +0.0000 | 0.5% |
+| 96&nbsp;kbps | +0.0137 | +0.0016 | 6.1% |
 | 128&nbsp;kbps | +0.0137 | +0.0014 | 4.9% |
 | 192&nbsp;kbps | +0.0138 | +0.0014 | 3.9% |
-| 256&nbsp;kbps | +0.0137 | +0.0013 | 3.1% |
+| 256&nbsp;kbps | +0.0137 | +0.0013 | 3.8% |
 
 Source CSVs:
 
@@ -331,10 +331,10 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,944 B | 31,728 B | -46.6% |
-| Encoder stereo | 32,192 B | 48,880 B | -34.1% |
-| Decoder mono | 14,080 B | 18,416 B | -23.5% |
-| Decoder stereo | 21,360 B | 27,280 B | -21.7% |
+| Encoder mono | 16,928 B | 31,744 B | -46.7% |
+| Encoder stereo | 32,192 B | 48,944 B | -34.2% |
+| Decoder mono | 14,064 B | 18,336 B | -23.3% |
+| Decoder stereo | 21,344 B | 27,296 B | -21.8% |
 
 Source CSV:
 
@@ -344,7 +344,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 288,796 B | 0 B | 288,796 B |
+| Host MinGW GCC `-O2` | 288,724 B | 0 B | 288,724 B |
 
 ## Toolchains checked
 

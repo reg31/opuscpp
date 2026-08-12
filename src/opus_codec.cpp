@@ -5895,12 +5895,14 @@ static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* con
     celt_sig deemphasis_mem = st->preemph_memD[channel];
     opus_res low = st->output_postfilter_mem[channel];
     if (gain == 0) {
+      celt_sig last_sample = 0;
       for (int index = 0; index < samples; ++index) {
         const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
         deemphasis_mem = celt_preemphasis[0] * sample;
-        low = signal_to_float_pcm(sample);
-        output[index * channels + channel] = FLOAT2INT16(low);
+        last_sample = sample;
+        output[index * channels + channel] = deemphasis_output<opus_int16>(sample);
       }
+      low = signal_to_float_pcm(last_sample);
     } else {
       const auto correction = gain * (1.0f - pole);
       for (int index = 0; index < samples; ++index) {
