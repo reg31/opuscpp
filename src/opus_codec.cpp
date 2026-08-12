@@ -383,7 +383,7 @@ struct alignas(8) CeltDecoderInternal {
   int last_pitch_index, loss_duration, last_frame_type, skip_plc, postfilter_period, postfilter_period_old, postfilter_tapset,
       postfilter_tapset_old;
   opus_uint32 rng;
-  int output_postfilter_auto_hold;
+  int output_postfilter_auto_hold, output_postfilter_average_bitrate;
   opus_val16 postfilter_gain, postfilter_gain_old;
   opus_val16 output_postfilter_smoothed_gain;
   celt_sig preemph_memD[2], output_postfilter_mem[2];
@@ -403,19 +403,28 @@ struct OpusDecoder;
   return frame_rate == 16 ? bitrate * 6 / 100 : bitrate / frame_rate;
 }
 
-[[nodiscard]] constexpr auto vbr_credit_cap_bytes(opus_int32 target_bits, opus_int32 credit_bits) noexcept -> opus_int32 {
+struct vbr_frame_budget final {
+  opus_int32 allocator_bits;
+  opus_int32 max_bytes;
+};
+
+[[nodiscard]] constexpr auto make_vbr_frame_budget(opus_int32 target_bits, opus_int32 credit_bits) noexcept -> vbr_frame_budget {
   constexpr opus_int32 max_credit_spend_num = 1;
   constexpr opus_int32 max_credit_spend_den = 5;
   const opus_int32 max_spend_bits = target_bits * max_credit_spend_num / max_credit_spend_den;
   const opus_int32 spend_credit_bits = std::min(clamp_value(credit_bits, opus_int32{0}, target_bits * 25), max_spend_bits);
-  return std::max<opus_int32>(2, (target_bits + spend_credit_bits + 7) / 8);
+  const opus_int32 max_bytes = std::max<opus_int32>(2, (target_bits + spend_credit_bits) / 8);
+  constexpr opus_int32 packet_rounding_credit_bits = 4 * 8;
+  const bool useful_credit = spend_credit_bits > packet_rounding_credit_bits && spend_credit_bits >= max_spend_bits / 4;
+  const opus_int32 allocator_spend_bits = useful_credit ? spend_credit_bits : 0;
+  return {std::min(target_bits + allocator_spend_bits, max_bytes * 8), max_bytes};
 }
 
 [[nodiscard]] constexpr auto update_vbr_credit(opus_int32 credit_bits, opus_int32 actual_bytes, opus_int32 target_bits) noexcept
     -> opus_int32 {
   credit_bits += target_bits - actual_bytes * 8;
   const opus_int32 max_credit_bits = std::max<opus_int32>(target_bits * 25, 1000);
-  return clamp_value(credit_bits, opus_int32{0}, max_credit_bits);
+  return clamp_value(credit_bits, -std::max<opus_int32>(target_bits, 8), max_credit_bits);
 }
 
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
@@ -1758,8 +1767,9 @@ struct OpusEncoder {
   int encoder_buffer, use_dtx;
   opus_int32 bitrate_bps;
   opus_int32 vbr_budget_reservoir_bits;
-  int stream_channels;
+  opus_int16 stream_channels;
   opus_int16 hybrid_stereo_width_Q14;
+  opus_uint16 vbr_target_remainder;
   opus_int32 variable_HP_smth2_Q15;
   opus_val16 prev_HB_gain;
   opus_val32 hp_mem[4];
@@ -1776,6 +1786,17 @@ struct OpusEncoder {
   int voip_noise_confidence_Q7;
 };
 static_assert(std::is_standard_layout_v<OpusEncoder>);
+
+[[nodiscard]] static auto next_vbr_target_bits(OpusEncoder* st, int frame_size) noexcept -> opus_int32 {
+  const auto numerator = static_cast<opus_int64>(st->bitrate_bps) * frame_size + st->vbr_target_remainder;
+  st->vbr_target_remainder = static_cast<opus_uint16>(numerator % st->Fs);
+  return static_cast<opus_int32>(numerator / st->Fs);
+}
+
+static void reset_vbr_budget(OpusEncoder* st) noexcept {
+  st->vbr_budget_reservoir_bits = 0;
+  st->vbr_target_remainder = 0;
+}
 
 [[nodiscard]] static constexpr auto encoder_delay_buffer_count(int channels, int application) noexcept -> std::size_t {
   return encoder_uses_silk(application) ? static_cast<std::size_t>(480 * channels) : 0;
@@ -2573,12 +2594,13 @@ struct multiframe_encode_params final {
   bool governed_vbr;
   int lsb_depth;
   int redundancy, celt_to_silk, to_celt, prefill;
-  opus_int32 equiv_rate, cbr_bytes;
+  opus_int32 equiv_rate, cbr_bytes, target_bits;
 };
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                           opus_int32 max_data_bytes, bool float_api, const frame_activity_metrics& metrics, int redundancy,
-                                           int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame,
-                                           bool skip_celt_for_dtx, encoder_stage_storage& stage_storage);
+                                           opus_int32 max_data_bytes, opus_int32 allocator_target_bits, bool float_api,
+                                           const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill,
+                                           opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx,
+                                           encoder_stage_storage& stage_storage);
 [[nodiscard]] static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data,
                                                    const opus_int32 out_data_bytes, const multiframe_encode_params& params,
                                                    std::array<opus_res, encoder_max_stage_samples>& stage_buffer_storage) -> opus_int32 {
@@ -2595,15 +2617,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   int dtx_count = 0;
   stage_storage.prime_from_encoder(st);
   opus_int32 repacketize_len = (st->use_vbr || st->user_bitrate_bps == -1) ? out_data_bytes : std::min(params.cbr_bytes, out_data_bytes);
-  const opus_int32 packet_target_bits = bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
+  const opus_int32 packet_target_bits =
+      params.governed_vbr ? params.target_bits : bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
+  const auto packet_budget = make_vbr_frame_budget(packet_target_bits, st->vbr_budget_reservoir_bits);
   if (params.governed_vbr) {
-    repacketize_len = std::min(repacketize_len, vbr_credit_cap_bytes(packet_target_bits, st->vbr_budget_reservoir_bits));
+    repacketize_len = std::min(repacketize_len, packet_budget.max_bytes);
   }
   const opus_int32 max_len_sum = nb_frames + repacketize_len - max_header_bytes;
-  const opus_int32 frame_target_bits = bitrate_to_bits(st->bitrate_bps, st->Fs, enc_frame_size);
-  const opus_int32 frame_budget_bytes =
-      params.governed_vbr ? vbr_credit_cap_bytes(frame_target_bits, st->vbr_budget_reservoir_bits) : frame_target_bits / 8;
-  const opus_int32 frame_packet_cap = max_len_sum / nb_frames;
+  opus_int32 local_credit_bits = st->vbr_budget_reservoir_bits;
+  opus_int32 remaining_target_bits = packet_target_bits;
   std::array<unsigned char, opus_max_multiframe_packet_bytes> packet_storage;
   auto* curr_data = packet_storage.data();
   packet_frame_set packet_frames;
@@ -2616,14 +2638,19 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     st->silk_mode.toMono = 0;
     const int frame_to_celt = params.to_celt && frame_index == nb_frames - 1;
     const int frame_redundancy = params.redundancy && (frame_to_celt || (!params.to_celt && frame_index == 0));
-    opus_int32 curr_max = std::min(frame_budget_bytes, frame_packet_cap);
-    curr_max = std::min(max_len_sum - tot_size, curr_max);
+    const int remaining_frames = nb_frames - frame_index;
+    const opus_int32 frame_target_bits = remaining_target_bits / remaining_frames;
+    const auto frame_budget = make_vbr_frame_budget(frame_target_bits, local_credit_bits);
+    const opus_int32 frame_max_bytes = params.governed_vbr ? frame_budget.max_bytes : frame_target_bits / 8;
+    opus_int32 curr_max = std::min(max_len_sum - tot_size, frame_max_bytes);
     const auto* frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
     const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
-    int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, params.float_api, frame_metrics,
-                                           frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
-                                           frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+    const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
+    int tmp_len = opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits,
+                                           params.float_api, frame_metrics, frame_redundancy, params.celt_to_silk, params.prefill,
+                                           params.equiv_rate, frame_to_celt, frame_index < nb_frames - 1,
+                                           emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
     if (tmp_len < 0) {
       result = -3;
       break;
@@ -2638,6 +2665,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     }
     tot_size += tmp_len;
     curr_data += tmp_len;
+    local_credit_bits = update_vbr_credit(local_credit_bits, tmp_len, frame_target_bits);
+    remaining_target_bits -= frame_target_bits;
     if (frame_index + 1 < nb_frames) {
       stage_storage.advance();
     }
@@ -2648,7 +2677,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   result = write_packet_frames(&packet_frames, data, repacketize_len, !st->use_vbr && dtx_count != nb_frames);
   if (encoder_is_in_dtx(st)) {
-    st->vbr_budget_reservoir_bits = 0;
+    reset_vbr_budget(st);
   } else if (params.governed_vbr && result > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, result, packet_target_bits);
   }
@@ -2673,7 +2702,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   const bool voip_style = st->application == OPUS_APPLICATION_VOIP;
   const bool first = st->prev_mode == 0;
   const bool governed_vbr = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
-  const opus_int32 requested_frame_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  const opus_int32 requested_frame_bits =
+      governed_vbr ? next_vbr_target_bits(st, frame_size) : bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  const auto frame_budget = make_vbr_frame_budget(requested_frame_bits, st->vbr_budget_reservoir_bits);
   if (!st->use_vbr) {
     const opus_int32 cbr_budget_bytes = (bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate) + 4) / 8;
     cbr_bytes = std::min(cbr_budget_bytes, max_data_bytes);
@@ -2902,20 +2933,23 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
     return encode_multiframe_packet(st, pcm, frame_size, data, out_data_bytes,
-                                    {float_api, governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes},
+                                    {float_api, governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes,
+                                     requested_frame_bits},
                                     stage_buffer_storage);
   }
   auto stage_storage = make_encoder_stage_storage(stage_buffer_storage.data(), st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
   if (governed_vbr) {
-    max_data_bytes = std::min(max_data_bytes, vbr_credit_cap_bytes(requested_frame_bits, st->vbr_budget_reservoir_bits));
+    max_data_bytes = std::min(max_data_bytes, frame_budget.max_bytes);
   }
   const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, frame_size);
-  auto ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, float_api, frame_metrics, redundancy, celt_to_silk,
-                                      prefill, equiv_rate, to_celt, false, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+  const opus_int32 allocator_target_bits = governed_vbr ? frame_budget.allocator_bits : 0;
+  auto ret = opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, float_api, frame_metrics,
+                                      redundancy, celt_to_silk, prefill, equiv_rate, to_celt, false,
+                                      emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   if (encoder_is_in_dtx(st)) {
-    st->vbr_budget_reservoir_bits = 0;
+    reset_vbr_budget(st);
   } else if (governed_vbr && ret > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, requested_frame_bits);
   }
@@ -3015,9 +3049,10 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
 }
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data,
-                                           opus_int32 orig_max_data_bytes, bool float_api, const frame_activity_metrics& metrics,
-                                           int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt,
-                                           bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
+                                           opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, bool float_api,
+                                           const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill,
+                                           opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx,
+                                           encoder_stage_storage& stage_storage) {
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
   ec_enc enc;
@@ -3055,8 +3090,11 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   if (redundancy) {
     refresh_redundancy();
   }
-  const int bits_target =
-      std::min(8 * (max_data_bytes - redundancy_bytes), bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate)) - 8;
+  const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
+  const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid ? nominal_target_bits : allocator_target_bits;
+  const int bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), silk_target_bits) - 8;
+  const opus_int32 allocator_bitrate_bps = bits_to_bitrate_for_frame_rate(allocator_target_bits, frame_rate);
   data += 1;
   ec_enc_init(&enc, data, orig_max_data_bytes - 1);
   opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
@@ -3213,7 +3251,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     ec_enc_shrink(&enc, nb_compr_bytes);
   }
   if (st->mode == opus_mode_hybrid) {
-    celt_enc->silk_info = {st->silk_mode.offset, st->bitrate_bps, bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate)};
+    celt_enc->silk_info = {st->silk_mode.offset, allocator_bitrate_bps,
+                           bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate)};
   }
   if (redundancy && celt_to_silk) {
     configure_redundant_celt(false);
@@ -3229,7 +3268,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     celt_enc->vbr = st->use_vbr;
     if (st->mode == opus_mode_hybrid) {
       if (st->use_vbr) {
-        opus_int32 celt_vbr_bps = st->bitrate_bps - st->silk_mode.bitRate;
+        opus_int32 celt_vbr_bps = allocator_bitrate_bps - st->silk_mode.bitRate;
         if (voip_silk_boost != 0) {
           const opus_int32 remaining_bits = std::max<opus_int32>(0, 8 * nb_compr_bytes - ec_tell(&enc));
           celt_vbr_bps = std::max(celt_vbr_bps, bits_to_bitrate_for_frame_rate(remaining_bits, frame_rate));
@@ -3239,7 +3278,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       }
     } else if (st->use_vbr) {
       celt_enc->constrained_vbr = st->vbr_constraint;
-      celt_enc->bitrate = std::min<opus_int32>(st->bitrate_bps, 750000 * celt_enc->channels);
+      celt_enc->bitrate = std::min<opus_int32>(allocator_bitrate_bps, 750000 * celt_enc->channels);
     }
     if (st->mode != st->prev_mode && st->prev_mode > 0 && encoder_uses_silk(st->application)) {
       unsigned char dummy[2];
@@ -5657,6 +5696,8 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   }
 
   if (st->channels == 1) {
+    auto& average_bitrate = celt_dec->output_postfilter_average_bitrate;
+    average_bitrate = average_bitrate == 0 ? packet_bitrate_bps : (7 * average_bitrate + packet_bitrate_bps + 4) / 8;
     opus_val16 gain = 0;
     if (st->mode == opus_mode_celt_only && packet_bitrate_bps < 20000) {
       gain = 0.30f;
@@ -5664,6 +5705,8 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
       gain = 0.245f;
     } else if (packet_bitrate_bps >= 80000) {
       gain = 0.15f;
+    } else if (st->mode == opus_mode_celt_only && average_bitrate >= 20000 && average_bitrate < 28000) {
+      gain = 0.08f;
     } else {
       celt_dec->output_postfilter_auto_hold = std::max(0, celt_dec->output_postfilter_auto_hold - 1);
       return 0;
@@ -5724,12 +5767,20 @@ static void celt_decoder_write_output_postfilter(CeltDecoderInternal* st, const 
     }
     return;
   }
+  const auto correction = gain * (1.0f - pole);
   if (channels == 1) {
     auto low = st->output_postfilter_mem[0];
     for (int i = 0; i < samples; ++i) {
       const opus_res x = input[i];
-      low += pole * (x - low);
-      const auto filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      opus_res filtered;
+      if constexpr (std::same_as<Output, opus_int16>) {
+        const auto delta = x - low;
+        low += pole * delta;
+        filtered = clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f);
+      } else {
+        low += pole * (x - low);
+        filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      }
       if constexpr (std::same_as<Output, opus_int16>) {
         output[i] = FLOAT2INT16(filtered);
       } else {
@@ -5744,8 +5795,15 @@ static void celt_decoder_write_output_postfilter(CeltDecoderInternal* st, const 
     for (int channel = 0; channel < channels; ++channel) {
       auto& low = st->output_postfilter_mem[channel];
       const opus_res x = input[base + channel];
-      low += pole * (x - low);
-      const auto filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      opus_res filtered;
+      if constexpr (std::same_as<Output, opus_int16>) {
+        const auto delta = x - low;
+        low += pole * delta;
+        filtered = clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f);
+      } else {
+        low += pole * (x - low);
+        filtered = clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f);
+      }
       if constexpr (std::same_as<Output, opus_int16>) {
         output[base + channel] = FLOAT2INT16(filtered);
       } else {
@@ -5845,12 +5903,15 @@ static void deemphasis_postfiltered_pcm16(CeltDecoderInternal* st, celt_sig* con
         output[index * channels + channel] = FLOAT2INT16(low);
       }
     } else {
+      const auto correction = gain * (1.0f - pole);
       for (int index = 0; index < samples; ++index) {
         const celt_sig sample = input[channel][index] + 1e-30f + deemphasis_mem;
         deemphasis_mem = celt_preemphasis[0] * sample;
         const opus_res x = signal_to_float_pcm(sample);
-        low += pole * (x - low);
-        output[index * channels + channel] = FLOAT2INT16(clamp_value((x - gain * (x - low)) * energy_scale, -1.0f, 1.0f));
+        const auto delta = x - low;
+        low += pole * delta;
+        output[index * channels + channel] =
+            FLOAT2INT16(clamp_value((x - correction * delta) * energy_scale, -1.0f, 1.0f));
       }
     }
     st->preemph_memD[channel] = zero_tiny_float_mem(deemphasis_mem);
@@ -13687,7 +13748,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       value = clamp_value(value, static_cast<opus_int32>(500), static_cast<opus_int32>(750000 * st->channels));
     }
     st->user_bitrate_bps = value;
-    st->vbr_budget_reservoir_bits = 0;
+    reset_vbr_budget(st);
     return OPUS_OK;
   }
   case OPUS_GET_BITRATE_REQUEST:
@@ -13696,7 +13757,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     if (const auto error = ctl_read_boolean(ap, st->use_vbr); error != OPUS_OK) {
       return error;
     }
-    st->vbr_budget_reservoir_bits = 0;
+    reset_vbr_budget(st);
     return OPUS_OK;
   }
   case OPUS_GET_VBR_REQUEST:
@@ -13715,7 +13776,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     if (const auto error = ctl_read_boolean(ap, st->vbr_constraint); error != OPUS_OK) {
       return error;
     }
-    st->vbr_budget_reservoir_bits = 0;
+    reset_vbr_budget(st);
     return OPUS_OK;
   }
   case OPUS_GET_VBR_CONSTRAINT_REQUEST:
@@ -13783,6 +13844,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     auto* celt_dec = decoder_celt_state(st);
     if (celt_dec->output_postfilter_level != value) {
       celt_dec->output_postfilter_auto_hold = 0;
+      celt_dec->output_postfilter_average_bitrate = 0;
       celt_dec->output_postfilter_smoothed_gain = 0;
     }
     celt_dec->output_postfilter_level = value;

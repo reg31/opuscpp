@@ -167,10 +167,11 @@ template <typename Decoder, auto Create, auto Destroy, auto Decode>
   return output;
 }
 
-[[nodiscard]] auto normalized_error(const std::vector<std::int16_t>& lhs, const std::vector<std::int16_t>& rhs) noexcept -> double {
+[[nodiscard]] auto normalized_error(const std::vector<std::int16_t>& lhs, const std::vector<std::int16_t>& rhs,
+                                    std::size_t offset = 0) noexcept -> double {
   double error = 0.0;
   double reference = 1.0;
-  for (std::size_t index = 0; index < lhs.size(); ++index) {
+  for (std::size_t index = offset; index < lhs.size(); ++index) {
     const double delta = static_cast<double>(lhs[index]) - rhs[index];
     error += delta * delta;
     reference += static_cast<double>(rhs[index]) * rhs[index];
@@ -199,7 +200,8 @@ template <typename Encoder, auto EncoderCreate, auto EncoderDestroy, auto Encode
   const auto current_plc =
       conceal<curr_OpusDecoder, curr_opus_decoder_create, curr_opus_decoder_destroy, curr_opus_decode>(packets, channels, frame_size);
   const auto reference = decode_target<OpusDecoder, opus_decoder_create, opus_decoder_destroy, opus_decode>(packets, channels, frame_size);
-  const double decoder_error = normalized_error(current.fec, official.fec);
+  const auto fec_samples = static_cast<std::size_t>(std::min(frame_size, sample_rate / 50) * channels);
+  const double decoder_error = normalized_error(current.fec, official.fec, current.fec.size() - fec_samples);
   const double fec_plc_difference = normalized_error(official.fec, plc);
   const double current_fec_plc_difference = normalized_error(current.fec, current_plc);
   const double continuation_error = normalized_error(current.current, official.current);

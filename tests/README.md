@@ -183,9 +183,9 @@ the RFC decode vectors:
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
-signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.6692` vs `0.7588`)
-and gain error (`0.5756` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
-approximately 11.8% less re-entry error and 64.2% less gain error than official Opus.
+signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.2930` vs `0.7588`)
+and gain error (`0.7681` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
+approximately 61.4% less re-entry error and 52.2% less gain error than official Opus.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -201,8 +201,8 @@ carried `opuscpp` FEC frame must improve on ordinary packet-loss concealment.
 Recovery error measures how far the reconstructed missing audio is from the original; lower means
 less damage from the lost packet. The aggregate score combines the tracked 10/20 ms scenarios before
 comparing the two encoders. In the current run, `opuscpp` reconstructs audio more accurately in all
-18 scenarios and reduces the combined error by 53.7%. It supplies recoverable backup audio in all 18
-scenarios, compared with 15 for official Opus, while using 1.8% fewer packet bytes.
+18 scenarios and reduces the combined error by 52.8%. It supplies recoverable backup audio in all 18
+scenarios, compared with 15 for official Opus, while using 0.4% fewer packet bytes.
 
 ## Perceptual and memory harness
 
@@ -232,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.533x | 1.903x | 626x | 247x | 1709x | 898x |
-| 24&nbsp;kbps | 1.883x | 1.373x | 420x | 223x | 1090x | 793x |
-| 32&nbsp;kbps | 1.833x | 1.332x | 407x | 222x | 1040x | 780x |
-| 48&nbsp;kbps | 1.578x | 1.285x | 326x | 206x | 869x | 676x |
-| 64&nbsp;kbps | 1.782x | 1.292x | 326x | 183x | 759x | 587x |
-| 96&nbsp;kbps | 1.849x | 1.290x | 272x | 147x | 589x | 456x |
-| 128&nbsp;kbps | 2.060x | 1.303x | 276x | 134x | 516x | 396x |
-| 192&nbsp;kbps | 1.873x | 1.265x | 227x | 121x | 436x | 344x |
-| 256&nbsp;kbps | 1.794x | 1.190x | 207x | 115x | 371x | 312x |
+| 16&nbsp;kbps | 2.481x | 1.834x | 819x | 330x | 2206x | 1203x |
+| 24&nbsp;kbps | 1.900x | 1.374x | 569x | 300x | 1441x | 1049x |
+| 32&nbsp;kbps | 1.871x | 1.320x | 560x | 299x | 1362x | 1032x |
+| 48&nbsp;kbps | 1.806x | 1.298x | 499x | 276x | 1166x | 898x |
+| 64&nbsp;kbps | 1.795x | 1.284x | 439x | 245x | 995x | 775x |
+| 96&nbsp;kbps | 1.896x | 1.269x | 373x | 197x | 781x | 616x |
+| 128&nbsp;kbps | 2.065x | 1.260x | 372x | 180x | 674x | 535x |
+| 192&nbsp;kbps | 1.866x | 1.256x | 304x | 163x | 577x | 459x |
+| 256&nbsp;kbps | 1.771x | 1.192x | 277x | 156x | 497x | 417x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -286,7 +286,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 24&nbsp;kbps | +0.0097 | +0.0057 | +0.1416 | 24.000 kbps | 24.148 kbps |
 | 32&nbsp;kbps | +0.0092 | +0.0069 | +0.0678 | 32.000 kbps | 32.184 kbps |
 | 48&nbsp;kbps | +0.0123 | +0.0073 | +0.0436 | 48.000 kbps | 48.244 kbps |
-| 64&nbsp;kbps | +0.0128 | +0.0039 | +0.0277 | 63.973 kbps | 64.501 kbps |
+| 64&nbsp;kbps | +0.0128 | +0.0052 | +0.0387 | 63.988 kbps | 64.501 kbps |
 | 96&nbsp;kbps | +0.0019 | +0.0002 | +0.0127 | 96.000 kbps | 96.595 kbps |
 | 128&nbsp;kbps | +0.0022 | +0.0009 | +0.0132 | 128.000 kbps | 128.503 kbps |
 | 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.000 kbps | 192.421 kbps |
@@ -299,11 +299,30 @@ current validation run.
 
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
 mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about
-`+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas.
-A separate real male-voice check remained positive in both proxies at all nine bitrates. Continuous
-mono decode overhead measured about 11% to 26% while active after specializing the loop for mono;
-the same test decoded 60 seconds in roughly 0.04 to 0.09 seconds. The public default and headline
-metrics remain unfiltered because mono music can lose fidelity.
+`+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive ViSQOL-style deltas. The
+current PCM16 path adds 0.6% to 8.4% end-to-end decode time across the measured bitrate ladder; the
+same test decodes 60 seconds in 0.033 to 0.083 seconds. The zero-gain diagnostic route accounts for
+roughly 0.4% to 1.8%; the remainder is the adaptive decision and filter work. At 48/64&nbsp;kbps auto
+mode is inactive on this sample, so sub-percent differences are benchmark noise. Each row is the
+median of five complete runs; each mode within a run is itself the median of nine 60-second decodes.
+The public default and headline metrics remain unfiltered because mono music can lose fidelity.
+
+| Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
+|---:|---:|---:|---:|
+| 16&nbsp;kbps | +0.0000 | +0.0000 | 7.6% |
+| 24&nbsp;kbps | +0.0004 | +0.0001 | 8.4% |
+| 32&nbsp;kbps | +0.0249 | +0.0017 | 8.4% |
+| 48&nbsp;kbps | +0.0000 | +0.0000 | 2.1% |
+| 64&nbsp;kbps | +0.0000 | +0.0000 | 0.6% |
+| 96&nbsp;kbps | +0.0137 | +0.0016 | 5.7% |
+| 128&nbsp;kbps | +0.0137 | +0.0014 | 4.9% |
+| 192&nbsp;kbps | +0.0138 | +0.0014 | 3.9% |
+| 256&nbsp;kbps | +0.0137 | +0.0013 | 3.1% |
+
+Source CSVs:
+
+- `metrics/postfilter_quality_voip.csv`
+- `metrics/postfilter_pcm16_path.csv`
 
 ## Memory metrics
 
@@ -312,9 +331,9 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,760 B | -46.7% |
+| Encoder mono | 16,944 B | 31,728 B | -46.6% |
 | Encoder stereo | 32,192 B | 48,880 B | -34.1% |
-| Decoder mono | 14,064 B | 18,416 B | -23.6% |
+| Decoder mono | 14,080 B | 18,416 B | -23.5% |
 | Decoder stereo | 21,360 B | 27,280 B | -21.7% |
 
 Source CSV:
@@ -325,7 +344,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 285,512 B | 0 B | 285,512 B |
+| Host MinGW GCC `-O2` | 288,796 B | 0 B | 288,796 B |
 
 ## Toolchains checked
 

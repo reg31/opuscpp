@@ -9,12 +9,8 @@
 
 namespace {
 
-[[nodiscard]] constexpr auto target_bits_for_frame(int bitrate, int frame_size) noexcept -> int {
-  return bitrate * 6 / (6 * 48000 / frame_size);
-}
-
 [[nodiscard]] constexpr auto credit_capped_packet_bytes(int target_bits) noexcept -> int {
-  return (target_bits + target_bits / 5 + 7) / 8;
+  return (target_bits + target_bits / 5) / 8;
 }
 
 [[nodiscard]] auto make_test_pcm(int channels, int samples) -> std::vector<opus_int16> {
@@ -56,8 +52,6 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
 
   std::array<unsigned char, 4000> packet{};
   const int frame_count = total_samples / frame_size;
-  const int target_bits = target_bits_for_frame(bitrate, frame_size);
-  const int max_packet_bytes = credit_capped_packet_bytes(target_bits);
   long long total_bytes = 0;
   for (int frame = 0; frame < frame_count; ++frame) {
     const auto offset = static_cast<std::size_t>(frame * frame_size * channels);
@@ -65,14 +59,19 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
     if (packet_size < 0) {
       throw std::runtime_error("encode failed");
     }
-    if (packet_size > max_packet_bytes) {
+    const auto cumulative_target_bits = static_cast<long long>(bitrate) * (frame + 1) * frame_size / sample_rate;
+    const auto frame_target_bits = cumulative_target_bits - static_cast<long long>(bitrate) * frame * frame_size / sample_rate;
+    if (packet_size > credit_capped_packet_bytes(static_cast<int>(frame_target_bits))) {
       throw std::runtime_error("VBR credit cap exceeded");
     }
     total_bytes += packet_size;
+    if (total_bytes * 8 > cumulative_target_bits) {
+      throw std::runtime_error("VBR cumulative budget exceeded");
+    }
   }
 
-  const long long target_total_bytes = (static_cast<long long>(target_bits) * frame_count + 7) / 8;
-  if (total_bytes > target_total_bytes) {
+  const long long target_total_bits = static_cast<long long>(bitrate) * frame_count * frame_size / sample_rate;
+  if (total_bytes * 8 > target_total_bits) {
     throw std::runtime_error("VBR average budget exceeded");
   }
 }
@@ -82,8 +81,8 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
 int main() {
   for (const int application : std::array{OPUS_APPLICATION_AUDIO, OPUS_APPLICATION_VOIP}) {
     for (const int channels : std::array{1, 2}) {
-      for (const int frame_size : std::array{960, 1920, 2880}) {
-        for (const int bitrate : std::array{16000, 24000, 32000, 48000}) {
+      for (const int frame_size : std::array{480, 960, 1920, 2880}) {
+        for (const int bitrate : std::array{15999, 16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000}) {
           check_case(application, channels, bitrate * channels, frame_size);
         }
       }

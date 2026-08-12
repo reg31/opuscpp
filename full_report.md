@@ -27,53 +27,53 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.791591 recovery_error=0.0488076 plc_error=0.463539 packet_bytes=360 packet_hash=2146862611`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.199771 recovery_error=0.0996023 plc_error=0.199859 packet_bytes=371 packet_hash=1803285832`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.355533 recovery_error=0.142091 plc_error=0.342664 packet_bytes=474 packet_hash=744281197`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.19564 recovery_error=0.0935658 plc_error=0.177873 packet_bytes=479 packet_hash=3699400340`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0188422 continuation_error=0.0286078 fec_plc_difference=0 recovery_error=0.614024 plc_error=0.614024 packet_bytes=550 packet_hash=3038680279`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.08651 recovery_error=0.0193359 plc_error=0.742264 packet_bytes=716 packet_hash=2685750812`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.717458 recovery_error=0.109427 plc_error=0.592079 packet_bytes=956 packet_hash=3838514076`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.490513 recovery_error=1.19689 plc_error=1.35783 packet_bytes=1438 packet_hash=2550836437`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.02308 recovery_error=0.802098 plc_error=0.930902 packet_bytes=1439 packet_hash=3459260207`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.990948 recovery_error=0.959316 plc_error=1.0444 packet_bytes=2145 packet_hash=150776941`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0.00407664 continuation_error=0.00442517 fec_plc_difference=1.43903 recovery_error=0.897456 plc_error=0.980887 packet_bytes=2154 packet_hash=1540395633`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2367 packet_hash=656704607`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.29585e-06 continuation_error=0 fec_plc_difference=0.624878 recovery_error=0.138917 plc_error=0.481685 packet_bytes=960 packet_hash=763583543`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.558552 recovery_error=0.372524 plc_error=0.430655 packet_bytes=960 packet_hash=3941787026`
-- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.550214 recovery_error=0.132511 plc_error=0.43875 packet_bytes=1426 packet_hash=2454527099`
+- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.528719 recovery_error=0.127702 plc_error=0.441037 packet_bytes=1427 packet_hash=2664156007`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577635 recovery_error=0.17321 plc_error=0.428872 packet_bytes=1459 packet_hash=1816777896`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.5236 recovery_error=0.217936 plc_error=0.773688 packet_bytes=359 packet_hash=605399315`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.52361 recovery_error=0.217941 plc_error=0.773686 packet_bytes=359 packet_hash=192375143`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.47163 recovery_error=0.236744 plc_error=0.837783 packet_bytes=432 packet_hash=1218291744`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.28954 recovery_error=0.210491 plc_error=0.85446 packet_bytes=468 packet_hash=3978246353`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.192 recovery_error=0.204653 plc_error=0.772441 packet_bytes=715 packet_hash=3323905628`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.54995 recovery_error=0.183922 plc_error=0.912991 packet_bytes=956 packet_hash=3153749822`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.539896 recovery_error=1.25637 plc_error=1.36947 packet_bytes=1437 packet_hash=1931465769`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.513115 recovery_error=1.53199 plc_error=1.7849 packet_bytes=1438 packet_hash=2891700171`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26201 recovery_error=0.98527 plc_error=1.03857 packet_bytes=2147 packet_hash=1600347944`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.34886 recovery_error=0.912988 plc_error=0.983861 packet_bytes=2153 packet_hash=2653523858`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.59308 recovery_error=0.325842 plc_error=0.885136 packet_bytes=960 packet_hash=8255841`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0.0159877 continuation_error=0.000880958 fec_plc_difference=1.60859 recovery_error=0.346179 plc_error=0.886561 packet_bytes=960 packet_hash=3814775749`
-- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.73183 recovery_error=0.177212 plc_error=0.911311 packet_bytes=1298 packet_hash=1437530486`
+- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.15305 recovery_error=0.295306 plc_error=0.913042 packet_bytes=1422 packet_hash=2714861809`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32921 recovery_error=0.305962 plc_error=0.768318 packet_bytes=1387 packet_hash=2510013668`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.937947 recovery_error=0.0404191 plc_error=0.867723 packet_bytes=359 packet_hash=2050160439`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.35639 recovery_error=0.190722 plc_error=0.861105 packet_bytes=455 packet_hash=1772260777`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.16542 recovery_error=0.219111 plc_error=0.832498 packet_bytes=472 packet_hash=1214488359`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.84128 recovery_error=0.321836 plc_error=0.685993 packet_bytes=718 packet_hash=3042190627`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.92937 recovery_error=0.314608 plc_error=0.817631 packet_bytes=957 packet_hash=423678847`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.02758 recovery_error=1.24877 plc_error=1.39863 packet_bytes=1435 packet_hash=1589652339`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.2588 recovery_error=1.04668 plc_error=1.16585 packet_bytes=1438 packet_hash=2805007690`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461`
-- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.762108 recovery_error=0.988658 plc_error=1.0127 packet_bytes=2148 packet_hash=285166000`
+- `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.762094 recovery_error=0.98759 plc_error=1.01578 packet_bytes=2154 packet_hash=2896100490`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.15842 recovery_error=0.419175 plc_error=0.864667 packet_bytes=960 packet_hash=4052059962`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.767 recovery_error=0.910793 plc_error=0.941921 packet_bytes=960 packet_hash=622396321`
-- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.47362 recovery_error=0.374941 plc_error=1.16261 packet_bytes=1413 packet_hash=1169485388`
+- `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.47363 recovery_error=0.380914 plc_error=1.1614 packet_bytes=1433 packet_hash=2244237663`
 - `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=1.23163e-05 continuation_error=0 fec_plc_difference=1.37679 recovery_error=0.466926 plc_error=1.23274 packet_bytes=1365 packet_hash=2233567258`
-- `fec_summary recovery_error_ratio=0.462884 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.981954`
+- `fec_summary recovery_error_ratio=0.472256 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726`
 
 ## Perceptual and memory harness
 
@@ -86,15 +86,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.533242x | 1.902936x |
-| 24 kbps | 1.882503x | 1.373356x |
-| 32 kbps | 1.832517x | 1.332322x |
-| 48 kbps | 1.578498x | 1.284863x |
-| 64 kbps | 1.782317x | 1.291971x |
-| 96 kbps | 1.848724x | 1.290384x |
-| 128 kbps | 2.060120x | 1.303331x |
-| 192 kbps | 1.873347x | 1.265492x |
-| 256 kbps | 1.794254x | 1.190207x |
+| 16 kbps | 2.480942x | 1.833821x |
+| 24 kbps | 1.899813x | 1.374168x |
+| 32 kbps | 1.870762x | 1.319607x |
+| 48 kbps | 1.805808x | 1.298229x |
+| 64 kbps | 1.794522x | 1.283992x |
+| 96 kbps | 1.896442x | 1.268540x |
+| 128 kbps | 2.065351x | 1.260175x |
+| 192 kbps | 1.866301x | 1.255577x |
+| 256 kbps | 1.770764x | 1.192090x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -118,7 +118,7 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 | 24 kbps | 0.0930 | -0.0029 | -0.0019 | 0.0097 | 0.0057 | 0.0031 | 0.1416 | 24.000 kbps | 24.148 kbps |
 | 32 kbps | 0.0864 | -0.0027 | -0.0017 | 0.0092 | 0.0069 | 0.0034 | 0.0678 | 32.000 kbps | 32.184 kbps |
 | 48 kbps | 0.1231 | -0.0039 | -0.0025 | 0.0123 | 0.0073 | 0.0033 | 0.0436 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 0.1279 | -0.0040 | -0.0026 | 0.0128 | 0.0039 | 0.0016 | 0.0277 | 63.973 kbps | 64.501 kbps |
+| 64 kbps | 0.1269 | -0.0040 | -0.0026 | 0.0128 | 0.0052 | 0.0020 | 0.0387 | 63.988 kbps | 64.501 kbps |
 | 96 kbps | 0.0291 | -0.0009 | -0.0006 | 0.0019 | 0.0002 | 0.0002 | 0.0127 | 96.000 kbps | 96.595 kbps |
 | 128 kbps | 0.0273 | -0.0009 | -0.0006 | 0.0022 | 0.0009 | 0.0005 | 0.0132 | 128.000 kbps | 128.503 kbps |
 | 192 kbps | 0.0109 | -0.0003 | -0.0002 | 0.0009 | 0.0001 | 0.0000 | 0.0114 | 192.000 kbps | 192.421 kbps |
@@ -135,16 +135,16 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | State | Difference |
 |---|---:|
-| Encoder mono | -46.7% |
+| Encoder mono | -46.6% |
 | Encoder stereo | -34.1% |
-| Decoder mono | -23.6% |
+| Decoder mono | -23.5% |
 | Decoder stereo | -21.7% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 285512 B | 0 B | 285512 B |
+| Host C++23 `-O2` | 288796 B | 0 B | 288796 B |
 
 ## Toolchains checked
 
