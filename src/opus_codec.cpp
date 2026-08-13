@@ -373,7 +373,7 @@ struct CeltEncoderInternal {
   opus_uint32 rng;
   opus_uint16 prefilter_period;
   opus_uint8 high_z_tonal_Q7, input_diff_Q10, consec_transient, lastCodedBands;
-  bool lowrate_refinement;
+  bool lowrate_refinement, content_vbr;
   opus_val32 delayedIntra, prefilter_gain;
   SILKInfo silk_info;
   opus_val32 preemph_memE[2];
@@ -3257,6 +3257,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     celt_encoder_reset_state(celt_enc);
   }
   celt_enc->start = st->mode == opus_mode_celt_only ? 0 : 17;
+  celt_enc->content_vbr = false;
   if (st->mode != opus_mode_silk_only) {
     celt_enc->vbr = st->use_vbr;
     if (st->mode == opus_mode_hybrid) {
@@ -3270,7 +3271,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
         celt_enc->constrained_vbr = 0;
       }
     } else if (st->use_vbr) {
+      const int celt_lm = std::countr_zero(static_cast<unsigned>(frame_size * celt_enc->upsample / celt_short_mdct_size));
       celt_enc->constrained_vbr = st->vbr_constraint;
+      celt_enc->content_vbr = st->application == OPUS_APPLICATION_AUDIO && st->bandwidth == 1105 && st->bitrate_bps < 56000 &&
+                              nominal_target_bits >= 8 * (30 + 5 * celt_lm);
       celt_enc->bitrate = std::min<opus_int32>(allocator_bitrate_bps, 750000 * celt_enc->channels);
     }
     if (st->mode != st->prev_mode && st->prev_mode > 0 && encoder_uses_silk(st->application)) {
@@ -5135,7 +5139,8 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
 }
 
 static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate, int lastCodedBands, int C, int intensity,
-                              int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr) {
+                              int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr,
+                              bool content_vbr) {
   const int nbEBands = celt_default_nb_ebands;
   const opus_int16* eBands = celt_mode()->eBands;
   const int coded_bands = lastCodedBands ? lastCodedBands : nbEBands;
@@ -5164,7 +5169,7 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
     target = std::min(target, floor_depth);
   }
   if (constrained_vbr) {
-    target = base_target + static_cast<opus_int32>(((0.67f)) * (target - base_target));
+    target = base_target + static_cast<opus_int32>((.67f + .07f * content_vbr) * (target - base_target));
   }
   const opus_int32 rate_margin = std::max<opus_int32>(0, std::min<opus_int32>(32000, 96000 - bitrate));
   const opus_val16 amount = (((.0000031f)) * rate_margin);
@@ -5571,7 +5576,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     }
     opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset)
                                : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
-                                             st->stereo_saving, tot_boost, maxDepth, temporal_vbr);
+                                             st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr);
     if (!hybrid) {
       if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
         target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
@@ -5601,7 +5606,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
       delta = 0;
     }
     const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
-    if (st->constrained_vbr) {
+    if (st->constrained_vbr && !st->content_vbr) {
       st->vbr_reservoir += target - vbr_rate;
       st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
       st->vbr_offset = -st->vbr_drift;
@@ -6426,7 +6431,7 @@ static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_stora
     for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
       rows[offset + column] = row_index == 0       ? static_cast<opus_uint32>(column == 0)
                               : column < row_index ? get(column, row_index)
-                              : column == 0        ? 0U
+                              : column == 0 ? 0U
                                             : get(row_index - 1, column) + rows[offset + column - 1] + get(row_index - 1, column - 1);
     }
   }

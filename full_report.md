@@ -86,15 +86,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.523014x | 1.888447x |
-| 24 kbps | 1.885690x | 1.372266x |
-| 32 kbps | 1.877257x | 1.394316x |
-| 48 kbps | 1.793355x | 1.297117x |
-| 64 kbps | 1.793549x | 1.283308x |
-| 96 kbps | 1.876538x | 1.274730x |
-| 128 kbps | 2.056426x | 1.274186x |
-| 192 kbps | 1.851769x | 1.251302x |
-| 256 kbps | 1.783455x | 1.204266x |
+| 16 kbps | 2.514106x | 1.883507x |
+| 24 kbps | 1.907467x | 1.347780x |
+| 32 kbps | 1.865271x | 1.367206x |
+| 48 kbps | 1.797139x | 1.295526x |
+| 64 kbps | 1.784308x | 1.274421x |
+| 96 kbps | 1.867059x | 1.269748x |
+| 128 kbps | 2.081283x | 1.258779x |
+| 192 kbps | 1.857624x | 1.248631x |
+| 256 kbps | 1.777449x | 1.220996x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -103,7 +103,7 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 | 16 kbps | 0.0734 | -0.0022 | -0.0015 | 0.0059 | 0.0024 | 0.0004 | 0.4116 | 16.000 kbps | 17.065 kbps |
 | 24 kbps | 0.1579 | -0.0054 | -0.0041 | 0.0148 | 0.0332 | 0.0062 | 1.0422 | 24.000 kbps | 25.220 kbps |
 | 32 kbps | 0.2482 | -0.0088 | -0.0065 | 0.0211 | 0.0404 | 0.0060 | 0.6725 | 32.000 kbps | 33.613 kbps |
-| 48 kbps | -0.0001 | 0.0000 | -0.0001 | 0.0006 | 0.0142 | 0.0026 | 0.0032 | 48.000 kbps | 48.560 kbps |
+| 48 kbps | 0.0050 | -0.0002 | -0.0003 | 0.0011 | 0.0148 | 0.0027 | 0.0042 | 48.000 kbps | 48.560 kbps |
 | 64 kbps | 0.0905 | -0.0033 | -0.0026 | 0.0075 | 0.0055 | 0.0008 | 0.0262 | 64.000 kbps | 64.613 kbps |
 | 96 kbps | 0.0004 | 0.0000 | -0.0001 | 0.0002 | 0.0035 | 0.0009 | 0.0013 | 96.000 kbps | 96.697 kbps |
 | 128 kbps | 0.0148 | -0.0005 | -0.0001 | 0.0010 | 0.0015 | 0.0002 | 0.0026 | 128.000 kbps | 128.759 kbps |
@@ -135,10 +135,10 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | State | Difference |
 |---|---:|
-| Encoder mono | -46.6% |
-| Encoder stereo | -34.4% |
-| Decoder mono | -22.5% |
-| Decoder stereo | -22.9% |
+| Encoder mono | -46.5% |
+| Encoder stereo | -34.2% |
+| Decoder mono | -23.2% |
+| Decoder stereo | -21.9% |
 
 ## Binary size
 
@@ -150,5 +150,5 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Toolchain | Status |
 |---|---|
-| MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
+| MinGW/current C++23 compiler: C:/Qt/Tools/mingw64/bin/g++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |

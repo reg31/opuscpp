@@ -232,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.523x | 1.888x | 547x | 217x | 1480x | 783x |
-| 24&nbsp;kbps | 1.886x | 1.372x | 378x | 200x | 969x | 706x |
-| 32&nbsp;kbps | 1.877x | 1.394x | 375x | 200x | 935x | 671x |
-| 48&nbsp;kbps | 1.793x | 1.297x | 327x | 182x | 774x | 597x |
-| 64&nbsp;kbps | 1.794x | 1.283x | 292x | 163x | 669x | 521x |
-| 96&nbsp;kbps | 1.877x | 1.275x | 247x | 132x | 521x | 409x |
-| 128&nbsp;kbps | 2.056x | 1.274x | 246x | 120x | 454x | 356x |
-| 192&nbsp;kbps | 1.852x | 1.251x | 201x | 108x | 384x | 307x |
-| 256&nbsp;kbps | 1.783x | 1.204x | 183x | 103x | 332x | 276x |
+| 16&nbsp;kbps | 2.514x | 1.884x | 850x | 338x | 2282x | 1212x |
+| 24&nbsp;kbps | 1.907x | 1.348x | 586x | 307x | 1469x | 1090x |
+| 32&nbsp;kbps | 1.865x | 1.367x | 580x | 311x | 1441x | 1054x |
+| 48&nbsp;kbps | 1.797x | 1.296x | 509x | 283x | 1196x | 923x |
+| 64&nbsp;kbps | 1.784x | 1.274x | 450x | 252x | 1026x | 805x |
+| 96&nbsp;kbps | 1.867x | 1.270x | 380x | 203x | 809x | 637x |
+| 128&nbsp;kbps | 2.081x | 1.259x | 385x | 185x | 701x | 557x |
+| 192&nbsp;kbps | 1.858x | 1.249x | 310x | 167x | 596x | 477x |
+| 256&nbsp;kbps | 1.777x | 1.221x | 282x | 158x | 513x | 420x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -267,7 +267,7 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | 16&nbsp;kbps | +0.0059 | +0.0024 | +0.4116 | 16.000 kbps | 17.065 kbps |
 | 24&nbsp;kbps | +0.0148 | +0.0332 | +1.0422 | 24.000 kbps | 25.220 kbps |
 | 32&nbsp;kbps | +0.0211 | +0.0404 | +0.6725 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | +0.0006 | +0.0142 | +0.0032 | 48.000 kbps | 48.560 kbps |
+| 48&nbsp;kbps | +0.0011 | +0.0148 | +0.0042 | 48.000 kbps | 48.560 kbps |
 | 64&nbsp;kbps | +0.0075 | +0.0055 | +0.0262 | 64.000 kbps | 64.613 kbps |
 | 96&nbsp;kbps | +0.0002 | +0.0035 | +0.0013 | 96.000 kbps | 96.697 kbps |
 | 128&nbsp;kbps | +0.0010 | +0.0015 | +0.0026 | 128.000 kbps | 128.759 kbps |
@@ -331,10 +331,10 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,712 B | -46.6% |
-| Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,168 B | 27,456 B | -22.9% |
+| Encoder mono | 16,928 B | 31,648 B | -46.5% |
+| Encoder stereo | 32,176 B | 48,912 B | -34.2% |
+| Decoder mono | 14,128 B | 18,384 B | -23.2% |
+| Decoder stereo | 21,360 B | 27,344 B | -21.9% |
 
 Source CSV:
 
