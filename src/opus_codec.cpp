@@ -6431,7 +6431,7 @@ static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_stora
     for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
       rows[offset + column] = row_index == 0       ? static_cast<opus_uint32>(column == 0)
                               : column < row_index ? get(column, row_index)
-                              : column == 0 ? 0U
+                              : column == 0        ? 0U
                                             : get(row_index - 1, column) + rows[offset + column - 1] + get(row_index - 1, column - 1);
     }
   }
