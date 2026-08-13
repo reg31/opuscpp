@@ -31,7 +31,7 @@ Minimal integration looks like:
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
   run (1.77x to 2.52x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
-  run (1.19x to 1.87x).
+  run (1.20x to 1.89x).
 - AUDIO and VOIP PESQ-style, ViSQOL-style, and CELT-style proxy deltas are positive at all nine
   measured bitrates.
 - Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at
@@ -54,7 +54,7 @@ Minimal integration looks like:
   off by default because it is not a universal music-quality improvement.
 - Lower memory footprint than official Opus in the measured configurations (22.5% to 46.6%
   lower private state in the current memory snapshot).
-- Host MinGW GCC `-O2` measured object image in the current snapshot: `288,996 B` total.
+- Host MinGW GCC `-O2` measured object image in the current snapshot: `288,788 B` total.
 
 ## Pros and cons
 
@@ -62,7 +62,7 @@ Minimal integration looks like:
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
 | Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.77x to 2.52x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.19x to 1.87x). | Official Opus remains extremely mature and supports a broader feature surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.20x to 1.89x). | Official Opus remains extremely mature and supports a broader feature surface. |
 | Lower encoder and decoder memory use in the measured configurations (22.5% to 46.6% lower private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
@@ -116,15 +116,15 @@ official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.523x | 1.874x | +0.0059 | +0.0024 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.901x | 1.396x | +0.0148 | +0.0332 | 24.000 kbps | 25.220 kbps |
-| 32&nbsp;kbps | 1.859x | 1.343x | +0.0211 | +0.0404 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.788x | 1.296x | +0.0006 | +0.0142 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.770x | 1.307x | +0.0075 | +0.0055 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.856x | 1.241x | +0.0002 | +0.0035 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 2.066x | 1.272x | +0.0010 | +0.0015 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.881x | 1.274x | +0.0007 | +0.0005 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 1.766x | 1.193x | +0.0008 | +0.0001 | 256.000 kbps | 256.736 kbps |
+| 16&nbsp;kbps | 2.523x | 1.888x | +0.0059 | +0.0024 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.886x | 1.372x | +0.0148 | +0.0332 | 24.000 kbps | 25.220 kbps |
+| 32&nbsp;kbps | 1.877x | 1.394x | +0.0211 | +0.0404 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.793x | 1.297x | +0.0006 | +0.0142 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.794x | 1.283x | +0.0075 | +0.0055 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.877x | 1.275x | +0.0002 | +0.0035 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 2.056x | 1.274x | +0.0010 | +0.0015 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.852x | 1.251x | +0.0007 | +0.0005 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.783x | 1.204x | +0.0008 | +0.0001 | 256.000 kbps | 256.736 kbps |
 
 
 VOIP mono speech-like quality spot check:
@@ -163,7 +163,7 @@ and is not included in this default-FEC-off snapshot.
 | Encoder mono | 16,928 B | 31,712 B | -46.6% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
 | Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,184 B | 27,440 B | -22.8% |
+| Decoder stereo | 21,168 B | 27,456 B | -22.9% |
 
 ## Conformance
 

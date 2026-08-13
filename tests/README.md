@@ -232,15 +232,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.523x | 1.874x | 609x | 242x | 1662x | 887x |
-| 24&nbsp;kbps | 1.901x | 1.396x | 416x | 219x | 1065x | 763x |
-| 32&nbsp;kbps | 1.859x | 1.343x | 410x | 220x | 1032x | 768x |
-| 48&nbsp;kbps | 1.788x | 1.296x | 362x | 203x | 860x | 664x |
-| 64&nbsp;kbps | 1.770x | 1.307x | 314x | 178x | 732x | 560x |
-| 96&nbsp;kbps | 1.856x | 1.241x | 267x | 144x | 561x | 452x |
-| 128&nbsp;kbps | 2.066x | 1.272x | 272x | 132x | 499x | 393x |
-| 192&nbsp;kbps | 1.881x | 1.274x | 223x | 119x | 427x | 335x |
-| 256&nbsp;kbps | 1.766x | 1.193x | 202x | 114x | 363x | 305x |
+| 16&nbsp;kbps | 2.523x | 1.888x | 547x | 217x | 1480x | 783x |
+| 24&nbsp;kbps | 1.886x | 1.372x | 378x | 200x | 969x | 706x |
+| 32&nbsp;kbps | 1.877x | 1.394x | 375x | 200x | 935x | 671x |
+| 48&nbsp;kbps | 1.793x | 1.297x | 327x | 182x | 774x | 597x |
+| 64&nbsp;kbps | 1.794x | 1.283x | 292x | 163x | 669x | 521x |
+| 96&nbsp;kbps | 1.877x | 1.275x | 247x | 132x | 521x | 409x |
+| 128&nbsp;kbps | 2.056x | 1.274x | 246x | 120x | 454x | 356x |
+| 192&nbsp;kbps | 1.852x | 1.251x | 201x | 108x | 384x | 307x |
+| 256&nbsp;kbps | 1.783x | 1.204x | 183x | 103x | 332x | 276x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -334,7 +334,7 @@ snapshot.
 | Encoder mono | 16,928 B | 31,712 B | -46.6% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
 | Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,184 B | 27,440 B | -22.8% |
+| Decoder stereo | 21,168 B | 27,456 B | -22.9% |
 
 Source CSV:
 
@@ -344,7 +344,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 288,996 B | 0 B | 288,996 B |
+| Host MinGW GCC `-O2` | 288,788 B | 0 B | 288,788 B |
 
 ## Toolchains checked
 

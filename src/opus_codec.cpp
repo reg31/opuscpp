@@ -222,6 +222,12 @@ template <typename T> static void zero_object(T& value) noexcept {
   zero_n_bytes(&value, sizeof(value));
 }
 
+template <typename T>
+  requires std::is_trivially_copyable_v<T>
+static void zero_object_tail(T& value, std::size_t offset) noexcept {
+  zero_n_bytes(reinterpret_cast<std::byte*>(&value) + offset, sizeof(value) - offset);
+}
+
 template <typename T> [[nodiscard]] static auto offset_ptr(void* base, int offset) noexcept -> T* {
   return reinterpret_cast<T*>(reinterpret_cast<std::byte*>(base) + offset);
 }
@@ -864,10 +870,10 @@ struct stereo_dec_state {
   std::array<opus_int16, 2> pred_prev_Q13, sMid, sSide;
 };
 struct SideInfoIndices {
+  opus_int16 lagIndex;
   opus_int8 GainsIndices[4];
   opus_uint8 LTPIndex[4];
   opus_int8 NLSFIndices[16 + 1];
-  opus_int16 lagIndex;
   opus_uint8 contourIndex, signalType, quantOffsetType, NLSFInterpCoef_Q2, PERIndex, LTP_scaleIndex, Seed;
 };
 
@@ -875,8 +881,8 @@ struct silk_lbrr_channel_state {
   std::array<SideInfoIndices, 3> indices;
   std::array<std::array<opus_int8, (5 * 4) * 16>, 3> pulses;
   std::array<opus_int8, 3> flags;
-  silk_nsq_state nsq;
   opus_int8 previous_gain_index;
+  silk_nsq_state nsq;
   int enabled, gain_increase;
 };
 
@@ -928,13 +934,13 @@ struct silk_CNG_struct {
 struct silk_decoder_state {
   opus_int32 prev_gain_Q16, exc_Q14[((5 * 4) * 16)], sLPC_Q14_buf[16];
   opus_int16 outBuf[((5 * 4) * 16) + 2 * (5 * 16)], prevNLSF_Q15[16], ec_prevLagIndex;
+  SideInfoIndices indices;
   int lagPrev, fs_kHz, nb_subfr, frame_length, subfr_length, ltp_mem_length, LPC_order, first_frame_after_reset, nFramesDecoded,
       nFramesPerPacket, ec_prevSignalType, VAD_flags[3], LBRR_flags[3], lossCnt, prevSignalType;
   opus_int8 LastGainIndex;
   const silk_NLSF_CB_struct* psNLSF_CB;
-  silk_resampler_state_struct resampler_state;
-  SideInfoIndices indices;
   silk_CNG_struct* sCNG;
+  silk_resampler_state_struct resampler_state;
   silk_PLC_struct sPLC;
 };
 static void silk_CNG_Reset(silk_decoder_state* psDec);
@@ -1740,7 +1746,7 @@ struct silk_encoder_control_FLP {
       coding_quality, predGain, LTPredCodGain, ResNrg[4];
   int pitchL[4];
   opus_int32 GainsUnq_Q16[4];
-  opus_int8 lastGainIndexPrev;
+  int lastGainIndexPrev;
 };
 struct silk_encoder {
   stereo_enc_state sStereo;
@@ -2242,15 +2248,6 @@ constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
 constexpr opus_int32 celt_energy_feedback_bypass_min_bps = 80000;
 constexpr opus_int32 celt_energy_feedback_bypass_max_bps = 112000;
 
-struct quiet_voice_filter_profile {
-  opus_val16 gain{1.0f};
-  opus_val16 tilt{0.0f};
-};
-
-[[nodiscard]] static constexpr auto quiet_voice_filter_for(opus_int32 bitrate) noexcept -> quiet_voice_filter_profile {
-  return bitrate >= 40000 && bitrate < 64000 ? quiet_voice_filter_profile{.984f, .15f} : quiet_voice_filter_profile{};
-}
-
 [[nodiscard]] static constexpr bool is_sparse_high_z_tonal_frame(const frame_activity_metrics& metrics) noexcept {
   return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
 }
@@ -2476,11 +2473,8 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
     return bitrate >= 128000 ? .997f : 1.0f;
   }
   if (st->application == OPUS_APPLICATION_VOIP) {
-    if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-      const auto quiet_filter = quiet_voice_filter_for(bitrate);
-      if (quiet_filter.gain != 1) {
-        return quiet_filter.gain;
-      }
+    if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
+      return .984f;
     }
     if (bitrate >= 24000 && bitrate <= 64000) {
       return bitrate >= 40000 ? .985f : .994f;
@@ -3376,7 +3370,7 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
 }
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
-  zero_n_bytes(&st->bitrate_bps, sizeof(*st) - offsetof(OpusEncoder, bitrate_bps));
+  zero_object_tail(*st, offsetof(OpusEncoder, bitrate_bps));
   zero_n_items(encoder_delay_buffer(st), encoder_delay_buffer_count(st->channels, st->application));
   celt_encoder_reset_state(celt_enc);
   if (encoder_uses_silk(st->application)) {
@@ -3538,7 +3532,6 @@ extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
 struct celt_pulse_budget {
   int pulses;
   int bits;
-  const unsigned char* cache;
 };
 
 [[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept -> celt_pulse_budget {
@@ -3554,7 +3547,7 @@ struct celt_pulse_budget {
   } else {
     pulses = celt_bits2pulses_search(cache, bits);
   }
-  return {pulses, pulses == 0 ? 0 : cache[pulses] + 1, cache};
+  return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
 static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc);
@@ -4055,7 +4048,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     for (; ctx->remaining_bits < 0 && q > 0;) {
       ctx->remaining_bits += curr_bits;
       q--;
-      curr_bits = q == 0 ? 0 : pulse_budget.cache[q] + 1;
+      curr_bits = q == 0 ? 0 : cache[q] + 1;
       ctx->remaining_bits -= curr_bits;
     }
     if (q != 0) {
@@ -5657,7 +5650,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   static_assert(std::is_standard_layout_v<CeltEncoderInternal>);
-  zero_n_bytes(&st->rng, sizeof(*st) - offsetof(CeltEncoderInternal, rng));
+  zero_object_tail(*st, offsetof(CeltEncoderInternal, rng));
   zero_n_items(celt_encoder_storage(st), celt_encoder_storage_count(st->channels));
   const auto views = make_celt_encoder_views(st);
   const auto band_count = static_cast<std::size_t>(st->channels * celt_default_nb_ebands);
@@ -5834,7 +5827,7 @@ constexpr int celt_decoder_energy_channel_count = 2;
 static void celt_decoder_reset_state(CeltDecoderInternal* st) {
   constexpr auto energy_channels = celt_decoder_energy_channel_count;
   static_assert(std::is_standard_layout_v<CeltDecoderInternal>);
-  zero_n_bytes(&st->last_pitch_index, sizeof(*st) - offsetof(CeltDecoderInternal, last_pitch_index));
+  zero_object_tail(*st, offsetof(CeltDecoderInternal, last_pitch_index));
   zero_n_items(celt_decoder_storage(st), celt_decoder_storage_count(st->channels));
   auto* old_band_energy =
       reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + (celt_decoder_history_size + celt_default_overlap) * st->channels);
@@ -6467,97 +6460,55 @@ static constexpr auto celt_pvq_fast_rows = make_celt_pvq_fast_rows();
   return celt_pvq_fast_rows[static_cast<unsigned>(pulses)][dimensions] + celt_pvq_fast_rows[static_cast<unsigned>(pulses + 1)][dimensions];
 }
 
-struct celt_pvq_search_result {
-  int k;
-  opus_uint32 u;
-};
-
-[[nodiscard]] static auto celt_pvq_find_last_leq(const opus_uint32* row, int high, opus_uint32 index) noexcept -> celt_pvq_search_result {
-  const auto* entry = row + high;
-  auto value = *entry;
-  while (value > index) {
-    value = *--entry;
-    --high;
-  }
-  return {high, value};
-}
-
-[[nodiscard]] static inline auto celt_pvq_find_last_leq_column(int high, unsigned column, opus_uint32 index) noexcept
-    -> celt_pvq_search_result {
-  if (high <= 0) {
-    return {0, celt_pvq_u_entry(0, static_cast<int>(column))};
-  }
-  auto row = static_cast<unsigned>(high);
-  auto value = celt_pvq_fast_rows[row][column];
-  while (value > index) {
-    value = celt_pvq_fast_rows[--row][column];
-    --high;
-  }
-  return {high, value};
-}
-
-template <typename Writer>
-static auto celt_pvq_unrank_tail(int k, opus_uint32 index, int position, Writer& writer, opus_val32 yy) noexcept -> opus_val32 {
-  auto p = static_cast<opus_uint32>(2 * k + 1);
-  const int s0 = -(index >= p);
-  index -= p & s0;
-  const int k0 = k;
-  k = (index + 1) >> 1;
-  if (k != 0) {
-    index -= 2 * k - 1;
-  }
-  auto value = static_cast<opus_int16>((k0 - k + s0) ^ s0);
-  writer(position, value);
-  yy += static_cast<opus_val32>(value * value);
-  const int s1 = -static_cast<int>(index);
-  value = static_cast<opus_int16>((k + s1) ^ s1);
-  writer(position + 1, value);
-  yy += static_cast<opus_val32>(value * value);
-  return yy;
-}
-
 template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_uint32 index, Writer& writer) noexcept -> opus_val32 {
   opus_val32 yy = 0;
   int position = 0;
   for (; n > 2; --n, ++position) {
-    opus_uint32 p;
-    int s;
+    opus_uint32 p, q;
     const int k0 = k;
+    int sign;
     if (k >= n) {
       const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(n)];
       p = row[k + 1];
-      s = -(index >= p);
-      index -= p & s;
+      sign = -(index >= p);
+      index -= p & sign;
       if (row[n] > index) {
-        const auto found = celt_pvq_find_last_leq_column(n - 1, static_cast<unsigned>(n), index);
-        k = found.k;
-        p = found.u;
+        for (k = n; (p = celt_pvq_fast_rows[static_cast<unsigned>(--k)][n]) > index;) {}
       } else {
-        const auto found = celt_pvq_find_last_leq(row, k, index);
-        k = found.k;
-        p = found.u;
+        for (p = row[k]; p > index; p = row[--k]) {}
       }
     } else {
       p = celt_pvq_fast_rows[static_cast<unsigned>(k)][n];
-      const opus_uint32 q = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)][n];
+      q = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)][n];
       if (p <= index && index < q) {
         index -= p;
         writer(position, 0);
         continue;
       }
-      s = -(index >= q);
-      index -= q & s;
-      const auto found = celt_pvq_find_last_leq_column(k - 1, static_cast<unsigned>(n), index);
-      k = found.k;
-      p = found.u;
+      sign = -(index >= q);
+      index -= q & sign;
+      while ((p = celt_pvq_fast_rows[static_cast<unsigned>(--k)][n]) > index) {}
     }
     index -= p;
-    const auto value = static_cast<opus_int16>((k0 - k + s) ^ s);
+    const auto value = static_cast<opus_int16>((k0 - k + sign) ^ sign);
     writer(position, value);
     yy += static_cast<opus_val32>(value * value);
   }
-
-  return celt_pvq_unrank_tail(k, index, position, writer, yy);
+  auto p = static_cast<opus_uint32>(2 * k + 1);
+  const int sign0 = -(index >= p);
+  index -= p & sign0;
+  const int k0 = k;
+  k = (index + 1) >> 1;
+  if (k != 0) {
+    index -= 2 * k - 1;
+  }
+  auto value = static_cast<opus_int16>((k0 - k + sign0) ^ sign0);
+  writer(position, value);
+  yy += static_cast<opus_val32>(value * value);
+  const int sign1 = -static_cast<int>(index);
+  value = static_cast<opus_int16>((k + sign1) ^ sign1);
+  writer(position + 1, value);
+  return yy + static_cast<opus_val32>(value * value);
 }
 
 template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int k, ec_dec* dec, Writer& writer) noexcept -> opus_val32 {
@@ -12528,10 +12479,6 @@ static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* p
                             psEncC->indices.signalType, psEncC->indices.quantOffsetType, psEncC->frame_length);
 }
 
-[[nodiscard]] auto opuscpp_silk_lbrr_lambda_scale(const silk_encoder_state& state) noexcept -> float {
-  return state.nb_subfr != 2 ? .9f : state.input_tilt_Q15 < -10000 ? .95f : state.speech_activity_Q8 < fixed_q<8>(.75f) ? .8f : .9f;
-}
-
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control,
                                const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet) {
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
@@ -12555,7 +12502,10 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     control->Gains[index] = gains_Q16[static_cast<std::size_t>(index)] * (1.0f / 65536.0f);
   }
   const float original_lambda = control->Lambda;
-  control->Lambda *= opuscpp_silk_lbrr_lambda_scale(psEnc->sCmn);
+  control->Lambda *= psEnc->sCmn.nb_subfr != 2                           ? .9f
+                     : psEnc->sCmn.input_tilt_Q15 < -10000               ? .95f
+                     : psEnc->sCmn.speech_activity_Q8 < fixed_q<8>(.75f) ? .8f
+                                                                         : .9f;
   silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr->nsq, lbrr->pulses[frame].data(), samples);
   control->Lambda = original_lambda;
   std::copy_n(original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), control->Gains);
@@ -13881,7 +13831,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     auto* celt_dec = decoder_celt_state(st);
     celt_decoder_reset_state(celt_dec);
     silk_ResetDecoder(silk_dec);
-    zero_n_bytes(&st->stream_channels, sizeof(*st) - offsetof(OpusDecoder, stream_channels));
+    zero_object_tail(*st, offsetof(OpusDecoder, stream_channels));
     st->stream_channels = st->channels;
     st->frame_size = st->Fs / 400;
     return OPUS_OK;
