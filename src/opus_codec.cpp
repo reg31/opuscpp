@@ -6951,6 +6951,169 @@ static void kf_bfly5(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
   }
 }
 
+namespace opuscpp_pfa {
+constexpr std::array<opus_uint8, 15> pfa_fft15_input_permutation{2, 10, 5, 12, 7, 0, 14, 9, 4, 11, 1, 6, 13, 8, 3};
+constexpr std::array<opus_uint8, 32> pfa_split_radix_permutation{0, 16, 8, 24, 4, 20, 28, 12, 2, 18, 10, 26,
+                                                                30, 14, 6, 22, 1, 17, 9, 25, 5, 21, 29, 13,
+                                                                31, 15, 7, 23, 3, 19, 27, 11};
+constexpr std::array<float, 9> pfa_fft32_cosines{1.0f,         0.980785251f, 0.923879504f, 0.831469595f, 0.707106769f,
+                                                 0.555570245f, 0.382683426f, 0.195090324f, 0.0f};
+
+consteval auto make_pfa_input_map_480() noexcept -> std::array<opus_uint16, 480> {
+  std::array<opus_uint16, 480> map{};
+  int block = 0;
+  int position = 0;
+  for (auto& destination : map) {
+    destination = static_cast<opus_uint16>(15 * block + pfa_fft15_input_permutation[position]);
+    block = (block + 15) & 31;
+    if (++position == 15) {
+      position = 0;
+    }
+  }
+  return map;
+}
+
+constexpr auto pfa_input_map_480 = make_pfa_input_map_480();
+
+void pfa_butterfly(float& difference, float& sum, float left, float right) noexcept {
+  difference = left - right;
+  sum = left + right;
+}
+
+void pfa_split_radix_butterflies(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float t1,
+                                 float t2, float t5, float t6) noexcept {
+  const float r0 = a0.r;
+  const float i0 = a0.i;
+  const float r1 = a1.r;
+  const float i1 = a1.i;
+  float t3, t4;
+  pfa_butterfly(t3, t5, t5, t1);
+  pfa_butterfly(a2.r, a0.r, r0, t5);
+  pfa_butterfly(a3.i, a1.i, i1, t3);
+  pfa_butterfly(t4, t6, t2, t6);
+  pfa_butterfly(a3.r, a1.r, r1, t4);
+  pfa_butterfly(a2.i, a0.i, i0, t6);
+}
+
+void pfa_split_radix_transform(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float real,
+                               float imaginary) noexcept {
+  const float t1 = a2.r * real + a2.i * imaginary;
+  const float t2 = a2.i * real - a2.r * imaginary;
+  const float t5 = a3.r * real - a3.i * imaginary;
+  const float t6 = a3.r * imaginary + a3.i * real;
+  pfa_split_radix_butterflies(a0, a1, a2, a3, t1, t2, t5, t6);
+}
+
+void pfa_fft4(kiss_fft_cpx* values) noexcept {
+  float t1, t2, t3, t4, t5, t6, t7, t8;
+  pfa_butterfly(t3, t1, values[0].r, values[1].r);
+  pfa_butterfly(t8, t6, values[3].r, values[2].r);
+  pfa_butterfly(values[2].r, values[0].r, t1, t6);
+  pfa_butterfly(t4, t2, values[0].i, values[1].i);
+  pfa_butterfly(t7, t5, values[2].i, values[3].i);
+  pfa_butterfly(values[3].i, values[1].i, t4, t8);
+  pfa_butterfly(values[3].r, values[1].r, t3, t7);
+  pfa_butterfly(values[2].i, values[0].i, t2, t5);
+}
+
+void pfa_fft8(kiss_fft_cpx* values) noexcept {
+  pfa_fft4(values);
+  const float t1 = values[4].r + values[5].r;
+  values[5].r = values[4].r - values[5].r;
+  const float t2 = values[4].i + values[5].i;
+  values[5].i = values[4].i - values[5].i;
+  const float t5 = values[6].r + values[7].r;
+  values[7].r = values[6].r - values[7].r;
+  const float t6 = values[6].i + values[7].i;
+  values[7].i = values[6].i - values[7].i;
+  pfa_split_radix_butterflies(values[0], values[2], values[4], values[6], t1, t2, t5, t6);
+  pfa_split_radix_transform(values[1], values[3], values[5], values[7], pfa_fft32_cosines[4], pfa_fft32_cosines[4]);
+}
+
+void pfa_fft16(kiss_fft_cpx* values) noexcept {
+  pfa_fft8(values);
+  pfa_fft4(values + 8);
+  pfa_fft4(values + 12);
+  pfa_split_radix_butterflies(values[0], values[4], values[8], values[12], values[8].r, values[8].i, values[12].r, values[12].i);
+  pfa_split_radix_transform(values[2], values[6], values[10], values[14], pfa_fft32_cosines[4], pfa_fft32_cosines[4]);
+  pfa_split_radix_transform(values[1], values[5], values[9], values[13], pfa_fft32_cosines[2], pfa_fft32_cosines[6]);
+  pfa_split_radix_transform(values[3], values[7], values[11], values[15], pfa_fft32_cosines[6], pfa_fft32_cosines[2]);
+}
+
+void pfa_fft32(kiss_fft_cpx* values) noexcept {
+  pfa_fft16(values);
+  pfa_fft8(values + 16);
+  pfa_fft8(values + 24);
+  for (int index = 0; index < 4; ++index) {
+    const int offset = 2 * index;
+    pfa_split_radix_transform(values[offset], values[8 + offset], values[16 + offset], values[24 + offset], pfa_fft32_cosines[offset],
+                              pfa_fft32_cosines[8 - offset]);
+    pfa_split_radix_transform(values[offset + 1], values[9 + offset], values[17 + offset], values[25 + offset],
+                              pfa_fft32_cosines[offset + 1], pfa_fft32_cosines[7 - offset]);
+  }
+}
+
+void pfa_fft3(const kiss_fft_cpx& in0, const kiss_fft_cpx& in1, const kiss_fft_cpx& in2, kiss_fft_cpx& out0,
+              kiss_fft_cpx& out1, kiss_fft_cpx& out2) noexcept {
+  constexpr float sine = 0.866025388f;
+  const float sum_r = in1.r + in2.r;
+  const float difference_r = in1.r - in2.r;
+  const float sum_i = in1.i + in2.i;
+  const float difference_i = in1.i - in2.i;
+  out0 = {in0.r + sum_r, in0.i + sum_i};
+  const float cross_r = difference_i * sine;
+  const float cross_i = difference_r * sine;
+  const float base_r = in0.r - 0.5f * sum_r;
+  const float base_i = in0.i - 0.5f * sum_i;
+  out1 = {base_r + cross_r, base_i - cross_i};
+  out2 = {base_r - cross_r, base_i + cross_i};
+}
+
+constexpr std::array<opus_uint8, 15> pfa_fft15_output_indices{0, 3, 6, 9, 12, 5, 8, 11, 14, 2, 10, 13, 1, 4, 7};
+
+void pfa_fft5(const kiss_fft_cpx* input, kiss_fft_cpx* output, const opus_uint8* indices) noexcept {
+  constexpr float cos_2pi_5 = 0.309017003f;
+  constexpr float cos_4pi_5 = 0.809016994f;
+  constexpr float sin_2pi_5 = 0.951056540f;
+  constexpr float sin_4pi_5 = 0.587785252f;
+  const float difference14_r = input[1].r - input[4].r;
+  const float sum14_r = input[1].r + input[4].r;
+  const float difference14_i = input[1].i - input[4].i;
+  const float sum14_i = input[1].i + input[4].i;
+  const float difference23_r = input[2].r - input[3].r;
+  const float sum23_r = input[2].r + input[3].r;
+  const float difference23_i = input[2].i - input[3].i;
+  const float sum23_i = input[2].i + input[3].i;
+  const float t4_r = sum14_r * cos_2pi_5 - sum23_r * cos_4pi_5;
+  const float t0_r = sum23_r * cos_2pi_5 - sum14_r * cos_4pi_5;
+  const float t4_i = sum14_i * cos_2pi_5 - sum23_i * cos_4pi_5;
+  const float t0_i = sum23_i * cos_2pi_5 - sum14_i * cos_4pi_5;
+  const float t5_r = difference14_i * sin_2pi_5 + difference23_i * sin_4pi_5;
+  const float t1_r = difference14_i * sin_4pi_5 - difference23_i * sin_2pi_5;
+  const float t5_i = -(difference14_r * sin_2pi_5 + difference23_r * sin_4pi_5);
+  const float t1_i = difference23_r * sin_2pi_5 - difference14_r * sin_4pi_5;
+  output[static_cast<int>(indices[0]) * 32] = {input[0].r + sum14_r + sum23_r,
+                                               input[0].i + sum14_i + sum23_i};
+  output[static_cast<int>(indices[1]) * 32] = {input[0].r + t4_r + t5_r, input[0].i + t4_i + t5_i};
+  output[static_cast<int>(indices[2]) * 32] = {input[0].r + t0_r + t1_r, input[0].i + t0_i + t1_i};
+  output[static_cast<int>(indices[3]) * 32] = {input[0].r + t0_r - t1_r, input[0].i + t0_i - t1_i};
+  output[static_cast<int>(indices[4]) * 32] = {input[0].r + t4_r - t5_r, input[0].i + t4_i - t5_i};
+}
+
+void pfa_fft15(const kiss_fft_cpx* input, kiss_fft_cpx* output) noexcept {
+  std::array<kiss_fft_cpx, 15> temporary;
+  pfa_fft3(input[2], input[0], input[1], temporary[0], temporary[5], temporary[10]);
+  pfa_fft3(input[13], input[5], input[9], temporary[1], temporary[6], temporary[11]);
+  pfa_fft3(input[11], input[3], input[7], temporary[2], temporary[7], temporary[12]);
+  pfa_fft3(input[14], input[6], input[10], temporary[3], temporary[8], temporary[13]);
+  pfa_fft3(input[12], input[4], input[8], temporary[4], temporary[9], temporary[14]);
+  pfa_fft5(temporary.data(), output, pfa_fft15_output_indices.data());
+  pfa_fft5(temporary.data() + 5, output, pfa_fft15_output_indices.data() + 5);
+  pfa_fft5(temporary.data() + 10, output, pfa_fft15_output_indices.data() + 10);
+}
+
+}
+
 static void fft_impl_480(kiss_fft_cpx* fout, const kiss_fft_state* st) {
   kf_bfly4_m1(fout, 120);
   kf_bfly2(fout, 60);
@@ -7062,17 +7225,19 @@ static void celt_float2int16_c(const float* in, opus_int16* out, std::size_t cou
   }
 }
 
-static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
-  const kiss_fft_state* st = l->kfft[shift];
+template <bool Fixed20ms>
+static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift,
+                                       int stride) {
+  const auto* st = l->kfft[Fixed20ms ? 0 : shift];
   const auto scale = st->scale;
-  const int N = l->n >> shift;
-  const float* trig = l->trig + l->n - N;
+  const int N = Fixed20ms ? 1920 : l->n >> shift;
+  const float* trig = Fixed20ms ? l->trig : l->trig + l->n - N;
   const int N2 = N >> 1;
   const int N4 = N >> 2;
   std::array<float, celt_max_frame_samples> folded_storage;
   std::array<kiss_fft_cpx, celt_max_frame_samples / 2> fft_storage;
   auto* f = folded_storage.data();
-  auto* f2 = fft_storage.data();
+  auto* f2 = Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out) : fft_storage.data();
   const int overlap_quarters = (overlap + 3) >> 2;
   int i = 0;
   for (; i < overlap_quarters; ++i) {
@@ -7095,45 +7260,119 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
     f2[st->bitrev[i]] = {(re * t0 - im * t1) * scale, (im * t0 + re * t1) * scale};
   }
   fft_impl(st, f2);
-  for (int i = 0; i < N4; ++i) {
-    const auto t0 = trig[i], t1 = trig[N4 + i];
-    out[2 * stride * i] = f2[i].i * t1 - f2[i].r * t0;
-    out[stride * (N2 - 1 - 2 * i)] = f2[i].r * t1 + f2[i].i * t0;
+  if constexpr (Fixed20ms) {
+    for (int i = 0; i < N4 / 2; ++i) {
+      const int mirror = N4 - 1 - i;
+      const auto low = f2[i];
+      const auto high = f2[mirror];
+      const auto low_t0 = trig[i], low_t1 = trig[N4 + i];
+      const auto high_t0 = trig[mirror], high_t1 = trig[N4 + mirror];
+      out[2 * i] = low.i * low_t1 - low.r * low_t0;
+      out[N2 - 1 - 2 * i] = low.r * low_t1 + low.i * low_t0;
+      out[2 * mirror] = high.i * high_t1 - high.r * high_t0;
+      out[N2 - 1 - 2 * mirror] = high.r * high_t1 + high.i * high_t0;
+    }
+  } else {
+    for (int i = 0; i < N4; ++i) {
+      const auto t0 = trig[i], t1 = trig[N4 + i];
+      out[2 * stride * i] = f2[i].i * t1 - f2[i].r * t0;
+      out[stride * (N2 - 1 - 2 * i)] = f2[i].r * t1 + f2[i].i * t0;
+    }
+  }
+}
+
+static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
+  if (shift == 0 && stride == 1 && l->n == 1920) {
+    clt_mdct_forward_transform<true>(l, in, out, window, overlap, 0, 1);
+  } else {
+    clt_mdct_forward_transform<false>(l, in, out, window, overlap, shift, stride);
+  }
+}
+
+static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* input, float* output, int overlap) noexcept {
+  constexpr int n2 = 960;
+  constexpr int n4 = 480;
+  const float* trig = lookup->trig;
+  auto* work = reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1));
+  const float* front = input;
+  const float* back = input + n2 - 1;
+  for (int index = 0; index < n4; ++index) {
+    const float x1 = *front;
+    const float x2 = *back;
+    work[opuscpp_pfa::pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index],
+                                                    x2 * trig[index] + x1 * trig[n4 + index]};
+    front += 2;
+    back -= 2;
+  }
+
+  auto* transformed = reinterpret_cast<kiss_fft_cpx*>(input);
+  for (int index = 0; index < 32; ++index) {
+    opuscpp_pfa::pfa_fft15(work + 15 * opuscpp_pfa::pfa_split_radix_permutation[index],
+                           transformed + index);
+  }
+  for (int row = 0; row < 15; ++row) {
+    opuscpp_pfa::pfa_fft32(transformed + 32 * row);
+  }
+
+  float* output_front = output + (overlap >> 1);
+  float* output_back = output_front + n2 - 2;
+  int position = 0;
+  for (int index = 0; index < (n4 + 1) >> 1; ++index) {
+    const int column = index & 31;
+    const auto first = transformed[32 * position + column];
+    const auto last = transformed[32 * (14 - position) + ((31 - index) & 31)];
+    float t0 = trig[index];
+    float t1 = trig[n4 + index];
+    output_front[0] = first.i * t0 + first.r * t1;
+    output_back[1] = first.i * t1 - first.r * t0;
+    t0 = trig[n4 - index - 1];
+    t1 = trig[n2 - index - 1];
+    output_back[0] = last.i * t0 + last.r * t1;
+    output_front[1] = last.i * t1 - last.r * t0;
+    output_front += 2;
+    output_back -= 2;
+    if (++position == 15) {
+      position = 0;
+    }
   }
 }
 
 template <bool Fixed20ms>
-static void clt_mdct_backward_transform(const mdct_lookup* l, float* in, float* out, int overlap, int shift = 0, int stride = 1) {
-  const int N = Fixed20ms ? l->n : l->n >> shift;
-  const float* trig = l->trig + (Fixed20ms ? 0 : l->n - N);
+static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input, float* output, int overlap, int shift = 0,
+                                        int stride = 1) {
   if constexpr (Fixed20ms) {
-    shift = 0;
-    stride = 1;
+    clt_mdct_backward_transform_20ms(lookup, input, output, overlap);
+    return;
   }
-  const int N2 = N >> 1, N4 = N >> 2;
-  const auto* fft_state = l->kfft[shift];
-  const float* xp1 = in;
-  const float* xp2 = in + stride * (N2 - 1);
-  float* yp = out + (overlap >> 1);
+  const int N = lookup->n >> shift;
+  const float* trig = lookup->trig + lookup->n - N;
+  const int N2 = N >> 1;
+  const int N4 = N >> 2;
+  const auto* fft_state = lookup->kfft[shift];
+  const float* xp1 = input;
+  const float* xp2 = input + stride * (N2 - 1);
+  float* yp = output + (overlap >> 1);
   for (int i = 0; i < N4; ++i) {
     const int rev = fft_state->bitrev[i];
-    const opus_val32 x1 = *xp1, x2 = *xp2;
-    const float yr = x2 * trig[i] + x1 * trig[N4 + i], yi = x1 * trig[i] - x2 * trig[N4 + i];
+    const opus_val32 x1 = *xp1;
+    const opus_val32 x2 = *xp2;
+    const float yr = x2 * trig[i] + x1 * trig[N4 + i];
+    const float yi = x1 * trig[i] - x2 * trig[N4 + i];
     yp[2 * rev + 1] = yr;
     yp[2 * rev] = yi;
     xp1 += 2 * stride;
     xp2 -= 2 * stride;
   }
-  if constexpr (Fixed20ms) {
-    fft_impl_480(reinterpret_cast<kiss_fft_cpx*>(out + (overlap >> 1)), fft_state);
-  } else {
-    fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(out + (overlap >> 1)));
-  }
-  float* yp0 = out + (overlap >> 1);
-  float* yp1 = out + (overlap >> 1) + N2 - 2;
+  fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1)));
+  float* yp0 = output + (overlap >> 1);
+  float* yp1 = output + (overlap >> 1) + N2 - 2;
   for (int i = 0; i < (N4 + 1) >> 1; ++i) {
-    float re = yp0[1], im = yp0[0], t0 = trig[i], t1 = trig[N4 + i];
-    float yr = re * t0 + im * t1, yi = re * t1 - im * t0;
+    float re = yp0[1];
+    float im = yp0[0];
+    float t0 = trig[i];
+    float t1 = trig[N4 + i];
+    float yr = re * t0 + im * t1;
+    float yi = re * t1 - im * t0;
     re = yp1[1];
     im = yp1[0];
     yp0[0] = yr;
