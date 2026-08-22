@@ -6953,9 +6953,8 @@ static void kf_bfly5(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
 
 namespace opuscpp_pfa {
 constexpr std::array<opus_uint8, 15> pfa_fft15_input_permutation{2, 10, 5, 12, 7, 0, 14, 9, 4, 11, 1, 6, 13, 8, 3};
-constexpr std::array<opus_uint8, 32> pfa_split_radix_permutation{0, 16, 8, 24, 4, 20, 28, 12, 2, 18, 10, 26,
-                                                                30, 14, 6, 22, 1, 17, 9, 25, 5, 21, 29, 13,
-                                                                31, 15, 7, 23, 3, 19, 27, 11};
+constexpr std::array<opus_uint8, 32> pfa_split_radix_permutation{0, 16, 8, 24, 4, 20, 28, 12, 2,  18, 10, 26, 30, 14, 6,  22,
+                                                                 1, 17, 9, 25, 5, 21, 29, 13, 31, 15, 7,  23, 3,  19, 27, 11};
 constexpr std::array<float, 9> pfa_fft32_cosines{1.0f,         0.980785251f, 0.923879504f, 0.831469595f, 0.707106769f,
                                                  0.555570245f, 0.382683426f, 0.195090324f, 0.0f};
 
@@ -6980,8 +6979,8 @@ void pfa_butterfly(float& difference, float& sum, float left, float right) noexc
   sum = left + right;
 }
 
-void pfa_split_radix_butterflies(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float t1,
-                                 float t2, float t5, float t6) noexcept {
+void pfa_split_radix_butterflies(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float t1, float t2, float t5,
+                                 float t6) noexcept {
   const float r0 = a0.r;
   const float i0 = a0.i;
   const float r1 = a1.r;
@@ -7053,8 +7052,8 @@ void pfa_fft32(kiss_fft_cpx* values) noexcept {
   }
 }
 
-void pfa_fft3(const kiss_fft_cpx& in0, const kiss_fft_cpx& in1, const kiss_fft_cpx& in2, kiss_fft_cpx& out0,
-              kiss_fft_cpx& out1, kiss_fft_cpx& out2) noexcept {
+void pfa_fft3(const kiss_fft_cpx& in0, const kiss_fft_cpx& in1, const kiss_fft_cpx& in2, kiss_fft_cpx& out0, kiss_fft_cpx& out1,
+              kiss_fft_cpx& out2) noexcept {
   constexpr float sine = 0.866025388f;
   const float sum_r = in1.r + in2.r;
   const float difference_r = in1.r - in2.r;
@@ -7092,8 +7091,7 @@ void pfa_fft5(const kiss_fft_cpx* input, kiss_fft_cpx* output, const opus_uint8*
   const float t1_r = difference14_i * sin_4pi_5 - difference23_i * sin_2pi_5;
   const float t5_i = -(difference14_r * sin_2pi_5 + difference23_r * sin_4pi_5);
   const float t1_i = difference23_r * sin_2pi_5 - difference14_r * sin_4pi_5;
-  output[static_cast<int>(indices[0]) * 32] = {input[0].r + sum14_r + sum23_r,
-                                               input[0].i + sum14_i + sum23_i};
+  output[static_cast<int>(indices[0]) * 32] = {input[0].r + sum14_r + sum23_r, input[0].i + sum14_i + sum23_i};
   output[static_cast<int>(indices[1]) * 32] = {input[0].r + t4_r + t5_r, input[0].i + t4_i + t5_i};
   output[static_cast<int>(indices[2]) * 32] = {input[0].r + t0_r + t1_r, input[0].i + t0_i + t1_i};
   output[static_cast<int>(indices[3]) * 32] = {input[0].r + t0_r - t1_r, input[0].i + t0_i - t1_i};
@@ -7112,7 +7110,7 @@ void pfa_fft15(const kiss_fft_cpx* input, kiss_fft_cpx* output) noexcept {
   pfa_fft5(temporary.data() + 10, output, pfa_fft15_output_indices.data() + 10);
 }
 
-}
+} // namespace opuscpp_pfa
 
 static void fft_impl_480(kiss_fft_cpx* fout, const kiss_fft_state* st) {
   kf_bfly4_m1(fout, 120);
@@ -7299,16 +7297,14 @@ static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* i
   for (int index = 0; index < n4; ++index) {
     const float x1 = *front;
     const float x2 = *back;
-    work[opuscpp_pfa::pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index],
-                                                    x2 * trig[index] + x1 * trig[n4 + index]};
+    work[opuscpp_pfa::pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index], x2 * trig[index] + x1 * trig[n4 + index]};
     front += 2;
     back -= 2;
   }
 
   auto* transformed = reinterpret_cast<kiss_fft_cpx*>(input);
   for (int index = 0; index < 32; ++index) {
-    opuscpp_pfa::pfa_fft15(work + 15 * opuscpp_pfa::pfa_split_radix_permutation[index],
-                           transformed + index);
+    opuscpp_pfa::pfa_fft15(work + 15 * opuscpp_pfa::pfa_split_radix_permutation[index], transformed + index);
   }
   for (int row = 0; row < 15; ++row) {
     opuscpp_pfa::pfa_fft32(transformed + 32 * row);
