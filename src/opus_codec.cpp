@@ -7133,7 +7133,7 @@ void pfa_fft15(const kiss_fft_cpx* input, kiss_fft_cpx* output) noexcept {
   pfa_fft5(temporary.data() + 10, output, pfa_fft15_output_indices.data() + 10);
 }
 
-}
+} // namespace
 
 static void fft_impl_480(kiss_fft_cpx* fout, const kiss_fft_state* st) {
   kf_bfly4_m1(fout, 120);
