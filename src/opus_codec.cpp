@@ -19,7 +19,6 @@ using opus_int8 = std::int8_t;
 using opus_uint8 = std::uint8_t;
 using opus_uint16 = std::uint16_t;
 using opus_int64 = std::int64_t;
-using opus_uint64 = std::uint64_t;
 
 constexpr auto opus_int32_min = std::numeric_limits<opus_int32>::min();
 constexpr auto opus_int32_max = std::numeric_limits<opus_int32>::max();
@@ -571,12 +570,7 @@ struct packet_frame_set {
   std::array<opus_int16, 48> len;
 };
 [[nodiscard]] constexpr auto align(int value) noexcept -> int {
-  union aligned_storage {
-    void* pointer;
-    opus_int32 integer;
-    opus_val32 scalar;
-  };
-  constexpr auto alignment = static_cast<int>(alignof(aligned_storage));
+  constexpr auto alignment = static_cast<int>(std::max({alignof(void*), alignof(opus_int32), alignof(opus_val32)}));
   return ((value + alignment - 1) / alignment) * alignment;
 }
 
@@ -6979,7 +6973,8 @@ static void kf_bfly5(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
   }
 }
 
-namespace opuscpp_pfa {
+namespace {
+
 constexpr std::array<opus_uint8, 15> pfa_fft15_input_permutation{2, 10, 5, 12, 7, 0, 14, 9, 4, 11, 1, 6, 13, 8, 3};
 constexpr std::array<opus_uint8, 32> pfa_split_radix_permutation{0, 16, 8, 24, 4, 20, 28, 12, 2,  18, 10, 26, 30, 14, 6,  22,
                                                                  1, 17, 9, 25, 5, 21, 29, 13, 31, 15, 7,  23, 3,  19, 27, 11};
@@ -7138,7 +7133,7 @@ void pfa_fft15(const kiss_fft_cpx* input, kiss_fft_cpx* output) noexcept {
   pfa_fft5(temporary.data() + 10, output, pfa_fft15_output_indices.data() + 10);
 }
 
-} // namespace opuscpp_pfa
+}
 
 static void fft_impl_480(kiss_fft_cpx* fout, const kiss_fft_state* st) {
   kf_bfly4_m1(fout, 120);
@@ -7325,17 +7320,17 @@ static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* i
   for (int index = 0; index < n4; ++index) {
     const float x1 = *front;
     const float x2 = *back;
-    work[opuscpp_pfa::pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index], x2 * trig[index] + x1 * trig[n4 + index]};
+    work[pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index], x2 * trig[index] + x1 * trig[n4 + index]};
     front += 2;
     back -= 2;
   }
 
   auto* transformed = reinterpret_cast<kiss_fft_cpx*>(input);
   for (int index = 0; index < 32; ++index) {
-    opuscpp_pfa::pfa_fft15(work + 15 * opuscpp_pfa::pfa_split_radix_permutation[index], transformed + index);
+    pfa_fft15(work + 15 * pfa_split_radix_permutation[index], transformed + index);
   }
   for (int row = 0; row < 15; ++row) {
-    opuscpp_pfa::pfa_fft32(transformed + 32 * row);
+    pfa_fft32(transformed + 32 * row);
   }
 
   float* output_front = output + (overlap >> 1);
@@ -7588,13 +7583,10 @@ consteval auto make_celt_tables() noexcept -> celt_generated_tables {
 
 static constexpr celt_generated_tables celt_tables = make_celt_tables();
 
-static constexpr kiss_fft_state fft_state48000_960_0{480, 0.0020833334f, celt_tables.fft_twiddles.data(),
-                                                     celt_tables.fft_bitrev_480.data()};
-static constexpr kiss_fft_state fft_state48000_960_1{240, 0.0041666669f, celt_tables.fft_twiddles.data(),
-                                                     celt_tables.fft_bitrev_240.data()};
-static constexpr kiss_fft_state fft_state48000_960_2{120, 0.0083333338f, celt_tables.fft_twiddles.data(),
-                                                     celt_tables.fft_bitrev_120.data()};
-static constexpr kiss_fft_state fft_state48000_960_3{60, 0.016666668f, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
+static constexpr kiss_fft_state fft_state48000_960_0{480, 1.f / 480, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_480.data()};
+static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
+static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
+static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
 static constexpr CeltModeInternal mode48000_960_120 = {
     eband5ms.data(),
     band_allocation.data(),
