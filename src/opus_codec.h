@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <span>
 
 using opus_int16 = std::int16_t;
 using opus_int32 = std::int32_t;
@@ -76,12 +77,14 @@ OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* err
 void opus_encoder_destroy(OpusEncoder* st) noexcept;
 int opus_encoder_ctl(OpusEncoder* st, int request, ...) noexcept;
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
+int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept;
 int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 
 OpusDecoder* opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void opus_decoder_destroy(OpusDecoder* st) noexcept;
 int opus_decoder_ctl(OpusDecoder* st, int request, ...) noexcept;
 int opus_decode(OpusDecoder* st, const unsigned char* data, int len, opus_int16* pcm, int frame_size, int decode_fec) noexcept;
+int opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::span<opus_int16> pcm, int decode_fec = 0) noexcept;
 int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;
 
 int opus_packet_get_nb_samples(const unsigned char* data, int len, int Fs) noexcept;

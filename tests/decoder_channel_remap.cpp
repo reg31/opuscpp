@@ -65,10 +65,13 @@ int main() {
   std::array<opus_int16, frame_samples> mono_out{};
   fill_stereo(stereo_pcm);
 
-  const auto stereo_bytes =
-      opus_encode(stereo_encoder.get(), stereo_pcm.data(), frame_samples, stereo_packet.data(), static_cast<int>(stereo_packet.size()));
+  const auto incomplete_stereo = std::span{stereo_pcm}.first(stereo_pcm.size() - 1);
+  const auto incomplete_bytes = opus_encode(stereo_encoder.get(), incomplete_stereo, std::span{stereo_packet});
+  ok &= expect(incomplete_bytes == OPUS_BAD_ARG, "span encoder rejects incomplete stereo frame");
+  const auto stereo_bytes = opus_encode(stereo_encoder.get(), std::span{stereo_pcm}, std::span{stereo_packet});
   ok &= expect(stereo_bytes > 0, "encode stereo packet");
-  const auto mono_samples = opus_decode(mono_decoder.get(), stereo_packet.data(), stereo_bytes, mono_out.data(), frame_samples, 0);
+  const auto stereo_payload = std::span{stereo_packet}.first(stereo_bytes);
+  const auto mono_samples = opus_decode(mono_decoder.get(), stereo_payload, std::span{mono_out});
   ok &= expect(mono_samples == frame_samples, "mono decoder accepts stereo packet");
   ok &= expect(count_nonzero(mono_out) > 0, "stereo packet downmix has signal");
 
@@ -84,7 +87,8 @@ int main() {
 
   const auto mono_bytes = opus_encode(mono_encoder.get(), mono_pcm.data(), 320, mono_packet.data(), static_cast<int>(mono_packet.size()));
   ok &= expect(mono_bytes > 0, "encode mono packet");
-  const auto stereo_samples = opus_decode(stereo_decoder.get(), mono_packet.data(), mono_bytes, stereo_out.data(), 320, 0);
+  const auto mono_payload = std::span{mono_packet}.first(mono_bytes);
+  const auto stereo_samples = opus_decode(stereo_decoder.get(), mono_payload, std::span{stereo_out});
   ok &= expect(stereo_samples == 320, "stereo decoder accepts mono packet");
   const auto stereo_nonzero = count_nonzero(stereo_out);
   ok &= expect(stereo_nonzero > 0, "mono packet duplicate has signal");

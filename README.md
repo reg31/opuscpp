@@ -82,7 +82,7 @@ opus_encoder_ctl(enc, OPUS_SET_BITRATE(48000));
 
 opus_int16 pcm_i16[960 * 2] = {};
 unsigned char packet[1500];
-int bytes = opus_encode(enc, pcm_i16, 960, packet, sizeof(packet));
+const int bytes = opus_encode(enc, std::span{pcm_i16}, std::span{packet});
 
 opus_encoder_destroy(enc);
 ```
@@ -95,8 +95,8 @@ expected to add `src/opus_codec.cpp` to their own build.
 
 See `src/README.md` for the supported functions, constants, and CTLs. The short version:
 
-- Encoder: create/destroy/ctl, `opus_encode`, `opus_encode_float`.
-- Decoder: create/destroy/ctl, `opus_decode`, `opus_decode_float`.
+- Encoder: create/destroy/ctl, `opus_encode`, `opus_encode_float`, and a zero-copy C++23 `std::span` overload for `opus_encode`.
+- Decoder: create/destroy/ctl, `opus_decode`, `opus_decode_float`, and a zero-copy C++23 `std::span` overload for `opus_decode`.
 - Utility: `opus_packet_get_nb_samples`, `opus_strerror`.
 - CTLs: bitrate, VBR, constrained VBR, in-band FEC, expected packet loss, guarded DTX, complexity, reset, final range, last packet duration, plus an opt-in `opuscpp` decoder postfilter CTL.
 

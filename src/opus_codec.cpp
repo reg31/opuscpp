@@ -81,6 +81,16 @@ constexpr int silk_vad_max_work_samples = 400;
   return required_count <= 0 || data != nullptr;
 }
 
+[[nodiscard]] constexpr auto interleaved_frame_size(std::size_t samples, int channels) noexcept -> int {
+  if (channels == 2) {
+    if ((samples & 1U) != 0) {
+      return -1;
+    }
+    samples >>= 1U;
+  }
+  return samples <= static_cast<std::size_t>(std::numeric_limits<int>::max()) ? static_cast<int>(samples) : -1;
+}
+
 [[nodiscard]] constexpr auto low_bits_mask(const unsigned bits) noexcept -> opus_uint32 {
   return bits == 0 ? 0U : (static_cast<opus_uint32>(1) << bits) - 1U;
 }
@@ -1441,6 +1451,15 @@ int opus_decode(OpusDecoder* st, const unsigned char* data, int len, opus_int16*
   return st == nullptr || !has_required_storage(data, len) || !has_required_storage(pcm, frame_size)
              ? OPUS_BAD_ARG
              : decode_to_output(st, data, len, pcm, frame_size, decode_fec);
+}
+
+int opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::span<opus_int16> pcm, int decode_fec) noexcept {
+  if (st == nullptr || pcm.empty() || packet.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+    return OPUS_BAD_ARG;
+  }
+  const int frame_size = interleaved_frame_size(pcm.size(), st->channels);
+  const int packet_size = static_cast<int>(packet.size());
+  return frame_size < 0 ? OPUS_BAD_ARG : decode_to_output(st, packet.data(), packet_size, pcm.data(), frame_size, decode_fec);
 }
 
 int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept {
@@ -3363,6 +3382,15 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   return frame_size <= celt_max_frame_samples
              ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
              : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
+}
+
+int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept {
+  if (st == nullptr || packet.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+    return OPUS_BAD_ARG;
+  }
+  const int frame_size = interleaved_frame_size(pcm.size(), st->channels);
+  const int packet_size = static_cast<int>(packet.size());
+  return frame_size < 0 ? OPUS_BAD_ARG : opus_encode(st, pcm.data(), frame_size, packet.data(), packet_size);
 }
 
 int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size, unsigned char* data, int out_data_bytes) noexcept {

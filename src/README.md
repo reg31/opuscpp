@@ -53,10 +53,9 @@ Encoder:
 OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* error) noexcept;
 void opus_encoder_destroy(OpusEncoder* st) noexcept;
 int opus_encoder_ctl(OpusEncoder* st, int request, ...) noexcept;
-int opus_encode(OpusEncoder* st, const int16_t* pcm, int frame_size,
-                unsigned char* data, int max_data_bytes) noexcept;
-int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size,
-                      unsigned char* data, int max_data_bytes) noexcept;
+int opus_encode(OpusEncoder* st, const int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
+int opus_encode(OpusEncoder* st, std::span<const int16_t> pcm, std::span<unsigned char> packet) noexcept;
+int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 ```
 
 Decoder:
@@ -65,11 +64,12 @@ Decoder:
 OpusDecoder* opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void opus_decoder_destroy(OpusDecoder* st) noexcept;
 int opus_decoder_ctl(OpusDecoder* st, int request, ...) noexcept;
-int opus_decode(OpusDecoder* st, const unsigned char* data, int len,
-                int16_t* pcm, int frame_size, int decode_fec) noexcept;
-int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len,
-                      float* pcm, int frame_size, int decode_fec) noexcept;
+int opus_decode(OpusDecoder* st, const unsigned char* data, int len, int16_t* pcm, int frame_size, int decode_fec) noexcept;
+int opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::span<int16_t> pcm, int decode_fec = 0) noexcept;
+int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;
 ```
+
+The `std::span` overloads are zero-copy and derive the per-channel frame size or capacity from the codec's channel count and the supplied spans.
 
 Utility:
 
