@@ -14052,6 +14052,8 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   }
   case OPUS_GET_PACKET_LOSS_PERC_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.packetLossPercentage));
+  case OPUS_GET_LOOKAHEAD_REQUEST:
+    return ctl_write_value(ap, static_cast<opus_int32>(st->Fs / 400 + encoder_delay_compensation(st)));
   case OPUS_GET_FINAL_RANGE_REQUEST:
     return ctl_write_value(ap, st->rangeFinal);
   case OPUS_GET_IN_DTX_REQUEST:

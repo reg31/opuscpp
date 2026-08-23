@@ -173,8 +173,8 @@ The implementation is standard Opus compatible. The measured conformance gates a
   run.
 - Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the
   official Opus decoder.
-- API behavior validation: decoder channel-remap, packet/frame-duration rejection, VBR-budget, and guarded-DTX checks passed in the current
-  run.
+- API behavior validation: decoder channel-remap, packet/frame-duration rejection, encoder-lookahead, VBR-budget, and guarded-DTX checks passed
+  in the current run.
 - Android arm64 Clang build: C++23 build check passed in the measured configuration.
 - MinGW GCC build: C++23 build check passed in the measured configuration.
 

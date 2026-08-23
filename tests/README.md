@@ -175,6 +175,7 @@ the RFC decode vectors:
 | Decoder channel remap | Passed |
 | Packet-duration helper behavior | Passed |
 | Overflow-safe encoder frame and packet-duration validation | Passed |
+| Encoder lookahead and restricted-low-delay behavior | Passed |
 | VBR budget behavior | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |

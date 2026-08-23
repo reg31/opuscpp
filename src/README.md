@@ -104,6 +104,7 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |
 | `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |
 | `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |
+| `OPUS_GET_LOOKAHEAD_REQUEST` | `OPUS_GET_LOOKAHEAD(&x)` | Returns codec delay for pre-skip/time alignment: 312 samples at 48 kHz for VOIP/AUDIO and 120 for restricted low delay. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state while preserving encoder configuration CTLs. |
 

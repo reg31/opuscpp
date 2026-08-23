@@ -59,13 +59,34 @@ int main() {
   std::array<float, 1> encoder_pcm_float{};
   std::array<unsigned char, 16> encoder_packet{};
   constexpr int overflowing_frame_size = 1073741864;
+  opus_int32 lookahead = -1;
+  opus_int32* null_lookahead = nullptr;
   ok &= expect_eq(encoder_error, OPUS_OK, "create encoder");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUS_GET_LOOKAHEAD(&lookahead)), OPUS_OK, "get VOIP lookahead");
+  ok &= expect_eq(lookahead, 52, "8 kHz VOIP lookahead");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUS_GET_LOOKAHEAD(null_lookahead)), OPUS_BAD_ARG, "reject null lookahead output");
   ok &= expect_eq(opus_encode(encoder, encoder_pcm.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
                   OPUS_BAD_ARG, "reject overflowing PCM16 frame size");
   ok &=
       expect_eq(opus_encode_float(encoder, encoder_pcm_float.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
                 OPUS_BAD_ARG, "reject overflowing float frame size");
   opus_encoder_destroy(encoder);
+
+  int audio_error = OPUS_OK;
+  OpusEncoder* audio_encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_AUDIO, &audio_error);
+  lookahead = -1;
+  ok &= expect_eq(audio_error, OPUS_OK, "create audio encoder");
+  ok &= expect_eq(opus_encoder_ctl(audio_encoder, OPUS_GET_LOOKAHEAD(&lookahead)), OPUS_OK, "get AUDIO lookahead");
+  ok &= expect_eq(lookahead, 312, "48 kHz AUDIO lookahead");
+  opus_encoder_destroy(audio_encoder);
+
+  int lowdelay_error = OPUS_OK;
+  OpusEncoder* lowdelay_encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_RESTRICTED_LOWDELAY, &lowdelay_error);
+  lookahead = -1;
+  ok &= expect_eq(lowdelay_error, OPUS_OK, "create low-delay encoder");
+  ok &= expect_eq(opus_encoder_ctl(lowdelay_encoder, OPUS_GET_LOOKAHEAD(&lookahead)), OPUS_OK, "get low-delay lookahead");
+  ok &= expect_eq(lookahead, 120, "48 kHz restricted-low-delay lookahead");
+  opus_encoder_destroy(lowdelay_encoder);
 
   int long_encoder_error = OPUS_OK;
   OpusEncoder* long_encoder = opus_encoder_create(8000, 1, OPUS_APPLICATION_VOIP, &long_encoder_error);
