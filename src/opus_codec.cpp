@@ -2388,15 +2388,13 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
     const auto energy_delta = std::abs(metrics.energy - previous_energy);
     const bool changing_ambience = previous_energy > 1e-9f && energy_delta > .5f * (metrics.energy + previous_energy);
     const int previous_activity_q8 = previous_silk_activity_q8(st);
-    const bool stable_noise =
-        st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 && previous_activity_q8 >= 0 &&
-        previous_activity_q8 < dtx_noise_activity_max_Q8 && previous_energy > 1e-9f &&
-        energy_delta < dtx_noise_energy_stability * (metrics.energy + previous_energy);
+    const bool stable_noise = st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 && previous_activity_q8 >= 0 &&
+                              previous_activity_q8 < dtx_noise_activity_max_Q8 && previous_energy > 1e-9f &&
+                              energy_delta < dtx_noise_energy_stability * (metrics.energy + previous_energy);
     const bool protected_speech = st->lightweight_voice_score_Q7 >= 24 || st->lightweight_vad_score_Q7 >= 24;
-    const bool protected_content = protected_speech ||
-                                   (!stable_noise && (st->lightweight_music_score_Q7 >= 24 ||
-                                                     st->lightweight_harmonic_music_Q7 >= 24 ||
-                                                     st->lightweight_high_z_tonal_Q7 >= 24));
+    const bool protected_content =
+        protected_speech || (!stable_noise && (st->lightweight_music_score_Q7 >= 24 || st->lightweight_harmonic_music_Q7 >= 24 ||
+                                               st->lightweight_high_z_tonal_Q7 >= 24));
     const bool quiet_speech_shape = metrics.mono_diff_ratio > .0001f && metrics.mono_diff_ratio < .18f &&
                                     metrics.mono_zero_cross_rate > .001f && metrics.mono_zero_cross_rate < .22f;
     active = changing_ambience || protected_content || quiet_speech_shape ||

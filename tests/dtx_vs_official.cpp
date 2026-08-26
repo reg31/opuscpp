@@ -280,8 +280,7 @@ int main() {
     current_gain_error /= reentry_cases;
     official_gain_error /= reentry_cases;
     if (current_false_dtx > official_false_dtx || current_reentry_error > official_reentry_error ||
-        current_gain_error > official_gain_error || current_silence_dtx < official_silence_dtx ||
-        current_noise_dtx <= official_noise_dtx) {
+        current_gain_error > official_gain_error || current_silence_dtx < official_silence_dtx || current_noise_dtx <= official_noise_dtx) {
       throw std::runtime_error("DTX comparison regressed against official Opus");
     }
     std::cout << "dtx_comparison=PASS false_positive_opuscpp=" << current_false_dtx << " false_positive_official=" << official_false_dtx
