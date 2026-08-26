@@ -34,6 +34,7 @@ enum class material {
   two_speakers,
   speech_music,
   fricative_voice,
+  steady_noise,
 };
 
 constexpr std::array materials{
@@ -57,6 +58,8 @@ constexpr std::array materials{
     return "speech_music";
   case material::fricative_voice:
     return "fricative_voice";
+  case material::steady_noise:
+    return "steady_noise";
   }
   return "unknown";
 }
@@ -95,6 +98,8 @@ constexpr std::array materials{
     const bool fricative = (sample_index / static_cast<std::uint32_t>(frame_size)) % 10u >= 8u;
     return fricative ? 2800.0 * (noise - noise_sample(sample_index - 1u)) : 5000.0 * voice;
   }
+  case material::steady_noise:
+    return 1800.0 * noise;
   }
   return 0.0;
 }
@@ -222,6 +227,8 @@ int main() {
     double official_gain_error = 0.0;
     int current_silence_dtx = 0;
     int official_silence_dtx = 0;
+    int current_noise_dtx = 0;
+    int official_noise_dtx = 0;
     int reentry_cases = 0;
 
     std::cout << std::fixed << std::setprecision(6);
@@ -260,18 +267,28 @@ int main() {
       }
     }
 
+    for (const int bitrate : bitrates) {
+      const auto noise = make_material(material::steady_noise, warmup_frames + active_frames);
+      const auto current_packets = encode_current(noise, bitrate, true);
+      const auto official_packets = encode_official(noise, bitrate, true);
+      current_noise_dtx += count_dtx(current_packets, warmup_frames, active_frames);
+      official_noise_dtx += count_dtx(official_packets, warmup_frames, active_frames);
+    }
+
     current_reentry_error /= reentry_cases;
     official_reentry_error /= reentry_cases;
     current_gain_error /= reentry_cases;
     official_gain_error /= reentry_cases;
     if (current_false_dtx > official_false_dtx || current_reentry_error > official_reentry_error ||
-        current_gain_error > official_gain_error || current_silence_dtx < official_silence_dtx) {
+        current_gain_error > official_gain_error || current_silence_dtx < official_silence_dtx ||
+        current_noise_dtx <= official_noise_dtx) {
       throw std::runtime_error("DTX comparison regressed against official Opus");
     }
     std::cout << "dtx_comparison=PASS false_positive_opuscpp=" << current_false_dtx << " false_positive_official=" << official_false_dtx
               << " reentry_nrmse_opuscpp=" << current_reentry_error << " reentry_nrmse_official=" << official_reentry_error
               << " reentry_gain_db_opuscpp=" << current_gain_error << " reentry_gain_db_official=" << official_gain_error
-              << " silence_dtx_opuscpp=" << current_silence_dtx << " silence_dtx_official=" << official_silence_dtx << '\n';
+              << " silence_dtx_opuscpp=" << current_silence_dtx << " silence_dtx_official=" << official_silence_dtx
+              << " steady_noise_dtx_opuscpp=" << current_noise_dtx << " steady_noise_dtx_official=" << official_noise_dtx << '\n';
     return 0;
   } catch (const std::exception& error) {
     std::cerr << error.what() << '\n';

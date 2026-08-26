@@ -66,14 +66,15 @@ template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode
       Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_VBR_REQUEST, static_cast<int>(vbr)) != OPUS_OK ||
-      Control(encoder.get(), OPUS_SET_INBAND_FEC_REQUEST, 1) != OPUS_OK ||
+      Control(encoder.get(), OPUS_SET_INBAND_FEC_REQUEST, 2) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_PACKET_LOSS_PERC_REQUEST, 15) != OPUS_OK) {
     throw std::runtime_error("FEC encoder setup failed");
   }
   fec = 0;
   loss = 0;
-  if (Control(encoder.get(), OPUS_GET_INBAND_FEC_REQUEST, &fec) != OPUS_OK || fec != 1 ||
-      Control(encoder.get(), OPUS_GET_PACKET_LOSS_PERC_REQUEST, &loss) != OPUS_OK || loss != 15) {
+  if (Control(encoder.get(), OPUS_GET_INBAND_FEC_REQUEST, &fec) != OPUS_OK || fec != 2 ||
+      Control(encoder.get(), OPUS_GET_PACKET_LOSS_PERC_REQUEST, &loss) != OPUS_OK || loss != 15 ||
+      Control(encoder.get(), OPUS_SET_INBAND_FEC_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("FEC encoder CTL round-trip failed");
   }
   packet_stream packets;

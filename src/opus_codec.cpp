@@ -2367,6 +2367,15 @@ constexpr int dtx_entry_ms_Q1 = 10 * 20 * 2;
 constexpr int dtx_refresh_ms_Q1 = (10 + 20) * 20 * 2;
 constexpr opus_val32 dtx_digital_silence_max_energy = 2e-8f;
 constexpr opus_val32 dtx_audible_activity_min_energy = 1e-5f;
+constexpr int dtx_noise_activity_max_Q8 = 48;
+constexpr opus_val32 dtx_noise_energy_stability = .08f;
+
+[[nodiscard]] static int previous_silk_activity_q8(OpusEncoder* st) noexcept {
+  if (!encoder_uses_silk(st->application) || st->prev_mode <= 0 || st->prev_mode == opus_mode_celt_only) {
+    return -1;
+  }
+  return silk_encoder_channel_states(static_cast<silk_encoder*>(encoder_silk_state(st)))[0].sCmn.speech_activity_Q8;
+}
 
 [[nodiscard]] static bool should_emit_dtx(OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size) noexcept {
   bool active;
@@ -2376,14 +2385,22 @@ constexpr opus_val32 dtx_audible_activity_min_energy = 1e-5f;
   } else {
     const auto previous_energy = st->dtx_smoothed_energy;
     st->dtx_smoothed_energy += .125f * (metrics.energy - st->dtx_smoothed_energy);
-    const bool changing_ambience =
-        previous_energy > 1e-9f && std::abs(metrics.energy - previous_energy) > .5f * (metrics.energy + previous_energy);
-    const bool protected_history = st->lightweight_voice_score_Q7 >= 24 || st->lightweight_vad_score_Q7 >= 24 ||
-                                   st->lightweight_music_score_Q7 >= 24 || st->lightweight_harmonic_music_Q7 >= 24 ||
-                                   st->lightweight_high_z_tonal_Q7 >= 24;
+    const auto energy_delta = std::abs(metrics.energy - previous_energy);
+    const bool changing_ambience = previous_energy > 1e-9f && energy_delta > .5f * (metrics.energy + previous_energy);
+    const int previous_activity_q8 = previous_silk_activity_q8(st);
+    const bool stable_noise =
+        st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 && previous_activity_q8 >= 0 &&
+        previous_activity_q8 < dtx_noise_activity_max_Q8 && previous_energy > 1e-9f &&
+        energy_delta < dtx_noise_energy_stability * (metrics.energy + previous_energy);
+    const bool protected_speech = st->lightweight_voice_score_Q7 >= 24 || st->lightweight_vad_score_Q7 >= 24;
+    const bool protected_content = protected_speech ||
+                                   (!stable_noise && (st->lightweight_music_score_Q7 >= 24 ||
+                                                     st->lightweight_harmonic_music_Q7 >= 24 ||
+                                                     st->lightweight_high_z_tonal_Q7 >= 24));
     const bool quiet_speech_shape = metrics.mono_diff_ratio > .0001f && metrics.mono_diff_ratio < .18f &&
                                     metrics.mono_zero_cross_rate > .001f && metrics.mono_zero_cross_rate < .22f;
-    active = metrics.energy >= dtx_audible_activity_min_energy || changing_ambience || protected_history || quiet_speech_shape;
+    active = changing_ambience || protected_content || quiet_speech_shape ||
+             (metrics.energy >= dtx_audible_activity_min_energy && !stable_noise);
   }
   if (active) {
     st->nb_no_activity_ms_Q1 = 0;
@@ -2846,7 +2863,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (voip_style && st->channels == 1 && (st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 || severe_voip_noise)) {
     st->mode = st->bitrate_bps <= 24000 ? opus_mode_silk_only : st->bitrate_bps <= 48000 ? opus_mode_hybrid : st->mode;
   }
-  if (voip_style && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
+  if (voip_style && st->silk_mode.useInBandFEC && (st->silk_mode.useInBandFEC != 2 || voice_est > 25) &&
+      st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
       st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
       st->bitrate_bps <= std::array{32000, 48000}[static_cast<std::size_t>(st->channels - 1)]) {
     st->mode = opus_mode_silk_only;
@@ -14098,11 +14116,11 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   case OPUS_GET_COMPLEXITY_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.complexity));
   case OPUS_SET_INBAND_FEC_REQUEST: {
-    int value = st->silk_mode.useInBandFEC;
-    if (const auto error = ctl_read_boolean(ap, value); error != OPUS_OK) {
-      return error;
+    const auto value = va_arg(ap, opus_int32);
+    if (value < 0 || value > 2) {
+      return OPUS_BAD_ARG;
     }
-    if (value && !ensure_encoder_lbrr_state(st)) {
+    if (value != 0 && !ensure_encoder_lbrr_state(st)) {
       return OPUS_ALLOC_FAIL;
     }
     st->silk_mode.useInBandFEC = value;

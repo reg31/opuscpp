@@ -93,7 +93,7 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_BITRATE_REQUEST` | `OPUS_GET_BITRATE(&x)` | Returns current effective bitrate. |
 | `OPUS_SET_VBR_REQUEST` | `OPUS_SET_VBR(x)` | `1` for VBR, `0` for CBR-style packet padding; default is VBR on. |
 | `OPUS_GET_VBR_REQUEST` | `OPUS_GET_VBR(&x)` | Returns VBR setting. |
-| `OPUS_SET_INBAND_FEC_REQUEST` | `OPUS_SET_INBAND_FEC(x)` | Enables SILK/hybrid in-band forward error correction; default is off. |
+| `OPUS_SET_INBAND_FEC_REQUEST` | `OPUS_SET_INBAND_FEC(x)` | Accepts `0` (off), `1` (on and may force SILK), or `2` (on without forcing SILK for confidently music-like input); default is `0`. |
 | `OPUS_GET_INBAND_FEC_REQUEST` | `OPUS_GET_INBAND_FEC(&x)` | Returns the in-band FEC setting. |
 | `OPUS_SET_PACKET_LOSS_PERC_REQUEST` | `OPUS_SET_PACKET_LOSS_PERC(x)` | Sets expected packet loss from `0..100`; used to decide when FEC is worthwhile. |
 | `OPUS_GET_PACKET_LOSS_PERC_REQUEST` | `OPUS_GET_PACKET_LOSS_PERC(&x)` | Returns expected packet loss. |
@@ -120,6 +120,8 @@ packets cannot carry this redundancy. Its extra encoder state is allocated lazil
 and released with the encoder. `opuscpp` spends more of the redundancy budget on recoverable
 detail than official Opus and keeps a settled mono VOIP stream in a FEC-capable mode through
 32&nbsp;kbps, or stereo through 48&nbsp;kbps, when packet protection is explicitly requested.
+Mode `2` keeps confidently music-like input in CELT-only mode rather than forcing SILK solely for FEC; those
+CELT-only packets cannot carry redundancy.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));
