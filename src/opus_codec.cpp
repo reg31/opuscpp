@@ -1382,7 +1382,7 @@ static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data,
 }
 
 static int decode_pcm16_fallback_into(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* output, opus_int16* pcm,
-                                       int frame_size, int decode_fec, bool output_postfilter_enabled) {
+                                      int frame_size, int decode_fec, bool output_postfilter_enabled) {
   const int ret = decode_native(st, data, len, output, frame_size, decode_fec);
   if (ret > 0) {
     if (output_postfilter_enabled) {
@@ -4616,9 +4616,8 @@ static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate,
 
 [[nodiscard]] static auto celt_frame_lm(const int frame_size) noexcept -> int {
   const auto scale = static_cast<unsigned>(frame_size / celt_short_mdct_size);
-  return frame_size % celt_short_mdct_size == 0 && std::has_single_bit(scale) && scale <= (1U << celt_max_lm)
-             ? std::countr_zero(scale)
-             : -1;
+  return frame_size % celt_short_mdct_size == 0 && std::has_single_bit(scale) && scale <= (1U << celt_max_lm) ? std::countr_zero(scale)
+                                                                                                              : -1;
 }
 
 static void compute_mdcts(int shortBlocks, celt_sig* in, celt_sig* out, int C, int CC, int LM, int upsample) {
@@ -7430,7 +7429,7 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
 }
 
 static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1,
-                                             const celt_coef* window, int overlap) {
+                                            const celt_coef* window, int overlap) {
   constexpr int n2 = 960;
   constexpr int n4 = 480;
   const float* trig = lookup->trig;
@@ -8616,8 +8615,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
       Rxy = xy + X[candidate];
       Ryy = yy + y[candidate];
       Rxy *= Rxy;
-      if (static_cast<opus_val32>(best_den) * static_cast<opus_val32>(Rxy) >
-          static_cast<opus_val32>(Ryy) * best_num) {
+      if (static_cast<opus_val32>(best_den) * static_cast<opus_val32>(Rxy) > static_cast<opus_val32>(Ryy) * best_num) {
         best_den = Ryy;
         best_num = Rxy;
         best_id = candidate;
@@ -10785,8 +10783,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   for (int k = 0; k < psDec->nb_subfr; k++) {
     auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
     for (int i = 0; i < psDec->subfr_length; i++) {
-      const opus_int32 LTP_pred_Q12 =
-          static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
+      const opus_int32 LTP_pred_Q12 = static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
       ++pred_lag_ptr;
       rand_seed = silk_next_rand_seed(rand_seed);
       idx = ((rand_seed) >> (25)) & (128 - 1);
