@@ -337,7 +337,7 @@ static void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _ftb);
 static void ec_enc_shrink(ec_enc* _this, opus_uint32 _size);
 static void ec_enc_done(ec_enc* _this);
 static void ec_dec_init(ec_dec* _this, unsigned char* _buf, opus_uint32 _storage);
-static void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft);
+static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft);
 static unsigned ec_decode(ec_dec* _this, unsigned _ft);
 static int ec_dec_bit_logp(ec_dec* _this, unsigned _logp);
 static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
@@ -570,7 +570,7 @@ struct packet_frame_set {
   std::array<opus_int16, 48> len;
 };
 [[nodiscard]] constexpr auto align(int value) noexcept -> int {
-  constexpr auto alignment = static_cast<int>(std::max({alignof(void*), alignof(opus_int32), alignof(opus_val32)}));
+  constexpr auto alignment = static_cast<int>(std::max({alignof(void*), alignof(opus_int64), alignof(opus_val32)}));
   return ((value + alignment - 1) / alignment) * alignment;
 }
 
@@ -1381,24 +1381,29 @@ static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data,
   return static_cast<int>(std::min<opus_int64>((static_cast<opus_int64>(packet_bytes) * 8 * st->Fs) / samples, opus_int32_max));
 }
 
-template <std::size_t Capacity>
-static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size,
-                                 int decode_fec, bool output_postfilter_enabled) {
-  std::array<opus_res, Capacity> output_storage;
-  const int ret = decode_native(st, data, len, output_storage.data(), frame_size, decode_fec);
+static int decode_pcm16_fallback_into(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* output, opus_int16* pcm,
+                                       int frame_size, int decode_fec, bool output_postfilter_enabled) {
+  const int ret = decode_native(st, data, len, output, frame_size, decode_fec);
   if (ret > 0) {
     if (output_postfilter_enabled) {
       if (st->channels == 2 && decoder_celt_state(st)->output_postfilter_level == 3) {
-        apply_decoder_output_postfilter(st, output_storage.data(), ret, len);
-        celt_float2int16_c(output_storage.data(), pcm, static_cast<std::size_t>(ret * st->channels));
+        apply_decoder_output_postfilter(st, output, ret, len);
+        celt_float2int16_c(output, pcm, static_cast<std::size_t>(ret * st->channels));
       } else {
-        convert_decoder_output_postfilter(st, output_storage.data(), pcm, ret, len);
+        convert_decoder_output_postfilter(st, output, pcm, ret, len);
       }
     } else {
-      celt_float2int16_c(output_storage.data(), pcm, static_cast<std::size_t>(ret * st->channels));
+      celt_float2int16_c(output, pcm, static_cast<std::size_t>(ret * st->channels));
     }
   }
   return ret;
+}
+
+template <std::size_t Capacity>
+static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size,
+                                 int decode_fec, bool output_postfilter_enabled) {
+  std::array<opus_res, Capacity> output;
+  return decode_pcm16_fallback_into(st, data, len, output.data(), pcm, frame_size, decode_fec, output_postfilter_enabled);
 }
 
 template <typename Sample>
@@ -1414,7 +1419,7 @@ static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int
   if constexpr (std::same_as<Sample, float>) {
     const int fast_ret = decode_native_direct_fast(st, data, len, pcm, nullptr, frame_size, decode_fec);
     if (fast_ret != opus_decode_fast_unavailable) {
-      if (output_postfilter_enabled) {
+      if (fast_ret > 0 && output_postfilter_enabled) {
         apply_decoder_output_postfilter(st, pcm, fast_ret, len);
       }
       return fast_ret;
@@ -3828,7 +3833,7 @@ static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
 
 [[nodiscard]] static auto celt_isqrt32_runtime(opus_uint32 value) noexcept -> unsigned {
   unsigned root = 0;
-  int shift = (std::bit_width(static_cast<opus_uint32>(value)) - 1) >> 1;
+  int shift = (std::bit_width(value) - 1) >> 1;
   for (auto bit = 1U << shift; shift >= 0; --shift, bit >>= 1) {
     const auto trial = ((static_cast<opus_uint32>(root) << 1) + bit) << shift;
     if (trial <= value) {
@@ -4612,7 +4617,7 @@ static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate,
 [[nodiscard]] static auto celt_frame_lm(const int frame_size) noexcept -> int {
   const auto scale = static_cast<unsigned>(frame_size / celt_short_mdct_size);
   return frame_size % celt_short_mdct_size == 0 && std::has_single_bit(scale) && scale <= (1U << celt_max_lm)
-             ? static_cast<int>(std::countr_zero(scale))
+             ? std::countr_zero(scale)
              : -1;
 }
 
@@ -6558,7 +6563,7 @@ static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
 
-static void ec_dec_normalize(ec_dec* _this) {
+static inline void ec_dec_normalize(ec_dec* _this) {
   do {
     _this->nbits_total += (8);
     _this->rng <<= (8);
@@ -6596,7 +6601,7 @@ static unsigned ec_decode(ec_dec* _this, unsigned _ft) {
   return _ft - ((s + 1) + (((_ft) - (s + 1)) & -((_ft) < (s + 1))));
 }
 
-static void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
+static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
   opus_uint32 s = ((_this->ext) * (_ft - _fh));
   _this->val -= s;
   _this->rng = _fl > 0 ? ((_this->ext) * (_fh - _fl)) : _this->rng - s;
@@ -7424,12 +7429,76 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
   }
 }
 
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window,
-                                            int overlap) {
-  clt_mdct_backward_transform<true>(l, in0, out0, overlap);
-  clt_mdct_backward_transform<true>(l, in1, out1, overlap);
-  clt_mdct_backward_overlap_c(out0, window, overlap);
-  clt_mdct_backward_overlap_c(out1, window, overlap);
+static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1,
+                                             const celt_coef* window, int overlap) {
+  constexpr int n2 = 960;
+  constexpr int n4 = 480;
+  const float* trig = lookup->trig;
+  auto* work0 = reinterpret_cast<kiss_fft_cpx*>(output0 + (overlap >> 1));
+  auto* work1 = reinterpret_cast<kiss_fft_cpx*>(output1 + (overlap >> 1));
+  const float* front0 = input0;
+  const float* front1 = input1;
+  const float* back0 = input0 + n2 - 1;
+  const float* back1 = input1 + n2 - 1;
+  for (int index = 0; index < n4; ++index) {
+    const float t0 = trig[index];
+    const float t1 = trig[n4 + index];
+    const int mapped = pfa_input_map_480[index];
+    const float x10 = *front0;
+    const float x20 = *back0;
+    const float x11 = *front1;
+    const float x21 = *back1;
+    work0[mapped] = {x10 * t0 - x20 * t1, x20 * t0 + x10 * t1};
+    work1[mapped] = {x11 * t0 - x21 * t1, x21 * t0 + x11 * t1};
+    front0 += 2;
+    front1 += 2;
+    back0 -= 2;
+    back1 -= 2;
+  }
+
+  auto* transformed0 = reinterpret_cast<kiss_fft_cpx*>(input0);
+  auto* transformed1 = reinterpret_cast<kiss_fft_cpx*>(input1);
+  for (int index = 0; index < 32; ++index) {
+    const int offset = 15 * pfa_split_radix_permutation[index];
+    pfa_fft15(work0 + offset, transformed0 + index);
+    pfa_fft15(work1 + offset, transformed1 + index);
+  }
+  for (int row = 0; row < 15; ++row) {
+    pfa_fft32(transformed0 + 32 * row);
+    pfa_fft32(transformed1 + 32 * row);
+  }
+
+  float* output_front0 = output0 + (overlap >> 1);
+  float* output_front1 = output1 + (overlap >> 1);
+  float* output_back0 = output_front0 + n2 - 2;
+  float* output_back1 = output_front1 + n2 - 2;
+  int position = 0;
+  for (int index = 0; index < (n4 + 1) >> 1; ++index) {
+    const int column = index & 31;
+    const float t0 = trig[index];
+    const float t1 = trig[n4 + index];
+    const float mirror_t0 = trig[n4 - index - 1];
+    const float mirror_t1 = trig[n2 - index - 1];
+    const auto write_channel = [&](const kiss_fft_cpx* transformed, float* output_front, float* output_back) {
+      const auto first = transformed[32 * position + column];
+      const auto last = transformed[32 * (14 - position) + ((31 - index) & 31)];
+      output_front[0] = first.i * t0 + first.r * t1;
+      output_back[1] = first.i * t1 - first.r * t0;
+      output_back[0] = last.i * mirror_t0 + last.r * mirror_t1;
+      output_front[1] = last.i * mirror_t1 - last.r * mirror_t0;
+    };
+    write_channel(transformed0, output_front0, output_back0);
+    write_channel(transformed1, output_front1, output_back1);
+    output_front0 += 2;
+    output_front1 += 2;
+    output_back0 -= 2;
+    output_back1 -= 2;
+    if (++position == 15) {
+      position = 0;
+    }
+  }
+  clt_mdct_backward_overlap_c(output0, window, overlap);
+  clt_mdct_backward_overlap_c(output1, window, overlap);
 }
 
 static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
@@ -8548,7 +8617,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
       Ryy = yy + y[candidate];
       Rxy *= Rxy;
       if (static_cast<opus_val32>(best_den) * static_cast<opus_val32>(Rxy) >
-          static_cast<opus_val32>(Ryy) * static_cast<opus_val32>(best_num)) {
+          static_cast<opus_val32>(Ryy) * best_num) {
         best_den = Ryy;
         best_num = Rxy;
         best_id = candidate;
@@ -9640,7 +9709,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
     }
   }
   const int nSamplesToBufferMax = 10 * nBlocksOf10ms * state_Fxx[0].sCmn.fs_kHz;
-  std::array<opus_int16, 2 * silk_max_resampler_batch_size> resampler_input_storage;
+  std::array<opus_int16, 4 * silk_max_resampler_batch_size> resampler_input_storage;
   auto* buf = resampler_input_storage.data();
   std::array<int, celt_max_channels> packet_has_lbrr{};
   while (true) {
@@ -10676,6 +10745,10 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   int shift2;
   silk_PLC_energy(&energy1, &shift1, &energy2, &shift2, {psDec->exc_Q14, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)},
                   prevGain_Q10, psDec->subfr_length, psDec->nb_subfr);
+  const bool fade_collapsed_unvoiced =
+      psDec->lossCnt == 0 && psDec->prevSignalType != 2 && (energy2 >> shift1) <= ((energy1 >> shift2) >> 4);
+  opus_int32 conceal_gain_Q16 = 1 << 16;
+  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(psDec->frame_length, 1) : 0;
   opus_int32* rand_ptr = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
                              ? &psDec->exc_Q14[std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)]
                              : &psDec->exc_Q14[std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128)];
@@ -10713,7 +10786,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
     auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
     for (int i = 0; i < psDec->subfr_length; i++) {
       const opus_int32 LTP_pred_Q12 =
-          static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(static_cast<opus_int16>(psPLC->LTPCoef_Q14))) >> 16));
+          static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
       ++pred_lag_ptr;
       rand_seed = silk_next_rand_seed(rand_seed);
       idx = ((rand_seed) >> (25)) & (128 - 1);
@@ -10731,7 +10804,8 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   for (int i = 0; i < psDec->frame_length; i++) {
     const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
     sLPC_Q14_ptr[16 + i] = saturating_add_int32(sLPC_Q14_ptr[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
-    frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], prevGain_Q10[1]);
+    conceal_gain_Q16 -= conceal_gain_step_Q16;
+    frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], multiply_q16(prevGain_Q10[1], conceal_gain_Q16));
   }
   copy_n_bytes(&sLPC_Q14_ptr[psDec->frame_length], static_cast<std::size_t>(16 * sizeof(opus_int32)), psDec->sLPC_Q14_buf);
   psPLC->rand_seed = rand_seed;
@@ -13118,7 +13192,7 @@ struct max_abs_result {
   auto max_abs = -1.0f;
   auto max_index = 0;
   for (auto index = 0; index < static_cast<int>(coefs.size()); ++index) {
-    const auto magnitude = static_cast<float>(std::fabs(coefs[index]));
+    const auto magnitude = std::fabs(coefs[index]);
     if (magnitude > max_abs) {
       max_abs = magnitude;
       max_index = index;
@@ -13179,7 +13253,7 @@ void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control
   for (auto index = static_cast<int>(coefs.size()) - 2; index >= 0; --index) {
     gain = lambda * gain + coefs[index];
   }
-  return static_cast<float>(1.0f / (1.0f - lambda * gain));
+  return 1.0f / (1.0f - lambda * gain);
 }
 
 static inline auto warped_true2monic_coefs(std::span<float> coefs, float lambda, float limit) noexcept -> void {
@@ -13468,10 +13542,10 @@ void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_uint8 cbk_index[4], opus_uint
   opus_int16 B_Q14[4 * 5]{};
   opus_int32 XX_Q17[4 * 5 * 5]{}, xX_Q17[4 * 5]{};
   for (int index = 0; index < nb_subfr * 5 * 5; ++index) {
-    XX_Q17[index] = static_cast<opus_int32>(float2int(XX[index] * 131072.0f));
+    XX_Q17[index] = float2int(XX[index] * 131072.0f);
   }
   for (int index = 0; index < nb_subfr * 5; ++index) {
-    xX_Q17[index] = static_cast<opus_int32>(float2int(xX[index] * 131072.0f));
+    xX_Q17[index] = float2int(xX[index] * 131072.0f);
   }
   silk_quant_LTP_gains(B_Q14, cbk_index, periodicity_index, sum_log_gain_Q7, &pred_gain_dB_Q7, XX_Q17, xX_Q17, subfr_len, nb_subfr);
   for (int index = 0; index < nb_subfr * 5; ++index) {
