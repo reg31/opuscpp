@@ -208,7 +208,8 @@ int main() {
     // the same bitrate in every repetition.
     for (int run = 0; run < benchmark_repetitions; ++run) {
       for (std::size_t step = 0; step < cases.size(); ++step) {
-        const auto index = run == 0 ? step : run == 1 ? cases.size() - 1 - step : (step + cases.size() / 2) % cases.size();
+        const auto index = run == 0 ? step : run == 1 ? cases.size() - 1 - step
+                                                      : (step + cases.size() / 2) % cases.size();
         auto& test = cases[index];
         const auto measure_current = [&] {
           auto enc = make_current_encoder(channels, test.bitrate);

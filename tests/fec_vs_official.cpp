@@ -233,8 +233,8 @@ int main() {
       int bitrate;
       bool vbr;
     };
-    constexpr std::array cases{test_case{1, 10, 24000, true},  test_case{1, 20, 16000, true}, test_case{1, 20, 24000, true},
-                               test_case{1, 20, 32000, true},  test_case{1, 40, 24000, true}, test_case{1, 60, 24000, true},
+    constexpr std::array cases{test_case{1, 10, 24000, true}, test_case{1, 20, 16000, true}, test_case{1, 20, 24000, true},
+                               test_case{1, 20, 32000, true}, test_case{1, 40, 24000, true}, test_case{1, 60, 24000, true},
                                test_case{2, 20, 32000, false}, test_case{2, 20, 48000, true}};
     double opuscpp_error = 0;
     double official_error = 0;

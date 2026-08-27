@@ -38,8 +38,13 @@ enum class material {
 };
 
 constexpr std::array materials{
-    material::voice,        material::quiet_voice,  material::far_field,       material::noisy_voice,
-    material::two_speakers, material::speech_music, material::fricative_voice,
+    material::voice,
+    material::quiet_voice,
+    material::far_field,
+    material::noisy_voice,
+    material::two_speakers,
+    material::speech_music,
+    material::fricative_voice,
 };
 
 [[nodiscard]] constexpr auto material_name(material value) noexcept -> std::string_view {
