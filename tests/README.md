@@ -298,10 +298,19 @@ current validation run.
 
 ### Optional speech denoiser
 
-The optional encoder denoiser was measured enabled versus disabled on the tracked mono VOIP speech
-sample with sustained 6 dB white noise. Positive quality gains mean the decoded result moved closer
-to the clean speech reference. Encode overhead is the median of nine 60-second runs on deterministic
-noisy speech. `scripts/run_voice_denoise_quality.py` fails if either tracked quality score decreases.
+The optional encoder denoiser is intended for mono VOIP capture with sustained broadband noise. It
+waits for consistent noise evidence, attenuates the affected frequency regions smoothly, and releases
+gradually when the evidence disappears. This avoids applying a permanent low-pass filter to ordinary
+speech. It is disabled by default and is not intended for music, stereo input, or audio that has
+already been denoised.
+
+The table compares denoising enabled and disabled on the same tracked mono VOIP speech sample mixed
+with sustained 6 dB white noise. Positive gains mean the decoded result moved closer to the clean
+speech reference. Across the measured ladder, PESQ-style gain is +0.0008 to +0.0047, ViSQOL-style
+gain is +0.0106 to +0.0260, and encode overhead is 0.4% to 4.1%. The clean speech and music corpus
+remains unchanged because the confidence gate does not activate. Encode overhead is the median of
+nine 60-second runs on deterministic noisy speech. `scripts/run_voice_denoise_quality.py` fails if
+either tracked quality score decreases.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|

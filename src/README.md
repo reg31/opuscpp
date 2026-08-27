@@ -114,14 +114,22 @@ DTX reuses the existing speech/music analysis, protects quiet or tonal content, 
 one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
 suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
 
-The optional voice denoiser is disabled by default. It suppresses sustained broadband capture noise
-before mono VOIP encoding, is confidence-gated, leaves clean speech and music unchanged in the
-tracked corpus, and does not change Opus packet syntax. Enabling it on stereo or a non-VOIP encoder
-returns `OPUS_BAD_ARG`.
+The voice denoiser is an optional encoder-side preprocessor for sustained broadband capture noise.
+It separates mono input into three broad frequency regions, waits for consistent noise evidence,
+then smoothly attenuates only the affected regions. The confidence and release gates avoid abrupt
+changes and leave clean or unclassified frames untouched. It does not change Opus packet syntax.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 ```
+
+| Setting | Recommended use |
+|---:|---|
+| `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
+| `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications return `OPUS_BAD_ARG`. |
+
+On the tracked noisy-speech test, enabling it improves both quality scores at every measured bitrate
+with 0.4% to 4.1% encode overhead. See the [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 
 ## In-band FEC
 
@@ -176,6 +184,7 @@ light processing added about 2% to 6% over unfiltered decoding, depending on bit
 | `3` (adaptive) | Recommended for speech playback when smoothing is preferred. It filters only packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not recommended for music, where it usually has no effect and may soften tonal detail when active. |
 
 Published quality metrics use the default unfiltered output.
+Detailed quality and decode-cost measurements are in the [optional speech postfilter section](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-postfilter).
 
 ## Unsupported API areas
 
