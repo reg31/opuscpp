@@ -181,8 +181,6 @@ the RFC decode vectors:
 | DTX active-content and re-entry comparison vs official Opus | Passed |
 | In-band FEC encode/decode interoperability vs official Opus | Passed |
 
-`scripts/run_voice_denoise_quality.py` compares denoising on and off over neighboring bitrate targets for a supplied noisy-speech WAV and clean reference. It exits with an error if either the PESQ-style or ViSQOL-style score decreases.
-
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
@@ -298,7 +296,28 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 All tracked AUDIO and VOIP PESQ-style, ViSQOL-style, and CELT-style proxy deltas are positive in the
 current validation run.
 
-### Optional speech postfilter A/B
+### Optional speech denoiser
+
+The optional encoder denoiser was measured enabled versus disabled on the tracked mono VOIP speech
+sample with sustained 6 dB white noise. Positive quality gains mean the decoded result moved closer
+to the clean speech reference. Encode overhead is the median of nine 60-second runs on deterministic
+noisy speech. `scripts/run_voice_denoise_quality.py` fails if either tracked quality score decreases.
+
+| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
+|---:|---:|---:|---:|
+| 16&nbsp;kbps | +0.0008 | +0.0106 | 0.4% |
+| 24&nbsp;kbps | +0.0035 | +0.0195 | 0.4% |
+| 32&nbsp;kbps | +0.0030 | +0.0175 | 0.5% |
+| 48&nbsp;kbps | +0.0043 | +0.0213 | 0.7% |
+| 64&nbsp;kbps | +0.0037 | +0.0203 | 1.7% |
+| 96&nbsp;kbps | +0.0045 | +0.0254 | 2.4% |
+| 128&nbsp;kbps | +0.0046 | +0.0260 | 0.7% |
+| 192&nbsp;kbps | +0.0047 | +0.0260 | 2.7% |
+| 256&nbsp;kbps | +0.0047 | +0.0258 | 4.1% |
+
+Source CSV: `metrics/voice_denoise_quality_voip.csv`.
+
+### Optional speech postfilter
 
 Adaptive postfilter mode (`3`) is useful for speech, not a universal quality switch. On the tracked
 mono VOIP sample it adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at 32&nbsp;kbps, and about

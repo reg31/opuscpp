@@ -114,9 +114,10 @@ DTX reuses the existing speech/music analysis, protects quiet or tonal content, 
 one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
 suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
 
-The optional voice denoiser suppresses sustained broadband capture noise before mono VOIP encoding.
-It is confidence-gated, leaves clean speech and music unchanged in the tracked corpus, and does not
-change Opus packet syntax. Enabling it on stereo or a non-VOIP encoder returns `OPUS_BAD_ARG`.
+The optional voice denoiser is disabled by default. It suppresses sustained broadband capture noise
+before mono VOIP encoding, is confidence-gated, leaves clean speech and music unchanged in the
+tracked corpus, and does not change Opus packet syntax. Enabling it on stereo or a non-VOIP encoder
+returns `OPUS_BAD_ARG`.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));

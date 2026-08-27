@@ -100,15 +100,15 @@ See `src/README.md` for the supported functions, constants, and CTLs. The short 
 - Utility: `opus_packet_get_nb_samples`, `opus_strerror`.
 - CTLs: bitrate, VBR, constrained VBR, in-band FEC, expected packet loss, guarded DTX, complexity, reset, final range, last packet duration, plus `OPUSCPP_SET_VOICE_DENOISE(x)` and `OPUSCPP_SET_DECODE_POSTFILTER(x)`.
 
-The optional encoder denoiser is controlled like other Opus settings and is disabled by default:
+The optional encoder denoiser is controlled like other Opus settings and is disabled by default, to enable it:
 
 ```cpp
 opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 ```
 
-It targets sustained broadband noise in mono `OPUS_APPLICATION_VOIP` input. Use `0` to disable it;
-enabling it for stereo or another application returns `OPUS_BAD_ARG`. See `src/README.md` for the
-matching getter and full CTL table.
+It targets sustained broadband noise in mono `OPUS_APPLICATION_VOIP` input. Enabling it for stereo
+or another application returns `OPUS_BAD_ARG`. See `src/README.md` for the matching getter and full
+CTL table.
 
 Unsupported families include custom Opus, multistream helpers, repacketizer helpers, projection
 APIs, and unsupported CTLs not listed in `src/README.md`.
