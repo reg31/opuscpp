@@ -56,13 +56,24 @@ def synth_music_like(seconds: float, channels: int) -> list[int]:
     return out
 
 
+def add_white_noise(samples: list[int], snr_db: float) -> list[int]:
+    rng = random.Random(2)
+    noise = [rng.random() * 2.0 - 1.0 for _ in samples]
+    signal_rms = math.sqrt(sum(sample * sample for sample in samples) / len(samples))
+    noise_rms = math.sqrt(sum(sample * sample for sample in noise) / len(noise))
+    scale = signal_rms / (noise_rms * 10.0 ** (snr_db / 20.0))
+    return [max(-32768, min(32767, round(sample + scale * background))) for sample, background in zip(samples, noise)]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="tests/generated_audio", help="Output directory")
     parser.add_argument("--seconds", type=float, default=5.0)
     args = parser.parse_args()
     out = pathlib.Path(args.out)
-    write_wav(out / "synthetic_voice_like_mono.wav", 1, synth_voice_like(args.seconds, 1))
+    voice = synth_voice_like(args.seconds, 1)
+    write_wav(out / "synthetic_voice_like_mono.wav", 1, voice)
+    write_wav(out / "synthetic_voice_like_mono_noisy.wav", 1, add_white_noise(voice, 6.0))
     write_wav(out / "synthetic_music_like_stereo.wav", 2, synth_music_like(args.seconds, 2))
     print(f"wrote synthetic WAVs under {out}")
     return 0

@@ -181,6 +181,8 @@ the RFC decode vectors:
 | DTX active-content and re-entry comparison vs official Opus | Passed |
 | In-band FEC encode/decode interoperability vs official Opus | Passed |
 
+`scripts/run_voice_denoise_quality.py` compares denoising on and off over neighboring bitrate targets for a supplied noisy-speech WAV and clean reference. It exits with an error if either the PESQ-style or ViSQOL-style score decreases.
+
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
@@ -233,15 +235,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.415x | 1.864x | 869x | 360x | 2449x | 1313x |
-| 24&nbsp;kbps | 1.920x | 1.370x | 627x | 327x | 1563x | 1141x |
-| 32&nbsp;kbps | 1.891x | 1.325x | 620x | 328x | 1517x | 1145x |
-| 48&nbsp;kbps | 1.779x | 1.296x | 539x | 303x | 1248x | 963x |
-| 64&nbsp;kbps | 1.799x | 1.303x | 481x | 268x | 1091x | 838x |
-| 96&nbsp;kbps | 1.897x | 1.273x | 408x | 215x | 847x | 666x |
-| 128&nbsp;kbps | 2.077x | 1.282x | 409x | 197x | 748x | 584x |
-| 192&nbsp;kbps | 1.878x | 1.258x | 332x | 177x | 633x | 503x |
-| 256&nbsp;kbps | 1.795x | 1.211x | 304x | 170x | 547x | 452x |
+| 16&nbsp;kbps | 2.583x | 1.915x | 628x | 243x | 1697x | 886x |
+| 24&nbsp;kbps | 1.938x | 1.454x | 430x | 222x | 1142x | 786x |
+| 32&nbsp;kbps | 1.875x | 1.423x | 419x | 223x | 1098x | 771x |
+| 48&nbsp;kbps | 1.811x | 1.339x | 367x | 203x | 896x | 669x |
+| 64&nbsp;kbps | 1.799x | 1.335x | 324x | 180x | 774x | 580x |
+| 96&nbsp;kbps | 1.891x | 1.336x | 276x | 146x | 606x | 453x |
+| 128&nbsp;kbps | 2.099x | 1.333x | 277x | 132x | 527x | 395x |
+| 192&nbsp;kbps | 1.883x | 1.305x | 226x | 120x | 441x | 338x |
+| 256&nbsp;kbps | 1.809x | 1.230x | 207x | 115x | 378x | 308x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -332,10 +334,10 @@ snapshot.
 
 | State | opuscpp | official Opus | Difference |
 |---|---:|---:|---:|
-| Encoder mono | 16,992 B | 31,696 B | -46.4% |
-| Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,096 B | 18,288 B | -22.9% |
-| Decoder stereo | 21,184 B | 27,440 B | -22.8% |
+| Encoder mono | 16,928 B | 31,760 B | -46.7% |
+| Encoder stereo | 32,192 B | 48,880 B | -34.1% |
+| Decoder mono | 14,080 B | 18,416 B | -23.5% |
+| Decoder stereo | 21,344 B | 27,296 B | -21.8% |
 
 Source CSV:
 
@@ -345,7 +347,7 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host MinGW GCC `-O2` | 295,352 B | 0 B | 295,352 B |
+| Host MinGW GCC `-O2` | 297,148 B | 0 B | 297,148 B |
 
 ## Toolchains checked
 

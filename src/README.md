@@ -104,6 +104,8 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |
 | `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |
 | `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |
+| `OPUSCPP_SET_VOICE_DENOISE_REQUEST` | `OPUSCPP_SET_VOICE_DENOISE(x)` | Accepts `0` (off) or `1` (on) for the optional mono-VOIP broadband-noise suppressor; default is `0`. |
+| `OPUSCPP_GET_VOICE_DENOISE_REQUEST` | `OPUSCPP_GET_VOICE_DENOISE(&x)` | Returns the voice-denoise setting. |
 | `OPUS_GET_LOOKAHEAD_REQUEST` | `OPUS_GET_LOOKAHEAD(&x)` | Returns codec delay for pre-skip/time alignment: 312 samples at 48 kHz for VOIP/AUDIO and 120 for restricted low delay. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state while preserving encoder configuration CTLs. |
@@ -111,6 +113,14 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 DTX reuses the existing speech/music analysis, protects quiet or tonal content, and emits standard
 one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
 suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
+
+The optional voice denoiser suppresses sustained broadband capture noise before mono VOIP encoding.
+It is confidence-gated, leaves clean speech and music unchanged in the tracked corpus, and does not
+change Opus packet syntax. Enabling it on stereo or a non-VOIP encoder returns `OPUS_BAD_ARG`.
+
+```cpp
+opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
+```
 
 ## In-band FEC
 

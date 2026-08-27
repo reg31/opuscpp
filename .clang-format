@@ -1,11 +1,12 @@
 BasedOnStyle: LLVM
 Language: Cpp
 Standard: c++20
-ColumnLimit: 140
+ColumnLimit: 0
 IndentWidth: 2
 ContinuationIndentWidth: 4
 UseTab: Never
 BreakBeforeBraces: Attach
+BreakTemplateDeclarations: No
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortEnumsOnASingleLine: false
@@ -18,6 +19,7 @@ BinPackArguments: true
 BinPackParameters: true
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
+FixNamespaceComments: false
 PointerAlignment: Left
 SpaceAfterTemplateKeyword: true
 SortIncludes: false

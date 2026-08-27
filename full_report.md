@@ -24,7 +24,7 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `packet_duration_behavior=PASS`
 - `vbr_budget_behavior=PASS`
 - `dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86`
-- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.791591 recovery_error=0.0488076 plc_error=0.463539 packet_bytes=360 packet_hash=2146862611`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.199771 recovery_error=0.0996023 plc_error=0.199859 packet_bytes=371 packet_hash=1803285832`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.19564 recovery_error=0.0935658 plc_error=0.177873 packet_bytes=479 packet_hash=3699400340`
@@ -86,15 +86,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.607863x | 1.890991x |
-| 24 kbps | 1.909443x | 1.449332x |
-| 32 kbps | 1.856537x | 1.378019x |
-| 48 kbps | 1.813680x | 1.355994x |
-| 64 kbps | 1.815521x | 1.351028x |
-| 96 kbps | 1.872507x | 1.306838x |
-| 128 kbps | 2.033247x | 1.319246x |
-| 192 kbps | 1.870277x | 1.281882x |
-| 256 kbps | 1.794285x | 1.240283x |
+| 16 kbps | 2.582944x | 1.914753x |
+| 24 kbps | 1.938470x | 1.454425x |
+| 32 kbps | 1.874771x | 1.423334x |
+| 48 kbps | 1.811288x | 1.338782x |
+| 64 kbps | 1.798982x | 1.334703x |
+| 96 kbps | 1.890993x | 1.336289x |
+| 128 kbps | 2.098715x | 1.332628x |
+| 192 kbps | 1.882645x | 1.305263x |
+| 256 kbps | 1.808614x | 1.230052x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -137,14 +137,14 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 |---|---:|
 | Encoder mono | -46.7% |
 | Encoder stereo | -34.1% |
-| Decoder mono | -23.6% |
-| Decoder stereo | -21.7% |
+| Decoder mono | -23.5% |
+| Decoder stereo | -21.8% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 293420 B | 0 B | 293420 B |
+| Host C++23 `-O2` | 297148 B | 0 B | 297148 B |
 
 ## Toolchains checked
 

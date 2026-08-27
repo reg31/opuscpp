@@ -45,6 +45,8 @@ inline constexpr int OPUS_GET_LAST_PACKET_DURATION_REQUEST = 4039;
 inline constexpr int OPUS_GET_IN_DTX_REQUEST = 4049;
 inline constexpr int OPUSCPP_SET_DECODE_POSTFILTER_REQUEST = 5100;
 inline constexpr int OPUSCPP_GET_DECODE_POSTFILTER_REQUEST = 5101;
+inline constexpr int OPUSCPP_SET_VOICE_DENOISE_REQUEST = 5102;
+inline constexpr int OPUSCPP_GET_VOICE_DENOISE_REQUEST = 5103;
 
 #define OPUS_SET_BITRATE(x) OPUS_SET_BITRATE_REQUEST, static_cast<int>(x)
 #define OPUS_GET_BITRATE(x) OPUS_GET_BITRATE_REQUEST, (x)
@@ -66,6 +68,8 @@ inline constexpr int OPUSCPP_GET_DECODE_POSTFILTER_REQUEST = 5101;
 #define OPUS_GET_LAST_PACKET_DURATION(x) OPUS_GET_LAST_PACKET_DURATION_REQUEST, (x)
 #define OPUSCPP_SET_DECODE_POSTFILTER(x) OPUSCPP_SET_DECODE_POSTFILTER_REQUEST, static_cast<int>(x)
 #define OPUSCPP_GET_DECODE_POSTFILTER(x) OPUSCPP_GET_DECODE_POSTFILTER_REQUEST, (x)
+#define OPUSCPP_SET_VOICE_DENOISE(x) OPUSCPP_SET_VOICE_DENOISE_REQUEST, static_cast<int>(x)
+#define OPUSCPP_GET_VOICE_DENOISE(x) OPUSCPP_GET_VOICE_DENOISE_REQUEST, (x)
 
 inline constexpr int OPUS_FRAME_SIZE_2MS5 = 120;
 inline constexpr int OPUS_FRAME_SIZE_5MS = 240;
@@ -106,7 +110,7 @@ template <> struct default_delete<OpusDecoder> {
     opus_decoder_destroy(st);
   }
 };
-} // namespace std
+}
 
 [[nodiscard]] inline auto make_opus_encoder(int Fs, int channels, int application, int* error) noexcept -> std::unique_ptr<OpusEncoder> {
   return std::unique_ptr<OpusEncoder>{opus_encoder_create(Fs, channels, application, error)};

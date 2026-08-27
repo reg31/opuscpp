@@ -60,11 +60,20 @@ int main() {
   std::array<unsigned char, 16> encoder_packet{};
   constexpr int overflowing_frame_size = 1073741864;
   opus_int32 lookahead = -1;
+  opus_int32 voice_denoise = -1;
   opus_int32* null_lookahead = nullptr;
   ok &= expect_eq(encoder_error, OPUS_OK, "create encoder");
   ok &= expect_eq(opus_encoder_ctl(encoder, OPUS_GET_LOOKAHEAD(&lookahead)), OPUS_OK, "get VOIP lookahead");
   ok &= expect_eq(lookahead, 52, "8 kHz VOIP lookahead");
   ok &= expect_eq(opus_encoder_ctl(encoder, OPUS_GET_LOOKAHEAD(null_lookahead)), OPUS_BAD_ARG, "reject null lookahead output");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUSCPP_GET_VOICE_DENOISE(&voice_denoise)), OPUS_OK, "default voice denoise get");
+  ok &= expect_eq(voice_denoise, 0, "default voice denoise off");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(2)), OPUS_BAD_ARG, "invalid voice denoise setting");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1)), OPUS_OK, "enable voice denoise");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUS_RESET_STATE), OPUS_OK, "reset encoder with voice denoise");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUSCPP_GET_VOICE_DENOISE(&voice_denoise)), OPUS_OK, "voice denoise survives reset get");
+  ok &= expect_eq(voice_denoise, 1, "voice denoise setting survives reset");
+  ok &= expect_eq(opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(0)), OPUS_OK, "disable voice denoise");
   ok &= expect_eq(opus_encode(encoder, encoder_pcm.data(), overflowing_frame_size, encoder_packet.data(), encoder_packet.size()),
                   OPUS_BAD_ARG, "reject overflowing PCM16 frame size");
   ok &=
@@ -78,7 +87,15 @@ int main() {
   ok &= expect_eq(audio_error, OPUS_OK, "create audio encoder");
   ok &= expect_eq(opus_encoder_ctl(audio_encoder, OPUS_GET_LOOKAHEAD(&lookahead)), OPUS_OK, "get AUDIO lookahead");
   ok &= expect_eq(lookahead, 312, "48 kHz AUDIO lookahead");
+  ok &= expect_eq(opus_encoder_ctl(audio_encoder, OPUSCPP_SET_VOICE_DENOISE(1)), OPUS_BAD_ARG, "reject AUDIO voice denoise");
   opus_encoder_destroy(audio_encoder);
+
+  int stereo_voip_error = OPUS_OK;
+  OpusEncoder* stereo_voip_encoder = opus_encoder_create(48000, 2, OPUS_APPLICATION_VOIP, &stereo_voip_error);
+  ok &= expect_eq(stereo_voip_error, OPUS_OK, "create stereo VOIP encoder");
+  ok &= expect_eq(opus_encoder_ctl(stereo_voip_encoder, OPUSCPP_SET_VOICE_DENOISE(1)), OPUS_BAD_ARG,
+                  "reject stereo voice denoise");
+  opus_encoder_destroy(stereo_voip_encoder);
 
   int lowdelay_error = OPUS_OK;
   OpusEncoder* lowdelay_encoder = opus_encoder_create(48000, 1, OPUS_APPLICATION_RESTRICTED_LOWDELAY, &lowdelay_error);

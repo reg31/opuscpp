@@ -32,6 +32,7 @@ int curr_opus_encode(curr_OpusEncoder* st, const std::int16_t* pcm, int frame_si
 curr_OpusDecoder* curr_opus_decoder_create(int Fs, int channels, int* error) noexcept;
 void curr_opus_decoder_destroy(curr_OpusDecoder* st) noexcept;
 int curr_opus_decoder_ctl(curr_OpusDecoder* st, int request, ...) noexcept;
+int curr_opus_decode(curr_OpusDecoder* st, const unsigned char* data, int len, std::int16_t* pcm, int frame_size, int decode_fec) noexcept;
 int curr_opus_decode_float(curr_OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;
 
 #include "official_opus_abi.h"
@@ -43,6 +44,7 @@ constexpr int sample_rate = 48000;
 constexpr int frame_size = 960;
 constexpr double pi = 3.141592653589793238462643383279502884;
 constexpr int opuscpp_set_decode_postfilter_request = 5100;
+constexpr int opuscpp_set_voice_denoise_request = 5102;
 
 using state_handle = std::unique_ptr<void, void (*)(void*)>;
 
@@ -54,6 +56,7 @@ struct clip_data final {
 
 struct options final {
   fs::path input{"tests/generated_audio/synthetic_music_like_stereo.wav"};
+  fs::path reference{};
   fs::path listening_dir{};
   int bitrate = 24000;
   int official_bitrate = 0;
@@ -62,7 +65,9 @@ struct options final {
   int memory_instances = 256;
   double max_seconds = 0.0;
   int current_postfilter_level = 0;
+  bool current_voice_denoise = false;
   bool memory_only = false;
+  bool pcm16 = false;
   bool skip_memory = false;
 };
 
@@ -284,7 +289,7 @@ struct result final {
   return {.label = path.stem().string(), .channels = channels, .samples = std::move(samples)};
 }
 
-[[nodiscard]] auto make_current_encoder(int channels, int bitrate, int application) -> state_handle {
+[[nodiscard]] auto make_current_encoder(int channels, int bitrate, int application, bool voice_denoise = false) -> state_handle {
   int error = OPUS_OK;
   auto encoder = state_handle{curr_opus_encoder_create(sample_rate, channels, application, &error), [](void* ptr) {
                                 curr_opus_encoder_destroy(static_cast<curr_OpusEncoder*>(ptr));
@@ -300,6 +305,10 @@ struct result final {
   }
   if (curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), OPUS_SET_VBR_REQUEST, 1) != OPUS_OK) {
     throw std::runtime_error("current VBR failed");
+  }
+  if (voice_denoise &&
+      curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), opuscpp_set_voice_denoise_request, 1) != OPUS_OK) {
+    throw std::runtime_error("current voice denoise failed");
   }
   return encoder;
 }
@@ -560,7 +569,7 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
     }
   }
 
-  static constexpr std::array<double, 18> centers{80,   120,  180,  270,  400,  600,   900,   1300,  1800,
+  static constexpr std::array<double, 18> centers{80, 120, 180, 270, 400, 600, 900, 1300, 1800,
                                                   2500, 3400, 4500, 6000, 8000, 11000, 14000, 17000, 20000};
   auto coeffs = std::array<double, centers.size()>{};
   for (std::size_t i = 0; i < centers.size(); ++i) {
@@ -590,13 +599,15 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   add_celt_perceptual_metrics(out, ref, deg, channels);
 }
 
-[[nodiscard]] auto run_variant(std::string name, const clip_data& clip, const options& opt, bool official) -> result {
+[[nodiscard]] auto run_variant(std::string name, const clip_data& clip, std::span<const std::int16_t> reference,
+                               const options& opt, bool official) -> result {
   const int bitrate = official && opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
   auto encoder = official ? make_official_encoder(clip.channels, bitrate, opt.application)
-                          : make_current_encoder(clip.channels, opt.bitrate, opt.application);
+                          : make_current_encoder(clip.channels, opt.bitrate, opt.application, opt.current_voice_denoise);
   auto decoder = official ? make_official_decoder(clip.channels, opt.official_decoder_complexity)
                           : make_current_decoder(clip.channels, opt.current_postfilter_level);
   auto decoded_frame = std::vector<float>(static_cast<std::size_t>(frame_size * clip.channels));
+  auto decoded_frame_i16 = std::vector<std::int16_t>(opt.pcm16 ? decoded_frame.size() : 0);
   auto decoded = std::vector<float>(clip.samples.size());
   auto packet = std::array<unsigned char, 1500>{};
   auto score = totals{};
@@ -614,18 +625,29 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
     if (packet_size <= 0) {
       throw std::runtime_error(name + " encode failed");
     }
-    const auto got = official ? opus_decode_float(static_cast<OpusDecoder*>(decoder.get()), packet.data(), packet_size,
-                                                  decoded_frame.data(), frame_size, 0)
-                              : curr_opus_decode_float(static_cast<curr_OpusDecoder*>(decoder.get()), packet.data(), packet_size,
-                                                       decoded_frame.data(), frame_size, 0);
+    int got;
+    if (opt.pcm16) {
+      got = official ? opus_decode(static_cast<OpusDecoder*>(decoder.get()), packet.data(), packet_size, decoded_frame_i16.data(), frame_size, 0)
+                     : curr_opus_decode(static_cast<curr_OpusDecoder*>(decoder.get()), packet.data(), packet_size,
+                                        decoded_frame_i16.data(), frame_size, 0);
+    } else {
+      got = official ? opus_decode_float(static_cast<OpusDecoder*>(decoder.get()), packet.data(), packet_size, decoded_frame.data(), frame_size, 0)
+                     : curr_opus_decode_float(static_cast<curr_OpusDecoder*>(decoder.get()), packet.data(), packet_size,
+                                              decoded_frame.data(), frame_size, 0);
+    }
     if (got != frame_size) {
       throw std::runtime_error(name + " decode failed");
+    }
+    if (opt.pcm16) {
+      std::ranges::transform(decoded_frame_i16, decoded_frame.begin(), [](std::int16_t sample) {
+        return static_cast<float>(sample) / 32768.0f;
+      });
     }
     std::copy(decoded_frame.begin(), decoded_frame.end(), decoded.begin() + static_cast<std::ptrdiff_t>(offset));
     ++score.packets;
     score.packet_bytes += static_cast<std::uint64_t>(packet_size);
   }
-  add_metrics(score, clip.samples, decoded, clip.channels);
+  add_metrics(score, reference, decoded, clip.channels);
   return {.name = std::move(name), .score = score, .decoded = std::move(decoded)};
 }
 
@@ -674,13 +696,14 @@ template <typename Getter> void write_wav(const fs::path& path, int channels, st
   return value;
 }
 
-void write_listening(const options& opt, const clip_data& clip, const result& current, const result& official) {
+void write_listening(const options& opt, const clip_data& clip, std::span<const std::int16_t> reference,
+                     const result& current, const result& official) {
   if (opt.listening_dir.empty()) {
     return;
   }
   const auto base = opt.listening_dir / (std::to_string(opt.bitrate / 1000) + "kbps") / safe_name(clip.label);
-  write_wav(base.string() + "_reference.wav", clip.channels, clip.samples.size(), [&](std::size_t i) {
-    return clip.samples[i];
+  write_wav(base.string() + "_reference.wav", clip.channels, reference.size(), [&](std::size_t i) {
+    return reference[i];
   });
   write_wav(base.string() + "_current.wav", clip.channels, current.decoded.size(), [&](std::size_t i) {
     return static_cast<std::int16_t>(
@@ -749,7 +772,7 @@ void run_memory(const options& opt) {
   retained.reserve(8);
   for (const auto channels : {1, 2}) {
     retained.push_back(measure_group("current_encoder_ch" + std::to_string(channels), opt.memory_instances, [&] {
-      return make_current_encoder(channels, opt.bitrate, opt.application);
+      return make_current_encoder(channels, opt.bitrate, opt.application, opt.current_voice_denoise);
     }));
     retained.push_back(measure_group(
         "official_encoder_ch" + std::to_string(channels), opt.memory_instances,
@@ -797,7 +820,9 @@ void run_memory(const options& opt) {
     };
     if (arg == "--input") {
       opt.input = fs::path{value()};
-    } else if (arg == "--bitrate")
+    } else if (arg == "--reference")
+      opt.reference = fs::path{value()};
+    else if (arg == "--bitrate")
       opt.bitrate = std::stoi(std::string{value()});
     else if (arg == "--official-bitrate")
       opt.official_bitrate = std::stoi(std::string{value()});
@@ -826,6 +851,10 @@ void run_memory(const options& opt) {
       }
     } else if (arg == "--memory-only")
       opt.memory_only = true;
+    else if (arg == "--pcm16")
+      opt.pcm16 = true;
+    else if (arg == "--current-voice-denoise")
+      opt.current_voice_denoise = true;
     else if (arg == "--skip-memory")
       opt.skip_memory = true;
     else if (!arg.starts_with("--"))
@@ -844,14 +873,25 @@ void run_memory(const options& opt) {
 
 void run_quality(const options& opt) {
   const auto clip = load_wav(opt.input, opt.max_seconds);
+  auto reference_storage = clip_data{};
+  auto reference = std::span<const std::int16_t>{clip.samples};
+  if (!opt.reference.empty()) {
+    reference_storage = load_wav(opt.reference, opt.max_seconds);
+    if (reference_storage.channels != clip.channels || reference_storage.samples.size() != clip.samples.size()) {
+      throw std::runtime_error("reference WAV must match input channel count and duration");
+    }
+    reference = reference_storage.samples;
+  }
   const int official_bitrate = opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
   std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate
-            << " input=" << opt.input.string() << " official_decoder_complexity=" << opt.official_decoder_complexity
+            << " input=" << opt.input.string() << " reference=" << (opt.reference.empty() ? opt.input : opt.reference).string()
+            << " official_decoder_complexity=" << opt.official_decoder_complexity
             << " channels=" << clip.channels << " current_postfilter_level=" << opt.current_postfilter_level
+            << " current_voice_denoise=" << opt.current_voice_denoise << " pcm16=" << opt.pcm16
             << " frames=" << (clip.samples.size() / static_cast<std::size_t>(frame_size * clip.channels)) << '\n';
-  const auto current = run_variant("current", clip, opt, false);
-  const auto official = run_variant("official", clip, opt, true);
-  write_listening(opt, clip, current, official);
+  const auto current = run_variant("current", clip, reference, opt, false);
+  const auto official = run_variant("official", clip, reference, opt, true);
+  write_listening(opt, clip, reference, current, official);
   print_result("  current ", current.score);
   print_result("  official", official.score);
   std::cout << "  delta current_minus_official"
