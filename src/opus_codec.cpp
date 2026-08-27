@@ -14156,7 +14156,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       return OPUS_BAD_ARG;
     }
     if (value != 0 && (st->application != OPUS_APPLICATION_VOIP || st->channels != 1)) {
-      return OPUS_BAD_ARG;
+      return OPUS_OK;
     }
     if (value != 0 && !ensure_voice_denoise_state(st)) {
       return OPUS_ALLOC_FAIL;

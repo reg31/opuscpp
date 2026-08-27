@@ -301,8 +301,8 @@ current validation run.
 The optional encoder denoiser is intended for mono VOIP capture with sustained broadband noise. It
 waits for consistent noise evidence, attenuates the affected frequency regions smoothly, and releases
 gradually when the evidence disappears. This avoids applying a permanent low-pass filter to ordinary
-speech. It is disabled by default and is not intended for music, stereo input, or audio that has
-already been denoised.
+speech. It is disabled by default and has no effect on non-VOIP applications or stereo input. It is
+not intended for audio that has already been denoised.
 
 The table compares denoising enabled and disabled on the same tracked mono VOIP speech sample mixed
 with sustained 6 dB white noise. Positive gains mean the decoded result moved closer to the clean
