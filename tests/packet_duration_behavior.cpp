@@ -154,7 +154,8 @@ int main() {
         int create_error = OPUS_OK;
         auto enc = std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)>{opus_encoder_create(rate, channels, OPUS_APPLICATION_VOIP, &create_error), opus_encoder_destroy};
         auto dec = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(rate, channels, &create_error), opus_decoder_destroy};
-        if (!enc || !dec || create_error != OPUS_OK) return 1;
+        if (!enc || !dec || create_error != OPUS_OK)
+          return 1;
         ok &= expect_eq(opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(12000)), OPUS_OK, "configure long-frame staging check");
         const int samples = rate * duration / 1000;
         std::array<float, 5760 * 2> input{}, output{};

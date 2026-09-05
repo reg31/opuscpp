@@ -32,7 +32,8 @@ int main() {
             }
             norm += band[block] * band[block];
           }
-          if (std::abs(norm - 1.f) > 1e-6f) return 1;
+          if (std::abs(norm - 1.f) > 1e-6f)
+            return 1;
         }
       }
     }
@@ -41,20 +42,24 @@ int main() {
   std::array<float, 2 * celt_default_nb_ebands> energy{}, old_energy{}, error{};
   ec_enc enc;
   ec_enc_init(&enc, packet.data(), packet.size());
-  for (int bit = 0; bit < 12; ++bit) ec_enc_bit_logp(&enc, 0, 1);
+  for (int bit = 0; bit < 12; ++bit)
+    ec_enc_bit_logp(&enc, 0, 1);
   ec_enc_bit_logp(&enc, 0, 3);
   process_coarse_energy<true>(17, 19, energy.data(), old_energy.data(), 16, ec_tell(&enc), e_prob_model[6].data(), error.data(), &enc, 1, 3, 0, 16);
   ec_enc_done(&enc);
   int status = OPUS_OK;
   auto decoder = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(48000, 1, &status), opus_decoder_destroy};
-  if (!decoder || status != OPUS_OK) return 1;
+  if (!decoder || status != OPUS_OK)
+    return 1;
   auto* celt = decoder_celt_state(decoder.get());
   celt->stream_channels = 1;
   celt->start = 17;
   celt->end = 19;
   ec_dec dec;
   ec_dec_init(&dec, packet.data(), packet.size());
-  for (int bit = 0; bit < 12; ++bit) if (ec_dec_bit_logp(&dec, 1) != 0) return 1;
+  for (int bit = 0; bit < 12; ++bit)
+    if (ec_dec_bit_logp(&dec, 1) != 0)
+      return 1;
   std::array<float, celt_max_frame_samples> pcm{};
   const int decoded = celt_decode_with_ec(celt, packet.data(), packet.size(), pcm.data(), 960, &dec);
   const auto views = make_celt_decoder_views(celt, 960);

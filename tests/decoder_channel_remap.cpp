@@ -100,7 +100,8 @@ int main() {
     auto transition_encoder = make_opus_encoder(16000, channels, OPUS_APPLICATION_VOIP, &err);
     auto float_decoder = make_opus_decoder(16000, channels, &err);
     auto pcm16_decoder = make_opus_decoder(16000, channels, &err);
-    if (!transition_encoder || !float_decoder || !pcm16_decoder || err != OPUS_OK) return 1;
+    if (!transition_encoder || !float_decoder || !pcm16_decoder || err != OPUS_OK)
+      return 1;
     std::array<opus_int16, 640> input{}, integer_output{};
     std::array<float, 640> float_output{};
     std::array<unsigned char, 1500> packet{};
@@ -115,12 +116,14 @@ int main() {
         }
       }
       const int bytes = opus_encode(transition_encoder.get(), input.data(), 320, packet.data(), static_cast<int>(packet.size()));
-      if (bytes <= 0) return 1;
+      if (bytes <= 0)
+        return 1;
       const bool celt_packet = (packet[0] & 0x80) != 0;
       saw_silk |= !celt_packet && (packet[0] & 0x60) != 0x60;
       saw_celt_after_silk |= saw_silk && celt_packet;
       if (opus_decode_float(float_decoder.get(), packet.data(), bytes, float_output.data(), 320, 0) != 320 ||
-          opus_decode(pcm16_decoder.get(), packet.data(), bytes, integer_output.data(), 320, 0) != 320) return 1;
+          opus_decode(pcm16_decoder.get(), packet.data(), bytes, integer_output.data(), 320, 0) != 320)
+        return 1;
       opus_uint32 float_range = 0, integer_range = 0;
       opus_decoder_ctl(float_decoder.get(), OPUS_GET_FINAL_RANGE(&float_range));
       opus_decoder_ctl(pcm16_decoder.get(), OPUS_GET_FINAL_RANGE(&integer_range));

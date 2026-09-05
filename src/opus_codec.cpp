@@ -36,7 +36,6 @@ constexpr opus_int32 silk_log_100_q7 = 851;
 constexpr opus_int32 silk_log_60_q15 = silk_log_60_q7 << 8;
 constexpr opus_int32 silk_log_100_q15 = silk_log_100_q7 << 8;
 
-
 constexpr int opus_mode_silk_only = 1000;
 constexpr int opus_mode_hybrid = 1001;
 constexpr int opus_mode_celt_only = 1002;
@@ -1288,7 +1287,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
 
 constexpr int opus_decode_fast_unavailable = -1000000;
 static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                           int frame_size, bool fuse_output_postfilter = false) {
+                                          int frame_size, bool fuse_output_postfilter = false) {
   if (st->Fs != 48000 || (pcm == nullptr && pcm16 == nullptr) ||
       (st->prev_mode > 0 && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy)) {
     return opus_decode_fast_unavailable;
@@ -1302,7 +1301,9 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
   if (frame_count < 0 || frame_count * packet_frame_size > frame_size || (fuse_output_postfilter && frame_count != 1)) {
     return opus_decode_fast_unavailable;
   }
-  if (std::any_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) { return length <= 1; })) {
+  if (std::any_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
+        return length <= 1;
+      })) {
     return opus_decode_fast_unavailable;
   }
   const int packet_bitrate_bps = fuse_output_postfilter ? decoder_packet_bitrate(st, len, frame_count * packet_frame_size) : 0;
@@ -1320,8 +1321,8 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
     ec_dec_init(&dec, const_cast<unsigned char*>(data), static_cast<opus_uint32>(frame_lengths[index]));
     const int sample_offset = nb_samples * st->channels;
     const int decoded_samples = celt_decode_with_ec(celt_dec, data, frame_lengths[index], pcm != nullptr ? pcm + sample_offset : nullptr,
-                                                   packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr,
-                                                   fuse_output_postfilter ? st : nullptr, packet_bitrate_bps);
+                                                    packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr,
+                                                    fuse_output_postfilter ? st : nullptr, packet_bitrate_bps);
     if (decoded_samples < 0) {
       return decoded_samples;
     }
@@ -2785,9 +2786,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                 (st->bitrate_bps >= 56000 && st->bitrate_bps < 80000 &&
                                  (st->lightweight_analysis_frames <= stereo_preservation_probe_frames || sparse_high_z_tonal)));
   st->silk_mode.preserveStereo = preserve_stereo ? (st->bitrate_bps == 48000 ? silk_preserve_stereo_force : silk_preserve_stereo_bias) : 0;
-  if (stereo_policy_allowed && st->stereo_recovery_frames < 255
-      && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && frame_metrics.mono_diff_ratio < .025f && frame_metrics.mono_zero_cross_rate < .075f
-      && frame_metrics.stereo_coherence >= 0 && frame_metrics.stereo_coherence < .1f && !frame_metrics.stereo_shape_match) {
+  if (stereo_policy_allowed && st->stereo_recovery_frames < 255 && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && frame_metrics.mono_diff_ratio < .025f && frame_metrics.mono_zero_cross_rate < .075f && frame_metrics.stereo_coherence >= 0 && frame_metrics.stereo_coherence < .1f && !frame_metrics.stereo_shape_match) {
     st->silk_mode.preserveStereo = silk_preserve_stereo_force;
   }
   if (st->channels == 2) {
@@ -2842,10 +2841,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     if (st->bitrate_bps == 32000 && !confident_high_z_tonal) {
       st->mode = opus_mode_celt_only;
     } else if (segment_selected_bitrate && (st->bitrate_bps >= 56000 || !confident_high_z_tonal) && !stable_tonal_segment) {
-      celt_enc->stereo_policy_celt = stereo_policy_allowed
-          && ((previous_stereo_policy && !previous_unsteady) || (!st->stereo_recovery_frames
-              && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && st->lightweight_harmonic_music_Q7 >= 64
-              && st->stereo_similarity_ms_Q1 < 160 && celt_enc->stereo_coherence_Q8 < (st->prev_mode == opus_mode_celt_only ? 51 : 25)));
+      celt_enc->stereo_policy_celt = stereo_policy_allowed && ((previous_stereo_policy && !previous_unsteady) || (!st->stereo_recovery_frames && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && st->lightweight_harmonic_music_Q7 >= 64 && st->stereo_similarity_ms_Q1 < 160 && celt_enc->stereo_coherence_Q8 < (st->prev_mode == opus_mode_celt_only ? 51 : 25)));
       if (!celt_enc->stereo_policy_celt) {
         st->mode = opus_mode_hybrid;
       }

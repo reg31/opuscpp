@@ -43,13 +43,10 @@ using packet_stream = std::vector<std::vector<unsigned char>>;
       const double envelope = .55 + .35 * std::sin(2.0 * pi * 2.3 * time);
       noise_state = noise_state * 1664525u + 1013904223u;
       const double noise = static_cast<double>(static_cast<std::int32_t>(noise_state)) / 2147483648.0;
-      const auto left = profile == 3 && frame < 6 ? std::int16_t{0} : static_cast<std::int16_t>(
-          std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope * (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
-                      noise_levels[static_cast<std::size_t>(profile)] * noise));
+      const auto left = profile == 3 && frame < 6 ? std::int16_t{0} : static_cast<std::int16_t>(std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope * (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) + noise_levels[static_cast<std::size_t>(profile)] * noise));
       pcm[static_cast<std::size_t>(index * channels)] = left;
       if (channels == 2) {
-        pcm[static_cast<std::size_t>(index * channels + 1)] = profile == 3 && frame < 6 ? std::int16_t{0} :
-            static_cast<std::int16_t>(std::lround(.88 * left + 420.0 * std::sin(2.0 * pi * 211.0 * time)));
+        pcm[static_cast<std::size_t>(index * channels + 1)] = profile == 3 && frame < 6 ? std::int16_t{0} : static_cast<std::int16_t>(std::lround(.88 * left + 420.0 * std::sin(2.0 * pi * 211.0 * time)));
       }
     }
   }
@@ -81,11 +78,13 @@ template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode
   packet_stream packets;
   packets.reserve(packet_count);
   std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)> validator{opus_decoder_create(sample_rate, channels, &error), opus_decoder_destroy};
-  if (!validator || error != OPUS_OK) throw std::runtime_error("FEC packet validator setup failed");
+  if (!validator || error != OPUS_OK)
+    throw std::runtime_error("FEC packet validator setup failed");
   std::vector<std::int16_t> decoded(static_cast<std::size_t>(frame_size * channels));
   std::array<unsigned char, 1276> packet{};
   for (int frame = 0; frame < packet_count; ++frame) {
-    if (switch_bitrate && frame == 6 && Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) throw std::runtime_error("FEC bitrate transition failed");
+    if (switch_bitrate && frame == 6 && Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK)
+      throw std::runtime_error("FEC bitrate transition failed");
     const auto* input = pcm.data() + static_cast<std::size_t>(frame * frame_size * channels);
     const int length = Encode(encoder.get(), input, frame_size, packet.data(), static_cast<int>(packet.size()));
     if (length <= 0) {
