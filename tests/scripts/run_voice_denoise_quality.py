@@ -80,7 +80,7 @@ def main() -> None:
         on = indexed[bitrate, True]
         pesq_delta = on[0] - off[0]
         visqol_delta = on[1] - off[1]
-        print(f"{bitrate},{pesq_delta:+.4f},{visqol_delta:+.4f}")
+        print(f"{bitrate},{pesq_delta:+.8f},{visqol_delta:+.8f}")
         if pesq_delta < 0 or visqol_delta < 0:
             failures.append(bitrate)
     if failures:

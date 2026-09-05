@@ -1,0 +1,123 @@
+{
+  "date": "2026-09-05",
+  "codec_commit": "34a5b7664d8540c447f93efd9683e5299d453ad7",
+  "source_sha256": "ddbf477c37192aba7e0f2d4827ef84472b68ee54a12f506578b6fb133c35d98c",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "official_commit": "22244de5a79bd1d6d623c32e72bf1954b56235be",
+  "compiler": "g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0",
+  "flags": "-O2 -DNDEBUG",
+  "official_intrinsics": true,
+  "encoder_complexity": 10,
+  "default_postfilter": 0,
+  "quality_method": "Per-encoder lookahead removal, tail flushing, independent stereo scoring; custom proxies, not certified PESQ/ViSQOL.",
+  "headline_quality": "6-second generated AUDIO stereo and VOIP mono, float output, postfilter off",
+  "speed_method": "9 repetitions, 60-second stereo, isolated; both decoders receive identical official packets",
+  "optional_speed_method": "9 repetitions after warm-up, 60-second repeated mono input, actual modes 0/1/2/3",
+  "optional_quality_method": "Postfilter: PCM16 generated voice; denoiser: float voice with 6 dB white noise scored against clean speech.",
+  "rfc": {
+    "passed": "24",
+    "total": "24",
+    "vector_set": "rfc8251"
+  },
+  "encode": {
+    "passed": "96"
+  },
+  "malformed_packet_cases": 290909,
+  "sanitizer": "GCC trapping UBSan and float-cast-overflow; API, long frames, malformed packets",
+  "android_build": "-O2 -DNDEBUG -Wall -Wextra -Wpedantic, arm64 Android API24",
+  "wer": "Not run; no external speech recognition endpoint invoked.",
+  "production_source_changed": false,
+  "broad_quality": {
+    "broad": {
+      "cases": 99,
+      "negative_counts": {
+        "pesq_style": 32,
+        "visqol_style": 45,
+        "celt_quality": 58
+      }
+    },
+    "holdout": {
+      "cases": 30,
+      "negative_counts": {
+        "pesq_style": 26,
+        "visqol_style": 23,
+        "celt_quality": 22
+      }
+    }
+  },
+  "dtx": "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
+  "fec": "fec_summary recovery_error_ratio=0.472256 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726",
+  "binary_size": {
+    "windows": {
+      "text": 299536,
+      "data": 0,
+      "bss": 0,
+      "total": 299536
+    },
+    "android": {
+      "text": 311964,
+      "data": 472,
+      "bss": 0,
+      "total": 312436
+    }
+  },
+  "csv_sha256": {
+    "decode_speed_vs_official.csv": "5e3448d57a6ecd8734a40a3b0c80facc0644ed00c803b348b8b4dccf07e0d32d",
+    "encode_speed_vs_official.csv": "d03dff51114165826aa3a921d4b1068f17648b25e6ad17e77338fab743001cf7",
+    "memory_vs_official.csv": "aa8246dc74b73092dbffaa5aecef00d4f42050599f598e1609e6d00e22f999c0",
+    "postfilter_pcm16_path.csv": "91c2a990a2a388ef643cde474eef3a9ab0649ba9f95b8daa20929a948f028539",
+    "postfilter_quality_voip.csv": "cd4fb6cdf704310aa5666830cb93ce1a8bff00fe3f1f642141d6011e6cfeea17",
+    "quality_broad.csv": "ab3e7edcb4256e958b43323ee54cb8c8f8343decfbfd900e5535e4ffc8767576",
+    "quality_vs_official.csv": "78cf3c850d85c45515807c6a13f334299257de6f84f33a11391d61787c3fe4ca",
+    "quality_vs_official_voip.csv": "bced79aa401edff8ba28603b3ee22ca46bfdacb70a27d2275c965d9ad03dec33",
+    "speed_vs_official_intrinsics_60s.csv": "5b5b5ae4078fb91fec0c4ab98c1924bb869cf1f3bdfafc5ff58ed197e238a6ff",
+    "voice_denoise_boundary.csv": "e15c0180d1a0b4936a75bb4bf5440a4c37a9184fda6a5f7ec24efe7741f0dfd3",
+    "voice_denoise_broad.csv": "1acc2f9c514a30ad3640f95b58fcbe68bd94a252f5fee14764a7e3161229c466",
+    "voice_denoise_quality_voip.csv": "5330434e2b306a5ac2e4b7f77d1af266090e0e23cd9f47b6a43ad6a4d8339d33"
+  },
+  "input_fingerprints": {
+    "headline_audio": {
+      "sha256": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
+      "sample_rate": 48000,
+      "channels": 2,
+      "frames": 288000
+    },
+    "headline_voip_and_postfilter": {
+      "sha256": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
+      "sample_rate": 48000,
+      "channels": 1,
+      "frames": 288000
+    },
+    "denoiser_reference": {
+      "sha256": "344755ccac0dc5692cb9f33bc1f0791aad6dc9a2848bb2fd6a7915a16db5a577",
+      "sample_rate": 48000,
+      "channels": 1,
+      "frames": 177000
+    },
+    "denoiser_input": {
+      "sha256": "c07fbcf42a1e36a22a2735b282bdd45f3b89aff58f21670ae3ed16ef3fb1bf6c",
+      "sample_rate": 48000,
+      "channels": 1,
+      "frames": 177000
+    }
+  },
+  "harness_sha256": {
+    "benchmark_vs_official.cpp": "1731f5a5b098feb85fafda8b870054ac70265bf35317c4575039e3b5f49e075e",
+    "perceptual_memory_validation.cpp": "7f628cc2ab724f2abce06e3af3de29d1cab5b0725b6faf08117efb023a1d2ac7",
+    "optional_processing_benchmark.cpp": "33e486cbbb22106103b3fdd234460b7e08a8c6f6ce81f02775e329dc12b19163",
+    "fec_vs_official.cpp": "aa23867cd9998c322b2bfd5a84e3fe5b4285f01d99d419a6e346677685c6b0cc",
+    "dtx_vs_official.cpp": "82c04a813de45eaf7be2ce287036841f5129ddca91b68caeb6132a0382ffd3d9"
+  },
+  "official_archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
+  "comparison_object_sha256": "192eec7de5fba2a5d0f882fb45d39152e731102be25150f52247889b5e6dc4f0",
+  "denoiser_boundary_gate": {
+    "exit_code": 1,
+    "case_count": 20,
+    "scope": "6 dB white-noise mono voice, 15-48 kbps boundary ladder; enabled vs disabled",
+    "failed_bitrates": [
+      15500,
+      20000
+    ]
+  },
+  "optional_benchmark_formatting": "Formatted after timing; token sequence verified identical and warning-free rebuild passed."
+}
