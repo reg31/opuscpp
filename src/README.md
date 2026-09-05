@@ -58,6 +58,8 @@ int opus_encode(OpusEncoder* st, std::span<const int16_t> pcm, std::span<unsigne
 int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 ```
 
+Float PCM is normally in `[-1, 1]`. Nonfinite samples or excessive input energy return `OPUS_BAD_ARG` before encoding.
+
 Decoder:
 
 ```cpp
@@ -128,8 +130,8 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
-On the tracked noisy-speech test, enabling it improves both quality scores at every measured bitrate
-with 0.4% to 4.1% encode overhead. See the [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
+Tracked encode overhead is 0.4% to 4.1%. Quality gains are pending revalidation after correcting
+codec-delay alignment in the test harness. See the [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 
 ## In-band FEC
 
@@ -141,6 +143,10 @@ detail than official Opus and keeps a settled mono VOIP stream in a FEC-capable 
 32&nbsp;kbps, or stereo through 48&nbsp;kbps, when packet protection is explicitly requested.
 Mode `2` keeps confidently music-like input in CELT-only mode rather than forcing SILK solely for FEC; those
 CELT-only packets cannot carry redundancy.
+
+Quiet-frame protection uses the standard unvoiced signal type in the redundant copy; the main frame's
+activity classification is unchanged. The test suite checks quiet and silent FEC packets against the
+official decoder's entropy-coder state as well as testing recovery after packet loss.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));
@@ -156,6 +162,9 @@ quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs
 more accurately in all 18 scenarios. Its combined reconstruction error is 52.8% lower, it supplies
 recoverable backup audio in all 18 scenarios compared with 15 for official Opus, and it uses 0.4%
 fewer packet bytes.
+
+This recovery error compares each recovered frame with normal, loss-free decoding of the same
+encoded stream; it measures damage from packet loss, not total error against the original recording.
 
 ## Supported decoder CTLs
 
@@ -184,6 +193,7 @@ light processing added about 2% to 6% over unfiltered decoding, depending on bit
 | `3` (adaptive) | Recommended for speech playback when smoothing is preferred. It filters only packet combinations with a measured benefit and otherwise bypasses the extra pass. It is not recommended for music, where it usually has no effect and may soften tonal detail when active. |
 
 Published quality metrics use the default unfiltered output.
+Historical postfilter quality gains require revalidation with the corrected codec-delay alignment.
 Detailed quality and decode-cost measurements are in the [optional speech postfilter section](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-postfilter).
 
 ## Unsupported API areas

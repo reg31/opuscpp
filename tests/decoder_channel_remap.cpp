@@ -1,5 +1,6 @@
 #include "opus_codec.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -94,6 +95,46 @@ int main() {
   ok &= expect(stereo_nonzero > 0, "mono packet duplicate has signal");
   ok &= expect(stereo_abs_difference(stereo_out) == 0, "mono packet duplicated equally to stereo");
   ok &= expect(opus_decode(stereo_decoder.get(), nullptr, 0, stereo_out.data(), 320, 0) == 320, "packet loss produces one concealed frame");
+
+  for (int channels : {1, 2}) {
+    auto transition_encoder = make_opus_encoder(16000, channels, OPUS_APPLICATION_VOIP, &err);
+    auto float_decoder = make_opus_decoder(16000, channels, &err);
+    auto pcm16_decoder = make_opus_decoder(16000, channels, &err);
+    if (!transition_encoder || !float_decoder || !pcm16_decoder || err != OPUS_OK) return 1;
+    std::array<opus_int16, 640> input{}, integer_output{};
+    std::array<float, 640> float_output{};
+    std::array<unsigned char, 1500> packet{};
+    bool saw_silk = false, saw_celt_after_silk = false;
+    for (int frame = 0; frame < 24; ++frame) {
+      if (frame == 0 || frame == 12) {
+        ok &= expect(opus_encoder_ctl(transition_encoder.get(), OPUS_SET_BITRATE(frame == 0 ? 12000 : 128000)) == OPUS_OK, "configure transition bitrate");
+      }
+      for (int sample = 0; sample < 320; ++sample) {
+        for (int channel = 0; channel < channels; ++channel) {
+          input[sample * channels + channel] = static_cast<opus_int16>(5200.f * std::sin((sample + 320 * frame) * (.09f + .006f * channel)));
+        }
+      }
+      const int bytes = opus_encode(transition_encoder.get(), input.data(), 320, packet.data(), static_cast<int>(packet.size()));
+      if (bytes <= 0) return 1;
+      const bool celt_packet = (packet[0] & 0x80) != 0;
+      saw_silk |= !celt_packet && (packet[0] & 0x60) != 0x60;
+      saw_celt_after_silk |= saw_silk && celt_packet;
+      if (opus_decode_float(float_decoder.get(), packet.data(), bytes, float_output.data(), 320, 0) != 320 ||
+          opus_decode(pcm16_decoder.get(), packet.data(), bytes, integer_output.data(), 320, 0) != 320) return 1;
+      opus_uint32 float_range = 0, integer_range = 0;
+      opus_decoder_ctl(float_decoder.get(), OPUS_GET_FINAL_RANGE(&float_range));
+      opus_decoder_ctl(pcm16_decoder.get(), OPUS_GET_FINAL_RANGE(&integer_range));
+      ok &= expect(float_range == integer_range, "PCM16 consumes transition redundancy like float decoding");
+      for (int sample = 0; sample < 320 * channels; ++sample) {
+        const int rounded = static_cast<int>(std::lrint(std::clamp(float_output[sample] * 32768.f, -32768.f, 32767.f)));
+        if (std::abs(rounded - integer_output[sample]) > 1) {
+          std::cout << "FAIL PCM16 transition waveform channels=" << channels << " frame=" << frame << '\n';
+          return 1;
+        }
+      }
+    }
+    ok &= expect(saw_silk && saw_celt_after_silk, "transition regression covers SILK then CELT");
+  }
 
   if (!ok) {
     return 1;

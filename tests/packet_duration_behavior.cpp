@@ -1,7 +1,10 @@
 #include "opus_codec.h"
 
 #include <array>
+#include <cmath>
 #include <iostream>
+#include <limits>
+#include <memory>
 
 namespace {
 
@@ -91,6 +94,16 @@ int main() {
   voice_denoise = -1;
   ok &= expect_eq(opus_encoder_ctl(audio_encoder, OPUSCPP_GET_VOICE_DENOISE(&voice_denoise)), OPUS_OK, "get bypassed AUDIO voice denoise");
   ok &= expect_eq(voice_denoise, 0, "AUDIO voice denoise remains off");
+  std::array<float, 960> invalid_pcm{};
+  for (float invalid : {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::max()}) {
+    invalid_pcm[17] = invalid;
+    ok &= expect_eq(opus_encode_float(audio_encoder, invalid_pcm.data(), 960, encoder_packet.data(), static_cast<int>(encoder_packet.size())), OPUS_BAD_ARG, "reject nonfinite or excessive float input before analysis decisions");
+  }
+  invalid_pcm.fill(0);
+  if (opus_encode_float(audio_encoder, invalid_pcm.data(), 960, encoder_packet.data(), static_cast<int>(encoder_packet.size())) <= 0) {
+    std::cout << "FAIL valid float encoding after invalid input\n";
+    return 1;
+  }
   opus_encoder_destroy(audio_encoder);
 
   int stereo_voip_error = OPUS_OK;
@@ -135,6 +148,36 @@ int main() {
   }
   opus_encoder_destroy(long_encoder);
 
+  for (int rate : {8000, 24000, 48000}) {
+    for (int channels : {1, 2}) {
+      for (int duration : {60, 80, 120}) {
+        int create_error = OPUS_OK;
+        auto enc = std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)>{opus_encoder_create(rate, channels, OPUS_APPLICATION_VOIP, &create_error), opus_encoder_destroy};
+        auto dec = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(rate, channels, &create_error), opus_decoder_destroy};
+        if (!enc || !dec || create_error != OPUS_OK) return 1;
+        ok &= expect_eq(opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(12000)), OPUS_OK, "configure long-frame staging check");
+        const int samples = rate * duration / 1000;
+        std::array<float, 5760 * 2> input{}, output{};
+        std::array<unsigned char, 1276 * 6> packet{};
+        for (int frame = 0; frame < 4; ++frame) {
+          for (int i = 0; i < samples; ++i) {
+            const float time = static_cast<float>(i + frame * samples) / rate;
+            for (int channel = 0; channel < channels; ++channel) {
+              input[i * channels + channel] = .2f * std::sin(6.283185307f * (190 + channel * 13) * time) + .03f * std::sin(6.283185307f * 3200 * time);
+            }
+          }
+          const int bytes = opus_encode_float(enc.get(), input.data(), samples, packet.data(), static_cast<int>(packet.size()));
+          if (bytes <= 0) {
+            std::cout << "FAIL long-frame encode rate=" << rate << " channels=" << channels << " ms=" << duration << '\n';
+            return 1;
+          }
+          ok &= expect_eq(opus_packet_get_nb_samples(packet.data(), bytes, rate), samples, "long-frame staged packet duration");
+          ok &= expect_eq(opus_decode_float(dec.get(), packet.data(), bytes, output.data(), samples, 0), samples, "long-frame staged decode");
+        }
+      }
+    }
+  }
+
   int error = OPUS_OK;
   OpusDecoder* decoder = opus_decoder_create(48000, 2, &error);
   std::array<opus_int16, 5760 * 2> pcm{};
@@ -151,6 +194,10 @@ int main() {
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUS_RESET_STATE), OPUS_OK, "reset decoder");
   ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_GET_DECODE_POSTFILTER(&postfilter_level)), OPUS_OK, "postfilter survives reset get");
   ok &= expect_eq(postfilter_level, 3, "postfilter setting survives reset");
+  ok &= expect_eq(opus_decoder_ctl(decoder, OPUSCPP_SET_DECODE_POSTFILTER(0)), OPUS_OK, "disable postfilter for empty-frame check");
+  constexpr std::array<unsigned char, 2> empty_celt_frames{0x9B, 2};
+  ok &= expect_eq(opus_decode(decoder, empty_celt_frames.data(), static_cast<int>(empty_celt_frames.size()), pcm.data(), 1920, 0), 1920,
+                  "PCM16 accepts two empty CELT frames and generates concealment");
   ok &= expect_eq(opus_decode(decoder, celt_code3_too_long.data(), static_cast<int>(celt_code3_too_long.size()), pcm.data(), 5760, 0),
                   OPUS_INVALID_PACKET, "invalid CELT-shaped packet is rejected before decode");
   ok &= expect_eq(

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 struct curr_OpusEncoder;
@@ -31,8 +32,8 @@ using packet_stream = std::vector<std::vector<unsigned char>>;
 [[nodiscard]] auto make_voice(int channels, int frame_size, int profile) -> std::vector<std::int16_t> {
   std::vector<std::int16_t> pcm(static_cast<std::size_t>(packet_count * frame_size * channels));
   std::uint32_t noise_state = 1;
-  constexpr std::array signal_levels{7600.0, 2600.0, 5600.0};
-  constexpr std::array noise_levels{900.0, 450.0, 2200.0};
+  constexpr std::array signal_levels{7600.0, 2600.0, 5600.0, 2600.0};
+  constexpr std::array noise_levels{900.0, 450.0, 2200.0, 0.0};
   for (int frame = 0; frame < packet_count; ++frame) {
     for (int sample = 0; sample < frame_size; ++sample) {
       const auto index = frame * frame_size + sample;
@@ -42,12 +43,12 @@ using packet_stream = std::vector<std::vector<unsigned char>>;
       const double envelope = .55 + .35 * std::sin(2.0 * pi * 2.3 * time);
       noise_state = noise_state * 1664525u + 1013904223u;
       const double noise = static_cast<double>(static_cast<std::int32_t>(noise_state)) / 2147483648.0;
-      const auto left = static_cast<std::int16_t>(
+      const auto left = profile == 3 && frame < 6 ? std::int16_t{0} : static_cast<std::int16_t>(
           std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope * (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
                       noise_levels[static_cast<std::size_t>(profile)] * noise));
       pcm[static_cast<std::size_t>(index * channels)] = left;
       if (channels == 2) {
-        pcm[static_cast<std::size_t>(index * channels + 1)] =
+        pcm[static_cast<std::size_t>(index * channels + 1)] = profile == 3 && frame < 6 ? std::int16_t{0} :
             static_cast<std::int16_t>(std::lround(.88 * left + 420.0 * std::sin(2.0 * pi * 211.0 * time)));
       }
     }
@@ -56,14 +57,14 @@ using packet_stream = std::vector<std::vector<unsigned char>>;
 }
 
 template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode>
-[[nodiscard]] auto encode_fec(const std::vector<std::int16_t>& pcm, int channels, int bitrate, int frame_size, bool vbr) -> packet_stream {
+[[nodiscard]] auto encode_fec(const std::vector<std::int16_t>& pcm, int channels, int bitrate, int frame_size, bool vbr, bool switch_bitrate = false) -> packet_stream {
   int error = OPUS_OK;
   std::unique_ptr<Encoder, void (*)(Encoder*)> encoder{Create(sample_rate, channels, OPUS_APPLICATION_VOIP, &error), Destroy};
   int fec = -1;
   int loss = -1;
   if (!encoder || error != OPUS_OK || Control(encoder.get(), OPUS_GET_INBAND_FEC_REQUEST, &fec) != OPUS_OK || fec != 0 ||
       Control(encoder.get(), OPUS_GET_PACKET_LOSS_PERC_REQUEST, &loss) != OPUS_OK || loss != 0 ||
-      Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK ||
+      Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, switch_bitrate ? 256000 : bitrate) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_COMPLEXITY_REQUEST, 10) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_VBR_REQUEST, static_cast<int>(vbr)) != OPUS_OK ||
       Control(encoder.get(), OPUS_SET_INBAND_FEC_REQUEST, 2) != OPUS_OK ||
@@ -79,12 +80,22 @@ template <typename Encoder, auto Create, auto Destroy, auto Control, auto Encode
   }
   packet_stream packets;
   packets.reserve(packet_count);
+  std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)> validator{opus_decoder_create(sample_rate, channels, &error), opus_decoder_destroy};
+  if (!validator || error != OPUS_OK) throw std::runtime_error("FEC packet validator setup failed");
+  std::vector<std::int16_t> decoded(static_cast<std::size_t>(frame_size * channels));
   std::array<unsigned char, 1276> packet{};
   for (int frame = 0; frame < packet_count; ++frame) {
+    if (switch_bitrate && frame == 6 && Control(encoder.get(), OPUS_SET_BITRATE_REQUEST, bitrate) != OPUS_OK) throw std::runtime_error("FEC bitrate transition failed");
     const auto* input = pcm.data() + static_cast<std::size_t>(frame * frame_size * channels);
     const int length = Encode(encoder.get(), input, frame_size, packet.data(), static_cast<int>(packet.size()));
     if (length <= 0) {
       throw std::runtime_error("FEC encode failed");
+    }
+    std::uint32_t encoded_range = 0, decoded_range = 0;
+    if (opus_decode(validator.get(), packet.data(), length, decoded.data(), frame_size, 0) != frame_size ||
+        Control(encoder.get(), OPUS_GET_FINAL_RANGE_REQUEST, &encoded_range) != OPUS_OK ||
+        opus_decoder_ctl(validator.get(), OPUS_GET_FINAL_RANGE_REQUEST, &decoded_range) != OPUS_OK || encoded_range != decoded_range) {
+      throw std::runtime_error("FEC normal-packet entropy range mismatch at frame " + std::to_string(frame));
     }
     packets.emplace_back(packet.begin(), packet.begin() + length);
   }
@@ -244,6 +255,14 @@ int main() {
     int official_coverage = 0;
     int opuscpp_wins = 0;
     int quality_cases = 0;
+    for (const auto& test : cases) {
+      const int frame_size = sample_rate * test.duration_ms / 1000;
+      auto quiet = make_voice(test.channels, frame_size, 3);
+      static_cast<void>(encode_fec<curr_OpusEncoder, curr_opus_encoder_create, curr_opus_encoder_destroy, curr_opus_encoder_ctl, curr_opus_encode>(quiet, test.channels, test.bitrate, frame_size, test.vbr));
+      std::reverse(quiet.begin(), quiet.end());
+      static_cast<void>(encode_fec<curr_OpusEncoder, curr_opus_encoder_create, curr_opus_encoder_destroy, curr_opus_encoder_ctl, curr_opus_encode>(quiet, test.channels, test.bitrate, frame_size, test.vbr, true));
+    }
+    std::cout << "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\n";
     for (int profile = 0; profile < 3; ++profile) {
       for (const auto& test : cases) {
         const auto opuscpp =

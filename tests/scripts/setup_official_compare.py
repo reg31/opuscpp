@@ -523,6 +523,15 @@ def run_perceptual_and_memory(
         build_dir / ("perceptual_memory_validation.exe" if os.name == "nt" else "perceptual_memory_validation"),
         [official_lib],
     )
+    alignment_check = link_executable(
+        cxx,
+        [repo_root / "tests" / "perceptual_alignment.cpp"],
+        [curr_obj],
+        [repo_root / "tests"],
+        build_dir / ("perceptual_alignment.exe" if os.name == "nt" else "perceptual_alignment"),
+        [official_lib],
+    )
+    run([str(alignment_check)])
     generated_audio = report_dir / "generated_audio"
     run([sys.executable, str(repo_root / "tests" / "generate_synthetic_wav.py"), "--out", str(generated_audio), "--seconds", "6"])
     rows: list[dict[str, str]] = []
@@ -726,6 +735,12 @@ def run_api_behavior_validation(
         )
         output = capture([str(exe)])
         results.extend(line for line in output.splitlines() if line.strip())
+    for name in ("lpc_analysis_filter", "celt_energy_decode", "stereo_policy"):
+        exe = link_executable(
+            cxx, [repo_root / "tests" / f"{name}.cpp"], [], [],
+            build_dir / f"{name}{suffix}", [],
+        )
+        results.append(capture([str(exe)]).strip())
     curr_obj = compile_object(
         cxx,
         repo_root / "src" / "opus_codec.cpp",
@@ -754,7 +769,7 @@ def run_api_behavior_validation(
     )
     fec_output = capture([str(fec_exe)])
     (build_dir / "fec_vs_official.txt").write_text(fec_output, encoding="utf-8")
-    results.extend(line for line in fec_output.splitlines() if line.startswith(("fec_interop=", "fec_summary ")))
+    results.extend(line for line in fec_output.splitlines() if line.startswith(("fec_interop=", "fec_quiet_packet_validation=", "fec_summary ")))
     return results
 
 

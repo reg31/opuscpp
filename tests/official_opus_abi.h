@@ -23,6 +23,7 @@ inline constexpr int OPUS_GET_INBAND_FEC_REQUEST = 4013;
 inline constexpr int OPUS_SET_PACKET_LOSS_PERC_REQUEST = 4014;
 inline constexpr int OPUS_GET_PACKET_LOSS_PERC_REQUEST = 4015;
 inline constexpr int OPUS_SET_DTX_REQUEST = 4016;
+inline constexpr int OPUS_GET_LOOKAHEAD_REQUEST = 4027;
 inline constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
 
 extern "C" {

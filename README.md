@@ -28,12 +28,11 @@ Minimal integration looks like:
 
 - Pure C++23 single-translation-unit codec: `src/opus_codec.cpp` + `src/opus_codec.h`.
 - Standard Opus packet compatibility for encode/decode.
-- Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
+- Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the last published
   run (1.80x to 2.58x).
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the last published
   run (1.23x to 1.91x).
-- AUDIO and VOIP PESQ-style, ViSQOL-style, and CELT-style proxy deltas are positive at all nine
-  measured bitrates.
+- Quality comparisons are being revalidated after correcting codec-delay alignment and stereo scoring in the test harness.
 - Effective bitrate tracks official Opus closely in the measured set while staying slightly lower at
   several low/mid rates.
 - RFC decode conformance: 24/24 RFC 8251 updated vector checks passed in the current run.
@@ -47,23 +46,23 @@ Minimal integration looks like:
   corpus, with 61.4% lower re-entry error when sound returns after silence and 52.2% lower gain error
   (volume mismatch) in the current 16/24&nbsp;kbps comparison.
 - Optional in-band FEC interoperates in both directions with official Opus. Across 18 tracked
-  nominal, quiet, and noisy loss scenarios, its recovered audio is closer to the original every
-  time. Average missing-frame reconstruction error is 52.8% lower, protection is present in all 18
+  nominal, quiet, and noisy loss scenarios, it deviates less from normal, loss-free decoding in every
+  case. Average missing-frame reconstruction error is 52.8% lower, protection is present in all 18
   scenarios instead of 15 for official Opus, and packets are 0.4% smaller.
 - An optional speech-oriented decoder postfilter is available through an `opuscpp` CTL; it remains
   off by default because it is not a universal music-quality improvement.
 - Lower memory footprint than official Opus in the measured configurations (21.8% to 46.7%
-  lower private state in the current memory snapshot).
-- Host MinGW GCC `-O2` measured object image in the current snapshot: `297,148 B` total.
+  lower private state in the published memory snapshot).
+- Host MinGW GCC `-O2` measured object image in the published snapshot: `297,148 B` total.
 
 ## Pros and cons
 
 | Pros | Cons |
 |---|---|
 | Much simpler for C++ source embedding: include the header and compile one implementation file. | Not an outright replacement for every official Opus use case. |
-| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.80x to 2.58x). | Supports a documented subset of the full Opus CTL/API surface. |
-| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the current run (1.23x to 1.91x). | Official Opus remains extremely mature and supports a broader feature surface. |
-| Lower encoder and decoder memory use in the measured configurations (21.8% to 46.7% lower private state in the current memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
+| Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the last published run (1.80x to 2.58x). | Supports a documented subset of the full Opus CTL/API surface. |
+| Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates in the last published run (1.23x to 1.91x). | Official Opus remains extremely mature and supports a broader feature surface. |
+| Lower encoder and decoder memory use in the measured configurations (21.8% to 46.7% lower private state in the published memory snapshot). | Official Opus remains the safer default if you need the broadest ecosystem compatibility and feature coverage. |
 | Pure portable C++23, with no ASM, SIMD intrinsics, PGO, or separate library packaging required. | Quality metrics are close proxy measurements, not a substitute for listening tests or official PESQ/ViSQOL tooling. |
 
 ## Quick start
@@ -103,13 +102,18 @@ See `src/README.md` for the supported functions, constants, and CTLs. The short 
 Unsupported families include custom Opus, multistream helpers, repacketizer helpers, projection
 APIs, and unsupported CTLs not listed in `src/README.md`.
 
-## Current benchmark snapshot vs official Opus
+## Published benchmark snapshot vs official Opus
+
+The numerical tables below describe the last published snapshot, not a fresh benchmark of this audited revision.
+The quality columns and optional-processing quality gains are historical, unaligned measurements.
+An audit found that the harness did not compensate for codec delay and downmixed stereo before spectral scoring. They must be remeasured before
+using them to claim a quality advantage. The harness correction itself does not invalidate timing, memory, or packet-byte measurements, but those figures also need refreshing after codec changes.
 
 Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The official Opus 1.6.1
 baseline is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`,
 `SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.2 / AMD Ryzen 7 8845HS. Encode and decode speed
 are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The
-current speed ratios are medians of nine repository 60-second stereo synthetic benchmark runs.
+published speed ratios are medians of nine repository 60-second stereo synthetic benchmark runs.
 Quality and effective-bitrate columns come from the same validation run using the default unfiltered
 decoder output; the quality values are synthetic objective proxy scores, not a replacement for
 official PESQ/ViSQOL tooling or listening tests.
@@ -144,7 +148,7 @@ VOIP mono speech-like quality spot check:
 The optional adaptive speech postfilter is not included in these default-output figures. On the
 tracked mono VOIP sample, mode `3` adds `+0.0249` PESQ-style and `+0.0017` ViSQOL-style at
 32&nbsp;kbps, and `+0.0137` to `+0.0138` PESQ-style at 96-256&nbsp;kbps while retaining positive
-ViSQOL-style deltas. Its current PCM16 path adds effectively 0% to 7.6% end-to-end decode time across
+ViSQOL-style deltas. In that snapshot, its PCM16 path adds effectively 0% to 7.6% end-to-end decode time across
 the tracked ladder and decodes 60 seconds in 0.051 to 0.080 seconds on the measured system. It remains
 opt-in because mono music can still lose fidelity.
 
@@ -169,7 +173,7 @@ and is not included in this default-FEC-off snapshot.
 
 The implementation is standard Opus compatible. The measured conformance gates are:
 
-- RFC decode conformance: 24/24 mono+stereo RFC 8251 updated vector checks passed in the current
+- RFC decode conformance: 24/24 mono+stereo RFC 8251 updated vector checks passed in the last published
   run.
 - Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the
   official Opus decoder.

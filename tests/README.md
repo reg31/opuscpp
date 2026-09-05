@@ -196,11 +196,17 @@ above, with detailed output saved under `build/official_compare_report/api_behav
 `fec_vs_official.cpp` enables FEC and a 15% expected-loss setting, drops one packet, recovers it
 from the following packet, and then decodes that following packet normally. It checks nominal,
 quiet, and noisy speech at mono 10/20/40/60 ms and stereo 20 ms, including VBR and CBR, in both
-directions: `opuscpp` encoder to official decoder and official encoder to `opuscpp` decoder. Every
-carried `opuscpp` FEC frame must improve on ordinary packet-loss concealment.
+directions: `opuscpp` encoder to official decoder and official encoder to `opuscpp` decoder. In this
+tracked recovery matrix, each carried `opuscpp` FEC frame must improve on ordinary packet-loss concealment.
 
-Recovery error measures how far the reconstructed missing audio is from the original; lower means
-less damage from the lost packet. The aggregate score combines the tracked 10/20 ms scenarios before
+Every normally decoded packet also checks that the encoder and official decoder finish with the same
+entropy-coder state. This catches malformed payloads even when both decoders produce the same wrong
+audio. Additional packet checks cover silent startup, speech-to-silence changes, and bitrate changes
+while FEC is enabled.
+
+Recovery error compares the reconstructed missing audio with normal, loss-free decoding of the
+same encoded stream; lower means less damage from the lost packet. It does not measure total error
+against the original recording. The aggregate score combines the tracked 10/20 ms scenarios before
 comparing the two encoders. In the current run, `opuscpp` reconstructs audio more accurately in all
 18 scenarios and reduces the combined error by 52.8%. It supplies recoverable backup audio in all 18
 scenarios, compared with 15 for official Opus, while using 0.4% fewer packet bytes.
@@ -220,6 +226,19 @@ user-provided 16-bit PCM WAV input. It reports:
 
 These proxy scores are useful for regression tracking, but they are not substitutes for official
 PESQ/ViSQOL tooling or listening tests.
+
+The harness now queries each encoder's `OPUS_GET_LOOKAHEAD`, flushes its delayed tail with silence,
+and removes the delay before scoring or exporting listening WAVs. Flush packets are excluded from
+the payload-bitrate and encode-time statistics. `perceptual_alignment.cpp` checks alignment and tail
+recovery across both codecs, three applications, mono/stereo, and float/PCM16; the full-report script runs it automatically.
+Spectral scores now compare each channel independently, with negative controls for stereo collapse
+and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
+same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
+
+The numerical tables below are the last published snapshot, not a fresh benchmark of this audited revision.
+The quality tables and optional-processing quality gains still contain historical
+measurements made without this alignment and with downmixed spectral scoring. They are pending revalidation and must not be used as
+evidence of a quality advantage. The harness correction itself does not invalidate timing, memory, or packet-byte measurements, but those figures also need refreshing after codec changes.
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
@@ -293,8 +312,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 192&nbsp;kbps | +0.0009 | +0.0001 | +0.0114 | 192.000 kbps | 192.421 kbps |
 | 256&nbsp;kbps | +0.0007 | +0.0002 | +0.0050 | 256.000 kbps | 256.415 kbps |
 
-All tracked AUDIO and VOIP PESQ-style, ViSQOL-style, and CELT-style proxy deltas are positive in the
-current validation run.
+These historical positive deltas have not been confirmed with the corrected alignment.
 
 ### Optional speech denoiser
 
