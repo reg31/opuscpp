@@ -88,7 +88,7 @@ The generated files are ignored by git.
 
 ## Optional WER validation for speech-to-text
 
-No WER/CER or external ASR endpoint was run for the 2026-09-05 refresh.
+No WER/CER or external ASR endpoint was run for the 2026-09-06 refresh.
 
 `run_wer_validation.py` is a speech-to-text oriented gate for VOIP tuning. It encodes and decodes
 48 kHz PCM16 speech samples, optionally attenuates quiet-talker cases, adds deterministic noise at
@@ -188,9 +188,10 @@ the RFC decode vectors:
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
-signal after a silence interval, `opuscpp` has lower aggregate wake-up NRMSE (`0.2930` vs `0.7588`)
-and gain error (`0.7681` vs `1.6082` dB), while both suppress the same 406 silence frames. That is
-approximately 61.4% less re-entry error and 52.2% less gain error than official Opus.
+signal after silence, `opuscpp` has lower aggregate wake-up NRMSE (`0.2930` vs `0.7588`)
+and gain error (`0.7681` vs `1.6082` dB), while both suppress 406 silence frames.
+That is approximately 61.4% less re-entry error and 52.2% less gain error. The separate
+steady-noise-only case differs: `opuscpp` suppresses 120 frames versus 0 for official Opus.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -239,11 +240,11 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-All numerical sections below were refreshed on 2026-09-05 against codec revision `34a5b76`.
-The codec source is unchanged by this refresh. Correcting the earlier unaligned/downmixed
-measurement exposes previously hidden losses as well as larger gains; it is not evidence that
-this documentation update changed the sound. Negative results are retained.
-Source hashes, flags and scope are recorded in [run metadata](metrics/run_metadata.json).
+The current metric tables below were refreshed on 2026-09-06 against codec revision `7538c9b`.
+Default output, optional processing and their input references remain separate comparisons.
+Historical optimization/validation comparisons are explicitly labelled.
+Both positive and negative quality deltas are retained. Source hashes, flags and scope are
+recorded in [run metadata](metrics/run_metadata.json).
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
@@ -257,15 +258,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.384x | 1.865x | 849x | 356x | 2442x | 1309x |
-| 24&nbsp;kbps | 1.882x | 1.411x | 611x | 325x | 1620x | 1148x |
-| 32&nbsp;kbps | 1.823x | 1.396x | 595x | 327x | 1582x | 1133x |
-| 48&nbsp;kbps | 1.735x | 1.348x | 522x | 301x | 1314x | 974x |
-| 64&nbsp;kbps | 1.757x | 1.313x | 469x | 267x | 1119x | 852x |
-| 96&nbsp;kbps | 1.843x | 1.300x | 398x | 216x | 873x | 672x |
-| 128&nbsp;kbps | 2.040x | 1.311x | 399x | 195x | 767x | 585x |
-| 192&nbsp;kbps | 1.853x | 1.299x | 326x | 176x | 648x | 499x |
-| 256&nbsp;kbps | 1.761x | 1.237x | 299x | 170x | 550x | 444x |
+| 16&nbsp;kbps | 2.362x | 1.872x | 848x | 359x | 2456x | 1312x |
+| 24&nbsp;kbps | 1.892x | 1.422x | 617x | 326x | 1641x | 1154x |
+| 32&nbsp;kbps | 1.833x | 1.393x | 607x | 331x | 1588x | 1141x |
+| 48&nbsp;kbps | 1.744x | 1.362x | 526x | 302x | 1324x | 972x |
+| 64&nbsp;kbps | 1.772x | 1.330x | 472x | 266x | 1133x | 852x |
+| 96&nbsp;kbps | 1.840x | 1.312x | 398x | 216x | 882x | 673x |
+| 128&nbsp;kbps | 2.060x | 1.315x | 404x | 196x | 771x | 587x |
+| 192&nbsp;kbps | 1.855x | 1.313x | 330x | 178x | 650x | 495x |
+| 256&nbsp;kbps | 1.771x | 1.246x | 302x | 170x | 557x | 447x |
 
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
@@ -327,7 +328,7 @@ music, tones and transients, plus 30 additional stereo/content holdout compariso
 short-clip diagnostics, not a representative listening survey or 129 independent recordings.
 
 | Set | Comparisons | Negative PESQ-style | Negative ViSQOL-style | Negative CELT proxy |
-|---|---:|---:|---:|---:|
+|---:|---:|---:|---:|---:|
 | Broad ladder | 99 | 32 | 45 | 58 |
 | Stereo/content holdouts | 30 | 26 | 23 | 22 |
 
@@ -336,65 +337,94 @@ table must not be generalized to a universal quality advantage.
 
 ### Optional speech denoiser
 
-The optional encoder denoiser is intended for mono VOIP capture with sustained broadband noise. It
-waits for consistent noise evidence, attenuates the affected frequency regions smoothly, and releases
-gradually when the evidence disappears. This avoids applying a permanent low-pass filter to ordinary
-speech. It is disabled by default and has no effect on non-VOIP applications or stereo input. It is
-not intended for audio that has already been denoised.
+The optional encoder denoiser targets sustained broadband noise in mono VOIP capture.
+After confirming a near-flat noise spectrum, it keeps the background-noise estimate separate
+from speech activity. Current-frame band energy sets the attenuation: suppression ramps in,
+but gain recovers immediately at speech onsets so consonants are not faded in late.
+Capture-noise reduction runs before the codec's existing signal shaping. Uncertain material
+retains the conservative path. No FFT, extra look-ahead, or per-frame heap allocation is added.
+It remains disabled by default and has no effect on stereo or non-VOIP applications.
 
-The table compares denoising enabled and disabled on the same tracked mono speech sample mixed
-with sustained 6 dB white noise, scoring the decoded output against clean speech after codec-delay
-alignment. Across this ladder, PESQ-style gain is +0.0011 to +0.0084 and ViSQOL-style gain is
-+0.0113 to +0.0310. Encode overhead is 3.0% to 5.3%, measured separately as the median of nine
-60-second runs after warm-up, using the same noisy recording repeated.
+These denoiser measurements were refreshed on **2026-09-06** as part of the full report.
+The table compares denoising on versus off on the same mono speech recording mixed with sustained
+6 dB white noise. Decoded output is scored against clean speech after codec-delay alignment.
+These are internal quality proxies, not certified PESQ or official ViSQOL scores.
 
-This is not a universal denoising win. A wider 72-comparison check over 18 noise/content
-conditions at 16/24/32/48&nbsp;kbps found one PESQ-style loss (-0.0024 on 12 dB white noise at
-24&nbsp;kbps), no ViSQOL-style losses, and a tiny negative CELT-proxy delta on one babble case.
-Clean/quiet speech, tonal and transient controls in that set remain unchanged. Full deltas are
-in `metrics/voice_denoise_broad.csv`; do not interpret one noisy-speech table as a general guarantee.
-The separate 20-rate boundary gate also fails at 15.5 and 20 kbps on 6 dB white noise (PESQ-style
-losses of about 0.0024 and 0.0020). Its failures are retained in `metrics/voice_denoise_boundary.csv`;
-the script still returns failure for them.
+The previous 15.5/20 kbps failures are fixed: PESQ-style deltas are now **+0.1174/+0.1063**
+and ViSQOL-style deltas **+0.0875/+0.0775** versus denoising off. All **25** rates in
+`metrics/voice_denoise_boundary.csv` pass the unchanged non-negative quality gate; no
+bitrate-specific bypass or score tolerance was introduced.
+
+Across **246 comparisons** (29 tracked conditions and 12 additional voice/noise scenarios,
+each at six rates), no tested quality component regressed versus the previous denoiser.
+This is still not a universal improvement over bypass: two additional voice/noise cases
+retain their previous small PESQ-style losses (about -0.00005 at 15.5 kbps and -0.00293 at
+16 kbps). Some other diagnostic deltas versus bypass also remain negative. Both the bypass
+comparison and the previous-version comparison are retained, without clamping, in
+`metrics/voice_denoise_broad.csv` and `metrics/voice_denoise_vs_previous.csv`.
+Do not infer a speech-recognition improvement from these proxy scores.
+
+The active broadband filter's earlier exact-output optimization reduced its isolated kernel time
+by about 20%; that historical comparison is recorded separately in the provenance. The fresh
+end-to-end overhead versus denoising off is **4.4% to 26.1%** on this recording.
+This includes downstream SILK work changed by filtering, not just the denoiser's arithmetic.
+
+Timing runs without concurrent test workloads. Enabled/bypass order rotates in one process,
+pinned to one logical CPU at above-normal priority. Values are medians of nine 60-second runs
+after one warm-up; the six-second recording is repeated. The cache uses **7.5 KiB of temporary
+stack**, not additional per-stream heap memory; longer frames retain filter recomputation.
+Earlier exact-output checks cover **836 configurations / 195,008 packets** and **22,680 kernel
+PCM/state comparisons**. This full refresh reruns the public 90-configuration state/bounds/reset
+test with sanitizers, and both host and Android builds have zero warnings.
+The optional filter state shrinks from **72 to 68 bytes**. Default-off packets remain
+identical in the 198-configuration comparison.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0011 | +0.0113 | 3.0% |
-| 24&nbsp;kbps | +0.0051 | +0.0240 | 3.7% |
-| 32&nbsp;kbps | +0.0042 | +0.0240 | 3.8% |
-| 48&nbsp;kbps | +0.0072 | +0.0186 | 3.4% |
-| 64&nbsp;kbps | +0.0071 | +0.0261 | 3.3% |
-| 96&nbsp;kbps | +0.0084 | +0.0303 | 5.3% |
-| 128&nbsp;kbps | +0.0083 | +0.0304 | 4.5% |
-| 192&nbsp;kbps | +0.0083 | +0.0310 | 4.3% |
-| 256&nbsp;kbps | +0.0084 | +0.0307 | 4.8% |
+| 16&nbsp;kbps | +0.0993 | +0.0785 | 11.4% |
+| 24&nbsp;kbps | +0.1684 | +0.0952 | 14.5% |
+| 32&nbsp;kbps | +0.2037 | +0.1213 | 21.0% |
+| 48&nbsp;kbps | +0.2102 | +0.1162 | 26.1% |
+| 64&nbsp;kbps | +0.2275 | +0.1327 | 23.9% |
+| 96&nbsp;kbps | +0.2143 | +0.1577 | 7.6% |
+| 128&nbsp;kbps | +0.2143 | +0.1582 | 7.3% |
+| 192&nbsp;kbps | +0.2176 | +0.1593 | 5.0% |
+| 256&nbsp;kbps | +0.2182 | +0.1598 | 4.4% |
 
-Source CSV: `metrics/voice_denoise_quality_voip.csv`.
+Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`,
+and `metrics/voice_denoise_provenance.json`.
+
+The focused state/bounds/reset test exercises five sample rates, six frame durations,
+and complexities 0, 5 and 10. Build it as one translation unit:
+
+```bash
+c++ -std=c++23 -O2 -DNDEBUG tests/voice_denoise_state.cpp -o build/voice_denoise_state
+build/voice_denoise_state
+```
 
 ### Optional speech postfilter
 
 Adaptive postfilter mode (`3`) is a speech-smoothing option, not an automatic quality guarantee.
-The corrected PCM16 comparison finds +0.1380 PESQ-style at 32&nbsp;kbps, but -0.0114 ViSQOL-style
-and a lower CELT proxy. At 96-256&nbsp;kbps PESQ-style improves while ViSQOL-style decreases.
-Default unfiltered output therefore remains the recommended baseline; audition optional smoothing.
+The current PCM16 comparison finds +0.1380 PESQ-style at 32&nbsp;kbps, but
+-0.0114 ViSQOL-style and a lower CELT proxy. Default unfiltered output
+remains the baseline; audition optional smoothing rather than assuming every metric improves.
 
-Auto adds 3.2% to 9.8% end-to-end PCM16 decode time in this run and decodes 60 seconds in
-0.046 to 0.075 seconds. Even where the samples are unchanged, entering the optional path and
-updating its decisions/state can cost time. These timings use the actual public modes, not a
-modified zero-gain decoder. Each mode is the median of nine isolated 60-second decodes after
-warm-up; the quality sample is repeated to fill the minute and mode order rotates.
+Auto adds 1.7% to 10.3% end-to-end PCM16 decode time and decodes 60 seconds in
+0.046 to 0.075 seconds. Even unchanged samples can involve optional-path
+decision/state work. These timings use actual public modes, not a modified zero-gain decoder.
+Each value is the median of nine isolated decodes after warm-up; mode order rotates.
 
 | Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0000 | +0.0000 | 5.0% |
-| 24&nbsp;kbps | +0.0008 | +0.0001 | 5.6% |
-| 32&nbsp;kbps | +0.1380 | -0.0114 | 9.8% |
-| 48&nbsp;kbps | +0.0000 | +0.0000 | 3.5% |
-| 64&nbsp;kbps | +0.0000 | +0.0000 | 3.2% |
-| 96&nbsp;kbps | +0.0547 | -0.0071 | 5.9% |
-| 128&nbsp;kbps | +0.0537 | -0.0091 | 5.8% |
-| 192&nbsp;kbps | +0.0623 | -0.0116 | 4.6% |
-| 256&nbsp;kbps | +0.0610 | -0.0135 | 3.6% |
+| 16&nbsp;kbps | +0.0000 | +0.0000 | 4.7% |
+| 24&nbsp;kbps | +0.0008 | +0.0001 | 3.6% |
+| 32&nbsp;kbps | +0.1380 | -0.0114 | 10.3% |
+| 48&nbsp;kbps | +0.0000 | +0.0000 | 5.1% |
+| 64&nbsp;kbps | +0.0000 | +0.0000 | 1.7% |
+| 96&nbsp;kbps | +0.0547 | -0.0071 | 5.3% |
+| 128&nbsp;kbps | +0.0537 | -0.0091 | 5.0% |
+| 192&nbsp;kbps | +0.0623 | -0.0116 | 4.2% |
+| 256&nbsp;kbps | +0.0610 | -0.0135 | 3.7% |
 
 Source CSVs:
 
@@ -405,15 +435,15 @@ PCM16 time to decode 60 seconds (not time per frame):
 
 | Bitrate | Off | Light | Stronger | Adaptive |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 49.936 ms | 53.749 ms | 54.033 ms | 52.454 ms |
-| 24&nbsp;kbps | 56.509 ms | 61.171 ms | 61.053 ms | 59.673 ms |
-| 32&nbsp;kbps | 60.004 ms | 63.917 ms | 64.022 ms | 65.879 ms |
-| 48&nbsp;kbps | 64.688 ms | 69.003 ms | 68.583 ms | 66.972 ms |
-| 64&nbsp;kbps | 68.256 ms | 71.902 ms | 72.590 ms | 70.464 ms |
-| 96&nbsp;kbps | 43.673 ms | 45.495 ms | 46.288 ms | 46.230 ms |
-| 128&nbsp;kbps | 53.893 ms | 56.320 ms | 56.595 ms | 57.015 ms |
-| 192&nbsp;kbps | 62.200 ms | 63.675 ms | 64.954 ms | 65.053 ms |
-| 256&nbsp;kbps | 72.624 ms | 74.463 ms | 74.984 ms | 75.233 ms |
+| 16&nbsp;kbps | 49.898 ms | 53.539 ms | 53.943 ms | 52.221 ms |
+| 24&nbsp;kbps | 56.222 ms | 59.872 ms | 59.906 ms | 58.228 ms |
+| 32&nbsp;kbps | 59.373 ms | 63.755 ms | 63.749 ms | 65.498 ms |
+| 48&nbsp;kbps | 64.761 ms | 68.687 ms | 68.653 ms | 68.096 ms |
+| 64&nbsp;kbps | 67.713 ms | 71.788 ms | 72.591 ms | 68.889 ms |
+| 96&nbsp;kbps | 43.584 ms | 45.854 ms | 45.985 ms | 45.912 ms |
+| 128&nbsp;kbps | 53.503 ms | 56.124 ms | 56.291 ms | 56.157 ms |
+| 192&nbsp;kbps | 61.821 ms | 63.900 ms | 65.647 ms | 64.420 ms |
+| 256&nbsp;kbps | 72.265 ms | 73.858 ms | 75.108 ms | 74.909 ms |
 
 Reproduce optional timing after building the comparison object/library:
 
@@ -432,15 +462,15 @@ The full-report wrapper refreshes core comparisons; these optional-input measure
 ## Memory metrics
 
 The optional encoder FEC state is allocated lazily and is not included in this default-FEC-off
-snapshot. These are process-private allocation deltas averaged over 256 instances, not exact
+snapshot. These are median process-private allocation deltas from three fresh runs of 256 instances, not exact
 structure sizes or peak stack usage; allocator/page rounding contributes to small run-to-run differences.
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 16,928 B | 31,744 B | -46.7% |
+| Encoder mono | 17,248 B | 31,712 B | -45.6% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,064 B | 18,400 B | -23.6% |
-| Decoder stereo | 21,200 B | 27,408 B | -22.7% |
+| Decoder mono | 14,176 B | 18,288 B | -22.5% |
+| Decoder stereo | 21,168 B | 27,456 B | -22.9% |
 
 Source CSV:
 
@@ -450,8 +480,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 299,536 B | 0 B | 299,536 B |
-| Android arm64 Clang `-O2` | 311,964 B | 472 B | 312,436 B |
+| Host MinGW GCC `-O2` | 302,188 B | 0 B | 302,188 B |
+| Android arm64 Clang `-O2` | 313,336 B | 472 B | 313,808 B |
 
 ## Toolchains checked
 

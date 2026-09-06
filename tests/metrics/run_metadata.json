@@ -1,7 +1,7 @@
 {
-  "date": "2026-09-05",
-  "codec_commit": "34a5b7664d8540c447f93efd9683e5299d453ad7",
-  "source_sha256": "ddbf477c37192aba7e0f2d4827ef84472b68ee54a12f506578b6fb133c35d98c",
+  "date": "2026-09-06",
+  "codec_commit": "7538c9bf3f3f250f63dbbd1372ea1172a7433441",
+  "source_sha256": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "22244de5a79bd1d6d623c32e72bf1954b56235be",
   "compiler": "g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0",
@@ -9,11 +9,21 @@
   "official_intrinsics": true,
   "encoder_complexity": 10,
   "default_postfilter": 0,
+  "source_git_blob": "e949d739e16c92192344e1c0891843716be408b0",
+  "worktree_changes": false,
+  "format_verified": true,
+  "source_canonical_sha256": "2bd6e1a11607bc92317cbe3babf5eab86622a709fa3e1e020b2e951675f23221",
   "quality_method": "Per-encoder lookahead removal, tail flushing, independent stereo scoring; custom proxies, not certified PESQ/ViSQOL.",
-  "headline_quality": "6-second generated AUDIO stereo and VOIP mono, float output, postfilter off",
-  "speed_method": "9 repetitions, 60-second stereo, isolated; both decoders receive identical official packets",
-  "optional_speed_method": "9 repetitions after warm-up, 60-second repeated mono input, actual modes 0/1/2/3",
-  "optional_quality_method": "Postfilter: PCM16 generated voice; denoiser: float voice with 6 dB white noise scored against clean speech.",
+  "headline_quality": "Six-second generated AUDIO stereo / VOIP mono; postfilter 0; default encoder denoiser off.",
+  "speed_method": "Nine repetitions, 60-second stereo; official/current alternate in one process; both decoders receive identical official packets.",
+  "optional_speed_method": "Nine measured repetitions after warm-up, 60-second repeated mono; actual postfilter modes 0/1/2/3; denoiser on/off.",
+  "speed_cpu": {
+    "affinity_mask": 16,
+    "priority": "above_normal",
+    "concurrent_test_workloads": false
+  },
+  "official_decoder_complexity": 0,
+  "memory_method": "Median of three fresh process runs, 256 instances per state/channel configuration; default FEC and denoiser off.",
   "rfc": {
     "passed": "24",
     "total": "24",
@@ -22,11 +32,101 @@
   "encode": {
     "passed": "96"
   },
+  "api": [
+    "decoder_channel_remap=PASS stereo_bytes=248 mono_bytes=86 mono_nonzero=938 stereo_nonzero=610",
+    "packet_duration_behavior=PASS",
+    "vbr_budget_behavior=PASS",
+    "dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86",
+    "lpc_analysis_filter=PASS (SILK encoder/decoder reconstruction; bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)",
+    "celt_energy_decode=PASS (anti-collapse cap, unit energy, false-transient bit boundary)",
+    "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, reset, roundtrip)",
+    "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
+    "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.791591 recovery_error=0.0488076 plc_error=0.463539 packet_bytes=360 packet_hash=2146862611",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.199771 recovery_error=0.0996023 plc_error=0.199859 packet_bytes=371 packet_hash=1803285832",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.19564 recovery_error=0.0935658 plc_error=0.177873 packet_bytes=479 packet_hash=3699400340",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0188422 continuation_error=0.0286078 fec_plc_difference=0 recovery_error=0.614024 plc_error=0.614024 packet_bytes=550 packet_hash=3038680279",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.08651 recovery_error=0.0193359 plc_error=0.742264 packet_bytes=716 packet_hash=2685750812",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.717458 recovery_error=0.109427 plc_error=0.592079 packet_bytes=956 packet_hash=3838514076",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.02308 recovery_error=0.802098 plc_error=0.930902 packet_bytes=1439 packet_hash=3459260207",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0.00407664 continuation_error=0.00442517 fec_plc_difference=1.43903 recovery_error=0.897456 plc_error=0.980887 packet_bytes=2153 packet_hash=1825339387",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2367 packet_hash=656704607",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.29585e-06 continuation_error=0 fec_plc_difference=0.624878 recovery_error=0.138917 plc_error=0.481685 packet_bytes=960 packet_hash=763583543",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.558552 recovery_error=0.372524 plc_error=0.430655 packet_bytes=960 packet_hash=3941787026",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.528719 recovery_error=0.127702 plc_error=0.441037 packet_bytes=1427 packet_hash=2664156007",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577635 recovery_error=0.17321 plc_error=0.428872 packet_bytes=1459 packet_hash=1816777896",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.52361 recovery_error=0.217941 plc_error=0.773686 packet_bytes=359 packet_hash=192375143",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.28954 recovery_error=0.210491 plc_error=0.85446 packet_bytes=468 packet_hash=986318636",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.192 recovery_error=0.204653 plc_error=0.772441 packet_bytes=715 packet_hash=3323905628",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.54995 recovery_error=0.183922 plc_error=0.912991 packet_bytes=956 packet_hash=3153749822",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.481818 recovery_error=1.55153 plc_error=1.7849 packet_bytes=1438 packet_hash=1403751232",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.34886 recovery_error=0.912988 plc_error=0.983861 packet_bytes=2153 packet_hash=644557037",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.59308 recovery_error=0.325842 plc_error=0.885136 packet_bytes=960 packet_hash=8255841",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0.0159877 continuation_error=0.000880958 fec_plc_difference=1.60859 recovery_error=0.346179 plc_error=0.886561 packet_bytes=960 packet_hash=3814775749",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.15305 recovery_error=0.295306 plc_error=0.913042 packet_bytes=1422 packet_hash=2714861809",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32921 recovery_error=0.305962 plc_error=0.768318 packet_bytes=1387 packet_hash=2510013668",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.937947 recovery_error=0.0404191 plc_error=0.867723 packet_bytes=359 packet_hash=2050160439",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.16542 recovery_error=0.219111 plc_error=0.832498 packet_bytes=472 packet_hash=1214488359",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.84128 recovery_error=0.321836 plc_error=0.685993 packet_bytes=718 packet_hash=3042190627",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.92937 recovery_error=0.314608 plc_error=0.817631 packet_bytes=957 packet_hash=423678847",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.2588 recovery_error=1.04668 plc_error=1.16585 packet_bytes=1438 packet_hash=2805007690",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.762094 recovery_error=0.98759 plc_error=1.01578 packet_bytes=2154 packet_hash=2896100490",
+    "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.15842 recovery_error=0.419175 plc_error=0.864667 packet_bytes=960 packet_hash=4052059962",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.767 recovery_error=0.910793 plc_error=0.941921 packet_bytes=960 packet_hash=622396321",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.47363 recovery_error=0.380914 plc_error=1.1614 packet_bytes=1433 packet_hash=2244237663",
+    "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=1.23163e-05 continuation_error=0 fec_plc_difference=1.37679 recovery_error=0.466926 plc_error=1.23274 packet_bytes=1365 packet_hash=2233567258",
+    "fec_summary recovery_error_ratio=0.472256 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726"
+  ],
   "malformed_packet_cases": 290909,
-  "sanitizer": "GCC trapping UBSan and float-cast-overflow; API, long frames, malformed packets",
-  "android_build": "-O2 -DNDEBUG -Wall -Wextra -Wpedantic, arm64 Android API24",
-  "wer": "Not run; no external speech recognition endpoint invoked.",
-  "production_source_changed": false,
+  "sanitizer": "Trapping GCC UBSan and float-cast-overflow: duration, long frames, malformed packets and 90 denoiser state configurations.",
+  "android_build": "NDK 30 arm64 Android API24, -O2 -DNDEBUG -Wall -Wextra -Wpedantic; cross-build only.",
+  "wer": "Not run; no paid or external ASR endpoint invoked.",
+  "binary_size": {
+    "windows": {
+      "text": 302188,
+      "data": 0,
+      "bss": 0,
+      "total": 302188
+    },
+    "android": {
+      "text": 313336,
+      "data": 472,
+      "bss": 0,
+      "total": 313808
+    }
+  },
+  "dtx": "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
+  "fec": "fec_summary recovery_error_ratio=0.472256 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726",
+  "formatting": {
+    "tool": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tools\\clang_format20\\clang_format\\data\\bin\\clang-format.exe",
+    "version": "20.1.8",
+    "before": {
+      "src/opus_codec.cpp": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
+      "tests/voice_denoise_state.cpp": "48976480628b273bfa7fc80442815278f8d64f5bbce7b95a61cc635951846daa"
+    },
+    "prepared_only": false,
+    "after": {
+      "src/opus_codec.cpp": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
+      "tests/voice_denoise_state.cpp": "48976480628b273bfa7fc80442815278f8d64f5bbce7b95a61cc635951846daa"
+    },
+    "generated_text_sha256": "a22b8ac968c6c40f19a05f808b57552d40e6d2f13b46c0ea3cdb433aa48eefde",
+    "generated_text_identical": true
+  },
   "broad_quality": {
     "broad": {
       "cases": 99,
@@ -45,79 +145,37 @@
       }
     }
   },
-  "dtx": "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.292991 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.768126 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
-  "fec": "fec_summary recovery_error_ratio=0.472256 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726",
-  "binary_size": {
-    "windows": {
-      "text": 299536,
-      "data": 0,
-      "bss": 0,
-      "total": 299536
-    },
-    "android": {
-      "text": 311964,
-      "data": 472,
-      "bss": 0,
-      "total": 312436
-    }
+  "denoiser_summary": {
+    "cases": 246,
+    "regressions_vs_previous": [],
+    "pesq_losses_vs_bypass": [
+      {
+        "sample": "voice_a_31079_12db",
+        "bitrate": 15500,
+        "delta": -5.425000000003344e-05
+      },
+      {
+        "sample": "voice_a_31079_12db",
+        "bitrate": 16000,
+        "delta": -0.0029337699999998357
+      }
+    ]
   },
   "csv_sha256": {
-    "decode_speed_vs_official.csv": "5e3448d57a6ecd8734a40a3b0c80facc0644ed00c803b348b8b4dccf07e0d32d",
-    "encode_speed_vs_official.csv": "d03dff51114165826aa3a921d4b1068f17648b25e6ad17e77338fab743001cf7",
-    "memory_vs_official.csv": "aa8246dc74b73092dbffaa5aecef00d4f42050599f598e1609e6d00e22f999c0",
-    "postfilter_pcm16_path.csv": "91c2a990a2a388ef643cde474eef3a9ab0649ba9f95b8daa20929a948f028539",
+    "decode_speed_vs_official.csv": "70124b861f5ba2204ad14d1727599ff4a3ea565035cd85b19e6bdd639fa75efd",
+    "encode_speed_vs_official.csv": "b92bb1cac22026dd619c0b90e0fe75a929bd92f59da9765bd1b167f4fd7fcdef",
+    "memory_vs_official.csv": "b1fc45f2fa4ed1b3d66a1d7d93e6727f2889b235fc75adf2b85a0023dcb399e8",
+    "postfilter_pcm16_path.csv": "512ce3d87b4b9bc050661b41e7660dd7724b6dc039b2c7f7b40d7243e297e3f5",
     "postfilter_quality_voip.csv": "cd4fb6cdf704310aa5666830cb93ce1a8bff00fe3f1f642141d6011e6cfeea17",
     "quality_broad.csv": "ab3e7edcb4256e958b43323ee54cb8c8f8343decfbfd900e5535e4ffc8767576",
     "quality_vs_official.csv": "78cf3c850d85c45515807c6a13f334299257de6f84f33a11391d61787c3fe4ca",
     "quality_vs_official_voip.csv": "bced79aa401edff8ba28603b3ee22ca46bfdacb70a27d2275c965d9ad03dec33",
-    "speed_vs_official_intrinsics_60s.csv": "5b5b5ae4078fb91fec0c4ab98c1924bb869cf1f3bdfafc5ff58ed197e238a6ff",
-    "voice_denoise_boundary.csv": "e15c0180d1a0b4936a75bb4bf5440a4c37a9184fda6a5f7ec24efe7741f0dfd3",
-    "voice_denoise_broad.csv": "1acc2f9c514a30ad3640f95b58fcbe68bd94a252f5fee14764a7e3161229c466",
-    "voice_denoise_quality_voip.csv": "5330434e2b306a5ac2e4b7f77d1af266090e0e23cd9f47b6a43ad6a4d8339d33"
+    "speed_vs_official_intrinsics_60s.csv": "df520946c7516696cb937339b9bba095efe4f387970aa8ebb9de68801e3925c1",
+    "voice_denoise_boundary.csv": "acdb444255a6fa65db644fa171a84176254ba10a8ada9f1454d892d023d02422",
+    "voice_denoise_broad.csv": "143224c2a78cc206193153e0fbee44461e0439c9e10b4907540185a331b64cd6",
+    "voice_denoise_quality_voip.csv": "7ffdf54f6b76994b7e43e1c6d510e97e171c831b530a26a4d8bdedb8f8b73ada",
+    "voice_denoise_timing.csv": "2d0920831f5671dd91fddc549a22c0d3ac3d0de29371bcf5a0ef5b47c0016880",
+    "voice_denoise_vs_previous.csv": "6fa2eb2e484b0e3cf888db95a5eb6ecbf8e41ae3ee2768f0ace3b2d06c2274a2"
   },
-  "input_fingerprints": {
-    "headline_audio": {
-      "sha256": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
-      "sample_rate": 48000,
-      "channels": 2,
-      "frames": 288000
-    },
-    "headline_voip_and_postfilter": {
-      "sha256": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
-      "sample_rate": 48000,
-      "channels": 1,
-      "frames": 288000
-    },
-    "denoiser_reference": {
-      "sha256": "344755ccac0dc5692cb9f33bc1f0791aad6dc9a2848bb2fd6a7915a16db5a577",
-      "sample_rate": 48000,
-      "channels": 1,
-      "frames": 177000
-    },
-    "denoiser_input": {
-      "sha256": "c07fbcf42a1e36a22a2735b282bdd45f3b89aff58f21670ae3ed16ef3fb1bf6c",
-      "sample_rate": 48000,
-      "channels": 1,
-      "frames": 177000
-    }
-  },
-  "harness_sha256": {
-    "benchmark_vs_official.cpp": "1731f5a5b098feb85fafda8b870054ac70265bf35317c4575039e3b5f49e075e",
-    "perceptual_memory_validation.cpp": "7f628cc2ab724f2abce06e3af3de29d1cab5b0725b6faf08117efb023a1d2ac7",
-    "optional_processing_benchmark.cpp": "33e486cbbb22106103b3fdd234460b7e08a8c6f6ce81f02775e329dc12b19163",
-    "fec_vs_official.cpp": "aa23867cd9998c322b2bfd5a84e3fe5b4285f01d99d419a6e346677685c6b0cc",
-    "dtx_vs_official.cpp": "82c04a813de45eaf7be2ce287036841f5129ddca91b68caeb6132a0382ffd3d9"
-  },
-  "official_archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
-  "comparison_object_sha256": "192eec7de5fba2a5d0f882fb45d39152e731102be25150f52247889b5e6dc4f0",
-  "denoiser_boundary_gate": {
-    "exit_code": 1,
-    "case_count": 20,
-    "scope": "6 dB white-noise mono voice, 15-48 kbps boundary ladder; enabled vs disabled",
-    "failed_bitrates": [
-      15500,
-      20000
-    ]
-  },
-  "optional_benchmark_formatting": "Formatted after timing; token sequence verified identical and warning-free rebuild passed."
+  "csv_sha256_format": "UTF-8, LF line endings"
 }

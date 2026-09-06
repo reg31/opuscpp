@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-06",
+  "scope": "Included in the full benchmark refresh.",
+  "baseline_commit": "3951ddafe9e719d76bf0ee22a7b6503449c0730b",
+  "baseline_source_sha256": "ddbf477c37192aba7e0f2d4827ef84472b68ee54a12f506578b6fb133c35d98c",
+  "source_sha256": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "flags": [
+    "-std=c++23",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "quality": {
+    "input": "mono speech plus sustained 6 dB white noise",
+    "reference": "clean speech",
+    "seconds": 6,
+    "sample_rate": 48000,
+    "frame_samples": 960,
+    "complexity": 10,
+    "application": "VOIP",
+    "postfilter": 0,
+    "metric_type": "internal proxies, not ITU PESQ or official ViSQOL",
+    "boundary_passed": 25,
+    "boundary_total": 25,
+    "broader_comparisons_vs_previous": 246,
+    "quality_regressions_vs_previous": 0,
+    "inherited_pesq_losses_vs_bypass": [
+      {
+        "sample": "voice_a_31079_12db",
+        "bitrate": 15500,
+        "delta": -5.425000000003344e-05
+      },
+      {
+        "sample": "voice_a_31079_12db",
+        "bitrate": 16000,
+        "delta": -0.0029337699999998357
+      }
+    ],
+    "previous_comparison_regressions": []
+  },
+  "timing": {
+    "audio_seconds": 60,
+    "input": "same six-second noisy recording repeated",
+    "measured_runs": 9,
+    "warmup_runs": 1,
+    "statistic": "median; enabled/bypass order rotates",
+    "parallel_workloads": false,
+    "affinity_mask": 16,
+    "priority": "above_normal"
+  },
+  "validation": {
+    "rfc_decode": "24/24 fresh",
+    "encode_validation": "96/96 fresh",
+    "denoising_enabled_official_interoperability": "Full denoiser state/roundtrip and preceding exact packet-validation records; standard FEC interoperability freshly rerun",
+    "default_off_packet_identity": "198/198 configurations",
+    "ubsan_state_bounds_reset": "90/90 fresh",
+    "android_arm64": "Fresh warning-free NDK 30 API24 cross-build; not device execution"
+  },
+  "optional_state_bytes": {
+    "previous": 72,
+    "current": 68
+  },
+  "exact_output_optimization": {
+    "date": "2026-09-06",
+    "baseline_source_sha256": "8434988911c394cfd45a72b038f8f18932db4064ffd8d53aab13bcf181f0d388",
+    "changes": [
+      "Cache exact two-lowpass outputs for frames of at most 960 samples; recompute identically for longer frames.",
+      "Prepare gain restoration and attenuation ramps once per frame."
+    ],
+    "kernel_pcm_state_comparisons": 22680,
+    "packet_identity": {
+      "clip_scenarios": 38,
+      "configurations": 836,
+      "packets": 195008,
+      "denoise_modes": [
+        0,
+        1
+      ]
+    },
+    "quality_tables": "Existing quality values preserved after exact packet/final-range validation; no score reformulation.",
+    "host_text_growth_bytes": 192,
+    "android_text_growth_bytes": 104,
+    "temporary_cache_bytes": 7680,
+    "optional_state_bytes": 68,
+    "encoder_stack": "Denoiser local stack 368 -> 8064 B on host, 112 -> 7792 B on Android; existing sibling CELT and SILK encoding call chains have larger stack frames.",
+    "gcc": "16.2.0",
+    "android": "NDK 30 arm64 API 24 cross-build, zero warnings; not device runtime validation.",
+    "full_suite": "Not rerun for this exact-output denoiser optimization; prior repair validation is recorded separately.",
+    "scope": "Historical isolated optimization comparison; current full-suite timings are in timing."
+  },
+  "codec_commit": "7538c9bf3f3f250f63dbbd1372ea1172a7433441",
+  "source_canonical_sha256": "2bd6e1a11607bc92317cbe3babf5eab86622a709fa3e1e020b2e951675f23221",
+  "source_git_blob": "e949d739e16c92192344e1c0891843716be408b0"
+}

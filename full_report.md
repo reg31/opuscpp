@@ -90,15 +90,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 2.384231x | 1.865488x |
-| 24 kbps | 1.881502x | 1.410751x |
-| 32 kbps | 1.822548x | 1.395695x |
-| 48 kbps | 1.735246x | 1.348115x |
-| 64 kbps | 1.756932x | 1.313147x |
-| 96 kbps | 1.842793x | 1.299832x |
-| 128 kbps | 2.040293x | 1.310534x |
-| 192 kbps | 1.853415x | 1.298972x |
-| 256 kbps | 1.760522x | 1.237214x |
+| 16 kbps | 2.361575x | 1.872249x |
+| 24 kbps | 1.891828x | 1.421835x |
+| 32 kbps | 1.833420x | 1.392570x |
+| 48 kbps | 1.743504x | 1.361902x |
+| 64 kbps | 1.771621x | 1.330006x |
+| 96 kbps | 1.839927x | 1.311975x |
+| 128 kbps | 2.059607x | 1.314972x |
+| 192 kbps | 1.855350x | 1.312660x |
+| 256 kbps | 1.771349x | 1.245645x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -139,16 +139,16 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | State | Difference |
 |---|---:|
-| Encoder mono | -46.7% |
+| Encoder mono | -45.6% |
 | Encoder stereo | -34.4% |
-| Decoder mono | -23.6% |
-| Decoder stereo | -22.7% |
+| Decoder mono | -22.5% |
+| Decoder stereo | -22.9% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 299536 B | 0 B | 299536 B |
+| Host C++23 `-O2` | 302188 B | 0 B | 302188 B |
 
 ## Toolchains checked
 
@@ -157,25 +157,23 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 | MinGW/current C++23 compiler: C:\Qt\Tools\mingw64\bin\g++.exe | checked |
 | Android arm64 Clang C++23: build check passed | checked |
 
-## Refreshed supplementary measurements
+## Full refresh provenance
 
-Run date: 2026-09-05; codec commit 34a5b7664d8540c447f93efd9683e5299d453ad7. The codec source is unchanged by this refresh.
+Measured on 2026-09-06 from codec commit 7538c9bf3f3f250f63dbbd1372ea1172a7433441. All current tables are sourced from this refresh; negative quality deltas are retained.
 
-Corrected alignment exposes both positive and negative quality deltas; this is not an all-positive quality claim. See tests/metrics/run_metadata.json for source fingerprints and measurement settings.
+Core speed: nine 60-second repetitions with official intrinsics enabled; both builds -O2 -DNDEBUG. Optional modes: nine repetitions after warm-up. Timing ran in isolation on one logical CPU at above-normal priority.
 
-Broad checks: 99 source/settings cases plus 30 stereo/content holdout cases; all values retained in tests/metrics/quality_broad.csv.
+Memory: three fresh 256-instance runs; median per configuration. Windows object: 302188 B. Android text/data/BSS: 313336/472/0 B.
 
-Optional-processing quality and isolated timing are refreshed in postfilter_quality_voip.csv, postfilter_pcm16_path.csv, voice_denoise_quality_voip.csv and voice_denoise_broad.csv. The optional timing CSV now reports actual public modes rather than a synthetic zero-gain build.
+Broad quality: 99 ladder and 30 holdout comparisons. Denoiser: 246 comparisons versus bypass and the previous published implementation plus 25 boundary rates. See tests/metrics for all raw signed results.
 
-Trapping UBSan: API duration checks, long-frame matrix and 290,909 malformed packet cases passed. Warning-enabled Windows and Android builds passed; Android object text/data/BSS = 311,964/472/0 B. No paid or external WER/CER tests were run.
+UBSan: 290,909 malformed packets, API/long-frame tests, and 90 denoiser configurations passed. Android and Windows warning checks passed. No WER/CER or paid recognition endpoint was invoked.
 
-CELT band microbenchmark (2,000 iterations/case; diagnostic, not end-to-end speed):
+CELT band microbenchmark (2,000 iterations/case; diagnostic, not end-to-end):
 
 ```text
-mono-mid bytes=76 encode_ms=16.5714 decode_ms=16.5889 checksum=340886119
-mono-high bytes=115 encode_ms=17.9265 decode_ms=17.1211 checksum=2633358364
-stereo-mid bytes=103 encode_ms=23.2545 decode_ms=29.5271 checksum=1794710616
-stereo-high bytes=147 encode_ms=24.9658 decode_ms=30.4825 checksum=1220686915
+mono-mid bytes=76 encode_ms=15.9546 decode_ms=16.6251 checksum=340886119
+mono-high bytes=115 encode_ms=17.968 decode_ms=15.3981 checksum=2633358364
+stereo-mid bytes=103 encode_ms=21.891 decode_ms=29.3805 checksum=1794710616
+stereo-high bytes=147 encode_ms=25.0432 decode_ms=30.6312 checksum=1220686915
 ```
-
-Denoiser quality gate: FAILED at 15.5/20 kbps on the 20-rate 6 dB white-noise boundary sweep. The existing test retains its failing exit status; see tests/metrics/voice_denoise_boundary.csv. Conformance, interoperability and sanitizer checks passed, but this is not an all-quality-gates-pass result.

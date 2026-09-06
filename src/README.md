@@ -117,9 +117,10 @@ one-byte Opus DTX packets after sustained inactivity. It periodically sends a re
 suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
 
 The voice denoiser is an optional encoder-side preprocessor for sustained broadband capture noise.
-It separates mono input into three broad frequency regions, waits for consistent noise evidence,
-then smoothly attenuates only the affected regions. The confidence and release gates avoid abrupt
-changes and leave clean or unclassified frames untouched. It does not change Opus packet syntax.
+It uses the existing three-region filter bank. Once near-flat noise is confirmed, its noise
+estimate persists through speech; current-frame energy controls suppression and gain recovers
+immediately at speech onsets. Uncertain material keeps the conservative path. Resetting the
+encoder resets this calibration. There is no extra look-ahead or change to Opus packet syntax.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
@@ -130,10 +131,15 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
-Tracked encode overhead is 3.0% to 5.3% in the 2026-09-05 refresh. Aligned 6 dB white-noise
-measurements improve both main quality proxies, but a broader check retains a small PESQ-style
-loss on a different noise condition and the boundary gate fails at 15.5/20 kbps. This is not a
-universal improvement. See the [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
+The 2026-09-06 denoiser refresh fixes the tracked 15.5/20 kbps quality failures and passes the
+25-rate boundary gate. After an exact-output filter-pass reuse optimization, encode overhead is
+4.4% to 26.1% versus denoising off on the tracked noisy recording. This is end-to-end cost:
+denoising also changes SILK's subsequent coding workload, not just preprocessing time.
+The optional state remains 68 bytes; a 7.5 KiB temporary stack cache avoids repeating the filter pass
+for frames of up to 960 samples. Longer frames use the original recomputation path.
+The wider comparison has no new quality regressions versus the previous denoiser, but retains
+small pre-existing losses versus bypass on other voice/noise cases. See the
+[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 
 ## In-band FEC
 
@@ -184,8 +190,8 @@ It gently suppresses high-frequency quantization noise, harshness, and ringing a
 Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity to select bypass,
 light processing, or full-strength processing. The trade-off is potentially softer treble while filtering
 is active. On the common direct PCM16 mono path, light processing updates its low-pass state once per
-sample pair while stronger processing tracks every sample. In the current repeated-speech benchmark, light processing adds 2.4% to 8.3%
-over unfiltered decoding; adaptive processing adds 3.2% to 9.8%. These are end-to-end
+sample pair while stronger processing tracks every sample. In the current repeated-speech benchmark, light processing adds 2.2% to 7.4%
+over unfiltered decoding; adaptive processing adds 1.7% to 10.3%. These are end-to-end
 PCM16 costs, not isolated filter timings.
 
 | Level | Recommended use |
@@ -196,7 +202,7 @@ PCM16 costs, not isolated filter timings.
 | `3` (adaptive) | Optional speech playback smoothing: audition before enabling. It uses packet metadata and activity estimates, not a guaranteed best-quality decision. Tracked PESQ-style gains have ViSQOL-style trade-offs. Not recommended for music. |
 
 Published quality metrics use the default unfiltered output.
-The 2026-09-05 aligned comparison finds +0.1380 PESQ-style but -0.0114 ViSQOL-style at 32 kbps
+The 2026-09-06 aligned comparison finds +0.1380 PESQ-style but -0.0114 ViSQOL-style at 32 kbps
 with adaptive mode on the tracked mono speech sample. This trade-off, rather than an all-metric win,
 is why the filter remains opt-in.
 Detailed quality and decode-cost measurements are in the [optional speech postfilter section](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-postfilter).
