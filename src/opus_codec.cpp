@@ -1741,13 +1741,22 @@ struct StereoWidthState {
   opus_val16 max_follower;
 };
 
+enum class VoiceDenoiseModel : opus_uint8 {
+  undecided,
+  conservative,
+  broadband
+};
+
 struct VoiceDenoiseState {
   std::array<opus_val32, 2> lowpass;
-  std::array<opus_val32, 3> previous_energy, noise_energy;
+  opus_val32 previous_high_energy;
+  std::array<opus_val32, 3> noise_energy;
   std::array<opus_val16, 3> gain, target_gain;
   opus_val16 confidence;
   int evidence_samples, hold_samples;
   bool initialized;
+  VoiceDenoiseModel model;
+  opus_val32 noise_variance;
 };
 
 struct OpusEncoder {
@@ -1782,6 +1791,10 @@ struct OpusEncoder {
   VoiceDenoiseState* voice_denoise;
 };
 static_assert(std::is_standard_layout_v<OpusEncoder>);
+
+[[nodiscard]] static bool broadband_voice_denoise_ready(const OpusEncoder* st) noexcept {
+  return st->voice_denoise != nullptr && st->voice_denoise->model == VoiceDenoiseModel::broadband;
+}
 
 [[nodiscard]] static auto next_vbr_target_bits(OpusEncoder* st, int frame_size) noexcept -> opus_int32 {
   const auto numerator = static_cast<opus_int64>(st->bitrate_bps) * frame_size + st->vbr_target_remainder;
@@ -2986,7 +2999,17 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   return ret;
 }
 
-static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
+static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept;
+
+[[nodiscard]] static opus_val16 voip_noise_smoothing_for(const OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
+  return st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
+                 metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min && metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min
+             ? voip_noisy_voice_smoothing
+             : 0.f;
+}
+
+static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
+  bool denoise_handled = false;
   if (st->application == OPUS_APPLICATION_VOIP) {
     if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
       dc_reject(pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
@@ -3018,10 +3041,13 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
           dc_reject(frame_pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, 1, st->Fs);
         }
       }
-      if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
-          frame_metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min &&
-          frame_metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, voip_noisy_voice_smoothing);
+      const bool broadband = broadband_voice_denoise_ready(st);
+      if (broadband)
+        apply_voice_denoise(st, frame_pcm, frame_size, frame_metrics);
+      denoise_handled = broadband;
+      const auto smoothing = voip_noise_smoothing_for(st, frame_metrics);
+      if (smoothing != 0) {
+        apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
       }
       if (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
           frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
@@ -3075,9 +3101,8 @@ static void opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   } else if (gain != 1.0f) {
     apply_previous_sample_tilt(frame_pcm, frame_size, st->channels, 0, gain);
   }
+  return denoise_handled;
 }
-
-static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept;
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
@@ -3124,11 +3149,11 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   const opus_int32 allocator_bitrate_bps = bits_to_bitrate_for_frame_rate(allocator_target_bits, frame_rate);
   data += 1;
   ec_enc_init(&enc, data, orig_max_data_bytes - 1);
-  opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
+  const bool denoise_handled = opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
   if (st->use_dtx && metrics.energy <= dtx_digital_silence_max_energy && metrics.mono_zero_cross_rate == 0) {
     zero_n_items(frame_pcm.data(), static_cast<std::size_t>(frame_size * st->channels));
   }
-  if (st->voice_denoise != nullptr) {
+  if (st->voice_denoise != nullptr && !denoise_handled) {
     apply_voice_denoise(st, frame_pcm.data(), frame_size, metrics);
   }
   opus_val16 HB_gain = 1.0f;
@@ -3420,8 +3445,17 @@ struct voice_denoise_coefficients {
   }
 }
 
+[[nodiscard]] static auto voice_denoise_noise_weights(voice_denoise_coefficients coefficients) noexcept -> std::array<opus_val32, 3> {
+  const float low = coefficients.low / (2.f - coefficients.low);
+  const float middle = coefficients.middle / (2.f - coefficients.middle);
+  const float cross = coefficients.low * coefficients.middle / (coefficients.low + coefficients.middle - coefficients.low * coefficients.middle);
+  const float high = 2.f * (1.f - coefficients.middle) * (1.f - coefficients.middle) / (2.f - coefficients.middle);
+  return {low, low + middle - 2.f * cross, high};
+}
+
 static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept {
   auto* state = st->voice_denoise;
+  const bool broadband = broadband_voice_denoise_ready(st);
   if (metrics.is_silence) {
     reset_voice_denoise_state(*state);
     return;
@@ -3430,7 +3464,7 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
                            metrics.mono_zero_cross_rate > .22f;
   const bool releasing = state->hold_samples > 0 || state->gain != std::array<opus_val16, 3>{1, 1, 1} ||
                          state->target_gain != std::array<opus_val16, 3>{1, 1, 1};
-  if (!noise_shape && !releasing) {
+  if (!broadband && !noise_shape && !releasing) {
     state->evidence_samples = std::max(0, state->evidence_samples - frame_size);
     if (state->evidence_samples == 0) {
       state->confidence = 0;
@@ -3442,21 +3476,28 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
   if (!state->initialized) {
     state->lowpass.fill(pcm[0]);
   }
+  const auto input_lowpass = state->lowpass;
   const auto coefficients = voice_denoise_filter_coefficients(st->Fs);
   const auto start_gain = state->gain;
   const auto end_gain = state->target_gain;
   const bool attenuating = start_gain != std::array<opus_val16, 3>{1, 1, 1} || end_gain != std::array<opus_val16, 3>{1, 1, 1};
   std::array<opus_val32, 3> energy{};
   const auto gain_step = 1.f / frame_size;
+  std::array<std::array<opus_val32, 2>, celt_max_frame_samples> lowpass_cache;
+  const bool cache_lowpass = broadband && frame_size <= celt_max_frame_samples;
+  auto analysis_lowpass = state->lowpass;
   for (int i = 0; i < frame_size; ++i) {
     const auto sample = pcm[i];
-    state->lowpass[0] += coefficients.low * (sample - state->lowpass[0]);
-    state->lowpass[1] += coefficients.middle * (sample - state->lowpass[1]);
-    const std::array bands{state->lowpass[0], state->lowpass[1] - state->lowpass[0], sample - state->lowpass[1]};
+    analysis_lowpass[0] += coefficients.low * (sample - analysis_lowpass[0]);
+    analysis_lowpass[1] += coefficients.middle * (sample - analysis_lowpass[1]);
+    if (cache_lowpass) {
+      lowpass_cache[i] = analysis_lowpass;
+    }
+    const std::array bands{analysis_lowpass[0], analysis_lowpass[1] - analysis_lowpass[0], sample - analysis_lowpass[1]};
     for (int band = 0; band < 3; ++band) {
       energy[band] += bands[band] * bands[band];
     }
-    if (attenuating) {
+    if (attenuating && !broadband) {
       const auto position = (i + 1) * gain_step;
       pcm[i] = clamp_value(bands[0] * (start_gain[0] + position * (end_gain[0] - start_gain[0])) +
                                bands[1] * (start_gain[1] + position * (end_gain[1] - start_gain[1])) +
@@ -3464,13 +3505,53 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
                            -1.f, 1.f);
     }
   }
-  state->gain = end_gain;
+  state->lowpass = analysis_lowpass;
+  if (!broadband)
+    state->gain = end_gain;
   for (auto& band_energy : energy) {
     band_energy *= gain_step;
   }
 
   const bool stable_high_band = state->initialized &&
-                                std::min(energy[2], state->previous_energy[2]) > .72f * std::max(energy[2], state->previous_energy[2]);
+                                std::min(energy[2], state->previous_high_energy) > .72f * std::max(energy[2], state->previous_high_energy);
+  if (broadband) {
+    const auto fractions = voice_denoise_noise_weights(coefficients);
+    const float high = fractions[2];
+    const float observed = energy[2] / high;
+    if (observed < state->noise_variance || (noise_shape && stable_high_band)) {
+      const float rate = observed < state->noise_variance ? .25f : .008f;
+      state->noise_variance += rate * (observed - state->noise_variance);
+    }
+    for (int band = 0; band < 3; ++band)
+      state->target_gain[band] = std::sqrt(std::clamp(1.f - state->noise_variance * fractions[band] / (energy[band] + 1e-20f), 0.f, 1.f));
+    std::array<opus_val16, 3> gain_base, gain_delta;
+    for (int band = 0; band < 3; ++band) {
+      const auto delta = state->target_gain[band] - start_gain[band];
+      const bool restoring = state->target_gain[band] > start_gain[band];
+      gain_base[band] = restoring ? start_gain[band] + delta : start_gain[band];
+      gain_delta[band] = restoring ? 0.f : delta;
+    }
+    auto lowpass = input_lowpass;
+    for (int i = 0; i < frame_size; ++i) {
+      const float sample = pcm[i];
+      if (cache_lowpass) {
+        lowpass = lowpass_cache[i];
+      } else {
+        lowpass[0] += coefficients.low * (sample - lowpass[0]);
+        lowpass[1] += coefficients.middle * (sample - lowpass[1]);
+      }
+      const std::array bands{lowpass[0], lowpass[1] - lowpass[0], sample - lowpass[1]};
+      const float position = (i + 1) * gain_step;
+      pcm[i] = clamp_value(bands[0] * (gain_base[0] + position * gain_delta[0]) +
+                               bands[1] * (gain_base[1] + position * gain_delta[1]) +
+                               bands[2] * (gain_base[2] + position * gain_delta[2]),
+                           -1.f, 1.f);
+    }
+    state->gain = state->target_gain;
+    state->previous_high_energy = energy[2];
+    state->initialized = true;
+    return;
+  }
   const int reference_frame_size = st->Fs / 50;
   const int confirmation_samples = 6 * reference_frame_size;
   state->evidence_samples = noise_shape && stable_high_band
@@ -3490,8 +3571,8 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
                                                                                                           : .0005f;
       state->noise_energy[band] += rate * (energy[band] - state->noise_energy[band]);
     }
-    state->previous_energy[band] = energy[band];
   }
+  state->previous_high_energy = energy[2];
   state->initialized = true;
 
   const auto observed_confidence = st->lightweight_voice_score_Q7 > 32
@@ -3514,6 +3595,22 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
     const auto desired = state->hold_samples > 0 ? std::max(floor[band], 1.f - attenuation) : 1.f;
     const auto rate = desired < state->target_gain[band] ? .35f : .65f;
     state->target_gain[band] += rate * (desired - state->target_gain[band]);
+  }
+  if (state->model == VoiceDenoiseModel::undecided && state->evidence_samples >= confirmation_samples) {
+    const auto weights = voice_denoise_noise_weights(coefficients);
+    const float low = weights[0], mid_band = weights[1], high = weights[2];
+    const bool broadband = state->confidence >= .9f && state->noise_energy[0] * high >= .25f * low * state->noise_energy[2] &&
+                           state->noise_energy[0] * high <= 4.f * low * state->noise_energy[2] &&
+                           state->noise_energy[1] * high >= .5f * mid_band * state->noise_energy[2] &&
+                           state->noise_energy[1] * high <= 2.f * mid_band * state->noise_energy[2];
+    state->model = broadband ? VoiceDenoiseModel::broadband : VoiceDenoiseModel::conservative;
+    if (broadband) {
+      const auto smoothing = voip_noise_smoothing_for(st, metrics);
+      const auto gain = encoder_error_balance_filter_for(st, metrics);
+      const auto tilt_power = (1.f - smoothing) * (1.f - smoothing) + smoothing * smoothing -
+                              smoothing * (1.f - smoothing) * coefficients.middle;
+      state->noise_variance = state->noise_energy[2] / (high * tilt_power * gain * gain);
+    }
   }
 }
 
