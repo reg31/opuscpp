@@ -25,15 +25,16 @@ bool check_cbr_capacity() {
         for (int channel = 0; channel < channels; ++channel)
           input[i * channels + channel] = static_cast<opus_int16>(7000 * std::sin(6.283185307179586 * (443 + 127 * channel) * i / 48000));
       for (const int frame_size : {1920, 2880, 5760}) {
-        for (const int capacity : {399, 400, 401, 639, 640, 641}) {
+        for (const int capacity : {399, 400, 401, 639, 640, 641, 8192, 65536}) {
           auto encoder = make_opus_encoder(48000, channels, application, nullptr);
           auto decoder = make_opus_decoder(48000, channels, nullptr);
-          if (!encoder || !decoder || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(128000)) || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(0)))
+          const int bitrate = capacity > 641 ? OPUS_BITRATE_MAX : 128000;
+          if (!encoder || !decoder || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(0)))
             return false;
-          std::array<unsigned char, 650> packet;
+          std::array<unsigned char, 65544> packet;
           packet.fill(0xA5);
           const int length = opus_encode(encoder.get(), input.data(), frame_size, packet.data(), capacity);
-          const int expected = std::min(capacity, 128000 * frame_size / 48000 / 8);
+          const int expected = bitrate == OPUS_BITRATE_MAX ? capacity : std::min(capacity, bitrate * frame_size / 48000 / 8);
           if (!expect_eq(length, expected, "capacity-limited multiframe CBR") ||
               !std::all_of(packet.begin() + capacity, packet.end(), [](unsigned char value) { return value == 0xA5; }))
             return false;

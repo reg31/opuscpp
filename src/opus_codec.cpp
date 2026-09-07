@@ -2598,7 +2598,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   if (params.governed_vbr) {
     repacketize_len = std::min(repacketize_len, packet_budget.max_bytes);
   }
-  const opus_int32 max_len_sum = nb_frames + repacketize_len - max_header_bytes;
+  const opus_int32 max_len_sum = repacketize_len - (max_header_bytes - nb_frames);
   opus_int32 local_credit_bits = st->vbr_budget_reservoir_bits;
   opus_int32 remaining_target_bits = packet_target_bits;
   std::array<unsigned char, opus_max_multiframe_packet_bytes> packet_storage;
