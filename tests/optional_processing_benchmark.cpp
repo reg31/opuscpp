@@ -34,15 +34,23 @@ auto encode_minute(const clip_data& clip, int bitrate, bool denoise, packets* sa
   return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
 }
 
-auto decode_minute(const packets& input, int level) -> double {
+struct decode_measurement {
+  double milliseconds;
+  int applied_level;
+};
+
+auto decode_minute(const packets& input, int level) -> decode_measurement {
   auto decoder = make_current_decoder(1, level);
+  std::int32_t applied_level = -1;
+  if (curr_opus_decoder_ctl(static_cast<curr_OpusDecoder*>(decoder.get()), opuscpp_get_decode_postfilter_request, &applied_level) != OPUS_OK)
+    throw std::runtime_error("Optional processing getter failed");
   std::array<std::int16_t, frame_size> pcm;
   const auto start = std::chrono::steady_clock::now();
   for (const auto& packet : input) {
     if (curr_opus_decode(static_cast<curr_OpusDecoder*>(decoder.get()), packet.data(), static_cast<int>(packet.size()), pcm.data(), frame_size, 0) != frame_size)
       throw std::runtime_error("Optional processing decode failed");
   }
-  return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+  return {std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count(), applied_level};
 }
 
 auto median(std::vector<double> values) -> double {
@@ -53,6 +61,7 @@ auto median(std::vector<double> values) -> double {
 struct measurement {
   packets speech;
   std::array<std::vector<double>, 4> decode;
+  std::array<int, 4> decode_applied{-1, -1, -1, -1};
   std::array<std::vector<double>, 2> encode;
 };
 
@@ -73,9 +82,13 @@ int main(int argc, char** argv) {
         auto& item = measurements[i];
         for (int trial = 0; trial < 4; ++trial) {
           const int level = (trial + rep) % 4;
-          const auto elapsed = decode_minute(item.speech, level);
+          const auto decoded = decode_minute(item.speech, level);
+          if (item.decode_applied[level] < 0)
+            item.decode_applied[level] = decoded.applied_level;
+          else if (item.decode_applied[level] != decoded.applied_level)
+            throw std::runtime_error("Optional processing applied level changed");
           if (rep)
-            item.decode[level].push_back(elapsed);
+            item.decode[level].push_back(decoded.milliseconds);
         }
         for (int trial = 0; trial < 2; ++trial) {
           const int enabled = (trial + rep) % 2;
@@ -85,7 +98,7 @@ int main(int argc, char** argv) {
         }
       }
     }
-    std::cout << "bitrate,off_ms,light_ms,strong_ms,auto_ms,denoise_off_ms,denoise_on_ms\n"
+    std::cout << "bitrate,off_ms,light_ms,strong_ms,auto_ms,denoise_off_ms,denoise_on_ms,off_applied_level,light_applied_level,strong_applied_level,auto_applied_level\n"
               << std::fixed << std::setprecision(6);
     for (std::size_t i = 0; i < rates.size(); ++i) {
       std::cout << rates[i];
@@ -93,6 +106,8 @@ int main(int argc, char** argv) {
         std::cout << ',' << median(values);
       for (const auto& values : measurements[i].encode)
         std::cout << ',' << median(values);
+      for (const int applied : measurements[i].decode_applied)
+        std::cout << ',' << applied;
       std::cout << '\n';
     }
     return 0;

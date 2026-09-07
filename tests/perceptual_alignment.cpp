@@ -56,6 +56,19 @@ int main() {
           opt.pcm16 = pcm16;
           for (bool official : {false, true}) {
             const auto output = run_variant("alignment", clip, clip.samples, opt, official);
+            if (!official) {
+              auto legacy = opt;
+              legacy.current_postfilter_level = 3;
+              const auto requested = run_variant("retired processing", clip, clip.samples, legacy, false);
+              if (requested.postfilter_applied_level != 0 || requested.decoded != output.decoded)
+                throw std::runtime_error("retired processing request misreported or changed PCM");
+              legacy.current_postfilter_level = 0;
+              legacy.current_voice_denoise = true;
+              const auto denoised = run_variant("denoise setting", clip, clip.samples, legacy, false);
+              const int expected = channels == 1 && application == OPUS_APPLICATION_VOIP;
+              if (denoised.voice_denoise_applied != expected || (!expected && denoised.decoded != output.decoded))
+                throw std::runtime_error("denoiser request misreported or changed unsupported input");
+            }
             if (output.decoded.size() != clip.samples.size() || output.score.sample_count != clip.samples.size() ||
                 output.score.packets != 6) {
               throw std::runtime_error("incorrect aligned duration or flush frames included in packet statistics");

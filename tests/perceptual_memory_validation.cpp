@@ -44,6 +44,8 @@ namespace fs = std::filesystem;
 constexpr int sample_rate = 48000;
 constexpr int frame_size = 960;
 constexpr double pi = 3.141592653589793238462643383279502884;
+constexpr int opuscpp_get_decode_postfilter_request = 5101;
+constexpr int opuscpp_get_voice_denoise_request = 5103;
 constexpr int opuscpp_set_decode_postfilter_request = 5100;
 constexpr int opuscpp_set_voice_denoise_request = 5102;
 
@@ -103,6 +105,8 @@ struct result final {
   std::string name;
   totals score{};
   std::vector<float> decoded;
+  int postfilter_applied_level = 0;
+  int voice_denoise_applied = 0;
 };
 
 [[nodiscard]] auto clampd(double v, double lo, double hi) noexcept -> double {
@@ -596,6 +600,16 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
                           : make_current_encoder(clip.channels, opt.bitrate, opt.application, opt.current_voice_denoise, opt.complexity);
   auto decoder = official ? make_official_decoder(clip.channels, opt.official_decoder_complexity)
                           : make_current_decoder(clip.channels, opt.current_postfilter_level);
+  int postfilter_applied_level = 0;
+  if (!official && curr_opus_decoder_ctl(static_cast<curr_OpusDecoder*>(decoder.get()), opuscpp_get_decode_postfilter_request,
+                                         &postfilter_applied_level) != OPUS_OK) {
+    throw std::runtime_error("current decoder postfilter getter failed");
+  }
+  int voice_denoise_applied = 0;
+  if (!official && curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), opuscpp_get_voice_denoise_request,
+                                         &voice_denoise_applied) != OPUS_OK) {
+    throw std::runtime_error("current encoder voice denoise getter failed");
+  }
   std::int32_t lookahead = 0;
   const int lookahead_status = official ? opus_encoder_ctl(static_cast<OpusEncoder*>(encoder.get()), OPUS_GET_LOOKAHEAD_REQUEST, &lookahead)
                                         : curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), OPUS_GET_LOOKAHEAD_REQUEST, &lookahead);
@@ -656,7 +670,8 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   decoded.erase(decoded.begin(), decoded.begin() + static_cast<std::ptrdiff_t>(lookahead * clip.channels));
   decoded.resize(clip.samples.size());
   add_metrics(score, reference, decoded, clip.channels);
-  return {.name = std::move(name), .score = score, .decoded = std::move(decoded)};
+  return {.name = std::move(name), .score = score, .decoded = std::move(decoded), .postfilter_applied_level = postfilter_applied_level,
+          .voice_denoise_applied = voice_denoise_applied};
 }
 
 void write_u16(std::ostream& out, std::uint16_t v) {
@@ -896,17 +911,19 @@ void run_quality(const options& opt) {
     reference = reference_storage.samples;
   }
   const int official_bitrate = opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
+  const auto current = run_variant("current", clip, reference, opt, false);
+  const auto official = run_variant("official", clip, reference, opt, true);
   std::cout << "perceptual validation bitrate=" << opt.bitrate << " official_bitrate=" << official_bitrate
             << " input=" << opt.input.string() << " reference=" << (opt.reference.empty() ? opt.input : opt.reference).string()
             << " official_decoder_complexity=" << opt.official_decoder_complexity
             << " complexity=" << opt.complexity
-            << " channels=" << clip.channels << " current_postfilter_level=" << opt.current_postfilter_level
-            << " current_voice_denoise=" << opt.current_voice_denoise << " pcm16=" << opt.pcm16
+            << " channels=" << clip.channels << " current_postfilter_level=" << current.postfilter_applied_level
+            << " current_postfilter_requested_level=" << opt.current_postfilter_level
+            << " current_voice_denoise=" << current.voice_denoise_applied
+            << " current_voice_denoise_requested=" << opt.current_voice_denoise << " pcm16=" << opt.pcm16
             << " alignment=encoder_lookahead"
             << " spectral_channels=independent"
             << " frames=" << (clip.samples.size() / static_cast<std::size_t>(frame_size * clip.channels)) << '\n';
-  const auto current = run_variant("current", clip, reference, opt, false);
-  const auto official = run_variant("official", clip, reference, opt, true);
   write_listening(opt, clip, reference, current, official);
   print_result("  current ", current.score);
   print_result("  official", official.score);
