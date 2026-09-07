@@ -608,6 +608,9 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   auto score = totals{};
   const auto samples_per_frame = static_cast<std::size_t>(frame_size * clip.channels);
   const auto frames = clip.samples.size() / samples_per_frame;
+  if (frames == 0) {
+    throw std::runtime_error(name + " input has no complete 20 ms frames");
+  }
   const auto flush_frames = static_cast<std::size_t>((lookahead + frame_size - 1) / frame_size);
   auto decoded = std::vector<float>((frames + flush_frames) * samples_per_frame);
   const auto silence = std::vector<std::int16_t>(samples_per_frame);

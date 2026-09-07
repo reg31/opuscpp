@@ -28,6 +28,19 @@ int main() {
     opt.bitrate = 256000;
     for (int channels : {1, 2}) {
       clip_data clip{.label = "alignment", .channels = channels, .samples = {}};
+      for (const int samples : {0, channels}) {
+        clip.samples.resize(static_cast<std::size_t>(samples));
+        for (const bool official : {false, true}) {
+          bool rejected = false;
+          try {
+            static_cast<void>(run_variant("empty input", clip, clip.samples, opt, official));
+          } catch (const std::runtime_error& error) {
+            rejected = std::string_view{error.what()}.find("no complete 20 ms frames") != std::string_view::npos;
+          }
+          if (!rejected)
+            throw std::runtime_error("quality measurement accepted input without a complete frame");
+        }
+      }
       clip.samples.resize(static_cast<std::size_t>(6 * frame_size * channels));
       for (int i = 0; i < 6 * frame_size; ++i) {
         for (int ch = 0; ch < channels; ++ch) {
@@ -63,7 +76,7 @@ int main() {
         }
       }
     }
-    std::cout << "perceptual_alignment=PASS (stereo negative controls; 24 roundtrips, three applications, float/PCM16)\n";
+    std::cout << "perceptual_alignment=PASS (empty input rejected; stereo negative controls; 24 roundtrips, three applications, float/PCM16)\n";
     return 0;
   } catch (const std::exception& error) {
     std::cerr << "perceptual_alignment=FAIL: " << error.what() << '\n';
