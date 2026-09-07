@@ -1722,6 +1722,12 @@ struct VoiceDenoiseState {
   opus_val32 noise_variance;
 };
 
+static void reset_voice_denoise_state(VoiceDenoiseState& state) noexcept {
+  state = {};
+  state.gain.fill(1);
+  state.target_gain.fill(1);
+}
+
 struct OpusEncoder {
   opus_uint16 celt_enc_offset, silk_enc_offset;
   silk_EncControlStruct silk_mode;
@@ -2706,6 +2712,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if (max_data_bytes < 3 || st->bitrate_bps < 3 * frame_rate * 8 ||
       (frame_rate < 50 && (max_data_bytes * static_cast<opus_int32>(frame_rate) < 300 || st->bitrate_bps < 2400))) {
+    if (st->voice_denoise != nullptr && frame_metrics.is_silence) {
+      reset_voice_denoise_state(*st->voice_denoise);
+    }
     return encode_low_rate_packet(st, frame_size, out_data_bytes, max_data_bytes, data);
   }
   if (first) {
@@ -3364,12 +3373,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     ret = orig_max_data_bytes;
   }
   return ret;
-}
-
-static void reset_voice_denoise_state(VoiceDenoiseState& state) noexcept {
-  state = {};
-  state.gain.fill(1);
-  state.target_gain.fill(1);
 }
 
 [[nodiscard]] static auto ensure_voice_denoise_state(OpusEncoder* st) noexcept -> bool {
