@@ -105,7 +105,6 @@ python3 tests/scripts/run_wer_validation.py \
     --application voip \
     --gain-db 0,-12,-24 \
     --snr-db clean,20,10,5,0 \
-    --postfilter 3 \
     --max-average-wer 0.12 \
     --max-case-wer 0.30
 ```
@@ -115,9 +114,6 @@ print the recognized text to stdout. Use `OPUSCPP_ASR_COMMAND` instead of `--asr
 prefer environment configuration. Reports are written under `build/wer_validation/`.
 `--gain-db` is applied before encoding and before optional noise injection; use it to validate quiet
 voice robustness without needing separate low-volume source files.
-Use `--postfilter 0` for the public decoder default or `--postfilter 3` to validate adaptive speech
-postfilter output.
-
 For regression gating, pass `--baseline tests/metrics/wer_results.json --max-wer-regression 0.02`.
 Add `--update-baseline` only after listening/ASR review confirms the new result is better.
 
@@ -401,63 +397,6 @@ and complexities 0, 5 and 10. Build it as one translation unit:
 c++ -std=c++23 -O2 -DNDEBUG tests/voice_denoise_state.cpp -o build/voice_denoise_state
 build/voice_denoise_state
 ```
-
-### Optional speech postfilter
-
-Adaptive postfilter mode (`3`) is a speech-smoothing option, not an automatic quality guarantee.
-The current PCM16 comparison finds +0.1380 PESQ-style at 32&nbsp;kbps, but
--0.0114 ViSQOL-style and a lower CELT proxy. Default unfiltered output
-remains the baseline; audition optional smoothing rather than assuming every metric improves.
-
-Auto adds 1.7% to 10.3% end-to-end PCM16 decode time and decodes 60 seconds in
-0.046 to 0.075 seconds. Even unchanged samples can involve optional-path
-decision/state work. These timings use actual public modes, not a modified zero-gain decoder.
-Each value is the median of nine isolated decodes after warm-up; mode order rotates.
-
-| Bitrate | PESQ-style gain from auto | ViSQOL-style gain from auto | PCM16 auto decode overhead |
-|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0000 | +0.0000 | 4.7% |
-| 24&nbsp;kbps | +0.0008 | +0.0001 | 3.6% |
-| 32&nbsp;kbps | +0.1380 | -0.0114 | 10.3% |
-| 48&nbsp;kbps | +0.0000 | +0.0000 | 5.1% |
-| 64&nbsp;kbps | +0.0000 | +0.0000 | 1.7% |
-| 96&nbsp;kbps | +0.0547 | -0.0071 | 5.3% |
-| 128&nbsp;kbps | +0.0537 | -0.0091 | 5.0% |
-| 192&nbsp;kbps | +0.0623 | -0.0116 | 4.2% |
-| 256&nbsp;kbps | +0.0610 | -0.0135 | 3.7% |
-
-Source CSVs:
-
-- `metrics/postfilter_quality_voip.csv`
-- `metrics/postfilter_pcm16_path.csv`
-
-PCM16 time to decode 60 seconds (not time per frame):
-
-| Bitrate | Off | Light | Stronger | Adaptive |
-|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 49.898 ms | 53.539 ms | 53.943 ms | 52.221 ms |
-| 24&nbsp;kbps | 56.222 ms | 59.872 ms | 59.906 ms | 58.228 ms |
-| 32&nbsp;kbps | 59.373 ms | 63.755 ms | 63.749 ms | 65.498 ms |
-| 48&nbsp;kbps | 64.761 ms | 68.687 ms | 68.653 ms | 68.096 ms |
-| 64&nbsp;kbps | 67.713 ms | 71.788 ms | 72.591 ms | 68.889 ms |
-| 96&nbsp;kbps | 43.584 ms | 45.854 ms | 45.985 ms | 45.912 ms |
-| 128&nbsp;kbps | 53.503 ms | 56.124 ms | 56.291 ms | 56.157 ms |
-| 192&nbsp;kbps | 61.821 ms | 63.900 ms | 65.647 ms | 64.420 ms |
-| 256&nbsp;kbps | 72.265 ms | 73.858 ms | 75.108 ms | 74.909 ms |
-
-Reproduce optional timing after building the comparison object/library:
-
-```bash
-c++ -std=c++23 -O2 -DNDEBUG -I tests tests/optional_processing_benchmark.cpp \
-    build/official_compare_report/perceptual/curr_opus_codec.o \
-    build/official_opus_o2_intrinsics_mingw/libopus.a -o build/optional_processing_benchmark
-build/optional_processing_benchmark speech.wav noisy_speech.wav
-```
-
-Both inputs must be 48 kHz mono PCM16 WAV. The postfilter uses `speech.wav`; denoiser timing uses
-`noisy_speech.wav`. Use the same inputs/settings as the quality check for a comparable result.
-The full-report wrapper refreshes core comparisons; these optional-input measurements are separate.
-
 
 ## Memory metrics
 

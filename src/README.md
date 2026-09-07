@@ -180,32 +180,7 @@ encoded stream; it measures damage from packet loss, not total error against the
 |---|---|---|
 | `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
-| `OPUSCPP_SET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_SET_DECODE_POSTFILTER(x)` | Speech-oriented `opuscpp` output postfilter: `0` off, `1` lower-work light, `2` stronger, `3` adaptive; default is off for RFC-compatible decoder output. |
-| `OPUSCPP_GET_DECODE_POSTFILTER_REQUEST` | `OPUSCPP_GET_DECODE_POSTFILTER(&x)` | Returns the output-postfilter level. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |
-
-The decoder postfilter is intentionally `opuscpp`-specific and does not change packet syntax or
-encoder interoperability. The default level is `0`, so normal decoder output remains RFC-compatible.
-It gently suppresses high-frequency quantization noise, harshness, and ringing at selected bitrates.
-Adaptive mode (`3`) uses bitrate, packet mode, channel count, and speech activity to select bypass,
-light processing, or full-strength processing. The trade-off is potentially softer treble while filtering
-is active. On the common direct PCM16 mono path, light processing updates its low-pass state once per
-sample pair while stronger processing tracks every sample. In the current repeated-speech benchmark, light processing adds 2.2% to 7.4%
-over unfiltered decoding; adaptive processing adds 1.7% to 10.3%. These are end-to-end
-PCM16 costs, not isolated filter timings.
-
-| Level | Recommended use |
-|---:|---|
-| `0` (off) | General audio, music, validation, speech-to-text, and applications requiring the plainest decoder output. This is the default. |
-| `1` (light) | Mild harshness or ringing where preserving treble is more important than maximum smoothing. |
-| `2` (stronger) | Clearly noisy low-bitrate speech where stronger smoothing is preferred despite a greater risk of dulling treble. |
-| `3` (adaptive) | Optional speech playback smoothing: audition before enabling. It uses packet metadata and activity estimates, not a guaranteed best-quality decision. Tracked PESQ-style gains have ViSQOL-style trade-offs. Not recommended for music. |
-
-Published quality metrics use the default unfiltered output.
-The 2026-09-06 aligned comparison finds +0.1380 PESQ-style but -0.0114 ViSQOL-style at 32 kbps
-with adaptive mode on the tracked mono speech sample. This trade-off, rather than an all-metric win,
-is why the filter remains opt-in.
-Detailed quality and decode-cost measurements are in the [optional speech postfilter section](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-postfilter).
 
 ## Unsupported API areas
 

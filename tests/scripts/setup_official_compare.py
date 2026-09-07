@@ -724,7 +724,7 @@ def run_api_behavior_validation(
     build_dir.mkdir(parents=True, exist_ok=True)
     results: list[str] = []
     suffix = ".exe" if os.name == "nt" else ""
-    for name in ("decoder_channel_remap", "packet_duration_behavior", "vbr_budget_behavior", "dtx_behavior"):
+    for name in ("decoder_channel_remap", "packet_duration_behavior", "vbr_budget_behavior", "dtx_behavior", "postfilter_bypass"):
         exe = link_executable(
             cxx,
             [repo_root / "tests" / f"{name}.cpp", repo_root / "src" / "opus_codec.cpp"],

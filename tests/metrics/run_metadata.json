@@ -165,8 +165,8 @@
     "decode_speed_vs_official.csv": "70124b861f5ba2204ad14d1727599ff4a3ea565035cd85b19e6bdd639fa75efd",
     "encode_speed_vs_official.csv": "b92bb1cac22026dd619c0b90e0fe75a929bd92f59da9765bd1b167f4fd7fcdef",
     "memory_vs_official.csv": "b1fc45f2fa4ed1b3d66a1d7d93e6727f2889b235fc75adf2b85a0023dcb399e8",
-    "postfilter_pcm16_path.csv": "512ce3d87b4b9bc050661b41e7660dd7724b6dc039b2c7f7b40d7243e297e3f5",
-    "postfilter_quality_voip.csv": "cd4fb6cdf704310aa5666830cb93ce1a8bff00fe3f1f642141d6011e6cfeea17",
+    "postfilter_pcm16_path.csv": "9b2c029764b465b4902e486bc5f4e9226d5c7c9fcaaa3f3422b45c0ffa4a6792",
+    "postfilter_quality_voip.csv": "a0e46e89b40f4faf97f04b18f5447da600ff634d8e3055fee64678d6be30ff8f",
     "quality_broad.csv": "ab3e7edcb4256e958b43323ee54cb8c8f8343decfbfd900e5535e4ffc8767576",
     "quality_vs_official.csv": "78cf3c850d85c45515807c6a13f334299257de6f84f33a11391d61787c3fe4ca",
     "quality_vs_official_voip.csv": "bced79aa401edff8ba28603b3ee22ca46bfdacb70a27d2275c965d9ad03dec33",
@@ -177,5 +177,61 @@
     "voice_denoise_timing.csv": "2d0920831f5671dd91fddc549a22c0d3ac3d0de29371bcf5a0ef5b47c0016880",
     "voice_denoise_vs_previous.csv": "6fa2eb2e484b0e3cf888db95a5eb6ecbf8e41ae3ee2768f0ace3b2d06c2274a2"
   },
-  "csv_sha256_format": "UTF-8, LF line endings"
+  "csv_sha256_format": "UTF-8, LF line endings",
+  "postfilter_refresh": {
+    "date": "2026-09-06",
+    "scope": "Postfilter-only safe-bypass refresh. Core benchmark, memory and binary snapshots retain their original full-run source provenance.",
+    "source_sha256": "cba23108e1f4f276cdfbdf1abb3107be1d56dfd45a3fc471d93f85eaa2188d7a",
+    "source_canonical_sha256": "8c787254d8f7cf965b43e96aabeee3fed9f23fd54813d677d5c3e102cdf41d4c",
+    "mode3": "Exact default-output path; no analysis, smoothing, or optional filter-state updates.",
+    "quality_comparisons": 24,
+    "quality_delta": "All measured quality scores and packet bytes exactly equal to mode 0.",
+    "api_sequences": 720,
+    "before_after_frame_comparisons": 154800,
+    "rfc": {
+      "passed": "24",
+      "total": "24",
+      "vector_set": "rfc8251"
+    },
+    "sanitizer": "Trapping GCC UBSan and float-cast-overflow: 720 bypass sequences passed.",
+    "android": "NDK 30 arm64 API24 cross-build, -O2 -DNDEBUG -Wall -Wextra -Wpedantic -Werror: passed; not a device runtime test.",
+    "timing": {
+      "audio_seconds": 60,
+      "measured_runs": 9,
+      "warmup_runs": 1,
+      "affinity_mask": 16,
+      "priority": "high",
+      "parallel_workloads": false,
+      "source": "Generated mono speech, six seconds repeated to sixty; public modes 0/1/2/3; same packets.",
+      "interpretation": "Mode 0 and mode 3 execute the same path. Signed timing differences are retained and are not a filter cost or gain."
+    }
+  },
+  "postfilter_retirement": {
+    "date": "2026-09-07",
+    "source_sha256": "022fbcdb89fc6794be8e6a6b50aa3abc134b904e97dd3851cc3656b42d7bdf2f",
+    "status": "Optional speech smoothing removed; no decoder processing branch or filter state remains.",
+    "compatibility": "Legacy requests accept values 0..3 as no-ops; getter returns 0. Invalid values still return OPUS_BAD_ARG.",
+    "before_quality": {
+      "cases": 54,
+      "light_main_proxy_regressions": 50,
+      "strong_main_proxy_regressions": 53
+    },
+    "validation": {
+      "rfc": {
+        "passed": "24",
+        "total": "24",
+        "vector_set": "rfc8251"
+      },
+      "exact_before_after_frames": 154800,
+      "legacy_api_sequences": 720,
+      "sanitizer": "Trapping GCC UBSan, float-cast-overflow, and libstdc++ assertions passed.",
+      "host": "GCC 16.2 C++23 -O2 -DNDEBUG -Wall -Wextra -Wpedantic -Werror passed.",
+      "android": "NDK 30 arm64 API24 C++23 -O2 -DNDEBUG -Wall -Wextra -Wpedantic -Werror cross-build passed; no device runtime claim."
+    },
+    "historical_optional_csvs": [
+      "postfilter_quality_voip.csv",
+      "postfilter_pcm16_path.csv"
+    ],
+    "historical_optional_csv_note": "These describe the previous implementation and are no longer advertised as current processing results. No new speed claim is made by this retirement."
+  }
 }

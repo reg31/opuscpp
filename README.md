@@ -82,7 +82,7 @@ See `src/README.md` for the supported functions, constants, and CTLs. The short 
 - Encoder: create/destroy/ctl, `opus_encode`, `opus_encode_float`, and a zero-copy C++23 `std::span` overload for `opus_encode`.
 - Decoder: create/destroy/ctl, `opus_decode`, `opus_decode_float`, and a zero-copy C++23 `std::span` overload for `opus_decode`.
 - Utility: `opus_packet_get_nb_samples`, `opus_strerror`.
-- CTLs: bitrate, VBR, constrained VBR, in-band FEC, expected packet loss, guarded DTX, complexity, reset, final range, last packet duration, plus `OPUSCPP_SET_VOICE_DENOISE(x)` and `OPUSCPP_SET_DECODE_POSTFILTER(x)`, see the [measured speech-processing quality and cost](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
+- CTLs: bitrate, VBR, constrained VBR, in-band FEC, expected packet loss, guarded DTX, complexity, reset, final range, last packet duration, plus `OPUSCPP_SET_VOICE_DENOISE(x)`, see the [measured speech-processing quality and cost](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 
 Unsupported families include custom Opus, multistream helpers, repacketizer helpers, projection
 APIs, and unsupported CTLs not listed in `src/README.md`.
@@ -132,14 +132,6 @@ VOIP mono speech-like quality spot check:
 | 128&nbsp;kbps | +0.0024 | -0.0040 | 128.000 kbps | 128.503 kbps |
 | 192&nbsp;kbps | +0.0005 | -0.0009 | 192.000 kbps | 192.421 kbps |
 | 256&nbsp;kbps | +0.0012 | -0.0001 | 256.000 kbps | 256.415 kbps |
-
-The optional adaptive speech postfilter is excluded from the default-output figures. On the tracked
-mono VOIP sample, mode `3` adds `+0.1380` PESQ-style at 32&nbsp;kbps, but
-ViSQOL-style changes by `-0.0114` and the CELT proxy also decreases. It is
-a smoothing trade-off, not an automatic quality improvement. Its PCM16 path adds 1.7% to
-10.3% end-to-end decode time across the tracked ladder and decodes 60 seconds in
-0.046 to 0.075 seconds on this system. Keep it off unless that smoothing is preferred;
-see the [optional-processing results](tests/README.md#optional-speech-postfilter).
 
 Mode-selection check at 32&nbsp;kbps mono: for the synthetic spoken-voice sample, AUDIO mode selected
 CELT for 95.7% of frames and hybrid for 4.3%. For the sustained harmonic/music sample, it selected
