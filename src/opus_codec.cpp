@@ -2676,8 +2676,23 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (max_data_bytes == 1 && st->Fs == (frame_size * 10)) {
     return -2;
   }
-  auto* celt_enc = encoder_celt_state(st);
   const int frame_rate = st->Fs / frame_size;
+  encoder_frame_analysis analysis;
+  auto staged_width_mem = st->width_mem;
+  if (st->channels == 1) {
+    analysis.activity = measure_frame_activity(pcm, frame_size, 1, lsb_depth);
+  } else {
+    analysis.activity = measure_frame_activity<true>(pcm, frame_size, 2, lsb_depth, &staged_width_mem, &analysis.stereo_width, st->Fs);
+  }
+  const auto& frame_metrics = analysis.activity;
+  if (float_api && (!std::isfinite(frame_metrics.energy) || frame_metrics.energy >= 1e9f / (frame_size * st->channels))) {
+    return OPUS_BAD_ARG;
+  }
+  if (st->channels == 2) {
+    st->width_mem = staged_width_mem;
+  }
+
+  auto* celt_enc = encoder_celt_state(st);
   st->bitrate_bps = user_bitrate_to_bitrate(st, frame_rate, max_data_bytes);
   const bool previous_stereo_policy = st->prev_mode != 0 && celt_enc->stereo_policy_celt;
   const bool previous_unsteady = st->stereo_recovery_frames != 0;
@@ -2697,16 +2712,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
 
   std::array<opus_res, encoder_max_stage_samples> stage_buffer_storage;
-  encoder_frame_analysis analysis;
-  if (st->channels == 1) {
-    analysis.activity = measure_frame_activity(pcm, frame_size, 1, lsb_depth);
-  } else {
-    analysis.activity = measure_frame_activity<true>(pcm, frame_size, 2, lsb_depth, &st->width_mem, &analysis.stereo_width, st->Fs);
-  }
-  const auto& frame_metrics = analysis.activity;
-  if (float_api && (!std::isfinite(frame_metrics.energy) || frame_metrics.energy >= 1e9f / (frame_size * st->channels))) {
-    return OPUS_BAD_ARG;
-  }
   if (!frame_metrics.is_silence) {
     st->peak_signal_energy = std::max<opus_val32>(0.999f * st->peak_signal_energy, frame_metrics.energy);
   }

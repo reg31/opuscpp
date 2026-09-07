@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <vector>
 #include "../src/opus_codec.cpp"
@@ -58,6 +59,24 @@ bool check(settings config, int pattern, bool should_activate) {
     const int bytes = opus_encode(enc.get(), input.data(), framesize, packet.data(), packet.size());
     if (bytes <= 0 || opus_decode(dec.get(), packet.data(), bytes, output.data(), framesize, 0) != framesize)
       return false;
+    if (frame == 75) {
+      const auto width = enc->width_mem;
+      const auto remainder = enc->vbr_target_remainder;
+      const auto bitrate = enc->bitrate_bps;
+      const auto policy = encoder_celt_state(enc.get())->stereo_policy_celt;
+      std::vector<float> invalid(input.size());
+      std::transform(input.begin(), input.end(), invalid.begin(), [](opus_int16 value) { return value / 32768.f; });
+      for (const float value : std::array{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), 1e20f}) {
+        invalid.front() = value;
+        if (opus_encode_float(enc.get(), invalid.data(), framesize, packet.data(), 3) != OPUS_BAD_ARG || enc->rangeFinal != 0 ||
+            enc->vbr_target_remainder != remainder || enc->bitrate_bps != bitrate || encoder_celt_state(enc.get())->stereo_policy_celt != policy ||
+            enc->width_mem.XX != width.XX || enc->width_mem.XY != width.XY || enc->width_mem.YY != width.YY ||
+            enc->width_mem.smoothed_width != width.smoothed_width || enc->width_mem.max_follower != width.max_follower) {
+          std::cerr << "rejected float input changed encoder state\n";
+          return false;
+        }
+      }
+    }
     if (frame == 0)
       first_packet.assign(packet.begin(), packet.begin() + bytes);
     if (frame == 150) {
@@ -88,5 +107,5 @@ int main() {
     if (!check(config, 0, false))
       return 1;
   }
-  std::cout << "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, reset, roundtrip)\n";
+  std::cout << "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, rejected float input, reset, roundtrip)\n";
 }
