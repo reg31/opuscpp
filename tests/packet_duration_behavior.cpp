@@ -1,5 +1,6 @@
 #include "opus_codec.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -16,10 +17,40 @@ namespace {
   return true;
 }
 
+bool check_cbr_capacity() {
+  for (const int application : {OPUS_APPLICATION_AUDIO, OPUS_APPLICATION_VOIP, OPUS_APPLICATION_RESTRICTED_LOWDELAY}) {
+    for (const int channels : {1, 2}) {
+      std::array<opus_int16, 11520> input{}, output{};
+      for (int i = 0; i < 5760; ++i)
+        for (int channel = 0; channel < channels; ++channel)
+          input[i * channels + channel] = static_cast<opus_int16>(7000 * std::sin(6.283185307179586 * (443 + 127 * channel) * i / 48000));
+      for (const int frame_size : {1920, 2880, 5760}) {
+        for (const int capacity : {399, 400, 401, 639, 640, 641}) {
+          auto encoder = make_opus_encoder(48000, channels, application, nullptr);
+          auto decoder = make_opus_decoder(48000, channels, nullptr);
+          if (!encoder || !decoder || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(128000)) || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(0)))
+            return false;
+          std::array<unsigned char, 650> packet;
+          packet.fill(0xA5);
+          const int length = opus_encode(encoder.get(), input.data(), frame_size, packet.data(), capacity);
+          const int expected = std::min(capacity, 128000 * frame_size / 48000 / 8);
+          if (!expect_eq(length, expected, "capacity-limited multiframe CBR") ||
+              !std::all_of(packet.begin() + capacity, packet.end(), [](unsigned char value) { return value == 0xA5; }))
+            return false;
+          if (!expect_eq(opus_packet_get_nb_samples(packet.data(), length, 48000), frame_size, "capacity-limited CBR duration") ||
+              !expect_eq(opus_decode(decoder.get(), packet.data(), length, output.data(), frame_size, 0), frame_size, "decode capacity-limited CBR"))
+            return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 } // namespace
 
 int main() {
-  auto ok = true;
+  auto ok = check_cbr_capacity();
 
   constexpr std::array<unsigned char, 4> code0_20ms{0x78, 1, 2, 3};
   constexpr std::array<unsigned char, 7> code1_20ms{0x79, 1, 2, 3, 4, 5, 6};
