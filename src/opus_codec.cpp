@@ -286,6 +286,7 @@ struct OpusEncoder;
 struct CeltEncoderInternal;
 struct CeltDecoderInternal;
 struct CeltModeInternal;
+struct quality_history_state;
 [[nodiscard]] static constexpr auto celt_mode() noexcept -> const CeltModeInternal*;
 using opus_val16 = float;
 using opus_val32 = float;
@@ -371,12 +372,13 @@ struct CeltEncoderInternal {
   int channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
   int vbr, constrained_vbr, lsb_depth;
-  bool prediction_disabled, audio_application, stereo_policy_celt;
+  bool prediction_disabled, audio_application, voip_application, stereo_policy_celt;
   opus_uint8 stereo_coherence_Q8;
+  quality_history_state* quality_history;
   opus_uint32 rng;
   opus_uint16 prefilter_period;
   opus_uint8 high_z_tonal_Q7, input_diff_Q10, consec_transient, lastCodedBands;
-  bool lowrate_refinement, content_vbr;
+  bool lowrate_refinement, content_vbr, allocation_history_changed, pending_energy_refresh;
   opus_val32 delayedIntra, prefilter_gain;
   SILKInfo silk_info;
   opus_val32 preemph_memE[2];
@@ -395,6 +397,87 @@ struct alignas(8) CeltDecoderInternal {
   opus_val16 postfilter_gain, postfilter_gain_old;
   celt_sig preemph_memD[2];
 };
+
+constexpr int quality_input_delay_48k_audio = 312;
+
+struct OpusDecoder;
+constexpr std::size_t quality_celt_decoder_storage_max = 2 * (2048 + celt_default_overlap) + 4 * 2 * celt_default_nb_ebands + 2 * 24;
+struct quality_celt_snapshot {
+  CeltDecoderInternal state{};
+  std::array<celt_sig, quality_celt_decoder_storage_max> storage{};
+};
+static_assert(offsetof(quality_celt_snapshot, storage) == sizeof(CeltDecoderInternal));
+static_assert([] {
+  quality_celt_snapshot value{};
+  return static_cast<const void*>(&value.storage) == static_cast<const void*>(value.storage.data());
+}());
+struct quality_frame_work {
+  quality_celt_snapshot model{};
+  std::array<float, 1920> output{};
+  std::array<double, 7> score{};
+  std::array<std::array<float, 8>, 2> reference_bands{}, decoded_bands{};
+  int samples = 0, channels = 0;
+  bool decoded_ready = false;
+  bool active = false, analysis_ready = false;
+};
+
+enum class quality_tracking_status : int {
+  waiting = 1,
+  valid = 2,
+  unsupported_transition = 3,
+  unsupported_configuration = 4,
+  packet_rewritten = 5,
+  hybrid_only = 6,
+  unsupported_redundancy = 7,
+  silk_only = 8
+};
+struct quality_history_state {
+  OpusDecoder* decoder = nullptr;
+  std::array<std::array<float, quality_input_delay_48k_audio>, 2> input_delay{};
+  std::array<std::array<float, 8>, 2> reference_bands{}, decoded_bands{}, incoming_reference_bands{}, incoming_bands{};
+  const opus_int16* borrowed_input = nullptr;
+  const float* borrowed_float_input = nullptr;
+  int borrowed_frame_size = 0, borrowed_channels = 0, profile = 0;
+  unsigned frames = 0;
+  int packet_prev_mode = 0;
+  bool ready = false, packet_selection_ready = false, previous_packet_celt = false;
+  bool packet_prev_redundancy = false, optional_epoch_invalid = false;
+  quality_tracking_status status = quality_tracking_status::waiting;
+};
+static unsigned char quality_payload_byte(std::span<const unsigned char> payload, std::size_t index) {
+  return index < payload.size() ? payload[index] : 0;
+}
+static bool quality_resume_decoder(const ec_enc& checkpoint, std::span<unsigned char> payload, ec_dec& decoder) {
+  if (checkpoint.end_offs != 0 || checkpoint.end_window != 0 || checkpoint.nend_bits != 0 || checkpoint.nbits_total < 33 ||
+      ((checkpoint.nbits_total - 33) & 7) != 0 || checkpoint.rng <= ec_code_bot)
+    return false;
+  const auto k = static_cast<std::size_t>((checkpoint.nbits_total - 33) / 8);
+  opus_uint32 word = static_cast<opus_uint32>(quality_payload_byte(payload, k)) << 24;
+  word |= static_cast<opus_uint32>(quality_payload_byte(payload, k + 1)) << 16;
+  word |= static_cast<opus_uint32>(quality_payload_byte(payload, k + 2)) << 8;
+  word |= quality_payload_byte(payload, k + 3);
+  decoder = {};
+  decoder.buf = payload.data();
+  decoder.storage = static_cast<opus_uint32>(payload.size());
+  decoder.offs = static_cast<opus_uint32>(std::min(k + 4, payload.size()));
+  decoder.rng = checkpoint.rng;
+  decoder.val = (checkpoint.val + checkpoint.rng - 1 - (word >> 1)) & ec_code_mask;
+  decoder.nbits_total = checkpoint.nbits_total;
+  decoder.rem = quality_payload_byte(payload, k + 3);
+  return true;
+}
+static void quality_history_reset(quality_history_state&, int, int);
+static void quality_receiver_reset(quality_history_state&);
+static void quality_history_invalidate(quality_history_state&, quality_tracking_status);
+static void quality_history_invalidate_optional(quality_history_state&, quality_tracking_status);
+static auto quality_prepare_history(quality_history_state&, quality_frame_work&, int, int, int, int) -> bool;
+static auto quality_score_decoded(quality_history_state&, quality_frame_work&, int, int, int) -> std::array<double, 7>;
+static bool quality_probe_real_decoder(quality_history_state&, quality_frame_work&, const ec_enc&, unsigned char*, int, int, int, int, int);
+static bool quality_recover_redundancy(quality_history_state&, unsigned char*, int, int, int, int);
+static bool quality_recover_final_celt(quality_history_state&, unsigned char*, int, int, int, int);
+static void quality_snapshot_celt(const OpusDecoder*, quality_celt_snapshot&);
+static void quality_restore_celt(OpusDecoder*, const quality_celt_snapshot&);
+static void quality_commit_history(quality_history_state&, const quality_frame_work&);
 
 struct OpusDecoder;
 [[nodiscard]] constexpr auto bitrate_to_bits(opus_int32 bitrate, opus_int32 sample_rate, opus_int32 frame_size) noexcept -> opus_int32 {
@@ -1796,6 +1879,52 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
   return offset_ptr<CeltEncoderInternal>(st, st->celt_enc_offset);
 }
 
+static void release_quality_history(CeltEncoderInternal* celt) noexcept {
+  if (celt != nullptr && celt->quality_history != nullptr) {
+    opus_decoder_destroy(celt->quality_history->decoder);
+    std::destroy_at(celt->quality_history);
+    std::free(celt->quality_history);
+    celt->quality_history = nullptr;
+  }
+}
+
+static int quality_history_enable(OpusEncoder* st, int profile) noexcept {
+  if (st == nullptr || profile < 0 || profile > 3) {
+    return OPUS_BAD_ARG;
+  }
+  auto* celt = encoder_celt_state(st);
+  if (celt->quality_history == nullptr) {
+    auto* storage = std::malloc(sizeof(quality_history_state));
+    if (storage == nullptr) {
+      return OPUS_ALLOC_FAIL;
+    }
+    celt->quality_history = std::construct_at(static_cast<quality_history_state*>(storage));
+    int error = OPUS_OK;
+    celt->quality_history->decoder = opus_decoder_create(st->Fs, celt->channels, &error);
+    if (celt->quality_history->decoder == nullptr || error != OPUS_OK) {
+      release_quality_history(celt);
+      return error == OPUS_OK ? OPUS_ALLOC_FAIL : error;
+    }
+  }
+  celt->quality_history->profile = profile;
+  quality_history_reset(*celt->quality_history, celt->channels, celt->upsample);
+  return OPUS_OK;
+}
+
+static void prepare_quality_history(OpusEncoder* st) noexcept {
+  auto* celt = encoder_celt_state(st);
+  const bool content = (st->channels == 1 && st->application == OPUS_APPLICATION_VOIP) ||
+                       (st->channels == 2 && st->application == OPUS_APPLICATION_AUDIO);
+  if (celt->quality_history == nullptr && st->Fs == 48000 && celt->complexity == 10 && content &&
+      st->use_vbr && st->vbr_constraint && !st->use_dtx && !st->silk_mode.useInBandFEC) {
+    if (quality_history_enable(st, st->channels == 1 ? 2 : 1) == OPUS_OK && st->prev_mode != 0) {
+      auto& history = *celt->quality_history;
+      quality_history_invalidate(history, quality_tracking_status::unsupported_transition);
+      history.packet_prev_mode = st->prev_mode;
+    }
+  }
+}
+
 [[nodiscard]] static auto ensure_encoder_lbrr_state(OpusEncoder* st) noexcept -> bool {
   if (!encoder_uses_silk(st->application)) {
     return true;
@@ -1873,6 +2002,7 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   celt_encoder_init(celt_enc, Fs, channels);
   celt_enc->complexity = st->silk_mode.complexity;
   celt_enc->audio_application = application == OPUS_APPLICATION_AUDIO;
+  celt_enc->voip_application = application == OPUS_APPLICATION_VOIP;
   st->use_vbr = 1;
   st->vbr_constraint = 1;
   st->user_bitrate_bps = -1000;
@@ -2631,6 +2761,11 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       break;
     }
     tmp_len = finalize_dtx_packet(st, curr_data, tmp_len, emit_dtx);
+    if (emit_dtx) {
+      auto* history = encoder_celt_state(st)->quality_history;
+      if (history != nullptr)
+        quality_history_invalidate_optional(*history, quality_tracking_status::packet_rewritten);
+    }
     if (tmp_len == 1) {
       ++dtx_count;
     }
@@ -2968,6 +3103,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, frame_metrics, redundancy,
                                celt_to_silk, prefill, equiv_rate, to_celt, false, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
+  if (emit_dtx && celt_enc->quality_history != nullptr) {
+    quality_history_invalidate_optional(*celt_enc->quality_history, quality_tracking_status::packet_rewritten);
+  }
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
   } else if (governed_vbr && ret > 0) {
@@ -3093,6 +3231,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
   auto* celt_enc = encoder_celt_state(st);
+  const unsigned quality_frames_before = celt_enc->quality_history != nullptr ? celt_enc->quality_history->frames : 0;
+  if (auto* history = celt_enc->quality_history; history != nullptr) {
+    if (st->mode == opus_mode_silk_only) {
+      quality_history_invalidate(*history, quality_tracking_status::silk_only);
+    }
+  }
   opus_int32 voip_silk_boost = 0;
   auto refresh_redundancy = [&] {
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
@@ -3297,6 +3441,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   celt_enc->start = st->mode == opus_mode_celt_only ? 0 : 17;
   celt_enc->content_vbr = false;
+  if (auto* history = celt_enc->quality_history; history != nullptr && (st->use_dtx || st->silk_mode.useInBandFEC))
+    quality_history_invalidate_optional(*history, quality_tracking_status::packet_rewritten);
   if (st->mode != opus_mode_silk_only) {
     celt_enc->vbr = st->use_vbr;
     if (st->mode == opus_mode_hybrid) {
@@ -3321,6 +3467,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_encoder_reset_state(celt_enc);
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
+    }
+    if (auto* history = celt_enc->quality_history; history != nullptr) {
+      const bool mode_changed = history->packet_prev_mode > 0 && history->packet_prev_mode != st->mode;
+      const bool known_reset = history->packet_prev_mode == 0 || (mode_changed && !history->packet_prev_redundancy);
+      const bool recoverable_redundancy = redundancy && celt_to_silk && mode_changed && !history->packet_prev_redundancy;
+      if (known_reset && (redundancy == 0 || recoverable_redundancy))
+        quality_receiver_reset(*history);
+      else if (redundancy)
+        quality_history_invalidate(*history, quality_tracking_status::unsupported_redundancy);
     }
     if (!skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes) {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255);
@@ -3347,11 +3502,18 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       ec_enc_shrink(&enc, nb_compr_bytes);
     }
     celt_encode_with_ec(celt_enc, celt_pcm.data() + st->channels * (frame_size - N2 - N4), N4, dummy, 2, nullptr);
+    auto* quality_history = celt_enc->quality_history;
+    if (quality_history != nullptr) {
+      quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_redundancy);
+    }
     const int err = celt_encode_with_ec(celt_enc, celt_pcm.data() + st->channels * (frame_size - N2), N2, data + nb_compr_bytes,
                                         redundancy_bytes, nullptr);
     if (err < 0) {
       return -3;
     }
+    if (quality_history != nullptr && !quality_recover_redundancy(*quality_history, data + nb_compr_bytes, redundancy_bytes, N2,
+                                                                  celt_enc->end, celt_enc->stream_channels))
+      quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_redundancy);
     redundant_rng = celt_enc->rng;
   }
   data--;
@@ -3361,6 +3523,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->prev_channels = st->stream_channels;
   st->prev_framesize = frame_size;
   if (ec_tell(&enc) > (max_data_bytes - 1) * 8) {
+    if (celt_enc->quality_history != nullptr) {
+      quality_history_invalidate(*celt_enc->quality_history, quality_tracking_status::packet_rewritten);
+    }
     if (max_data_bytes < 2) {
       return -2;
     }
@@ -3376,6 +3541,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       return -3;
     }
     ret = orig_max_data_bytes;
+  }
+  if (auto* history = celt_enc->quality_history; history != nullptr && st->mode == opus_mode_celt_only &&
+                                                 history->ready && history->frames == quality_frames_before && st->use_vbr && ret > 1 && !redundancy) {
+    if (!quality_recover_final_celt(*history, data + 1, ret - 1, frame_size, celt_enc->end, st->stream_channels))
+      quality_history_invalidate(*history, quality_tracking_status::packet_rewritten);
+  }
+  if (auto* history = celt_enc->quality_history; history != nullptr && ret > 1) {
+    history->packet_prev_mode = st->mode;
+    history->packet_prev_redundancy = redundancy;
   }
   return ret;
 }
@@ -3603,9 +3777,45 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-  return frame_size <= celt_max_frame_samples
-             ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
-             : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
+
+  prepare_quality_history(st);
+  auto* history = encoder_celt_state(st)->quality_history;
+  if (history != nullptr) {
+    history->packet_selection_ready = history->previous_packet_celt && history->ready &&
+                                      decoder_celt_state(history->decoder)->start == 0 && decoder_celt_state(history->decoder)->last_frame_type == 1;
+    history->incoming_bands = history->decoded_bands;
+    history->incoming_reference_bands = history->reference_bands;
+    history->borrowed_input = nullptr;
+    history->borrowed_float_input = nullptr;
+    history->borrowed_frame_size = 0;
+    history->borrowed_channels = 0;
+    const int delay = st->Fs / 400 + encoder_delay_compensation(st);
+    if (history->profile >= 0 && st->Fs == 48000 &&
+        delay == quality_input_delay_48k_audio && frame_size > delay && frame_size <= celt_max_frame_samples) {
+      history->borrowed_input = pcm;
+      history->borrowed_frame_size = frame_size;
+      history->borrowed_channels = st->channels;
+    }
+  }
+  const int result = frame_size <= celt_max_frame_samples
+                         ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
+                         : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
+  if (history != nullptr && result > 0)
+    history->previous_packet_celt = (data[0] & 0x80) != 0;
+  if (history != nullptr && history->borrowed_input != nullptr) {
+    if (result > 0) {
+      constexpr int delay = quality_input_delay_48k_audio;
+      for (int c = 0; c < history->borrowed_channels; ++c) {
+
+        for (int i = 0; i < delay; ++i)
+          history->input_delay[c][i] = pcm[history->borrowed_channels * (frame_size - delay + i) + c] * (1.f / 32768);
+      }
+    }
+    history->borrowed_input = nullptr;
+    history->borrowed_frame_size = 0;
+    history->borrowed_channels = 0;
+  }
+  return result;
 }
 
 int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept {
@@ -3622,7 +3832,45 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
     return OPUS_BAD_ARG;
   }
   const int frame_size = frame_size_select(analysis_frame_size, st->Fs);
-  return frame_size <= 0 ? -1 : encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
+  if (frame_size <= 0) {
+    return -1;
+  }
+  prepare_quality_history(st);
+  auto* history = encoder_celt_state(st)->quality_history;
+  if (history != nullptr) {
+    history->packet_selection_ready = history->previous_packet_celt && history->ready &&
+                                      decoder_celt_state(history->decoder)->start == 0 && decoder_celt_state(history->decoder)->last_frame_type == 1;
+    history->incoming_bands = history->decoded_bands;
+    history->incoming_reference_bands = history->reference_bands;
+    history->borrowed_input = nullptr;
+    history->borrowed_float_input = nullptr;
+    history->borrowed_frame_size = 0;
+    history->borrowed_channels = 0;
+    const int delay = st->Fs / 400 + encoder_delay_compensation(st);
+    if (history->profile >= 0 && st->Fs == 48000 && delay == quality_input_delay_48k_audio && frame_size > delay &&
+        frame_size <= celt_max_frame_samples) {
+      history->borrowed_float_input = pcm;
+      history->borrowed_frame_size = frame_size;
+      history->borrowed_channels = st->channels;
+    }
+  }
+  const int result = encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
+  if (history != nullptr && result > 0)
+    history->previous_packet_celt = (data[0] & 0x80) != 0;
+  if (history != nullptr && history->borrowed_float_input != nullptr) {
+    if (result > 0) {
+      constexpr int delay = quality_input_delay_48k_audio;
+      for (int c = 0; c < history->borrowed_channels; ++c) {
+
+        for (int i = 0; i < delay; ++i)
+          history->input_delay[c][i] = pcm[history->borrowed_channels * (frame_size - delay + i) + c];
+      }
+    }
+    history->borrowed_float_input = nullptr;
+    history->borrowed_frame_size = 0;
+    history->borrowed_channels = 0;
+  }
+  return result;
 }
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
@@ -3634,6 +3882,9 @@ static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_e
   }
   zero_n_items(encoder_delay_buffer(st), encoder_delay_buffer_count(st->channels, st->application));
   celt_encoder_reset_state(celt_enc);
+  if (celt_enc->quality_history != nullptr) {
+    quality_history_reset(*celt_enc->quality_history, celt_enc->channels, celt_enc->upsample);
+  }
   if (encoder_uses_silk(st->application)) {
     reset_encoder_silk_state(st);
   }
@@ -5046,7 +5297,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
   follower[1] += (.5f) * low_rate_lf_boost;
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val16 tone_freq, opus_val32 toneishness) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val16 tone_freq, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -5117,6 +5368,11 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     const bool constrained_steady = (!st->vbr || st->constrained_vbr) && !isTransient;
     for (i = start; i < end; i++) {
       if (constrained_steady) {
+        if (extra_depth) {
+          const int first = eBands[i] << LM, width = (eBands[i + 1] - eBands[i]) << LM;
+          const float correlation = normalized && C == 2 ? clamp_value(celt_inner_prod_c(normalized + first, normalized + frame_n + first, width), -1.f, 1.f) : 0.f;
+          follower[i] *= 2.f - correlation * correlation;
+        }
         if (i >= 12) {
           follower[i] *= .25f;
         } else if (i >= 8) {
@@ -5412,6 +5668,7 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
 struct celt_input_metrics {
   std::array<opus_val32, celt_max_channels> abs_sum{};
   int silence{};
+  bool release{};
 };
 
 [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {
@@ -5492,6 +5749,7 @@ struct celt_input_metrics {
     st->overlap_max = tail_max;
     if (frame_max <= 65536.f) {
       const opus_val32 sample_max = std::max(frame_max, old_overlap_max);
+      metrics.release = tail_max < 0.125f * sample_max;
       metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
       return metrics;
     }
@@ -5501,6 +5759,7 @@ struct celt_input_metrics {
   opus_val32 sample_max = std::max<opus_val32>(st->overlap_max, celt_maxabs16(pcm, channels * (N - overlap) / st->upsample));
   st->overlap_max = celt_maxabs16(pcm + channels * (N - overlap) / st->upsample, channels * overlap / st->upsample);
   sample_max = std::max(sample_max, st->overlap_max);
+  metrics.release = st->overlap_max < 0.125f * sample_max;
   metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
   const bool need_clip = sample_max > 65536.f;
   for (int c = 0; c < channels; ++c) {
@@ -5628,7 +5887,11 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
-static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
+static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr) {
+  const bool quality_main_packet = enc != nullptr;
+  if (quality_work != nullptr) {
+    *quality_work = {};
+  }
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
   constexpr int nbEBands = celt_default_nb_ebands;
@@ -5718,6 +5981,11 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     isTransient = 1;
   }
   const bool transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
+  const bool protect_release = challenger && st->quality_history != nullptr && st->quality_history->profile > 0 &&
+                               st->allocation_history_changed && input_metrics.release && st->audio_application &&
+                               C == 2 && start == 0 && end == nbEBands && LM > 0 && st->complexity >= 1;
+  if (!silence && transient_enabled && protect_release)
+    isTransient = 1;
   const int transient_got_disabled = !transient_enabled;
   if (!transient_enabled && st->stereo_policy_celt) {
     isTransient = 0;
@@ -5731,6 +5999,14 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
   compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
   const auto temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
+  auto* quality_history = st->quality_history;
+  if (quality_history != nullptr && quality_work != nullptr && quality_main_packet) {
+    if (st->upsample == 1)
+      quality_prepare_history(*quality_history, *quality_work, start, end, C, CC);
+    else
+      quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
+  }
+
   copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
   if (transient_enabled) {
     ec_enc_bit_logp(enc, isTransient, 3);
@@ -5741,7 +6017,25 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   opus_int32 tot_boost = 0;
   const opus_val32 maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
                                                 &tot_boost, tone_frequency, toneishness);
-  std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
+
+  const bool proposal_content = (st->audio_application && C == 2) || (st->voip_application && C == 1);
+  const bool compare_allocation = challenger && quality_history != nullptr && quality_work != nullptr && quality_work->active &&
+                                  quality_main_packet && quality_history->profile > 0 && st->vbr && st->constrained_vbr &&
+                                  proposal_content && start == 0 && end == nbEBands && LM > 0 && st->complexity >= 1 &&
+                                  2 * (8 * std::min(effectiveBytes, nbAvailableBytes) - (40 * C + 20)) >= C * eBands[end] * (1 << LM);
+  auto alternate_offsets = offsets;
+  opus_int32 alternate_boost = tot_boost;
+  std::array<float, celt_max_channels * celt_default_nb_ebands> input_log;
+  if (compare_allocation) {
+    std::copy_n(bandLogE, C * nbEBands, input_log.data());
+    std::array<float, celt_max_channels * celt_default_nb_ebands> log_scratch;
+    std::copy_n(bandLogE, C * nbEBands, log_scratch.data());
+    dynalloc_analysis(st, bandLogE, log_scratch.data(), oldBandE, alternate_offsets.data(), isTransient, LM, effectiveBytes,
+                      &alternate_boost, tone_frequency, toneishness, true, freq, N);
+    offsets = alternate_offsets;
+    tot_boost = alternate_boost;
+  }
+  std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients || protect_release) && isTransient)) ? 1 : 0);
   auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
   if (st->bitrate < celt_energy_feedback_bypass_min_bps || st->bitrate >= celt_energy_feedback_bypass_max_bps) {
@@ -5751,11 +6045,16 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
       }
     });
   }
-  quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
+  const bool refresh = st->pending_energy_refresh;
+  st->pending_energy_refresh = false;
+  quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled || (refresh && challenger),
                       &st->delayedIntra);
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, enc);
+
+  int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
+  opus_int32 balance;
   const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
-  int spread_decision = 2;
+  spread_decision = 2;
   if (signal_spread) {
     spread_decision = 0;
     if (st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N && toneishness >= .40f &&
@@ -5768,7 +6067,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   opus_int32 total_boost;
   tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
                                      total_boost);
-  int dual_stereo = 0;
+  dual_stereo = 0;
   if (C == 2) {
     if (LM != 0) {
       dual_stereo = stereo_analysis(X, LM, N);
@@ -5796,7 +6095,17 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   if (hybrid) {
     min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
   }
-  if (vbr_rate > 0) {
+  if (challenger && min_allowed > fixed_budget)
+    return OPUS_BUFFER_TOO_SMALL;
+  if (challenger && vbr_rate > 0) {
+    nbCompressedBytes = fixed_budget;
+    nbAvailableBytes = fixed_budget;
+    st->vbr_reservoir = budget_state->vbr_reservoir;
+    st->vbr_drift = budget_state->vbr_drift;
+    st->vbr_offset = budget_state->vbr_offset;
+    st->vbr_count = budget_state->vbr_count;
+    ec_enc_shrink(enc, nbCompressedBytes);
+  } else if (vbr_rate > 0) {
     const int lm_diff = celt_max_lm - LM;
     nbCompressedBytes = std::min(nbCompressedBytes, 1275 >> (3 - LM));
     opus_int32 base_target = !hybrid ? vbr_rate - ((40 * C + 20) << 3) : std::max(0, vbr_rate - ((9 * C + 4) << 3));
@@ -5849,16 +6158,16 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     ec_enc_shrink(enc, nbCompressedBytes);
   }
   opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
-  const int anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
+  anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
   bits -= anti_collapse_rsv;
-  opus_int32 balance;
-  const int codedBands =
+  codedBands =
       clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
                              pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, end - 1);
   st->lastCodedBands =
       static_cast<opus_uint8>(st->lastCodedBands ? clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
+
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
-  zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
+
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, nullptr, bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                   0);
@@ -5867,10 +6176,13 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   }
   process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
                                 enc, C);
+
+  zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
     energyError[index] = clamp_value(error[index], -0.5f, 0.5f);
   });
   if (silence) {
+    st->allocation_history_changed = false;
     std::fill_n(oldBandE, static_cast<std::size_t>(C * nbEBands), -(28.f));
   }
   st->prefilter_period = static_cast<opus_uint16>(prefilter.pitch_index);
@@ -5879,7 +6191,117 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   st->consec_transient = isTransient || transient_got_disabled ? st->consec_transient + (st->consec_transient < 2) : 0;
   st->rng = enc->rng;
   ec_enc_done(enc);
-  return enc->error ? -3 : nbCompressedBytes;
+  if (enc->error)
+    return -3;
+  if (quality_history != nullptr && quality_work != nullptr && quality_work->active &&
+      (quality_checkpoint == nullptr || !quality_probe_real_decoder(*quality_history, *quality_work, *quality_checkpoint, enc->buf, nbCompressedBytes,
+                                                                    frame_size, start, end, C)))
+    quality_work->active = false;
+  return nbCompressedBytes;
+}
+
+static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
+  auto* quality_history = st->quality_history;
+  quality_frame_work quality_work;
+  ec_enc quality_checkpoint{};
+  const bool checkpoint_ready = enc != nullptr && enc->end_offs == 0 && enc->end_window == 0 && enc->nend_bits == 0;
+  if (checkpoint_ready)
+    quality_checkpoint = *enc;
+  const bool stereo_audio = st->channels == 2 && st->stream_channels == 2 && st->audio_application;
+  const bool mono_voip = st->channels == 1 && st->stream_channels == 1 && st->voip_application;
+  const bool eligible = quality_history != nullptr && quality_history->profile > 0 && quality_history->borrowed_input != nullptr &&
+                        quality_history->ready && checkpoint_ready && enc->storage <= 1275 && (stereo_audio || mono_voip) &&
+                        st->upsample == 1 && st->start == 0 && st->end == celt_default_nb_ebands && st->vbr &&
+                        st->constrained_vbr && st->complexity == 10 && frame_size <= 960 &&
+                        frame_size >= 480 && quality_history->packet_selection_ready;
+  if (!eligible) {
+    const bool capture = quality_history != nullptr && checkpoint_ready;
+    auto* work = capture ? &quality_work : nullptr;
+    const int result = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, work,
+                                             checkpoint_ready ? &quality_checkpoint : nullptr);
+    if (result > 0 && quality_history != nullptr && work != nullptr)
+      quality_commit_history(*quality_history, *work);
+    if (result > 0 && quality_history != nullptr && work != nullptr && !work->decoded_ready)
+      quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
+    return result;
+  }
+  struct snapshot {
+    CeltEncoderInternal state;
+    std::array<float, celt_encoder_storage_count(2)> history;
+    ec_ctx coder;
+    std::array<unsigned char, 1275> bytes;
+  };
+  const auto state_samples = celt_encoder_storage_count(st->channels);
+  const std::size_t bytes = enc->storage;
+  auto save = [&](snapshot& copy) {
+    copy.state = *st;
+    std::copy_n(celt_encoder_storage(st), state_samples, copy.history.data());
+    copy.coder = *enc;
+    std::memcpy(copy.bytes.data(), enc->buf, bytes);
+  };
+  auto restore = [&](const snapshot& copy) {
+    *st = copy.state;
+    std::copy_n(copy.history.data(), state_samples, celt_encoder_storage(st));
+    *enc = copy.coder;
+    std::memcpy(enc->buf, copy.bytes.data(), bytes);
+  };
+  snapshot original, baseline;
+  save(original);
+  const int ordinary = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, &quality_work,
+                                             &quality_checkpoint);
+  if (ordinary <= 0)
+    return ordinary;
+  if (!quality_work.active || !quality_work.decoded_ready) {
+    quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
+    return ordinary;
+  }
+  save(baseline);
+  quality_celt_snapshot baseline_model{};
+  std::memcpy(&baseline_model, &quality_work.model, sizeof(baseline_model));
+  const auto baseline_pcm = quality_work.output;
+  const auto baseline_score = quality_work.score;
+  const auto baseline_reference_bands = quality_work.reference_bands;
+  const auto baseline_decoded_bands = quality_work.decoded_bands;
+  const int baseline_samples = quality_work.samples;
+  const int baseline_channels = quality_work.channels;
+  const bool baseline_active = quality_work.active;
+  const bool baseline_decoded_ready = quality_work.decoded_ready;
+  const bool baseline_analysis_ready = quality_work.analysis_ready;
+  restore(original);
+  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &quality_work, &quality_checkpoint);
+  bool accept = alternative == ordinary && quality_work.active && quality_work.decoded_ready &&
+                baseline_analysis_ready && quality_work.analysis_ready &&
+                st->intensity == baseline.state.intensity && st->lastCodedBands >= baseline.state.lastCodedBands &&
+                quality_work.score[0] < .99 * baseline_score[0];
+  const int guards = quality_history->profile == 1 ? 3 : quality_history->profile == 2 ? 5
+                                                                                       : 7;
+  for (int i = 1; i < guards; ++i) {
+    const bool veto = quality_work.score[i] > baseline_score[i];
+    accept = accept && !veto;
+  }
+  if (accept) {
+    st->allocation_history_changed = true;
+    auto [prefilter, energy, old1, old2, feedback] = make_celt_encoder_views(st);
+    const auto* baseline_energy = baseline.history.data() + (energy - celt_encoder_storage(st));
+    (void)feedback;
+    for (int i = 0; i < st->channels * celt_default_nb_ebands; ++i)
+      if (energy[i] != baseline_energy[i])
+        st->pending_energy_refresh = true;
+  } else {
+    restore(baseline);
+    quality_work.active = baseline_active;
+    quality_work.decoded_ready = baseline_decoded_ready;
+    quality_work.samples = baseline_samples;
+    quality_work.channels = baseline_channels;
+    std::memcpy(&quality_work.model, &baseline_model, sizeof(baseline_model));
+    quality_work.output = baseline_pcm;
+    quality_work.score = baseline_score;
+    quality_work.reference_bands = baseline_reference_bands;
+    quality_work.decoded_bands = baseline_decoded_bands;
+    quality_work.analysis_ready = baseline_analysis_ready;
+  }
+  quality_commit_history(*quality_history, quality_work);
+  return ordinary;
 }
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
@@ -6106,6 +6528,228 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     st->postfilter_gain_old = st->postfilter_gain;
     st->postfilter_tapset_old = st->postfilter_tapset;
   }
+}
+
+static void quality_snapshot_celt(const OpusDecoder* decoder, quality_celt_snapshot& snapshot) {
+  const auto* state = decoder_celt_state(const_cast<OpusDecoder*>(decoder));
+  std::memcpy(&snapshot.state, state, sizeof(CeltDecoderInternal));
+  std::memcpy(snapshot.storage.data(), celt_decoder_storage(const_cast<CeltDecoderInternal*>(state)),
+              celt_decoder_storage_count(state->channels) * sizeof(celt_sig));
+}
+
+static void quality_restore_celt(OpusDecoder* decoder, const quality_celt_snapshot& snapshot) {
+  auto* state = decoder_celt_state(decoder);
+  std::memcpy(state, &snapshot.state, sizeof(CeltDecoderInternal));
+  std::memcpy(celt_decoder_storage(state), snapshot.storage.data(), celt_decoder_storage_count(snapshot.state.channels) * sizeof(celt_sig));
+  decoder->stream_channels = snapshot.state.stream_channels;
+}
+
+static void quality_history_reset(quality_history_state& history, int channels, int upsample) {
+  const int profile = history.profile;
+  auto* decoder = history.decoder;
+  history = {};
+  history.profile = profile;
+  history.decoder = decoder;
+  if (!is_supported_channel_count(channels) || upsample != 1) {
+    history.status = quality_tracking_status::unsupported_configuration;
+    return;
+  }
+  if (decoder == nullptr || opus_decoder_ctl(decoder, 4028) != OPUS_OK) {
+    history.status = quality_tracking_status::unsupported_configuration;
+    return;
+  }
+  history.ready = true;
+  history.status = quality_tracking_status::waiting;
+}
+
+static void quality_receiver_reset(quality_history_state& history) {
+  history.reference_bands = {};
+  history.decoded_bands = {};
+  history.incoming_reference_bands = {};
+  history.incoming_bands = {};
+  history.packet_selection_ready = false;
+  history.previous_packet_celt = false;
+  celt_decoder_reset_state(decoder_celt_state(history.decoder));
+  history.ready = !history.optional_epoch_invalid;
+
+  if (history.ready)
+    history.status = quality_tracking_status::waiting;
+}
+
+static void quality_history_invalidate(quality_history_state& history, quality_tracking_status status) {
+  history.ready = false;
+  history.reference_bands = {};
+  history.decoded_bands = {};
+  history.incoming_reference_bands = {};
+  history.incoming_bands = {};
+  history.packet_selection_ready = false;
+  history.previous_packet_celt = false;
+
+  history.status = status;
+}
+
+static void quality_history_invalidate_optional(quality_history_state& history, quality_tracking_status status) {
+  quality_history_invalidate(history, status);
+  history.optional_epoch_invalid = true;
+}
+
+static auto quality_prepare_history(quality_history_state& history, quality_frame_work& work, int start, int end, int C, int CC) -> bool {
+  const bool supported = history.ready && !history.optional_epoch_invalid && (start == 0 || start == 17) && end <= celt_default_nb_ebands && C >= 1 && C <= CC &&
+                         history.decoder != nullptr && CC == decoder_celt_state(history.decoder)->channels;
+  if (!supported) {
+    if (history.ready)
+      quality_history_invalidate(history, quality_tracking_status::unsupported_configuration);
+    return false;
+  }
+  work.active = true;
+  work.analysis_ready = history.packet_selection_ready;
+  return true;
+}
+
+[[nodiscard]] static float quality_reference_sample(const quality_history_state& history, int sample, int channel) {
+  if (sample < quality_input_delay_48k_audio)
+    return history.input_delay[channel][sample];
+  const int offset = history.borrowed_channels * (sample - quality_input_delay_48k_audio) + channel;
+  return history.borrowed_float_input != nullptr ? history.borrowed_float_input[offset] : history.borrowed_input[offset] * (1.f / 32768);
+}
+
+static bool quality_probe_real_decoder(quality_history_state& history, quality_frame_work& work, const ec_enc& checkpoint,
+                                       unsigned char* payload, int bytes, int frame_size, int start, int end, int C) {
+  if (bytes <= 1 || frame_size <= 0 || frame_size > celt_max_frame_samples)
+    return false;
+  quality_snapshot_celt(history.decoder, work.model);
+  auto* decoder = &work.model.state;
+  decoder->start = start;
+  decoder->end = end;
+  decoder->stream_channels = C;
+  ec_dec entropy{};
+  if (!quality_resume_decoder(checkpoint, {payload, static_cast<std::size_t>(bytes)}, entropy))
+    return false;
+  const int decoded = celt_decode_with_ec(decoder, payload, bytes, work.output.data(), frame_size, &entropy);
+  if (decoded != frame_size || entropy.error != 0)
+    return false;
+  work.samples = decoded;
+  work.channels = decoder->channels;
+  work.decoded_ready = true;
+  work.score = quality_score_decoded(history, work, C, decoder->channels, decoded);
+  return true;
+}
+
+static bool quality_recover_redundancy(quality_history_state& history, unsigned char* payload, int bytes, int frame_size, int end, int stream_channels) {
+  if (bytes <= 1 || frame_size <= 0 || frame_size > celt_max_frame_samples)
+    return false;
+  quality_receiver_reset(history);
+  history.decoder->stream_channels = stream_channels;
+  auto* decoder = decoder_celt_state(history.decoder);
+  decoder->start = 0;
+  decoder->end = end;
+  decoder->stream_channels = stream_channels;
+  std::array<float, celt_max_frame_samples * celt_max_channels> output{};
+  if (celt_decode_with_ec(decoder, payload, bytes, output.data(), frame_size, nullptr) != frame_size)
+    return false;
+  history.status = quality_tracking_status::unsupported_transition;
+  return true;
+}
+
+static bool quality_recover_final_celt(quality_history_state& history, unsigned char* payload, int bytes, int frame_size, int end, int stream_channels) {
+  if (bytes <= 1 || frame_size <= 0 || frame_size > celt_max_frame_samples)
+    return false;
+  auto* owner = history.decoder;
+  owner->stream_channels = stream_channels;
+  auto* decoder = decoder_celt_state(owner);
+  decoder->start = 0;
+  decoder->end = end;
+  decoder->stream_channels = stream_channels;
+  quality_frame_work work{};
+  work.active = true;
+  work.analysis_ready = false;
+  work.channels = decoder->channels;
+  ec_dec entropy{};
+  ec_dec_init(&entropy, payload, static_cast<opus_uint32>(bytes));
+  const int decoded = celt_decode_with_ec(decoder, payload, bytes, work.output.data(), frame_size, &entropy);
+  if (decoded != frame_size || entropy.error != 0)
+    return false;
+  work.samples = decoded;
+  work.decoded_ready = true;
+  work.score = quality_score_decoded(history, work, stream_channels, decoder->channels, decoded);
+  quality_snapshot_celt(owner, work.model);
+  quality_commit_history(history, work);
+  return true;
+}
+
+static auto quality_score_decoded(quality_history_state& context, quality_frame_work& work, int C, int CC, int N) -> std::array<double, 7> {
+  std::array<double, 7> score{};
+  const bool input_ready = (context.borrowed_input != nullptr || context.borrowed_float_input != nullptr) &&
+                           context.borrowed_frame_size == N && context.borrowed_channels == CC && C >= 1 && C <= CC;
+  if (!input_ready)
+    return score;
+
+  auto reference_state = context.incoming_reference_bands;
+  auto score_bands = context.incoming_bands;
+  constexpr std::array<double, 8> cutoffs{100, 250, 500, 1000, 2000, 4000, 8000, 16000};
+  std::array<double, 8> coefficients{};
+  for (int b = 0; b < 8; ++b)
+    coefficients[b] = 1 - std::exp(-6.283185307179586 * cutoffs[b] / 48000);
+  for (int begin = 0; begin < N; begin += 120) {
+    std::array<std::array<double, 9>, 2> reference_energy{}, decoded_energy{};
+    double source_power = 0, decoded_power = 0, source_side = 0, decoded_side = 0;
+    for (int j = begin; j < std::min(begin + 120, N); ++j) {
+      double source_power_frame = 0, decoded_power_frame = 0;
+      for (int c = 0; c < C; ++c) {
+        const double source = quality_reference_sample(context, j, c), decoded = work.output[j * C + c];
+        source_power_frame += source * source;
+        decoded_power_frame += decoded * decoded;
+      }
+      source_power += source_power_frame;
+      decoded_power += decoded_power_frame;
+      if (C == 2) {
+        const double source_side_sample = quality_reference_sample(context, j, 0) - quality_reference_sample(context, j, 1);
+        const double decoded_side_sample = work.output[2 * j] - work.output[2 * j + 1];
+        source_side += source_side_sample * source_side_sample;
+        decoded_side += decoded_side_sample * decoded_side_sample;
+      }
+      for (int c = 0; c < C; ++c) {
+        const double target = quality_reference_sample(context, j, c), sample = work.output[j * C + c], error = sample - target;
+        score[0] += error * error;
+        score[1] += std::abs(error);
+        double previous_ref = 0, previous_dec = 0;
+        for (int b = 0; b < 8; ++b) {
+          auto& r = reference_state[c][b];
+          auto& d = score_bands[c][b];
+          r += coefficients[b] * (target - r);
+          d += coefficients[b] * (sample - d);
+          const double x = r - previous_ref, y = d - previous_dec;
+          previous_ref = r;
+          previous_dec = d;
+          reference_energy[c][b] += x * x;
+          decoded_energy[c][b] += y * y;
+        }
+        reference_energy[c][8] += std::pow(target - previous_ref, 2);
+        decoded_energy[c][8] += std::pow(sample - previous_dec, 2);
+      }
+    }
+    for (int c = 0; c < C; ++c)
+      for (int b = 0; b < 9; ++b) {
+        const double ratio = (decoded_energy[c][b] + source_power * 1e-6 + 1e-20) / (reference_energy[c][b] + source_power * 1e-6 + 1e-20);
+        score[2] += std::abs(std::log(ratio));
+        score[3] = std::max(score[3], std::abs(std::log(ratio)));
+      }
+    if (C == 2)
+      score[4] += std::abs(std::sqrt(decoded_side / (2 * decoded_power + 1e-30)) - std::sqrt(source_side / (2 * source_power + 1e-30)));
+  }
+  work.decoded_bands = score_bands;
+  work.reference_bands = reference_state;
+  return score;
+}
+
+static void quality_commit_history(quality_history_state& history, const quality_frame_work& work) {
+  if (!work.active || !work.decoded_ready)
+    return;
+  quality_restore_celt(history.decoder, work.model);
+  history.reference_bands = work.reference_bands;
+  history.decoded_bands = work.decoded_bands;
+  ++history.frames;
+  history.status = work.model.state.start == 0 ? quality_tracking_status::valid : quality_tracking_status::hybrid_only;
 }
 
 static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc) {
@@ -14072,6 +14716,8 @@ OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* err
 void opus_encoder_destroy(OpusEncoder* st) noexcept {
   release_encoder_silk_state(st);
   release_voice_denoise_state(st);
+  if (st != nullptr)
+    release_quality_history(encoder_celt_state(st));
   std::free(st);
 }
 

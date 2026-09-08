@@ -60,6 +60,8 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigne
 
 Float PCM is normally in `[-1, 1]`. Nonfinite samples or excessive input energy return `OPUS_BAD_ARG` before encoding.
 
+At complexity 10, eligible 48 kHz PCM16 mono VOIP and stereo AUDIO streams can compare two CELT allocations using their actual reconstructed history. The alternative must fit the ordinary packet's byte budget. This currently applies to fullband CELT packets with 10/20 ms frames and constrained VBR, not DTX/FEC. It adds encoder work and per-stream history storage; lower complexity levels retain the ordinary search. The public decoder and packet format are unchanged. [Targeted results and known quality trade-offs](../tests/README.md#allocationhistory-integration) are documented separately from the older full benchmark snapshot.
+
 Decoder:
 
 ```cpp
@@ -131,7 +133,7 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
-The 2026-09-06 denoiser refresh fixes the tracked 15.5/20 kbps quality failures and passes the
+The denoiser fixes the tracked 15.5/20 kbps quality failures and passes the
 25-rate boundary gate. After an exact-output filter-pass reuse optimization, encode overhead is
 4.4% to 26.1% versus denoising off on the tracked noisy recording. This is end-to-end cost:
 denoising also changes SILK's subsequent coding workload, not just preprocessing time.

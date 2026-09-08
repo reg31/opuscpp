@@ -26,18 +26,20 @@ Minimal integration looks like:
 
 ## Highlights
 
+The complexity-10 allocation/history search improves the tracked speech results, with some spectral regressions still unresolved. [Targeted results](tests/README.md#allocationhistory-integration) are available; the full speed and memory tables have not yet been refreshed for this change.
+
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.74x to 2.36x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.25x to 1.87x).
 - Quality is mixed: the aligned AUDIO sample improves both main proxies at 24/32&nbsp;kbps, but other rates/content lose metrics. No universal quality advantage is claimed.
-- Effective bitrate, optional processing, FEC/DTX, memory and speed below were refreshed on 2026-09-06.
+- Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
 - API, FEC, DTX, long-frame and 290,909 malformed-packet checks passed; trapping UBSan found no issue in the exercised cases.
 - Optional DTX: zero false DTX packets on the tracked active-content set, 61.4% lower re-entry error and 52.2% lower gain error at 16/24&nbsp;kbps.
 - Optional FEC: lower missing-frame error in all 18 tracked loss scenarios; 52.8% lower combined recovery error, protection in 18 scenarios versus 15, and 0.4% fewer bytes.
 - 22.5% to 45.6% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `302,188 B`; Android arm64 object: `313,808 B` (text + data + BSS).
+- Host object: `312,004 B`; Android arm64 object: `320,260 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; warning-free MinGW GCC and Android arm64 Clang builds.
 
 ## Pros and cons
@@ -89,7 +91,7 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Measured on 2026-09-06 from codec revision `7538c9b`. All numerical tables and claims below use
+The full benchmark tables have not yet been refreshed for the allocation/history change. They use
 this fresh run; [run metadata](tests/metrics/run_metadata.json) records source hashes and settings.
 Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels
 independently. Both quality gains and losses are retained.

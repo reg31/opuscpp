@@ -2,6 +2,8 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
+The full speed and memory tables have not yet been refreshed for the complexity-10 allocation/history search. Its targeted quality results and known regressions are listed at the end of this document.
+
 ## Quick start
 
 ### Option 1 - Run the full conformance and benchmark report in one command (recommended)
@@ -88,7 +90,7 @@ The generated files are ignored by git.
 
 ## Optional WER validation for speech-to-text
 
-No WER/CER or external ASR endpoint was run for the 2026-09-06 refresh.
+No WER/CER or external ASR endpoint was run for the published benchmark refresh.
 
 `run_wer_validation.py` is a speech-to-text oriented gate for VOIP tuning. It encodes and decodes
 48 kHz PCM16 speech samples, optionally attenuates quiet-talker cases, adds deterministic noise at
@@ -236,7 +238,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The current metric tables below were refreshed on 2026-09-06 against codec revision `7538c9b`.
+The full metric tables below have not yet been refreshed for the allocation/history change.
 Default output, optional processing and their input references remain separate comparisons.
 Historical optimization/validation comparisons are explicitly labelled.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
@@ -341,7 +343,7 @@ Capture-noise reduction runs before the codec's existing signal shaping. Uncerta
 retains the conservative path. No FFT, extra look-ahead, or per-frame heap allocation is added.
 It remains disabled by default and has no effect on stereo or non-VOIP applications.
 
-These denoiser measurements were refreshed on **2026-09-06** as part of the full report.
+These denoiser measurements are part of the published full-report snapshot.
 The table compares denoising on versus off on the same mono speech recording mixed with sustained
 6 dB white noise. Decoded output is scored against clean speech after codec-delay alignment.
 These are internal quality proxies, not certified PESQ or official ViSQOL scores.
@@ -419,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 302,188 B | 0 B | 302,188 B |
-| Android arm64 Clang `-O2` | 313,336 B | 472 B | 313,808 B |
+| Host MinGW GCC `-O2` | 312,004 B | 0 B | 312,004 B |
+| Android arm64 Clang `-O2` | 319,788 B | 472 B | 320,260 B |
 
 ## Toolchains checked
 
@@ -429,3 +431,32 @@ Source CSV:
 | MinGW GCC 16.2 C++23 | Warning-free build in this run (`-Wall -Wextra -Wpedantic`). |
 | Android arm64 Clang C++23 | Warning-free build in this run (`-Wall -Wextra -Wpedantic`). |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
+
+
+## Allocation/history integration
+
+At complexity 10, the encoder can compare two fullband CELT allocations against the same reconstructed decoder history, using the ordinary packet's byte budget. The comparison currently covers eligible 48 kHz PCM16 mono VOIP and stereo AUDIO, 10/20 ms frames, constrained VBR, and no DTX/FEC. Complexity 9 remains the default and does not run this search.
+
+These targeted deltas compare the integrated search with the ordinary encoder, not official Opus. Positive PESQ-style and ViSQOL-style deltas are better; these are engineering proxies, not standardized perceptual scores.
+
+| Content | Bitrate | PESQ-style delta | ViSQOL-style delta | Remaining adverse metric |
+|---|---:|---:|---:|---|
+| Speech | 24 kbps | +0.002964 | +0.000161 | None in this check |
+| Speech | 48 kbps | +0.012991 | +0.000906 | None in this check |
+| Speech | 96 kbps | +0.009329 | +0.000242 | None in this check |
+| Quiet speech | 24 kbps | +0.006312 | +0.000409 | High-band error +0.00008452 |
+| Quiet speech | 96 kbps | +0.009134 | +0.000138 | High-band error +0.00005560 |
+| Plucked stereo | 192 kbps | +0.013150 | +0.000515 | Masked error +0.00161910; CELT proxy -0.00201173 |
+
+Packet count and average packet size are unchanged in all six checks. Full-precision deltas are in [quality_history_integration.csv](metrics/quality_history_integration.csv). The remaining spectral losses are real and are not rounded away or claimed as wins.
+
+The cost is substantial: isolated alternating comparisons measured 3.21x as much encoder time on the speech case and 4.97x on the plucked-stereo case. These are encoder-time multipliers versus the ordinary path, not speedups. This highest-complexity search still needs cost reduction and broader quality validation; it is not a universal improvement. It also allocates per-stream reconstruction history when first activated.
+
+Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
+
+The focused history test also passes trapping undefined-behavior checks. Run it without separately compiling the implementation, because the test includes it:
+
+~~~sh
+c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history
+./encoder_quality_history
+~~~
