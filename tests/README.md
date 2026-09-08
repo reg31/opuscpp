@@ -256,15 +256,15 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.188x | 1.896x | 357x | 300x | 2053x | 1082x |
-| 24&nbsp;kbps | 1.025x | 1.417x | 278x | 271x | 1371x | 967x |
-| 32&nbsp;kbps | 1.025x | 1.431x | 273x | 266x | 1332x | 931x |
-| 48&nbsp;kbps | 0.422x | 1.362x | 107x | 254x | 1118x | 821x |
-| 64&nbsp;kbps | 0.362x | 1.315x | 82x | 227x | 947x | 720x |
-| 96&nbsp;kbps | 0.428x | 1.309x | 78x | 181x | 743x | 568x |
-| 128&nbsp;kbps | 0.406x | 1.309x | 67x | 165x | 647x | 495x |
-| 192&nbsp;kbps | 0.413x | 1.295x | 62x | 149x | 544x | 420x |
-| 256&nbsp;kbps | 0.402x | 1.241x | 56x | 140x | 464x | 374x |
+| 16&nbsp;kbps | 1.183x | 1.915x | 348x | 295x | 2030x | 1060x |
+| 24&nbsp;kbps | 1.025x | 1.477x | 277x | 270x | 1370x | 928x |
+| 32&nbsp;kbps | 1.006x | 1.370x | 264x | 263x | 1272x | 928x |
+| 48&nbsp;kbps | 0.430x | 1.321x | 105x | 245x | 1083x | 820x |
+| 64&nbsp;kbps | 0.362x | 1.344x | 77x | 214x | 914x | 680x |
+| 96&nbsp;kbps | 0.435x | 1.317x | 77x | 176x | 731x | 555x |
+| 128&nbsp;kbps | 0.419x | 1.311x | 67x | 161x | 631x | 482x |
+| 192&nbsp;kbps | 0.413x | 1.311x | 59x | 143x | 538x | 410x |
+| 256&nbsp;kbps | 0.388x | 1.220x | 55x | 141x | 460x | 377x |
 
 
 The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). The complexity-10 history search makes encoding take 2.3-2.8x as long as official at 48-256 kbps; the earlier encoding-speed advantage does not apply to this configuration. Default complexity 9 is not measured by this table.
@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 323,128 B | 0 B | 323,128 B |
-| Android arm64 Clang `-O2` | 325,912 B | 472 B | 326,384 B |
+| Host MinGW GCC `-O2` | 322,936 B | 0 B | 322,936 B |
+| Android arm64 Clang `-O2` | 325,864 B | 472 B | 326,336 B |
 
 ## Toolchains checked
 
@@ -439,15 +439,13 @@ At complexity 10, the encoder can compare two fullband CELT allocations against 
 
 Quality acceptance uses the direct official comparisons above, not gains against an earlier opuscpp encoder. The remaining adverse fields are not rounded away or claimed as wins. This search has not achieved an all-metric advantage.
 
-Early rejection avoids decoding identical candidates and runs the mandatory waveform-error checks before expensive spectral scoring. Isolated alternating comparisons show 11.3% less encoder time for speech, 18.9% for quiet speech, and 23.2% for plucked stereo, with unchanged selected output and quality results. These reductions compare the same search with and without early rejection; [measured times](metrics/quality_history_speed.csv) are recorded separately from the ordinary encoder comparison. The search still costs more than ordinary encoding and needs further cost reduction and broader quality validation. It also allocates per-stream reconstruction history when first activated.
+The search shares compatible pre-emphasis, pitch/prefilter, transform and band analysis. Identical or budget-ineligible allocation proposals skip the remaining alternative quantization; energy-refresh and release cases keep their required paths. Identical packets and candidates that fail the cheap waveform-error checks are rejected before full spectral scoring.
 
-The two candidates share compatible pitch/prefilter, pre-emphasis, transform and band analysis. Identical allocation signatures skip the remaining alternative quantization; release-protected frames retain the full path. Targeted comparisons measure a further 7.1% reduction in encoder time for speech, 10.5% for plucked stereo, and 13.8% for quiet speech, with unchanged output. [Shared-analysis measurements](metrics/quality_history_shared_speed.csv) are separate from the earlier early-rejection comparison.
+Full candidate pairs share source filtering, band energies and stereo power through an approximately 1.4 KiB frame-local cache. Inactive alternatives advance only the selected output's filter history. Hybrid encoding skips shadow decoding only when that history will be replaced before selection. Ordinary encoding bypasses the large search wrapper.
 
-Spectral scoring now runs only when both allocations survive the cheap waveform-error checks. Otherwise, only the selected output's filter history is advanced. A resumed candidate consumes its owned analysis buffers directly, and hybrid encoding skips shadow decoding when that state will be replaced before selection. Against the shared-analysis version, isolated alternating measurements show another 19.5% reduction in encoder time for speech, 24.8% for plucked stereo, and 26.4% for quiet speech. All six targeted quality and packet comparisons are unchanged. [Lazy-scoring measurements](metrics/quality_history_lazy_speed.csv) describe this incremental comparison, not speed versus official Opus or the default-complexity encoder.
+These reductions do not eliminate the cost of the second candidate and reconstructed-output checks. The current full production timings above remain substantially slower than official at 48-256 kbps. The budget-ineligible cleanup removes proven duplicate work, but the full synthetic benchmark did not establish a separate speed gain from that one-line change.
 
-Ordinary encoding bypasses the large history-search wrapper. Full candidate pairs reuse one frame-local source-score cache (approximately 1.4 KiB), avoiding a second traversal of the source filters, band energies and stereo power. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
-
-The source-score reuse preserves all 36 headline quality configurations and tested packet hashes. The full isolated production benchmark reflects it: encoder throughput at 48-256 kbps improves by 9.7-12.6% after normalization to official timings, while remaining slower than official. [Recorded comparisons](metrics/quality_reference_reuse_speed.csv) retain both runs. Windows and Android builds pass, as do 288 exact scorer checks and the trapping-UBSan history test.
+All 36 headline quality configurations retain identical measured values and tested packet hashes. Windows and Android builds pass; 288 exact scorer checks and the trapping-UBSan history test also pass.
 
 Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
 

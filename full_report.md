@@ -90,15 +90,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.188485x | 1.896440x |
-| 24 kbps | 1.024761x | 1.417467x |
-| 32 kbps | 1.025422x | 1.431479x |
-| 48 kbps | 0.422100x | 1.362189x |
-| 64 kbps | 0.362482x | 1.314840x |
-| 96 kbps | 0.427677x | 1.308699x |
-| 128 kbps | 0.406383x | 1.308989x |
-| 192 kbps | 0.413450x | 1.295308x |
-| 256 kbps | 0.402195x | 1.240741x |
+| 16 kbps | 1.182715x | 1.915389x |
+| 24 kbps | 1.024903x | 1.477383x |
+| 32 kbps | 1.005837x | 1.370296x |
+| 48 kbps | 0.429534x | 1.320980x |
+| 64 kbps | 0.361633x | 1.344189x |
+| 96 kbps | 0.435189x | 1.317026x |
+| 128 kbps | 0.419341x | 1.310911x |
+| 192 kbps | 0.412529x | 1.311194x |
+| 256 kbps | 0.387956x | 1.219743x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -148,8 +148,8 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 323128 B | 0 B | 323128 B |
-| Android arm64 C++23 `-O2` | 325912 B | 472 B | 326384 B |
+| Host C++23 `-O2` | 322936 B | 0 B | 322936 B |
+| Android arm64 C++23 `-O2` | 325864 B | 472 B | 326336 B |
 
 ## Toolchains checked
 
@@ -164,7 +164,7 @@ Current quality provenance: tests/metrics/quality_run_metadata.json. Current iso
 
 Current core speed: nine 60-second repetitions at complexity 10, official intrinsics enabled, both builds -O2 -DNDEBUG, isolated on one logical CPU at above-normal priority. Encoding takes 2.3-2.8x as long as official at 48-256 kbps; decode remains faster. Optional-mode timings retain their earlier nine-repetition snapshot.
 
-Memory snapshot: three 256-instance runs, median per configuration; not refreshed for the history search. Current object sizes: Windows text/data/BSS 323128/0/0 B; Android 325912/472/0 B.
+Memory snapshot: three 256-instance runs, median per configuration; not refreshed for the history search. Current object sizes: Windows text/data/BSS 322936/0/0 B; Android 325864/472/0 B.
 
 Broad quality: 99 ladder and 30 holdout comparisons. Denoiser: 246 comparisons versus bypass and the previous published implementation plus 25 boundary rates. See tests/metrics for all raw signed results.
 

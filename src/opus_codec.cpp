@@ -6153,8 +6153,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     offsets = alternate_offsets;
     tot_boost = alternate_boost;
   }
-  const bool allocation_is_only_resumed_action = resume_analysis && compare_allocation;
-  if (allocation_is_only_resumed_action && !st->pending_energy_refresh && !protect_release &&
+  if (resume_analysis && !st->pending_energy_refresh && !protect_release &&
       tot_boost == analysis->tot_boost && offsets == analysis->offsets) {
     quality_work->active = false;
     return fixed_budget;
