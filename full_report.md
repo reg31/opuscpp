@@ -90,15 +90,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.175117x | 1.854294x |
-| 24 kbps | 1.007051x | 1.392841x |
-| 32 kbps | 0.959002x | 1.412642x |
-| 48 kbps | 0.375146x | 1.340165x |
-| 64 kbps | 0.323753x | 1.299918x |
-| 96 kbps | 0.379692x | 1.307508x |
-| 128 kbps | 0.370307x | 1.295166x |
-| 192 kbps | 0.371214x | 1.287241x |
-| 256 kbps | 0.359208x | 1.224216x |
+| 16 kbps | 1.188485x | 1.896440x |
+| 24 kbps | 1.024761x | 1.417467x |
+| 32 kbps | 1.025422x | 1.431479x |
+| 48 kbps | 0.422100x | 1.362189x |
+| 64 kbps | 0.362482x | 1.314840x |
+| 96 kbps | 0.427677x | 1.308699x |
+| 128 kbps | 0.406383x | 1.308989x |
+| 192 kbps | 0.413450x | 1.295308x |
+| 256 kbps | 0.402195x | 1.240741x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -148,8 +148,8 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 319896 B | 0 B | 319896 B |
-| Android arm64 C++23 `-O2` | 323744 B | 472 B | 324216 B |
+| Host C++23 `-O2` | 323128 B | 0 B | 323128 B |
+| Android arm64 C++23 `-O2` | 325912 B | 472 B | 326384 B |
 
 ## Toolchains checked
 
@@ -162,9 +162,9 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 Current quality provenance: tests/metrics/quality_run_metadata.json. Current isolated speed provenance: tests/metrics/speed_run_metadata.json. Other full-report results retain the source and scope recorded in tests/metrics/run_metadata.json.
 
-Current core speed: nine 60-second repetitions at complexity 10, official intrinsics enabled, both builds -O2 -DNDEBUG, isolated on one logical CPU at above-normal priority. Encoding takes 2.6-3.1x as long as official at 48-256 kbps; decode remains faster. Optional-mode timings retain their earlier nine-repetition snapshot.
+Current core speed: nine 60-second repetitions at complexity 10, official intrinsics enabled, both builds -O2 -DNDEBUG, isolated on one logical CPU at above-normal priority. Encoding takes 2.3-2.8x as long as official at 48-256 kbps; decode remains faster. Optional-mode timings retain their earlier nine-repetition snapshot.
 
-Memory snapshot: three 256-instance runs, median per configuration; not refreshed for the history search. Current object sizes: Windows text/data/BSS 319896/0/0 B; Android 323744/472/0 B.
+Memory snapshot: three 256-instance runs, median per configuration; not refreshed for the history search. Current object sizes: Windows text/data/BSS 323128/0/0 B; Android 325912/472/0 B.
 
 Broad quality: 99 ladder and 30 holdout comparisons. Denoiser: 246 comparisons versus bypass and the previous published implementation plus 25 boundary rates. See tests/metrics for all raw signed results.
 

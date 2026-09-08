@@ -421,6 +421,14 @@ struct quality_frame_work {
   bool active, analysis_ready;
 };
 
+struct quality_reference_score_cache {
+  std::array<std::array<std::array<double, 9>, 2>, 8> energy{};
+  std::array<double, 8> power{}, side{};
+  std::array<std::array<float, 8>, 2> final_bands{};
+  int C = 0, CC = 0, N = 0;
+  bool ready = false;
+};
+
 enum class quality_tracking_status : int {
   waiting = 1,
   valid = 2,
@@ -472,7 +480,7 @@ static void quality_history_invalidate(quality_history_state&, quality_tracking_
 static void quality_history_invalidate_optional(quality_history_state&, quality_tracking_status);
 static auto quality_prepare_history(quality_history_state&, quality_frame_work&, int, int, int, int) -> bool;
 static void quality_advance_filters(quality_history_state&, quality_frame_work&, int, int, int);
-static auto quality_score_decoded(quality_history_state&, quality_frame_work&, int, int, int) -> std::array<double, 7>;
+static auto quality_score_decoded(quality_history_state&, quality_frame_work&, int, int, int, quality_reference_score_cache* = nullptr) -> std::array<double, 7>;
 static bool quality_probe_real_decoder(quality_history_state&, quality_frame_work&, const ec_enc&, unsigned char*, int, int, int, int, int, const std::array<double, 7>*);
 static bool quality_recover_redundancy(quality_history_state&, unsigned char*, int, int, int, int);
 static bool quality_recover_final_celt(quality_history_state&, unsigned char*, int, int, int, int);
@@ -6393,10 +6401,11 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
     quality_commit_history(*quality_history, ordinary_work);
     return ordinary;
   }
+  quality_reference_score_cache reference_cache;
   ordinary_work.score = quality_score_decoded(*quality_history, ordinary_work, ordinary_work.model.state.stream_channels,
-                                              ordinary_work.channels, ordinary_work.samples);
+                                              ordinary_work.channels, ordinary_work.samples, &reference_cache);
   alternative_work.score = quality_score_decoded(*quality_history, alternative_work, alternative_work.model.state.stream_channels,
-                                                 alternative_work.channels, alternative_work.samples);
+                                                 alternative_work.channels, alternative_work.samples, &reference_cache);
   bool accept = alternative == ordinary && alternative_work.active && alternative_work.decoded_ready &&
                 ordinary_work.analysis_ready && alternative_work.analysis_ready &&
                 st->intensity == baseline.state.intensity && st->lastCodedBands >= baseline.state.lastCodedBands &&
@@ -6858,14 +6867,15 @@ static void quality_advance_filters(quality_history_state& context, quality_fram
   work.decoded_bands = decoded_state;
 }
 
-static auto quality_score_decoded(quality_history_state& context, quality_frame_work& work, int C, int CC, int N) -> std::array<double, 7> {
+template <bool reuse_reference> static auto quality_score_decoded_impl(quality_history_state& context, quality_frame_work& work, int C, int CC, int N,
+                                                                       quality_reference_score_cache* reference_cache) -> std::array<double, 7> {
   std::array<double, 7> score{};
   const bool input_ready = (context.borrowed_input != nullptr || context.borrowed_float_input != nullptr) &&
                            context.borrowed_frame_size == N && context.borrowed_channels == CC && C >= 1 && C <= CC;
   if (!input_ready)
     return score;
 
-  auto reference_state = context.incoming_reference_bands;
+  auto reference_state = reuse_reference ? reference_cache->final_bands : context.incoming_reference_bands;
   auto score_bands = context.incoming_bands;
   constexpr std::array<double, 8> cutoffs{100, 250, 500, 1000, 2000, 4000, 8000, 16000};
   std::array<double, 8> coefficients{};
@@ -6874,19 +6884,31 @@ static auto quality_score_decoded(quality_history_state& context, quality_frame_
   for (int begin = 0; begin < N; begin += 120) {
     std::array<std::array<double, 9>, 2> reference_energy{}, decoded_energy{};
     double source_power = 0, decoded_power = 0, source_side = 0, decoded_side = 0;
+    const int block = begin / 120;
+    if constexpr (reuse_reference) {
+      reference_energy = reference_cache->energy[block];
+      source_power = reference_cache->power[block];
+      source_side = reference_cache->side[block];
+    }
     for (int j = begin; j < std::min(begin + 120, N); ++j) {
       double source_power_frame = 0, decoded_power_frame = 0;
       for (int c = 0; c < CC; ++c) {
-        const double source = quality_reference_sample(context, j, c), decoded = work.output[j * CC + c];
-        source_power_frame += source * source;
+        const double decoded = work.output[j * CC + c];
+        if constexpr (!reuse_reference) {
+          const double source = quality_reference_sample(context, j, c);
+          source_power_frame += source * source;
+        }
         decoded_power_frame += decoded * decoded;
       }
-      source_power += source_power_frame;
+      if constexpr (!reuse_reference)
+        source_power += source_power_frame;
       decoded_power += decoded_power_frame;
       if (CC == 2) {
-        const double source_side_sample = quality_reference_sample(context, j, 0) - quality_reference_sample(context, j, 1);
         const double decoded_side_sample = work.output[2 * j] - work.output[2 * j + 1];
-        source_side += source_side_sample * source_side_sample;
+        if constexpr (!reuse_reference) {
+          const double source_side_sample = quality_reference_sample(context, j, 0) - quality_reference_sample(context, j, 1);
+          source_side += source_side_sample * source_side_sample;
+        }
         decoded_side += decoded_side_sample * decoded_side_sample;
       }
       for (int c = 0; c < CC; ++c) {
@@ -6895,19 +6917,30 @@ static auto quality_score_decoded(quality_history_state& context, quality_frame_
         score[1] += std::abs(error);
         double previous_ref = 0, previous_dec = 0;
         for (int b = 0; b < 8; ++b) {
-          auto& r = reference_state[c][b];
+          double x = 0;
+          if constexpr (!reuse_reference) {
+            auto& r = reference_state[c][b];
+            r += coefficients[b] * (target - r);
+            x = r - previous_ref;
+            previous_ref = r;
+          }
           auto& d = score_bands[c][b];
-          r += coefficients[b] * (target - r);
           d += coefficients[b] * (sample - d);
-          const double x = r - previous_ref, y = d - previous_dec;
-          previous_ref = r;
+          const double y = d - previous_dec;
           previous_dec = d;
-          reference_energy[c][b] += x * x;
+          if constexpr (!reuse_reference)
+            reference_energy[c][b] += x * x;
           decoded_energy[c][b] += y * y;
         }
-        reference_energy[c][8] += std::pow(target - previous_ref, 2);
+        if constexpr (!reuse_reference)
+          reference_energy[c][8] += std::pow(target - previous_ref, 2);
         decoded_energy[c][8] += std::pow(sample - previous_dec, 2);
       }
+    }
+    if (!reuse_reference && reference_cache != nullptr) {
+      reference_cache->energy[block] = reference_energy;
+      reference_cache->power[block] = source_power;
+      reference_cache->side[block] = source_side;
     }
     for (int c = 0; c < CC; ++c)
       for (int b = 0; b < 9; ++b) {
@@ -6918,9 +6951,26 @@ static auto quality_score_decoded(quality_history_state& context, quality_frame_
     if (CC == 2)
       score[4] += std::abs(std::sqrt(decoded_side / (2 * decoded_power + 1e-30)) - std::sqrt(source_side / (2 * source_power + 1e-30)));
   }
+  if (!reuse_reference && reference_cache != nullptr) {
+    reference_cache->final_bands = reference_state;
+    reference_cache->C = C;
+    reference_cache->CC = CC;
+    reference_cache->N = N;
+    reference_cache->ready = true;
+  }
   work.decoded_bands = score_bands;
   work.reference_bands = reference_state;
   return score;
+}
+
+static auto quality_score_decoded(quality_history_state& context, quality_frame_work& work, int C, int CC, int N,
+                                  quality_reference_score_cache* reference_cache) -> std::array<double, 7> {
+  if (N > celt_max_frame_samples)
+    reference_cache = nullptr;
+  const bool reuse_reference = reference_cache != nullptr && reference_cache->ready && reference_cache->C == C &&
+                               reference_cache->CC == CC && reference_cache->N == N;
+  return reuse_reference ? quality_score_decoded_impl<true>(context, work, C, CC, N, reference_cache)
+                         : quality_score_decoded_impl<false>(context, work, C, CC, N, reference_cache);
 }
 
 static void quality_commit_history(quality_history_state& history, const quality_frame_work& work) {

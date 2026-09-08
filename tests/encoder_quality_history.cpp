@@ -21,11 +21,16 @@ int main() {
     for (int i = 0; i < 960; ++i)
       for (int c = 0; c < 2; ++c)
         work.output[2 * i + c] = quality_reference_sample(history, i, c);
-    const auto perfect = quality_score_decoded(history, work, 1, 2, 960);
+    quality_reference_score_cache reference_cache;
+    const auto perfect = quality_score_decoded(history, work, 1, 2, 960, &reference_cache);
     require(perfect[0] == 0 && perfect[1] == 0);
     work.output.back() += .125f;
     const auto changed = quality_score_decoded(history, work, 1, 2, 960);
     require(changed[0] == .015625 && changed[1] == .125);
+    const auto reference_bands = work.reference_bands;
+    const auto decoded_bands = work.decoded_bands;
+    require(quality_score_decoded(history, work, 1, 2, 960, &reference_cache) == changed);
+    require(work.reference_bands == reference_bands && work.decoded_bands == decoded_bands);
     for (const int channels : {1, 2}) {
       history.borrowed_channels = channels;
       for (const int samples : {480, 960}) {

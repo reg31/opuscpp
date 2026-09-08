@@ -1,13 +1,13 @@
 {
-  "commit": "2372904019a46a3d40d28f821022ba7adbe668bc",
-  "source_sha256": "ef4d88f5903758c35d6bd2c0fb39635eefcc1ef4d1b587308b9a0d985a1d0639",
+  "commit": "93392a740953b8fa943623f4ad5e5c5b18d95c95",
+  "source_sha256": "630829db9825fd45b6d0779b0ab29f86113f3db5e48fa581b8814f3c43fa4b61",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "binary_source_sha256": "dd194bfd9fe2fa186cf576abe4debc14895b3c922af62b0657a8ad40805108cc",
-  "binary_sha256": "fa208fddef64d2f864c2269d0f9e17fc2243a6b73c61825ceab96be2cb108076",
+  "binary_source_sha256": "95888d1f9233e3bef3c87202ae87beb4df0a199698e26f61c0e44d1abc2b0667",
+  "binary_sha256": "3cc86228ab9d8ff839faa48a31630afbea82fc5391af1bd9747ed389bf2202a3",
   "driver_sha256": "fde3c77c306187083ac64edfdc4e7be806c396bba49ed9b9b3b1cb40cf05afc8",
   "archive_path": "build\\official_opus_o2_intrinsics_mingw\\libopus.a",
   "archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
-  "binary_reused": true,
+  "binary_reused": false,
   "semantic_tokens_equal": true,
   "official_rebuilt": false,
   "fixtures": {
@@ -89,5 +89,8 @@
     "OPUS_X86_MAY_HAVE_SSE2:BOOL=ON",
     "OPUS_X86_MAY_HAVE_SSE4_1:BOOL=ON"
   ],
-  "comparison": "Official Opus only; quality deltas are not relative to a previous opuscpp build."
+  "comparison": "Official Opus only; quality deltas are not relative to a previous opuscpp build.",
+  "base_commit": "93392a740953b8fa943623f4ad5e5c5b18d95c95",
+  "worktree_changes": true,
+  "validation": "All36 direct-official headline configurations rerun; quality and packets identical to recorded values."
 }
