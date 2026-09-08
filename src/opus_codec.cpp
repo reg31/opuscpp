@@ -472,7 +472,7 @@ static void quality_history_invalidate(quality_history_state&, quality_tracking_
 static void quality_history_invalidate_optional(quality_history_state&, quality_tracking_status);
 static auto quality_prepare_history(quality_history_state&, quality_frame_work&, int, int, int, int) -> bool;
 static auto quality_score_decoded(quality_history_state&, quality_frame_work&, int, int, int) -> std::array<double, 7>;
-static bool quality_probe_real_decoder(quality_history_state&, quality_frame_work&, const ec_enc&, unsigned char*, int, int, int, int, int);
+static bool quality_probe_real_decoder(quality_history_state&, quality_frame_work&, const ec_enc&, unsigned char*, int, int, int, int, int, const std::array<double, 7>*);
 static bool quality_recover_redundancy(quality_history_state&, unsigned char*, int, int, int, int);
 static bool quality_recover_final_celt(quality_history_state&, unsigned char*, int, int, int, int);
 static void quality_snapshot_celt(const OpusDecoder*, quality_celt_snapshot&);
@@ -5887,7 +5887,7 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
-static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr) {
+static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr, std::span<const unsigned char> baseline_packet = {}, const std::array<double, 7>* baseline_score = nullptr) {
   const bool quality_main_packet = enc != nullptr;
   if (quality_work != nullptr) {
     *quality_work = {};
@@ -6193,9 +6193,14 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   ec_enc_done(enc);
   if (enc->error)
     return -3;
+  if (challenger && (st->intensity != budget_state->intensity || st->lastCodedBands < budget_state->lastCodedBands ||
+                     (baseline_packet.size() == static_cast<std::size_t>(nbCompressedBytes) && std::equal(baseline_packet.begin(), baseline_packet.end(), enc->buf)))) {
+    quality_work->active = false;
+    return nbCompressedBytes;
+  }
   if (quality_history != nullptr && quality_work != nullptr && quality_work->active &&
       (quality_checkpoint == nullptr || !quality_probe_real_decoder(*quality_history, *quality_work, *quality_checkpoint, enc->buf, nbCompressedBytes,
-                                                                    frame_size, start, end, C)))
+                                                                    frame_size, start, end, C, baseline_score)))
     quality_work->active = false;
   return nbCompressedBytes;
 }
@@ -6268,7 +6273,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   const bool baseline_decoded_ready = quality_work.decoded_ready;
   const bool baseline_analysis_ready = quality_work.analysis_ready;
   restore(original);
-  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &quality_work, &quality_checkpoint);
+  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &quality_work, &quality_checkpoint, {baseline.bytes.data(), static_cast<std::size_t>(ordinary)}, &baseline_score);
   bool accept = alternative == ordinary && quality_work.active && quality_work.decoded_ready &&
                 baseline_analysis_ready && quality_work.analysis_ready &&
                 st->intensity == baseline.state.intensity && st->lastCodedBands >= baseline.state.lastCodedBands &&
@@ -6614,7 +6619,7 @@ static auto quality_prepare_history(quality_history_state& history, quality_fram
 }
 
 static bool quality_probe_real_decoder(quality_history_state& history, quality_frame_work& work, const ec_enc& checkpoint,
-                                       unsigned char* payload, int bytes, int frame_size, int start, int end, int C) {
+                                       unsigned char* payload, int bytes, int frame_size, int start, int end, int C, const std::array<double, 7>* baseline_score) {
   if (bytes <= 1 || frame_size <= 0 || frame_size > celt_max_frame_samples)
     return false;
   quality_snapshot_celt(history.decoder, work.model);
@@ -6631,6 +6636,22 @@ static bool quality_probe_real_decoder(quality_history_state& history, quality_f
   work.samples = decoded;
   work.channels = decoder->channels;
   work.decoded_ready = true;
+  if (baseline_score != nullptr) {
+    double square_error = 0, absolute_error = 0;
+    for (int sample = 0; sample < decoded; ++sample) {
+      for (int channel = 0; channel < C; ++channel) {
+        const double reference = quality_reference_sample(history, sample, channel);
+        const double value = work.output[sample * C + channel];
+        const double error = value - reference;
+        square_error += error * error;
+        absolute_error += std::abs(error);
+      }
+    }
+    if (!(square_error < .99 * (*baseline_score)[0]) || absolute_error > (*baseline_score)[1]) {
+      work.active = false;
+      return true;
+    }
+  }
   work.score = quality_score_decoded(history, work, C, decoder->channels, decoded);
   return true;
 }

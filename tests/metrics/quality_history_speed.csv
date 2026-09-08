@@ -1,0 +1,4 @@
+sample,bitrate_bps,search_without_early_rejection_ms,current_search_ms,encode_time_reduction_pct
+speech,48000,30.8639,27.3674,11.328769209335176
+plucked,192000,88.113,67.6519,23.221431570823835
+speech_quiet,24000,28.4798,23.0983,18.89584898770358
