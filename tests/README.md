@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 313,148 B | 0 B | 313,148 B |
-| Android arm64 Clang `-O2` | 319,660 B | 472 B | 320,132 B |
+| Host MinGW GCC `-O2` | 313,548 B | 0 B | 313,548 B |
+| Android arm64 Clang `-O2` | 320,308 B | 472 B | 320,780 B |
 
 ## Toolchains checked
 
@@ -461,4 +461,11 @@ The focused history test also passes trapping undefined-behavior checks. Run it 
 ~~~sh
 c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history
 ./encoder_quality_history
+~~~
+
+`encoder_reference_continuity.cpp` checks 48 mono/stereo sequences with changing frame sizes and PCM16/float calls. It verifies the actual input tail, packet ranges, decoder state, and one-frame scoring warmup after an unsupported reference window. The stale-tail case fails on the unfixed implementation; the repaired path passes trapping undefined-behavior checks.
+
+~~~sh
+c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_reference_continuity.cpp -o encoder_reference_continuity
+./encoder_reference_continuity
 ~~~

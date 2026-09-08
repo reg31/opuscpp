@@ -3769,6 +3769,40 @@ static opus_int32 encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int
   return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
 }
 
+template <typename Sample>
+static void finish_quality_reference(quality_history_state* history, const Sample* pcm, int frame_size, int channels, const unsigned char* packet, int result) noexcept {
+  if (history == nullptr)
+    return;
+  if (result > 0) {
+    const bool captured = history->borrowed_input != nullptr || history->borrowed_float_input != nullptr;
+    history->previous_packet_celt = captured && (packet[0] & 0x80) != 0;
+    constexpr int delay = quality_input_delay_48k_audio;
+    const int count = std::min(frame_size, delay);
+    const int retained = delay - count;
+    for (int channel = 0; channel < channels; ++channel) {
+      auto& tail = history->input_delay[channel];
+      std::copy_n(tail.begin() + count, retained, tail.begin());
+      for (int i = 0; i < count; ++i) {
+        const auto sample = pcm[channels * (frame_size - count + i) + channel];
+        if constexpr (std::same_as<Sample, opus_int16>)
+          tail[retained + i] = sample * (1.f / 32768);
+        else
+          tail[retained + i] = sample;
+      }
+    }
+    if (!captured) {
+      history->reference_bands = {};
+      history->decoded_bands = {};
+      history->incoming_reference_bands = {};
+      history->incoming_bands = {};
+    }
+  }
+  history->borrowed_input = nullptr;
+  history->borrowed_float_input = nullptr;
+  history->borrowed_frame_size = 0;
+  history->borrowed_channels = 0;
+}
+
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
   if (st == nullptr || !has_required_storage(pcm, analysis_frame_size) || !has_required_storage(data, max_data_bytes)) {
     return OPUS_BAD_ARG;
@@ -3800,21 +3834,7 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   const int result = frame_size <= celt_max_frame_samples
                          ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
                          : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
-  if (history != nullptr && result > 0)
-    history->previous_packet_celt = (data[0] & 0x80) != 0;
-  if (history != nullptr && history->borrowed_input != nullptr) {
-    if (result > 0) {
-      constexpr int delay = quality_input_delay_48k_audio;
-      for (int c = 0; c < history->borrowed_channels; ++c) {
-
-        for (int i = 0; i < delay; ++i)
-          history->input_delay[c][i] = pcm[history->borrowed_channels * (frame_size - delay + i) + c] * (1.f / 32768);
-      }
-    }
-    history->borrowed_input = nullptr;
-    history->borrowed_frame_size = 0;
-    history->borrowed_channels = 0;
-  }
+  finish_quality_reference(history, pcm, frame_size, st->channels, data, result);
   return result;
 }
 
@@ -3855,21 +3875,7 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
     }
   }
   const int result = encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
-  if (history != nullptr && result > 0)
-    history->previous_packet_celt = (data[0] & 0x80) != 0;
-  if (history != nullptr && history->borrowed_float_input != nullptr) {
-    if (result > 0) {
-      constexpr int delay = quality_input_delay_48k_audio;
-      for (int c = 0; c < history->borrowed_channels; ++c) {
-
-        for (int i = 0; i < delay; ++i)
-          history->input_delay[c][i] = pcm[history->borrowed_channels * (frame_size - delay + i) + c];
-      }
-    }
-    history->borrowed_float_input = nullptr;
-    history->borrowed_frame_size = 0;
-    history->borrowed_channels = 0;
-  }
+  finish_quality_reference(history, pcm, frame_size, st->channels, data, result);
   return result;
 }
 

@@ -39,7 +39,7 @@ The complexity-10 allocation/history search improves the tracked speech results,
 - Optional DTX: zero false DTX packets on the tracked active-content set, 61.4% lower re-entry error and 52.2% lower gain error at 16/24&nbsp;kbps.
 - Optional FEC: lower missing-frame error in all 18 tracked loss scenarios; 52.8% lower combined recovery error, protection in 18 scenarios versus 15, and 0.4% fewer bytes.
 - 22.5% to 45.6% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `313,148 B`; Android arm64 object: `320,132 B` (text + data + BSS).
+- Host object: `313,548 B`; Android arm64 object: `320,780 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; warning-free MinGW GCC and Android arm64 Clang builds.
 
 ## Pros and cons
