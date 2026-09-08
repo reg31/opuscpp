@@ -2,7 +2,7 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-The full speed and memory tables have not yet been refreshed for the complexity-10 allocation/history search. Fresh direct official quality comparisons and remaining deficits are listed in the quality sections.
+The production speed and headline quality tables are refreshed for the complexity-10 allocation/history search. Memory remains an earlier snapshot. Fresh direct official quality comparisons and remaining deficits are listed in the quality sections.
 
 ## Quick start
 
@@ -238,7 +238,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The speed and memory tables remain the earlier snapshot. The AUDIO and VOIP quality tables use fresh direct comparisons against official Opus; optional-processing and broader-corpus results retain their explicitly stated scope.
+The speed table uses the current production source at complexity 10; memory remains an earlier snapshot. The AUDIO and VOIP quality tables use fresh direct comparisons against official Opus; optional-processing and broader-corpus results retain their explicitly stated scope.
 Default output, optional processing and their input references remain separate comparisons.
 Historical optimization/validation comparisons are explicitly labelled.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
@@ -256,16 +256,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 2.362x | 1.872x | 848x | 359x | 2456x | 1312x |
-| 24&nbsp;kbps | 1.892x | 1.422x | 617x | 326x | 1641x | 1154x |
-| 32&nbsp;kbps | 1.833x | 1.393x | 607x | 331x | 1588x | 1141x |
-| 48&nbsp;kbps | 1.744x | 1.362x | 526x | 302x | 1324x | 972x |
-| 64&nbsp;kbps | 1.772x | 1.330x | 472x | 266x | 1133x | 852x |
-| 96&nbsp;kbps | 1.840x | 1.312x | 398x | 216x | 882x | 673x |
-| 128&nbsp;kbps | 2.060x | 1.315x | 404x | 196x | 771x | 587x |
-| 192&nbsp;kbps | 1.855x | 1.313x | 330x | 178x | 650x | 495x |
-| 256&nbsp;kbps | 1.771x | 1.246x | 302x | 170x | 557x | 447x |
+| 16&nbsp;kbps | 1.175x | 1.854x | 332x | 283x | 1943x | 1048x |
+| 24&nbsp;kbps | 1.007x | 1.393x | 264x | 262x | 1287x | 924x |
+| 32&nbsp;kbps | 0.959x | 1.413x | 251x | 261x | 1274x | 902x |
+| 48&nbsp;kbps | 0.375x | 1.340x | 90x | 241x | 1053x | 786x |
+| 64&nbsp;kbps | 0.324x | 1.300x | 69x | 214x | 898x | 691x |
+| 96&nbsp;kbps | 0.380x | 1.308x | 65x | 171x | 705x | 539x |
+| 128&nbsp;kbps | 0.370x | 1.295x | 59x | 159x | 612x | 473x |
+| 192&nbsp;kbps | 0.371x | 1.287x | 53x | 142x | 521x | 404x |
+| 256&nbsp;kbps | 0.359x | 1.224x | 49x | 136x | 443x | 362x |
 
+
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). The complexity-10 history search makes encoding take 2.6-3.1x as long as official at 48-256 kbps; the earlier encoding-speed advantage does not apply to this configuration. Default complexity 9 is not measured by this table.
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
