@@ -415,7 +415,7 @@ struct quality_frame_work {
   quality_celt_snapshot model;
   std::array<float, 1920> output;
   std::array<double, 7> score;
-  std::array<std::array<float, 8>, 2> reference_bands, decoded_bands;
+  std::array<std::array<double, 8>, 2> reference_bands, decoded_bands;
   int samples, channels;
   bool decoded_ready;
   bool active, analysis_ready;
@@ -424,7 +424,7 @@ struct quality_frame_work {
 struct quality_reference_score_cache {
   std::array<std::array<std::array<double, 9>, 2>, 8> energy{};
   std::array<double, 8> power{}, side{};
-  std::array<std::array<float, 8>, 2> final_bands{};
+  std::array<std::array<double, 8>, 2> final_bands{};
   int C = 0, CC = 0, N = 0;
   bool ready = false;
 };
@@ -442,7 +442,7 @@ enum class quality_tracking_status : int {
 struct quality_history_state {
   OpusDecoder* decoder = nullptr;
   std::array<std::array<float, quality_input_delay_48k_audio>, 2> input_delay{};
-  std::array<std::array<float, 8>, 2> reference_bands{}, decoded_bands{}, incoming_reference_bands{}, incoming_bands{};
+  std::array<std::array<double, 8>, 2> reference_bands{}, decoded_bands{}, incoming_reference_bands{}, incoming_bands{};
   const opus_int16* borrowed_input = nullptr;
   const float* borrowed_float_input = nullptr;
   int borrowed_frame_size = 0, borrowed_channels = 0, profile = 0;
@@ -6843,8 +6843,8 @@ static void quality_advance_filters(quality_history_state& context, quality_fram
                            context.borrowed_frame_size == N && context.borrowed_channels == CC && C >= 1 && C <= CC;
   if (!input_ready)
     return;
-  auto reference_state = context.incoming_reference_bands;
-  auto decoded_state = context.incoming_bands;
+  std::array<std::array<double, 8>, 2> reference_state = context.incoming_reference_bands;
+  std::array<std::array<double, 8>, 2> decoded_state = context.incoming_bands;
   constexpr std::array<double, 8> cutoffs{100, 250, 500, 1000, 2000, 4000, 8000, 16000};
   std::array<double, 8> coefficients{};
   for (int b = 0; b < 8; ++b)
@@ -6874,8 +6874,8 @@ template <bool reuse_reference> static auto quality_score_decoded_impl(quality_h
   if (!input_ready)
     return score;
 
-  auto reference_state = reuse_reference ? reference_cache->final_bands : context.incoming_reference_bands;
-  auto score_bands = context.incoming_bands;
+  std::array<std::array<double, 8>, 2> reference_state = reuse_reference ? reference_cache->final_bands : context.incoming_reference_bands;
+  std::array<std::array<double, 8>, 2> score_bands = context.incoming_bands;
   constexpr std::array<double, 8> cutoffs{100, 250, 500, 1000, 2000, 4000, 8000, 16000};
   std::array<double, 8> coefficients{};
   for (int b = 0; b < 8; ++b)

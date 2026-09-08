@@ -90,15 +90,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.182715x | 1.915389x |
-| 24 kbps | 1.024903x | 1.477383x |
-| 32 kbps | 1.005837x | 1.370296x |
-| 48 kbps | 0.429534x | 1.320980x |
-| 64 kbps | 0.361633x | 1.344189x |
-| 96 kbps | 0.435189x | 1.317026x |
-| 128 kbps | 0.419341x | 1.310911x |
-| 192 kbps | 0.412529x | 1.311194x |
-| 256 kbps | 0.387956x | 1.219743x |
+| 16 kbps | 1.278x | 1.805x |
+| 24 kbps | 1.067x | 1.429x |
+| 32 kbps | 1.048x | 1.360x |
+| 48 kbps | 0.445x | 1.296x |
+| 64 kbps | 0.397x | 1.314x |
+| 96 kbps | 0.444x | 1.314x |
+| 128 kbps | 0.447x | 1.315x |
+| 192 kbps | 0.425x | 1.275x |
+| 256 kbps | 0.411x | 1.202x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -162,7 +162,7 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 Current quality provenance: tests/metrics/quality_run_metadata.json. Current isolated speed provenance: tests/metrics/speed_run_metadata.json. Other full-report results retain the source and scope recorded in tests/metrics/run_metadata.json.
 
-Current core speed: nine 60-second repetitions at complexity 10, official intrinsics enabled, both builds -O2 -DNDEBUG, isolated on one logical CPU at above-normal priority. Encoding takes 2.3-2.8x as long as official at 48-256 kbps; decode remains faster. Optional-mode timings retain their earlier nine-repetition snapshot.
+Current core speed: nine 60-second repetitions at complexity 10, official intrinsics enabled, both builds -O2 -DNDEBUG, isolated on one logical CPU at above-normal priority. Encoding takes 2.2-2.5x as long as official at 48-256 kbps; decode remains faster. Optional-mode timings retain their earlier nine-repetition snapshot.
 
 Memory snapshot: three 256-instance runs, median per configuration; not refreshed for the history search. Current object sizes: Windows text/data/BSS 322936/0/0 B; Android 325864/472/0 B.
 

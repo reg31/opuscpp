@@ -28,8 +28,8 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
-- Complexity-10 encode ratios range from 0.36x to 1.18x versus official Opus: faster at 16 kbps, near parity at 24/32 kbps, and encoding that takes 2.3-2.8x as long at 48-256 kbps.
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.22x to 1.92x).
+- Complexity-10 encode ratios range from 0.40x to 1.28x versus official Opus: faster at 16/24/32 kbps, and encoding that takes 2.2-2.5x as long at 48-256 kbps.
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.20x to 1.80x).
 - Quality is mixed: AUDIO improves both main proxies in 7/9 tracked bitrates, but every AUDIO and VOIP row still loses at least one measured quality field. No universal quality advantage is claimed.
 - Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
@@ -37,7 +37,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - Optional DTX: zero false DTX packets on the tracked active-content set, 61.4% lower re-entry error and 52.2% lower gain error at 16/24&nbsp;kbps.
 - Optional FEC: lower missing-frame error in all 18 tracked loss scenarios; 52.8% lower combined recovery error, protection in 18 scenarios versus 15, and 0.4% fewer bytes.
 - 22.5% to 45.6% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `322,936 B`; Android arm64 object: `326,336 B` (text + data + BSS).
+- Host object: `324,972 B`; Android arm64 object: `327,524 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; warning-free MinGW GCC and Android arm64 Clang builds.
 
 ## Pros and cons
@@ -45,8 +45,8 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 | Pros | Cons |
 |---|---|
 | Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |
-| Reconstruction-based search improves some quality results at complexity 10. | Encoding at 48-256 kbps takes 2.3-2.8x as long as official Opus in the measured workload. |
-| Faster decode in 9/9 measured bitrates (1.22x to 1.92x). | Results describe this machine and workload, not every platform or packet mix. |
+| Reconstruction-based search improves some quality results at complexity 10. | Encoding at 48-256 kbps takes 2.2-2.5x as long as official Opus in the measured workload. |
+| Faster decode in 9/9 measured bitrates (1.20x to 1.80x). | Results describe this machine and workload, not every platform or packet mix. |
 | 22.5% to 45.6% lower measured private allocation footprint. | Official Opus supports a broader feature surface and ecosystem. |
 | Pure portable C++23, without ASM or SIMD intrinsics. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
 
@@ -107,15 +107,15 @@ official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.183x | 1.915x | +0.0006 | -0.0032 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.025x | 1.477x | +0.1931 | +0.0753 | 24.000 kbps | 25.220 kbps |
-| 32&nbsp;kbps | 1.006x | 1.370x | +0.2572 | +0.0791 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 0.430x | 1.321x | +0.0568 | +0.0060 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 0.362x | 1.344x | -0.0014 | +0.0031 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 0.435x | 1.317x | +0.0870 | +0.0112 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 0.419x | 1.311x | +0.1632 | +0.0028 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 0.413x | 1.311x | +0.0707 | +0.0030 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 0.388x | 1.220x | +0.0381 | +0.0019 | 256.000 kbps | 256.736 kbps |
+| 16&nbsp;kbps | 1.278x | 1.805x | +0.0006 | -0.0032 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.067x | 1.429x | +0.1931 | +0.0753 | 24.000 kbps | 25.220 kbps |
+| 32&nbsp;kbps | 1.048x | 1.360x | +0.2572 | +0.0791 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 0.445x | 1.296x | +0.0568 | +0.0060 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 0.397x | 1.314x | -0.0014 | +0.0031 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 0.444x | 1.314x | +0.0870 | +0.0112 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 0.447x | 1.315x | +0.1632 | +0.0028 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 0.425x | 1.275x | +0.0707 | +0.0030 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 0.411x | 1.202x | +0.0381 | +0.0019 | 256.000 kbps | 256.736 kbps |
 
 
 VOIP mono speech-like quality spot check:

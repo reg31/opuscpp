@@ -256,18 +256,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.183x | 1.915x | 348x | 295x | 2030x | 1060x |
-| 24&nbsp;kbps | 1.025x | 1.477x | 277x | 270x | 1370x | 928x |
-| 32&nbsp;kbps | 1.006x | 1.370x | 264x | 263x | 1272x | 928x |
-| 48&nbsp;kbps | 0.430x | 1.321x | 105x | 245x | 1083x | 820x |
-| 64&nbsp;kbps | 0.362x | 1.344x | 77x | 214x | 914x | 680x |
-| 96&nbsp;kbps | 0.435x | 1.317x | 77x | 176x | 731x | 555x |
-| 128&nbsp;kbps | 0.419x | 1.311x | 67x | 161x | 631x | 482x |
-| 192&nbsp;kbps | 0.413x | 1.311x | 59x | 143x | 538x | 410x |
-| 256&nbsp;kbps | 0.388x | 1.220x | 55x | 141x | 460x | 377x |
+| 16&nbsp;kbps | 1.278x | 1.805x | 396x | 310x | 2070x | 1147x |
+| 24&nbsp;kbps | 1.067x | 1.429x | 300x | 282x | 1410x | 987x |
+| 32&nbsp;kbps | 1.048x | 1.360x | 297x | 283x | 1328x | 976x |
+| 48&nbsp;kbps | 0.445x | 1.296x | 115x | 259x | 1111x | 857x |
+| 64&nbsp;kbps | 0.397x | 1.314x | 90x | 226x | 965x | 734x |
+| 96&nbsp;kbps | 0.444x | 1.314x | 83x | 187x | 754x | 574x |
+| 128&nbsp;kbps | 0.447x | 1.315x | 74x | 166x | 640x | 486x |
+| 192&nbsp;kbps | 0.425x | 1.275x | 66x | 155x | 559x | 438x |
+| 256&nbsp;kbps | 0.411x | 1.202x | 61x | 148x | 477x | 396x |
 
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). The complexity-10 history search makes encoding take 2.3-2.8x as long as official at 48-256 kbps; the earlier encoding-speed advantage does not apply to this configuration. Default complexity 9 is not measured by this table.
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). The complexity-10 history search makes encoding take 2.2-2.5x as long as official at 48-256 kbps; the earlier encoding-speed advantage does not apply to this configuration. Default complexity 9 is not measured by this table.
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 322,936 B | 0 B | 322,936 B |
-| Android arm64 Clang `-O2` | 325,864 B | 472 B | 326,336 B |
+| Host MinGW GCC `-O2` | 324,972 B | 0 B | 324,972 B |
+| Android arm64 Clang `-O2` | 327,052 B | 472 B | 327,524 B |
 
 ## Toolchains checked
 
@@ -441,7 +441,7 @@ Quality acceptance uses the direct official comparisons above, not gains against
 
 The search shares compatible pre-emphasis, pitch/prefilter, transform and band analysis. Identical or budget-ineligible allocation proposals skip the remaining alternative quantization; energy-refresh and release cases keep their required paths. Identical packets and candidates that fail the cheap waveform-error checks are rejected before full spectral scoring.
 
-Full candidate pairs share source filtering, band energies and stereo power through an approximately 1.4 KiB frame-local cache. Inactive alternatives advance only the selected output's filter history. Hybrid encoding skips shadow decoding only when that history will be replaced before selection. Ordinary encoding bypasses the large search wrapper.
+Full candidate pairs share source filtering, band energies and stereo power through an approximately 1.4 KiB frame-local cache. The observer filter banks remain in double precision, matching the scoring arithmetic and avoiding float/double conversion at every sample. This adds 256 bytes to an allocated history object and preserves packets and measured quality in the validation corpus. The full timing sweep shows 2-10% higher encode throughput after normalization to the official control; see [observer timing](metrics/quality_observer_speed.csv). It is a partial recovery, not a resolution of the remaining encoding slowdown. Inactive alternatives advance only the selected output's filter history. Hybrid encoding skips shadow decoding only when that history will be replaced before selection. Ordinary encoding bypasses the large search wrapper.
 
 These reductions do not eliminate the cost of the second candidate and reconstructed-output checks. The current full production timings above remain substantially slower than official at 48-256 kbps. The budget-ineligible cleanup removes proven duplicate work, but the full synthetic benchmark did not establish a separate speed gain from that one-line change.
 

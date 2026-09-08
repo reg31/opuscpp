@@ -1,10 +1,10 @@
 {
-  "commit": "f984e87d06cf26543c40159ee9a031339e4614ea",
-  "source_sha256": "c20df83990c3e0466fbf6b290b2337be0a5e7be26136d2aafffe4c6eb21bc0c5",
+  "commit": "d20b96124575ea2d10ffa1c15bfb7567a5fd9700",
+  "source_sha256": "dd9d422db519139e99525448d8bf94e43b4bf0a6ed80e02a754b9db45b31adf6",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "binary_source_sha256": "c20df83990c3e0466fbf6b290b2337be0a5e7be26136d2aafffe4c6eb21bc0c5",
-  "binary_sha256": "4edc377db4bdac399875915b5e43decfa4ac01aed987484b2e5ad4c6a6348435",
-  "driver_sha256": "fde3c77c306187083ac64edfdc4e7be806c396bba49ed9b9b3b1cb40cf05afc8",
+  "binary_source_sha256": "dd9d422db519139e99525448d8bf94e43b4bf0a6ed80e02a754b9db45b31adf6",
+  "binary_sha256": "10f04e7a11825d3fabb25cd4441098c7d2108590a63fe0e5d1ff73acd19c5d65",
+  "driver_sha256": "64867f22336095f7726d055ea739ca3e5209fb5c4317d371f9411c28ce7e47db",
   "archive_path": "build\\official_opus_o2_intrinsics_mingw\\libopus.a",
   "archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
   "binary_reused": false,
@@ -76,7 +76,7 @@
     "celt_highband_error": -1,
     "stereo_width_error": -1
   },
-  "source_matches_commit": true,
+  "source_matches_commit": false,
   "api_default_complexity": 9,
   "api_default_evidence": "Parent runtime query: official and opuscpp both 9 for VOIP/AUDIO/RESTRICTED_LOWDELAY x mono/stereo (6 pairs); no API default changed.",
   "published_metadata_sha256": "08a27f0a7a145e8f29db1f2f37e5c03333bd82012f2e0b981d79f72d22da136f",
@@ -90,7 +90,27 @@
     "OPUS_X86_MAY_HAVE_SSE4_1:BOOL=ON"
   ],
   "comparison": "Official Opus only; quality deltas are not relative to a previous opuscpp build.",
-  "base_commit": "f984e87d06cf26543c40159ee9a031339e4614ea",
+  "base_commit": "d20b96124575ea2d10ffa1c15bfb7567a5fd9700",
   "worktree_changes": true,
-  "validation": "All36 direct-official headline configurations rerun after budget-ineligible no-op cleanup; quality and packets identical to recorded values."
+  "validation": "All 36 direct-official headline configurations rerun after the observer precision change; packets, final ranges, decoded PCM and all 12 quality fields match the recorded values.",
+  "latest_validation": {
+    "change": "Keep encoder quality-observer filter banks in double precision",
+    "cells": 36,
+    "packet_range_pcm_exact": 36,
+    "all_quality_fields_exact": 36,
+    "complexities": [
+      9,
+      10
+    ],
+    "evidence_sha256": "c12addc3726e7ba6303abf65401ccb9bbb252bf9bd3fe20948c34e0075e83d71",
+    "existing_quality_deficits_unchanged": true,
+    "precision_note": "Observer state is more precise; packet identity is measured on the validation corpus, not guaranteed for every possible input."
+  },
+  "targeted_checks": {
+    "history_cases": 160,
+    "reference_continuity_sequences": 48,
+    "trapping_ubsan": "Both existing checks passed",
+    "gcc_warnings": 0,
+    "android_warnings": 0
+  }
 }
