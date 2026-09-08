@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 313,548 B | 0 B | 313,548 B |
-| Android arm64 Clang `-O2` | 320,308 B | 472 B | 320,780 B |
+| Host MinGW GCC `-O2` | 316,772 B | 0 B | 316,772 B |
+| Android arm64 Clang `-O2` | 322,016 B | 472 B | 322,488 B |
 
 ## Toolchains checked
 
@@ -452,7 +452,9 @@ Packet count and average packet size are unchanged in all six checks. Full-preci
 
 Early rejection avoids decoding identical candidates and runs the mandatory waveform-error checks before expensive spectral scoring. Isolated alternating comparisons show 11.3% less encoder time for speech, 18.9% for quiet speech, and 23.2% for plucked stereo, with unchanged selected output and quality results. These reductions compare the same search with and without early rejection; [measured times](metrics/quality_history_speed.csv) are recorded separately from the ordinary encoder comparison. The search still costs more than ordinary encoding and needs further cost reduction and broader quality validation. It also allocates per-stream reconstruction history when first activated.
 
-Ordinary encoding bypasses the large history-search wrapper. GCC reports 144 bytes for the dispatch wrapper's own stack frame; the active tracked-search helper still uses about 75 KB. This is a per-function measurement, not total codec peak stack. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
+The two candidates share compatible pitch/prefilter, pre-emphasis, transform and band analysis. Identical allocation signatures skip the remaining alternative quantization; release-protected frames retain the full path. Targeted comparisons measure a further 7.1% reduction in encoder time for speech, 10.5% for plucked stereo, and 13.8% for quiet speech, with unchanged output. [Shared-analysis measurements](metrics/quality_history_shared_speed.csv) are separate from the earlier early-rejection comparison.
+
+Ordinary encoding bypasses the large history-search wrapper. GCC reports 160 bytes for the dispatch wrapper's own stack frame; the active tracked-search helper uses 83,520 bytes, including its shared analysis storage. These are per-function measurements, not total codec peak stack. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
 
 Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
 

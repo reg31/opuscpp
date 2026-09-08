@@ -5893,10 +5893,43 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
-static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr, std::span<const unsigned char> baseline_packet = {}, const std::array<double, 7>* baseline_score = nullptr) {
+struct celt_state_checkpoint {
+  CeltEncoderInternal state{};
+  std::array<float, celt_encoder_storage_count(2)> history{};
+  ec_ctx coder{};
+  std::array<unsigned char, 1275> bytes{};
+};
+
+struct celt_analysis_checkpoint {
+  celt_state_checkpoint image{};
+  std::array<celt_sig, celt_max_channels * celt_max_frame_samples> frequency{};
+  std::array<float, 2 * celt_max_channels * celt_default_nb_ebands> bands{};
+  std::array<int, celt_default_nb_ebands> offsets{};
+  celt_prefilter_result prefilter{};
+  opus_int32 tell0_frac = 0, vbr_rate = 0, equiv_rate = 0, total_bits = 0, tot_boost = 0;
+  opus_val32 toneishness = 0, temporal_vbr = 0, max_depth = 0;
+  opus_val16 tone_frequency = 0;
+  std::size_t state_samples = 0, payload_bytes = 0;
+  int nb_compressed_bytes = 0, nb_available_bytes = 0, effective_bytes = 0;
+  int silence = 0, is_transient = 0, transient_enabled = 0, transient_got_disabled = 0, short_blocks = 0;
+  int frame_size = 0, start = 0, end = 0, C = 0, CC = 0, LM = 0, N = 0;
+  bool valid = false;
+};
+
+static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr, std::span<const unsigned char> baseline_packet = {}, const std::array<double, 7>* baseline_score = nullptr, celt_analysis_checkpoint* analysis = nullptr, bool resume_analysis = false) {
   const bool quality_main_packet = enc != nullptr;
   if (quality_work != nullptr) {
     *quality_work = {};
+  }
+  if (resume_analysis) {
+    if (analysis == nullptr || !analysis->valid || enc == nullptr)
+      return OPUS_INTERNAL_ERROR;
+    auto* live_buffer = enc->buf;
+    *st = analysis->image.state;
+    std::copy_n(analysis->image.history.data(), analysis->state_samples, celt_encoder_storage(st));
+    *enc = analysis->image.coder;
+    enc->buf = live_buffer;
+    std::memcpy(enc->buf, analysis->image.bytes.data(), analysis->payload_bytes);
   }
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5911,118 +5944,184 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   const int CC = st->channels;
   const int C = st->stream_channels;
   auto [prefilter_mem, oldBandE, oldLogE, oldLogE2, energyError] = make_celt_encoder_views(st);
-  opus_int32 tell = enc == nullptr ? 1 : ec_tell(enc);
-  const opus_int32 tell0_frac = enc == nullptr ? 1 : ec_tell_frac(enc);
-  const int nbFilledBytes = enc == nullptr ? 0 : (tell + 4) >> 3;
-  nbCompressedBytes = std::min(nbCompressedBytes, 1275);
-  opus_int32 vbr_rate;
-  int effectiveBytes;
-  if (st->vbr && st->bitrate != -1) {
-    vbr_rate = bitrate_to_bits(st->bitrate, celt_sample_rate, frame_size) << 3;
-    effectiveBytes = vbr_rate >> (3 + 3);
-  } else {
-    vbr_rate = 0;
-    opus_int32 tmp = st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0);
-    if (st->bitrate != -1) {
-      nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (tmp + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
-      if (enc != nullptr) {
-        ec_enc_shrink(enc, nbCompressedBytes);
-      }
-    }
-    effectiveBytes = nbCompressedBytes - nbFilledBytes;
-  }
-  int nbAvailableBytes = nbCompressedBytes - nbFilledBytes;
-  auto equiv_rate = (static_cast<opus_int32>(nbCompressedBytes) * 8 * 50 << (3 - LM)) - (40 * C + 20) * ((400 >> LM) - 50);
+  opus_int32 tell = 0, tell0_frac = 0, vbr_rate = 0, equiv_rate = 0, total_bits = 0, tot_boost = 0;
+  int nbAvailableBytes = 0, effectiveBytes = 0;
+  opus_val32 toneishness = 0, temporal_vbr = 0, maxDepth = 0;
+  opus_val16 tone_frequency = 0;
+  celt_prefilter_result prefilter{};
+  int silence = 0, isTransient = 0, transient_enabled = 0, transient_got_disabled = 0, shortBlocks = 0;
+  bool protect_release = false;
   ec_enc local_encoder;
-  if (st->bitrate != -1) {
-    equiv_rate = std::min(equiv_rate, st->bitrate - (40 * C + 20) * ((400 >> LM) - 50));
-  }
-  if (enc == nullptr) {
-    ec_enc_init(&local_encoder, compressed, nbCompressedBytes);
-    enc = &local_encoder;
-  }
-  if (vbr_rate > 0 && st->constrained_vbr) {
-    const opus_int32 max_allowed = std::min(std::max(tell == 1 ? 2 : 0, (2 * vbr_rate - st->vbr_reservoir) >> (3 + 3)), nbAvailableBytes);
-    if (max_allowed < nbAvailableBytes) {
-      nbCompressedBytes = nbFilledBytes + max_allowed;
-      nbAvailableBytes = max_allowed;
-      ec_enc_shrink(enc, nbCompressedBytes);
-    }
-  }
-  opus_int32 total_bits = nbCompressedBytes * 8;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  const auto input_metrics = celt_preemphasise_input(st, pcm, in, prefilter_mem, N);
-  int silence = input_metrics.silence;
-  if (tell == 1) {
-    ec_enc_bit_logp(enc, silence, 15);
-  } else
-    silence = 0;
-  if (silence) {
-    if (vbr_rate > 0) {
-      effectiveBytes = nbCompressedBytes = std::min(nbCompressedBytes, nbFilledBytes + 2);
-      total_bits = nbCompressedBytes * 8;
-      nbAvailableBytes = 2;
-      ec_enc_shrink(enc, nbCompressedBytes);
-    }
-    tell = nbCompressedBytes * 8;
-    enc->nbits_total += tell - ec_tell(enc);
-  }
-  opus_val32 toneishness = 0;
-  const auto tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
-  int isTransient = 0;
-  if (!silence && (hybrid || (LM > 0 && st->stereo_policy_celt)) && st->complexity >= 1) {
-    opus_val32 transient_threshold = 8.f;
-    if (C == 2 && st->bitrate > 0 && st->silk_info.bitrateBps > 0 && !protect_transients) {
-      const auto highband_share = 100 * st->bitrate / st->silk_info.bitrateBps;
-      if (highband_share >= 20 && highband_share <= 32) {
-        transient_threshold = 24.f;
-      }
-    }
-    isTransient = celt_transient_hint(in, N + overlap, CC, transient_threshold);
-  }
-  const auto prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
-                                               toneishness, input_metrics.abs_sum);
-  if (!hybrid && st->stereo_policy_celt && LM == 3 && st->input_diff_Q10 >= 26) {
-    isTransient = 1;
-  }
-  const bool transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
-  const bool protect_release = challenger && st->quality_history != nullptr && st->quality_history->profile > 0 &&
-                               st->allocation_history_changed && input_metrics.release && st->audio_application &&
-                               C == 2 && start == 0 && end == nbEBands && LM > 0 && st->complexity >= 1;
-  if (!silence && transient_enabled && protect_release)
-    isTransient = 1;
-  const int transient_got_disabled = !transient_enabled;
-  if (!transient_enabled && st->stereo_policy_celt) {
-    isTransient = 0;
-  }
-  const int shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
   std::array<celt_sig, celt_max_channels * celt_max_frame_samples> frequency_storage;
   auto* freq = frequency_storage.data();
-  compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
-  compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
-  const auto temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
   auto* quality_history = st->quality_history;
-  if (quality_history != nullptr && quality_work != nullptr && quality_main_packet) {
-    if (st->upsample == 1)
-      quality_prepare_history(*quality_history, *quality_work, start, end, C, CC);
-    else
-      quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
-  }
-
-  copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
-  if (transient_enabled) {
-    ec_enc_bit_logp(enc, isTransient, 3);
-  }
-  auto* X = freq;
   std::array<std::array<int, celt_default_nb_ebands>, 6> band_workspace;
   auto& [offsets, tf_res, cap, fine_quant, pulses, fine_priority] = band_workspace;
-  opus_int32 tot_boost = 0;
-  const opus_val32 maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                                &tot_boost, tone_frequency, toneishness);
+
+  if (resume_analysis) {
+    if (analysis->frame_size != frame_size || analysis->start != start || analysis->end != end || analysis->C != C ||
+        analysis->CC != CC || analysis->LM != LM || analysis->N != N)
+      return OPUS_INTERNAL_ERROR;
+    tell0_frac = analysis->tell0_frac;
+    vbr_rate = analysis->vbr_rate;
+    equiv_rate = analysis->equiv_rate;
+    total_bits = analysis->total_bits;
+    tot_boost = analysis->tot_boost;
+    toneishness = analysis->toneishness;
+    temporal_vbr = analysis->temporal_vbr;
+    maxDepth = analysis->max_depth;
+    tone_frequency = analysis->tone_frequency;
+    prefilter = analysis->prefilter;
+    nbCompressedBytes = analysis->nb_compressed_bytes;
+    nbAvailableBytes = analysis->nb_available_bytes;
+    effectiveBytes = analysis->effective_bytes;
+    silence = analysis->silence;
+    isTransient = analysis->is_transient;
+    transient_enabled = analysis->transient_enabled;
+    transient_got_disabled = analysis->transient_got_disabled;
+    shortBlocks = analysis->short_blocks;
+    std::copy_n(analysis->frequency.data(), C * N, freq);
+    std::copy_n(analysis->bands.data(), CC * nbEBands, bandE);
+    std::copy_n(analysis->bands.data() + celt_max_channels * nbEBands, CC * nbEBands, bandLogE);
+    offsets = analysis->offsets;
+    quality_history = st->quality_history;
+    if (quality_history != nullptr && quality_work != nullptr && quality_main_packet)
+      quality_prepare_history(*quality_history, *quality_work, start, end, C, CC);
+  } else {
+    tell = enc == nullptr ? 1 : ec_tell(enc);
+    tell0_frac = enc == nullptr ? 1 : ec_tell_frac(enc);
+    const int nbFilledBytes = enc == nullptr ? 0 : (tell + 4) >> 3;
+    nbCompressedBytes = std::min(nbCompressedBytes, 1275);
+    if (st->vbr && st->bitrate != -1) {
+      vbr_rate = bitrate_to_bits(st->bitrate, celt_sample_rate, frame_size) << 3;
+      effectiveBytes = vbr_rate >> (3 + 3);
+    } else {
+      opus_int32 tmp = st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0);
+      if (st->bitrate != -1) {
+        nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (tmp + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
+        if (enc != nullptr)
+          ec_enc_shrink(enc, nbCompressedBytes);
+      }
+      effectiveBytes = nbCompressedBytes - nbFilledBytes;
+    }
+    nbAvailableBytes = nbCompressedBytes - nbFilledBytes;
+    equiv_rate = (static_cast<opus_int32>(nbCompressedBytes) * 8 * 50 << (3 - LM)) - (40 * C + 20) * ((400 >> LM) - 50);
+    if (st->bitrate != -1)
+      equiv_rate = std::min(equiv_rate, st->bitrate - (40 * C + 20) * ((400 >> LM) - 50));
+    if (enc == nullptr) {
+      ec_enc_init(&local_encoder, compressed, nbCompressedBytes);
+      enc = &local_encoder;
+    }
+    if (vbr_rate > 0 && st->constrained_vbr) {
+      const opus_int32 max_allowed = std::min(std::max(tell == 1 ? 2 : 0, (2 * vbr_rate - st->vbr_reservoir) >> (3 + 3)), nbAvailableBytes);
+      if (max_allowed < nbAvailableBytes) {
+        nbCompressedBytes = nbFilledBytes + max_allowed;
+        nbAvailableBytes = max_allowed;
+        ec_enc_shrink(enc, nbCompressedBytes);
+      }
+    }
+    total_bits = nbCompressedBytes * 8;
+    const auto input_metrics = celt_preemphasise_input(st, pcm, in, prefilter_mem, N);
+    silence = input_metrics.silence;
+    if (tell == 1)
+      ec_enc_bit_logp(enc, silence, 15);
+    else
+      silence = 0;
+    if (silence) {
+      if (vbr_rate > 0) {
+        effectiveBytes = nbCompressedBytes = std::min(nbCompressedBytes, nbFilledBytes + 2);
+        total_bits = nbCompressedBytes * 8;
+        nbAvailableBytes = 2;
+        ec_enc_shrink(enc, nbCompressedBytes);
+      }
+      tell = nbCompressedBytes * 8;
+      enc->nbits_total += tell - ec_tell(enc);
+    }
+    tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
+    if (!silence && (hybrid || (LM > 0 && st->stereo_policy_celt)) && st->complexity >= 1) {
+      opus_val32 transient_threshold = 8.f;
+      if (C == 2 && st->bitrate > 0 && st->silk_info.bitrateBps > 0 && !protect_transients) {
+        const auto highband_share = 100 * st->bitrate / st->silk_info.bitrateBps;
+        if (highband_share >= 20 && highband_share <= 32)
+          transient_threshold = 24.f;
+      }
+      isTransient = celt_transient_hint(in, N + overlap, CC, transient_threshold);
+    }
+    prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
+                                      toneishness, input_metrics.abs_sum);
+    if (!hybrid && st->stereo_policy_celt && LM == 3 && st->input_diff_Q10 >= 26)
+      isTransient = 1;
+    transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
+    const bool release_intervention = st->quality_history != nullptr && st->quality_history->profile > 0 &&
+                                      st->allocation_history_changed && input_metrics.release && st->audio_application &&
+                                      C == 2 && start == 0 && end == nbEBands && LM > 0 && st->complexity >= 1;
+    protect_release = challenger && release_intervention;
+    if (!silence && transient_enabled && protect_release)
+      isTransient = 1;
+    transient_got_disabled = !transient_enabled;
+    if (!transient_enabled && st->stereo_policy_celt)
+      isTransient = 0;
+    shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
+    compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
+    compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
+    temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
+    quality_history = st->quality_history;
+    if (quality_history != nullptr && quality_work != nullptr && quality_main_packet) {
+      if (st->upsample == 1)
+        quality_prepare_history(*quality_history, *quality_work, start, end, C, CC);
+      else
+        quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
+    }
+    copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
+    if (transient_enabled)
+      ec_enc_bit_logp(enc, isTransient, 3);
+    maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
+                                 &tot_boost, tone_frequency, toneishness);
+    if (analysis != nullptr && !challenger && !release_intervention) {
+      analysis->image.state = *st;
+      analysis->state_samples = celt_encoder_storage_count(st->channels);
+      std::copy_n(celt_encoder_storage(st), analysis->state_samples, analysis->image.history.data());
+      analysis->image.coder = *enc;
+      analysis->payload_bytes = enc->storage;
+      std::memcpy(analysis->image.bytes.data(), enc->buf, analysis->payload_bytes);
+      std::copy_n(freq, C * N, analysis->frequency.data());
+      std::copy_n(bandE, CC * nbEBands, analysis->bands.data());
+      std::copy_n(bandLogE, CC * nbEBands, analysis->bands.data() + celt_max_channels * nbEBands);
+      analysis->offsets = offsets;
+      analysis->tell0_frac = tell0_frac;
+      analysis->vbr_rate = vbr_rate;
+      analysis->equiv_rate = equiv_rate;
+      analysis->total_bits = total_bits;
+      analysis->tot_boost = tot_boost;
+      analysis->toneishness = toneishness;
+      analysis->temporal_vbr = temporal_vbr;
+      analysis->max_depth = maxDepth;
+      analysis->tone_frequency = tone_frequency;
+      analysis->prefilter = prefilter;
+      analysis->nb_compressed_bytes = nbCompressedBytes;
+      analysis->nb_available_bytes = nbAvailableBytes;
+      analysis->effective_bytes = effectiveBytes;
+      analysis->silence = silence;
+      analysis->is_transient = isTransient;
+      analysis->transient_enabled = transient_enabled;
+      analysis->transient_got_disabled = transient_got_disabled;
+      analysis->short_blocks = shortBlocks;
+      analysis->frame_size = frame_size;
+      analysis->start = start;
+      analysis->end = end;
+      analysis->C = C;
+      analysis->CC = CC;
+      analysis->LM = LM;
+      analysis->N = N;
+      analysis->valid = true;
+    }
+  }
+  auto* X = freq;
 
   const bool proposal_content = (st->audio_application && C == 2) || (st->voip_application && C == 1);
   const bool compare_allocation = challenger && quality_history != nullptr && quality_work != nullptr && quality_work->active &&
@@ -6040,6 +6139,12 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
                       &alternate_boost, tone_frequency, toneishness, true, freq, N);
     offsets = alternate_offsets;
     tot_boost = alternate_boost;
+  }
+  const bool allocation_is_only_resumed_action = resume_analysis && compare_allocation;
+  if (allocation_is_only_resumed_action && !st->pending_energy_refresh && !protect_release &&
+      tot_boost == analysis->tot_boost && offsets == analysis->offsets) {
+    quality_work->active = false;
+    return fixed_budget;
   }
   std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients || protect_release) && isTransient)) ? 1 : 0);
   auto* error = bandLogE2;
@@ -6236,31 +6341,26 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
       quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
     return result;
   }
-  struct snapshot {
-    CeltEncoderInternal state;
-    std::array<float, celt_encoder_storage_count(2)> history;
-    ec_ctx coder;
-    std::array<unsigned char, 1275> bytes;
-  };
   const auto state_samples = celt_encoder_storage_count(st->channels);
   const std::size_t bytes = enc->storage;
-  auto save = [&](snapshot& copy) {
+  auto save = [&](celt_state_checkpoint& copy) {
     copy.state = *st;
     std::copy_n(celt_encoder_storage(st), state_samples, copy.history.data());
     copy.coder = *enc;
     std::memcpy(copy.bytes.data(), enc->buf, bytes);
   };
-  auto restore = [&](const snapshot& copy) {
+  auto restore = [&](const celt_state_checkpoint& copy) {
     *st = copy.state;
     std::copy_n(copy.history.data(), state_samples, celt_encoder_storage(st));
     *enc = copy.coder;
     std::memcpy(enc->buf, copy.bytes.data(), bytes);
   };
-  snapshot original, baseline;
+  celt_analysis_checkpoint original;
+  celt_state_checkpoint baseline;
   quality_frame_work ordinary_work, alternative_work;
-  save(original);
+  save(original.image);
   const int ordinary = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, &ordinary_work,
-                                             &quality_checkpoint);
+                                             &quality_checkpoint, {}, nullptr, &original, false);
   if (ordinary <= 0)
     return ordinary;
   if (!ordinary_work.active || !ordinary_work.decoded_ready) {
@@ -6268,8 +6368,12 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
     return ordinary;
   }
   save(baseline);
-  restore(original);
-  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &alternative_work, &quality_checkpoint, {baseline.bytes.data(), static_cast<std::size_t>(ordinary)}, &ordinary_work.score);
+  if (!original.valid)
+    restore(original.image);
+  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state,
+                                                &alternative_work, &quality_checkpoint,
+                                                {baseline.bytes.data(), static_cast<std::size_t>(ordinary)}, &ordinary_work.score,
+                                                original.valid ? &original : nullptr, original.valid);
   bool accept = alternative == ordinary && alternative_work.active && alternative_work.decoded_ready &&
                 ordinary_work.analysis_ready && alternative_work.analysis_ready &&
                 st->intensity == baseline.state.intensity && st->lastCodedBands >= baseline.state.lastCodedBands &&

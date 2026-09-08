@@ -1,0 +1,4 @@
+sample,bitrate_bps,separate_analysis_ms,shared_analysis_ms,encode_time_reduction_pct
+speech,48000,24.3288,22.6126,7.054190917760028
+plucked,192000,84.9454,76.0428,10.48037916120238
+speech_quiet,24000,32.8785,28.3401,13.80354943199964
