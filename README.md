@@ -26,7 +26,7 @@ Minimal integration looks like:
 
 ## Highlights
 
-The complexity-10 allocation/history search improves the tracked speech results, with some spectral regressions still unresolved. [Targeted results](tests/README.md#allocationhistory-integration) are available; the full speed and memory tables have not yet been refreshed for this change.
+The complexity-10 allocation/history search improves the tracked speech results, with some spectral regressions still unresolved. Avoiding unused scoring and reconstruction reduces its encoder time by 19.5% to 26.4% in three targeted comparisons, without changing those outputs. [Targeted results](tests/README.md#allocationhistory-integration) are available; these are incremental search measurements, not new speed ratios versus official Opus. The full speed and memory tables have not yet been refreshed for this change.
 
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
@@ -91,8 +91,8 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-The full benchmark tables have not yet been refreshed for the allocation/history change. They use
-this fresh run; [run metadata](tests/metrics/run_metadata.json) records source hashes and settings.
+The full benchmark tables have not yet been refreshed for the allocation/history change.
+[Run metadata](tests/metrics/run_metadata.json) identifies the measured source and settings.
 Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels
 independently. Both quality gains and losses are retained.
 
