@@ -6735,9 +6735,9 @@ static bool quality_probe_real_decoder(quality_history_state& history, quality_f
   if (baseline_score != nullptr) {
     double square_error = 0, absolute_error = 0;
     for (int sample = 0; sample < decoded; ++sample) {
-      for (int channel = 0; channel < C; ++channel) {
+      for (int channel = 0; channel < decoder->channels; ++channel) {
         const double reference = quality_reference_sample(history, sample, channel);
-        const double value = work.output[sample * C + channel];
+        const double value = work.output[sample * decoder->channels + channel];
         const double error = value - reference;
         square_error += error * error;
         absolute_error += std::abs(error);
@@ -6812,21 +6812,21 @@ static auto quality_score_decoded(quality_history_state& context, quality_frame_
     double source_power = 0, decoded_power = 0, source_side = 0, decoded_side = 0;
     for (int j = begin; j < std::min(begin + 120, N); ++j) {
       double source_power_frame = 0, decoded_power_frame = 0;
-      for (int c = 0; c < C; ++c) {
-        const double source = quality_reference_sample(context, j, c), decoded = work.output[j * C + c];
+      for (int c = 0; c < CC; ++c) {
+        const double source = quality_reference_sample(context, j, c), decoded = work.output[j * CC + c];
         source_power_frame += source * source;
         decoded_power_frame += decoded * decoded;
       }
       source_power += source_power_frame;
       decoded_power += decoded_power_frame;
-      if (C == 2) {
+      if (CC == 2) {
         const double source_side_sample = quality_reference_sample(context, j, 0) - quality_reference_sample(context, j, 1);
         const double decoded_side_sample = work.output[2 * j] - work.output[2 * j + 1];
         source_side += source_side_sample * source_side_sample;
         decoded_side += decoded_side_sample * decoded_side_sample;
       }
-      for (int c = 0; c < C; ++c) {
-        const double target = quality_reference_sample(context, j, c), sample = work.output[j * C + c], error = sample - target;
+      for (int c = 0; c < CC; ++c) {
+        const double target = quality_reference_sample(context, j, c), sample = work.output[j * CC + c], error = sample - target;
         score[0] += error * error;
         score[1] += std::abs(error);
         double previous_ref = 0, previous_dec = 0;
@@ -6845,13 +6845,13 @@ static auto quality_score_decoded(quality_history_state& context, quality_frame_
         decoded_energy[c][8] += std::pow(sample - previous_dec, 2);
       }
     }
-    for (int c = 0; c < C; ++c)
+    for (int c = 0; c < CC; ++c)
       for (int b = 0; b < 9; ++b) {
         const double ratio = (decoded_energy[c][b] + source_power * 1e-6 + 1e-20) / (reference_energy[c][b] + source_power * 1e-6 + 1e-20);
         score[2] += std::abs(std::log(ratio));
         score[3] = std::max(score[3], std::abs(std::log(ratio)));
       }
-    if (C == 2)
+    if (CC == 2)
       score[4] += std::abs(std::sqrt(decoded_side / (2 * decoded_power + 1e-30)) - std::sqrt(source_side / (2 * source_power + 1e-30)));
   }
   work.decoded_bands = score_bands;

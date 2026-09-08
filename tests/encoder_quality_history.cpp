@@ -9,6 +9,24 @@ static void require(bool value) {
 }
 
 int main() {
+  {
+    quality_history_state history;
+    quality_frame_work work;
+    std::array<opus_int16, 1920> input;
+    for (int i = 0; i < 960; ++i)
+      input[2 * i] = input[2 * i + 1] = static_cast<opus_int16>((i * 389) % 30000 - 15000);
+    history.borrowed_input = input.data();
+    history.borrowed_frame_size = 960;
+    history.borrowed_channels = 2;
+    for (int i = 0; i < 960; ++i)
+      for (int c = 0; c < 2; ++c)
+        work.output[2 * i + c] = quality_reference_sample(history, i, c);
+    const auto perfect = quality_score_decoded(history, work, 1, 2, 960);
+    require(perfect[0] == 0 && perfect[1] == 0);
+    work.output.back() += .125f;
+    const auto changed = quality_score_decoded(history, work, 1, 2, 960);
+    require(changed[0] == .015625 && changed[1] == .125);
+  }
   int checked = 0;
   for (const auto channels : {1, 2}) {
     for (const auto duration : {480, 960}) {

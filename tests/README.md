@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 316,772 B | 0 B | 316,772 B |
-| Android arm64 Clang `-O2` | 322,016 B | 472 B | 322,488 B |
+| Host MinGW GCC `-O2` | 316,840 B | 0 B | 316,840 B |
+| Android arm64 Clang `-O2` | 321,988 B | 472 B | 322,460 B |
 
 ## Toolchains checked
 
@@ -459,6 +459,8 @@ Ordinary encoding bypasses the large history-search wrapper. GCC reports 160 byt
 Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
 
 The focused history test also passes trapping undefined-behavior checks. Run it without separately compiling the implementation, because the test includes it:
+
+It also verifies that scoring uses the output channel layout: a perfectly matching stereo output scores zero even when the packet codes mono, and an error confined to the final right-channel sample is counted correctly.
 
 ~~~sh
 c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history
