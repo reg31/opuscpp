@@ -422,7 +422,7 @@ Source CSV:
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
 | Host MinGW GCC `-O2` | 316,840 B | 0 B | 316,840 B |
-| Android arm64 Clang `-O2` | 321,988 B | 472 B | 322,460 B |
+| Android arm64 Clang `-O2` | 322,012 B | 472 B | 322,484 B |
 
 ## Toolchains checked
 
@@ -461,6 +461,8 @@ Integration checks passed across 96 configurations and 7,680 packets: mono/stere
 The focused history test also passes trapping undefined-behavior checks. Run it without separately compiling the implementation, because the test includes it:
 
 It also verifies that scoring uses the output channel layout: a perfectly matching stereo output scores zero even when the packet codes mono, and an error confined to the final right-channel sample is counted correctly.
+
+The encoder tracker follows the decoder's redundancy-retention rule. The reversal test reports zero model-state mismatches, and the public-control test detects the former mismatch when enabling FEC while changing bitrate.
 
 ~~~sh
 c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history

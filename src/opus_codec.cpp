@@ -3549,7 +3549,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   if (auto* history = celt_enc->quality_history; history != nullptr && ret > 1) {
     history->packet_prev_mode = st->mode;
-    history->packet_prev_redundancy = redundancy;
+    history->packet_prev_redundancy = redundancy && !celt_to_silk;
   }
   return ret;
 }

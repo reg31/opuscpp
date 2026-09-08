@@ -64,6 +64,7 @@ int main() {
           }
           if (frame == 80) {
             for (auto* enc : {encoder, control}) {
+              require(opus_encoder_ctl(enc, OPUS_SET_BITRATE(24000)) == OPUS_OK);
               require(opus_encoder_ctl(enc, OPUS_SET_INBAND_FEC(1)) == OPUS_OK);
               require(opus_encoder_ctl(enc, OPUS_SET_PACKET_LOSS_PERC(10)) == OPUS_OK);
             }
@@ -78,6 +79,8 @@ int main() {
           require(opus_decoder_ctl(decoder, OPUS_GET_FINAL_RANGE(&decode_range)) == OPUS_OK);
           require(encode_range == decode_range);
           const auto* history = encoder_celt_state(encoder)->quality_history;
+          if (history != nullptr && length > 1)
+            require(history->packet_prev_redundancy == (decoder->prev_redundancy != 0));
           if (complexity < 10) {
             require(history == nullptr);
           }
