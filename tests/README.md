@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 313,296 B | 0 B | 313,296 B |
-| Android arm64 Clang `-O2` | 320,152 B | 472 B | 320,624 B |
+| Host MinGW GCC `-O2` | 313,148 B | 0 B | 313,148 B |
+| Android arm64 Clang `-O2` | 319,660 B | 472 B | 320,132 B |
 
 ## Toolchains checked
 
@@ -451,6 +451,8 @@ These targeted deltas compare the integrated search with the ordinary encoder, n
 Packet count and average packet size are unchanged in all six checks. Full-precision deltas are in [quality_history_integration.csv](metrics/quality_history_integration.csv). The remaining spectral losses are real and are not rounded away or claimed as wins.
 
 Early rejection avoids decoding identical candidates and runs the mandatory waveform-error checks before expensive spectral scoring. Isolated alternating comparisons show 11.3% less encoder time for speech, 18.9% for quiet speech, and 23.2% for plucked stereo, with unchanged selected output and quality results. These reductions compare the same search with and without early rejection; [measured times](metrics/quality_history_speed.csv) are recorded separately from the ordinary encoder comparison. The search still costs more than ordinary encoding and needs further cost reduction and broader quality validation. It also allocates per-stream reconstruction history when first activated.
+
+Ordinary encoding bypasses the large history-search wrapper. GCC reports 144 bytes for the dispatch wrapper's own stack frame; the active tracked-search helper still uses about 75 KB. This is a per-function measurement, not total codec peak stack. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
 
 Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
 

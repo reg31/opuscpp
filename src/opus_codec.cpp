@@ -403,8 +403,8 @@ constexpr int quality_input_delay_48k_audio = 312;
 struct OpusDecoder;
 constexpr std::size_t quality_celt_decoder_storage_max = 2 * (2048 + celt_default_overlap) + 4 * 2 * celt_default_nb_ebands + 2 * 24;
 struct quality_celt_snapshot {
-  CeltDecoderInternal state{};
-  std::array<celt_sig, quality_celt_decoder_storage_max> storage{};
+  CeltDecoderInternal state;
+  std::array<celt_sig, quality_celt_decoder_storage_max> storage;
 };
 static_assert(offsetof(quality_celt_snapshot, storage) == sizeof(CeltDecoderInternal));
 static_assert([] {
@@ -412,13 +412,13 @@ static_assert([] {
   return static_cast<const void*>(&value.storage) == static_cast<const void*>(value.storage.data());
 }());
 struct quality_frame_work {
-  quality_celt_snapshot model{};
-  std::array<float, 1920> output{};
-  std::array<double, 7> score{};
-  std::array<std::array<float, 8>, 2> reference_bands{}, decoded_bands{};
-  int samples = 0, channels = 0;
-  bool decoded_ready = false;
-  bool active = false, analysis_ready = false;
+  quality_celt_snapshot model;
+  std::array<float, 1920> output;
+  std::array<double, 7> score;
+  std::array<std::array<float, 8>, 2> reference_bands, decoded_bands;
+  int samples, channels;
+  bool decoded_ready;
+  bool active, analysis_ready;
 };
 
 enum class quality_tracking_status : int {
@@ -6205,9 +6205,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   return nbCompressedBytes;
 }
 
-static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
+static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
   auto* quality_history = st->quality_history;
-  quality_frame_work quality_work;
   ec_enc quality_checkpoint{};
   const bool checkpoint_ready = enc != nullptr && enc->end_offs == 0 && enc->end_window == 0 && enc->nend_bits == 0;
   if (checkpoint_ready)
@@ -6220,6 +6219,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
                         st->constrained_vbr && st->complexity == 10 && frame_size <= 960 &&
                         frame_size >= 480 && quality_history->packet_selection_ready;
   if (!eligible) {
+    quality_frame_work quality_work;
     const bool capture = quality_history != nullptr && checkpoint_ready;
     auto* work = capture ? &quality_work : nullptr;
     const int result = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, work,
@@ -6251,37 +6251,27 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     std::memcpy(enc->buf, copy.bytes.data(), bytes);
   };
   snapshot original, baseline;
+  quality_frame_work ordinary_work, alternative_work;
   save(original);
-  const int ordinary = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, &quality_work,
+  const int ordinary = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false, 0, nullptr, &ordinary_work,
                                              &quality_checkpoint);
   if (ordinary <= 0)
     return ordinary;
-  if (!quality_work.active || !quality_work.decoded_ready) {
+  if (!ordinary_work.active || !ordinary_work.decoded_ready) {
     quality_history_invalidate(*quality_history, quality_tracking_status::unsupported_configuration);
     return ordinary;
   }
   save(baseline);
-  quality_celt_snapshot baseline_model{};
-  std::memcpy(&baseline_model, &quality_work.model, sizeof(baseline_model));
-  const auto baseline_pcm = quality_work.output;
-  const auto baseline_score = quality_work.score;
-  const auto baseline_reference_bands = quality_work.reference_bands;
-  const auto baseline_decoded_bands = quality_work.decoded_bands;
-  const int baseline_samples = quality_work.samples;
-  const int baseline_channels = quality_work.channels;
-  const bool baseline_active = quality_work.active;
-  const bool baseline_decoded_ready = quality_work.decoded_ready;
-  const bool baseline_analysis_ready = quality_work.analysis_ready;
   restore(original);
-  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &quality_work, &quality_checkpoint, {baseline.bytes.data(), static_cast<std::size_t>(ordinary)}, &baseline_score);
-  bool accept = alternative == ordinary && quality_work.active && quality_work.decoded_ready &&
-                baseline_analysis_ready && quality_work.analysis_ready &&
+  const int alternative = celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, true, ordinary, &baseline.state, &alternative_work, &quality_checkpoint, {baseline.bytes.data(), static_cast<std::size_t>(ordinary)}, &ordinary_work.score);
+  bool accept = alternative == ordinary && alternative_work.active && alternative_work.decoded_ready &&
+                ordinary_work.analysis_ready && alternative_work.analysis_ready &&
                 st->intensity == baseline.state.intensity && st->lastCodedBands >= baseline.state.lastCodedBands &&
-                quality_work.score[0] < .99 * baseline_score[0];
+                alternative_work.score[0] < .99 * ordinary_work.score[0];
   const int guards = quality_history->profile == 1 ? 3 : quality_history->profile == 2 ? 5
                                                                                        : 7;
   for (int i = 1; i < guards; ++i) {
-    const bool veto = quality_work.score[i] > baseline_score[i];
+    const bool veto = alternative_work.score[i] > ordinary_work.score[i];
     accept = accept && !veto;
   }
   if (accept) {
@@ -6294,19 +6284,15 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
         st->pending_energy_refresh = true;
   } else {
     restore(baseline);
-    quality_work.active = baseline_active;
-    quality_work.decoded_ready = baseline_decoded_ready;
-    quality_work.samples = baseline_samples;
-    quality_work.channels = baseline_channels;
-    std::memcpy(&quality_work.model, &baseline_model, sizeof(baseline_model));
-    quality_work.output = baseline_pcm;
-    quality_work.score = baseline_score;
-    quality_work.reference_bands = baseline_reference_bands;
-    quality_work.decoded_bands = baseline_decoded_bands;
-    quality_work.analysis_ready = baseline_analysis_ready;
   }
-  quality_commit_history(*quality_history, quality_work);
+  quality_commit_history(*quality_history, accept ? alternative_work : ordinary_work);
   return ordinary;
+}
+
+static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
+  if (st->quality_history == nullptr)
+    return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients, false);
+  return celt_encode_with_history(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
 }
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
