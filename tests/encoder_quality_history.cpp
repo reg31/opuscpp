@@ -26,6 +26,23 @@ int main() {
     work.output.back() += .125f;
     const auto changed = quality_score_decoded(history, work, 1, 2, 960);
     require(changed[0] == .015625 && changed[1] == .125);
+    for (const int channels : {1, 2}) {
+      history.borrowed_channels = channels;
+      for (const int samples : {480, 960}) {
+        history.borrowed_frame_size = samples;
+        for (int frame = 0; frame < 3; ++frame) {
+          quality_score_decoded(history, work, 1, channels, samples);
+          const auto reference_bands = work.reference_bands;
+          const auto decoded_bands = work.decoded_bands;
+          work.reference_bands = {};
+          work.decoded_bands = {};
+          quality_advance_filters(history, work, 1, channels, samples);
+          require(work.reference_bands == reference_bands && work.decoded_bands == decoded_bands);
+          history.incoming_reference_bands = reference_bands;
+          history.incoming_bands = decoded_bands;
+        }
+      }
+    }
   }
   int checked = 0;
   for (const auto channels : {1, 2}) {

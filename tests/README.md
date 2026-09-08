@@ -421,8 +421,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 316,840 B | 0 B | 316,840 B |
-| Android arm64 Clang `-O2` | 322,012 B | 472 B | 322,484 B |
+| Host MinGW GCC `-O2` | 319,896 B | 0 B | 319,896 B |
+| Android arm64 Clang `-O2` | 323,744 B | 472 B | 324,216 B |
 
 ## Toolchains checked
 
@@ -454,7 +454,9 @@ Early rejection avoids decoding identical candidates and runs the mandatory wave
 
 The two candidates share compatible pitch/prefilter, pre-emphasis, transform and band analysis. Identical allocation signatures skip the remaining alternative quantization; release-protected frames retain the full path. Targeted comparisons measure a further 7.1% reduction in encoder time for speech, 10.5% for plucked stereo, and 13.8% for quiet speech, with unchanged output. [Shared-analysis measurements](metrics/quality_history_shared_speed.csv) are separate from the earlier early-rejection comparison.
 
-Ordinary encoding bypasses the large history-search wrapper. GCC reports 160 bytes for the dispatch wrapper's own stack frame; the active tracked-search helper uses 83,520 bytes, including its shared analysis storage. These are per-function measurements, not total codec peak stack. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
+Spectral scoring now runs only when both allocations survive the cheap waveform-error checks. Otherwise, only the selected output's filter history is advanced. A resumed candidate consumes its owned analysis buffers directly, and hybrid encoding skips shadow decoding when that state will be replaced before selection. Against the shared-analysis version, isolated alternating measurements show another 19.5% reduction in encoder time for speech, 24.8% for plucked stereo, and 26.4% for quiet speech. All six targeted quality and packet comparisons are unchanged. [Lazy-scoring measurements](metrics/quality_history_lazy_speed.csv) describe this incremental comparison, not speed versus official Opus or the default-complexity encoder.
+
+Ordinary encoding bypasses the large history-search wrapper. GCC reports 192 bytes for the dispatch wrapper's own stack frame; the active tracked-search helper uses 83,600 bytes, including its shared analysis storage. These are per-function measurements, not total codec peak stack. Ordinary and alternative reconstruction results are committed directly without copying the ordinary result out and back on rejection.
 
 Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
 
@@ -462,7 +464,7 @@ The focused history test also passes trapping undefined-behavior checks. Run it 
 
 It also verifies that scoring uses the output channel layout: a perfectly matching stereo output scores zero even when the packet codes mono, and an error confined to the final right-channel sample is counted correctly.
 
-The encoder tracker follows the decoder's redundancy-retention rule. The reversal test reports zero model-state mismatches, and the public-control test detects the former mismatch when enabling FEC while changing bitrate.
+The encoder tracker follows the decoder's redundancy-retention rule. The 2,592-packet reversal matrix reports zero model-state or output-filter mismatches. The public-control test detects the former mismatch when enabling FEC while changing bitrate, and also checks that advance-only filtering preserves the exact full-scoring endpoints across successive frames.
 
 ~~~sh
 c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history

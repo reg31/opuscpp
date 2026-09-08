@@ -1,0 +1,4 @@
+content,bitrate_bps,complexity,repetitions,baseline_encode_ms,lazy_encode_ms,relative_encode_time,encoder_time_reduction_percent
+speech,48000,10,5,22.5048,18.1206,0.8051882265116775,19.481177348832247
+quiet_speech,24000,10,5,19.5168,14.3657,0.7360684128545664,26.393158714543365
+plucked_stereo,192000,10,5,55.9663,42.1086,0.75239206451025,24.760793548975002
