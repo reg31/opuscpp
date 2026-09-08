@@ -65,7 +65,9 @@ bool check(settings config, int pattern, bool should_activate) {
       const auto bitrate = enc->bitrate_bps;
       const auto policy = encoder_celt_state(enc.get())->stereo_policy_celt;
       std::vector<float> invalid(input.size());
-      std::transform(input.begin(), input.end(), invalid.begin(), [](opus_int16 value) { return value / 32768.f; });
+      std::transform(input.begin(), input.end(), invalid.begin(), [](opus_int16 value) {
+        return value / 32768.f;
+      });
       for (const float value : std::array{std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity(), 1e20f}) {
         invalid.front() = value;
         if (opus_encode_float(enc.get(), invalid.data(), framesize, packet.data(), 3) != OPUS_BAD_ARG || enc->rangeFinal != 0 ||

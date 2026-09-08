@@ -3681,7 +3681,8 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     vbr |= length != frame_lengths.front();
   }
   const bool compact = !pad || maxlen == payload_size + 1 + (count == 2 && vbr ? 1 + (frame_lengths.front() >= 252) : 0);
-  const int code = compact && count == 1 ? 0 : compact && count == 2 ? (vbr ? 2 : 1) : 3;
+  const int code = compact && count == 1 ? 0 : compact && count == 2 ? (vbr ? 2 : 1)
+                                                                     : 3;
   opus_int32 total_size = payload_size + (code == 3 ? 2 : 1);
   if (code == 2) {
     total_size += 1 + (frame_lengths.front() >= 252);

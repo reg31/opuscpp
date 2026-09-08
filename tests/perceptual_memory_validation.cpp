@@ -670,8 +670,7 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
   decoded.erase(decoded.begin(), decoded.begin() + static_cast<std::ptrdiff_t>(lookahead * clip.channels));
   decoded.resize(clip.samples.size());
   add_metrics(score, reference, decoded, clip.channels);
-  return {.name = std::move(name), .score = score, .decoded = std::move(decoded), .postfilter_applied_level = postfilter_applied_level,
-          .voice_denoise_applied = voice_denoise_applied};
+  return {.name = std::move(name), .score = score, .decoded = std::move(decoded), .postfilter_applied_level = postfilter_applied_level, .voice_denoise_applied = voice_denoise_applied};
 }
 
 void write_u16(std::ostream& out, std::uint16_t v) {

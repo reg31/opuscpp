@@ -36,7 +36,9 @@ bool check_cbr_capacity() {
           const int length = opus_encode(encoder.get(), input.data(), frame_size, packet.data(), capacity);
           const int expected = bitrate == OPUS_BITRATE_MAX ? capacity : std::min(capacity, bitrate * frame_size / 48000 / 8);
           if (!expect_eq(length, expected, "capacity-limited multiframe CBR") ||
-              !std::all_of(packet.begin() + capacity, packet.end(), [](unsigned char value) { return value == 0xA5; }))
+              !std::all_of(packet.begin() + capacity, packet.end(), [](unsigned char value) {
+                return value == 0xA5;
+              }))
             return false;
           if (!expect_eq(opus_packet_get_nb_samples(packet.data(), length, 48000), frame_size, "capacity-limited CBR duration") ||
               !expect_eq(opus_decode(decoder.get(), packet.data(), length, output.data(), frame_size, 0), frame_size, "decode capacity-limited CBR"))
