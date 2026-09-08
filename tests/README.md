@@ -2,7 +2,7 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-The full speed and memory tables have not yet been refreshed for the complexity-10 allocation/history search. Its targeted quality results and known regressions are listed at the end of this document.
+The full speed and memory tables have not yet been refreshed for the complexity-10 allocation/history search. Fresh direct official quality comparisons and remaining deficits are listed in the quality sections.
 
 ## Quick start
 
@@ -238,7 +238,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The full metric tables below have not yet been refreshed for the allocation/history change.
+The speed and memory tables remain the earlier snapshot. The AUDIO and VOIP quality tables use fresh direct comparisons against official Opus; optional-processing and broader-corpus results retain their explicitly stated scope.
 Default output, optional processing and their input references remain separate comparisons.
 Historical optimization/validation comparisons are explicitly labelled.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
@@ -280,8 +280,7 @@ A supplemental real-time-factor snapshot is also tracked in
 
 ## Quality metrics vs official Opus
 
-AUDIO quality proxy metrics were measured on the synthetic music-like validation corpus used during
-development. Deltas are `opuscpp - official`; positive is better for the proxy quality columns.
+AUDIO quality proxy metrics use the current encoder and official Opus, both at complexity 10, on the same six-second synthetic music-like input. Deltas are `opuscpp - official`; positive is better for the proxy quality columns.
 Effective bitrate columns show measured payload bitrate for the same validation run.
 The harness uses the public decoder default: unfiltered output. The CELT proxy excludes the first
 unprimed 10 ms of codec startup and scores the remaining steady-state windows.
@@ -291,12 +290,12 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | 16&nbsp;kbps | +0.0006 | -0.0032 | +1.5898 | 16.000 kbps | 17.065 kbps |
 | 24&nbsp;kbps | +0.1931 | +0.0753 | +0.1586 | 24.000 kbps | 25.220 kbps |
 | 32&nbsp;kbps | +0.2572 | +0.0791 | -0.6145 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | -0.0237 | +0.0028 | -1.4751 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | -0.1168 | -0.0042 | -0.9377 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | -0.0475 | +0.0058 | -0.6239 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | -0.0037 | -0.0021 | -0.2709 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | +0.0067 | +0.0003 | -0.2310 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | +0.0244 | -0.0011 | -0.1239 | 256.000 kbps | 256.736 kbps |
+| 48&nbsp;kbps | +0.0568 | +0.0060 | -0.4605 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | -0.0014 | +0.0031 | -0.2800 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | +0.0870 | +0.0112 | +0.0184 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | +0.1632 | +0.0028 | +0.0186 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | +0.0707 | +0.0030 | -0.0061 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | +0.0381 | +0.0019 | -0.0071 | 256.000 kbps | 256.736 kbps |
 
 
 ## VOIP quality metrics vs official Opus
@@ -308,20 +307,19 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.1240 | -0.0002 | +1.8146 | 15.999 kbps | 16.255 kbps |
 | 24&nbsp;kbps | +0.1472 | -0.0038 | +0.3763 | 24.000 kbps | 24.148 kbps |
-| 32&nbsp;kbps | +0.1464 | -0.0026 | +0.4079 | 32.000 kbps | 32.184 kbps |
+| 32&nbsp;kbps | +0.1464 | -0.0025 | +0.4079 | 32.000 kbps | 32.184 kbps |
 | 48&nbsp;kbps | +0.1446 | -0.0012 | +0.1011 | 48.000 kbps | 48.244 kbps |
 | 64&nbsp;kbps | +0.1378 | -0.0050 | +0.0486 | 63.988 kbps | 64.501 kbps |
-| 96&nbsp;kbps | +0.0000 | -0.0003 | +0.0850 | 96.000 kbps | 96.595 kbps |
-| 128&nbsp;kbps | +0.0024 | -0.0040 | +0.0033 | 128.000 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0005 | -0.0009 | -0.0009 | 192.000 kbps | 192.421 kbps |
+| 96&nbsp;kbps | +0.0030 | +0.0004 | +0.0850 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | +0.0047 | -0.0030 | +0.0033 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0013 | -0.0008 | -0.0009 | 192.000 kbps | 192.421 kbps |
 | 256&nbsp;kbps | +0.0012 | -0.0001 | -0.0009 | 256.000 kbps | 256.415 kbps |
 
-The aligned VOIP sample has negative ViSQOL-style deltas throughout this ladder; the PESQ-style
-advantage at lower rates is not an all-metric win.
+The aligned VOIP sample has negative ViSQOL-style deltas at eight of nine rates; 96 kbps is positive. All 18 AUDIO/VOIP rows still have at least one adverse quality field. The complete 12-field comparisons, including the separate complexity-9 control, are retained in [quality_official_full_precision.csv](metrics/quality_official_full_precision.csv), with [source and configuration metadata](metrics/quality_run_metadata.json).
 
 ### Broader content check
 
-The supplementary set contains 99 source/settings comparisons across speech, quiet/noisy speech,
+This supplementary snapshot predates the allocation/history changes and has not been refreshed; it is not a current acceptance result. The set contains 99 source/settings comparisons across speech, quiet/noisy speech,
 music, tones and transients, plus 30 additional stereo/content holdout comparisons. They are
 short-clip diagnostics, not a representative listening survey or 129 independent recordings.
 
@@ -437,18 +435,7 @@ Source CSV:
 
 At complexity 10, the encoder can compare two fullband CELT allocations against the same reconstructed decoder history, using the ordinary packet's byte budget. The comparison currently covers eligible 48 kHz PCM16 mono VOIP and stereo AUDIO, 10/20 ms frames, constrained VBR, and no DTX/FEC. Complexity 9 remains the default and does not run this search.
 
-These targeted deltas compare the integrated search with the ordinary encoder, not official Opus. Positive PESQ-style and ViSQOL-style deltas are better; these are engineering proxies, not standardized perceptual scores.
-
-| Content | Bitrate | PESQ-style delta | ViSQOL-style delta | Remaining adverse metric |
-|---|---:|---:|---:|---|
-| Speech | 24 kbps | +0.002964 | +0.000161 | None in this check |
-| Speech | 48 kbps | +0.012991 | +0.000906 | None in this check |
-| Speech | 96 kbps | +0.009329 | +0.000242 | None in this check |
-| Quiet speech | 24 kbps | +0.006312 | +0.000409 | High-band error +0.00008452 |
-| Quiet speech | 96 kbps | +0.009134 | +0.000138 | High-band error +0.00005560 |
-| Plucked stereo | 192 kbps | +0.013150 | +0.000515 | Masked error +0.00161910; CELT proxy -0.00201173 |
-
-Packet count and average packet size are unchanged in all six checks. Full-precision deltas are in [quality_history_integration.csv](metrics/quality_history_integration.csv). The remaining spectral losses are real and are not rounded away or claimed as wins.
+Quality acceptance uses the direct official comparisons above, not gains against an earlier opuscpp encoder. The remaining adverse fields are not rounded away or claimed as wins. This search has not achieved an all-metric advantage.
 
 Early rejection avoids decoding identical candidates and runs the mandatory waveform-error checks before expensive spectral scoring. Isolated alternating comparisons show 11.3% less encoder time for speech, 18.9% for quiet speech, and 23.2% for plucked stereo, with unchanged selected output and quality results. These reductions compare the same search with and without early rejection; [measured times](metrics/quality_history_speed.csv) are recorded separately from the ordinary encoder comparison. The search still costs more than ordinary encoding and needs further cost reduction and broader quality validation. It also allocates per-stream reconstruction history when first activated.
 

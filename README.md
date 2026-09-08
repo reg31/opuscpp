@@ -26,13 +26,13 @@ Minimal integration looks like:
 
 ## Highlights
 
-The complexity-10 allocation/history search improves the tracked speech results, with some spectral regressions still unresolved. Avoiding unused scoring and reconstruction reduces its encoder time by 19.5% to 26.4% in three targeted comparisons, without changing those outputs. [Targeted results](tests/README.md#allocationhistory-integration) are available; these are incremental search measurements, not new speed ratios versus official Opus. The full speed and memory tables have not yet been refreshed for this change.
+Quality comparisons now use the current complexity-10 encoder directly against official Opus. Remaining spectral and speech-proxy losses are still unresolved. Avoiding unused scoring and reconstruction reduces its encoder time by 19.5% to 26.4% in three targeted comparisons, without changing those outputs. [Targeted results](tests/README.md#allocationhistory-integration) are available; these are incremental search measurements, not new speed ratios versus official Opus. The full speed and memory tables have not yet been refreshed for this change.
 
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
 - Encode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.74x to 2.36x).
 - Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.25x to 1.87x).
-- Quality is mixed: the aligned AUDIO sample improves both main proxies at 24/32&nbsp;kbps, but other rates/content lose metrics. No universal quality advantage is claimed.
+- Quality is mixed: AUDIO improves both main proxies in 7/9 tracked bitrates, but every AUDIO and VOIP row still loses at least one measured quality field. No universal quality advantage is claimed.
 - Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
 - API, FEC, DTX, long-frame and 290,909 malformed-packet checks passed; trapping UBSan found no issue in the exercised cases.
@@ -91,8 +91,7 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-The full benchmark tables have not yet been refreshed for the allocation/history change.
-[Run metadata](tests/metrics/run_metadata.json) identifies the measured source and settings.
+Quality and effective-bitrate columns use the current encoder at complexity 10; [quality metadata](tests/metrics/quality_run_metadata.json) records the source and matched settings. Speed and memory remain the earlier benchmark snapshot; [run metadata](tests/metrics/run_metadata.json) identifies that measurement.
 Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels
 independently. Both quality gains and losses are retained.
 
@@ -113,12 +112,12 @@ official PESQ/ViSQOL tooling or listening tests.
 | 16&nbsp;kbps | 2.362x | 1.872x | +0.0006 | -0.0032 | 16.000 kbps | 17.065 kbps |
 | 24&nbsp;kbps | 1.892x | 1.422x | +0.1931 | +0.0753 | 24.000 kbps | 25.220 kbps |
 | 32&nbsp;kbps | 1.833x | 1.393x | +0.2572 | +0.0791 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.744x | 1.362x | -0.0237 | +0.0028 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.772x | 1.330x | -0.1168 | -0.0042 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.840x | 1.312x | -0.0475 | +0.0058 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 2.060x | 1.315x | -0.0037 | -0.0021 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.855x | 1.313x | +0.0067 | +0.0003 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 1.771x | 1.246x | +0.0244 | -0.0011 | 256.000 kbps | 256.736 kbps |
+| 48&nbsp;kbps | 1.744x | 1.362x | +0.0568 | +0.0060 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.772x | 1.330x | -0.0014 | +0.0031 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.840x | 1.312x | +0.0870 | +0.0112 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 2.060x | 1.315x | +0.1632 | +0.0028 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.855x | 1.313x | +0.0707 | +0.0030 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.771x | 1.246x | +0.0381 | +0.0019 | 256.000 kbps | 256.736 kbps |
 
 
 VOIP mono speech-like quality spot check:
@@ -127,12 +126,12 @@ VOIP mono speech-like quality spot check:
 |---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.1240 | -0.0002 | 15.999 kbps | 16.255 kbps |
 | 24&nbsp;kbps | +0.1472 | -0.0038 | 24.000 kbps | 24.148 kbps |
-| 32&nbsp;kbps | +0.1464 | -0.0026 | 32.000 kbps | 32.184 kbps |
+| 32&nbsp;kbps | +0.1464 | -0.0025 | 32.000 kbps | 32.184 kbps |
 | 48&nbsp;kbps | +0.1446 | -0.0012 | 48.000 kbps | 48.244 kbps |
 | 64&nbsp;kbps | +0.1378 | -0.0050 | 63.988 kbps | 64.501 kbps |
-| 96&nbsp;kbps | +0.0000 | -0.0003 | 96.000 kbps | 96.595 kbps |
-| 128&nbsp;kbps | +0.0024 | -0.0040 | 128.000 kbps | 128.503 kbps |
-| 192&nbsp;kbps | +0.0005 | -0.0009 | 192.000 kbps | 192.421 kbps |
+| 96&nbsp;kbps | +0.0030 | +0.0004 | 96.000 kbps | 96.595 kbps |
+| 128&nbsp;kbps | +0.0047 | -0.0030 | 128.000 kbps | 128.503 kbps |
+| 192&nbsp;kbps | +0.0013 | -0.0008 | 192.000 kbps | 192.421 kbps |
 | 256&nbsp;kbps | +0.0012 | -0.0001 | 256.000 kbps | 256.415 kbps |
 
 Mode-selection check at 32&nbsp;kbps mono: for the synthetic spoken-voice sample, AUDIO mode selected

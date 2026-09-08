@@ -1,0 +1,93 @@
+{
+  "commit": "2372904019a46a3d40d28f821022ba7adbe668bc",
+  "source_sha256": "ef4d88f5903758c35d6bd2c0fb39635eefcc1ef4d1b587308b9a0d985a1d0639",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "binary_source_sha256": "dd194bfd9fe2fa186cf576abe4debc14895b3c922af62b0657a8ad40805108cc",
+  "binary_sha256": "fa208fddef64d2f864c2269d0f9e17fc2243a6b73c61825ceab96be2cb108076",
+  "driver_sha256": "fde3c77c306187083ac64edfdc4e7be806c396bba49ed9b9b3b1cb40cf05afc8",
+  "archive_path": "build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+  "archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
+  "binary_reused": true,
+  "semantic_tokens_equal": true,
+  "official_rebuilt": false,
+  "fixtures": {
+    "audio": {
+      "path": "build\\official_compare_report\\generated_audio\\synthetic_music_like_stereo.wav",
+      "sha256": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
+      "channels": 2,
+      "sample_rate": 48000,
+      "sample_width": 2,
+      "total_frames": 288000,
+      "seconds": "6"
+    },
+    "voip": {
+      "path": "build\\official_compare_report\\generated_audio\\synthetic_voice_like_mono.wav",
+      "sha256": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
+      "channels": 1,
+      "sample_rate": 48000,
+      "sample_width": 2,
+      "total_frames": 288000,
+      "seconds": "6"
+    }
+  },
+  "rates": [
+    16000,
+    24000,
+    32000,
+    48000,
+    64000,
+    96000,
+    128000,
+    192000,
+    256000
+  ],
+  "complexities": [
+    9,
+    10
+  ],
+  "published_encoder_complexity": 10,
+  "max_workers": 4,
+  "seconds": 6,
+  "sample_rate": 48000,
+  "frame_samples": 960,
+  "encoder_api": "PCM16",
+  "decoder_api": "float",
+  "vbr": true,
+  "vbr_constraint": "codec default (1)",
+  "current_postfilter": 0,
+  "current_voice_denoise": false,
+  "official_decoder_complexity": 0,
+  "memory_measured": false,
+  "speed_analysis": false,
+  "raw_timing_fields": "Incidental output from reused harness; excluded from CSV and rankings.",
+  "build_flags": "-std=c++23 -O2 -DNDEBUG -Wall -Wextra -Wpedantic",
+  "metrics": "Existing custom quality proxies, unchanged; PESQ-style/ViSQOL-style are not certified standard scores.",
+  "metric_directions": {
+    "snr_db": 1,
+    "segmental_snr_db": 1,
+    "rms_error": -1,
+    "mean_abs_error": -1,
+    "pesq_style": 1,
+    "visqol_style": 1,
+    "logband_corr": 1,
+    "logband_error": -1,
+    "celt_quality": 1,
+    "celt_masked_error": -1,
+    "celt_highband_error": -1,
+    "stereo_width_error": -1
+  },
+  "source_matches_commit": true,
+  "api_default_complexity": 9,
+  "api_default_evidence": "Parent runtime query: official and opuscpp both 9 for VOIP/AUDIO/RESTRICTED_LOWDELAY x mono/stereo (6 pairs); no API default changed.",
+  "published_metadata_sha256": "08a27f0a7a145e8f29db1f2f37e5c03333bd82012f2e0b981d79f72d22da136f",
+  "official_build_config": [
+    "CMAKE_BUILD_TYPE:STRING=Release",
+    "CMAKE_C_FLAGS_RELEASE:STRING=-O2 -DNDEBUG",
+    "OPUS_DISABLE_INTRINSICS:BOOL=OFF",
+    "OPUS_X86_MAY_HAVE_AVX2:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE2:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE4_1:BOOL=ON"
+  ],
+  "comparison": "Official Opus only; quality deltas are not relative to a previous opuscpp build."
+}
