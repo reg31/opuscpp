@@ -6094,7 +6094,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, tone_frequency, toneishness);
+                                 &tot_boost, tone_frequency, toneishness, true, freq, N);
     if (analysis != nullptr && !challenger && !release_intervention) {
       analysis->image.state = *st;
       analysis->state_samples = celt_encoder_storage_count(st->channels);
@@ -6149,7 +6149,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     std::array<float, celt_max_channels * celt_default_nb_ebands> log_scratch;
     std::copy_n(bandLogE, C * nbEBands, log_scratch.data());
     dynalloc_analysis(st, bandLogE, log_scratch.data(), oldBandE, alternate_offsets.data(), isTransient, LM, effectiveBytes,
-                      &alternate_boost, tone_frequency, toneishness, true, freq, N);
+                      &alternate_boost, tone_frequency, toneishness, false, nullptr, 0);
     offsets = alternate_offsets;
     tot_boost = alternate_boost;
   }
@@ -6340,7 +6340,7 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
                         quality_history->ready && checkpoint_ready && enc->storage <= 1275 && (stereo_audio || mono_voip) &&
                         st->upsample == 1 && st->start == 0 && st->end == celt_default_nb_ebands && st->vbr &&
                         st->constrained_vbr && st->complexity == 10 && frame_size <= 960 &&
-                        frame_size >= 480 && quality_history->packet_selection_ready;
+                        frame_size >= 480 && quality_history->packet_selection_ready && (quality_history->frames % 3 == 0);
   if (!eligible) {
     quality_frame_work quality_work;
     const bool capture = quality_history != nullptr && checkpoint_ready;
@@ -6932,8 +6932,8 @@ template <bool reuse_reference> static auto quality_score_decoded_impl(quality_h
           decoded_energy[c][b] += y * y;
         }
         if constexpr (!reuse_reference)
-          reference_energy[c][8] += std::pow(target - previous_ref, 2);
-        decoded_energy[c][8] += std::pow(sample - previous_dec, 2);
+          reference_energy[c][8] += (target - previous_ref) * (target - previous_ref);
+        decoded_energy[c][8] += (sample - previous_dec) * (sample - previous_dec);
       }
     }
     if (!reuse_reference && reference_cache != nullptr) {
