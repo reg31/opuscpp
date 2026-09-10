@@ -6071,7 +6071,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       isTransient = 1;
     transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
     const bool release_intervention = st->quality_history != nullptr && st->quality_history->profile > 0 &&
-                                      st->allocation_history_changed && input_metrics.release && st->audio_application &&
+                                      input_metrics.release && st->audio_application &&
                                       C == 2 && start == 0 && end == nbEBands && LM > 0 && st->complexity >= 1;
     protect_release = challenger && release_intervention;
     if (!silence && transient_enabled && protect_release)
