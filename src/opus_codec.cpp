@@ -54,6 +54,7 @@ constexpr int celt_max_lm = 3;
 constexpr int celt_allocation_vector_count = 11;
 constexpr std::array<float, 4> celt_preemphasis{0.85000610f, 0.0f, 1.0f, 1.0f};
 constexpr int celt_max_frame_samples = 960;
+constexpr int quality_search_interval = 6;
 constexpr int celt_max_pitch_period = 1024;
 constexpr int celt_min_pitch_period = 15;
 constexpr int celt_max_band_samples = 22 * 8;
@@ -6340,7 +6341,7 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
                         quality_history->ready && checkpoint_ready && enc->storage <= 1275 && (stereo_audio || mono_voip) &&
                         st->upsample == 1 && st->start == 0 && st->end == celt_default_nb_ebands && st->vbr &&
                         st->constrained_vbr && st->complexity == 10 && frame_size <= 960 &&
-                        frame_size >= 480 && quality_history->packet_selection_ready && (quality_history->frames % 3 == 0);
+                        frame_size >= 480 && quality_history->packet_selection_ready && (quality_history->frames % quality_search_interval == 0);
   if (!eligible) {
     quality_frame_work quality_work;
     const bool capture = quality_history != nullptr && checkpoint_ready;
