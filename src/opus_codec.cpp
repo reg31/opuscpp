@@ -3814,6 +3814,34 @@ static void finish_quality_reference(quality_history_state* history, const Sampl
   history->borrowed_channels = 0;
 }
 
+template <typename Sample>
+static void prepare_encode_input(OpusEncoder* st, const Sample* pcm, int frame_size) {
+  prepare_quality_history(st);
+  auto* history = encoder_celt_state(st)->quality_history;
+  if (history == nullptr) {
+    return;
+  }
+  history->packet_selection_ready = history->previous_packet_celt && history->ready &&
+                                    decoder_celt_state(history->decoder)->start == 0 && decoder_celt_state(history->decoder)->last_frame_type == 1;
+  history->incoming_bands = history->decoded_bands;
+  history->incoming_reference_bands = history->reference_bands;
+  history->borrowed_input = nullptr;
+  history->borrowed_float_input = nullptr;
+  history->borrowed_frame_size = 0;
+  history->borrowed_channels = 0;
+  const int delay = st->Fs / 400 + encoder_delay_compensation(st);
+  if (history->profile >= 0 && st->Fs == 48000 && delay == quality_input_delay_48k_audio && frame_size > delay &&
+      frame_size <= celt_max_frame_samples) {
+    if constexpr (std::same_as<Sample, opus_int16>) {
+      history->borrowed_input = pcm;
+    } else {
+      history->borrowed_float_input = pcm;
+    }
+    history->borrowed_frame_size = frame_size;
+    history->borrowed_channels = st->channels;
+  }
+}
+
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
   if (st == nullptr || !has_required_storage(pcm, analysis_frame_size) || !has_required_storage(data, max_data_bytes)) {
     return OPUS_BAD_ARG;
@@ -3822,26 +3850,8 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-
-  prepare_quality_history(st);
+  prepare_encode_input(st, pcm, frame_size);
   auto* history = encoder_celt_state(st)->quality_history;
-  if (history != nullptr) {
-    history->packet_selection_ready = history->previous_packet_celt && history->ready &&
-                                      decoder_celt_state(history->decoder)->start == 0 && decoder_celt_state(history->decoder)->last_frame_type == 1;
-    history->incoming_bands = history->decoded_bands;
-    history->incoming_reference_bands = history->reference_bands;
-    history->borrowed_input = nullptr;
-    history->borrowed_float_input = nullptr;
-    history->borrowed_frame_size = 0;
-    history->borrowed_channels = 0;
-    const int delay = st->Fs / 400 + encoder_delay_compensation(st);
-    if (history->profile >= 0 && st->Fs == 48000 &&
-        delay == quality_input_delay_48k_audio && frame_size > delay && frame_size <= celt_max_frame_samples) {
-      history->borrowed_input = pcm;
-      history->borrowed_frame_size = frame_size;
-      history->borrowed_channels = st->channels;
-    }
-  }
   const int result = frame_size <= celt_max_frame_samples
                          ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
                          : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
@@ -3866,25 +3876,8 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
   if (frame_size <= 0) {
     return -1;
   }
-  prepare_quality_history(st);
+  prepare_encode_input(st, pcm, frame_size);
   auto* history = encoder_celt_state(st)->quality_history;
-  if (history != nullptr) {
-    history->packet_selection_ready = history->previous_packet_celt && history->ready &&
-                                      decoder_celt_state(history->decoder)->start == 0 && decoder_celt_state(history->decoder)->last_frame_type == 1;
-    history->incoming_bands = history->decoded_bands;
-    history->incoming_reference_bands = history->reference_bands;
-    history->borrowed_input = nullptr;
-    history->borrowed_float_input = nullptr;
-    history->borrowed_frame_size = 0;
-    history->borrowed_channels = 0;
-    const int delay = st->Fs / 400 + encoder_delay_compensation(st);
-    if (history->profile >= 0 && st->Fs == 48000 && delay == quality_input_delay_48k_audio && frame_size > delay &&
-        frame_size <= celt_max_frame_samples) {
-      history->borrowed_float_input = pcm;
-      history->borrowed_frame_size = frame_size;
-      history->borrowed_channels = st->channels;
-    }
-  }
   const int result = encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
   finish_quality_reference(history, pcm, frame_size, st->channels, data, result);
   return result;
