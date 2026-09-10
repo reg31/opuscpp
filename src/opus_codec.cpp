@@ -5686,6 +5686,7 @@ struct celt_input_metrics {
   std::array<opus_val32, celt_max_channels> abs_sum{};
   int silence{};
   bool release{};
+  bool strong_release{};
 };
 
 [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {
@@ -5767,6 +5768,7 @@ struct celt_input_metrics {
     if (frame_max <= 65536.f) {
       const opus_val32 sample_max = std::max(frame_max, old_overlap_max);
       metrics.release = tail_max < 0.125f * sample_max;
+      metrics.strong_release = tail_max < 0.03125f * sample_max;
       metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
       return metrics;
     }
@@ -5777,6 +5779,7 @@ struct celt_input_metrics {
   st->overlap_max = celt_maxabs16(pcm + channels * (N - overlap) / st->upsample, channels * overlap / st->upsample);
   sample_max = std::max(sample_max, st->overlap_max);
   metrics.release = st->overlap_max < 0.125f * sample_max;
+  metrics.strong_release = st->overlap_max < 0.03125f * sample_max;
   metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
   const bool need_clip = sample_max > 65536.f;
   for (int c = 0; c < channels; ++c) {
@@ -5924,6 +5927,7 @@ struct celt_analysis_checkpoint {
   int nb_compressed_bytes = 0, nb_available_bytes = 0, effective_bytes = 0;
   int silence = 0, is_transient = 0, transient_enabled = 0, transient_got_disabled = 0, short_blocks = 0;
   int input_release = 0;
+  int strong_release = 0;
   int frame_size = 0, start = 0, end = 0, C = 0, CC = 0, LM = 0, N = 0;
   bool valid = false;
 };
@@ -5964,6 +5968,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   int silence = 0, isTransient = 0, transient_enabled = 0, transient_got_disabled = 0, shortBlocks = 0;
   bool protect_release = false;
   bool input_release = false;
+  bool input_strong_release = false;
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
@@ -5997,6 +6002,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     silence = analysis->silence;
     isTransient = analysis->is_transient;
     input_release = analysis->input_release != 0;
+    input_strong_release = analysis->strong_release != 0;
     transient_enabled = analysis->transient_enabled;
     transient_got_disabled = analysis->transient_got_disabled;
     shortBlocks = analysis->short_blocks;
@@ -6046,6 +6052,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     const auto input_metrics = celt_preemphasise_input(st, pcm, in, prefilter_mem, N);
     silence = input_metrics.silence;
     input_release = input_metrics.release;
+    input_strong_release = input_metrics.strong_release;
     if (tell == 1)
       ec_enc_bit_logp(enc, silence, 15);
     else
@@ -6127,6 +6134,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       analysis->silence = silence;
       analysis->is_transient = isTransient;
       analysis->input_release = input_release ? 1 : 0;
+      analysis->strong_release = input_strong_release ? 1 : 0;
       analysis->transient_enabled = transient_enabled;
       analysis->transient_got_disabled = transient_got_disabled;
       analysis->short_blocks = shortBlocks;
@@ -6176,7 +6184,9 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   }
   const bool refresh = st->pending_energy_refresh;
   st->pending_energy_refresh = false;
-  quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled || (refresh && challenger),
+  quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes,
+                      st->prediction_disabled || (refresh && challenger) ||
+                          (input_strong_release && st->bitrate <= 48000),
                       &st->delayedIntra);
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, enc);
 
@@ -6220,6 +6230,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (!hybrid && C == 2) {
       alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
     }
+    if (input_strong_release && st->bitrate <= 48000)
+      alloc_trim = 0;
     ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
     tell = ec_tell_frac(enc);
   }
