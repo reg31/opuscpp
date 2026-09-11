@@ -16,7 +16,7 @@ import tarfile
 import urllib.request
 
 OFFICIAL_OPUS_REPO = "https://github.com/xiph/opus.git"
-OFFICIAL_OPUS_TAG = "v1.6.1"
+OFFICIAL_OPUS_TAG = "main"
 RFC6716_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors.tar.gz"
 RFC8251_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors-rfc8251.tar.gz"
 BITRATES = (16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000)
