@@ -83,7 +83,13 @@ quality impact. "Reduce?" = could this lower quality vs official.
     the short-block energy. **Reduce? unclear.**
 
 11. **`patch_transient_decision` second pass absent.** Official (`473-507`) re-examines band
-    energies to catch time-domain-missed transients. Ours: none. **Reduce? yes.**
+    energies to catch time-domain-missed transients. Ours: none. **Reduce? no — TESTED, reverted.**
+    Ported the function plus the full official block (recompute `shortBlocks`/`compute_mdcts`/
+    band energies, lift `bandLogE2` by `.5*LM`, set `tf_estimate=.2`) gated by the official
+    `complexity>=5 && !isTransient && !hybrid`. Result: AUDIO 16k celt **1.76→0.95 (−0.81)**
+    and mono VOIP segfaults. Our combined `compute_band_energies_and_normalise` is not equivalent
+    to official's separate `compute_band_energies`+`amp2Log2`, and the mid-frame `compute_mdcts`
+    aliasing needs auditing. Reverted.
 
 ## Tier 3 — extra non-official heuristics in ours (direction uncertain)
 
