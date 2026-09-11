@@ -92,3 +92,29 @@ the RDO allocator ON, and require the AUDIO CELT delta row to be **>= the search
   NMR proxies).
 - Verdict to watch: if RDO-trim cannot beat the existing `alloc_trim_analysis`, the whole
   approach is closed and the search stays.
+
+
+## 7. First prototype results (audibility-weighted lloc_trim)
+
+Implemented §3 "RDO-trim" (do_alloc_trim / stimate_trim_distortion /
+llocation_prototype_bits), **off by default** behind OPUSCPP_RDOTRIM. It searches the 11
+trims using a pure prototype-bits estimate (no entropy-coder writes) and the distortion
+
+    D(t) = SUM_b w_b * 2^(-bits1_b(t) / N_b),   w_b = 1 - 2^(-depth_b)
+
+AUDIO celt_quality delta vs official (tracked synthetic music, 6 s):
+
+| rate | searchON | searchOFF | searchOFF + rdotrim |
+|---:|---:|---:|---:|
+| 24k | +0.058 | +0.123 | **+0.151** |
+| 32k | -0.156 | -0.635 | **-0.085** |
+| 48k | -0.340 | -1.339 | -0.855 |
+| 96k | +0.033 | -0.761 | -0.677 |
+| 128k | +0.022 | -0.251 | -0.646 |
+
+**Verdict: real and large.** RDO-trim recovers +0.48 at 48k and +0.55 at 32k over search-off and
+**beats search-on at 24k/32k**. Not yet sufficient: it does not close 48k/96k and it **regresses
+at 128k** (search-on +0.022 -> -0.067 with the trim on). Next tuning steps: (a) gate/limit the
+trim at high rates (where the heuristic is already good), (b) sharpen the distortion model
+(pulse-domain g(N,K) instead of bits-per-coeff), (c) add the §3 boost step. Acceptance remains:
+search-OFF + RDO >= search-ON across all 9 rates, then drop the search.
