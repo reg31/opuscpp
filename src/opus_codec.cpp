@@ -6281,7 +6281,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                  &tot_boost, tone_frequency, toneishness, true, freq, N, importance.data());
+                                 &tot_boost, tone_frequency, toneishness, true, freq, N, importance.data());
     if (analysis != nullptr && !challenger && !release_intervention) {
       analysis->image.state = *st;
       analysis->state_samples = celt_encoder_storage_count(st->channels);
