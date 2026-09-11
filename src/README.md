@@ -60,10 +60,6 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigne
 
 Float PCM is normally in `[-1, 1]`. Nonfinite samples or excessive input energy return `OPUS_BAD_ARG` before encoding.
 
-At complexity 10, eligible 48 kHz PCM16 mono VOIP and stereo AUDIO streams can compare two CELT allocations using their actual reconstructed history. The alternative must fit the ordinary packet's byte budget. This currently applies to fullband CELT packets with 10/20 ms frames and constrained VBR, not DTX/FEC. It adds encoder work and per-stream history storage; lower complexity levels retain the ordinary search. The public decoder and packet format are unchanged. [Targeted results and known quality trade-offs](../tests/README.md#allocationhistory-integration) are documented separately from the older full benchmark snapshot.
-
-After a 2.5/5/40/60 ms frame, the next eligible frame refreshes the scoring history before alternatives are considered again. The raw input history remains continuous across PCM16 and float calls; this adds no output delay.
-
 Decoder:
 
 ```cpp

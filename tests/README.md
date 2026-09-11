@@ -256,18 +256,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.162x | 1.859x | 210x | 181x | 1244x | 669x |
-| 24&nbsp;kbps | 0.976x | 1.468x | 161x | 165x | 837x | 570x |
-| 32&nbsp;kbps | 0.944x | 1.372x | 156x | 165x | 797x | 581x |
-| 48&nbsp;kbps | 0.855x | 1.319x | 129x | 151x | 664x | 504x |
-| 64&nbsp;kbps | 0.873x | 1.318x | 117x | 134x | 567x | 430x |
-| 96&nbsp;kbps | 0.998x | 1.310x | 109x | 109x | 443x | 338x |
-| 128&nbsp;kbps | 0.972x | 1.321x | 95x | 98x | 388x | 294x |
-| 192&nbsp;kbps | 0.869x | 1.278x | 78x | 89x | 323x | 253x |
-| 256&nbsp;kbps | 0.804x | 1.234x | 69x | 86x | 282x | 228x |
+| 16&nbsp;kbps | 2.054x | 1.809x | 367x | 179x | 1187x | 656x |
+| 24&nbsp;kbps | 1.590x | 1.394x | 260x | 164x | 803x | 576x |
+| 32&nbsp;kbps | 1.551x | 1.367x | 257x | 166x | 785x | 574x |
+| 48&nbsp;kbps | 1.450x | 1.335x | 220x | 152x | 655x | 490x |
+| 64&nbsp;kbps | 1.421x | 1.269x | 190x | 134x | 543x | 428x |
+| 96&nbsp;kbps | 1.635x | 1.199x | 177x | 108x | 403x | 336x |
+| 128&nbsp;kbps | 1.546x | 1.203x | 152x | 98x | 353x | 294x |
+| 192&nbsp;kbps | 1.367x | 1.229x | 122x | 89x | 307x | 250x |
+| 256&nbsp;kbps | 1.309x | 1.212x | 112x | 85x | 274x | 226x |
 
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). In this default-VBR benchmark the encoder is within 0.80x-1.00x of official across the tracked bitrates (1.16x at 16&nbsp;kbps). The optional complexity-10 allocation/history search is gated on constrained VBR and is not exercised by this default-VBR workload; when active it adds encoder work, and default complexity 9 never runs it.
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). In this default-VBR benchmark the encoder is faster than official at every tracked bitrate (1.31x to 2.05x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -290,14 +290,14 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.0006 | -0.0029 | +1.7605 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | +0.2621 | +0.0748 | +0.5315 | 24.000 kbps | 25.229 kbps |
-| 32&nbsp;kbps | +0.3236 | +0.0849 | +0.2059 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | +0.1185 | +0.0144 | -0.0252 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | +0.0211 | +0.0056 | +0.0384 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | +0.0876 | +0.0107 | +0.0327 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | +0.1915 | +0.0041 | +0.0190 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | +0.0762 | +0.0029 | +0.0074 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | +0.0408 | +0.0016 | +0.0084 | 256.000 kbps | 256.737 kbps |
+| 24&nbsp;kbps | +0.2622 | +0.0748 | -0.3258 | 24.000 kbps | 25.229 kbps |
+| 32&nbsp;kbps | +0.3234 | +0.0848 | -0.5336 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | +0.1185 | +0.0144 | -0.6939 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | +0.0209 | +0.0057 | -0.9902 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | +0.0876 | +0.0108 | -0.4040 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | +0.1909 | +0.0043 | -0.2873 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | +0.0761 | +0.0029 | -0.1753 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | +0.0407 | +0.0016 | -0.0831 | 256.000 kbps | 256.737 kbps |
 
 
 ## VOIP quality metrics vs official Opus
@@ -313,7 +313,7 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 48&nbsp;kbps | +0.1482 | -0.0071 | +0.3884 | 48.000 kbps | 48.245 kbps |
 | 64&nbsp;kbps | +0.1409 | -0.0089 | +0.0373 | 63.985 kbps | 64.496 kbps |
 | 96&nbsp;kbps | +0.0019 | +0.0050 | +0.0514 | 96.000 kbps | 96.621 kbps |
-| 128&nbsp;kbps | +0.0040 | +0.0008 | +0.0313 | 128.000 kbps | 128.551 kbps |
+| 128&nbsp;kbps | +0.0039 | +0.0008 | +0.0313 | 128.000 kbps | 128.551 kbps |
 | 192&nbsp;kbps | +0.0007 | -0.0004 | -0.0024 | 192.000 kbps | 192.424 kbps |
 | 256&nbsp;kbps | +0.0008 | -0.0003 | +0.0025 | 256.000 kbps | 256.415 kbps |
 
@@ -321,7 +321,7 @@ The aligned VOIP sample has negative ViSQOL-style deltas at seven of nine rates;
 
 ### Broader content check
 
-This supplementary snapshot predates the allocation/history changes and has not been refreshed; it is not a current acceptance result. The set contains 99 source/settings comparisons across speech, quiet/noisy speech,
+This supplementary snapshot has not been refreshed; it is not a current acceptance result. The set contains 99 source/settings comparisons across speech, quiet/noisy speech,
 music, tones and transients, plus 30 additional stereo/content holdout comparisons. They are
 short-clip diagnostics, not a representative listening survey or 129 independent recordings.
 
@@ -407,10 +407,10 @@ structure sizes or peak stack usage; allocator/page rounding contributes to smal
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 16,992 B | 31,712 B | -46.4% |
-| Encoder stereo | 32,320 B | 48,880 B | -33.9% |
-| Decoder mono | 14,096 B | 18,288 B | -22.9% |
-| Decoder stereo | 21,248 B | 27,360 B | -22.3% |
+| Encoder mono | 16,928 B | 31,712 B | -46.6% |
+| Encoder stereo | 32,192 B | 49,072 B | -34.4% |
+| Decoder mono | 14,176 B | 18,288 B | -22.5% |
+| Decoder stereo | 21,168 B | 27,344 B | -22.6% |
 
 Source CSV:
 
@@ -420,8 +420,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 336,804 B | 0 B | 336,804 B |
-| Android arm64 Clang `-O2` | 337,340 B | 472 B | 337,812 B |
+| Host MinGW GCC `-O2` | 310,288 B | 0 B | 310,288 B |
+| Android arm64 Clang `-O2` | 318,676 B | 472 B | 319,148 B |
 
 ## Toolchains checked
 
@@ -430,38 +430,3 @@ Source CSV:
 | MinGW GCC 16.2 C++23 | Warning-free build in this run (`-Wall -Wextra -Wpedantic`). |
 | Android arm64 Clang C++23 | Warning-free build in this run (`-Wall -Wextra -Wpedantic`). |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
-
-
-## Allocation/history integration
-
-At complexity 10, the encoder can compare two fullband CELT allocations against the same reconstructed decoder history, using the ordinary packet's byte budget. The comparison currently covers eligible 48 kHz PCM16 mono VOIP and stereo AUDIO, 10/20 ms frames, constrained VBR, and no DTX/FEC. Complexity 9 remains the default and does not run this search.
-
-Quality acceptance uses the direct official comparisons above, not gains against an earlier opuscpp encoder. The remaining adverse fields are not rounded away or claimed as wins. This search has not achieved an all-metric advantage.
-
-The search shares compatible pre-emphasis, pitch/prefilter, transform and band analysis. Identical or budget-ineligible allocation proposals skip the remaining alternative quantization; energy-refresh and release cases keep their required paths. Identical packets and candidates that fail the cheap waveform-error checks are rejected before full spectral scoring.
-
-Full candidate pairs share source filtering, band energies and stereo power through an approximately 1.4 KiB frame-local cache. The observer filter banks remain in double precision, matching the scoring arithmetic and avoiding float/double conversion at every sample. This adds 256 bytes to an allocated history object and preserves packets and measured quality in the validation corpus. The full timing sweep shows 2-10% higher encode throughput after normalization to the official control; see [observer timing](metrics/quality_observer_speed.csv). It is a partial recovery, not a resolution of the remaining encoding slowdown. Inactive alternatives advance only the selected output's filter history. Hybrid encoding skips shadow decoding only when that history will be replaced before selection. Ordinary encoding bypasses the large search wrapper.
-
-These reductions do not eliminate the cost of the second candidate and reconstructed-output checks, which remain gated on constrained VBR. The default-VBR production timings above are 0.80x-1.00x of official across 48-256 kbps (the search does not run in that workload). The budget-ineligible cleanup removes proven duplicate work, but the full synthetic benchmark did not establish a separate speed gain from that one-line change.
-
-All 36 headline quality configurations retain identical measured values and tested packet hashes. Windows and Android builds pass; 288 exact scorer checks and the trapping-UBSan history test also pass.
-
-Integration checks passed across 96 configurations and 7,680 packets: mono/stereo, 10/20 ms, complexity 0/9/10, VBR/CBR, DTX/FEC, PCM16/float, and reset. Packet decoding and final ranges agree with official Opus. The cross-decoder PCM comparison is not bit-exact: the largest observed difference was two int16 units. Windows GCC and Android arm64 Clang compile without warnings.
-
-The focused history test also passes trapping undefined-behavior checks. Run it without separately compiling the implementation, because the test includes it:
-
-It also verifies that scoring uses the output channel layout: a perfectly matching stereo output scores zero even when the packet codes mono, and an error confined to the final right-channel sample is counted correctly.
-
-The encoder tracker follows the decoder's redundancy-retention rule. The 2,592-packet reversal matrix reports zero model-state or output-filter mismatches. The public-control test detects the former mismatch when enabling FEC while changing bitrate, and also checks that advance-only filtering preserves the exact full-scoring endpoints across successive frames.
-
-~~~sh
-c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_quality_history.cpp -o encoder_quality_history
-./encoder_quality_history
-~~~
-
-`encoder_reference_continuity.cpp` checks 48 mono/stereo sequences with changing frame sizes and PCM16/float calls. It verifies the actual input tail, packet ranges, decoder state, and one-frame scoring warmup after an unsupported reference window. The stale-tail case fails on the unfixed implementation; the repaired path passes trapping undefined-behavior checks.
-
-~~~sh
-c++ -std=c++23 -O2 -DNDEBUG -I src tests/encoder_reference_continuity.cpp -o encoder_reference_continuity
-./encoder_reference_continuity
-~~~
