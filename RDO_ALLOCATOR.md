@@ -118,3 +118,32 @@ at 128k** (search-on +0.022 -> -0.067 with the trim on). Next tuning steps: (a) 
 trim at high rates (where the heuristic is already good), (b) sharpen the distortion model
 (pulse-domain g(N,K) instead of bits-per-coeff), (c) add the §3 boost step. Acceptance remains:
 search-OFF + RDO >= search-ON across all 9 rates, then drop the search.
+
+
+## 8. Validation result - NOT sufficient (authoritative full report)
+
+Built with RDO-trim always-on and the search off, then ran the full
+setup_official_compare.py. The authoritative AUDIO celt_delta (vs official) was:
+
+| rate | searchON baseline | RDO-trim + search OFF |
+|---:|---:|---:|
+| 16k | +1.590 | +1.722 |
+| 24k | +0.058 | +0.204 |
+| 32k | -0.156 | **-0.443** |
+| 48k | -0.340 | **-1.231** |
+| 64k | -0.045 | **-0.853** |
+| 96k | +0.033 | **-0.761** |
+| 128k | +0.022 | -0.251 |
+| 192k | -0.003 | -0.199 |
+| 256k | -0.006 | -0.132 |
+
+RDO-trim helps at 16k/24k but is **insufficient at 32k-256k** - it does not replace the search.
+
+Note: the earlier tracked-signal harness reading (which suggested search-off + RDO >= search-on
+everywhere) was misleading because that harness and the report's AUDIO test are not equivalent
+(same lesson as the "search is inert" error). **The report is the authority.**
+
+**Verdict:** the lloc_trim degree of freedom alone cannot recover the search's quality at
+mid/high rates. Remaining options per §3: the offsets/boost RDO step (much larger search space,
+larger signaling cost) - or accept that the trim lever is closed. The prototype stays env-gated
+and off by default; no shipped behaviour changed.
