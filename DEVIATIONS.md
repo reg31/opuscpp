@@ -15,7 +15,10 @@ quality impact. "Reduce?" = could this lower quality vs official.
    hysteresis, and emits SPREAD_NONE/LIGHT/NORMAL/AGGRESSIVE plus a tapset. Ours (`6187-6198`)
    defaults SPREAD_NONE and only bumps to SPREAD_NORMAL for one narrow condition; LIGHT/AGGRESSIVE
    never used; tapset hardcoded 0 (`5598,5620,5809`). SPREAD_NONE also disables `exp_rotation`
-   and changes folding. **Reduce? yes.**
+   and changes folding. **Reduce? no — TESTED, reverted.** Porting official `spreading_decision`
+   (with `spread_weight[]` + `tonal_average`/`hf_average` state) measured AUDIO 16k celt
+   **−0.47 worse** (1.590→1.118) and ~neutral at 24k/32k/48k/64k. Our tuned heuristic is a
+   beneficial deviation for the low-rate pipeline; keep it.
 
 3. **`transient_analysis` / `tf_estimate` replaced.** Official (`celt_encoder.c:267-469`,
    `patch_transient_decision` `473-507`) does masking-based detection, suppresses LF-tone-induced
@@ -87,11 +90,12 @@ quality impact. "Reduce?" = could this lower quality vs official.
 `process_fine_energy`; intensity hysteresis; `tf_select_table`.
 
 ## Recommended correction order (highest quality / lowest risk first)
-1. #3 + #1 transient/`tf_estimate` then `tf_analysis` (unlocks #6, #7, #9 which all consume
-   `tf_estimate`).
-2. #4 coarse-energy two-pass (self-contained, directly lowers the log-band error driving ViSQOL).
-3. #2 `spreading_decision` (self-contained; restores anti-collapse/folding behaviour).
-4. #8 dynalloc `importance`/`spread_weight` + tone-boost constants.
-5. #7 alloc-trim terms (remove the extra `+1`).
-6. #5 stereo `theta_rdo` (stereo only).
-7. #9 prefilter terms; #11 patch-transient; #10 secondMdct.
+1. [done] #3 transient/`tf_estimate` (`05dd0b9`) — enables #6/#7/#9 below.
+2. [done] #4 coarse-energy two-pass (`ca234d1`) — AUDIO 24k +0.57, 32k +0.40.
+3. [tested: keep deviation] #2 `spreading_decision` — regressed AUDIO 16k −0.47; reverted.
+4. #1 `tf_analysis`/`tf_select` (needs `importance[]` from #8).
+5. #8 dynalloc `importance`/`spread_weight` + tone-boost constants.
+6. #6 `compute_vbr` tf/tonality/surround terms (needs `tf_estimate`).
+7. #7 alloc-trim terms (keep the `+1`).
+8. #5 stereo `theta_rdo` (stereo only).
+9. #9 prefilter terms; #11 patch-transient; #10 secondMdct.
