@@ -348,8 +348,8 @@ The table compares denoising on versus off on the same mono speech recording mix
 6 dB white noise. Decoded output is scored against clean speech after codec-delay alignment.
 These are internal quality proxies, not certified PESQ or official ViSQOL scores.
 
-The previous 15.5/20 kbps failures are fixed: PESQ-style deltas are now **+0.1174/+0.1063**
-and ViSQOL-style deltas **+0.0875/+0.0775** versus denoising off. All **25** rates in
+The previous 15.5/20 kbps failures are fixed: PESQ-style deltas are now **+0.1175/+0.1064**
+and ViSQOL-style deltas **+0.0876/+0.0775** versus denoising off. All **25** rates in
 `metrics/voice_denoise_boundary.csv` pass the unchanged non-negative quality gate; no
 bitrate-specific bypass or score tolerance was introduced.
 
@@ -364,7 +364,7 @@ Do not infer a speech-recognition improvement from these proxy scores.
 
 The active broadband filter's earlier exact-output optimization reduced its isolated kernel time
 by about 20%; that historical comparison is recorded separately in the provenance. The fresh
-end-to-end overhead versus denoising off is **4.4% to 26.1%** on this recording.
+end-to-end overhead versus denoising off is **4.0% to 22.8%** on this recording.
 This includes downstream SILK work changed by filtering, not just the denoiser's arithmetic.
 
 Timing runs without concurrent test workloads. Enabled/bypass order rotates in one process,
@@ -379,15 +379,15 @@ identical in the 198-configuration comparison.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0993 | +0.0785 | 11.4% |
-| 24&nbsp;kbps | +0.1684 | +0.0952 | 14.5% |
-| 32&nbsp;kbps | +0.2037 | +0.1213 | 21.0% |
-| 48&nbsp;kbps | +0.2102 | +0.1162 | 26.1% |
-| 64&nbsp;kbps | +0.2275 | +0.1327 | 23.9% |
-| 96&nbsp;kbps | +0.2143 | +0.1577 | 7.6% |
-| 128&nbsp;kbps | +0.2143 | +0.1582 | 7.3% |
-| 192&nbsp;kbps | +0.2176 | +0.1593 | 5.0% |
-| 256&nbsp;kbps | +0.2182 | +0.1598 | 4.4% |
+| 16&nbsp;kbps | +0.0993 | +0.0785 | 11.3% |
+| 24&nbsp;kbps | +0.1686 | +0.0954 | 13.1% |
+| 32&nbsp;kbps | +0.2022 | +0.1181 | 22.8% |
+| 48&nbsp;kbps | +0.2169 | +0.1223 | 21.3% |
+| 64&nbsp;kbps | +0.2223 | +0.1245 | 21.4% |
+| 96&nbsp;kbps | +0.2148 | +0.1566 | 5.2% |
+| 128&nbsp;kbps | +0.2154 | +0.1590 | 4.9% |
+| 192&nbsp;kbps | +0.2181 | +0.1591 | 4.0% |
+| 256&nbsp;kbps | +0.2182 | +0.1597 | 4.3% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`,
 and `metrics/voice_denoise_provenance.json`.

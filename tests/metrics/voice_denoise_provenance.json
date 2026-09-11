@@ -1,9 +1,8 @@
 {
-  "date": "2026-09-06",
   "scope": "Included in the full benchmark refresh.",
   "baseline_commit": "3951ddafe9e719d76bf0ee22a7b6503449c0730b",
   "baseline_source_sha256": "ddbf477c37192aba7e0f2d4827ef84472b68ee54a12f506578b6fb133c35d98c",
-  "source_sha256": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
+  "source_sha256": "1903161b9fc4e99757b44feda2e1f7dc8f32e95fc32d401f7ed2298e5d97e1f9",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "flags": [
     "-std=c++23",
@@ -61,7 +60,6 @@
     "current": 68
   },
   "exact_output_optimization": {
-    "date": "2026-09-06",
     "baseline_source_sha256": "8434988911c394cfd45a72b038f8f18932db4064ffd8d53aab13bcf181f0d388",
     "changes": [
       "Cache exact two-lowpass outputs for frames of at most 960 samples; recompute identically for longer frames.",
@@ -88,7 +86,7 @@
     "full_suite": "Not rerun for this exact-output denoiser optimization; prior repair validation is recorded separately.",
     "scope": "Historical isolated optimization comparison; current full-suite timings are in timing."
   },
-  "codec_commit": "7538c9bf3f3f250f63dbbd1372ea1172a7433441",
+  "codec_commit": "1888c25c1428d4046037f1474cbaa03c7fce7007",
   "source_canonical_sha256": "2bd6e1a11607bc92317cbe3babf5eab86622a709fa3e1e020b2e951675f23221",
   "source_git_blob": "e949d739e16c92192344e1c0891843716be408b0"
 }

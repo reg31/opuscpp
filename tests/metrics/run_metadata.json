@@ -1,5 +1,4 @@
 {
-  "date": "2026-09-06",
   "codec_commit": "7538c9bf3f3f250f63dbbd1372ea1172a7433441",
   "source_sha256": "0f129fe7cffe7ab2ff1cf56d6d23b9cde05aad9e513f4b54309c21f9a6082d53",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
@@ -179,7 +178,6 @@
   },
   "csv_sha256_format": "UTF-8, LF line endings",
   "postfilter_refresh": {
-    "date": "2026-09-06",
     "scope": "Postfilter-only safe-bypass refresh. Core benchmark, memory and binary snapshots retain their original full-run source provenance.",
     "source_sha256": "cba23108e1f4f276cdfbdf1abb3107be1d56dfd45a3fc471d93f85eaa2188d7a",
     "source_canonical_sha256": "8c787254d8f7cf965b43e96aabeee3fed9f23fd54813d677d5c3e102cdf41d4c",
@@ -207,7 +205,6 @@
     }
   },
   "postfilter_retirement": {
-    "date": "2026-09-07",
     "source_sha256": "022fbcdb89fc6794be8e6a6b50aa3abc134b904e97dd3851cc3656b42d7bdf2f",
     "status": "Optional speech smoothing removed; no decoder processing branch or filter state remains.",
     "compatibility": "Legacy requests accept values 0..3 as no-ops; getter returns 0. Invalid values still return OPUS_BAD_ARG.",
