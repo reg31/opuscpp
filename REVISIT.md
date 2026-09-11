@@ -20,9 +20,12 @@ because `celt_quality` went negative.
    Net: no quality benefit + a crash → **skip** (not worth root-causing).
 2. **#11 `patch_transient_decision`** (second transient pass). Rejected for AUDIO 16k
    `celt −0.81` + a mono crash. **RE-VISITED:** a **real perceptual gain** — `trans_clicks`
-   48k **snr +0.53, pesq +0.04** (tracked neutral). **BLOCKED** by a latent mono crash in
-   `celt_transient_analysis` that *any* code addition exposes (gating to `C==2` does not help).
-   Root-cause the mono stack fault, then re-land.
+   48k **snr +0.53, pesq +0.04**; tracked neutral. The mono crash was a **latent stack OOB in
+   `celt_transient_analysis`** (`tmp[]` sized 960 but indexed to `N+overlap`=1080), **fixed**
+   (`e81b474`). But the corpus is **mixed**: mean pesq +0.033 with regressions on `mus_pad`
+   (−0.13), `dyn_quiet_loud` (−0.11), `drums` (−0.12), `noise_pink` (−0.06). Net positive but
+   not regression-free → **skip unless a narrow gate is found** (e.g. only when the second pass
+   clearly fires).
 3. **#10 `secondMdct`** (long-window `bandLogE2` at `shortBlocks && complexity>=8`). Rejected
    for `celt −1.31 @48k`. **RE-VISITED:** perceptual deltas **unchanged** (24k pesq 0.262,
    48k 0.118, 96k 0.088; transient corpus neutral). Rejection was an artifact, but no
