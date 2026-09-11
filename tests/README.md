@@ -348,7 +348,7 @@ The table compares denoising on versus off on the same mono speech recording mix
 6 dB white noise. Decoded output is scored against clean speech after codec-delay alignment.
 These are internal quality proxies, not certified PESQ or official ViSQOL scores.
 
-The previous 15.5/20 kbps failures are fixed: PESQ-style deltas are now **+0.1175/+0.1064**
+PESQ-style deltas are now **+0.1175/+0.1064**
 and ViSQOL-style deltas **+0.0876/+0.0775** versus denoising off. All **25** rates in
 `metrics/voice_denoise_boundary.csv` pass the unchanged non-negative quality gate; no
 bitrate-specific bypass or score tolerance was introduced.
