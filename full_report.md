@@ -91,15 +91,15 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.154234x | 1.871554x |
-| 24 kbps | 0.973043x | 1.429451x |
-| 32 kbps | 0.945814x | 1.407192x |
-| 48 kbps | 0.850115x | 1.338183x |
-| 64 kbps | 0.865235x | 1.321306x |
-| 96 kbps | 1.001789x | 1.309621x |
-| 128 kbps | 0.950989x | 1.306643x |
-| 192 kbps | 0.872006x | 1.287532x |
-| 256 kbps | 0.807072x | 1.223201x |
+| 16 kbps | 1.158352x | 1.876151x |
+| 24 kbps | 0.973020x | 1.436432x |
+| 32 kbps | 0.948553x | 1.400599x |
+| 48 kbps | 0.854142x | 1.340235x |
+| 64 kbps | 0.867609x | 1.327085x |
+| 96 kbps | 1.003946x | 1.311045x |
+| 128 kbps | 0.952670x | 1.312914x |
+| 192 kbps | 0.867092x | 1.293396x |
+| 256 kbps | 0.802660x | 1.210160x |
 
 ## AUDIO quality metrics vs official Opus
 
@@ -142,8 +142,8 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 |---|---:|
 | Encoder mono | -46.6% |
 | Encoder stereo | -33.9% |
-| Decoder mono | -22.4% |
-| Decoder stereo | -22.3% |
+| Decoder mono | -22.3% |
+| Decoder stereo | -22.2% |
 
 ## Binary size
 
