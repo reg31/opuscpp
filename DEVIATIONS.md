@@ -43,12 +43,17 @@ quality impact. "Reduce?" = could this lower quality vs official.
    (`1655-1669`), surround (`1675-1680`), `tf_estimate<.2` gate (`1703`), constrained factor
    `0.67`. Ours (`5642-5676`): `target += -0.044*target` (assumes `tf_estimate=0`), no
    tonality/activity/surround, constrained factor `0.67+0.07*content_vbr`, temporal-VBR applied
-   unconditionally. **Reduce? yes.**
+   unconditionally. **DONE `e3f86f4`** — restored `(tf_estimate-.044)*target` and the
+   `tf_estimate<.2` VBR guard; neutral on the tracked (non-transient) signal, correct on
+   transients. Remaining: activity/tonality/surround need a float analysis struct we don't have.
 
 7. **`alloc_trim_analysis` terms lost + extra.** Official (`865-955`) subtracts `2*tf_estimate`
    (`933`), `surround_trim` (`932`), and the float `tonality_slope` term (`934-939`). Ours
-   (`5170-5222`) omits all three and adds `if (equiv_rate>=64000) trim += 1.f` (`5216-5218`).
-   **Reduce? yes/unclear** (opposing pulls).
+   (`5170-5222`) omits all three and adds `if (equiv_rate>=64000) trim += 1.f` (`5216-5218`,
+   BENEFICIAL — tested). **Reduce? no change** — `2*tf_estimate` already matches; the
+   tonality/surround terms need the analysis struct; the stereo correlation uses
+   `celt_inner_prod_c` vs official's `celt_inner_prod_norm_shift` (`NORM_SHIFT=24`, fixed-point
+   semantics ambiguous in float) — left alone rather than risk a regression.
 
 8. **`dynalloc_analysis` adaptations lost + constants changed.** Official (`1049-1273`) computes
    `mask`/`sig`/`spread_weight[]` (`1082-1117`) and `importance[]` (`1182-1191`), tone boost
