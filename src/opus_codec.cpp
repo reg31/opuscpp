@@ -9336,7 +9336,8 @@ static int rdo_alloc_trim(const celt_glog* bandLogE, const int* offsets, const i
   return best;
 }
 
-static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {  total = std::max(total, 0);
+static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
+  total = std::max(total, 0);
   constexpr int len = celt_default_nb_ebands;
   int skip_start = start;
   const int skip_rsv = total >= 1 << 3 ? 1 << 3 : 0;
