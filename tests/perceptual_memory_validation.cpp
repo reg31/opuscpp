@@ -91,6 +91,7 @@ struct totals final {
   std::uint64_t log_count = 0;
   double celt_err16_sum = 0.0;
   double celt_high_mse_sum = 0.0;
+  std::array<double, 21> celt_band_dist{};
   double stereo_width_abs_error = 0.0;
   std::uint64_t celt_windows = 0;
   std::uint64_t celt_high_count = 0;
@@ -497,6 +498,7 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
         const auto ratio = std::max(1e-12, masked_deg / std::max(masked_ref, 1e-12));
         const auto disturbance = ratio - std::log(ratio) - 1.0;
         frame_mse += disturbance * disturbance;
+        out.celt_band_dist[static_cast<std::size_t>(band)] += disturbance * disturbance;
         ++frame_count;
         if (band >= high_band_start) {
           out.celt_high_mse_sum += disturbance * disturbance;
@@ -744,6 +746,13 @@ void print_result(std::string_view label, const totals& v) {
             << " celt_quality=" << celt_quality(v) << " celt_masked_error=" << celt_masked_error(v)
             << " celt_highband_error=" << celt_highband_error(v) << " stereo_width_error=" << stereo_width_error(v)
             << " avg_packet_bytes=" << avg_packet_bytes(v) << " encode_ms=" << encode_ms(v) << " packets=" << v.packets << '\n';
+  if (std::getenv("OPUSCPP_BANDS") != nullptr) {
+    const auto denom = static_cast<double>(std::max<std::uint64_t>(1, v.celt_windows));
+    std::cout << "bands " << label << " ";
+    for (std::size_t b = 0; b < v.celt_band_dist.size(); ++b) {
+      std::cout << b << ':' << std::sqrt(v.celt_band_dist[b] / denom) << (b + 1 == v.celt_band_dist.size() ? '\n' : ' ');
+    }
+  }
 }
 
 struct memory_snapshot final {
