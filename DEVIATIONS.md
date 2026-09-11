@@ -1,0 +1,97 @@
+# Encoder deviations from official Opus — correction list
+
+Ours = `src/opus_codec.cpp`; Official = `tests/external/official_opus/celt/`. Ordered by likely
+quality impact. "Reduce?" = could this lower quality vs official.
+
+## Tier 1 — major official adaptations missing (very likely quality-reducing)
+
+1. **`tf_analysis` / `tf_select` absent.** Official runs a per-band L1-metric Viterbi search over
+   time/frequency resolutions (`celt_encoder.c:663-822` analysis, `824-862` encode, gated
+   `2242`). Ours (`5135-5168`) sets every band to a single per-frame constant (`6169`); no
+   `tf_select`, no `importance[]`, no `lambda`. **Reduce? yes.**
+
+2. **`spreading_decision` + tapset replaced.** Official (`bands.c:470-561`) measures per-band |x|
+   CDF, weights by `spread_weight[]`, keeps recursive `tonal_average`/`hf_average` with
+   hysteresis, and emits SPREAD_NONE/LIGHT/NORMAL/AGGRESSIVE plus a tapset. Ours (`6187-6198`)
+   defaults SPREAD_NONE and only bumps to SPREAD_NORMAL for one narrow condition; LIGHT/AGGRESSIVE
+   never used; tapset hardcoded 0 (`5598,5620,5809`). SPREAD_NONE also disables `exp_rotation`
+   and changes folding. **Reduce? yes.**
+
+3. **`transient_analysis` / `tf_estimate` replaced.** Official (`celt_encoder.c:267-469`,
+   `patch_transient_decision` `473-507`) does masking-based detection, suppresses LF-tone-induced
+   transients, marks weak transients, and derives `tf_estimate` (feeds trim/VBR/prefilter). Ours
+   (`5684-5699`) uses `max|x[i]-x[i-4]|*(len/4) > thr*sum` only, no tone suppression, no
+   patch pass, plus extra `isTransient=1` overrides (`6077-6088`). **Reduce? yes.**
+
+4. **Coarse-energy two-pass intra/inter decision absent.** Official (`quant_bands.c:260-358`)
+   trial-codes intra and inter into a backup coder and keeps the cheaper (`badness`, `intra_bias`
+   scaled by `loss_rate`). Ours (`9018-9037`) runs exactly one pass; no `loss_rate`/`two_pass`.
+   **Reduce? yes.**
+
+5. **Stereo `theta_rdo` absent.** Official (`bands.c:1618-1622,1808-1895`) at complexity>=8,
+   stereo non-dual, trial-encodes both angle roundings with `resynth=1` and keeps the lower
+   weighted distortion. Ours (`4788-4912`) always `theta_round=0`, never resynthesizes during
+   encode. **Reduce? yes (stereo).**
+
+## Tier 2 — dropped terms in shared analyses (likely quality-reducing)
+
+6. **`compute_vbr` terms lost.** Official (`celt_encoder.c:1604-1716`): activity (`1630-1633`),
+   transient boost using real `tf_estimate` (`1652-1653`), tonality + `pitch_change`
+   (`1655-1669`), surround (`1675-1680`), `tf_estimate<.2` gate (`1703`), constrained factor
+   `0.67`. Ours (`5642-5676`): `target += -0.044*target` (assumes `tf_estimate=0`), no
+   tonality/activity/surround, constrained factor `0.67+0.07*content_vbr`, temporal-VBR applied
+   unconditionally. **Reduce? yes.**
+
+7. **`alloc_trim_analysis` terms lost + extra.** Official (`865-955`) subtracts `2*tf_estimate`
+   (`933`), `surround_trim` (`932`), and the float `tonality_slope` term (`934-939`). Ours
+   (`5170-5222`) omits all three and adds `if (equiv_rate>=64000) trim += 1.f` (`5216-5218`).
+   **Reduce? yes/unclear** (opposing pulls).
+
+8. **`dynalloc_analysis` adaptations lost + constants changed.** Official (`1049-1273`) computes
+   `mask`/`sig`/`spread_weight[]` (`1082-1117`) and `importance[]` (`1182-1191`), tone boost
+   `2/1/1/0.5` (`1205-1222`), `leak_boost` (`1226-1230`), and net `×1` for low bands i<8
+   (`1193-1204`). Ours (`5310-5429`) omits `importance`/`spread_weight`/`leak_boost`, tone boost
+   `4.5/2.5/1.5/0.5` (`5265-5282`, ~2x), extra `apply_low_rate_lf_dynalloc_boost`
+   (`5284-5308`), extra high-rate `follower[0]` boost (`5399-5401`), and uses `2-corr^2` for low
+   bands (`5378-5390`, `×2` for mono). **Reduce? yes.**
+
+9. **`run_prefilter` terms lost + shortcut.** Official (`1404-1602`) kills gain on large pitch
+   change if `tf_estimate>.98` (`1502-1508`), halves/zeros gain by `loss_rate` (`1482-1487`),
+   uses `prefilter_tapset` (`1542-1555`), scales by `max_pitch_ratio` (`1492-1497`). Ours
+   (`5499-5640`) omits all, hardcodes tapset 0, and adds a "reuse previous period/gain" shortcut
+   (`5546-5549`). **Reduce? yes.**
+
+10. **`secondMdct` long-window energy (`bandLogE2`) not produced.** Official (`2076-2088`) feeds
+    dynalloc a long-window baseline at `shortBlocks && complexity>=8`; ours (`6100`) always uses
+    the short-block energy. **Reduce? unclear.**
+
+11. **`patch_transient_decision` second pass absent.** Official (`473-507`) re-examines band
+    energies to catch time-domain-missed transients. Ours: none. **Reduce? yes.**
+
+## Tier 3 — extra non-official heuristics in ours (direction uncertain)
+
+12. Extra alloc-trim post-adjust: `celt_adjust_alloc_trim` (`5831-5858`),
+    `celt_balance_lowrate_stereo_trim` (`5860-5889`), and the RDO-trim (`9328-9339`). Official has
+    none. **Reduce? unclear.**
+
+13. Extra VBR target boosts after `compute_vbr` (`6257-6273`). Official: none. **Reduce? unclear.**
+
+14. Extra HF-tonal / energy-feedback state (`high_z_tonal_Q7` `2376-2601`, `2915-2922`;
+    `celt_energy_feedback_bypass_*` gating `6172-6177`). Official applies the energy-error bias
+    unconditionally. **Reduce? unclear.**
+
+## Faithful (no material divergence)
+`stereo_analysis`; `interp_bits2pulses`/`clt_compute_allocation` (all constants match);
+`quant_partition`/`quant_band`/`quant_band_stereo` core; `compute_theta` core; `exp_rotation`;
+`op_pvq_search`/`alg_quant`; `compute_mdcts`/preemphasis; anti-collapse reserve;
+`process_fine_energy`; intensity hysteresis; `tf_select_table`.
+
+## Recommended correction order (highest quality / lowest risk first)
+1. #3 + #1 transient/`tf_estimate` then `tf_analysis` (unlocks #6, #7, #9 which all consume
+   `tf_estimate`).
+2. #4 coarse-energy two-pass (self-contained, directly lowers the log-band error driving ViSQOL).
+3. #2 `spreading_decision` (self-contained; restores anti-collapse/folding behaviour).
+4. #8 dynalloc `importance`/`spread_weight` + tone-boost constants.
+5. #7 alloc-trim terms (remove the extra `+1`).
+6. #5 stereo `theta_rdo` (stereo only).
+7. #9 prefilter terms; #11 patch-transient; #10 secondMdct.
