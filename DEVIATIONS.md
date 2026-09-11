@@ -42,13 +42,18 @@ quality impact. "Reduce?" = could this lower quality vs official.
 
 5. **Stereo `theta_rdo` absent.** Official (`bands.c:1618-1622,1808-1895`) at complexity>=8,
    stereo non-dual, trial-encodes both angle roundings with `resynth=1` and keeps the lower
-   weighted distortion. **Reduce? no — ATTEMPTED, reverted (crashes).** Ported
-   `compute_channel_weights`, the `theta_round` field + bias logic in `compute_theta`,
-   `resynth = !encode || theta_rdo`, and the full save/restore trial block (ec/ctx/X/Y +
-   `norm_save2`/`bytes_save`). Result: mono + VOIP fine, but stereo AUDIO crashes
-   (`0xC0000005`) inside the encode-time resynthesis — the `resynth` path
-   (`stereo_merge`/`negate_n`/`lowband_out` writes) runs on encode for the first time and
-   something there is unsafe. Needs a debugger/sanitizer pass. Reverted.
+   weighted distortion. **Reduce? no — fully implemented, tested, reverted (net regression).**
+   Ported `compute_channel_weights`, `theta_round` in `compute_theta` + `band_ctx`,
+   `resynth = !encode || theta_rdo`, `complexity` through `quant_all_bands`, the two-pass
+   save/restore trial block, AND the faithful `alg_quant(..., gain, resynth)` reconstruction
+   (unpack `iy`, `normalise_residual`, reverse `exp_rotation`) that the trial needs.
+   Root cause of the earlier crash: the encoder call passed `collapse_masks = nullptr`, but
+   `resynth`-on-encode writes/folds `collapse_masks[i*C]` → null write (`0xC0000005`). Fixed by
+   passing a real buffer. With that fixed the port runs clean (no crash; RFC/interop/Android
+   pass) but **AUDIO 96k celt regressed −0.42**, with 24k/48k slightly negative — a net quality
+   loss, so reverted per the no-regression rule. Remaining likely gap: our `alg_quant`
+   gain/`yy` or the dist weighting still differs from official at high rate; needs a per-band
+   encode-vs-official diff to finish.
 
 ## Tier 2 — dropped terms in shared analyses (likely quality-reducing)
 
