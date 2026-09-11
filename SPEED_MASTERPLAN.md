@@ -371,3 +371,25 @@ So the real trade is: **~1.8x encode speed for the search's quality** (48k CELT 
 i.e. ~1.14; 16k/24k roughly unchanged). That is the decision to make - and the earlier metric
 work (spectral, NMR) was trying to keep the search's quality at lower cost; all decode-free
 metrics failed because the reconstruction costs as much as the decode.
+
+
+### Answer - the search is nearly quality-inert, so removing it is the win
+Measured search on/off (env-gated prepare_quality_history) with the quality harness:
+
+Tracked synthetic 60 s, all metrics:
+| rate | searchON celt | searchOFF celt | SNR/PESQ |
+|---:|---:|---:|---:|
+| 24k | -0.3323 | -0.3315 | identical |
+| 48k | -0.7975 | -0.8603 | identical |
+| 96k | -0.6048 | -0.6571 | identical |
+
+So the search buys ~0.05 CELT and nothing on SNR/PESQ. Across the 16-signal 60 s corpus it is
+**identical for 12/16 signals** and within +-0.05 CELT for the rest (turning xtra_depth off
+statically was sometimes *better*, e.g. mus_chord -1.186 vs search -1.193). The earlier
+"old = -1.48 vs new = -0.34" gap is therefore **the other added features (stereo policy etc.),
+not the search** - the search had been credited for quality it doesn't deliver.
+
+**Conclusion: the "we need other quality means before removing the search" premise is
+unnecessary - the search's quality contribution is ~0 while it costs ~1.8x.** Removing the
+search (drop quality_*, celt_encode_with_history, the per-frame probe) is a near-free 1.8x
+encode speedup. That is the answer: remove it, do not replace it.
