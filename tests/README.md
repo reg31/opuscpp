@@ -374,8 +374,7 @@ stack**, not additional per-stream heap memory; longer frames retain filter reco
 Earlier exact-output checks cover **836 configurations / 195,008 packets** and **22,680 kernel
 PCM/state comparisons**. This full refresh reruns the public 90-configuration state/bounds/reset
 test with sanitizers, and both host and Android builds have zero warnings.
-The optional filter state is **68 bytes**. Default-off packets remain
-identical in the 198-configuration comparison.
+The optional filter state is **68 bytes**.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
