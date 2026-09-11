@@ -314,6 +314,35 @@ More importantly it corrects the premise: the search is not where encoder time g
 the goal, the lever is the **base encode** (the other ~92%), not the search. The RDO allocator
 (A) is still the only known direction that changes the decision and can win on both axes.
 
+### Old version comparison (major clue)
+`C:\Users\regis\Documents\New project\old` is a previous snapshot (`opus_codec.cpp` 14314 lines,
+identical header) with **no quality-search machinery at all**. Built both with the same flags
+and harnessed against official Opus:
+
+| | 16k | 24k | 32k | 48k | 64k | 96k | 128k | 192k | 256k |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| OLD encode speedup | 2.58 | 1.92 | 1.88 | **1.82** | 1.80 | 1.89 | 2.10 | 1.89 | 1.81 |
+| CUR encode speedup | 1.29 | 1.08 | 1.06 | **0.98** | 1.02 | 1.10 | 1.17 | 1.07 | 0.98 |
+
+Quality (CELT delta vs official, tracked stereo signal):
+
+| | 16k | 24k | 48k | 96k | 256k |
+|---:|---:|---:|---:|---:|---:|
+| OLD | +1.59 | +0.159 | **-1.475** | -0.624 | -0.124 |
+| CUR | +1.59 | +0.058 | **-0.340** | +0.033 | -0.006 |
+
+**So the old version is ~1.8-2.6x faster but ~0.5-1.1 CELT worse at mid/high rates** (16k/24k
+comparable). The current build already spent ~1.8x speed buying that quality. Since the search
+is only ~8%, **~1.7x was spent on the other added features** visible in the diff: per-frame
+`measure_frame_activity` predictability/shape/difference-energy metrics, the stereo-policy
+coherence tracking, VOIP voice denoise, and the decoder-path additions.
+
+Implication: there is a **real, measured ~1.7x of base-encode speed sitting in the current
+tree**, recoverable by finding which of these features earns its keep and gating the rest. This
+is now the top speed lead - far bigger than the search (8%) or SIMD (probably 10-25%). Needs a
+working profiler (mingw `-pg` produces an empty flat profile here) or a feature-toggle bisection.
+
+
 
 
 
