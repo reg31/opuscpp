@@ -223,4 +223,24 @@ frame-type/mode transition), so the probe can run *only* on eligible frames whil
 are either dropped (quality-neutral per the sweep above) or fed from encoder band energies.
 That refactor is the real WS-A; the naive version is a regression.
 
+### Attempted - encoder-side packet_selection_ready (still not enough)
+Did exactly that: replaced
+`previous_packet_celt && ready && decoder_start==0 && decoder_last_frame_type==1`
+with `previous_packet_celt && ready && encoder_celt_state(st)->start == 0`.
+- **In isolation it is correct and quality-neutral** (48k 99.50859017, 96k 99.94694972 - matches
+  baseline exactly), so the gate can indeed be made decoder-independent.
+- But with the probe also removed it *still* fails: the eligible path fires (frames 2, 14, 26,
+  ...) yet always rejects, so quality falls to search-off (98.51). Cause: the per-frame probe
+  also keeps the **decoder's overlap/energy state continuous**; without it the eligible-frame
+  decode runs on a stale decoder state, the time-MSE is meaningless, and the challenger never
+  wins.
+
+**Final conclusion: WS-A is not viable.** The metric *is* a continuous decode - the per-frame
+probe is what makes the eligible-frame decode valid, not merely gate/guard maintenance. The
+~50% measured for "the search" is the price of a continuously-running reference decoder and
+cannot be removed without changing what the metric measures. The encoder-side
+`packet_selection_ready` refactor is safe but has no performance payoff, so it is not shipped
+on its own.
+
+
 
