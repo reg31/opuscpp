@@ -379,7 +379,7 @@ struct CeltEncoderInternal {
   opus_uint32 rng;
   opus_uint16 prefilter_period;
   opus_uint8 high_z_tonal_Q7, input_diff_Q10, consec_transient, lastCodedBands;
-  bool lowrate_refinement, content_vbr, allocation_history_changed, pending_energy_refresh;
+  bool lowrate_refinement, content_vbr, pending_energy_refresh;
   opus_val32 delayedIntra, prefilter_gain;
   SILKInfo silk_info;
   opus_val32 preemph_memE[2];
@@ -2370,8 +2370,6 @@ constexpr int voip_noise_confidence_apply_Q7 = 90;
 constexpr opus_val32 voip_quiet_hissy_voice_diff_ratio_min = 0.40f;
 constexpr opus_val16 voip_quiet_hissy_voice_low_band_keep = 0.50f;
 constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
-constexpr opus_int32 celt_energy_feedback_bypass_min_bps = 80000;
-constexpr opus_int32 celt_energy_feedback_bypass_max_bps = 112000;
 
 [[nodiscard]] static constexpr bool is_sparse_high_z_tonal_frame(const frame_activity_metrics& metrics) noexcept {
   return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
@@ -6562,7 +6560,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     energyError[index] = clamp_value(error[index], -0.5f, 0.5f);
   });
   if (silence) {
-    st->allocation_history_changed = false;
     std::fill_n(oldBandE, static_cast<std::size_t>(C * nbEBands), -(28.f));
   }
   st->prefilter_period = static_cast<opus_uint16>(prefilter.pitch_index);
@@ -6673,7 +6670,6 @@ static int celt_encode_with_history(CeltEncoderInternal* st, const opus_res* pcm
     accept = accept && !veto;
   }
   if (accept) {
-    st->allocation_history_changed = true;
     auto [prefilter, energy, old1, old2, feedback] = make_celt_encoder_views(st);
     const auto* baseline_energy = baseline.history.data() + (energy - celt_encoder_storage(st));
     (void)feedback;
@@ -9705,22 +9701,6 @@ static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_
   }
 }
 
-static void exp_rotation1_stride1(celt_norm* X, int len, opus_val16 c, opus_val16 s) {
-  const opus_val16 ms = -s;
-  for (int i = 0; i < len - 1; ++i) {
-    const celt_norm x1 = X[i];
-    const celt_norm x2 = X[i + 1];
-    X[i + 1] = c * x2 + s * x1;
-    X[i] = c * x1 + ms * x2;
-  }
-  for (int i = len - 3; i >= 0; --i) {
-    const celt_norm x1 = X[i];
-    const celt_norm x2 = X[i + 1];
-    X[i + 1] = c * x2 + s * x1;
-    X[i] = c * x1 + ms * x2;
-  }
-}
-
 static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int spread) {
   constexpr std::array<opus_uint8, 3> SPREAD_FACTOR{15, 10, 5};
   if (2 * K >= len || spread == 0) {
@@ -9743,9 +9723,9 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
       if (stride2) {
         exp_rotation1(X + i * len, len, stride2, s, c);
       }
-      exp_rotation1_stride1(X + i * len, len, c, s);
+        exp_rotation1(X + i * len, len, 1, c, s);
     } else {
-      exp_rotation1_stride1(X + i * len, len, c, -s);
+      exp_rotation1(X + i * len, len, 1, c, -s);
       if (stride2) {
         exp_rotation1(X + i * len, len, stride2, s, -c);
       }
