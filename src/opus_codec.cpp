@@ -6423,13 +6423,11 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   }
   auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
-  if (st->bitrate < celt_energy_feedback_bypass_min_bps || st->bitrate >= celt_energy_feedback_bypass_max_bps) {
-    for_each_celt_band(st, [&](int index) {
-      if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
-        bandLogE[index] -= 0.25f * energyError[index];
-      }
-    });
-  }
+  for_each_celt_band(st, [&](int index) {
+    if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
+      bandLogE[index] -= 0.25f * energyError[index];
+    }
+  });
   const bool refresh = st->pending_energy_refresh;
   st->pending_energy_refresh = false;
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled || (refresh && challenger),
@@ -6536,7 +6534,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       delta = 0;
     }
     const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
-    if (st->constrained_vbr && !st->content_vbr) {
+    if (st->constrained_vbr) {
       st->vbr_reservoir += target - vbr_rate;
       st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
       st->vbr_offset = -st->vbr_drift;
