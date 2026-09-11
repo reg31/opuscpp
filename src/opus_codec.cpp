@@ -54,7 +54,7 @@ constexpr int celt_max_lm = 3;
 constexpr int celt_allocation_vector_count = 11;
 constexpr std::array<float, 4> celt_preemphasis{0.85000610f, 0.0f, 1.0f, 1.0f};
 constexpr int celt_max_frame_samples = 960;
-constexpr int quality_search_interval = 6;
+constexpr int quality_search_interval = 12;
 constexpr int celt_max_pitch_period = 1024;
 constexpr int celt_min_pitch_period = 15;
 constexpr int celt_max_band_samples = 22 * 8;
