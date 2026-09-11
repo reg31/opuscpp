@@ -9723,7 +9723,7 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
       if (stride2) {
         exp_rotation1(X + i * len, len, stride2, s, c);
       }
-        exp_rotation1(X + i * len, len, 1, c, s);
+      exp_rotation1(X + i * len, len, 1, c, s);
     } else {
       exp_rotation1(X + i * len, len, 1, c, -s);
       if (stride2) {
