@@ -8,7 +8,13 @@ quality impact. "Reduce?" = could this lower quality vs official.
 1. **`tf_analysis` / `tf_select` absent.** Official runs a per-band L1-metric Viterbi search over
    time/frequency resolutions (`celt_encoder.c:663-822` analysis, `824-862` encode, gated
    `2242`). Ours (`5135-5168`) sets every band to a single per-frame constant (`6169`); no
-   `tf_select`, no `importance[]`, no `lambda`. **Reduce? yes.**
+   `tf_select`, no `importance[]`, no `lambda`. **Reduce? yes — ATTEMPTED, reverted.**
+   Full port (l1_metric + tf_analysis + dynalloc `importance[]` + `tf_select` threaded through
+   `process_tf_changes`) measured **AUDIO celt 48k −0.34→−0.01 (+0.33), 16k 1.58→1.76 (+0.18),
+   64k −0.05→+0.02** — the biggest remaining quality lever, confirmed. **Blocker:** mono (C=1)
+   VOIP segfaults (0xC0000005); `enable_tf_analysis=false` makes VOIP pass, `C==2` gate does not,
+   so the fault is latent UB in the else-if branches or the `tf_select`/`importance` plumbing
+   (not `tf_analysis` itself — AUDIO exercises it fine). Root-cause that, then re-land.
 
 2. **`spreading_decision` + tapset replaced.** Official (`bands.c:470-561`) measures per-band |x|
    CDF, weights by `spread_weight[]`, keeps recursive `tonal_average`/`hf_average` with
