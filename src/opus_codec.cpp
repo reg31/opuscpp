@@ -2956,6 +2956,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       st->mode = opus_mode_celt_only;
     }
   }
+  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
+    st->mode = opus_mode_celt_only;
+  }
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps < 20000) {
     st->mode = opus_mode_celt_only;
   }
