@@ -198,3 +198,29 @@ MDCT, FFT and the PVQ `K>N/2` branch — so WS-C headroom is genuinely small wit
 ### Remaining
 WS-A (drop the per-frame history shadow-decode) is untouched and remains the ~50% prize.
 
+### Attempted - WS-A must not be done naively
+Implemented WS-A two ways and both failed; the per-frame probe is **load-bearing**, not pure overhead.
+
+What the probe actually feeds (all coupled):
+1. the guards `score[2..4]` (leaky band-energy history);
+2. the **`packet_selection_ready` sync gate** (3824: it reads the *decoder* state
+   `decoder_celt_state(...)->start == 0 && last_frame_type == 1`, which only the per-frame probe
+   updates);
+3. the decoder overlap/energy continuity that the eligible-frame decode needs.
+
+Attempts:
+- **Counter eligibility + probe removed** (search from frame 0): quality preserved
+  (99.50859017) but **9-22% slower** across the sweep - because the shipped search does *not*
+  start until `packet_selection_ready` (~frame 185 on the 60 s bench), so forcing frame-0
+  eligibility adds far more challenger work than the probe removal saves (controlled A/B,
+  3 reps: 48k 0.980 -> 0.844, ratio 0.86).
+- **`packet_selection_ready` kept + probe removed**: the gate never opens, the search never
+  runs, quality collapses to search-off (98.51 vs 99.51 at 48k).
+
+Conclusion: deleting the probe is only worth it together with **replacing the decoder-derived
+`packet_selection_ready` with an encoder-side equivalent** (the encoder knows its own
+frame-type/mode transition), so the probe can run *only* on eligible frames while the guards
+are either dropped (quality-neutral per the sweep above) or fed from encoder band energies.
+That refactor is the real WS-A; the naive version is a regression.
+
+
