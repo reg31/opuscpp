@@ -6382,7 +6382,6 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   }
 }
 
-
 static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc) {
   std::array<opus_val16, celt_plc_max_period + celt_lpc_order> exc_storage;
   std::array<opus_val16, celt_lpc_order> lpc_mem;
