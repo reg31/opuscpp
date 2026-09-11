@@ -2985,7 +2985,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       }
     }
   }
-  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
+  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2 && st->bitrate_bps >= 48000) {
     st->mode = opus_mode_celt_only;
   }
   if (voip_style && st->channels == 1 && st->bitrate_bps <= 16000) {
