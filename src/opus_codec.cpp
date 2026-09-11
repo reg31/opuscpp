@@ -6222,7 +6222,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (!hybrid && C == 2) {
       alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
     }
-    if (!hybrid && std::getenv("OPUSCPP_RDOTRIM") != nullptr) {
+    if (!hybrid && equiv_rate < 96000 && std::getenv("OPUSCPP_RDOTRIM") != nullptr) {
       const opus_int32 rdo_bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
       alloc_trim = rdo_alloc_trim(bandLogE, offsets.data(), cap.data(), start, end, LM, C, rdo_bits, alloc_trim);
     }
@@ -9316,8 +9316,10 @@ static double estimate_trim_distortion(const celt_glog* bandLogE, const int* off
       const int width_full = (eBands[b + 1] - eBands[b]) << LM;
       const double depth = std::max(0.0, static_cast<double>(bandLogE[c * celt_default_nb_ebands + b]) - static_cast<double>(celt_noise_floor_base[b]));
       const double weight = 1.0 - std::exp2(-depth);
-      const double bits_per_coeff = static_cast<double>(bits1[b]) / std::max(1, C * width_full);
-      distortion += weight * std::exp2(-bits_per_coeff);
+      const auto* cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + b];
+      const int pulses = bits1[b] > 0 ? celt_bits2pulses_search(cache, bits1[b]) : 0;
+      const double shape_distortion = static_cast<double>(width_full) / (width_full + 2.0 * pulses);
+      distortion += weight * shape_distortion;
     }
   }
   return distortion;
