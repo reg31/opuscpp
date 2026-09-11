@@ -28,12 +28,12 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `lpc_analysis_filter=PASS (SILK encoder/decoder reconstruction; bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)`
 - `celt_energy_decode=PASS (anti-collapse cap, unit energy, false-transient bit boundary)`
 - `stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, rejected float input, reset, roundtrip)`
-- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.290592 reentry_nrmse_official=0.758792 reentry_gain_db_opuscpp=0.763143 reentry_gain_db_official=1.608234 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0`
+- `dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.290592 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=0.763143 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0`
 - `fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.791591 recovery_error=0.0488076 plc_error=0.463539 packet_bytes=360 packet_hash=2146862611`
-- `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.199771 recovery_error=0.0996023 plc_error=0.199859 packet_bytes=371 packet_hash=1803285832`
+- `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.19564 recovery_error=0.0935658 plc_error=0.177873 packet_bytes=479 packet_hash=3699400340`
-- `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0188422 continuation_error=0.0286078 fec_plc_difference=0 recovery_error=0.614024 plc_error=0.614024 packet_bytes=550 packet_hash=3038680279`
+- `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.08651 recovery_error=0.0193359 plc_error=0.742264 packet_bytes=716 packet_hash=1761291557`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.717466 recovery_error=0.10918 plc_error=0.592043 packet_bytes=956 packet_hash=4067276758`
@@ -41,11 +41,11 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.02308 recovery_error=0.802098 plc_error=0.930902 packet_bytes=1439 packet_hash=4153712974`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0.00407664 continuation_error=0.00442524 fec_plc_difference=1.43903 recovery_error=0.897456 plc_error=0.980887 packet_bytes=2153 packet_hash=3430242681`
-- `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2367 packet_hash=656704607`
+- `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.624856 recovery_error=0.1393 plc_error=0.481772 packet_bytes=960 packet_hash=3681653424`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.558552 recovery_error=0.372524 plc_error=0.430655 packet_bytes=960 packet_hash=3941787026`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=7.22538e-06 continuation_error=0 fec_plc_difference=0.528715 recovery_error=0.121737 plc_error=0.439685 packet_bytes=1427 packet_hash=2986054689`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577635 recovery_error=0.17321 plc_error=0.428872 packet_bytes=1459 packet_hash=1816777896`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.52361 recovery_error=0.217936 plc_error=0.773689 packet_bytes=359 packet_hash=1455952567`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.28954 recovery_error=0.210491 plc_error=0.85446 packet_bytes=468 packet_hash=986318636`
@@ -59,9 +59,9 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.34886 recovery_error=0.912988 plc_error=0.983861 packet_bytes=2153 packet_hash=691810508`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.59289 recovery_error=0.325846 plc_error=0.885146 packet_bytes=960 packet_hash=65929719`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0.0159877 continuation_error=0.000880958 fec_plc_difference=1.60859 recovery_error=0.346179 plc_error=0.886561 packet_bytes=960 packet_hash=3814775749`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.15309 recovery_error=0.295157 plc_error=0.913041 packet_bytes=1422 packet_hash=2803221822`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32921 recovery_error=0.305962 plc_error=0.768318 packet_bytes=1387 packet_hash=2510013668`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.937946 recovery_error=0.0420051 plc_error=0.867734 packet_bytes=359 packet_hash=2203310038`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682`
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.16542 recovery_error=0.219111 plc_error=0.832498 packet_bytes=472 packet_hash=1214488359`
@@ -75,10 +75,10 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 - `fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.762094 recovery_error=0.98759 plc_error=1.01578 packet_bytes=2154 packet_hash=3070519708`
 - `fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.16258e-06 continuation_error=0 fec_plc_difference=1.15849 recovery_error=0.419023 plc_error=0.864622 packet_bytes=960 packet_hash=3035056262`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.767 recovery_error=0.910793 plc_error=0.941921 packet_bytes=960 packet_hash=622396321`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651`
 - `fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.47398 recovery_error=0.380137 plc_error=1.16149 packet_bytes=1433 packet_hash=24609476`
-- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=1.23163e-05 continuation_error=0 fec_plc_difference=1.37679 recovery_error=0.466926 plc_error=1.23274 packet_bytes=1365 packet_hash=2233567258`
-- `fec_summary recovery_error_ratio=0.471679 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.995726`
+- `fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059`
+- `fec_summary recovery_error_ratio=0.482861 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.99674`
 
 ## Perceptual and memory harness
 
@@ -91,43 +91,43 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 
 | Bitrate | Encode speedup | Decode speedup |
 |---:|---:|---:|
-| 16 kbps | 1.163997x | 1.868199x |
-| 24 kbps | 0.977828x | 1.424821x |
-| 32 kbps | 0.953404x | 1.408938x |
-| 48 kbps | 0.860568x | 1.333638x |
-| 64 kbps | 0.871015x | 1.314558x |
-| 96 kbps | 1.006955x | 1.308315x |
-| 128 kbps | 0.954146x | 1.304044x |
-| 192 kbps | 0.870207x | 1.286225x |
-| 256 kbps | 0.811906x | 1.226124x |
+| 16 kbps | 1.186852x | 1.871152x |
+| 24 kbps | 0.979850x | 1.433870x |
+| 32 kbps | 0.935145x | 1.377993x |
+| 48 kbps | 0.850105x | 1.346823x |
+| 64 kbps | 0.866401x | 1.305405x |
+| 96 kbps | 1.002628x | 1.306361x |
+| 128 kbps | 0.952335x | 1.316890x |
+| 192 kbps | 0.871836x | 1.288309x |
+| 256 kbps | 0.811474x | 1.212305x |
 
 ## AUDIO quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | 16 kbps | 0.00019245 | -0.00000320 | -0.00000476 | 0.00059821 | -0.00289069 | -0.00110445 | 1.76054747 | 16.000 kbps | 17.065 kbps |
-| 24 kbps | 3.28080193 | -0.02103357 | -0.01391980 | 0.26144085 | 0.07564908 | 0.01657986 | 0.65684321 | 24.000 kbps | 25.220 kbps |
-| 32 kbps | 4.40030313 | -0.01179032 | -0.00784315 | 0.32357710 | 0.08473523 | 0.01127038 | 0.26284679 | 32.000 kbps | 33.613 kbps |
+| 24 kbps | 3.27601917 | -0.02099676 | -0.01396677 | 0.26214506 | 0.07482415 | 0.01634594 | 0.53145990 | 24.000 kbps | 25.229 kbps |
+| 32 kbps | 4.39672223 | -0.01177810 | -0.00784334 | 0.32356119 | 0.08486381 | 0.01133057 | 0.20594796 | 32.000 kbps | 33.613 kbps |
 | 48 kbps | 1.67459831 | -0.00241172 | -0.00178866 | 0.11854439 | 0.01436430 | 0.00109479 | -0.02523234 | 48.000 kbps | 48.560 kbps |
 | 64 kbps | 0.38852954 | -0.00047005 | -0.00021281 | 0.02111547 | 0.00562880 | 0.00070134 | 0.03844329 | 64.000 kbps | 64.613 kbps |
 | 96 kbps | 1.25559642 | -0.00092411 | -0.00063389 | 0.08764438 | 0.01074671 | 0.00050959 | 0.03268874 | 96.000 kbps | 96.697 kbps |
 | 128 kbps | 2.62429521 | -0.00144799 | -0.00112116 | 0.19149476 | 0.00412461 | 0.00015253 | 0.01898527 | 128.000 kbps | 128.759 kbps |
-| 192 kbps | 3.24031900 | -0.00125988 | -0.00099658 | 0.07621895 | 0.00274483 | 0.00009330 | 0.00733683 | 192.000 kbps | 192.900 kbps |
-| 256 kbps | 3.86102239 | -0.00131001 | -0.00103296 | 0.04054367 | 0.00162935 | 0.00004583 | 0.00839614 | 256.000 kbps | 256.736 kbps |
+| 192 kbps | 3.23952603 | -0.00125951 | -0.00099771 | 0.07615666 | 0.00288567 | 0.00009794 | 0.00740514 | 192.000 kbps | 192.900 kbps |
+| 256 kbps | 3.86792353 | -0.00131291 | -0.00103501 | 0.04080394 | 0.00163012 | 0.00004581 | 0.00839606 | 256.000 kbps | 256.737 kbps |
 
 ## VOIP quality metrics vs official Opus
 
 | Bitrate | SNR delta | RMS error delta | Mean abs error delta | PESQ-style delta | ViSQOL-style delta | Log-band corr delta | CELT delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16 kbps | 1.98140288 | -0.02778800 | -0.01834826 | 0.12399902 | -0.00018922 | 0.00037966 | 1.81458583 | 15.999 kbps | 16.255 kbps |
-| 24 kbps | 2.33064455 | -0.03204649 | -0.02141904 | 0.14696471 | -0.00364295 | 0.00033932 | 0.37871965 | 24.000 kbps | 24.148 kbps |
-| 32 kbps | 2.33284077 | -0.03205436 | -0.02132153 | 0.14646638 | -0.00404813 | 0.00016685 | 0.39806770 | 32.000 kbps | 32.184 kbps |
-| 48 kbps | 2.36740770 | -0.03244557 | -0.02150119 | 0.14726399 | -0.00699668 | -0.00019736 | 0.08638596 | 48.000 kbps | 48.244 kbps |
-| 64 kbps | 2.23410086 | -0.03037766 | -0.02011114 | 0.14062079 | -0.00944322 | -0.00039371 | 0.03840552 | 63.985 kbps | 64.501 kbps |
-| 96 kbps | 0.02220819 | -0.00027427 | -0.00010089 | 0.00259917 | 0.00557438 | 0.00038484 | 0.05136693 | 96.000 kbps | 96.595 kbps |
-| 128 kbps | 0.01046054 | -0.00012902 | -0.00015468 | 0.00384421 | 0.00030862 | 0.00004519 | 0.03128443 | 128.000 kbps | 128.503 kbps |
-| 192 kbps | 0.01773537 | -0.00021905 | -0.00008234 | 0.00082173 | -0.00033064 | 0.00003737 | -0.00237310 | 192.000 kbps | 192.421 kbps |
-| 256 kbps | 0.00873604 | -0.00010785 | -0.00006606 | 0.00102285 | -0.00023785 | 0.00000547 | 0.00253544 | 256.000 kbps | 256.415 kbps |
+| 16 kbps | 1.99456769 | -0.02799465 | -0.01858069 | 0.12537462 | -0.00000640 | 0.00037893 | 0.98834378 | 15.999 kbps | 16.249 kbps |
+| 24 kbps | 2.31516959 | -0.03180410 | -0.02116497 | 0.14511048 | -0.00506233 | -0.00002024 | 0.43376855 | 24.000 kbps | 24.145 kbps |
+| 32 kbps | 2.32914508 | -0.03199647 | -0.02121509 | 0.14494710 | -0.00392072 | 0.00018517 | 0.42849617 | 32.000 kbps | 32.185 kbps |
+| 48 kbps | 2.37643444 | -0.03258698 | -0.02165509 | 0.14824319 | -0.00705611 | -0.00024839 | 0.38837881 | 48.000 kbps | 48.245 kbps |
+| 64 kbps | 2.23769543 | -0.03043310 | -0.02016006 | 0.14094058 | -0.00893715 | -0.00037943 | 0.03734116 | 63.985 kbps | 64.496 kbps |
+| 96 kbps | 0.01940947 | -0.00023967 | -0.00008174 | 0.00186051 | 0.00503655 | 0.00027446 | 0.05135684 | 96.000 kbps | 96.621 kbps |
+| 128 kbps | 0.01815914 | -0.00022407 | -0.00018310 | 0.00395310 | 0.00075899 | 0.00003798 | 0.03128287 | 128.000 kbps | 128.551 kbps |
+| 192 kbps | 0.00762155 | -0.00009408 | -0.00005372 | 0.00069510 | -0.00043234 | 0.00002727 | -0.00236703 | 192.000 kbps | 192.424 kbps |
+| 256 kbps | 0.00565247 | -0.00006977 | -0.00004906 | 0.00083270 | -0.00034306 | -0.00001526 | 0.00253410 | 256.000 kbps | 256.415 kbps |
 
 ## Detector mode-balance spot check
 
@@ -142,14 +142,14 @@ The speed harness uses nine repetitions, changes bitrate sweep order, and altern
 |---|---:|
 | Encoder mono | -46.6% |
 | Encoder stereo | -33.9% |
-| Decoder mono | -22.4% |
+| Decoder mono | -22.3% |
 | Decoder stereo | -22.2% |
 
 ## Binary size
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---|---:|---:|---:|
-| Host C++23 `-O2` | 336420 B | 0 B | 336420 B |
+| Host C++23 `-O2` | 336740 B | 0 B | 336740 B |
 
 ## Toolchains checked
 

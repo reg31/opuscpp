@@ -2985,6 +2985,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       }
     }
   }
+  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
+    st->mode = opus_mode_celt_only;
+  }
   if (voip_style && st->channels == 1 && st->bitrate_bps <= 16000) {
     const bool noisy_start =
         frame_metrics.energy > .003f && frame_metrics.mono_diff_ratio > .60f && frame_metrics.mono_zero_cross_rate > .27f;
