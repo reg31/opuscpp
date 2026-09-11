@@ -242,5 +242,36 @@ cannot be removed without changing what the metric measures. The encoder-side
 `packet_selection_ready` refactor is safe but has no performance payoff, so it is not shipped
 on its own.
 
+### Research + prototype - masked-NMR metric (fresh idea, validated but not a speed win)
+Surveyed how modern codecs avoid the live decoder: perceptual coders score candidates with the
+**noise-to-mask ratio (NMR = error / masking-threshold)**, and the mask is computed from the
+*input spectrum only* (no decode). FastEnc (HE-AAC v2) does this directly in the MDCT domain
+with fixed conservative assumptions (SMR 29 dB, fixed spreading slopes) and is ~15x faster than
+the classic iterative model. Analysis-by-Synthesis (what opuscpp does) is the known-expensive
+branch. Note the stock Opus CELT encoder does **not** shadow-decode at all - it uses the PVQ
+gain-shape ratio and `l1_metric`; the shadow decode is an opuscpp extra.
+
+Prototype (built, measured, reverted):
+- Added a FastEnc-style masked-NMR scorer: `nmr = SUM_b max(0, err_b/mask_b - 1)`,
+  `mask_b = max(exp2(-depth_b), power_b * exp2(-29dB/6.02))`.
+- **The metric works and is decision-equivalent**: on the tracked signal and all 16 diverse
+  signals the NMR accept produced **bit-identical** `celt_quality` and `celt_masked_error` to
+  the shipped time-MSE accept (`dCq = dCm = 0.000000` everywhere).
+- Full removal prototype (encoder-side `packet_selection_ready` + no per-frame probe + NMR
+  accept): **9-20% slower** (48k 0.80x) and quality fell to search-off at 48k/96k.
+
+**Why it does not win:** the NMR needs the *exact* encoder-side reconstruction, and turning on
+`resynth=1 / process_end=end` on every frame costs about the same as the shadow decode it
+replaces. The metric is right; the reconstruction is now the bottleneck. A truly cheap version
+would need an *analytic* PVQ distortion estimate (gain-shape residual `||x||^2 - <x,y>^2/||y||^2`,
+already computed inside `op_pvq_search`) so no reconstruction/decode is needed at all - but
+that is exactly the quantity the ordinary allocation already optimises, so it is unlikely to
+change any decision.
+
+**Net:** the perceptual-metric direction is sound and validated, but no version so far beats the
+shipped code on speed without regressing quality. Recommend treating WS-A as closed unless a
+genuinely decode-free distortion estimate can be devised.
+
+
 
 
