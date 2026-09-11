@@ -19,8 +19,10 @@ because `celt_quality` went negative.
    rejection was a `celt_quality` artifact. **BUT** mono VOIP still segfaults (`0xC0000005`).
    Net: no quality benefit + a crash → **skip** (not worth root-causing).
 2. **#11 `patch_transient_decision`** (second transient pass). Rejected for AUDIO 16k
-   `celt −0.81` + a mono crash. **Re-run** with the perceptual metrics after fixing the
-   `compute_band_energies`/`amp2Log2` equivalence and the mono fault.
+   `celt −0.81` + a mono crash. **RE-VISITED:** a **real perceptual gain** — `trans_clicks`
+   48k **snr +0.53, pesq +0.04** (tracked neutral). **BLOCKED** by a latent mono crash in
+   `celt_transient_analysis` that *any* code addition exposes (gating to `C==2` does not help).
+   Root-cause the mono stack fault, then re-land.
 3. **#10 `secondMdct`** (long-window `bandLogE2` at `shortBlocks && complexity>=8`). Rejected
    for `celt −1.31 @48k`. **RE-VISITED:** perceptual deltas **unchanged** (24k pesq 0.262,
    48k 0.118, 96k 0.088; transient corpus neutral). Rejection was an artifact, but no
