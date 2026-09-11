@@ -5875,7 +5875,7 @@ struct celt_input_metrics {
       6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4,
       4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3,
       3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
-  std::array<float, celt_max_frame_samples> tmp{};
+  std::array<float, celt_max_frame_samples + celt_default_overlap> tmp{};
   int is_transient = 0;
   opus_int32 mask_metric = 0;
   const int len2 = len / 2;
