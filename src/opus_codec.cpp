@@ -1898,6 +1898,43 @@ static void release_quality_history(CeltEncoderInternal* celt) noexcept {
   }
 }
 
+static int quality_history_enable(OpusEncoder* st, int profile) noexcept {
+  if (st == nullptr || profile < 0 || profile > 3) {
+    return OPUS_BAD_ARG;
+  }
+  auto* celt = encoder_celt_state(st);
+  if (celt->quality_history == nullptr) {
+    auto* storage = std::malloc(sizeof(quality_history_state));
+    if (storage == nullptr) {
+      return OPUS_ALLOC_FAIL;
+    }
+    celt->quality_history = std::construct_at(static_cast<quality_history_state*>(storage));
+    int error = OPUS_OK;
+    celt->quality_history->decoder = opus_decoder_create(st->Fs, celt->channels, &error);
+    if (celt->quality_history->decoder == nullptr || error != OPUS_OK) {
+      release_quality_history(celt);
+      return error == OPUS_OK ? OPUS_ALLOC_FAIL : error;
+    }
+  }
+  celt->quality_history->profile = profile;
+  quality_history_reset(*celt->quality_history, celt->channels, celt->upsample);
+  return OPUS_OK;
+}
+
+static void prepare_quality_history(OpusEncoder* st) noexcept {
+  auto* celt = encoder_celt_state(st);
+  const bool content = (st->channels == 1 && st->application == OPUS_APPLICATION_VOIP) ||
+                       (st->channels == 2 && st->application == OPUS_APPLICATION_AUDIO);
+  if (celt->quality_history == nullptr && st->Fs == 48000 && celt->complexity == 10 && content &&
+      st->use_vbr && st->vbr_constraint && !st->use_dtx && !st->silk_mode.useInBandFEC) {
+    if (quality_history_enable(st, st->channels == 1 ? 2 : 1) == OPUS_OK && st->prev_mode != 0) {
+      auto& history = *celt->quality_history;
+      quality_history_invalidate(history, quality_tracking_status::unsupported_transition);
+      history.packet_prev_mode = st->prev_mode;
+    }
+  }
+}
+
 [[nodiscard]] static auto ensure_encoder_lbrr_state(OpusEncoder* st) noexcept -> bool {
   if (!encoder_uses_silk(st->application)) {
     return true;
@@ -3779,6 +3816,7 @@ static void finish_quality_reference(quality_history_state* history, const Sampl
 
 template <typename Sample>
 static void prepare_encode_input(OpusEncoder* st, const Sample* pcm, int frame_size) {
+  prepare_quality_history(st);
   auto* history = encoder_celt_state(st)->quality_history;
   if (history == nullptr) {
     return;
