@@ -577,7 +577,7 @@ constexpr std::array<unsigned char, 16> bit_interleave_table =
 constexpr std::array<unsigned char, 16> bit_deinterleave_table =
     numeric_blob_array<unsigned char>(R"blob(00030C0F30333C3FC0C3CCCFF0F3FCFF)blob");
 constexpr std::array<hybrid_rate_entry, 7> hybrid_rate_table{
-    {{0, 0}, {12000, 10000}, {16000, 13500}, {20000, 16000}, {24000, 18000}, {32000, 22000}, {40000, 38000}}};
+    {{0, 0}, {12000, 10000}, {16000, 13500}, {20000, 16000}, {24000, 18000}, {32000, 22000}, {64000, 38000}}};
 constexpr std::array<hybrid_rate_entry, 7> hybrid_fec_rate_table{
     {{0, 0}, {12000, 11000}, {16000, 15000}, {20000, 18000}, {24000, 21000}, {32000, 28000}, {64000, 50000}}};
 constexpr std::array<opus_uint16, 10> fec_thresholds{12000, 1000, 14000, 1000, 16000, 1000, 20000, 1000, 22000, 1000};
