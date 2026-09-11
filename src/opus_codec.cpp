@@ -5967,7 +5967,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       enc->nbits_total += tell - ec_tell(enc);
     }
     tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
-    if (!silence && (hybrid || (LM > 0 && st->stereo_policy_celt)) && st->complexity >= 1) {
+    if (!silence && LM > 0 && st->complexity >= 1) {
       isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, hybrid, &weak_transient, tone_frequency,
                                             toneishness);
     }
