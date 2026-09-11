@@ -4804,7 +4804,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   std::array<celt_norm, celt_max_norm_samples> norm_storage;
   norm = norm_storage.data();
   norm2 = norm + norm_size;
-  lowband_scratch = X_ + M * eBands[celt_default_nb_ebands - 1];
+  std::array<celt_norm, celt_max_frame_samples> lowband_scratch_storage;
+  lowband_scratch = lowband_scratch_storage.data();
   std::array<opus_int16, celt_max_band_samples> decode_pulse_scratch_storage;
   auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage.data() : nullptr;
   lowband_offset = 0;
