@@ -2830,17 +2830,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                                                        : st->preprocess_filter_state + 1;
     }
     const bool stable_tonal_segment = st->preprocess_filter_state != preprocess_filter_general_audio;
-    if (st->bitrate_bps == 32000 && !confident_high_z_tonal) {
-      st->mode = opus_mode_celt_only;
-    } else if (segment_selected_bitrate && (st->bitrate_bps >= 56000 || !confident_high_z_tonal) && !stable_tonal_segment) {
+    if (segment_selected_bitrate && (st->bitrate_bps >= 56000 || !confident_high_z_tonal) && !stable_tonal_segment) {
       celt_enc->stereo_policy_celt = stereo_policy_allowed && ((previous_stereo_policy && !previous_unsteady) || (!st->stereo_recovery_frames && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && st->lightweight_harmonic_music_Q7 >= 64 && st->stereo_similarity_ms_Q1 < 160 && celt_enc->stereo_coherence_Q8 < (st->prev_mode == opus_mode_celt_only ? 51 : 25)));
-      if (!celt_enc->stereo_policy_celt) {
-        st->mode = opus_mode_hybrid;
-      }
     }
-  }
-  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2 && st->bitrate_bps >= 48000) {
-    st->mode = opus_mode_celt_only;
   }
   if (voip_style && st->channels == 1 && st->bitrate_bps <= 16000) {
     const bool noisy_start =
