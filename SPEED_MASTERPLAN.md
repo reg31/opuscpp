@@ -297,6 +297,24 @@ Probes run this session:
 dependent, or needs the decode it was meant to replace. The one open direction with real upside
 is the RDO allocator above; everything else is documented as closed.
 
+### Correction - the search is cheap, so the quality-for-speed trade is bad
+The earlier "search = ~50% of encode" (from a temp `#if 0` of `quality_history_enable`) was a
+measurement artifact. Direct measurement on the tracked signal, harness `encode_ms`:
+- interval 12: `current_ms = 22.42`; interval off: `20.58` -> search costs **~1.8 ms (~8%)**,
+  and the official reference itself swung 20.9 -> 23.8 (noise ~3 ms), so it is within a few
+  percent.
+- Benchmark `benchmark_vs_official`: interval 12 -> 24 gives only **~2-3%** encode speedup
+  (48k 0.984 -> 1.006), consistent with the search being ~2-8%.
+
+Quality cost of dropping it (interval 24+ == off in effect): 48k CELT 99.51 -> 98.51 (-1.0),
+96k -0.79; SNR/PESQ essentially unchanged (+1.57 / +3.6, above official).
+
+**Verdict:** ~2-8% encode speed for ~1.0 CELT is not a worthwhile trade, so this is not shipped.
+More importantly it corrects the premise: the search is not where encoder time goes. If speed is
+the goal, the lever is the **base encode** (the other ~92%), not the search. The RDO allocator
+(A) is still the only known direction that changes the decision and can win on both axes.
+
+
 
 
 
