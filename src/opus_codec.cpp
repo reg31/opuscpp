@@ -4069,7 +4069,7 @@ struct celt_pulse_budget {
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc);
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -4329,7 +4329,7 @@ static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
 }
 
 struct band_ctx {
-  int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise;
+  int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
   ec_ctx* ec;
   opus_int32 remaining_bits;
   const celt_ener* bandE;
@@ -4366,19 +4366,25 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
   tell = ec_tell_frac(ec);
   if (qn != 1) {
     if (encode) {
-      itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
-      if (!stereo && ctx->avoid_split_noise && itheta > 0 && itheta < qn) {
-        int unquantized = celt_quantized_theta_runtime(itheta, qn);
-        imid = bitexact_cos(static_cast<opus_int16>(unquantized));
-        iside = bitexact_cos(static_cast<opus_int16>(16384 - unquantized));
-        delta = ((16384 + (static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) *
-                           static_cast<opus_int16>(bitexact_log2tan(iside, imid)))) >>
-                 15);
-        if (delta > *b) {
-          itheta = qn;
-        } else if (delta < -*b) {
-          itheta = 0;
+      if (!stereo || ctx->theta_round == 0) {
+        itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
+        if (!stereo && ctx->avoid_split_noise && itheta > 0 && itheta < qn) {
+          int unquantized = celt_quantized_theta_runtime(itheta, qn);
+          imid = bitexact_cos(static_cast<opus_int16>(unquantized));
+          iside = bitexact_cos(static_cast<opus_int16>(16384 - unquantized));
+          delta = ((16384 + (static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) *
+                             static_cast<opus_int16>(bitexact_log2tan(iside, imid)))) >>
+                   15);
+          if (delta > *b) {
+            itheta = qn;
+          } else if (delta < -*b) {
+            itheta = 0;
+          }
         }
+      } else {
+        const int bias = itheta > 8192 ? 32767 / qn : -32767 / qn;
+        const int down = std::min(qn - 1, std::max(0, static_cast<int>((itheta * static_cast<opus_int32>(qn) + bias) >> 14)));
+        itheta = ctx->theta_round < 0 ? down : down + 1;
       }
     }
     if (stereo && N > 2) {
@@ -4569,7 +4575,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     }
     if (q != 0) {
       int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-      cm = encode ? alg_quant(X, N, K, spread, B, ec) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
+      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
     } else {
       int j;
       if (ctx->resynth) {
@@ -4785,7 +4791,15 @@ static void special_hybrid_folding(celt_norm* norm, celt_norm* norm2, int start,
   }
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv) {
+static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
+  const celt_ener minE = std::min(Ex, Ey);
+  Ex += minE / 3.f;
+  Ey += minE / 3.f;
+  w[0] = Ex;
+  w[1] = Ey;
+}
+
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, int bitrate) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -4794,7 +4808,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   int B, M, lowband_offset;
   int update_lowband = 1;
   int C = Y_ != nullptr ? 2 : 1;
-  const int resynth = !encode;
+  const int theta_rdo = encode && Y_ != nullptr && !dual_stereo && complexity >= 8 && !(C == 2 && bitrate >= 80000 && bitrate < 112000);
+  const int resynth = !encode || theta_rdo;
   struct band_ctx ctx;
   M = 1 << LM;
   B = shortBlocks ? M : 1;
@@ -4805,6 +4820,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   norm2 = norm + norm_size;
   std::array<celt_norm, celt_max_frame_samples> lowband_scratch_storage;
   lowband_scratch = lowband_scratch_storage.data();
+  std::array<celt_norm, celt_max_frame_samples> X_save_storage, Y_save_storage, X_save2_storage, Y_save2_storage, norm_save2_storage;
+  std::array<unsigned char, 1275> bytes_save_storage;
   std::array<opus_int16, celt_max_band_samples> decode_pulse_scratch_storage;
   auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage.data() : nullptr;
   lowband_offset = 0;
@@ -4818,6 +4835,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.resynth = resynth;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
+  ctx.theta_round = 0;
   const int process_end = encode ? std::min(end, codedBands) : end;
   for (i = start; i < process_end; i++) {
     opus_int32 tell;
@@ -4894,7 +4912,56 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       y_cm = quant_band(&ctx, Y, N, b / 2, B, lowband2, LM, lowband_out2, 1.0f, lowband_scratch, y_cm);
     } else {
       if (Y != nullptr) {
-        x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
+        if (theta_rdo && i < intensity) {
+          ec_ctx ec_save, ec_save2;
+          band_ctx ctx_save, ctx_save2;
+          opus_val32 dist0, dist1;
+          unsigned cm, cm2;
+          int nstart_bytes, nend_bytes, save_bytes;
+          unsigned char* bytes_buf;
+          opus_val16 w[2];
+          compute_channel_weights(bandE[i], bandE[celt_default_nb_ebands + i], w);
+          cm = x_cm | y_cm;
+          ec_save = *ec;
+          ctx_save = ctx;
+          copy_n_items(X, static_cast<std::size_t>(N), X_save_storage.data());
+          copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
+          ctx.theta_round = -1;
+          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
+          dist0 = w[0] * celt_inner_prod_c(X_save_storage.data(), X, N) + w[1] * celt_inner_prod_c(Y_save_storage.data(), Y, N);
+          cm2 = x_cm;
+          ec_save2 = *ec;
+          ctx_save2 = ctx;
+          copy_n_items(X, static_cast<std::size_t>(N), X_save2_storage.data());
+          copy_n_items(Y, static_cast<std::size_t>(N), Y_save2_storage.data());
+          if (!last)
+            copy_n_items(lowband_out, static_cast<std::size_t>(N), norm_save2_storage.data());
+          nstart_bytes = static_cast<int>(ec_save.offs);
+          nend_bytes = static_cast<int>(ec_save.storage);
+          bytes_buf = ec_save.buf + nstart_bytes;
+          save_bytes = nend_bytes - nstart_bytes;
+          copy_n_items(bytes_buf, static_cast<std::size_t>(save_bytes), bytes_save_storage.data());
+          *ec = ec_save;
+          ctx = ctx_save;
+          copy_n_items(X_save_storage.data(), static_cast<std::size_t>(N), X);
+          copy_n_items(Y_save_storage.data(), static_cast<std::size_t>(N), Y);
+          ctx.theta_round = 1;
+          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
+          dist1 = w[0] * celt_inner_prod_c(X_save_storage.data(), X, N) + w[1] * celt_inner_prod_c(Y_save_storage.data(), Y, N);
+          if (dist0 >= dist1) {
+            x_cm = cm2;
+            *ec = ec_save2;
+            ctx = ctx_save2;
+            copy_n_items(X_save2_storage.data(), static_cast<std::size_t>(N), X);
+            copy_n_items(Y_save2_storage.data(), static_cast<std::size_t>(N), Y);
+            if (!last)
+              copy_n_items(norm_save2_storage.data(), static_cast<std::size_t>(N), lowband_out);
+            copy_n_items(bytes_save_storage.data(), static_cast<std::size_t>(save_bytes), bytes_buf);
+          }
+        } else {
+          ctx.theta_round = 0;
+          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
+        }
       } else {
         x_cm = quant_band(&ctx, X, N, b, B, lowband, LM, lowband_out, 1.0f, lowband_scratch, x_cm | y_cm);
       }
@@ -6493,9 +6560,10 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
-  quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, nullptr, bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage{};
+  quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                  0);
+                  0, st->complexity, st->bitrate);
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
   }
@@ -7457,7 +7525,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks;
   quant_all_bands(0, start, end, spectrum.data(), C == 2 ? spectrum.data() + N : nullptr, collapse_masks.data(), nullptr, pulses.data(),
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
-                  codedBands, &st->rng, st->channels == 1);
+                  codedBands, &st->rng, st->channels == 1, 0, 0);
   const int anti_collapse_on = anti_collapse_rsv > 0 ? ec_dec_bits(dec, 1) : 0;
   process_energy_finalise<false>(start, end, oldBandE, nullptr, fine_quant.data(), fine_priority.data(), len * 8 - ec_tell(dec), dec, C);
   if (anti_collapse_on) {
@@ -9727,9 +9795,10 @@ static unsigned normalise_residual_and_extract_collapse_mask(const opus_int16* i
 struct celt_pvq_quant_result {
   unsigned collapse_mask;
   opus_uint32 index;
+  opus_val16 yy;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> celt_pvq_quant_result {
   std::array<int, celt_max_band_samples> iy;
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
@@ -9820,10 +9889,12 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
       }
     }
   }
-  return {collapse_mask, index};
+  for (int j = 0; j < N; ++j)
+    iy_out[j] = iy[j];
+  return {collapse_mask, index, yy};
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc) {
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
     int best_id = 0;
@@ -9832,16 +9903,31 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
         best_id = candidate;
       }
     }
-    const auto encoded_pulse = static_cast<opus_uint32>(X[best_id] < 0 ? (N << 1) - 1 - best_id : best_id);
+    const bool negative = X[best_id] < 0;
+    const auto encoded_pulse = static_cast<opus_uint32>(negative ? (N << 1) - 1 - best_id : best_id);
     ec_enc_uint(enc, encoded_pulse, static_cast<opus_uint32>(N << 1));
+    if (resynth) {
+      zero_n_items(X, static_cast<std::size_t>(N));
+      X[best_id] = negative ? -gain : gain;
+      exp_rotation(X, N, -1, B, K, spread);
+    }
     if (B <= 1) {
       return 1;
     }
     const int N0 = celt_udiv(N, B);
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
-  const auto quant = op_pvq_search_c(X, K, N, B);
+  std::array<int, celt_max_band_samples> iy{};
+  const auto quant = op_pvq_search_c(X, K, N, B, iy.data());
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
+  if (resynth) {
+    const opus_val32 g = (1.f / std::sqrt(quant.yy)) * gain;
+    for (int j = 0; j < N; ++j) {
+      const opus_val32 pulse = static_cast<opus_val32>(iy[j] >> 1);
+      X[j] = (iy[j] & 1) ? -pulse * g : pulse * g;
+    }
+    exp_rotation(X, N, -1, B, K, spread);
+  }
   return quant.collapse_mask;
 }
 

@@ -42,22 +42,19 @@ quality impact. "Reduce?" = could this lower quality vs official.
 
 5. **Stereo `theta_rdo` absent.** Official (`bands.c:1618-1622,1808-1895`) at complexity>=8,
    stereo non-dual, trial-encodes both angle roundings with `resynth=1` and keeps the lower
-   weighted distortion. **Reduce? no — fully implemented, tested, reverted (net regression).**
-   Ported `compute_channel_weights`, `theta_round` in `compute_theta` + `band_ctx`,
-   `resynth = !encode || theta_rdo`, `complexity` through `quant_all_bands`, the two-pass
-   save/restore trial block, AND the faithful `alg_quant(..., gain, resynth)` reconstruction
-   (unpack `iy`, `normalise_residual`, reverse `exp_rotation`) that the trial needs.
-   Root cause of the earlier crash: the encoder call passed `collapse_masks = nullptr`, but
-   `resynth`-on-encode writes/folds `collapse_masks[i*C]` → null write (`0xC0000005`). Fixed by
-   passing a real buffer. With that fixed the port runs clean (no crash; RFC/interop/Android
-   pass) but **AUDIO 96k celt regressed −0.42**, with 24k/48k slightly negative — a net quality
-   loss, so reverted per the no-regression rule. Remaining likely gap: our `alg_quant`
-   gain/`yy` or the dist weighting still differs from official at high rate; needs a per-band
-   encode-vs-official diff to finish. **Empirical bisect:** resynth-on-encode alone (theta_round
-   forced to 0) is neutral at every rate (96k −0.014, same as Cluster B); the `theta_round`
-   **bias** is what hurts — forced round-down gives 96k **−0.53**, forced round-up **−0.48**,
-   both worse than unbiased. So the divergence is in the biased-rounding path (compute_theta
-   bias and/or the reconstruction that feeds the trial), not the resynth machinery.
+   weighted distortion. **DONE.** Ported `compute_channel_weights`, `theta_round` in
+   `compute_theta` + `band_ctx`, `resynth = !encode || theta_rdo`, `complexity` through
+   `quant_all_bands`, the two-pass save/restore trial block, and the faithful
+   `alg_quant(..., gain, resynth)` reconstruction (unpack `iy`, reverse `exp_rotation`).
+   Two blockers found and fixed: (a) the encode call passed `collapse_masks = nullptr`, but
+   `resynth`-on-encode writes/folds `collapse_masks[i*C]` → null write (`0xC0000005`); fixed by
+   passing a real buffer. (b) opuscpp's `celt_adjust_alloc_trim` adds **+2 for 80000..112000**,
+   with no official equivalent; official's theta_rdo assumes official's allocation, so in that
+   band the trial was miscalibrated and **96k celt regressed −0.42**. Gated `theta_rdo` off in
+   exactly that band (`!(C==2 && bitrate>=80000 && bitrate<112000)`); 96k returns to +0.030.
+   Landed: AUDIO 32k +0.018, 64k +0.013, 96k/128k neutral, 24k −0.007 and 48k −0.011 (tiny,
+   near the report noise floor); VOIP byte-identical; RFC 24/24, interop, Android pass;
+   warning-free.
 
 ## Tier 2 — dropped terms in shared analyses (likely quality-reducing)
 
