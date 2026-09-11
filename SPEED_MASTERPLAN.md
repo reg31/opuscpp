@@ -412,3 +412,22 @@ of the report signal - so the conclusion was over-generalised.
 **Decision: the search removal (8cd269) was reverted (1f6b1c7).** The 1.8x speed is real but
 not worth dropping 32k-128k AUDIO below official. The search stays. Net shipped work remains the
 bit-exact D+C speedup (5885387) and the earlier throttle/scratch fixes ( f3e774).
+
+
+### Correction 4 - "learn the rule" also fails; the search cannot be replaced statically
+Instrumented the search (OPUSCPP_RULE) on the report signal + the 16-signal 60 s corpus: 123
+eligible frames, 40 challenger-wins (~33%). Then tried to predict the winner from decode-free
+features:
+- **Static features** (bitrate, intensity, lastCodedBands): best thresholded rule = 0.675 accuracy,
+  i.e. identical to always-reject. The features don't carry the decision.
+- **Decode-derived score[2]** (leaky band-energy trajectory guard) ratio: predicts at **0.886** -
+  but it needs the decode we are trying to remove.
+
+Meaning: the search's accept/reject needs information only the shadow decode produces. There is
+no static-feature rule, no allocation/refresh setting, and no decode-free metric (spectral, NMR)
+that reproduces it - every avenue is now closed with direct measurement.
+
+**Final: the per-frame search is the only mechanism that yields its quality; it stays.** 1.8x
+speed and search-on quality are mutually exclusive given the current architecture. Shipped work
+remains 5885387 (D+C bit-exact speedup) and  f3e774 (throttle + PVQ scratch). The tree is at
+dd12d79 (search restored, all gates green).
