@@ -5921,6 +5921,8 @@ struct celt_analysis_checkpoint {
   bool valid = false;
 };
 
+static int rdo_alloc_trim(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int fallback);
+
 static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr, std::span<const unsigned char> baseline_packet = {}, const std::array<double, 7>* baseline_score = nullptr, celt_analysis_checkpoint* analysis = nullptr, bool resume_analysis = false) {
   const bool quality_main_packet = enc != nullptr;
   if (quality_work != nullptr) {
@@ -6219,6 +6221,10 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
     if (!hybrid && C == 2) {
       alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
+    }
+    if (!hybrid && std::getenv("OPUSCPP_RDOTRIM") != nullptr) {
+      const opus_int32 rdo_bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
+      alloc_trim = rdo_alloc_trim(bandLogE, offsets.data(), cap.data(), start, end, LM, C, rdo_bits, alloc_trim);
     }
     ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
     tell = ec_tell_frac(enc);
@@ -9245,8 +9251,92 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
   return codedBands;
 }
 
-static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
-  total = std::max(total, 0);
+static void allocation_prototype_bits(const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total_in, int alloc_trim, int* bits1_out) {
+  constexpr int len = celt_default_nb_ebands;
+  opus_int32 total = std::max(total_in, 0);
+  const int skip_rsv = total >= 1 << 3 ? 1 << 3 : 0;
+  total -= skip_rsv;
+  if (C == 2) {
+    const int intensity_rsv = LOG2_FRAC_TABLE[end - start];
+    if (intensity_rsv <= total) {
+      total -= intensity_rsv;
+      const int dual_stereo_rsv = total >= 1 << 3 ? 1 << 3 : 0;
+      total -= dual_stereo_rsv;
+    }
+  }
+  std::array<int, celt_default_nb_ebands> thresh{};
+  std::array<int, celt_default_nb_ebands> trim_offset{};
+  for (int band = start; band < end; ++band) {
+    const int band_width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
+    const int channel_min_bits = C << 3;
+    thresh[band] = std::max(channel_min_bits, ((3 * band_width) << LM << 3) >> 4);
+    trim_offset[band] = C * band_width * (alloc_trim - 5 - LM) * (end - band - 1) * (1 << (LM + 3)) >> 6;
+    if ((band_width << LM) == 1)
+      trim_offset[band] -= channel_min_bits;
+  }
+  const auto vector_bits = [&](int vector, int band, bool add_offset) {
+    const int width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
+    int value = C * width * celt_mode()->allocVectors[vector * len + band] << LM >> 2;
+    if (value > 0)
+      value = std::max(0, value + trim_offset[band]);
+    return value + (add_offset ? offsets[band] : 0);
+  };
+  int lo = 1;
+  int hi = celt_allocation_vector_count - 1;
+  for (; lo <= hi;) {
+    bool done = false;
+    int psum = 0;
+    const int mid = (lo + hi) >> 1;
+    for (int band = end; band-- > start;) {
+      const int value = vector_bits(mid, band, true);
+      if (value >= thresh[band] || done) {
+        done = true;
+        psum += std::min(value, cap[band]);
+      } else if (value >= C << 3) {
+        psum += C << 3;
+      }
+    }
+    if (psum > total)
+      hi = mid - 1;
+    else
+      lo = mid + 1;
+  }
+  hi = lo--;
+  for (int band = start; band < end; ++band)
+    bits1_out[band] = vector_bits(lo, band, lo > 0);
+}
+
+static double estimate_trim_distortion(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int alloc_trim) {
+  const auto* eBands = celt_mode()->eBands;
+  std::array<int, celt_default_nb_ebands> bits1{};
+  allocation_prototype_bits(offsets, cap, start, end, LM, C, total, alloc_trim, bits1.data());
+  double distortion = 0.0;
+  for (int c = 0; c < C; ++c) {
+    for (int b = start; b < end; ++b) {
+      const int width_full = (eBands[b + 1] - eBands[b]) << LM;
+      const double depth = std::max(0.0, static_cast<double>(bandLogE[c * celt_default_nb_ebands + b]) - static_cast<double>(celt_noise_floor_base[b]));
+      const double weight = 1.0 - std::exp2(-depth);
+      const double bits_per_coeff = static_cast<double>(bits1[b]) / std::max(1, C * width_full);
+      distortion += weight * std::exp2(-bits_per_coeff);
+    }
+  }
+  return distortion;
+}
+
+static int rdo_alloc_trim(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int fallback) {
+  int best = fallback;
+  double best_distortion = estimate_trim_distortion(bandLogE, offsets, cap, start, end, LM, C, total, fallback);
+  for (int t = 0; t <= 10; ++t) {
+    const double distortion = estimate_trim_distortion(bandLogE, offsets, cap, start, end, LM, C, total, t);
+    if (distortion < best_distortion) {
+      best_distortion = distortion;
+      best = t;
+    }
+  }
+  return best;
+}
+
+static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {  total = std::max(total, 0);
   constexpr int len = celt_default_nb_ebands;
   int skip_start = start;
   const int skip_rsv = total >= 1 << 3 ? 1 << 3 : 0;
