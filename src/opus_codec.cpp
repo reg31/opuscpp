@@ -4135,8 +4135,7 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
       auto* band = X + channel_offset + band_begin;
       const opus_val32 sum = 1e-27f + celt_inner_prod_c(band, band, band_width);
       bandE[i + energy_offset] = std::sqrt(sum);
-      bandLogE[i + energy_offset] =
-          static_cast<float>(1.442695040888963387 * std::log(static_cast<double>(bandE[i + energy_offset]))) - eMeans[i];
+      bandLogE[i + energy_offset] = std::log2(bandE[i + energy_offset]) - eMeans[i];
       if (i < analysis_prefix || i >= start) {
         const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
         for (int j = 0; j < band_width; ++j) {
@@ -5925,7 +5924,14 @@ struct celt_analysis_checkpoint {
 static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, bool challenger, int fixed_budget = 0, const CeltEncoderInternal* budget_state = nullptr, quality_frame_work* quality_work = nullptr, const ec_enc* quality_checkpoint = nullptr, std::span<const unsigned char> baseline_packet = {}, const std::array<double, 7>* baseline_score = nullptr, celt_analysis_checkpoint* analysis = nullptr, bool resume_analysis = false) {
   const bool quality_main_packet = enc != nullptr;
   if (quality_work != nullptr) {
-    *quality_work = {};
+    quality_work->active = false;
+    quality_work->analysis_ready = false;
+    quality_work->decoded_ready = false;
+    quality_work->samples = 0;
+    quality_work->channels = 0;
+    quality_work->score = {};
+    quality_work->reference_bands = {};
+    quality_work->decoded_bands = {};
   }
   if (resume_analysis) {
     if (analysis == nullptr || !analysis->valid || enc == nullptr)
@@ -9450,21 +9456,24 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B) -> celt_pvq_quant
     iy[0] += 2 * pulsesLeft;
     pulsesLeft = 0;
   }
+  std::array<opus_val32, celt_max_band_samples> candidate_num_storage;
+  std::array<opus_val32, celt_max_band_samples> candidate_den_storage;
   for (int i = 0; i < pulsesLeft; ++i) {
     int best_id = 0;
     yy += 1;
-    opus_val16 Rxy = xy + X[0];
-    opus_val16 Ryy = yy + y[0];
-    Rxy *= Rxy;
-    opus_val16 best_den = Ryy;
-    opus_val32 best_num = Rxy;
+    for (int candidate = 0; candidate < N; ++candidate) {
+      const opus_val32 rxy = xy + X[candidate];
+      candidate_num_storage[candidate] = rxy * rxy;
+      candidate_den_storage[candidate] = yy + y[candidate];
+    }
+    opus_val32 best_num = candidate_num_storage[0];
+    opus_val32 best_den = candidate_den_storage[0];
     for (int candidate = 1; candidate < N; ++candidate) {
-      Rxy = xy + X[candidate];
-      Ryy = yy + y[candidate];
-      Rxy *= Rxy;
-      if (static_cast<opus_val32>(best_den) * static_cast<opus_val32>(Rxy) > static_cast<opus_val32>(Ryy) * best_num) {
-        best_den = Ryy;
-        best_num = Rxy;
+      const opus_val32 num = candidate_num_storage[candidate];
+      const opus_val32 den = candidate_den_storage[candidate];
+      if (best_den * num > den * best_num) {
+        best_den = den;
+        best_num = num;
         best_id = candidate;
       }
     }
