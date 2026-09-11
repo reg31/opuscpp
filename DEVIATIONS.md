@@ -42,8 +42,13 @@ quality impact. "Reduce?" = could this lower quality vs official.
 
 5. **Stereo `theta_rdo` absent.** Official (`bands.c:1618-1622,1808-1895`) at complexity>=8,
    stereo non-dual, trial-encodes both angle roundings with `resynth=1` and keeps the lower
-   weighted distortion. Ours (`4788-4912`) always `theta_round=0`, never resynthesizes during
-   encode. **Reduce? yes (stereo).**
+   weighted distortion. **Reduce? no — ATTEMPTED, reverted (crashes).** Ported
+   `compute_channel_weights`, the `theta_round` field + bias logic in `compute_theta`,
+   `resynth = !encode || theta_rdo`, and the full save/restore trial block (ec/ctx/X/Y +
+   `norm_save2`/`bytes_save`). Result: mono + VOIP fine, but stereo AUDIO crashes
+   (`0xC0000005`) inside the encode-time resynthesis — the `resynth` path
+   (`stereo_merge`/`negate_n`/`lowband_out` writes) runs on encode for the first time and
+   something there is unsafe. Needs a debugger/sanitizer pass. Reverted.
 
 ## Tier 2 — dropped terms in shared analyses (likely quality-reducing)
 
