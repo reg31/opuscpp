@@ -5640,7 +5640,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   return pf_on;
 }
 
-static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate, int lastCodedBands, int C, int intensity, int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr, bool content_vbr) {
+static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate, int lastCodedBands, int C, int intensity, int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr, bool content_vbr, opus_val16 tf_estimate) {
   const int nbEBands = celt_default_nb_ebands;
   const opus_int16* eBands = celt_mode()->eBands;
   const int coded_bands = lastCodedBands ? lastCodedBands : nbEBands;
@@ -5658,7 +5658,7 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
     target -= static_cast<opus_int32>(std::min(saving, max_frac * target));
   }
   target += tot_boost - (19 << LM);
-  target += static_cast<opus_int32>(-.044f * target);
+  target += static_cast<opus_int32>((tf_estimate - .044f) * target);
   {
     const int bins = eBands[nbEBands - 2] << LM;
     opus_int32 floor_depth = static_cast<opus_int32>((C * bins << 3) * maxDepth);
@@ -5668,10 +5668,12 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
   if (constrained_vbr) {
     target = base_target + static_cast<opus_int32>((.67f + .07f * content_vbr) * (target - base_target));
   }
-  const auto rate_margin = std::clamp<opus_int32>(96000 - bitrate, 0, 32000);
-  const opus_val16 amount = .0000031f * rate_margin;
-  const opus_val16 tvbr_factor = temporal_vbr * amount;
-  target += static_cast<opus_int32>(tvbr_factor * target);
+  if (tf_estimate < .2f) {
+    const auto rate_margin = std::clamp<opus_int32>(96000 - bitrate, 0, 32000);
+    const opus_val16 amount = .0000031f * rate_margin;
+    const opus_val16 tvbr_factor = temporal_vbr * amount;
+    target += static_cast<opus_int32>(tvbr_factor * target);
+  }
   target = std::min(2 * base_target, target);
   return target;
 }
@@ -6320,7 +6322,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     }
     opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset)
                                : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
-                                             st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr);
+                                             st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
     if (!hybrid) {
       if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
         target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
