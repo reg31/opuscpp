@@ -53,7 +53,11 @@ quality impact. "Reduce?" = could this lower quality vs official.
    pass) but **AUDIO 96k celt regressed −0.42**, with 24k/48k slightly negative — a net quality
    loss, so reverted per the no-regression rule. Remaining likely gap: our `alg_quant`
    gain/`yy` or the dist weighting still differs from official at high rate; needs a per-band
-   encode-vs-official diff to finish.
+   encode-vs-official diff to finish. **Empirical bisect:** resynth-on-encode alone (theta_round
+   forced to 0) is neutral at every rate (96k −0.014, same as Cluster B); the `theta_round`
+   **bias** is what hurts — forced round-down gives 96k **−0.53**, forced round-up **−0.48**,
+   both worse than unbiased. So the divergence is in the biased-rounding path (compute_theta
+   bias and/or the reconstruction that feeds the trial), not the resynth machinery.
 
 ## Tier 2 — dropped terms in shared analyses (likely quality-reducing)
 
