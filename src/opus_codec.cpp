@@ -5132,10 +5132,113 @@ static void compute_mdcts(int shortBlocks, celt_sig* in, celt_sig* out, int C, i
   }
 }
 
-template <bool Encode> static inline void process_tf_changes(int start, int end, int isTransient, int* tf_res, int LM, ec_ctx* coder) {
+static opus_val32 l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias) {
+  opus_val32 L1 = 0;
+  for (int i = 0; i < N; i++)
+    L1 += std::fabs(tmp[i]);
+  L1 += LM * bias * L1;
+  return L1;
+}
+
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance) {
+  const auto* eBands = celt_mode()->eBands;
+  const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
+  std::array<int, celt_default_nb_ebands> metric{};
+  std::array<int, celt_default_nb_ebands> path0{}, path1{};
+  std::array<celt_norm, celt_max_frame_samples> tmp{}, tmp_1{};
+  int selcost[2];
+  int tf_select = 0;
+  for (int i = 0; i < len; i++) {
+    int k, N;
+    int narrow;
+    opus_val32 L1, best_L1;
+    int best_level = 0;
+    N = (eBands[i + 1] - eBands[i]) << LM;
+    narrow = (eBands[i + 1] - eBands[i]) == 1;
+    if (N <= 0)
+      continue;
+    copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
+    L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias);
+    best_L1 = L1;
+    if (isTransient && !narrow) {
+      copy_n_items(tmp.data(), static_cast<std::size_t>(N), tmp_1.data());
+      haar1(tmp_1.data(), N >> LM, 1 << LM);
+      L1 = l1_metric(tmp_1.data(), N, LM + 1, bias);
+      if (L1 < best_L1) {
+        best_L1 = L1;
+        best_level = -1;
+      }
+    }
+    for (k = 0; k < LM + !(isTransient || narrow); k++) {
+      const int B = isTransient ? (LM - k - 1) : k + 1;
+      haar1(tmp.data(), N >> k, 1 << k);
+      L1 = l1_metric(tmp.data(), N, B, bias);
+      if (L1 < best_L1) {
+        best_L1 = L1;
+        best_level = k + 1;
+      }
+    }
+    if (isTransient)
+      metric[i] = 2 * best_level;
+    else
+      metric[i] = -2 * best_level;
+    if (narrow && (metric[i] == 0 || metric[i] == -2 * LM))
+      metric[i] -= 1;
+  }
+  int cost0, cost1;
+  for (int sel = 0; sel < 2; sel++) {
+    cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
+    cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]) + (isTransient ? 0 : lambda);
+    for (int i = 1; i < len; i++) {
+      const int curr0 = std::min(cost0, cost1 + lambda);
+      const int curr1 = std::min(cost0 + lambda, cost1);
+      cost0 = curr0 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
+      cost1 = curr1 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]);
+    }
+    cost0 = std::min(cost0, cost1);
+    selcost[sel] = cost0;
+  }
+  if (selcost[1] < selcost[0] && isTransient)
+    tf_select = 1;
+  cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 0]);
+  cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 1]) + (isTransient ? 0 : lambda);
+  for (int i = 1; i < len; i++) {
+    int curr0, curr1, from0, from1;
+    from0 = cost0;
+    from1 = cost1 + lambda;
+    if (from0 < from1) {
+      curr0 = from0;
+      path0[i] = 0;
+    } else {
+      curr0 = from1;
+      path0[i] = 1;
+    }
+    from0 = cost0 + lambda;
+    from1 = cost1;
+    if (from0 < from1) {
+      curr1 = from0;
+      path1[i] = 0;
+    } else {
+      curr1 = from1;
+      path1[i] = 1;
+    }
+    cost0 = curr0 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 0]);
+    cost1 = curr1 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 1]);
+  }
+  tf_res[len - 1] = cost0 < cost1 ? 0 : 1;
+  for (int i = len - 2; i >= 0; i--) {
+    if (tf_res[i + 1] == 1)
+      tf_res[i] = path1[i + 1];
+    else
+      tf_res[i] = path0[i + 1];
+  }
+  return tf_select;
+}
+
+template <bool Encode> static inline void process_tf_changes(int start, int end, int isTransient, int* tf_res, int LM, int tf_select, ec_ctx* coder) {
   opus_uint32 budget = coder->storage * 8;
   opus_uint32 tell = ec_tell(coder);
-  int curr = 0, tf_changed = 0, tf_select = 0;
+  int curr = 0, tf_changed = 0;
   int logp = isTransient ? 2 : 4;
   const int tf_select_rsv = LM > 0 && tell + logp + 1 <= budget;
   budget -= tf_select_rsv;
@@ -5308,7 +5411,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
   follower[1] += (.5f) * low_rate_lf_boost;
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val16 tone_freq, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val16 tone_freq, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0, int* importance = nullptr) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -5329,6 +5432,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
     }
   }
+  if (importance != nullptr)
+    std::fill_n(importance, end, 13);
   if (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement) {
     int last = 0;
     for (c = 0; c < C; ++c) {
@@ -5375,6 +5480,10 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       for (i = start; i < end; i++) {
         follower[i] = std::max(0.f, bandLogE[i] - follower[i]);
       }
+    }
+    if (importance != nullptr) {
+      for (i = start; i < end; ++i)
+        importance[i] = static_cast<int>(std::floor(.5f + 13.f * std::exp2(std::min(follower[i], 4.f))));
     }
     const bool constrained_steady = (!st->vbr || st->constrained_vbr) && !isTransient;
     for (i = start; i < end; i++) {
@@ -6037,6 +6146,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   celt_prefilter_result prefilter{};
   int silence = 0, isTransient = 0, transient_enabled = 0, transient_got_disabled = 0, shortBlocks = 0;
   opus_val16 tf_estimate = 0;
+  int tf_chan = 0;
+  bool weak_transient = false;
   bool protect_release = false;
   bool input_release = false;
   ec_enc local_encoder;
@@ -6051,6 +6162,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   auto* quality_history = st->quality_history;
   std::array<std::array<int, celt_default_nb_ebands>, 6> band_workspace;
   auto& [offsets, tf_res, cap, fine_quant, pulses, fine_priority] = band_workspace;
+  std::array<int, celt_default_nb_ebands> importance{};
 
   if (resume_analysis) {
     if (analysis->frame_size != frame_size || analysis->start != start || analysis->end != end || analysis->C != C ||
@@ -6136,8 +6248,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       enc->nbits_total += tell - ec_tell(enc);
     }
     tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
-    bool weak_transient = false;
-    int tf_chan = 0;
     if (!silence && (hybrid || (LM > 0 && st->stereo_policy_celt)) && st->complexity >= 1) {
       isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, hybrid, &weak_transient, tone_frequency,
                                             toneishness);
@@ -6171,7 +6281,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, tone_frequency, toneishness, true, freq, N);
+                                  &tot_boost, tone_frequency, toneishness, true, freq, N, importance.data());
     if (analysis != nullptr && !challenger && !release_intervention) {
       analysis->image.state = *st;
       analysis->state_samples = celt_encoder_storage_count(st->channels);
@@ -6236,7 +6346,14 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     quality_work->active = false;
     return fixed_budget;
   }
-  std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients || protect_release) && isTransient)) ? 1 : 0);
+  const bool enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
+  int tf_select = 0;
+  if (enable_tf_analysis) {
+    const int lambda = std::max(80, 20480 / effectiveBytes + 2);
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data());
+  } else {
+    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients || protect_release) && isTransient)) ? 1 : 0);
+  }
   auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
   if (st->bitrate < celt_energy_feedback_bypass_min_bps || st->bitrate >= celt_energy_feedback_bypass_max_bps) {
@@ -6250,7 +6367,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   st->pending_energy_refresh = false;
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled || (refresh && challenger),
                       &st->delayedIntra, st->complexity >= 4, 0);
-  process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, enc);
+  process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
@@ -7319,7 +7436,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   unquant_coarse_energy(start, end, oldBandE, intra_ener, dec, C, LM);
   std::array<std::array<int, celt_default_nb_ebands>, 6> band_workspace;
   auto& [tf_res, cap, offsets, fine_quant, pulses, fine_priority] = band_workspace;
-  process_tf_changes<false>(start, end, isTransient, tf_res.data(), LM, dec);
+  process_tf_changes<false>(start, end, isTransient, tf_res.data(), LM, 0, dec);
   tell = ec_tell(dec);
   const int spread_decision = tell + 4 <= total_bits ? ec_dec_icdf(dec, spread_icdf.data(), 5) : 2;
   init_caps(cap, LM, C);
