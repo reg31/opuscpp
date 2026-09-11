@@ -5167,7 +5167,7 @@ template <bool Encode> static inline void process_tf_changes(int start, int end,
   }
 }
 
-static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandLogE, int end, int LM, int C, int N0, opus_val16* stereo_saving, int intensity, opus_int32 equiv_rate) {
+static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandLogE, int end, int LM, int C, int N0, opus_val16* stereo_saving, int intensity, opus_int32 equiv_rate, opus_val16 tf_estimate) {
   int i;
   opus_val32 diff = 0;
   int c, trim_index;
@@ -5213,6 +5213,7 @@ static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandL
   diff /= C * (end - 1);
   const opus_val16 trim_adjust = (diff + (1.f)) / 6;
   trim -= std::max(-(2.f), std::min(2.f, trim_adjust));
+  trim -= 2.f * tf_estimate;
   if (equiv_rate >= 64000) {
     trim += (1.f);
   }
@@ -5681,8 +5682,76 @@ struct celt_input_metrics {
   bool release{};
 };
 
-[[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {
-  for (int channel = 0; channel < channels; ++channel) {
+[[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
+                                                 bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
+  static const unsigned char inv_table[128] = {
+      255, 255, 156, 110, 86,  70,  59,  51,  45,  40,  37,  33,  31,  28,  26,  25,  23,  22,  21,  20,  19,  18,
+      17,  16,  16,  15,  15,  14,  13,  13,  12,  12,  12,  12,  11,  11,  11,  10,  10,  10,  9,   9,   9,   9,
+      9,   9,   8,   8,   8,   8,   8,   7,   7,   7,   7,   7,   7,   6,   6,   6,   6,   6,   6,   6,   6,   6,
+      6,   6,   6,   6,   6,   6,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   4,   4,   4,   4,   4,
+      4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   3,   3,   3,
+      3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   2};
+  std::array<float, celt_max_frame_samples> tmp{};
+  int is_transient = 0;
+  opus_int32 mask_metric = 0;
+  const int len2 = len / 2;
+  const float forward_decay = allow_weak_transients ? .03125f : .0625f;
+  *weak_transient = false;
+  for (int c = 0; c < C; ++c) {
+    opus_val32 mem0 = 0, mem1 = 0;
+    for (int i = 0; i < len; ++i) {
+      const opus_val32 x = in[i + c * len];
+      const opus_val32 y = mem0 + x;
+      const float mem00 = mem0;
+      mem0 = mem0 - x + .5f * mem1;
+      mem1 = x - mem00;
+      tmp[i] = y * .25f;
+    }
+    for (int i = 0; i < 12; ++i)
+      tmp[i] = 0;
+    opus_val32 mean = 0;
+    mem0 = 0;
+    for (int i = 0; i < len2; ++i) {
+      const opus_val32 x2 = (tmp[2 * i] * tmp[2 * i] + tmp[2 * i + 1] * tmp[2 * i + 1]) * .0625f;
+      mean += x2 * (1.f / 4096.f);
+      mem0 = x2 + (1.f - forward_decay) * mem0;
+      tmp[i] = forward_decay * mem0;
+    }
+    mem0 = 0;
+    float maxE = 0;
+    for (int i = len2 - 1; i >= 0; --i) {
+      mem0 = tmp[i] + 0.875f * mem0;
+      tmp[i] = 0.125f * mem0;
+      maxE = std::max(maxE, 0.125f * mem0);
+    }
+    mean = std::sqrt(mean * maxE * .5f * len2);
+    const opus_val32 norm = static_cast<opus_val32>(len2 << 20) / (1e-15f + mean * .5f);
+    opus_int32 unmask = 0;
+    for (int i = 12; i < len2 - 5; i += 4) {
+      const int id = static_cast<int>(std::max(0.f, std::min(127.f, std::floor(64 * norm * (tmp[i] + 1e-15f)))));
+      unmask += inv_table[id];
+    }
+    unmask = 64 * unmask * 4 / (6 * (len2 - 17));
+    if (unmask > mask_metric) {
+      *tf_chan = c;
+      mask_metric = unmask;
+    }
+  }
+  is_transient = mask_metric > 200;
+  if (toneishness > .98f && tone_freq < .026f) {
+    is_transient = 0;
+    mask_metric = 0;
+  }
+  if (allow_weak_transients && is_transient && mask_metric < 600) {
+    is_transient = 0;
+    *weak_transient = true;
+  }
+  const float tf_max = std::max(0.f, std::sqrt(27.f * mask_metric) - 42.f);
+  *tf_estimate = std::sqrt(std::max(0.f, 0.0069f * std::min(163.f, tf_max) - 0.139f));
+  return is_transient;
+}
+
+[[maybe_unused]] [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {  for (int channel = 0; channel < channels; ++channel) {
     const auto* input = in + channel * length;
     opus_val32 total = 0;
     opus_val32 maximum = 0;
@@ -5964,6 +6033,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   opus_val16 tone_frequency = 0;
   celt_prefilter_result prefilter{};
   int silence = 0, isTransient = 0, transient_enabled = 0, transient_got_disabled = 0, shortBlocks = 0;
+  opus_val16 tf_estimate = 0;
   bool protect_release = false;
   bool input_release = false;
   ec_enc local_encoder;
@@ -6063,14 +6133,11 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       enc->nbits_total += tell - ec_tell(enc);
     }
     tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
+    bool weak_transient = false;
+    int tf_chan = 0;
     if (!silence && (hybrid || (LM > 0 && st->stereo_policy_celt)) && st->complexity >= 1) {
-      opus_val32 transient_threshold = 8.f;
-      if (C == 2 && st->bitrate > 0 && st->silk_info.bitrateBps > 0 && !protect_transients) {
-        const auto highband_share = 100 * st->bitrate / st->silk_info.bitrateBps;
-        if (highband_share >= 20 && highband_share <= 32)
-          transient_threshold = 24.f;
-      }
-      isTransient = celt_transient_hint(in, N + overlap, CC, transient_threshold);
+      isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, hybrid, &weak_transient, tone_frequency,
+                                            toneishness);
     }
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
                                       toneishness, input_metrics.abs_sum);
@@ -6216,7 +6283,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       st->stereo_saving = 0;
       alloc_trim = 5;
     } else {
-      alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate);
+      alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
     }
     alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
     if (!hybrid && C == 2) {
