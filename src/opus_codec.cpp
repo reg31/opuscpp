@@ -5935,23 +5935,6 @@ struct celt_input_metrics {
   return is_transient;
 }
 
-[[maybe_unused]] [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {
-  for (int channel = 0; channel < channels; ++channel) {
-    const auto* input = in + channel * length;
-    opus_val32 total = 0;
-    opus_val32 maximum = 0;
-    for (int i = 4; i < length; i += 4) {
-      const opus_val32 difference = std::abs(input[i] - input[i - 4]);
-      total += difference;
-      maximum = std::max(maximum, difference);
-    }
-    if (maximum * (length / 4) > threshold * total) {
-      return true;
-    }
-  }
-  return false;
-}
-
 [[nodiscard]] static inline auto celt_preemphasise_input(CeltEncoderInternal* st, const opus_res* pcm, celt_sig* in, celt_sig* prefilter_mem, int N) -> celt_input_metrics {
   const int channels = st->channels;
   constexpr int overlap = celt_default_overlap;
