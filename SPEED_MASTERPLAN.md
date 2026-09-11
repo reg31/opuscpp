@@ -348,3 +348,26 @@ working profiler (mingw `-pg` produces an empty flat profile here) or a feature-
 
 
 
+
+
+### Correction 2 - the search really is ~1.8x (earlier 8% was wrong)
+Toggle bisection against the 60 s benchmark signal (env-gated prepare_quality_history):
+
+| rate | search ON cur_ms | search OFF cur_ms | speedx ON | speedx OFF |
+|---:|---:|---:|---:|---:|
+| 16k | 192.8 | 100.0 | 1.26 | **2.46** |
+| 24k | 249.3 | 147.1 | 1.07 | **1.84** |
+| 48k | 296.1 | 168.1 | 0.97 | **1.74** |
+
+Search-off speed matches the old version almost exactly (16k 2.46 vs 2.58; 48k 1.74 vs 1.82),
+which confirms **the entire old-vs-new encode gap is the quality search**. The earlier "~8%"
+was an artifact of the 6 s harness signal, where packet_selection_ready engages only near the
+end; on a 60 s stream the search costs ~1.8-1.9x at every rate.
+
+Also ruled out by direct toggle: the per-frame analysis-checkpoint save (nalysis->image +
+req + packet memcpy) is **negligible** (no measurable change when disabled).
+
+So the real trade is: **~1.8x encode speed for the search's quality** (48k CELT -0.34 -> -1.48,
+i.e. ~1.14; 16k/24k roughly unchanged). That is the decision to make - and the earlier metric
+work (spectral, NMR) was trying to keep the search's quality at lower cost; all decode-free
+metrics failed because the reconstruction costs as much as the decode.
