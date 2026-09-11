@@ -66,14 +66,19 @@ quality impact. "Reduce?" = could this lower quality vs official.
    unconditionally. **DONE `e3f86f4`** — restored `(tf_estimate-.044)*target` and the
    `tf_estimate<.2` VBR guard; neutral on the tracked (non-transient) signal, correct on
    transients. Remaining: activity/tonality/surround need a float analysis struct we don't have.
+   **Tested the tonality term with `toneishness` as a proxy — neutral** (and the proxy has the
+   wrong polarity: official's analysis tonality is ~0.5/bipolar, `toneishness` is ~0 for most
+   content). So the remainder is **blocked on porting official's `run_analysis` (MLP)**; until
+   then it is faithfully skipped (official only applies these `if (analysis->valid)`).
 
 7. **`alloc_trim_analysis` terms lost + extra.** Official (`865-955`) subtracts `2*tf_estimate`
    (`933`), `surround_trim` (`932`), and the float `tonality_slope` term (`934-939`). Ours
    (`5170-5222`) omits all three and adds `if (equiv_rate>=64000) trim += 1.f` (`5216-5218`,
    BENEFICIAL — tested). **Reduce? no change** — `2*tf_estimate` already matches; the
-   tonality/surround terms need the analysis struct; the stereo correlation uses
-   `celt_inner_prod_c` vs official's `celt_inner_prod_norm_shift` (`NORM_SHIFT=24`, fixed-point
-   semantics ambiguous in float) — left alone rather than risk a regression.
+   tonality/surround terms need the analysis struct (see #6; official gates them on
+   `analysis->valid`, so skipping is faithful for a build without the MLP); the stereo
+   correlation uses `celt_inner_prod_c` vs official's `celt_inner_prod_norm_shift`
+   (`NORM_SHIFT=24`, fixed-point shifts are identity in float → **equivalent**).
 
 8. **`dynalloc_analysis` adaptations lost + constants changed.** Official (`1049-1273`) computes
    `mask`/`sig`/`spread_weight[]` (`1082-1117`) and `importance[]` (`1182-1191`), tone boost
