@@ -393,3 +393,22 @@ not the search** - the search had been credited for quality it doesn't deliver.
 unnecessary - the search's quality contribution is ~0 while it costs ~1.8x.** Removing the
 search (drop quality_*, celt_encode_with_history, the per-frame probe) is a near-free 1.8x
 encode speedup. That is the answer: remove it, do not replace it.
+
+
+### Correction 3 - the search is NOT quality-inert; removing it regresses AUDIO
+The full official report on the search-free build exposed the error in the "quality-inert"
+conclusion. AUDIO celt deltas (search-free vs official) vs the search-on baseline:
+
+| | 16k | 24k | 32k | 48k | 64k | 96k | 128k | 192k | 256k |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| search ON | +1.59 | +0.06 | -0.16 | -0.34 | -0.05 | +0.03 | +0.02 | -0.00 | -0.01 |
+| search OFF | +1.59 | +0.12 | -0.63 | **-1.34** | -0.85 | -0.76 | -0.25 | -0.20 | -0.13 |
+
+So the search buys ~1.0 CELT at 48k on the report's synthetic-music AUDIO signal and keeps
+32k-128k above/near official; without it those rates fall below official. (VOIP is unaffected,
+as before.) The earlier "inert" result came from the diverse corpus, which is not representative
+of the report signal - so the conclusion was over-generalised.
+
+**Decision: the search removal (8cd269) was reverted (1f6b1c7).** The 1.8x speed is real but
+not worth dropping 32k-128k AUDIO below official. The search stays. Net shipped work remains the
+bit-exact D+C speedup (5885387) and the earlier throttle/scratch fixes ( f3e774).
