@@ -272,6 +272,32 @@ change any decision.
 shipped code on speed without regressing quality. Recommend treating WS-A as closed unless a
 genuinely decode-free distortion estimate can be devised.
 
+### Reframe - "good decision first" instead of search (research + probes)
+Shift from "verify two allocations" to "make the allocator's first answer good enough to skip
+the search". Research: perceptual coders allocate by minimising NMR (`error/mask`) with the mask
+from the input spectrum; RDO allocators (AAC/MP3, VVC RDOQ) solve
+`min SUM w_b D_b(n_b) s.t. SUM R_b <= budget` using analytic distortion models, no decode.
+Probes run this session:
+
+1. **Energy-refresh lever (found).** The search's only real side effect is
+   `pending_energy_refresh` (`allocation_history_changed` is set but never read - dead). Forcing
+   the refresh every frame, with no search, gave: 32k 98.871->**99.274**, 48k 99.509->**99.605**
+   on the tracked music signal (beats the search's 99.51). BUT on the 16-signal 60 s corpus it is
+   **neutral-to-negative** (mostly 0; `mus_chord` -0.053 celt / +0.043 masked). So the lever is
+   real but **content-dependent** - not a clean win as an unconditional toggle.
+2. **Masked-NMR metric** (above): valid and decision-equivalent, needs the reconstruction.
+3. **RDO allocator** (strongest untested direction): replace the static-prototype interpolation
+   in `clt_compute_allocation` (9248) with an analytic PVQ distortion model
+   `D_b(K) = E_b * (1 - <x,y>^2/(||x||^2 ||y||^2))` (computable inside `op_pvq_search`, no decode)
+   plus the existing pulse-bit cache, solved greedily/Lagrangian with audibility weights `w_b`.
+   This changes the *decision*, not the metric, and is the only direction that can win on both
+   axes. Not yet prototyped (large, touches bitstream-critical allocation).
+
+**Status: no shippable solution found.** Every probe either regresses quality, is content-
+dependent, or needs the decode it was meant to replace. The one open direction with real upside
+is the RDO allocator above; everything else is documented as closed.
+
+
 
 
 
