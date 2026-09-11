@@ -5685,12 +5685,12 @@ struct celt_input_metrics {
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
                                                  bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
   static const unsigned char inv_table[128] = {
-      255, 255, 156, 110, 86,  70,  59,  51,  45,  40,  37,  33,  31,  28,  26,  25,  23,  22,  21,  20,  19,  18,
-      17,  16,  16,  15,  15,  14,  13,  13,  12,  12,  12,  12,  11,  11,  11,  10,  10,  10,  9,   9,   9,   9,
-      9,   9,   8,   8,   8,   8,   8,   7,   7,   7,   7,   7,   7,   6,   6,   6,   6,   6,   6,   6,   6,   6,
-      6,   6,   6,   6,   6,   6,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   4,   4,   4,   4,   4,
-      4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   3,   3,   3,
-      3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   2};
+      255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25, 23, 22, 21, 20, 19, 18,
+      17, 16, 16, 15, 15, 14, 13, 13, 12, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 9,
+      9, 9, 8, 8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+      6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4,
+      4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3,
+      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
   std::array<float, celt_max_frame_samples> tmp{};
   int is_transient = 0;
   opus_int32 mask_metric = 0;
@@ -5751,7 +5751,8 @@ struct celt_input_metrics {
   return is_transient;
 }
 
-[[maybe_unused]] [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {  for (int channel = 0; channel < channels; ++channel) {
+[[maybe_unused]] [[nodiscard]] static auto celt_transient_hint(const opus_val32* in, int length, int channels, opus_val32 threshold) noexcept -> bool {
+  for (int channel = 0; channel < channels; ++channel) {
     const auto* input = in + channel * length;
     opus_val32 total = 0;
     opus_val32 maximum = 0;
