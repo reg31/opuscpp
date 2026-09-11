@@ -14,13 +14,17 @@ because `celt_quality` went negative.
 
 1. **Cluster A — official `spreading_decision`** (replaced our 0/2 heuristic with the official
    CDF + `spread_weight[]` + `tonal_average`/`hf_average` state). Rejected for AUDIO 16k
-   `celt = 1.59 → 1.12`. **Re-run:** measure pesq/visqol at 16–96k; the band metric may have
-   been wrong.
+   `celt = 1.59 → 1.12`. **RE-VISITED (`cb49b23`):** with perceptual metrics the tracked AUDIO
+   deltas are **neutral** at every rate (16k snr −0.003, pesq +0.0004) — confirming the old
+   rejection was a `celt_quality` artifact. **BUT** mono VOIP still segfaults (`0xC0000005`).
+   Net: no quality benefit + a crash → **skip** (not worth root-causing).
 2. **#11 `patch_transient_decision`** (second transient pass). Rejected for AUDIO 16k
    `celt −0.81` + a mono crash. **Re-run** with the perceptual metrics after fixing the
    `compute_band_energies`/`amp2Log2` equivalence and the mono fault.
 3. **#10 `secondMdct`** (long-window `bandLogE2` at `shortBlocks && complexity>=8`). Rejected
-   for `celt −1.31 @48k`. **Re-run** with perceptual metrics.
+   for `celt −1.31 @48k`. **RE-VISITED:** perceptual deltas **unchanged** (24k pesq 0.262,
+   48k 0.118, 96k 0.088; transient corpus neutral). Rejection was an artifact, but no
+   perceptual benefit either → **skip**.
 4. **#7 alloc-trim terms** (`2*tf_estimate` already matches; tonality/surround/no-`+1`). Never
    cleanly measured with perceptual metrics.
 5. **RDO-trim allocator** (`OPUSCPP_RDOTRIM`, off by default). Rejected as a search
