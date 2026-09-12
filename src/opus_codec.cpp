@@ -5297,8 +5297,13 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
-    // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
-    apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
+  // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
+  apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
+    if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
+      std::fprintf(stderr, "demand_pre:");
+      for (i = start; i < end; ++i) std::fprintf(stderr, " %.2f", follower[i]);
+      std::fprintf(stderr, "\n");
+    }
     if (effectiveBytes > 320) {
       follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     }
@@ -5325,6 +5330,12 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         offsets[i] = boost;
         tot_boost += boost_bits;
       }
+    }
+    if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
+      std::fprintf(stderr, "offsets:");
+      for (i = start; i < end; ++i) std::fprintf(stderr, " %d", offsets[i]);
+      std::fprintf(stderr, " tot_boost=%d effBytes=%d extra_depth=%d\n", static_cast<int>(tot_boost),
+                   static_cast<int>(effectiveBytes), extra_depth ? 1 : 0);
     }
   }
   *tot_boost_ = tot_boost;

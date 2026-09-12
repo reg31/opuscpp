@@ -92,6 +92,10 @@ struct totals final {
   double celt_err16_sum = 0.0;
   double celt_high_mse_sum = 0.0;
   std::array<double, 21> celt_band_dist{};
+  std::array<double, 21> celt_shape_corr{};
+  std::array<int, 21> celt_shape_count{};
+  std::array<double, 21> celt_energy_logratio{};
+  std::array<int, 21> celt_energy_logratio_count{};
   double stereo_width_abs_error = 0.0;
   std::uint64_t celt_windows = 0;
   std::uint64_t celt_high_count = 0;
@@ -432,6 +436,9 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
        start += celt_metric_tables::window_size) {
     auto ref_energy = std::array<std::array<double, 2>, nbands>{};
     auto deg_energy = std::array<std::array<double, 2>, nbands>{};
+    auto shape_cross = std::array<std::array<double, 2>, nbands>{};
+    auto shape_refsq = std::array<std::array<double, 2>, nbands>{};
+    auto shape_degsq = std::array<std::array<double, 2>, nbands>{};
     for (int bin = 0; bin < celt_metric_tables::freq_bins; ++bin) {
       const auto band = tables.bin_band[static_cast<std::size_t>(bin)];
       for (int ch = 0; ch < channels; ++ch) {
@@ -450,6 +457,11 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
         }
         ref_energy[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] += ref_re * ref_re + ref_im * ref_im + 1e-12;
         deg_energy[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] += deg_re * deg_re + deg_im * deg_im + 1e-12;
+        const double ref_mag = std::sqrt(ref_re * ref_re + ref_im * ref_im);
+        const double deg_mag = std::sqrt(deg_re * deg_re + deg_im * deg_im);
+        shape_cross[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] += ref_mag * deg_mag;
+        shape_refsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] += ref_mag * ref_mag;
+        shape_degsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] += deg_mag * deg_mag;
       }
     }
 
@@ -499,6 +511,17 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
         const auto disturbance = ratio - std::log(ratio) - 1.0;
         frame_mse += disturbance * disturbance;
         out.celt_band_dist[static_cast<std::size_t>(band)] += disturbance * disturbance;
+        const auto sc = shape_cross[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
+        const auto sr = shape_refsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
+        const auto sd = shape_degsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
+        // Only score spectral-magnitude similarity when the reference band is audible;
+        // quiet/gap windows are excluded (decoded silence there is tracked via energy).
+        if (sr > celt_metric_tables::absolute_mask_energy) {
+          out.celt_shape_corr[static_cast<std::size_t>(band)] += sc / std::sqrt(sr * sd + 1e-30);
+          ++out.celt_shape_count[static_cast<std::size_t>(band)];
+          out.celt_energy_logratio[static_cast<std::size_t>(band)] += 0.5 * std::log(std::max(1e-30, sd) / std::max(1e-30, sr));
+          ++out.celt_energy_logratio_count[static_cast<std::size_t>(band)];
+        }
         ++frame_count;
         if (band >= high_band_start) {
           out.celt_high_mse_sum += disturbance * disturbance;
@@ -751,6 +774,18 @@ void print_result(std::string_view label, const totals& v) {
     std::cout << "bands " << label << " ";
     for (std::size_t b = 0; b < v.celt_band_dist.size(); ++b) {
       std::cout << b << ':' << std::sqrt(v.celt_band_dist[b] / denom) << (b + 1 == v.celt_band_dist.size() ? '\n' : ' ');
+    }
+    std::cout << "magsim " << label << " ";
+    for (std::size_t b = 0; b < v.celt_shape_corr.size(); ++b) {
+      const auto c = v.celt_shape_count[b] > 0 ? v.celt_shape_corr[b] / static_cast<double>(v.celt_shape_count[b]) : 0.0;
+      std::cout << b << ':' << c << (b + 1 == v.celt_shape_corr.size() ? '\n' : ' ');
+    }
+    std::cout << "elr " << label << " ";
+    for (std::size_t b = 0; b < v.celt_energy_logratio.size(); ++b) {
+      const auto r = v.celt_energy_logratio_count[b] > 0
+                         ? v.celt_energy_logratio[b] / static_cast<double>(v.celt_energy_logratio_count[b])
+                         : 0.0;
+      std::cout << b << ':' << r << (b + 1 == v.celt_energy_logratio.size() ? '\n' : ' ');
     }
   }
 }
