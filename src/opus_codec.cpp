@@ -6004,7 +6004,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     }
   });
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                      &st->delayedIntra, st->complexity >= 4, 0);
+                      &st->delayedIntra, st->complexity >= 4, st->silk_mode.packetLossPercentage);
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
