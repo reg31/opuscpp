@@ -364,7 +364,7 @@ struct kiss_fft_state {
 };
 
 struct SILKInfo {
-  int offset, bitrateBps, actualSilkBps;
+  int offset, bitrateBps, actualSilkBps, signalType;
 };
 
 struct CeltEncoderInternal {
@@ -3281,7 +3281,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   if (st->mode == opus_mode_hybrid) {
     celt_enc->silk_info = {st->silk_mode.offset, allocator_bitrate_bps,
-                           bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate)};
+                           bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate), st->silk_mode.signalType};
   }
   if (redundancy && celt_to_silk) {
     configure_redundant_celt(false);
@@ -5960,7 +5960,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     }
     tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
     if (!silence && LM > 0 && st->complexity >= 1) {
-      isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, hybrid, &weak_transient, tone_frequency,
+      const bool allow_weak_transients = hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2;
+      isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
                                             toneishness);
     }
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
@@ -5988,6 +5989,12 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
     tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data());
+  } else if (hybrid && weak_transient) {
+    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
+    tf_select = 0;
+  } else if (hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2) {
+    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 0);
+    tf_select = isTransient;
   } else {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
