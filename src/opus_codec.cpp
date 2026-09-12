@@ -5297,8 +5297,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
-  // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
-  apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
+    // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
+    apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
     if (effectiveBytes > 320) {
       follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     }
