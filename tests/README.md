@@ -289,15 +289,15 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0006 | -0.0029 | +1.7605 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | +0.2622 | +0.0748 | -0.3258 | 24.000 kbps | 25.229 kbps |
-| 32&nbsp;kbps | +0.3234 | +0.0848 | -0.5336 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | +0.1185 | +0.0144 | -0.6939 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | +0.0209 | +0.0057 | -0.9902 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | +0.0920 | +0.0109 | -0.4191 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | +0.1909 | +0.0043 | -0.2873 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | +0.0761 | +0.0029 | -0.1753 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | +0.0407 | +0.0016 | -0.0831 | 256.000 kbps | 256.737 kbps |
+| 16&nbsp;kbps | +0.0003 | -0.0012 | +1.8616 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | +0.3784 | +0.0959 | -0.5008 | 24.000 kbps | 25.229 kbps |
+| 32&nbsp;kbps | +0.5420 | +0.0929 | -0.6139 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | +0.1637 | +0.0132 | -0.6977 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | +0.1396 | +0.0052 | -0.9065 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | +0.2907 | +0.0127 | -0.4201 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | +0.1907 | +0.0042 | -0.2874 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | +0.0714 | +0.0030 | -0.1777 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | +0.0350 | +0.0022 | -0.0825 | 256.000 kbps | 256.737 kbps |
 
 
 ## VOIP quality metrics vs official Opus

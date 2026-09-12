@@ -1,9 +1,9 @@
 {
-  "commit": "00ae9cbcbc5607c35a9821e90e3736b6d9adcfc5",
-  "source_sha256": "8fc064fdcf3b9a8c6e9e073240d729edc09b283f45bb4d192a882503f9849f98",
+  "commit": "0b0476f340d0b3b0d7fe047e0b0d47812dd8c9f5",
+  "source_sha256": "4d9509b02fbdc63566e869d5da379944f171a968f1dd06aa24923eb00c7c5fe6",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "binary_source_sha256": "8fc064fdcf3b9a8c6e9e073240d729edc09b283f45bb4d192a882503f9849f98",
-  "binary_sha256": "493465106588cbacc7456803c5059a155da704163ee28c001899873fcdbc3534",
+  "binary_source_sha256": "4d9509b02fbdc63566e869d5da379944f171a968f1dd06aa24923eb00c7c5fe6",
+  "binary_sha256": "5807645b42b45782b3b7c3e0e540f724106512a45f1a0262d47759fe21cabfb6",
   "driver_sha256": "fde3c77c306187083ac64edfdc4e7be806c396bba49ed9b9b3b1cb40cf05afc8",
   "archive_path": "build\\official_opus_o2_intrinsics_mingw\\libopus.a",
   "archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
@@ -30,6 +30,19 @@
       "seconds": "6"
     }
   },
+  "source_matches_commit": true,
+  "api_default_complexity": 9,
+  "api_default_evidence": "Parent runtime query: both codecs default9 for VOIP/AUDIO/RESTRICTED_LOWDELAY x mono/stereo (6 pairs).",
+  "published_metadata_sha256": "fc5c6718d7d5b80f7f0aff281fdff7f7cc7b5f5d07b2e7b87209c28cab21e3a3",
+  "official_build_config": [
+    "CMAKE_BUILD_TYPE:STRING=Release",
+    "CMAKE_C_FLAGS_RELEASE:STRING=-O2 -DNDEBUG",
+    "OPUS_DISABLE_INTRINSICS:BOOL=OFF",
+    "OPUS_X86_MAY_HAVE_AVX2:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE2:BOOL=ON",
+    "OPUS_X86_MAY_HAVE_SSE4_1:BOOL=ON"
+  ],
   "rates": [
     16000,
     24000,
@@ -75,42 +88,5 @@
     "celt_masked_error": -1,
     "celt_highband_error": -1,
     "stereo_width_error": -1
-  },
-  "source_matches_commit": true,
-  "api_default_complexity": 9,
-  "api_default_evidence": "Parent runtime query: both codecs default9 for VOIP/AUDIO/RESTRICTED_LOWDELAY x mono/stereo (6 pairs).",
-  "published_metadata_sha256": "fc5c6718d7d5b80f7f0aff281fdff7f7cc7b5f5d07b2e7b87209c28cab21e3a3",
-  "official_build_config": [
-    "CMAKE_BUILD_TYPE:STRING=Release",
-    "CMAKE_C_FLAGS_RELEASE:STRING=-O2 -DNDEBUG",
-    "OPUS_DISABLE_INTRINSICS:BOOL=OFF",
-    "OPUS_X86_MAY_HAVE_AVX2:BOOL=ON",
-    "OPUS_X86_MAY_HAVE_SSE:BOOL=ON",
-    "OPUS_X86_MAY_HAVE_SSE2:BOOL=ON",
-    "OPUS_X86_MAY_HAVE_SSE4_1:BOOL=ON"
-  ],
-  "comparison": "Official Opus only; quality deltas are not relative to a previous opuscpp build.",
-  "base_commit": "d20b96124575ea2d10ffa1c15bfb7567a5fd9700",
-  "worktree_changes": true,
-  "validation": "All 36 direct-official headline configurations rerun after the observer precision change; packets, final ranges, decoded PCM and all 12 quality fields match the recorded values.",
-  "latest_validation": {
-    "change": "Keep encoder quality-observer filter banks in double precision",
-    "cells": 36,
-    "packet_range_pcm_exact": 36,
-    "all_quality_fields_exact": 36,
-    "complexities": [
-      9,
-      10
-    ],
-    "evidence_sha256": "c12addc3726e7ba6303abf65401ccb9bbb252bf9bd3fe20948c34e0075e83d71",
-    "existing_quality_deficits_unchanged": true,
-    "precision_note": "Observer state is more precise; packet identity is measured on the validation corpus, not guaranteed for every possible input."
-  },
-  "targeted_checks": {
-    "history_cases": 160,
-    "reference_continuity_sequences": 48,
-    "trapping_ubsan": "Both existing checks passed",
-    "gcc_warnings": 0,
-    "android_warnings": 0
   }
 }
