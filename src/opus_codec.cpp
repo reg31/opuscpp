@@ -5905,7 +5905,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
   std::array<std::array<int, celt_default_nb_ebands>, 6> band_workspace;
   auto& [offsets, tf_res, cap, fine_quant, pulses, fine_priority] = band_workspace;
-  std::array<int, celt_default_nb_ebands> importance{};
+  std::array<int, celt_default_nb_ebands> importance;
 
   {
     tell = enc == nullptr ? 1 : ec_tell(enc);
@@ -6116,7 +6116,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
-  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage{};
+  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                   0, st->complexity, st->bitrate);
@@ -9023,7 +9023,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const int N0 = celt_udiv(N, B);
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
-  std::array<int, celt_max_band_samples> iy{};
+  std::array<int, celt_max_band_samples> iy;
   const auto quant = op_pvq_search_c(X, K, N, B, iy.data());
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   if (resynth) {
