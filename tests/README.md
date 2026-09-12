@@ -256,18 +256,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.697x | 1.802x | 301x | 177x | 1168x | 648x |
-| 24&nbsp;kbps | 1.382x | 1.406x | 223x | 162x | 804x | 572x |
-| 32&nbsp;kbps | 1.340x | 1.389x | 219x | 164x | 780x | 562x |
-| 48&nbsp;kbps | 1.278x | 1.308x | 192x | 150x | 640x | 489x |
-| 64&nbsp;kbps | 1.269x | 1.275x | 169x | 133x | 537x | 421x |
-| 96&nbsp;kbps | 1.490x | 1.205x | 159x | 107x | 400x | 332x |
-| 128&nbsp;kbps | 1.412x | 1.202x | 138x | 98x | 348x | 290x |
-| 192&nbsp;kbps | 1.286x | 1.212x | 113x | 88x | 303x | 250x |
-| 256&nbsp;kbps | 1.230x | 1.201x | 103x | 84x | 270x | 225x |
+| 16&nbsp;kbps | 1.691x | 1.814x | 412x | 244x | 1637x | 902x |
+| 24&nbsp;kbps | 1.382x | 1.425x | 309x | 223x | 1120x | 786x |
+| 32&nbsp;kbps | 1.338x | 1.403x | 304x | 227x | 1085x | 773x |
+| 48&nbsp;kbps | 1.281x | 1.331x | 265x | 207x | 902x | 677x |
+| 64&nbsp;kbps | 1.275x | 1.294x | 232x | 182x | 745x | 576x |
+| 96&nbsp;kbps | 1.506x | 1.218x | 218x | 145x | 551x | 453x |
+| 128&nbsp;kbps | 1.412x | 1.207x | 187x | 133x | 479x | 397x |
+| 192&nbsp;kbps | 1.288x | 1.230x | 155x | 120x | 418x | 340x |
+| 256&nbsp;kbps | 1.242x | 1.221x | 143x | 115x | 373x | 306x |
 
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). In this default-VBR benchmark the encoder is faster than official at every tracked bitrate (1.23x to 1.70x).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). In this default-VBR benchmark the encoder is faster than official at every tracked bitrate (1.24x to 1.69x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -409,8 +409,8 @@ structure sizes or peak stack usage; allocator/page rounding contributes to smal
 |---:|---:|---:|---:|
 | Encoder mono | 16,928 B | 31,712 B | -46.6% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,184 B | 27,328 B | -22.5% |
+| Decoder mono | 14,128 B | 18,368 B | -23.1% |
+| Decoder stereo | 21,168 B | 27,328 B | -22.5% |
 
 Source CSV:
 
@@ -420,8 +420,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 310,160 B | 0 B | 310,160 B |
-| Android arm64 Clang `-O2` | 318,676 B | 472 B | 319,148 B |
+| Host MinGW GCC `-O2` | 309,648 B | 0 B | 309,648 B |
+| Android arm64 Clang `-O2` | 318,308 B | 472 B | 318,780 B |
 
 ## Toolchains checked
 

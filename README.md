@@ -14,7 +14,7 @@ implementation without packet-format changes as long as it stays within the supp
 described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 In short: `opuscpp` is a portable C++23 alternative to official Opus for C++ users:
-source-embeddable, standards-compatible, and faster to both encode and decode in the tracked O2 benchmark against an official build using platform intrinsics. At complexity 10, encoding is 1.23x-1.70x faster than official across the tracked bitrates.
+source-embeddable, standards-compatible, and faster to both encode and decode in the tracked O2 benchmark against an official build using platform intrinsics. At complexity 10, encoding is 1.24x-1.69x faster than official across the tracked bitrates.
 
 Minimal integration looks like:
 
@@ -28,8 +28,8 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
-- Complexity-10 encoding is faster than official Opus at 9/9 measured bitrates (1.23x to 1.70x).
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.20x to 1.80x).
+- Complexity-10 encoding is faster than official Opus at 9/9 measured bitrates (1.24x to 1.69x).
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.21x to 1.81x).
 - Transient detection runs for every fullband CELT frame (matching official Opus gating), improving percussive content.
 - Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 8/9 tracked bitrates, but every AUDIO and VOIP row still loses at least one measured spectral or speech-proxy field. No universal quality advantage is claimed.
 - Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
@@ -38,7 +38,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - Optional DTX: zero false DTX packets on the tracked active-content set, 61.4% lower re-entry error and 52.2% lower gain error at 16/24&nbsp;kbps.
 - Optional FEC: lower missing-frame error in all 18 tracked loss scenarios; 52.8% lower combined recovery error, protection in 18 scenarios versus 15, and 0.4% fewer bytes.
 - 22.5% to 46.6% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `310,160 B` (text + data + BSS).
+- Host object: `309,648 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; warning-free MinGW GCC and Android arm64 Clang builds.
 
 ## Pros and cons
@@ -46,8 +46,8 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 | Pros | Cons |
 |---|---|
 | Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |
-| Encoding is 1.23x-1.70x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
-| Faster decode in 9/9 measured bitrates (1.20x to 1.80x). | Official Opus supports a broader feature surface and ecosystem. |
+| Encoding is 1.24x-1.69x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
+| Faster decode in 9/9 measured bitrates (1.21x to 1.81x). | Official Opus supports a broader feature surface and ecosystem. |
 | 22.5% to 46.6% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
 | Pure portable C++23, without ASM or SIMD intrinsics. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
 
@@ -108,15 +108,15 @@ official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.697x | 1.802x | +0.0006 | -0.0029 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.382x | 1.406x | +0.2622 | +0.0748 | 24.000 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 1.340x | 1.389x | +0.3234 | +0.0848 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.278x | 1.308x | +0.1185 | +0.0144 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.269x | 1.275x | +0.0209 | +0.0057 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.490x | 1.205x | +0.0876 | +0.0108 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 1.412x | 1.202x | +0.1909 | +0.0043 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.286x | 1.212x | +0.0761 | +0.0029 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 1.230x | 1.201x | +0.0407 | +0.0016 | 256.000 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 1.691x | 1.814x | +0.0006 | -0.0029 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.382x | 1.425x | +0.2622 | +0.0748 | 24.000 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 1.338x | 1.403x | +0.3234 | +0.0848 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.281x | 1.331x | +0.1185 | +0.0144 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.275x | 1.294x | +0.0209 | +0.0057 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.506x | 1.218x | +0.0876 | +0.0108 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.412x | 1.207x | +0.1909 | +0.0043 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.288x | 1.230x | +0.0761 | +0.0029 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.242x | 1.221x | +0.0407 | +0.0016 | 256.000 kbps | 256.737 kbps |
 
 
 VOIP mono speech-like quality spot check:
@@ -149,8 +149,8 @@ can slightly change the measurement.
 |---:|---:|---:|---:|
 | Encoder mono | 16,928 B | 31,712 B | -46.6% |
 | Encoder stereo | 32,192 B | 49,072 B | -34.4% |
-| Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,184 B | 27,328 B | -22.5% |
+| Decoder mono | 14,128 B | 18,368 B | -23.1% |
+| Decoder stereo | 21,168 B | 27,328 B | -22.5% |
 
 ## Conformance
 
