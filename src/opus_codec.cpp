@@ -3055,7 +3055,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     } else if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
       dc_reject(pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
     } else {
-      hp_cutoff(pcm, 3, frame_pcm, st->audio_music_hp_mem, frame_size, st->channels, st->Fs);
+      dc_reject(pcm, frame_pcm, st->audio_music_hp_mem, frame_size, st->channels, st->Fs);
       if (st->channels == 1 && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
         const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
         blend_filtered_input(frame_pcm, pcm, frame_size, clean_music ? .94f : .86f);
