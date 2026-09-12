@@ -2452,34 +2452,19 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
   }
 }
 
-[[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const OpusEncoder* st, const frame_activity_metrics& metrics) noexcept -> opus_val16 {
-  const auto bitrate = st->bitrate_bps;
-  if (st->application == OPUS_APPLICATION_AUDIO) {
+[[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const OpusEncoder* st) noexcept -> opus_val16 {
+  if (st->application != OPUS_APPLICATION_VOIP) {
     return 1.0f;
-    const bool stereo_94 =
-        st->channels == 2 && (bitrate == 24000 || (bitrate == 32000 && st->mode == opus_mode_celt_only &&
-                                                   st->lightweight_high_z_tonal_Q7 < 48 && !is_sparse_high_z_tonal_frame(metrics)));
-    if (stereo_94) {
-      return .94f;
-    }
-    if (st->channels == 2 && (bitrate == 16000 || bitrate == 64000)) {
-      return .98f;
-    }
-    if (bitrate >= 16000 && bitrate < 40000) {
-      return .975f;
-    }
-    return bitrate >= 128000 ? .997f : 1.0f;
   }
-  if (st->application == OPUS_APPLICATION_VOIP) {
-    if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
-      return .984f;
-    }
-    if (bitrate >= 24000 && bitrate <= 64000) {
-      return bitrate >= 40000 ? .985f : .994f;
-    }
-    if (bitrate >= 80000) {
-      return bitrate <= 128000 ? .994f : .998f;
-    }
+  const auto bitrate = st->bitrate_bps;
+  if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
+    return .984f;
+  }
+  if (bitrate >= 24000 && bitrate <= 64000) {
+    return bitrate >= 40000 ? .985f : .994f;
+  }
+  if (bitrate >= 80000) {
+    return bitrate <= 128000 ? .994f : .998f;
   }
   return 1.0f;
 }
@@ -3064,7 +3049,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   } else {
     dc_reject(pcm, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
-  const auto gain = encoder_error_balance_filter_for(st, frame_metrics);
+  const auto gain = encoder_error_balance_filter_for(st);
   const bool final_audio_tilt = st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps >= 28000 &&
                                 st->bitrate_bps <= 40000 && st->lightweight_high_z_tonal_Q7 < 64;
   if (final_audio_tilt) {
@@ -3574,7 +3559,7 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
     state->model = broadband ? VoiceDenoiseModel::broadband : VoiceDenoiseModel::conservative;
     if (broadband) {
       const auto smoothing = voip_noise_smoothing_for(st, metrics);
-      const auto gain = encoder_error_balance_filter_for(st, metrics);
+      const auto gain = encoder_error_balance_filter_for(st);
       const auto tilt_power = (1.f - smoothing) * (1.f - smoothing) + smoothing * smoothing -
                               smoothing * (1.f - smoothing) * coefficients.middle;
       state->noise_variance = state->noise_energy[2] / (high * tilt_power * gain * gain);
@@ -5312,8 +5297,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
-    apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
-    apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
+  // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
+  apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
     if (effectiveBytes > 320) {
       follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     }
