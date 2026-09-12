@@ -2455,6 +2455,7 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
 [[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const OpusEncoder* st, const frame_activity_metrics& metrics) noexcept -> opus_val16 {
   const auto bitrate = st->bitrate_bps;
   if (st->application == OPUS_APPLICATION_AUDIO) {
+    return 1.0f;
     const bool stereo_94 =
         st->channels == 2 && (bitrate == 24000 || (bitrate == 32000 && st->mode == opus_mode_celt_only &&
                                                    st->lightweight_high_z_tonal_Q7 < 48 && !is_sparse_high_z_tonal_frame(metrics)));
