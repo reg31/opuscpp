@@ -5483,7 +5483,8 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   pf_threshold = (.2f);
   if (std::abs(pitch_index - st->prefilter_period) * 10 > pitch_index) {
     pf_threshold += (.2f);
-    if (tf_estimate > (.98f)) gain1 = 0;
+    if (tf_estimate > (.98f))
+      gain1 = 0;
   }
   if (nbAvailableBytes < 25) {
     pf_threshold += (.1f);
