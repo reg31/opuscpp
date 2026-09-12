@@ -370,7 +370,7 @@ struct SILKInfo {
 struct CeltEncoderInternal {
   int channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
-  int vbr, constrained_vbr, lsb_depth;
+  int vbr, constrained_vbr, lsb_depth, loss_rate;
   bool prediction_disabled, audio_application, voip_application, stereo_policy_celt;
   opus_uint8 stereo_coherence_Q8;
   opus_uint32 rng;
@@ -3305,10 +3305,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
         }
         celt_enc->bitrate = std::min<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps), 750000 * celt_enc->channels);
         celt_enc->constrained_vbr = 0;
+        celt_enc->loss_rate = st->silk_mode.packetLossPercentage;
       }
     } else if (st->use_vbr) {
       const int celt_lm = std::countr_zero(static_cast<unsigned>(frame_size * celt_enc->upsample / celt_short_mdct_size));
       celt_enc->constrained_vbr = st->vbr_constraint;
+      celt_enc->loss_rate = st->silk_mode.packetLossPercentage;
       celt_enc->content_vbr = st->application == OPUS_APPLICATION_AUDIO && st->bandwidth == 1105 && st->bitrate_bps < 56000 &&
                               nominal_target_bits >= 8 * (30 + 5 * celt_lm);
       celt_enc->bitrate = std::min<opus_int32>(allocator_bitrate_bps, 750000 * celt_enc->channels);
@@ -6004,7 +6006,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     }
   });
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                      &st->delayedIntra, st->complexity >= 4, 0);
+                      &st->delayedIntra, st->complexity >= 4, st->loss_rate);
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
