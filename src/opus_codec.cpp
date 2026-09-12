@@ -8414,7 +8414,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   const opus_uint32 nstart_bytes = enc->offs;
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> old_intra{};
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> err_intra{};
-  std::array<unsigned char, 1275> intra_bytes{};
+  std::array<unsigned char, 1275> intra_bytes;
   int badness1 = 0;
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
