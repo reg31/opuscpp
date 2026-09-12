@@ -5869,7 +5869,6 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
-
 static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
