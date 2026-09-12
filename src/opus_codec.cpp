@@ -5966,8 +5966,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     }
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
                                       toneishness, input_metrics.abs_sum);
-    if (!hybrid && st->stereo_policy_celt && LM == 3 && st->input_diff_Q10 >= 26)
-      isTransient = 1;
     transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
     transient_got_disabled = !transient_enabled;
     if (!transient_enabled && st->stereo_policy_celt)
