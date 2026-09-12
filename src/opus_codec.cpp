@@ -5414,7 +5414,7 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
   return -1;
 }
 
-static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, const std::array<opus_val32, celt_max_channels>& input_abs_sum) {
+static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum) {
   std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
   opus_val16 gain1, pf_threshold;
@@ -5483,6 +5483,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   pf_threshold = (.2f);
   if (std::abs(pitch_index - st->prefilter_period) * 10 > pitch_index) {
     pf_threshold += (.2f);
+    if (tf_estimate > (.98f)) gain1 = 0;
   }
   if (nbAvailableBytes < 25) {
     pf_threshold += (.1f);
@@ -5758,13 +5759,13 @@ struct celt_prefilter_result {
   opus_val16 gain{};
 };
 
-static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, ec_enc* enc, int N, int nbAvailableBytes, opus_int32 total_bits, opus_int32 tell, int silence, opus_val16 tone_freq, opus_val32 toneishness, const std::array<opus_val32, celt_max_channels>& input_abs_sum) -> celt_prefilter_result {
+static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, ec_enc* enc, int N, int nbAvailableBytes, opus_int32 total_bits, opus_int32 tell, int silence, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum) -> celt_prefilter_result {
   auto result = celt_prefilter_result{};
   int qg = 0;
   const int can_signal = st->start == 0 && tell + 16 <= total_bits;
   const int enabled = nbAvailableBytes > 12 * st->stream_channels && can_signal && !silence && !st->prediction_disabled;
   result.enabled = run_prefilter(st, in, prefilter_mem, st->channels, N, &result.pitch_index, &result.gain, &qg, enabled, st->complexity,
-                                 nbAvailableBytes, tone_freq, toneishness, input_abs_sum);
+                                 nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum);
   if (result.enabled == 0) {
     if (can_signal) {
       ec_enc_bit_logp(enc, 0, 1);
@@ -5963,7 +5964,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
                                             toneishness);
     }
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
-                                      toneishness, input_metrics.abs_sum);
+                                      toneishness, tf_estimate, input_metrics.abs_sum);
     transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
     transient_got_disabled = !transient_enabled;
     if (!transient_enabled && st->stereo_policy_celt)
