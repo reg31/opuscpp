@@ -4540,7 +4540,7 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, int bitrate) {
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5869,7 +5869,6 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
-static int rdo_alloc_trim(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int fallback);
 
 static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
   frame_size *= st->upsample;
@@ -6047,10 +6046,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (!hybrid && C == 2) {
       alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
     }
-    if (!hybrid && equiv_rate < 96000 && std::getenv("OPUSCPP_RDOTRIM") != nullptr) {
-      const opus_int32 rdo_bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
-      alloc_trim = rdo_alloc_trim(bandLogE, offsets.data(), cap.data(), start, end, LM, C, rdo_bits, alloc_trim);
-    }
     ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
     tell = ec_tell_frac(enc);
   }
@@ -6124,7 +6119,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                  0, st->complexity, st->bitrate);
+                  0, st->complexity);
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
   }
@@ -6652,7 +6647,7 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks;
   quant_all_bands(0, start, end, spectrum.data(), C == 2 ? spectrum.data() + N : nullptr, collapse_masks.data(), nullptr, pulses.data(),
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
-                  codedBands, &st->rng, st->channels == 1, 0, 0);
+                  codedBands, &st->rng, st->channels == 1, 0);
   const int anti_collapse_on = anti_collapse_rsv > 0 ? ec_dec_bits(dec, 1) : 0;
   process_energy_finalise<false>(start, end, oldBandE, nullptr, fine_quant.data(), fine_priority.data(), len * 8 - ec_tell(dec), dec, C);
   if (anti_collapse_on) {
@@ -8665,93 +8660,6 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
     fine_priority[band] = ebits[band] < 1;
   }
   return codedBands;
-}
-
-static void allocation_prototype_bits(const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total_in, int alloc_trim, int* bits1_out) {
-  constexpr int len = celt_default_nb_ebands;
-  opus_int32 total = std::max(total_in, 0);
-  const int skip_rsv = total >= 1 << 3 ? 1 << 3 : 0;
-  total -= skip_rsv;
-  if (C == 2) {
-    const int intensity_rsv = LOG2_FRAC_TABLE[end - start];
-    if (intensity_rsv <= total) {
-      total -= intensity_rsv;
-      const int dual_stereo_rsv = total >= 1 << 3 ? 1 << 3 : 0;
-      total -= dual_stereo_rsv;
-    }
-  }
-  std::array<int, celt_default_nb_ebands> thresh{};
-  std::array<int, celt_default_nb_ebands> trim_offset{};
-  for (int band = start; band < end; ++band) {
-    const int band_width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
-    const int channel_min_bits = C << 3;
-    thresh[band] = std::max(channel_min_bits, ((3 * band_width) << LM << 3) >> 4);
-    trim_offset[band] = C * band_width * (alloc_trim - 5 - LM) * (end - band - 1) * (1 << (LM + 3)) >> 6;
-    if ((band_width << LM) == 1)
-      trim_offset[band] -= channel_min_bits;
-  }
-  const auto vector_bits = [&](int vector, int band, bool add_offset) {
-    const int width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
-    int value = C * width * celt_mode()->allocVectors[vector * len + band] << LM >> 2;
-    if (value > 0)
-      value = std::max(0, value + trim_offset[band]);
-    return value + (add_offset ? offsets[band] : 0);
-  };
-  int lo = 1;
-  int hi = celt_allocation_vector_count - 1;
-  for (; lo <= hi;) {
-    bool done = false;
-    int psum = 0;
-    const int mid = (lo + hi) >> 1;
-    for (int band = end; band-- > start;) {
-      const int value = vector_bits(mid, band, true);
-      if (value >= thresh[band] || done) {
-        done = true;
-        psum += std::min(value, cap[band]);
-      } else if (value >= C << 3) {
-        psum += C << 3;
-      }
-    }
-    if (psum > total)
-      hi = mid - 1;
-    else
-      lo = mid + 1;
-  }
-  hi = lo--;
-  for (int band = start; band < end; ++band)
-    bits1_out[band] = vector_bits(lo, band, lo > 0);
-}
-
-static double estimate_trim_distortion(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int alloc_trim) {
-  const auto* eBands = celt_mode()->eBands;
-  std::array<int, celt_default_nb_ebands> bits1{};
-  allocation_prototype_bits(offsets, cap, start, end, LM, C, total, alloc_trim, bits1.data());
-  double distortion = 0.0;
-  for (int c = 0; c < C; ++c) {
-    for (int b = start; b < end; ++b) {
-      const int width_full = (eBands[b + 1] - eBands[b]) << LM;
-      const double depth = std::max(0.0, static_cast<double>(bandLogE[c * celt_default_nb_ebands + b]) - static_cast<double>(celt_noise_floor_base[b]));
-      const double weight = 1.0 - std::exp2(-depth);
-      const auto* cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + b];
-      const int pulses = bits1[b] > 0 ? celt_bits2pulses_search(cache, bits1[b]) : 0;
-      const double shape_distortion = static_cast<double>(width_full) / (width_full + 2.0 * pulses);
-      distortion += weight * shape_distortion;
-    }
-  }
-  return distortion;
-}
-
-static int rdo_alloc_trim(const celt_glog* bandLogE, const int* offsets, const int* cap, int start, int end, int LM, int C, opus_int32 total, int fallback) {
-  int best = fallback;
-  double best_distortion = estimate_trim_distortion(bandLogE, offsets, cap, start, end, LM, C, total, fallback);
-  for (int t = 0; t <= 10; ++t) {
-    const double distortion = estimate_trim_distortion(bandLogE, offsets, cap, start, end, LM, C, total, t);
-    if (distortion < best_distortion) {
-      best_distortion = distortion;
-      best = t;
-    }
-  }
-  return best;
 }
 
 static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
