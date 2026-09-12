@@ -5905,7 +5905,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
   std::array<std::array<int, celt_default_nb_ebands>, 6> band_workspace;
   auto& [offsets, tf_res, cap, fine_quant, pulses, fine_priority] = band_workspace;
-  std::array<int, celt_default_nb_ebands> importance;
+  std::array<int, celt_default_nb_ebands> importance{};
 
   {
     tell = enc == nullptr ? 1 : ec_tell(enc);
@@ -6116,7 +6116,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
-  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
+  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage{};
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                   0, st->complexity, st->bitrate);
@@ -9023,7 +9023,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const int N0 = celt_udiv(N, B);
     return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
   }
-  std::array<int, celt_max_band_samples> iy;
+  std::array<int, celt_max_band_samples> iy{};
   const auto quant = op_pvq_search_c(X, K, N, B, iy.data());
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   if (resynth) {
@@ -9175,7 +9175,7 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
     }
   }
   if (generates_cng) {
-    opus_int32 CNG_sig_Q14[silk_max_frame_length + 16];
+    opus_int32 CNG_sig_Q14[silk_max_frame_length + 16]{};
     opus_int32 gain_Q16 = multiply_q16(psDec->sPLC.randScale_Q14, psDec->sPLC.prevGain_Q16[1]);
     if (gain_Q16 >= (1 << 21) || psCNG->CNG_smth_Gain_Q16 > (1 << 23)) {
       const auto gain = gain_Q16 >> 16;
@@ -10806,7 +10806,7 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
 template <bool Delayed>
 static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
   int lag = NSQ->lagPrev;
-  std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage;
+  std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage{};
   auto delayed_states = std::span{psDelDec_storage}.first(static_cast<std::size_t>(psEncC->nStatesDelayedDecision));
   auto* psDelDec = delayed_states.data();
   if constexpr (Delayed) {
@@ -11031,8 +11031,8 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   opus_int16 A_Q12[16];
   silk_PLC_struct* psPLC = &psDec->sPLC;
   const opus_int32 prevGain_Q10[2]{((psPLC->prevGain_Q16[0]) >> (6)), ((psPLC->prevGain_Q16[1]) >> (6))};
-  std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14;
-  std::array<opus_int16, silk_max_ltp_mem_length> sLTP;
+  std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14{};
+  std::array<opus_int16, silk_max_ltp_mem_length> sLTP{};
   if (psDec->first_frame_after_reset) {
     zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
   }
