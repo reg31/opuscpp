@@ -4953,7 +4953,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> metric{};
   std::array<int, celt_default_nb_ebands> path0{}, path1{};
-  std::array<celt_norm, celt_max_frame_samples> tmp{}, tmp_1{};
+  std::array<celt_norm, celt_max_frame_samples> tmp, tmp_1;
   int selcost[2];
   int tf_select = 0;
   for (int i = 0; i < len; i++) {
@@ -5610,7 +5610,7 @@ struct celt_input_metrics {
       6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4,
       4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3,
       3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
-  std::array<float, celt_max_frame_samples + celt_default_overlap> tmp{};
+  std::array<float, celt_max_frame_samples + celt_default_overlap> tmp;
   int is_transient = 0;
   opus_int32 mask_metric = 0;
   const int len2 = len / 2;
