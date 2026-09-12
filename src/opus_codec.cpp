@@ -2782,7 +2782,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const opus_int32 channel_equiv_rate =
         compute_equiv_rate(st->bitrate_bps, st->channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity);
     opus_int32 stereo_threshold = quality_bandwidth_threshold(voice_weight, stereo_music_threshold, stereo_voice_threshold);
-    if (analysis.stereo_width < .015f && channel_equiv_rate < 32000) {
+    if (st->application == OPUS_APPLICATION_AUDIO && st->bitrate_bps >= 24000) {
+      st->stream_channels = 2;
+    } else if (analysis.stereo_width < .015f && channel_equiv_rate < 32000) {
       st->stream_channels = 1;
     } else {
       stereo_threshold += st->stream_channels == 2 ? -1000 : 1000;
