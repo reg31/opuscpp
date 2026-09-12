@@ -700,7 +700,7 @@ struct silk_EncControlStruct {
   opus_int32 nChannelsAPI, nChannelsInternal, API_sampleRate, maxInternalSampleRate, minInternalSampleRate, desiredInternalSampleRate,
       bitRate, internalSampleRate;
   int payloadSize_ms, packetLossPercentage, complexity, useInBandFEC, LBRR_coded, useCBR, maxBits, toMono, opusCanSwitch,
-      allowBandwidthSwitch, inWBmodeWithoutVariableLP, stereoWidth_Q14, switchReady, signalType, offset, preserveStereo;
+      allowBandwidthSwitch, inWBmodeWithoutVariableLP, stereoWidth_Q14, switchReady, signalType, offset, preserveStereo, packet_cbr;
 };
 
 struct silk_DecControlStruct {
@@ -3161,6 +3161,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       st->silk_mode.desiredInternalSampleRate = std::min(st->silk_mode.desiredInternalSampleRate, st->silk_mode.maxInternalSampleRate);
     }
     st->silk_mode.useCBR = !st->use_vbr;
+    st->silk_mode.packet_cbr = !st->use_vbr;
     st->silk_mode.maxBits = (max_data_bytes - 1) * 8;
     if (redundancy && redundancy_bytes >= 2) {
       st->silk_mode.maxBits -= redundancy_bytes * 8 + 1;
@@ -10024,7 +10025,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           std::max<opus_int32>(0, encControl->bitRate * encControl->payloadSize_ms / 1000 - lbrr_bits) / state0.nFramesPerPacket;
       opus_int32 TargetRate_bps = frameBits * (encControl->payloadSize_ms == 10 ? 100 : 50) - 2 * psEnc->nBitsExceeded;
       if (!prefillFlag && state0.nFramesEncoded > 0) {
-        const opus_int32 bitsBalance = ec_tell(psRangeEnc) - frameBits * state0.nFramesEncoded;
+        const opus_int32 bitsBalance = ec_tell(psRangeEnc) - lbrr_bits - frameBits * state0.nFramesEncoded;
         TargetRate_bps -= 2 * bitsBalance;
       }
       TargetRate_bps = clamp_value(TargetRate_bps, std::min(5000, encControl->bitRate), std::max(5000, encControl->bitRate));
@@ -10063,6 +10064,19 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
                      psEnc->sStereo.sMid.data());
       }
       silk_encode_do_VAD(&state_Fxx[0].sCmn);
+      bool side_worth_protecting = false;
+      if (!prefillFlag && psEnc->lbrr != nullptr && psEnc->lbrr->channels[1].enabled && encControl->nChannelsInternal == 2 &&
+          psEnc->sStereo.mid_only_flags[static_cast<std::size_t>(state0.nFramesEncoded)] == 0) {
+        opus_int64 mid_energy = 0, side_energy = 0;
+        for (int i = 0; i < state0.frame_length; ++i) {
+          const opus_int32 mid_sample = state_Fxx[0].sCmn.inputBuf[i + 1];
+          const opus_int32 side_sample = state_Fxx[1].sCmn.inputBuf[i + 1];
+          mid_energy += static_cast<opus_int64>(mid_sample) * mid_sample;
+          side_energy += static_cast<opus_int64>(side_sample) * side_sample;
+        }
+        side_worth_protecting = side_energy * 8 > mid_energy;
+      }
+      const int packet_frame_index = state0.nFramesEncoded;
       for (int n = 0; n < encControl->nChannelsInternal; ++n) {
         int maxBits = encControl->maxBits;
         if (tot_blocks == 2 && curr_block == 0) {
@@ -10085,8 +10099,16 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           }
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
           auto* lbrr = psEnc->lbrr == nullptr ? nullptr : &psEnc->lbrr->channels[static_cast<std::size_t>(n)];
-          const int lbrr_gain_reduction = state_Fxx[n].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 || useCBR ? 2 : 0);
-          silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction, n == 0);
+          const bool side_coded = encControl->nChannelsInternal == 2 &&
+                                  psEnc->sStereo.mid_only_flags[static_cast<std::size_t>(packet_frame_index)] == 0;
+          const int lbrr_gain_reduction =
+              state_Fxx[n].sCmn.nb_subfr == 2
+                  ? 1
+                  : (encControl->nChannelsInternal == 1
+                         ? 2
+                         : (side_coded && n == 0 && !encControl->packet_cbr ? 0 : (encControl->packet_cbr ? 2 : 0)));
+          silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction,
+                                n == 0 || (n == 1 && side_worth_protecting));
           if (side_residual_fast_path) {
             silk_setup_complexity(&state_Fxx[n].sCmn, saved_complexity);
           }
@@ -10097,7 +10119,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       psEnc->prev_decode_only_middle = psEnc->sStereo.mid_only_flags[state0.nFramesEncoded - 1];
       if (*nBytesOut > 0 && state0.nFramesEncoded == state0.nFramesPerPacket) {
         int flags = 0;
-        for (int n = 0; n < encControl->nChannelsInternal; ++n) {
+      for (int n = 0; n < encControl->nChannelsInternal; ++n) {
           for (int i = 0; i < state_Fxx[n].sCmn.nFramesPerPacket; ++i) {
             flags = wrap_shift_left(flags, 1);
             flags |= state_Fxx[n].sCmn.VAD_flags[i];
