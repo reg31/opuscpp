@@ -9188,8 +9188,7 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
       gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(gain_Q16), 8);
     }
     const opus_int32 gain_Q10 = ((gain_Q16) >> (6));
-    int exc_mask = 255;
-    for (; exc_mask > length; exc_mask >>= 1) {}
+  const int exc_mask = static_cast<int>(std::min(255u, std::bit_floor(static_cast<unsigned>(length) + 1U) - 1U));
     for (int i = 0; i < length; ++i) {
       psCNG->rand_seed = silk_next_rand_seed(psCNG->rand_seed);
       CNG_sig_Q14[16 + i] = psCNG->CNG_exc_buf_Q14[(psCNG->rand_seed >> 24) & exc_mask];
