@@ -10119,7 +10119,7 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       psEnc->prev_decode_only_middle = psEnc->sStereo.mid_only_flags[state0.nFramesEncoded - 1];
       if (*nBytesOut > 0 && state0.nFramesEncoded == state0.nFramesPerPacket) {
         int flags = 0;
-      for (int n = 0; n < encControl->nChannelsInternal; ++n) {
+        for (int n = 0; n < encControl->nChannelsInternal; ++n) {
           for (int i = 0; i < state_Fxx[n].sCmn.nFramesPerPacket; ++i) {
             flags = wrap_shift_left(flags, 1);
             flags |= state_Fxx[n].sCmn.VAD_flags[i];
