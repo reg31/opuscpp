@@ -113,7 +113,7 @@ official PESQ/ViSQOL tooling or listening tests.
 | 32&nbsp;kbps | 1.338x | 1.403x | +0.3234 | +0.0848 | 32.000 kbps | 33.613 kbps |
 | 48&nbsp;kbps | 1.281x | 1.331x | +0.1185 | +0.0144 | 48.000 kbps | 48.560 kbps |
 | 64&nbsp;kbps | 1.275x | 1.294x | +0.0209 | +0.0057 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.506x | 1.218x | +0.0876 | +0.0108 | 96.000 kbps | 96.697 kbps |
+| 96&nbsp;kbps | 1.506x | 1.218x | +0.0920 | +0.0109 | 96.000 kbps | 96.697 kbps |
 | 128&nbsp;kbps | 1.412x | 1.207x | +0.1909 | +0.0043 | 128.000 kbps | 128.759 kbps |
 | 192&nbsp;kbps | 1.288x | 1.230x | +0.0761 | +0.0029 | 192.000 kbps | 192.900 kbps |
 | 256&nbsp;kbps | 1.242x | 1.221x | +0.0407 | +0.0016 | 256.000 kbps | 256.737 kbps |

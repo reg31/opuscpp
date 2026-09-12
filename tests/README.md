@@ -294,7 +294,7 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | 32&nbsp;kbps | +0.3234 | +0.0848 | -0.5336 | 32.000 kbps | 33.613 kbps |
 | 48&nbsp;kbps | +0.1185 | +0.0144 | -0.6939 | 48.000 kbps | 48.560 kbps |
 | 64&nbsp;kbps | +0.0209 | +0.0057 | -0.9902 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | +0.0876 | +0.0108 | -0.4040 | 96.000 kbps | 96.697 kbps |
+| 96&nbsp;kbps | +0.0920 | +0.0109 | -0.4191 | 96.000 kbps | 96.697 kbps |
 | 128&nbsp;kbps | +0.1909 | +0.0043 | -0.2873 | 128.000 kbps | 128.759 kbps |
 | 192&nbsp;kbps | +0.0761 | +0.0029 | -0.1753 | 192.000 kbps | 192.900 kbps |
 | 256&nbsp;kbps | +0.0407 | +0.0016 | -0.0831 | 256.000 kbps | 256.737 kbps |
