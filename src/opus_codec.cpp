@@ -2986,7 +2986,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   bool denoise_handled = false;
   if (st->application == OPUS_APPLICATION_VOIP) {
     if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-      dc_reject(pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
+      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else {
       const int hp_freq_smth1 = st->mode == opus_mode_celt_only
                                     ? silk_log_60_q15
@@ -3053,7 +3053,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     if (bypass_music_hp) {
       copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
-      dc_reject(pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, st->channels, st->Fs);
+      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else {
       copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
       if (st->channels == 1 && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
