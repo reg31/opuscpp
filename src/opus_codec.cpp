@@ -4549,7 +4549,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   int B, M, lowband_offset;
   int update_lowband = 1;
   int C = Y_ != nullptr ? 2 : 1;
-  const int theta_rdo = encode && Y_ != nullptr && !dual_stereo && complexity >= 8 && !(C == 2 && bitrate >= 80000 && bitrate < 112000);
+  const int theta_rdo = encode && Y_ != nullptr && !dual_stereo && complexity >= 8;
   const int resynth = !encode || theta_rdo;
   struct band_ctx ctx;
   M = 1 << LM;
