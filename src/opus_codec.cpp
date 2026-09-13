@@ -3033,7 +3033,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   if (st->application == OPUS_APPLICATION_VOIP) {
     bool run_hp;
 #if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-    run_hp = force_hp == 0 ? false : force_hp == 1 ? true : st->preprocess_filter_state != preprocess_filter_quiet_voice;
+    run_hp = force_hp == 0 ? false : force_hp == 1 ? true
+                                                   : st->preprocess_filter_state != preprocess_filter_quiet_voice;
 #else
     run_hp = st->preprocess_filter_state != preprocess_filter_quiet_voice;
 #endif
@@ -3155,7 +3156,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       } else if (force_blend == 1) {
         low_band_keep = st->bitrate_bps <= 16000
                             ? (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f : voip_mid_diff_voice_low_band_keep)
-                            : st->bitrate_bps <= 64000 ? .30f : low_band_keep;
+                        : st->bitrate_bps <= 64000 ? .30f
+                                                   : low_band_keep;
       }
 #endif
       if (low_band_keep > 0) {
@@ -6184,9 +6186,11 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
     if (std::getenv("OPUSCPP_BANDLOGE") != nullptr) {
       std::fprintf(stderr, "bandloge:");
-      for (int bi = 0; bi < end; ++bi) std::fprintf(stderr, " %.2f", bandLogE[bi]);
+      for (int bi = 0; bi < end; ++bi)
+        std::fprintf(stderr, " %.2f", bandLogE[bi]);
       std::fprintf(stderr, " c2:");
-      for (int bi = 0; bi < end; ++bi) std::fprintf(stderr, " %.2f", bandLogE[nbEBands + bi]);
+      for (int bi = 0; bi < end; ++bi)
+        std::fprintf(stderr, " %.2f", bandLogE[nbEBands + bi]);
       std::fprintf(stderr, "\n");
     }
     temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
