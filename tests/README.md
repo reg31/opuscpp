@@ -88,6 +88,14 @@ python3 tests/generate_synthetic_wav.py --out tests/generated_audio
 
 The generated files are ignored by git.
 
+The mono "voice-like" fixture is a voiced formant synthesis: a glottal impulse train with an
+accumulated-phase pitch contour (so the instantaneous pitch stays near the intended 120-140 Hz
+range) shaped by three formant resonators, then gated by a syllable-rate envelope with breath
+noise mixed at a controlled 30 dB SNR. It is a deterministic stress fixture, not recorded speech;
+use a real 48 kHz mono WAV when a speech-representative check is needed. The earlier
+phase-modulated two-tone fixture is still generated as `synthetic_tonal_stress_mono.wav` for
+historical comparison.
+
 ## Optional WER validation for speech-to-text
 
 No WER/CER or external ASR endpoint was run for the published benchmark refresh.
@@ -237,6 +245,20 @@ recovery across both codecs, three applications, mono/stereo, and float/PCM16; t
 Spectral scores now compare each channel independently, with negative controls for stereo collapse
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
+
+`--identity` scores its input against `--reference` without running either codec. Combined with the
+encoder preprocess dump (build the codec object with `-DOPUSCPP_ENABLE_PREPROCESS_DUMP`, which also
+enables `OPUSCPP_DUMP_PREPROCESS=path` and `OPUSCPP_BYPASS_PREPROCESS=1`),
+`tests/scripts/preprocessing_decomposition.py` compares the production path against the same codec
+with its custom input conditioning disabled, on one reference. That total-vs-bypass difference is a
+causal measure of the conditioning; the `preprocessed`-relative numbers it also prints are
+descriptive only and are not additive or comparable to another codec's totals. The same build also
+honors `OPUSCPP_PRE_HP`, `OPUSCPP_PRE_BLEND`, `OPUSCPP_PRE_GAIN` (`0`/`1`) and `OPUSCPP_PRE_QUIETLATCH`
+to force individual conditioning stages per stream, and `OPUSCPP_LOG_PREPROCESS=1` to trace mode,
+quiet-voice state and HP cutoff per frame. `OPUSCPP_PRE_ADAPTIVE=1` enables the experimental
+detector-driven conditioning (rumble- and DC-gated stages with maintained filter state and smooth
+transitions), `OPUSCPP_PRE_DC_UNCOND=1` forces unconditional DC rejection, and
+`OPUSCPP_PRE_KEEP_MODE=1` retains the production quiet-voice mode coupling under the adaptive path.
 
 The speed table uses the current production source at complexity 10; memory and binary size are the current tracked snapshots. The AUDIO and VOIP quality tables use fresh direct comparisons against official Opus; optional-processing and broader-corpus results retain their explicitly stated scope.
 Default output, optional processing and their input references remain separate comparisons.

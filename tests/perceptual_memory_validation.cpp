@@ -72,6 +72,7 @@ struct options final {
   bool current_voice_denoise = false;
   bool memory_only = false;
   bool pcm16 = false;
+  bool identity = false;
   bool skip_memory = false;
 };
 
@@ -620,6 +621,15 @@ void add_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const
 
 [[nodiscard]] auto run_variant(std::string name, const clip_data& clip, std::span<const std::int16_t> reference,
                                const options& opt, bool official) -> result {
+  if (opt.identity) {
+    auto decoded = std::vector<float>(clip.samples.size());
+    std::ranges::transform(clip.samples, decoded.begin(), [](std::int16_t sample) {
+      return static_cast<float>(sample) / 32768.0f;
+    });
+    auto score = totals{};
+    add_metrics(score, reference, decoded, clip.channels);
+    return {.name = std::move(name), .score = score, .decoded = std::move(decoded)};
+  }
   const int bitrate = official && opt.official_bitrate > 0 ? opt.official_bitrate : opt.bitrate;
   auto encoder = official ? make_official_encoder(clip.channels, bitrate, opt.application, opt.complexity)
                           : make_current_encoder(clip.channels, opt.bitrate, opt.application, opt.current_voice_denoise, opt.complexity);
@@ -921,6 +931,8 @@ void run_memory(const options& opt) {
       opt.memory_only = true;
     else if (arg == "--pcm16")
       opt.pcm16 = true;
+    else if (arg == "--identity")
+      opt.identity = true;
     else if (arg == "--current-voice-denoise")
       opt.current_voice_denoise = true;
     else if (arg == "--skip-memory")

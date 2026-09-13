@@ -25,7 +25,75 @@ def write_wav(path: pathlib.Path, channels: int, samples: list[int]) -> None:
         w.writeframes(struct.pack("<" + "h" * len(samples), *samples))
 
 
-def synth_voice_like(seconds: float, channels: int) -> list[int]:
+def synth_voice_like(seconds: float, channels: int, breath_snr_db: float = 30.0) -> list[int]:
+    frames = int(seconds * SAMPLE_RATE)
+    out: list[int] = []
+    rng = random.Random(1)
+
+    # Voiced source: a glottal impulse train shaped by three formant resonators,
+    # then radiated (first difference) and gated by a syllable-rate envelope.
+    # The pitch phase is accumulated from the instantaneous frequency, so the
+    # realized pitch stays near the intended range instead of chirping far
+    # outside it (as sin(2*pi*f0(t)*t) does when f0 varies with time).
+    formants = ((700.0, 80.0), (1220.0, 90.0), (2600.0, 130.0))
+    resonators: list[tuple[float, float, float]] = []
+    for freq, bandwidth in formants:
+        radius = math.exp(-math.pi * bandwidth / SAMPLE_RATE)
+        angle = 2.0 * math.pi * freq / SAMPLE_RATE
+        resonators.append((2.0 * radius * math.cos(angle), -radius * radius, 1.0 - radius))
+    states = [[0.0, 0.0] for _ in resonators]
+
+    phase = 0.0
+    radiated_previous = 0.0
+    voiced: list[float] = []
+    for i in range(frames):
+        t = i / SAMPLE_RATE
+        f0 = 120.0 + 18.0 * math.sin(2.0 * math.pi * 1.3 * t) + 4.0 * math.sin(2.0 * math.pi * 0.37 * t)
+        phase += f0 / SAMPLE_RATE
+        excitation = 0.0
+        if phase >= 1.0:
+            phase -= 1.0
+            excitation = 1.0
+        value = excitation
+        for index, (a1, a2, gain) in enumerate(resonators):
+            state = states[index]
+            value = gain * value + a1 * state[0] + a2 * state[1]
+            state[1] = state[0]
+            state[0] = value
+        radiated = value - radiated_previous
+        radiated_previous = value
+        envelope = 0.25 + 0.75 * max(0.0, math.sin(2.0 * math.pi * 2.6 * t)) ** 0.7
+        voiced.append(envelope * radiated)
+
+    # The formant path is very low in absolute level, so normalize the voiced
+    # component on its own before adding breath at a controlled SNR. Mixing the
+    # raw components would leave the fixture dominated by the breath noise.
+    voiced_rms = math.sqrt(sum(value * value for value in voiced) / len(voiced)) or 1.0
+    voiced = [value / voiced_rms for value in voiced]
+
+    breath = 0.0
+    noise: list[float] = []
+    for _ in range(frames):
+        breath = 0.85 * breath + 0.15 * (rng.random() * 2.0 - 1.0)
+        noise.append(breath)
+    noise_rms = math.sqrt(sum(value * value for value in noise) / len(noise)) or 1.0
+    noise_scale = 10.0 ** (-breath_snr_db / 20.0) / noise_rms
+
+    mixed = [value + noise_scale * tone for value, tone in zip(voiced, noise)]
+    peak = max(abs(value) for value in mixed) or 1.0
+    scale = 21000.0 / peak
+    for value in mixed:
+        sample = max(-32768, min(32767, round(value * scale)))
+        for c in range(channels):
+            out.append(sample if channels == 1 else round(sample * (0.95 if c == 0 else 0.80)))
+    return out
+
+
+def synth_tonal_stress(seconds: float, channels: int) -> list[int]:
+    # The historical synthetic voice fixture, retained as a tonal stress case.
+    # Its phase is sin(2*pi*f0(t)*t) rather than an accumulated phase, so the
+    # instantaneous frequency sweeps far outside the nominal 120 Hz (and
+    # reverses), which is exactly the stress behavior it is kept for.
     frames = int(seconds * SAMPLE_RATE)
     out: list[int] = []
     rng = random.Random(1)
@@ -74,6 +142,7 @@ def main() -> int:
     voice = synth_voice_like(args.seconds, 1)
     write_wav(out / "synthetic_voice_like_mono.wav", 1, voice)
     write_wav(out / "synthetic_voice_like_mono_noisy.wav", 1, add_white_noise(voice, 6.0))
+    write_wav(out / "synthetic_tonal_stress_mono.wav", 1, synth_tonal_stress(args.seconds, 1))
     write_wav(out / "synthetic_music_like_stereo.wav", 2, synth_music_like(args.seconds, 2))
     print(f"wrote synthetic WAVs under {out}")
     return 0
