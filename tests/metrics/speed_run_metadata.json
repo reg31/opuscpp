@@ -1,10 +1,11 @@
 {
-  "source_sha256": "dd9d422db519139e99525448d8bf94e43b4bf0a6ed80e02a754b9db45b31adf6",
-  "binary_source_sha256": "dd9d422db519139e99525448d8bf94e43b4bf0a6ed80e02a754b9db45b31adf6",
-  "semantic_tokens_equal": true,
-  "object_sha256": "fca0ec43884d42e5ada3fda37ba2fd8af138c7146f1b465d05c195a5877c7df9",
+  "source_sha256": "b7abdaf5fa6fd629fa1a67a2e8172dacf3248f0937cb5efa6e9dea54cc49f5b9",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "object_sha256": "29198d7c74491877c8c9a5cc81f45e5e27e4878da755ff9104d3d0dbbd64ea5f",
+  "binary_sha256": "1d5fcd52f68dc4d7a3b5a27e1db53817c26479befbc47d11d989037adbf5ee7d",
   "harness_sha256": "1731f5a5b098feb85fafda8b870054ac70265bf35317c4575039e3b5f49e075e",
-  "official_archive_sha256": "d6256d2b0d3c00be0e20161997510fde86ca923bb39eb4ba254e693561aa7537",
   "flags": "-O2 -DNDEBUG",
   "intrinsics": "official only",
   "application": "AUDIO",
@@ -18,11 +19,5 @@
   "decoder_packets": "same official packets for both decoders",
   "affinity_mask": 16,
   "priority": "above_normal",
-  "binary_sha256": "26ee10e951e1746821e012996069c259850c77193442b05204f42482b8cc5710",
-  "exit_code": 0,
-  "elapsed_seconds": 93.82835078239441,
-  "concurrent_jobs": "",
-  "changed_test_artifacts": [],
-  "isolated": true,
-  "accepted": true
+  "isolated": true
 }

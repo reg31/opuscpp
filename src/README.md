@@ -131,14 +131,10 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
-The denoiser fixes the tracked 15.5/20 kbps quality failures and passes the
-25-rate boundary gate. After an exact-output filter-pass reuse optimization, encode overhead is
-4.4% to 26.1% versus denoising off on the tracked noisy recording. This is end-to-end cost:
-denoising also changes SILK's subsequent coding workload, not just preprocessing time.
-The optional state remains 68 bytes; a 7.5 KiB temporary stack cache avoids repeating the filter pass
-for frames of up to 960 samples. Longer frames use the original recomputation path.
-The wider comparison has no new quality regressions versus the previous denoiser, but retains
-small pre-existing losses versus bypass on other voice/noise cases. See the
+The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
+5.4% to 23.2% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
+The optional state is 68 bytes, with a 7.5 KiB temporary stack cache for frames of up to 960 samples.
+Broader on/off tests still contain quality losses: this is not a universal improvement. See the
 [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 
 ## In-band FEC
@@ -167,8 +163,8 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
 quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in all 18 scenarios. Its combined reconstruction error is 52.8% lower, it supplies
-recoverable backup audio in all 18 scenarios compared with 15 for official Opus, and it uses 0.4%
+more accurately in all 18 scenarios. Its combined reconstruction error is 53.2% lower, it supplies
+recoverable backup audio in all 18 scenarios compared with 15 for official Opus, and it uses 0.3%
 fewer packet bytes.
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
