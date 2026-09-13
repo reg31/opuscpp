@@ -16,9 +16,6 @@
 #include <memory>
 #include <span>
 #include <type_traits>
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-#include <chrono>
-#endif
 
 using opus_int8 = std::int8_t;
 using opus_uint8 = std::uint8_t;
@@ -1758,12 +1755,6 @@ struct OpusEncoder {
   int preprocess_filter_state;
   StereoWidthState width_mem;
   opus_val32 peak_signal_energy;
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  opus_res pre_lf_state, pre_hp_mix, pre_dc_mix;
-  int pre_rumble_frames, pre_clear_frames, pre_rumble;
-  int pre_dc_frames, pre_dc_clear, pre_dc;
-  std::uint64_t pre_ns_total, pre_calls;
-#endif
   opus_uint32 rangeFinal;
   int nb_no_activity_ms_Q1;
   opus_val32 dtx_smoothed_energy;
@@ -1898,19 +1889,6 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   st->bandwidth = 1105;
   st->audio_preprocess_mode = audio_preprocess_music;
   st->audio_preprocess_hold = audio_preprocess_warmup_frames;
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  st->pre_lf_state = 0.0f;
-  st->pre_hp_mix = 1.0f;
-  st->pre_dc_mix = 1.0f;
-  st->pre_rumble_frames = 0;
-  st->pre_clear_frames = 0;
-  st->pre_rumble = 1;
-  st->pre_dc_frames = 0;
-  st->pre_dc_clear = 0;
-  st->pre_dc = 1;
-  st->pre_ns_total = 0;
-  st->pre_calls = 0;
-#endif
 }
 
 static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channels) {
@@ -2771,14 +2749,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   }
   const bool early_quiet_voice_probe = st->bitrate_bps == 64000;
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  static const bool disable_quiet_latch = std::getenv("OPUSCPP_PRE_QUIETLATCH") != nullptr;
-  static const bool adaptive_mode_isolation = std::getenv("OPUSCPP_PRE_ADAPTIVE") != nullptr && std::getenv("OPUSCPP_PRE_KEEP_MODE") == nullptr;
-#else
-  constexpr bool disable_quiet_latch = false;
-  constexpr bool adaptive_mode_isolation = false;
-#endif
-  if (!disable_quiet_latch && voip_style && st->channels == 1 && st->preprocess_filter_state == 0 &&
+  if (voip_style && st->channels == 1 && st->preprocess_filter_state == 0 &&
       st->lightweight_analysis_frames >= (early_quiet_voice_probe ? 1 : audio_preprocess_warmup_frames)) {
     const auto quiet_energy = early_quiet_voice_probe ? .01f : quiet_voice_probe_energy;
     st->preprocess_filter_state = st->peak_signal_energy < quiet_energy ? preprocess_filter_quiet_voice : preprocess_filter_default;
@@ -2829,7 +2800,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps < 20000) {
     st->mode = opus_mode_celt_only;
   }
-  if (!adaptive_mode_isolation && voip_style && st->channels == 1 && st->bitrate_bps == 64000 && st->preprocess_filter_state == preprocess_filter_quiet_voice) {
+  if (voip_style && st->channels == 1 && st->bitrate_bps == 64000 && st->preprocess_filter_state == preprocess_filter_quiet_voice) {
     st->mode = opus_mode_silk_only;
   }
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
@@ -2997,50 +2968,8 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
 
 static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  static const bool time_preprocess = std::getenv("OPUSCPP_PRE_TIME") != nullptr;
-  const auto pre_t0 = time_preprocess ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-#endif
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  static const bool bypass_preprocess = std::getenv("OPUSCPP_BYPASS_PREPROCESS") != nullptr;
-  static const int force_hp = [] {
-    const char* value = std::getenv("OPUSCPP_PRE_HP");
-    return value == nullptr ? -1 : (value[0] == '0' ? 0 : 1);
-  }();
-  static const int force_blend = [] {
-    const char* value = std::getenv("OPUSCPP_PRE_BLEND");
-    return value == nullptr ? -1 : (value[0] == '0' ? 0 : 1);
-  }();
-  static const int force_gain = [] {
-    const char* value = std::getenv("OPUSCPP_PRE_GAIN");
-    return value == nullptr ? -1 : (value[0] == '0' ? 0 : 1);
-  }();
-  int debug_cutoff_hz = -1;
-  opus_res debug_dc_ratio = -1.0f;
-  if (bypass_preprocess) {
-    copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-    return false;
-  }
-#endif
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  static const bool adaptive_hp = std::getenv("OPUSCPP_PRE_ADAPTIVE") != nullptr;
-  static const bool dc_uncond = std::getenv("OPUSCPP_PRE_DC_UNCOND") != nullptr;
-#else
-  constexpr bool adaptive_hp = false;
-  constexpr bool dc_uncond = false;
-#endif
-  const bool adaptive_active = adaptive_hp && st->channels == 1 && frame_size <= celt_max_frame_samples;
   if (st->application == OPUS_APPLICATION_VOIP) {
-    bool run_hp;
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-    run_hp = force_hp == 0 ? false : force_hp == 1 ? true
-                                                   : st->preprocess_filter_state != preprocess_filter_quiet_voice;
-#else
-    run_hp = st->preprocess_filter_state != preprocess_filter_quiet_voice;
-#endif
-    if (adaptive_active) {
-      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-    } else if (!run_hp) {
+    if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
       copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     } else {
       const int hp_freq_smth1 = st->mode == opus_mode_celt_only
@@ -3048,95 +2977,9 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
                                     : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
       st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
       const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-      debug_cutoff_hz = cutoff_Hz;
-#endif
       hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
     }
     if (st->channels == 1) {
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-      opus_res dc_mix_start = 0.0f;
-      if (adaptive_active) {
-        const opus_res lf_coeff = 1.0f - std::exp(-6.2831853f * 120.0f / static_cast<opus_res>(st->Fs));
-        opus_val32 total_energy = 0.0f, lf_energy = 0.0f, sample_sum = 0.0f;
-        opus_res lf = st->pre_lf_state;
-        for (int index = 0; index < frame_size; ++index) {
-          const opus_res sample = pcm[index];
-          sample_sum += sample;
-          total_energy += sample * sample;
-          lf += lf_coeff * (sample - lf);
-          lf_energy += lf * lf;
-        }
-        st->pre_lf_state = lf;
-        const opus_res lf_ratio = total_energy > 1e-12f ? lf_energy / total_energy : 0.0f;
-        const bool rumble_evidence = frame_metrics.energy > 1e-5f && lf_ratio > 0.45f && frame_metrics.mono_zero_cross_rate < 0.015f;
-        const bool rumble_confident_clean = frame_metrics.energy > 1e-5f && lf_ratio < 0.35f;
-        if (rumble_evidence) {
-          ++st->pre_rumble_frames;
-          st->pre_clear_frames = 0;
-        } else if (rumble_confident_clean) {
-          ++st->pre_clear_frames;
-          st->pre_rumble_frames = 0;
-        } else {
-          st->pre_rumble_frames = 0;
-        }
-        if (!st->pre_rumble && st->pre_rumble_frames >= 4) {
-          st->pre_rumble = 1;
-        } else if (st->pre_rumble && st->pre_clear_frames >= 25) {
-          st->pre_rumble = 0;
-        }
-        const opus_res target = st->pre_rumble ? 1.0f : 0.0f;
-        const opus_res hp_mix_start = st->pre_hp_mix;
-        constexpr opus_res step = 0.25f;
-        if (st->pre_hp_mix < target) {
-          st->pre_hp_mix = std::min(target, st->pre_hp_mix + step);
-        } else if (st->pre_hp_mix > target) {
-          st->pre_hp_mix = std::max(target, st->pre_hp_mix - step);
-        }
-        const opus_res mean = sample_sum / static_cast<opus_res>(frame_size);
-        const opus_res rms = std::sqrt(total_energy / static_cast<opus_res>(frame_size));
-        const opus_res dc_ratio = rms > 1e-9f ? std::fabs(mean) / rms : 0.0f;
-        debug_dc_ratio = dc_ratio;
-        const bool dc_evidence = frame_metrics.energy > 1e-5f && dc_ratio > 0.55f;
-        const bool dc_confident_clean = frame_metrics.energy > 1e-5f && dc_ratio < 0.35f;
-        if (dc_evidence) {
-          ++st->pre_dc_frames;
-          st->pre_dc_clear = 0;
-        } else if (dc_confident_clean) {
-          ++st->pre_dc_clear;
-          st->pre_dc_frames = 0;
-        } else {
-          st->pre_dc_frames = 0;
-        }
-        if (!st->pre_dc && st->pre_dc_frames >= 4) {
-          st->pre_dc = 1;
-        } else if (st->pre_dc && st->pre_dc_clear >= 25) {
-          st->pre_dc = 0;
-        }
-        const opus_res dc_target = st->pre_dc ? 1.0f : 0.0f;
-        dc_mix_start = st->pre_dc_mix;
-        if (st->pre_dc_mix < dc_target) {
-          st->pre_dc_mix = std::min(dc_target, st->pre_dc_mix + step);
-        } else if (st->pre_dc_mix > dc_target) {
-          st->pre_dc_mix = std::max(dc_target, st->pre_dc_mix - step);
-        }
-        const int hp_freq_smth1 =
-            st->mode == opus_mode_celt_only ? silk_log_60_q15
-                                            : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
-        st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
-        const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
-        debug_cutoff_hz = cutoff_Hz;
-        hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
-        const opus_res hp_mix_end = st->pre_hp_mix;
-        if (hp_mix_start != 1.0f || hp_mix_end != 1.0f) {
-          for (int index = 0; index < frame_size; ++index) {
-            const opus_res mix =
-                hp_mix_start + (hp_mix_end - hp_mix_start) * static_cast<opus_res>(index + 1) / static_cast<opus_res>(frame_size);
-            frame_pcm[index] = pcm[index] + mix * (frame_pcm[index] - pcm[index]);
-          }
-        }
-      }
-#endif
       auto low_band_keep = opus_val16{0};
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
@@ -3150,36 +2993,9 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
           frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
         low_band_keep = voip_quiet_hissy_voice_low_band_keep;
       }
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-      if (force_blend == 0) {
-        low_band_keep = 0;
-      } else if (force_blend == 1) {
-        low_band_keep = st->bitrate_bps <= 16000
-                            ? (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f : voip_mid_diff_voice_low_band_keep)
-                        : st->bitrate_bps <= 64000 ? .30f
-                                                   : low_band_keep;
-      }
-#endif
       if (low_band_keep > 0) {
         blend_filtered_input(frame_pcm, pcm, frame_size, low_band_keep);
-      }
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-      if (adaptive_active && st->bitrate_bps > 16000) {
-        std::array<opus_res, celt_max_frame_samples> dc_scratch;
-        dc_reject(frame_pcm, dc_scratch.data(), st->audio_speech_hp_mem, frame_size, 1, st->Fs);
-        const opus_res dc_mix_end = st->pre_dc_mix;
-        if (dc_mix_start != 0.0f || dc_mix_end != 0.0f) {
-          for (int index = 0; index < frame_size; ++index) {
-            const opus_res mix =
-                dc_mix_start + (dc_mix_end - dc_mix_start) * static_cast<opus_res>(index + 1) / static_cast<opus_res>(frame_size);
-            frame_pcm[index] += mix * (dc_scratch[static_cast<std::size_t>(index)] - frame_pcm[index]);
-          }
-        }
-      } else
-#endif
-      {
-        const bool unconditional_dc = dc_uncond;
-        if (st->bitrate_bps > 16000 && (low_band_keep > 0 || unconditional_dc)) {
+        if (st->bitrate_bps > 16000) {
           dc_reject(frame_pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, 1, st->Fs);
         }
       }
@@ -3235,11 +3051,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   } else {
     dc_reject(pcm, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  const auto gain = force_gain == 0 ? opus_val16{1.0f} : encoder_error_balance_filter_for(st);
-#else
   const auto gain = encoder_error_balance_filter_for(st);
-#endif
   const bool final_audio_tilt = st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps >= 28000 &&
                                 st->bitrate_bps <= 40000 && st->lightweight_high_z_tonal_Q7 < 64;
   if (final_audio_tilt) {
@@ -3247,21 +3059,6 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   } else if (gain != 1.0f) {
     apply_previous_sample_tilt(frame_pcm, frame_size, st->channels, 0, gain);
   }
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  static const bool log_preprocess = std::getenv("OPUSCPP_LOG_PREPROCESS") != nullptr;
-  if (log_preprocess) {
-    std::fprintf(stderr, "[preprocess] app=%d mode=%d state=%d bitrate=%d cutoff=%d frames=%d peak=%.6f rumble=%d mix=%.3f dc=%d dmix=%.3f dcr=%.3f\n",
-                 st->application, st->mode, st->preprocess_filter_state, st->bitrate_bps, debug_cutoff_hz,
-                 st->lightweight_analysis_frames, static_cast<double>(st->peak_signal_energy), st->pre_rumble,
-                 static_cast<double>(st->pre_hp_mix), st->pre_dc, static_cast<double>(st->pre_dc_mix),
-                 static_cast<double>(debug_dc_ratio));
-  }
-  if (time_preprocess) {
-    st->pre_ns_total += static_cast<std::uint64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - pre_t0).count());
-    ++st->pre_calls;
-  }
-#endif
   return denoise_handled;
 }
 
@@ -3317,14 +3114,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   if (st->voice_denoise != nullptr && !denoise_handled) {
     apply_voice_denoise(st, frame_pcm.data(), frame_size, metrics);
   }
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  if (const char* dump_path = std::getenv("OPUSCPP_DUMP_PREPROCESS"); dump_path != nullptr) {
-    static FILE* dump_file = std::fopen(dump_path, "wb");
-    if (dump_file != nullptr) {
-      std::fwrite(frame_pcm.data(), sizeof(opus_res), static_cast<std::size_t>(frame_size) * st->channels, dump_file);
-    }
-  }
-#endif
   opus_val16 HB_gain = 1.0f;
   if (st->mode != opus_mode_celt_only) {
     voip_silk_boost = voip_mono_silk_budget_boost(st);
@@ -6184,15 +5973,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
     compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
     compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
-    if (std::getenv("OPUSCPP_BANDLOGE") != nullptr) {
-      std::fprintf(stderr, "bandloge:");
-      for (int bi = 0; bi < end; ++bi)
-        std::fprintf(stderr, " %.2f", bandLogE[bi]);
-      std::fprintf(stderr, " c2:");
-      for (int bi = 0; bi < end; ++bi)
-        std::fprintf(stderr, " %.2f", bandLogE[nbEBands + bi]);
-      std::fprintf(stderr, "\n");
-    }
     temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
     copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
     if (transient_enabled)
@@ -6223,21 +6003,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       bandLogE[index] -= 0.25f * energyError[index];
     }
   });
-  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> bandLogE_source{};
-  const bool energy_diff = std::getenv("OPUSCPP_ENERGY_DIFF") != nullptr;
-  if (energy_diff)
-    std::copy_n(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE_source.begin());
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                       &st->delayedIntra, st->complexity >= 4, st->loss_rate);
-  if (energy_diff) {
-    std::fprintf(stderr, "ediff_coarse:");
-    for (int c = 0; c < C; ++c)
-      for (int b = start; b < end; ++b) {
-        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
-        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
-      }
-    std::fprintf(stderr, "\n");
-  }
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
@@ -6349,15 +6116,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       static_cast<opus_uint8>(st->lastCodedBands ? clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
-  if (energy_diff) {
-    std::fprintf(stderr, "ediff_fine:");
-    for (int c = 0; c < C; ++c)
-      for (int b = start; b < end; ++b) {
-        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
-        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
-      }
-    std::fprintf(stderr, "\n");
-  }
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
@@ -6368,15 +6126,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   }
   process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
                                 enc, C);
-  if (energy_diff) {
-    std::fprintf(stderr, "ediff_final:");
-    for (int c = 0; c < C; ++c)
-      for (int b = start; b < end; ++b) {
-        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
-        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
-      }
-    std::fprintf(stderr, "\n");
-  }
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
@@ -14644,14 +14393,6 @@ OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* err
 }
 
 void opus_encoder_destroy(OpusEncoder* st) noexcept {
-#if defined(OPUSCPP_ENABLE_PREPROCESS_DUMP)
-  if (st != nullptr && st->pre_calls != 0 && std::getenv("OPUSCPP_PRE_TIME") != nullptr) {
-    const double total_ms = static_cast<double>(st->pre_ns_total) / 1e6;
-    std::fprintf(stderr, "[pre-time] calls=%llu total_ms=%.3f per_call_us=%.2f\n",
-                 static_cast<unsigned long long>(st->pre_calls), total_ms,
-                 1000.0 * total_ms / static_cast<double>(st->pre_calls));
-  }
-#endif
   release_encoder_silk_state(st);
   release_voice_denoise_state(st);
   std::free(st);
