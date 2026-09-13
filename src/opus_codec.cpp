@@ -4850,6 +4850,12 @@ static void init_caps(std::span<int> cap, int LM, int C) {
   return target;
 }
 
+#if defined(OPUSCPP_ENABLE_TEST_HOOKS)
+int opuscpp_test_hybrid_target(int base_target, int LM, int silk_offset, float tf_estimate) noexcept {
+  return celt_hybrid_target(base_target, LM, silk_offset, static_cast<opus_val16>(tf_estimate));
+}
+#endif
+
 [[nodiscard]] constexpr auto celt_anti_collapse_reserve(bool is_transient, int LM, opus_int32 bits) noexcept -> int {
   return is_transient && LM >= 2 && bits >= ((LM + 2) << 3) ? (1 << 3) : 0;
 }

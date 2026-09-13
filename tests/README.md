@@ -185,11 +185,22 @@ the RFC decode vectors:
 | Overflow-safe encoder frame and packet-duration validation | Passed |
 | Encoder lookahead and restricted-low-delay behavior | Passed |
 | VBR budget behavior | Passed |
+| Hybrid transient bit budget | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |
 | In-band FEC encode/decode interoperability vs official Opus | Passed |
 | LPC orders, CELT energy boundaries and guarded stereo-policy checks | Passed |
 | Trapping UBSan: API, long frames and 291,755 malformed packets | Passed |
+
+`hybrid_transient_budget.cpp` pins the hybrid CELT bit target's transient response: the
+`tf_estimate` term must move the target around the 0.25 pivot, and a strong transient
+(`tf_estimate > 0.7`) must clear the 50-bit floor while a weak one stays below it. The function under
+test is internal, so build with the test hook enabled:
+
+```sh
+c++ -std=c++23 -O2 -DNDEBUG -DOPUSCPP_ENABLE_TEST_HOOKS -I src \
+    tests/hybrid_transient_budget.cpp src/opus_codec.cpp -o build/hybrid_transient_budget
+```
 
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
