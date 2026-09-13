@@ -5237,25 +5237,6 @@ static celt_glog median_of_3(const celt_glog* x) {
   return high < x[2] ? high : (low < x[2] ? x[2] : low);
 }
 
-static inline void apply_tone_dynalloc_boost(celt_glog* follower, int start, int end, opus_val16 tone_freq, opus_val32 toneishness) noexcept {
-  if (toneishness <= (.98f)) {
-    return;
-  }
-  const auto* eBands = celt_mode()->eBands;
-  const int freq_bin = static_cast<int>(std::floor(.5 + tone_freq * 120 / 3.141592653));
-  constexpr std::array<celt_glog, 4> distance_boost{4.5f, 2.5f, 1.5f, .5f};
-  for (int i = start; i < end; ++i) {
-    const auto distance = std::max({eBands[i] - freq_bin, freq_bin - eBands[i + 1], 0});
-    if (distance < static_cast<int>(distance_boost.size())) {
-      follower[i] += distance_boost[static_cast<std::size_t>(distance)];
-    }
-  }
-  if (freq_bin >= eBands[end]) {
-    follower[end - 1] += (2.f);
-    follower[end - 2] += (1.f);
-  }
-}
-
 static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int start, int end, int LM, int effectiveBytes, opus_val32 toneishness) noexcept {
   const int low_rate_start = 30 + 5 * LM;
   if (start != 0 || end <= 1 || effectiveBytes < low_rate_start || effectiveBytes >= 160 || toneishness <= (.30f)) {
@@ -5282,7 +5263,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
   follower[1] += (.5f) * low_rate_lf_boost;
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val16 tone_freq, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0, int* importance = nullptr) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0, int* importance = nullptr) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -5375,7 +5356,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
-    // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
     apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
 #if defined(OPUSCPP_ENABLE_DEMAND_TRACE)
     if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
@@ -6061,7 +6041,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, tone_frequency, toneishness, true, freq, N, importance.data());
+                                 &tot_boost, toneishness, true, freq, N, importance.data());
   }
   auto* X = freq;
 
