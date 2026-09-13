@@ -1030,6 +1030,19 @@ static inline void decoder_apply_packet_state(OpusDecoder* st, int mode, int ban
   st->stream_channels = stream_channels;
 }
 
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+struct celt_diag_state {
+  std::array<unsigned char, celt_default_nb_ebands> recon{};
+  int decode_mode = -1;
+  int encode_mode = -1;
+  bool capture = false;
+};
+inline celt_diag_state& celt_diag() {
+  static celt_diag_state state;
+  return state;
+}
+#endif
+
 static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
   ec_dec dec;
   opus_int32 silk_frame_size;
@@ -1055,6 +1068,12 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
   const int mode = data != nullptr ? st->mode : st->prev_redundancy ? opus_mode_celt_only
                                                                     : st->prev_mode;
   const int bandwidth = data != nullptr ? st->bandwidth : 0;
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  celt_diag().decode_mode = mode;
+  if (std::getenv("OPUSCPP_RECON") != nullptr) {
+    std::fprintf(stderr, "decpacket: mode=%d bandwidth=%d C=%d\n", mode, bandwidth, st->channels);
+  }
+#endif
   if (data != nullptr) {
     ec_dec_init(&dec, const_cast<unsigned char*>(data), len);
   } else {
@@ -1170,9 +1189,15 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     if (mode != st->prev_mode && st->prev_mode > 0 && !st->prev_redundancy) {
       celt_decoder_reset_state(celt_dec);
     }
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+    celt_diag().capture = true;
+#endif
     celt_ret = mode != opus_mode_celt_only
                    ? celt_decode_then_add(celt_dec, decode_fec ? nullptr : data, len, pcm, celt_frame_size, &dec, st->channels)
                    : celt_decode_with_ec(celt_dec, decode_fec ? nullptr : data, len, pcm, celt_frame_size, &dec);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+    celt_diag().capture = false;
+#endif
     st->rangeFinal = celt_dec->rng;
   } else {
     constexpr unsigned char silence[2] = {0xFF, 0xFF};
@@ -1304,6 +1329,10 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
     return opus_decode_fast_unavailable;
   }
   decoder_apply_packet_state(st, opus_mode_celt_only, packet_bandwidth, packet_frame_size, packet_stream_channels);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  celt_diag().decode_mode = opus_mode_celt_only;
+  celt_diag().capture = true;
+#endif
   auto* celt_dec = decoder_celt_state(st);
   if (packet_bandwidth) {
     celt_dec->end = bandwidth_to_endband(packet_bandwidth);
@@ -1328,6 +1357,9 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
   st->prev_mode = opus_mode_celt_only;
   st->prev_redundancy = 0;
   st->last_packet_duration = nb_samples;
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  celt_diag().capture = false;
+#endif
   return nb_samples;
 }
 
@@ -3074,6 +3106,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
   auto* celt_enc = encoder_celt_state(st);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  celt_diag().encode_mode = st->mode;
+#endif
   opus_int32 voip_silk_boost = 0;
   auto refresh_redundancy = [&] {
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
@@ -4063,6 +4098,9 @@ struct band_ctx {
   const celt_ener* bandE;
   opus_uint32 seed;
   opus_int16* decode_pulse_scratch;
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  unsigned char* recon_code;
+#endif
 };
 
 struct split_ctx {
@@ -4303,6 +4341,11 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     }
     if (q != 0) {
       int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+      if (ctx->recon_code != nullptr) {
+        ctx->recon_code[ctx->i] |= 1u;
+      }
+#endif
       cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
     } else {
       int j;
@@ -4310,15 +4353,30 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
         const auto cm_mask = static_cast<unsigned>(1UL << B) - 1;
         fill &= cm_mask;
         if (!fill) {
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+          if (ctx->recon_code != nullptr) {
+            ctx->recon_code[ctx->i] |= 8u;
+          }
+#endif
           zero_n_items(X, static_cast<std::size_t>(N));
         } else {
           if (lowband == nullptr) {
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+            if (ctx->recon_code != nullptr) {
+              ctx->recon_code[ctx->i] |= 4u;
+            }
+#endif
             for (j = 0; j < N; j++) {
               ctx->seed = celt_lcg_rand(ctx->seed);
               X[j] = (static_cast<celt_norm>(static_cast<opus_int32>(ctx->seed) >> 20));
             }
             cm = cm_mask;
           } else {
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+            if (ctx->recon_code != nullptr) {
+              ctx->recon_code[ctx->i] |= 2u;
+            }
+#endif
             for (j = 0; j < N; j++) {
               ctx->seed = celt_lcg_rand(ctx->seed);
               opus_val16 tmp = (1.0f / 256);
@@ -4562,6 +4620,14 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.disable_inv = disable_inv;
   ctx.resynth = resynth;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  if (!encode) {
+    celt_diag().recon.fill(0);
+    ctx.recon_code = celt_diag().recon.data();
+  } else {
+    ctx.recon_code = nullptr;
+  }
+#endif
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
   const int process_end = encode ? std::min(end, codedBands) : end;
@@ -4769,7 +4835,7 @@ static void init_caps(std::span<int> cap, int LM, int C) {
   }
 }
 
-[[nodiscard]] constexpr auto celt_hybrid_target(opus_int32 base_target, int LM, int silk_offset) noexcept -> opus_int32 {
+[[nodiscard]] constexpr auto celt_hybrid_target(opus_int32 base_target, int LM, int silk_offset, opus_val16 tf_estimate) noexcept -> opus_int32 {
   auto target = base_target;
   if (silk_offset < 100) {
     target += 12 << 3 >> (3 - LM);
@@ -4777,7 +4843,11 @@ static void init_caps(std::span<int> cap, int LM, int C) {
   if (silk_offset > 100) {
     target -= 18 << 3 >> (3 - LM);
   }
-  return target - 100;
+  target += static_cast<opus_int32>((tf_estimate - 0.25f) * static_cast<opus_val16>(50 << 3));
+  if (tf_estimate > 0.7f) {
+    target = std::max(target, 50 << 3);
+  }
+  return target;
 }
 
 [[nodiscard]] constexpr auto celt_anti_collapse_reserve(bool is_transient, int LM, opus_int32 bits) noexcept -> int {
@@ -5301,12 +5371,14 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     }
     // apply_tone_dynalloc_boost(follower.data(), start, end, tone_freq, toneishness);
     apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
+#if defined(OPUSCPP_ENABLE_DEMAND_TRACE)
     if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
       std::fprintf(stderr, "demand_pre:");
       for (i = start; i < end; ++i)
         std::fprintf(stderr, " %.2f", follower[i]);
       std::fprintf(stderr, "\n");
     }
+#endif
     if (effectiveBytes > 320) {
       follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     }
@@ -5334,6 +5406,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         tot_boost += boost_bits;
       }
     }
+#if defined(OPUSCPP_ENABLE_DEMAND_TRACE)
     if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
       std::fprintf(stderr, "offsets:");
       for (i = start; i < end; ++i)
@@ -5341,6 +5414,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       std::fprintf(stderr, " tot_boost=%d effBytes=%d extra_depth=%d\n", static_cast<int>(tot_boost),
                    static_cast<int>(effectiveBytes), extra_depth ? 1 : 0);
     }
+#endif
   }
   *tot_boost_ = tot_boost;
   return maxDepth;
@@ -5972,6 +6046,9 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       isTransient = 0;
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
     compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
+    if (CC == 2 && C == 1) {
+      tf_chan = 0;
+    }
     compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
     temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
     copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
@@ -6003,8 +6080,25 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       bandLogE[index] -= 0.25f * energyError[index];
     }
   });
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> bandLogE_source{};
+  const bool energy_diff = std::getenv("OPUSCPP_ENERGY_DIFF") != nullptr;
+  if (energy_diff)
+    std::copy_n(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE_source.begin());
+#endif
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                       &st->delayedIntra, st->complexity >= 4, st->loss_rate);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  if (energy_diff) {
+    std::fprintf(stderr, "ediff_coarse:");
+    for (int c = 0; c < C; ++c)
+      for (int b = start; b < end; ++b) {
+        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
+        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
+      }
+    std::fprintf(stderr, "\n");
+  }
+#endif
   process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
@@ -6061,7 +6155,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (st->constrained_vbr) {
       base_target += (st->vbr_offset >> lm_diff);
     }
-    opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset)
+    opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset, tf_estimate)
                                : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
                                              st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
     if (!hybrid) {
@@ -6116,6 +6210,17 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       static_cast<opus_uint8>(st->lastCodedBands ? clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  if (energy_diff) {
+    std::fprintf(stderr, "ediff_fine:");
+    for (int c = 0; c < C; ++c)
+      for (int b = start; b < end; ++b) {
+        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
+        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
+      }
+    std::fprintf(stderr, "\n");
+  }
+#endif
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
@@ -6126,6 +6231,39 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   }
   process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
                                 enc, C);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  if (energy_diff) {
+    static unsigned long enc_frame = 0;
+    std::fprintf(stderr, "meta: frame=%lu mode=%d C=%d CC=%d tfchan=%d te=%d tr=%d spc=%d tfe=%.4f start=%d end=%d LM=%d cb=%d bytes=%d\n",
+                 enc_frame++, celt_diag().encode_mode, C, CC, tf_chan, transient_enabled, isTransient, st->stereo_policy_celt ? 1 : 0,
+                 static_cast<double>(tf_estimate), start, end, LM, codedBands, nbCompressedBytes);
+    std::fprintf(stderr, "codedbands: %d\n", codedBands);
+    std::fprintf(stderr, "ediff_final:");
+    for (int c = 0; c < C; ++c)
+      for (int b = start; b < end; ++b) {
+        const auto bi = static_cast<std::size_t>(c * nbEBands + b);
+        std::fprintf(stderr, " %.2f", oldBandE[bi] - bandLogE_source[bi]);
+      }
+    std::fprintf(stderr, "\n");
+    std::fprintf(stderr, "fineq:");
+    for (int b = start; b < end; ++b) {
+      std::fprintf(stderr, " %d", fine_quant[b]);
+    }
+    std::fprintf(stderr, "\n");
+    std::fprintf(stderr, "pulses:");
+    for (int b = start; b < end; ++b) {
+      std::fprintf(stderr, " %d", pulses[b]);
+    }
+    std::fprintf(stderr, "\n");
+    std::fprintf(stderr, "pwr:");
+    for (int c = 0; c < C; ++c)
+      for (int b = start; b < end; ++b) {
+        const auto energy = bandE[static_cast<std::size_t>(c * nbEBands + b)];
+        std::fprintf(stderr, " %.6g", static_cast<double>(energy) * static_cast<double>(energy));
+      }
+    std::fprintf(stderr, "\n");
+  }
+#endif
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
@@ -6649,6 +6787,17 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   quant_all_bands(0, start, end, spectrum.data(), C == 2 ? spectrum.data() + N : nullptr, collapse_masks.data(), nullptr, pulses.data(),
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
                   codedBands, &st->rng, st->channels == 1, 0);
+#if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
+  if (celt_diag().capture && std::getenv("OPUSCPP_RECON") != nullptr) {
+    static unsigned long recon_frame = 0;
+    std::fprintf(stderr, "recon: frame=%lu mode=%d C=%d start=%d end=%d LM=%d cb=%d codes=", recon_frame++, celt_diag().decode_mode, C, start,
+                 end, LM, codedBands);
+    for (int b = start; b < end; ++b) {
+      std::fprintf(stderr, " %x", static_cast<unsigned>(celt_diag().recon[static_cast<std::size_t>(b)]));
+    }
+    std::fprintf(stderr, "\n");
+  }
+#endif
   const int anti_collapse_on = anti_collapse_rsv > 0 ? ec_dec_bits(dec, 1) : 0;
   process_energy_finalise<false>(start, end, oldBandE, nullptr, fine_quant.data(), fine_priority.data(), len * 8 - ec_tell(dec), dec, C);
   if (anti_collapse_on) {
