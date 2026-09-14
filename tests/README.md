@@ -503,3 +503,16 @@ Decode ratios exceed 1x on both inputs. These use the existing 13.46-second Haze
 David PCM, with both codecs at complexity 10 and -O2 -DNDEBUG; no explicit affinity/priority pinning.
 See [transient checkpoint metadata](metrics/celt_transient_checkpoint.json) for exact source
 identities, complete timing rows and quality counts. Full metric parity remains unfinished.
+
+## SILK concealment-energy checkpoint
+
+PLC now truncates scaled excitation when comparing subframe energies, matching official Opus.
+Rounding those samples could select a different noise-history segment even when the decoder
+states and input excitation were identical. That divergence also affected FEC after a concealed
+prefix of a 40 ms packet. On the captured reproducer, both prefix concealment and FEC recovery
+now match official PCM exactly; previously recovered-frame NRMSE was 0.451981.
+
+`silk_plc_energy.cpp` is a direct regression: compile it as a standalone C++23 test. The previous
+implementation fails; the fix passes. All 5976 loss-free quality fields are unchanged. Strict FEC,
+all four source criteria, packet budgets and ordinary integration checks pass. See
+[concealment checkpoint metadata](metrics/silk_plc_energy_checkpoint.json).

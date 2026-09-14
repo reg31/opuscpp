@@ -11398,7 +11398,7 @@ static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy
   auto* exc_buf_ptr = exc_buf;
   for (k = 0; k < 2; k++) {
     for (i = 0; i < subfr_length; i++) {
-      exc_buf_ptr[i] = scale_and_saturate_q14<8>(exc_Q14[i + (k + nb_subfr - 2) * subfr_length], prevGain_Q10[k]);
+      exc_buf_ptr[i] = saturate_int16_from_int32(multiply_q16(exc_Q14[i + (k + nb_subfr - 2) * subfr_length], prevGain_Q10[k]) >> 8);
     }
     exc_buf_ptr += subfr_length;
   }

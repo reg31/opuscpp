@@ -1,0 +1,526 @@
+{
+  "baseline_commit": "c2e24e06ef8d8a41eef47a2919051f6e71aa8ec9",
+  "source_blob": "f21769b3213916718e0c6ed9a27decd83d076492",
+  "source_sha256": "23051de9bbe85ea2a52b632dcf1138d2e53861fa3e50575088e93effc8b1395c",
+  "object_sha256": "9c852db7c3ab35675202f77a52792cb08fa23334488f7f9384743a97a753572e",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "quality_fields_compared": 5976,
+  "changed_quality_fields": 0,
+  "remaining_negative_fields": 1233,
+  "strict_stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.10753 recovery_error=0.121571 plc_error=0.591364 packet_bytes=360 packet_hash=1755137036\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.89841\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.390344 recovery_error=0.118367 plc_error=0.324768 packet_bytes=473 packet_hash=1141564763\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.300264\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.04048 recovery_error=0.0171322 plc_error=0.705178 packet_bytes=720 packet_hash=2163148656\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0.120327\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.930935 recovery_error=0.0513969 plc_error=0.654677 packet_bytes=956 packet_hash=291859800\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.3302\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.943579 recovery_error=0.987423 plc_error=1.32533 packet_bytes=1439 packet_hash=2761135692\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.949837 recovery_error=0.911424 plc_error=0.985149 packet_bytes=2153 packet_hash=1263542557\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.12815 recovery_error=0.126741 plc_error=0.69313 packet_bytes=960 packet_hash=2975280155\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.340513\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.871272 recovery_error=0.130492 plc_error=0.652719 packet_bytes=1418 packet_hash=711503477\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.742087\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.33655 recovery_error=0.212601 plc_error=0.696445 packet_bytes=357 packet_hash=3752760615\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.843562\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.02557 recovery_error=0.205807 plc_error=0.874409 packet_bytes=470 packet_hash=2890195199\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.213559\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.66491 recovery_error=0.164126 plc_error=0.999534 packet_bytes=716 packet_hash=2338041665\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.799832\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.28149 recovery_error=0.141901 plc_error=0.861216 packet_bytes=956 packet_hash=471800450\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.5605\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.753396 recovery_error=1.07525 plc_error=1.30387 packet_bytes=1438 packet_hash=1272704661\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.641345 recovery_error=0.934686 plc_error=0.98379 packet_bytes=2153 packet_hash=4128170777\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.42942 recovery_error=0.189229 plc_error=1.06261 packet_bytes=960 packet_hash=1728723018\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.538564\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.55347 recovery_error=0.300637 plc_error=0.724073 packet_bytes=1418 packet_hash=2146436015\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.98413\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.59645 recovery_error=0.349508 plc_error=1.02572 packet_bytes=360 packet_hash=3099209190\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.894178\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18467 recovery_error=0.116593 plc_error=0.876698 packet_bytes=477 packet_hash=427486399\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.0892337\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.34614 recovery_error=0.236054 plc_error=1.05889 packet_bytes=715 packet_hash=3189722864\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0.613242\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.35968 recovery_error=0.260072 plc_error=1.14038 packet_bytes=960 packet_hash=2730585735\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.602523\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.922554 recovery_error=1.06478 plc_error=1.30473 packet_bytes=1439 packet_hash=595646567\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.627013 recovery_error=1.01037 plc_error=1.09244 packet_bytes=2154 packet_hash=3493203057\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18269 recovery_error=0.3782 plc_error=1.13548 packet_bytes=960 packet_hash=1670751309\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.415373\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.08844 recovery_error=0.388305 plc_error=0.847473 packet_bytes=1435 packet_hash=3453042184\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.836429\nfec_summary recovery_error_ratio=0.461959 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.996333\n",
+  "source_criteria_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "regression_baseline_exit": 1,
+  "regression_candidate_exit": 0,
+  "reproducer_encoder_source_sha256": "e4cc1c2b16fb6d54e7db31738a5d0608586acba2b4419b27c49d797cfc81b11f",
+  "reproducer_before": "prefix_plc samples=960 different=929 max_difference=2365 nrmse=1.93034529\nrecovered samples=960 different=417 max_difference=1248 nrmse=0.451981102\ncontinuation samples=1920 different=0 max_difference=0 nrmse=0\n",
+  "reproducer_after": "prefix_plc samples=960 different=0 max_difference=0 nrmse=0\nrecovered samples=960 different=0 max_difference=0 nrmse=0\ncontinuation samples=1920 different=0 max_difference=0 nrmse=0\n",
+  "pre_plc_state_trace": "CALL current PLC20\nPLC current lost=0 frame=0 fs=16 pitch=73728 ltp=0 seed=0 scale=0 gain0=52690944 gain1=52690944 energy1=6920817 shift1=0 energy2=6920817 shift2=0 exc=189738235b281583 lpc=d90bfb7ad071aa7b out=72c5dcc7b39b0ba9 state=4a2e160f2dce25a3\nCALL official PLC20\nPLC official lost=0 frame=0 fs=16 pitch=73728 ltp=0 seed=0 scale=0 gain0=52690944 gain1=52690944 energy1=6924717 shift1=0 energy2=6927733 shift2=0 exc=189738235b281583 lpc=d90bfb7ad071aa7b out=72c5dcc7b39b0ba9 state=4a2e160f2dce25a3\nCALL current FEC20\nCALL official FEC20\n",
+  "validation_commands": [
+    {
+      "label": "source_diff",
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\baseline.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\opus_codec.cpp"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "compile_codec",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-DOpusEncoder=curr_OpusEncoder",
+        "-DOpusDecoder=curr_OpusDecoder",
+        "-Dopus_encoder_create=curr_opus_encoder_create",
+        "-Dopus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dopus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dopus_encode=curr_opus_encode",
+        "-Dopus_encode_float=curr_opus_encode_float",
+        "-Dopus_decoder_create=curr_opus_decoder_create",
+        "-Dopus_decoder_destroy=curr_opus_decoder_destroy",
+        "-Dopus_decoder_ctl=curr_opus_decoder_ctl",
+        "-Dopus_decode=curr_opus_decode",
+        "-Dopus_decode_float=curr_opus_decode_float",
+        "-Dopus_packet_get_nb_samples=curr_opus_packet_get_nb_samples",
+        "-Dopus_strerror=curr_opus_strerror",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_strict",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\fec_vs_official.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_source_gate",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\fec_case_gate.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "strict",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "0",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "1",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "2",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_quality",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\f3b_lab\\tests\\perceptual_memory_validation.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\postfec_plc_energy_lab\\quality.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compile_plain",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_vbr_budget_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\vbr_budget_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vbr_budget_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_celt_empty_channel",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\celt_empty_channel.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "celt_empty_channel",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_packet_duration_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\packet_duration_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "packet_duration_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_decoder_channel_remap",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\decoder_channel_remap.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "decoder_channel_remap",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_api",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\cond_f3\\completion_batch\\tests\\api_reset_matrix.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "api",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_conformance",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-Dcodex_OpusEncoder=curr_OpusEncoder",
+        "-Dcodex_opus_encoder_create=curr_opus_encoder_create",
+        "-Dcodex_opus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dcodex_opus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dcodex_opus_encode=curr_opus_encode",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\conformance_encode.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\conformance.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "conformance",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\conformance.exe",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\agent_review_round1\\encode_validation\\encode_validation.bin"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_interop",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\changed_packet_interop.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\interop.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "interop",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_plc_energy\\interop.exe"
+      ],
+      "exit": 0
+    }
+  ]
+}
