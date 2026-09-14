@@ -2342,12 +2342,12 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
   int voice_est = 48;
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
     float raw_toneishness = 0;
-  if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
-    opus_val32 toneish = 0;
-    tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
-    raw_toneishness = toneish;
-  }
-  voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
+    if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
+      opus_val32 toneish = 0;
+      tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
+      raw_toneishness = toneish;
+    }
+    voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
     if (st->application == OPUS_APPLICATION_VOIP) {
       voice_est = voice_est > 48 ? 115 : 0;
       update_voip_noise_confidence(st, analysis.activity);
@@ -3193,8 +3193,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       auto low_band_keep = opus_val16{0};
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
-        low_band_keep = diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
-                                                                                        : 0.f;
+        low_band_keep = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
+                                                      : 0.f;
       } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
         low_band_keep = .30f;
       }
