@@ -2508,7 +2508,8 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
   if (st->application != OPUS_APPLICATION_VOIP) {
     return 1.0f;
   }
-  if (st->mode == opus_mode_celt_only && st->bitrate_bps < 40000) return 1.0f;
+  if (st->mode == opus_mode_celt_only && st->bitrate_bps < 40000)
+    return 1.0f;
   const auto bitrate = st->bitrate_bps;
   if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
     return .984f;
@@ -3029,194 +3030,191 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
 }
 
 static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate) {
-      constexpr opus_val32 lf_coef_hz = 150.f;
-      constexpr opus_val32 dc_coef_hz = 5.f;
-      const opus_val32 lf_coef = 1.f - std::exp(-6.2831853f * lf_coef_hz / static_cast<opus_val32>(sample_rate));
-      const opus_val32 dc_coef = 1.f - std::exp(-6.2831853f * dc_coef_hz / static_cast<opus_val32>(sample_rate));
-      const opus_val32 mid_hp_coef = 1.f - std::exp(-6.2831853f * 300.f / static_cast<opus_val32>(sample_rate));
-      const opus_val32 mid_lp_coef = 1.f - std::exp(-6.2831853f * 3000.f / static_cast<opus_val32>(sample_rate));
-      opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
-      opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
-      double sample_sum = 0, raw_e = 0;
-      if (state.cond_started == 0) {
-        dc = pcm[0];
-      }
-      for (int index = 0; index < frame_size * 1; ++index) {
-        const opus_val32 sample = pcm[index * stride];
-        sample_sum += sample;
-        raw_e += static_cast<double>(sample) * sample;
-        dc += dc_coef * (sample - dc);
-        const opus_val32 high = sample - dc;
-        tot_e += high * high;
-        lf += lf_coef * (high - lf);
-        lf_e += lf * lf;
-        mid_hp += mid_hp_coef * (high - mid_hp);
-        const opus_val32 hp1 = high - mid_hp;
-        mid_hp2 += mid_hp_coef * (hp1 - mid_hp2);
-        const opus_val32 hp2 = hp1 - mid_hp2;
-        mid_lp += mid_lp_coef * (hp2 - mid_lp);
-        mid_e += mid_lp * mid_lp;
-      }
-      state.cond_lf_state = lf;
-      state.cond_dc_state = dc;
-      state.cond_mid_hp = mid_hp;
-      state.cond_mid_hp2 = mid_hp2;
-      state.cond_mid_lp = mid_lp;
-      const opus_val32 samples = static_cast<opus_val32>(frame_size * 1);
-      const opus_val32 lf_abs = lf_e / samples;
-      const opus_val32 mid_abs = mid_e / samples;
-      const bool active = (tot_e / samples) > 1e-7f;
-      const double frame_mean_d = sample_sum / samples;
-      const opus_val32 frame_mean = static_cast<opus_val32>(frame_mean_d);
-      const double raw_power_d = raw_e / samples;
-      const double ac_power_d = std::max(0.0, raw_power_d - frame_mean_d * frame_mean_d);
-      const opus_val32 ac_power = static_cast<opus_val32>(ac_power_d);
-      const opus_val32 ac_rms = std::sqrt(ac_power);
-      const bool low_ac = ac_rms < .01f;
-      if (low_ac) {
-        if (state.cue_dc_seen == 0) {
-          state.cue_dc_idle = frame_mean;
-          state.cue_dc_seen = 1;
-        } else {
-          state.cue_dc_idle += (frame_mean - state.cue_dc_idle) * .2f;
-        }
-      }
-      const bool dc_evidence = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) > .02f;
-      const bool dc_fast = active && std::fabs(frame_mean) > .02f
-          && std::fabs(frame_mean) > .8f * ac_rms;
-      const bool evidence = active && lf_abs > 3e-6f && (lf_abs + mid_abs) > 1e-7f;
-      const bool source_supported = ac_power > 3e-6f;
-      const bool rumble_evidence = evidence && source_supported && lf_abs > 200.f * (mid_abs + 1e-20f);
-      bool dirty_evidence = dc_evidence || rumble_evidence;
-      const bool clean_evidence = evidence && mid_abs > 3e-4f
-          && lf_abs < 20.f * (mid_abs + 1e-20f);
-      const opus_int64 sample_count = static_cast<opus_int64>(frame_size * 1);
-      const opus_int64 run_need = static_cast<opus_int64>(100) * sample_rate / 1000;
-      const opus_int64 release_need = static_cast<opus_int64>(300) * sample_rate / 1000;
-      const opus_int64 expiry_need = static_cast<opus_int64>(400) * sample_rate / 1000;
-      const opus_int64 fallback_need = static_cast<opus_int64>(3000) * sample_rate / 1000;
-      if (dirty_evidence) {
-        state.cue_run = std::min(state.cue_run + sample_count, run_need);
-        state.cue_consec += sample_count;
-        state.cue_rumble_consec = rumble_evidence ? state.cue_rumble_consec + sample_count : 0;
-        state.cue_unknown_run = 0;
-        if (state.cue_dirty == 0 && state.cue_consec >= static_cast<opus_int64>(40) * sample_rate / 1000) {
-          state.cue_provisional = 1;
-          state.cue_provisional_run = 0;
-        }
-      } else if (clean_evidence) {
-        state.cue_consec = 0;
-        state.cue_rumble_consec = 0;
-        state.cue_run = state.cue_run > 2 * sample_count ? state.cue_run - 2 * sample_count : 0;
-        state.cue_unknown_run = 0;
-      } else {
-        state.cue_consec = 0;
-        state.cue_rumble_consec = 0;
-        state.cue_unknown_run += sample_count;
-        if (state.cue_unknown_run >= expiry_need) {
-          state.cue_run = 0;
-        }
-      }
-      if (dc_fast && state.cue_dirty == 0) {
-        state.cue_provisional = 1;
-        state.cue_provisional_run = 0;
-      }
-      const bool dc_cleared = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) <= .02f;
-      const bool floor_declined = state.cue_dirty != 0 &&
-          ((state.cue_lf_ref > 0.f && lf_abs < 0.5f * state.cue_lf_ref) ||
-           (dc_cleared && state.cue_rumble_consec == 0 && !rumble_evidence));
-      if (floor_declined) {
-        state.cue_floor_hold += sample_count;
-        state.cue_adapt_run = 0;
-        state.cue_adapt_sum = 0;
-        state.cue_adapt_count = 0;
-      } else if (state.cue_dirty != 0) {
-        state.cue_floor_hold = 0;
-        if (lf_abs < 0.8f * state.cue_lf_ref) {
-          state.cue_adapt_run += sample_count;
-          state.cue_adapt_sum += static_cast<opus_val64>(lf_abs) * sample_count;
-          state.cue_adapt_count += sample_count;
-          if (state.cue_adapt_run >= static_cast<opus_int64>(2000) * sample_rate / 1000) {
-            state.cue_lf_ref = static_cast<opus_val32>(state.cue_adapt_sum / state.cue_adapt_count);
-            state.cue_adapt_run = 0;
-            state.cue_adapt_sum = 0;
-            state.cue_adapt_count = 0;
-          }
-        } else {
-          state.cue_adapt_run = 0;
-          state.cue_adapt_sum = 0;
-          state.cue_adapt_count = 0;
-        }
-      } else {
-        state.cue_floor_hold = 0;
+  constexpr opus_val32 lf_coef_hz = 150.f;
+  constexpr opus_val32 dc_coef_hz = 5.f;
+  const opus_val32 lf_coef = 1.f - std::exp(-6.2831853f * lf_coef_hz / static_cast<opus_val32>(sample_rate));
+  const opus_val32 dc_coef = 1.f - std::exp(-6.2831853f * dc_coef_hz / static_cast<opus_val32>(sample_rate));
+  const opus_val32 mid_hp_coef = 1.f - std::exp(-6.2831853f * 300.f / static_cast<opus_val32>(sample_rate));
+  const opus_val32 mid_lp_coef = 1.f - std::exp(-6.2831853f * 3000.f / static_cast<opus_val32>(sample_rate));
+  opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
+  opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
+  double sample_sum = 0, raw_e = 0;
+  if (state.cond_started == 0) {
+    dc = pcm[0];
+  }
+  for (int index = 0; index < frame_size * 1; ++index) {
+    const opus_val32 sample = pcm[index * stride];
+    sample_sum += sample;
+    raw_e += static_cast<double>(sample) * sample;
+    dc += dc_coef * (sample - dc);
+    const opus_val32 high = sample - dc;
+    tot_e += high * high;
+    lf += lf_coef * (high - lf);
+    lf_e += lf * lf;
+    mid_hp += mid_hp_coef * (high - mid_hp);
+    const opus_val32 hp1 = high - mid_hp;
+    mid_hp2 += mid_hp_coef * (hp1 - mid_hp2);
+    const opus_val32 hp2 = hp1 - mid_hp2;
+    mid_lp += mid_lp_coef * (hp2 - mid_lp);
+    mid_e += mid_lp * mid_lp;
+  }
+  state.cond_lf_state = lf;
+  state.cond_dc_state = dc;
+  state.cond_mid_hp = mid_hp;
+  state.cond_mid_hp2 = mid_hp2;
+  state.cond_mid_lp = mid_lp;
+  const opus_val32 samples = static_cast<opus_val32>(frame_size * 1);
+  const opus_val32 lf_abs = lf_e / samples;
+  const opus_val32 mid_abs = mid_e / samples;
+  const bool active = (tot_e / samples) > 1e-7f;
+  const double frame_mean_d = sample_sum / samples;
+  const opus_val32 frame_mean = static_cast<opus_val32>(frame_mean_d);
+  const double raw_power_d = raw_e / samples;
+  const double ac_power_d = std::max(0.0, raw_power_d - frame_mean_d * frame_mean_d);
+  const opus_val32 ac_power = static_cast<opus_val32>(ac_power_d);
+  const opus_val32 ac_rms = std::sqrt(ac_power);
+  const bool low_ac = ac_rms < .01f;
+  if (low_ac) {
+    if (state.cue_dc_seen == 0) {
+      state.cue_dc_idle = frame_mean;
+      state.cue_dc_seen = 1;
+    } else {
+      state.cue_dc_idle += (frame_mean - state.cue_dc_idle) * .2f;
+    }
+  }
+  const bool dc_evidence = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) > .02f;
+  const bool dc_fast = active && std::fabs(frame_mean) > .02f && std::fabs(frame_mean) > .8f * ac_rms;
+  const bool evidence = active && lf_abs > 3e-6f && (lf_abs + mid_abs) > 1e-7f;
+  const bool source_supported = ac_power > 3e-6f;
+  const bool rumble_evidence = evidence && source_supported && lf_abs > 200.f * (mid_abs + 1e-20f);
+  bool dirty_evidence = dc_evidence || rumble_evidence;
+  const bool clean_evidence = evidence && mid_abs > 3e-4f && lf_abs < 20.f * (mid_abs + 1e-20f);
+  const opus_int64 sample_count = static_cast<opus_int64>(frame_size * 1);
+  const opus_int64 run_need = static_cast<opus_int64>(100) * sample_rate / 1000;
+  const opus_int64 release_need = static_cast<opus_int64>(300) * sample_rate / 1000;
+  const opus_int64 expiry_need = static_cast<opus_int64>(400) * sample_rate / 1000;
+  const opus_int64 fallback_need = static_cast<opus_int64>(3000) * sample_rate / 1000;
+  if (dirty_evidence) {
+    state.cue_run = std::min(state.cue_run + sample_count, run_need);
+    state.cue_consec += sample_count;
+    state.cue_rumble_consec = rumble_evidence ? state.cue_rumble_consec + sample_count : 0;
+    state.cue_unknown_run = 0;
+    if (state.cue_dirty == 0 && state.cue_consec >= static_cast<opus_int64>(40) * sample_rate / 1000) {
+      state.cue_provisional = 1;
+      state.cue_provisional_run = 0;
+    }
+  } else if (clean_evidence) {
+    state.cue_consec = 0;
+    state.cue_rumble_consec = 0;
+    state.cue_run = state.cue_run > 2 * sample_count ? state.cue_run - 2 * sample_count : 0;
+    state.cue_unknown_run = 0;
+  } else {
+    state.cue_consec = 0;
+    state.cue_rumble_consec = 0;
+    state.cue_unknown_run += sample_count;
+    if (state.cue_unknown_run >= expiry_need) {
+      state.cue_run = 0;
+    }
+  }
+  if (dc_fast && state.cue_dirty == 0) {
+    state.cue_provisional = 1;
+    state.cue_provisional_run = 0;
+  }
+  const bool dc_cleared = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) <= .02f;
+  const bool floor_declined = state.cue_dirty != 0 &&
+                              ((state.cue_lf_ref > 0.f && lf_abs < 0.5f * state.cue_lf_ref) ||
+                               (dc_cleared && state.cue_rumble_consec == 0 && !rumble_evidence));
+  if (floor_declined) {
+    state.cue_floor_hold += sample_count;
+    state.cue_adapt_run = 0;
+    state.cue_adapt_sum = 0;
+    state.cue_adapt_count = 0;
+  } else if (state.cue_dirty != 0) {
+    state.cue_floor_hold = 0;
+    if (lf_abs < 0.8f * state.cue_lf_ref) {
+      state.cue_adapt_run += sample_count;
+      state.cue_adapt_sum += static_cast<opus_val64>(lf_abs) * sample_count;
+      state.cue_adapt_count += sample_count;
+      if (state.cue_adapt_run >= static_cast<opus_int64>(2000) * sample_rate / 1000) {
+        state.cue_lf_ref = static_cast<opus_val32>(state.cue_adapt_sum / state.cue_adapt_count);
         state.cue_adapt_run = 0;
         state.cue_adapt_sum = 0;
         state.cue_adapt_count = 0;
       }
-      const bool strict_clean = evidence && mid_abs > 3e-4f
-          && lf_abs < 5.f * (mid_abs + 1e-20f);
-      if (strict_clean) {
-        state.cue_strict_run += sample_count;
-      } else {
-        state.cue_strict_run = 0;
-      }
-      const opus_int64 rumble_need = static_cast<opus_int64>(60) * sample_rate / 1000;
-      if (state.cue_run >= run_need || state.cue_rumble_consec >= rumble_need) {
-        if (state.cue_dirty == 0) {
-          state.cue_lf_ref = lf_abs;
-          state.cue_floor_hold = 0;
-          state.cue_adapt_run = 0;
-        }
-        state.cue_dirty = 1;
-        state.cue_released = 0;
-      } else if (state.cue_dirty != 0 &&
-                 ((floor_declined && state.cue_floor_hold >= release_need) ||
-                  (strict_clean && state.cue_strict_run >= fallback_need))) {
-        state.cue_dirty = 0;
-        state.cue_released = 1;
-        state.cue_lf_ref = 0.f;
-        state.cue_floor_hold = 0;
-        state.cue_adapt_run = 0;
-        state.cue_strict_run = 0;
-      }
-      opus_val32 target = state.cond_score;
-      if (active) {
-        if (state.cue_dirty != 0) {
-          target = 1.f;
-          state.cue_provisional = 0;
-          state.cue_provisional_run = 0;
-        } else if (state.cue_provisional != 0) {
-          state.cue_provisional_run += sample_count;
-          if (state.cue_provisional_run > static_cast<opus_int64>(300) * sample_rate / 1000) {
-            state.cue_provisional = 0;
-            target = 0.f;
-          } else {
-            target = (dirty_evidence || dc_fast) ? 1.f : (clean_evidence ? 0.f : state.cond_score);
-          }
-        } else {
-          target = 0.f;
-        }
-      } else if (state.cue_dirty == 0 && state.cue_released != 0 && state.cond_score > 0.f) {
+    } else {
+      state.cue_adapt_run = 0;
+      state.cue_adapt_sum = 0;
+      state.cue_adapt_count = 0;
+    }
+  } else {
+    state.cue_floor_hold = 0;
+    state.cue_adapt_run = 0;
+    state.cue_adapt_sum = 0;
+    state.cue_adapt_count = 0;
+  }
+  const bool strict_clean = evidence && mid_abs > 3e-4f && lf_abs < 5.f * (mid_abs + 1e-20f);
+  if (strict_clean) {
+    state.cue_strict_run += sample_count;
+  } else {
+    state.cue_strict_run = 0;
+  }
+  const opus_int64 rumble_need = static_cast<opus_int64>(60) * sample_rate / 1000;
+  if (state.cue_run >= run_need || state.cue_rumble_consec >= rumble_need) {
+    if (state.cue_dirty == 0) {
+      state.cue_lf_ref = lf_abs;
+      state.cue_floor_hold = 0;
+      state.cue_adapt_run = 0;
+    }
+    state.cue_dirty = 1;
+    state.cue_released = 0;
+  } else if (state.cue_dirty != 0 &&
+             ((floor_declined && state.cue_floor_hold >= release_need) ||
+              (strict_clean && state.cue_strict_run >= fallback_need))) {
+    state.cue_dirty = 0;
+    state.cue_released = 1;
+    state.cue_lf_ref = 0.f;
+    state.cue_floor_hold = 0;
+    state.cue_adapt_run = 0;
+    state.cue_strict_run = 0;
+  }
+  opus_val32 target = state.cond_score;
+  if (active) {
+    if (state.cue_dirty != 0) {
+      target = 1.f;
+      state.cue_provisional = 0;
+      state.cue_provisional_run = 0;
+    } else if (state.cue_provisional != 0) {
+      state.cue_provisional_run += sample_count;
+      if (state.cue_provisional_run > static_cast<opus_int64>(300) * sample_rate / 1000) {
+        state.cue_provisional = 0;
         target = 0.f;
-      }
-      if (!state.cond_started) {
-        state.cond_started = 1;
-        state.cond_score = dirty_evidence || dc_fast ? 1.f : 0.f;
-        state.cond_mix = state.cond_score;
-        state.cue_provisional = dirty_evidence ? 1 : 0;
       } else {
-        const opus_val32 dt = static_cast<opus_val32>(frame_size) / static_cast<opus_val32>(sample_rate);
-        const opus_val32 attack = 1.f - std::exp(-dt / .10f);
-        const opus_val32 release = 1.f - std::exp(-dt / .80f);
-        const opus_val32 dc_attack = 20 <= 0
-                                         ? 1.f
-                                         : 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
-        const bool dc_driven = target == 1.f && (dc_fast || dc_evidence);
-        const opus_val32 coef = (target > state.cond_score || state.cue_provisional != 0)
-                                    ? (dc_driven ? dc_attack : attack)
-                                    : release;
-        state.cond_score += coef * (target - state.cond_score);
+        target = (dirty_evidence || dc_fast) ? 1.f : (clean_evidence ? 0.f : state.cond_score);
       }
+    } else {
+      target = 0.f;
+    }
+  } else if (state.cue_dirty == 0 && state.cue_released != 0 && state.cond_score > 0.f) {
+    target = 0.f;
+  }
+  if (!state.cond_started) {
+    state.cond_started = 1;
+    state.cond_score = dirty_evidence || dc_fast ? 1.f : 0.f;
+    state.cond_mix = state.cond_score;
+    state.cue_provisional = dirty_evidence ? 1 : 0;
+  } else {
+    const opus_val32 dt = static_cast<opus_val32>(frame_size) / static_cast<opus_val32>(sample_rate);
+    const opus_val32 attack = 1.f - std::exp(-dt / .10f);
+    const opus_val32 release = 1.f - std::exp(-dt / .80f);
+    const opus_val32 dc_attack = 20 <= 0
+                                     ? 1.f
+                                     : 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
+    const bool dc_driven = target == 1.f && (dc_fast || dc_evidence);
+    const opus_val32 coef = (target > state.cond_score || state.cue_provisional != 0)
+                                ? (dc_driven ? dc_attack : attack)
+                                : release;
+    state.cond_score += coef * (target - state.cond_score);
+  }
 #ifdef OPUSCPP_ENABLE_TEST_HOOKS
   {
     static int cond_trace_frame = 0;
@@ -3263,7 +3261,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
         low_band_keep = st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f
-                        : diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
+                        : diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
                                                                                         : 0.f;
       } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
         low_band_keep = .30f;
@@ -6339,9 +6337,12 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
   bool empty_channel[2] = {
-      C == 2 && std::all_of(bandE + start, bandE + end, [](float v) { return v < 1e-10f; }),
-      C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end,
-                            [](float v) { return v < 1e-10f; })};
+      C == 2 && std::all_of(bandE + start, bandE + end, [](float v) {
+        return v < 1e-10f;
+      }),
+      C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end, [](float v) {
+        return v < 1e-10f;
+      })};
   // Apply this only when exactly one channel carries no energy shape; when both agree the flag is
   // cleared, so silence and unaffected paths keep their original coarse-energy decay policy.
   if (empty_channel[0] == empty_channel[1]) {
@@ -10820,7 +10821,8 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
 
 template <bool KnownZero>
 [[nodiscard]] static auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10) noexcept -> silk_nsq_candidate_pair {
-  if constexpr (KnownZero) return {offset_Q10, offset_Q10, 0, 0, 0, 0};
+  if constexpr (KnownZero)
+    return {offset_Q10, offset_Q10, 0, 0, 0, 0};
   auto q1_Q10 = residual_q10 - offset_Q10;
   auto q1_Q0 = q1_Q10 >> 10;
   if (Lambda_Q10 > 2048) {
@@ -11274,11 +11276,11 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                               {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                               {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
       silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
-                                 {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
-                                 {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
-                                 {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
-                                 {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
-                                 LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
+                                            {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
+                                            {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
+                                            {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
+                                            {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
+                                            LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
     }
     x16 += psEncC->subfr_length;
     pulses += psEncC->subfr_length;
@@ -13458,9 +13460,8 @@ static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* p
                             psEncC->indices.signalType, psEncC->indices.quantOffsetType, psEncC->frame_length);
 }
 
-
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
-                     const silk_nsq_state& pre_frame_nsq) {
+                               const silk_nsq_state& pre_frame_nsq) {
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
     return;
   }
@@ -13603,7 +13604,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
                              condCoding == 2, psEnc->sCmn.nb_subfr);
           psEnc->sCmn.sNSQ = sNSQ_copy[0];
           silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &psEnc->sCmn.sNSQ,
-                                    psEnc->sCmn.pulses, nsq_samples.data(), prepared, replay_gains.data());
+                                     psEnc->sCmn.pulses, nsq_samples.data(), prepared, replay_gains.data());
           use_reconstructed_lbrr_target = false;
         }
         if (!useCBR && iter == 0 && nBits <= maxBits) {
@@ -14212,7 +14213,8 @@ void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_cont
     }
   }
   const auto nsq = psEnc->sCmn.nStatesDelayedDecision > 1 || psEnc->sCmn.warping_Q16 > 0
-                       ? &silk_NSQ<true, KnownZero> : &silk_NSQ<false, KnownZero>;
+                       ? &silk_NSQ<true, KnownZero>
+                       : &silk_NSQ<false, KnownZero>;
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 

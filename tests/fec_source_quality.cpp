@@ -65,7 +65,7 @@ auto make_voice(int channels, int frame_size, int profile) -> std::vector<std::i
       noise_state = noise_state * 1664525u + 1013904223u;
       const double noise = static_cast<double>(static_cast<std::int32_t>(noise_state)) / 2147483648.0;
       const auto left = static_cast<std::int16_t>(std::lround(signal_levels[static_cast<std::size_t>(profile)] * envelope *
-                                                              (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
+                                                                  (.75 * std::sin(phase) + .20 * std::sin(2.0 * phase)) +
                                                               noise_levels[static_cast<std::size_t>(profile)] * noise));
       pcm[static_cast<std::size_t>(index * channels)] = left;
       if (channels == 2) {
@@ -109,14 +109,22 @@ int main(int argc, char** argv) {
   using enc_t = OpusEncoder;
   std::unique_ptr<enc_t, void (*)(enc_t*)> encoder{opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_VOIP, &error),
                                                    opus_encoder_destroy};
-  const auto ctl = [](enc_t* st, int request, auto&&... args) { return opus_encoder_ctl(st, request, args...); };
-  const auto encode = [](enc_t* st, const std::int16_t* p, int fs, unsigned char* d, int mb) { return opus_encode(st, p, fs, d, mb); };
+  const auto ctl = [](enc_t* st, int request, auto&&... args) {
+    return opus_encoder_ctl(st, request, args...);
+  };
+  const auto encode = [](enc_t* st, const std::int16_t* p, int fs, unsigned char* d, int mb) {
+    return opus_encode(st, p, fs, d, mb);
+  };
 #else
   using enc_t = curr_OpusEncoder;
   std::unique_ptr<enc_t, void (*)(enc_t*)> encoder{curr_opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_VOIP, &error),
                                                    curr_opus_encoder_destroy};
-  const auto ctl = [](enc_t* st, int request, auto&&... args) { return curr_opus_encoder_ctl(st, request, args...); };
-  const auto encode = [](enc_t* st, const std::int16_t* p, int fs, unsigned char* d, int mb) { return curr_opus_encode(st, p, fs, d, mb); };
+  const auto ctl = [](enc_t* st, int request, auto&&... args) {
+    return curr_opus_encoder_ctl(st, request, args...);
+  };
+  const auto encode = [](enc_t* st, const std::int16_t* p, int fs, unsigned char* d, int mb) {
+    return curr_opus_encode(st, p, fs, d, mb);
+  };
 #endif
   int fec = -1, loss = -1;
   if (!encoder || ctl(encoder.get(), OPUS_GET_INBAND_FEC_REQUEST, &fec) != OPUS_OK ||
