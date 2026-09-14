@@ -5942,15 +5942,14 @@ struct celt_input_metrics {
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
                                                  bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
-  static constexpr auto inv_table = std::to_array<unsigned char>({
-      255, 255, 156, 110,  86,  70,  59,  51,  45,  40,  37,  33,  31,  28,  26,  25,
-       23,  22,  21,  20,  19,  18,  17,  16,  16,  15,  15,  14,  13,  13,  12,  12,
-       12,  12,  11,  11,  11,  10,  10,  10,   9,   9,   9,   9,   9,   9,   8,   8,
-        8,   8,   8,   7,   7,   7,   7,   7,   7,   6,   6,   6,   6,   6,   6,   6,
-        6,   6,   6,   6,   6,   6,   6,   6,   6,   5,   5,   5,   5,   5,   5,   5,
-        5,   5,   5,   5,   5,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,
-        4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   3,   3,
-        3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   2});
+  static constexpr auto inv_table = std::to_array<unsigned char>({255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25,
+                                                                  23, 22, 21, 20, 19, 18, 17, 16, 16, 15, 15, 14, 13, 13, 12, 12,
+                                                                  12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 9, 9, 9, 8, 8,
+                                                                  8, 8, 8, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6,
+                                                                  6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5,
+                                                                  5, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+                                                                  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3,
+                                                                  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2});
   static_assert(inv_table.size() == 128);
   std::array<float, celt_max_frame_samples + celt_default_overlap> tmp;
   int is_transient = 0;
