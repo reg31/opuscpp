@@ -1,0 +1,1891 @@
+{
+  "baseline_commit": "a4a1fde53d038abb9a521bd71b6cb2711e03fbfe",
+  "source_blob": "f865a2ef88be18cddd3bf96f7ac3374d2af8fc99",
+  "source_sha256": "3c00b6ab844d84e316683f68ee406e682788168fdbc1ff8c5e11cf97c2f986d1",
+  "object_sha256": "281a64e2e33b59d722bd9ba0c3535091b3651fda2a599f19349a01f353150be6",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "compiler": "MinGW GCC16.2.0",
+  "flags": [
+    "-std=c++23",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "strict_stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.10753 recovery_error=0.121571 plc_error=0.591364 packet_bytes=360 packet_hash=1755137036\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.89841\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.390344 recovery_error=0.118367 plc_error=0.324768 packet_bytes=473 packet_hash=1141564763\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.300264\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.04048 recovery_error=0.0171322 plc_error=0.705178 packet_bytes=720 packet_hash=883119565\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0.120327\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.930935 recovery_error=0.0513969 plc_error=0.654677 packet_bytes=956 packet_hash=3022048531\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.3302\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.943579 recovery_error=0.987423 plc_error=1.32533 packet_bytes=1439 packet_hash=1725173133\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.949837 recovery_error=0.911424 plc_error=0.985149 packet_bytes=2153 packet_hash=3836411597\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.12815 recovery_error=0.126741 plc_error=0.69313 packet_bytes=960 packet_hash=1586566321\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.340513\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.871272 recovery_error=0.130492 plc_error=0.652719 packet_bytes=1418 packet_hash=2443270145\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.742087\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.33656 recovery_error=0.212613 plc_error=0.696475 packet_bytes=357 packet_hash=1278367042\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.843608\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.02557 recovery_error=0.205807 plc_error=0.874409 packet_bytes=470 packet_hash=2890195199\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.213559\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.66491 recovery_error=0.164143 plc_error=0.999537 packet_bytes=716 packet_hash=990007493\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.799913\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.28152 recovery_error=0.141778 plc_error=0.861207 packet_bytes=956 packet_hash=2574890128\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.560015\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.753396 recovery_error=1.07525 plc_error=1.30387 packet_bytes=1438 packet_hash=1079360011\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.641345 recovery_error=0.934686 plc_error=0.98379 packet_bytes=2153 packet_hash=597803239\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.42942 recovery_error=0.189229 plc_error=1.06261 packet_bytes=960 packet_hash=1596193245\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.538564\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.55347 recovery_error=0.300637 plc_error=0.724073 packet_bytes=1418 packet_hash=4267453413\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.98413\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.59645 recovery_error=0.349508 plc_error=1.02572 packet_bytes=360 packet_hash=3099209190\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.894178\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18467 recovery_error=0.116593 plc_error=0.876698 packet_bytes=477 packet_hash=427486399\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.0892337\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.3777e-05 fec_plc_difference=1.34609 recovery_error=0.236227 plc_error=1.05889 packet_bytes=715 packet_hash=3733547403\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0.613691\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.35924 recovery_error=0.256582 plc_error=1.13953 packet_bytes=960 packet_hash=600047441\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.594438\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.922554 recovery_error=1.06478 plc_error=1.30473 packet_bytes=1439 packet_hash=3591520622\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.627013 recovery_error=1.01037 plc_error=1.09244 packet_bytes=2154 packet_hash=2673571173\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18269 recovery_error=0.3782 plc_error=1.13548 packet_bytes=960 packet_hash=468751531\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.415373\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.08844 recovery_error=0.388305 plc_error=0.847473 packet_bytes=1435 packet_hash=1838861922\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.836429\nfec_summary recovery_error_ratio=0.461509 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.996333\n",
+  "strict_exit": 0,
+  "source_quality": {
+    "counts": [
+      18,
+      18,
+      18,
+      18
+    ],
+    "rows": [
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          0,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "10",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=40,60,60,60,60,60,60,60,60,60,60,60,\npkt_bytes=23,36,31,30,30,30,30,30,30,30,30,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.252519003 next_ref=0.233669525 fidelity_fec=0.208207178 fidelity_ref=0.175325531 fidelity_plc=0.569012961 transition_fec=0.210815805 transition_ref=0.143924590 step_fec=702.000 step_ref=976.000 self_consistency=0.121570676\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.208207178,
+            "next_fec": 0.252519003,
+            "transition_fec": 0.210815805,
+            "fidelity_ref": 0.175325531,
+            "next_ref": 0.233669525,
+            "transition_ref": 0.14392459,
+            "fidelity_plc": 0.569012961,
+            "self_consistency": 0.121570676,
+            "step_fec": 702.0,
+            "step_ref": 976.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "10",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,35,31,30,30,32,30,31,33,31,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.701482242 next_ref=0.712033028 fidelity_fec=0.599281580 fidelity_ref=0.652016973 fidelity_plc=0.524882059 transition_fec=0.434008450 transition_ref=0.483983207 step_fec=835.000 step_ref=820.000 self_consistency=0.135317620\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.59928158,
+            "next_fec": 0.701482242,
+            "transition_fec": 0.43400845,
+            "fidelity_ref": 0.652016973,
+            "next_ref": 0.712033028,
+            "transition_ref": 0.483983207,
+            "fidelity_plc": 0.524882059,
+            "self_consistency": 0.13531762,
+            "step_fec": 835.0,
+            "step_ref": 820.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          0,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "16000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,39,43,43,34,42,42,37,46,40,33,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.185074950 next_ref=0.179490904 fidelity_fec=0.201713553 fidelity_ref=0.176069840 fidelity_plc=0.352493222 transition_fec=0.167579843 transition_ref=0.137408299 step_fec=-239.000 step_ref=-255.000 self_consistency=0.118367210\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.201713553,
+            "next_fec": 0.18507495,
+            "transition_fec": 0.167579843,
+            "fidelity_ref": 0.17606984,
+            "next_ref": 0.179490904,
+            "transition_ref": 0.137408299,
+            "fidelity_plc": 0.352493222,
+            "self_consistency": 0.11836721,
+            "step_fec": -239.0,
+            "step_ref": -255.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "16000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=45,43,52,49,42,51,50,48,45,43,34,34,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.967404960 next_ref=0.648971154 fidelity_fec=0.738268655 fidelity_ref=0.651415492 fidelity_plc=0.738268655 transition_fec=0.800023200 transition_ref=0.239399895 step_fec=-259.000 step_ref=-271.000 self_consistency=0.394210135\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.738268655,
+            "next_fec": 0.96740496,
+            "transition_fec": 0.8000232,
+            "fidelity_ref": 0.651415492,
+            "next_ref": 0.648971154,
+            "transition_ref": 0.239399895,
+            "fidelity_plc": 0.738268655,
+            "self_consistency": 0.394210135,
+            "step_fec": -259.0,
+            "step_ref": -271.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          0,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=60,60,59,61,60,59,60,60,59,62,60,60,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.169245014 next_ref=0.168710480 fidelity_fec=0.180383951 fidelity_ref=0.179792027 fidelity_plc=0.714107112 transition_fec=0.137277434 transition_ref=0.137278543 step_fec=-351.000 step_ref=-244.000 self_consistency=0.017132248\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.180383951,
+            "next_fec": 0.169245014,
+            "transition_fec": 0.137277434,
+            "fidelity_ref": 0.179792027,
+            "next_ref": 0.16871048,
+            "transition_ref": 0.137278543,
+            "fidelity_plc": 0.714107112,
+            "self_consistency": 0.017132248,
+            "step_fec": -351.0,
+            "step_ref": -244.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,69,76,74,57,64,66,73,72,62,59,53,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.722510345 next_ref=0.665065994 fidelity_fec=0.643683622 fidelity_ref=0.684492399 fidelity_plc=0.962712569 transition_fec=0.304709106 transition_ref=0.263676337 step_fec=-62.000 step_ref=-217.000 self_consistency=0.142381179\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.643683622,
+            "next_fec": 0.722510345,
+            "transition_fec": 0.304709106,
+            "fidelity_ref": 0.684492399,
+            "next_ref": 0.665065994,
+            "transition_ref": 0.263676337,
+            "fidelity_plc": 0.962712569,
+            "self_consistency": 0.142381179,
+            "step_fec": -62.0,
+            "step_ref": -217.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          0,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "32000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,80,80,80,80,80,80,80,78,80,80,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.174901332 next_ref=0.174448861 fidelity_fec=0.171714582 fidelity_ref=0.174889452 fidelity_plc=0.678961492 transition_fec=0.158426627 transition_ref=0.150270595 step_fec=-274.000 step_ref=-276.000 self_consistency=0.051396950\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.171714582,
+            "next_fec": 0.174901332,
+            "transition_fec": 0.158426627,
+            "fidelity_ref": 0.174889452,
+            "next_ref": 0.174448861,
+            "transition_ref": 0.150270595,
+            "fidelity_plc": 0.678961492,
+            "self_consistency": 0.05139695,
+            "step_fec": -274.0,
+            "step_ref": -276.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "32000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,86,97,98,79,86,93,93,95,87,78,67,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.732778490 next_ref=0.674820852 fidelity_fec=0.635610680 fidelity_ref=0.673763989 fidelity_plc=0.986097425 transition_fec=0.279519207 transition_ref=0.263568908 step_fec=-208.000 step_ref=-143.000 self_consistency=0.155653909\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.63561068,
+            "next_fec": 0.73277849,
+            "transition_fec": 0.279519207,
+            "fidelity_ref": 0.673763989,
+            "next_ref": 0.674820852,
+            "transition_ref": 0.263568908,
+            "fidelity_plc": 0.986097425,
+            "self_consistency": 0.155653909,
+            "step_fec": -208.0,
+            "step_ref": -143.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          0,
+          0
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "32000",
+            "0",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=342523724.000000 ms_lf_side=26963874.000000 ms_fec_mid=399947055.500000 ms_fec_side=33496551.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.185366040 next_ref=0.197495367 fidelity_fec=0.214635214 fidelity_ref=0.198168493 fidelity_plc=0.707283750 transition_fec=0.153035700 transition_ref=0.157572502 step_fec=-380.000 step_ref=146.500 self_consistency=0.126741457\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.214635214,
+            "next_fec": 0.18536604,
+            "transition_fec": 0.1530357,
+            "fidelity_ref": 0.198168493,
+            "next_ref": 0.197495367,
+            "transition_ref": 0.157572502,
+            "fidelity_plc": 0.70728375,
+            "self_consistency": 0.126741457,
+            "step_fec": -380.0,
+            "step_ref": 146.5
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "32000",
+            "0",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=3036674259.250000 ms_lf_side=25376209.250000 ms_fec_mid=3255825232.500000 ms_fec_side=38569435.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.569722322 next_ref=0.624301232 fidelity_fec=0.591728501 fidelity_ref=0.570480556 fidelity_plc=0.775555783 transition_fec=0.301290007 transition_ref=0.293012622 step_fec=-292.000 step_ref=-113.000 self_consistency=0.372207589\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.591728501,
+            "next_fec": 0.569722322,
+            "transition_fec": 0.301290007,
+            "fidelity_ref": 0.570480556,
+            "next_ref": 0.624301232,
+            "transition_ref": 0.293012622,
+            "fidelity_plc": 0.775555783,
+            "self_consistency": 0.372207589,
+            "step_fec": -292.0,
+            "step_ref": -113.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          0,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "48000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=120,120,120,106,132,107,135,120,111,116,133,98,\nms_src=9408722302.500000 ms_lf_mid=302082620.250000 ms_lf_side=27395936.250000 ms_fec_mid=263278264.750000 ms_fec_side=33342336.750000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.168484014 next_ref=0.184124409 fidelity_fec=0.177555991 fidelity_ref=0.187132083 fidelity_plc=0.673331436 transition_fec=0.146383594 transition_ref=0.144161952 step_fec=-587.500 step_ref=238.000 self_consistency=0.130491689\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.177555991,
+            "next_fec": 0.168484014,
+            "transition_fec": 0.146383594,
+            "fidelity_ref": 0.187132083,
+            "next_ref": 0.184124409,
+            "transition_ref": 0.144161952,
+            "fidelity_plc": 0.673331436,
+            "self_consistency": 0.130491689,
+            "step_fec": -587.5,
+            "step_ref": 238.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "48000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=137,119,120,117,114,121,130,129,126,123,114,108,\nms_src=9408722302.500000 ms_lf_mid=4262215416.750000 ms_lf_side=29056772.750000 ms_fec_mid=3922665704.500000 ms_fec_side=44527880.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.643189514 next_ref=0.673463254 fidelity_fec=0.649346301 fidelity_ref=0.675348136 fidelity_plc=0.766489712 transition_fec=0.298776340 transition_ref=0.245741464 step_fec=-448.000 step_ref=517.500 self_consistency=0.175844263\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.649346301,
+            "next_fec": 0.643189514,
+            "transition_fec": 0.29877634,
+            "fidelity_ref": 0.675348136,
+            "next_ref": 0.673463254,
+            "transition_ref": 0.245741464,
+            "fidelity_plc": 0.766489712,
+            "self_consistency": 0.175844263,
+            "step_fec": -448.0,
+            "step_ref": 517.5
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          1,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "10",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=40,60,60,60,60,60,60,60,60,60,60,60,\npkt_bytes=25,34,31,30,30,30,30,30,30,30,30,27,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.334363840 next_ref=0.278601556 fidelity_fec=0.300248357 fidelity_ref=0.230594128 fidelity_plc=0.723916133 transition_fec=0.212101718 transition_ref=0.202338293 step_fec=385.000 step_ref=379.000 self_consistency=0.212612869\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.300248357,
+            "next_fec": 0.33436384,
+            "transition_fec": 0.212101718,
+            "fidelity_ref": 0.230594128,
+            "next_ref": 0.278601556,
+            "transition_ref": 0.202338293,
+            "fidelity_plc": 0.723916133,
+            "self_consistency": 0.212612869,
+            "step_fec": 385.0,
+            "step_ref": 379.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "10",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,32,33,29,28,29,30,32,29,32,28,27,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.828987679 next_ref=0.746284936 fidelity_fec=0.718125669 fidelity_ref=0.663621132 fidelity_plc=1.432051461 transition_fec=0.271244925 transition_ref=0.436318590 step_fec=364.000 step_ref=453.000 self_consistency=0.252028112\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.718125669,
+            "next_fec": 0.828987679,
+            "transition_fec": 0.271244925,
+            "fidelity_ref": 0.663621132,
+            "next_ref": 0.746284936,
+            "transition_ref": 0.43631859,
+            "fidelity_plc": 1.432051461,
+            "self_consistency": 0.252028112,
+            "step_fec": 364.0,
+            "step_ref": 453.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          1,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "16000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,36,40,44,45,37,37,40,45,32,48,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.284949817 next_ref=0.275519397 fidelity_fec=0.349123787 fidelity_ref=0.272754634 fidelity_plc=0.879966274 transition_fec=0.229886973 transition_ref=0.202381461 step_fec=-165.000 step_ref=-177.000 self_consistency=0.205807303\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.349123787,
+            "next_fec": 0.284949817,
+            "transition_fec": 0.229886973,
+            "fidelity_ref": 0.272754634,
+            "next_ref": 0.275519397,
+            "transition_ref": 0.202381461,
+            "fidelity_plc": 0.879966274,
+            "self_consistency": 0.205807303,
+            "step_fec": -165.0,
+            "step_ref": -177.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "16000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=41,42,40,36,41,39,38,39,34,35,39,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.895819017 next_ref=0.671142318 fidelity_fec=1.026548022 fidelity_ref=0.713662654 fidelity_plc=1.026548022 transition_fec=0.969528753 transition_ref=0.323463324 step_fec=-138.000 step_ref=-281.000 self_consistency=0.963701829\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 1.026548022,
+            "next_fec": 0.895819017,
+            "transition_fec": 0.969528753,
+            "fidelity_ref": 0.713662654,
+            "next_ref": 0.671142318,
+            "transition_ref": 0.323463324,
+            "fidelity_plc": 1.026548022,
+            "self_consistency": 0.963701829,
+            "step_fec": -138.0,
+            "step_ref": -281.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          1,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,f8,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=60,60,60,59,59,59,60,63,60,57,63,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.256775095 next_ref=0.250212452 fidelity_fec=0.270504278 fidelity_ref=0.235043274 fidelity_plc=0.981942081 transition_fec=0.223061981 transition_ref=0.206490158 step_fec=-185.000 step_ref=-284.000 self_consistency=0.164142644\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.270504278,
+            "next_fec": 0.256775095,
+            "transition_fec": 0.223061981,
+            "fidelity_ref": 0.235043274,
+            "next_ref": 0.250212452,
+            "transition_ref": 0.206490158,
+            "fidelity_plc": 0.981942081,
+            "self_consistency": 0.164142644,
+            "step_fec": -185.0,
+            "step_ref": -284.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=58,62,66,60,61,59,58,64,62,54,57,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.692728199 next_ref=0.674010356 fidelity_fec=0.680104609 fidelity_ref=0.662625406 fidelity_plc=0.898602395 transition_fec=0.286478785 transition_ref=0.304954609 step_fec=-338.000 step_ref=-54.000 self_consistency=0.205200526\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.680104609,
+            "next_fec": 0.692728199,
+            "transition_fec": 0.286478785,
+            "fidelity_ref": 0.662625406,
+            "next_ref": 0.674010356,
+            "transition_ref": 0.304954609,
+            "fidelity_plc": 0.898602395,
+            "self_consistency": 0.205200526,
+            "step_fec": -338.0,
+            "step_ref": -54.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          1,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "32000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,f8,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,80,80,80,76,84,78,81,81,76,80,80,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.250321818 next_ref=0.248925762 fidelity_fec=0.247656460 fidelity_ref=0.235197713 fidelity_plc=0.858423169 transition_fec=0.198241565 transition_ref=0.216514589 step_fec=-127.000 step_ref=-312.000 self_consistency=0.141777933\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.24765646,
+            "next_fec": 0.250321818,
+            "transition_fec": 0.198241565,
+            "fidelity_ref": 0.235197713,
+            "next_ref": 0.248925762,
+            "transition_ref": 0.216514589,
+            "fidelity_plc": 0.858423169,
+            "self_consistency": 0.141777933,
+            "step_fec": -127.0,
+            "step_ref": -312.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "32000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=76,80,84,79,78,78,76,75,75,77,75,69,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.667569423 next_ref=0.695406526 fidelity_fec=0.687278128 fidelity_ref=0.699792919 fidelity_plc=1.024089821 transition_fec=0.355132206 transition_ref=0.344063639 step_fec=-79.000 step_ref=-255.000 self_consistency=0.253168213\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.687278128,
+            "next_fec": 0.667569423,
+            "transition_fec": 0.355132206,
+            "fidelity_ref": 0.699792919,
+            "next_ref": 0.695406526,
+            "transition_ref": 0.344063639,
+            "fidelity_plc": 1.024089821,
+            "self_consistency": 0.253168213,
+            "step_fec": -79.0,
+            "step_ref": -255.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          1,
+          0
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "32000",
+            "1",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=73713083.250000 ms_lf_side=24621254.250000 ms_fec_mid=79547002.250000 ms_fec_side=25482718.250000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.285180782 next_ref=0.289747499 fidelity_fec=0.302380127 fidelity_ref=0.292583438 fidelity_plc=1.074571927 transition_fec=0.213341780 transition_ref=0.205819773 step_fec=34.500 step_ref=-11.500 self_consistency=0.189229413\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.302380127,
+            "next_fec": 0.285180782,
+            "transition_fec": 0.21334178,
+            "fidelity_ref": 0.292583438,
+            "next_ref": 0.289747499,
+            "transition_ref": 0.205819773,
+            "fidelity_plc": 1.074571927,
+            "self_consistency": 0.189229413,
+            "step_fec": 34.5,
+            "step_ref": -11.5
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "32000",
+            "1",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=621507163.250000 ms_lf_side=8943459.250000 ms_fec_mid=466499625.500000 ms_fec_side=26621710.500000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.699512813 next_ref=0.606513713 fidelity_fec=0.655200225 fidelity_ref=0.740837026 fidelity_plc=0.892767677 transition_fec=0.328470094 transition_ref=0.422564016 step_fec=-212.000 step_ref=-84.000 self_consistency=0.351359484\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.655200225,
+            "next_fec": 0.699512813,
+            "transition_fec": 0.328470094,
+            "fidelity_ref": 0.740837026,
+            "next_ref": 0.606513713,
+            "transition_ref": 0.422564016,
+            "fidelity_plc": 0.892767677,
+            "self_consistency": 0.351359484,
+            "step_fec": -212.0,
+            "step_ref": -84.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          1,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "48000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=120,120,120,120,112,107,119,113,116,126,126,119,\nms_src=1148697612.000000 ms_lf_mid=89497903.750000 ms_lf_side=1879077.750000 ms_fec_mid=150255973.500000 ms_fec_side=3820678.500000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.319961986 next_ref=0.328654513 fidelity_fec=0.366239816 fidelity_ref=0.282043142 fidelity_plc=0.743075490 transition_fec=0.243130305 transition_ref=0.185439550 step_fec=-387.500 step_ref=-310.000 self_consistency=0.300637473\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.366239816,
+            "next_fec": 0.319961986,
+            "transition_fec": 0.243130305,
+            "fidelity_ref": 0.282043142,
+            "next_ref": 0.328654513,
+            "transition_ref": 0.18543955,
+            "fidelity_plc": 0.74307549,
+            "self_consistency": 0.300637473,
+            "step_fec": -387.5,
+            "step_ref": -310.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "48000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,111,123,120,123,109,106,111,109,115,111,100,\nms_src=1148697612.000000 ms_lf_mid=554007426.250000 ms_lf_side=10465932.250000 ms_fec_mid=521022829.250000 ms_fec_side=28558773.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.656869339 next_ref=0.644568194 fidelity_fec=0.691692766 fidelity_ref=0.701001368 fidelity_plc=0.817771695 transition_fec=0.351514524 transition_ref=0.271908344 step_fec=-180.500 step_ref=-294.500 self_consistency=0.305485418\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.691692766,
+            "next_fec": 0.656869339,
+            "transition_fec": 0.351514524,
+            "fidelity_ref": 0.701001368,
+            "next_ref": 0.644568194,
+            "transition_ref": 0.271908344,
+            "fidelity_plc": 0.817771695,
+            "self_consistency": 0.305485418,
+            "step_fec": -180.5,
+            "step_ref": -294.5
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          2,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "10",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=40,60,60,60,60,60,60,60,60,60,60,60,\npkt_bytes=23,36,30,30,31,30,30,30,30,30,30,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.609714954 next_ref=0.483314231 fidelity_fec=0.523462468 fidelity_ref=0.418536535 fidelity_plc=0.999855701 transition_fec=0.509773660 transition_ref=0.425902980 step_fec=1567.000 step_ref=2671.000 self_consistency=0.349507883\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.523462468,
+            "next_fec": 0.609714954,
+            "transition_fec": 0.50977366,
+            "fidelity_ref": 0.418536535,
+            "next_ref": 0.483314231,
+            "transition_ref": 0.42590298,
+            "fidelity_plc": 0.999855701,
+            "self_consistency": 0.349507883,
+            "step_fec": 1567.0,
+            "step_ref": 2671.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "10",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,34,29,31,30,29,27,30,31,30,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.755986329 next_ref=0.775056677 fidelity_fec=0.775779791 fidelity_ref=0.684159635 fidelity_plc=1.455379434 transition_fec=0.658332111 transition_ref=0.478974903 step_fec=2382.000 step_ref=2459.000 self_consistency=0.390870655\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.775779791,
+            "next_fec": 0.755986329,
+            "transition_fec": 0.658332111,
+            "fidelity_ref": 0.684159635,
+            "next_ref": 0.775056677,
+            "transition_ref": 0.478974903,
+            "fidelity_plc": 1.455379434,
+            "self_consistency": 0.390870655,
+            "step_fec": 2382.0,
+            "step_ref": 2459.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          2,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "16000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=38,35,46,39,36,42,40,36,48,37,37,43,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.544684734 next_ref=0.544660384 fidelity_fec=0.450641050 fidelity_ref=0.443160620 fidelity_plc=0.913620788 transition_fec=0.441277973 transition_ref=0.442433603 step_fec=-790.000 step_ref=-695.000 self_consistency=0.116592790\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.45064105,
+            "next_fec": 0.544684734,
+            "transition_fec": 0.441277973,
+            "fidelity_ref": 0.44316062,
+            "next_ref": 0.544660384,
+            "transition_ref": 0.442433603,
+            "fidelity_plc": 0.913620788,
+            "self_consistency": 0.11659279,
+            "step_fec": -790.0,
+            "step_ref": -695.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "16000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=39,42,44,33,38,35,36,36,35,37,38,37,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.963422471 next_ref=0.821001778 fidelity_fec=1.000974038 fidelity_ref=0.782495425 fidelity_plc=1.000974038 transition_fec=1.142807447 transition_ref=0.549944469 step_fec=-269.000 step_ref=-1025.000 self_consistency=1.306601049\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 1.000974038,
+            "next_fec": 0.963422471,
+            "transition_fec": 1.142807447,
+            "fidelity_ref": 0.782495425,
+            "next_ref": 0.821001778,
+            "transition_ref": 0.549944469,
+            "fidelity_plc": 1.000974038,
+            "self_consistency": 1.306601049,
+            "step_fec": -269.0,
+            "step_ref": -1025.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          2,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,f8,f8,68,68,68,68,68,68,68,68,68,\npkt_bytes=60,60,60,60,60,59,61,60,60,60,60,55,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.478711407 next_ref=0.478386967 fidelity_fec=0.497211169 fidelity_ref=0.451764993 fidelity_plc=1.056150426 transition_fec=0.446097836 transition_ref=0.467922500 step_fec=-1085.000 step_ref=-1614.000 self_consistency=0.236226737\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.497211169,
+            "next_fec": 0.478711407,
+            "transition_fec": 0.446097836,
+            "fidelity_ref": 0.451764993,
+            "next_ref": 0.478386967,
+            "transition_ref": 0.4679225,
+            "fidelity_plc": 1.056150426,
+            "self_consistency": 0.236226737,
+            "step_fec": -1085.0,
+            "step_ref": -1614.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,67,64,59,61,59,53,60,55,61,55,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.684358962 next_ref=0.751198817 fidelity_fec=0.802790967 fidelity_ref=0.749776717 fidelity_plc=0.829666861 transition_fec=0.486687027 transition_ref=0.475513090 step_fec=-1298.000 step_ref=-567.000 self_consistency=0.384927814\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.802790967,
+            "next_fec": 0.684358962,
+            "transition_fec": 0.486687027,
+            "fidelity_ref": 0.749776717,
+            "next_ref": 0.751198817,
+            "transition_ref": 0.47551309,
+            "fidelity_plc": 0.829666861,
+            "self_consistency": 0.384927814,
+            "step_fec": -1298.0,
+            "step_ref": -567.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          2,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "1",
+            "20",
+            "32000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=f8,f8,f8,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,80,80,80,80,76,80,80,80,82,81,81,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.477479678 next_ref=0.473976392 fidelity_fec=0.459171108 fidelity_ref=0.432806024 fidelity_plc=1.132888274 transition_fec=0.415070989 transition_ref=0.371441766 step_fec=81.000 step_ref=-79.000 self_consistency=0.256582322\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.459171108,
+            "next_fec": 0.477479678,
+            "transition_fec": 0.415070989,
+            "fidelity_ref": 0.432806024,
+            "next_ref": 0.473976392,
+            "transition_ref": 0.371441766,
+            "fidelity_plc": 1.132888274,
+            "self_consistency": 0.256582322,
+            "step_fec": 81.0,
+            "step_ref": -79.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "1",
+            "20",
+            "32000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,82,83,81,79,81,82,72,74,77,76,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.783660495 next_ref=0.805697505 fidelity_fec=0.770283448 fidelity_ref=0.781625766 fidelity_plc=1.044183405 transition_fec=0.556042528 transition_ref=0.480377265 step_fec=-1532.000 step_ref=-1238.000 self_consistency=0.431638723\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.770283448,
+            "next_fec": 0.783660495,
+            "transition_fec": 0.556042528,
+            "fidelity_ref": 0.781625766,
+            "next_ref": 0.805697505,
+            "transition_ref": 0.480377265,
+            "fidelity_plc": 1.044183405,
+            "self_consistency": 0.431638723,
+            "step_fec": -1532.0,
+            "step_ref": -1238.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          2,
+          0
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "32000",
+            "2",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=1831625767.750000 ms_lf_side=31809288.750000 ms_fec_mid=1496779608.250000 ms_fec_side=58203138.250000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.475611082 next_ref=0.565079880 fidelity_fec=0.485889890 fidelity_ref=0.531902714 fidelity_plc=1.115639228 transition_fec=0.369590167 transition_ref=0.454155941 step_fec=-1066.000 step_ref=-501.000 self_consistency=0.378199862\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.48588989,
+            "next_fec": 0.475611082,
+            "transition_fec": 0.369590167,
+            "fidelity_ref": 0.531902714,
+            "next_ref": 0.56507988,
+            "transition_ref": 0.454155941,
+            "fidelity_plc": 1.115639228,
+            "self_consistency": 0.378199862,
+            "step_fec": -1066.0,
+            "step_ref": -501.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "32000",
+            "2",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=3223186750.500000 ms_lf_side=16059666.500000 ms_fec_mid=5140494910.750000 ms_fec_side=48550764.750000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.777073975 next_ref=0.770098236 fidelity_fec=0.887603124 fidelity_ref=0.701289068 fidelity_plc=0.983255154 transition_fec=0.550334475 transition_ref=0.690378675 step_fec=509.500 step_ref=-196.500 self_consistency=0.910507142\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.887603124,
+            "next_fec": 0.777073975,
+            "transition_fec": 0.550334475,
+            "fidelity_ref": 0.701289068,
+            "next_ref": 0.770098236,
+            "transition_ref": 0.690378675,
+            "fidelity_plc": 0.983255154,
+            "self_consistency": 0.910507142,
+            "step_fec": 509.5,
+            "step_ref": -196.5
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          2,
+          1
+        ],
+        "current": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+            "2",
+            "20",
+            "48000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=fc,fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=120,120,120,120,117,110,133,103,128,125,105,134,\nms_src=6586426492.500000 ms_lf_mid=1561313434.750000 ms_lf_side=28302103.750000 ms_fec_mid=1462615913.750000 ms_fec_side=64759210.750000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.454430128 next_ref=0.491537076 fidelity_fec=0.481557257 fidelity_ref=0.491270996 fidelity_plc=0.892300187 transition_fec=0.410500766 transition_ref=0.424161618 step_fec=-305.000 step_ref=-2173.500 self_consistency=0.388305220\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.481557257,
+            "next_fec": 0.454430128,
+            "transition_fec": 0.410500766,
+            "fidelity_ref": 0.491270996,
+            "next_ref": 0.491537076,
+            "transition_ref": 0.424161618,
+            "fidelity_plc": 0.892300187,
+            "self_consistency": 0.38830522,
+            "step_fec": -305.0,
+            "step_ref": -2173.5
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+            "2",
+            "20",
+            "48000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=123,123,121,112,106,116,111,113,113,103,112,112,\nms_src=6586426492.500000 ms_lf_mid=4091577293.750000 ms_lf_side=18463304.750000 ms_fec_mid=4034010024.750000 ms_fec_side=65434065.750000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.787404278 next_ref=0.785626099 fidelity_fec=0.788928344 fidelity_ref=0.789947322 fidelity_plc=1.050224550 transition_fec=0.503490469 transition_ref=0.475419065 step_fec=-607.000 step_ref=666.500 self_consistency=0.464241453\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.788928344,
+            "next_fec": 0.787404278,
+            "transition_fec": 0.503490469,
+            "fidelity_ref": 0.789947322,
+            "next_ref": 0.785626099,
+            "transition_ref": 0.475419065,
+            "fidelity_plc": 1.05022455,
+            "self_consistency": 0.464241453,
+            "step_fec": -607.0,
+            "step_ref": 666.5
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    ]
+  },
+  "quality_counts": {
+    "changed": 3695,
+    "fixed": 360,
+    "negative": 1288,
+    "worsened_existing": 260,
+    "new_negative": 68
+  },
+  "quality_by_application": {
+    "voip": {
+      "changed": 3695,
+      "fixed": 360,
+      "negative": 694,
+      "worsened_existing": 260,
+      "new_negative": 68
+    },
+    "audio": {
+      "negative": 594
+    }
+  },
+  "quality_input_hashes": {
+    "build\\energy_redistribution\\fec_voip_selected2_lab\\quality.json": "49edab3f2cac457a734d644a5f44763c341d556d02a601258dc821d623a9103c",
+    "build\\energy_redistribution\\fec_voip_selected2_lab\\quality_extra.json": "1ddb9493c0b3ed1317616b63e503572ea9c9b719f052f50c34c5c93506cb9285"
+  },
+  "validation_commands": [
+    {
+      "label": "source_diff",
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\head_empty_channel\\head_empty_channel.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\opus_codec.cpp"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "compile_codec",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-DOpusEncoder=curr_OpusEncoder",
+        "-DOpusDecoder=curr_OpusDecoder",
+        "-Dopus_encoder_create=curr_opus_encoder_create",
+        "-Dopus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dopus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dopus_encode=curr_opus_encode",
+        "-Dopus_encode_float=curr_opus_encode_float",
+        "-Dopus_decoder_create=curr_opus_decoder_create",
+        "-Dopus_decoder_destroy=curr_opus_decoder_destroy",
+        "-Dopus_decoder_ctl=curr_opus_decoder_ctl",
+        "-Dopus_decode=curr_opus_decode",
+        "-Dopus_decode_float=curr_opus_decode_float",
+        "-Dopus_packet_get_nb_samples=curr_opus_packet_get_nb_samples",
+        "-Dopus_strerror=curr_opus_strerror",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_strict",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\fec_vs_official.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_source_gate",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\fec_case_gate.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "strict",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "0",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "1",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "2",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_quality",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\f3b_lab\\tests\\perceptual_memory_validation.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\fec_voip_selected2_lab\\quality.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compile_plain",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_vbr_budget_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\vbr_budget_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vbr_budget_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_celt_empty_channel",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\celt_empty_channel.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "celt_empty_channel",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_packet_duration_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\packet_duration_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "packet_duration_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_decoder_channel_remap",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\decoder_channel_remap.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "decoder_channel_remap",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_api",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\cond_f3\\completion_batch\\tests\\api_reset_matrix.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "api",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_conformance",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-Dcodex_OpusEncoder=curr_OpusEncoder",
+        "-Dcodex_opus_encoder_create=curr_opus_encoder_create",
+        "-Dcodex_opus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dcodex_opus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dcodex_opus_encode=curr_opus_encode",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\conformance_encode.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\conformance.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "conformance",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\conformance.exe",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\agent_review_round1\\encode_validation\\encode_validation.bin"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_interop",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\changed_packet_interop.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\interop.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "interop",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\interop.exe"
+      ],
+      "exit": 0
+    }
+  ],
+  "additional_validation_commands": [
+    {
+      "label": "build_lpc_analysis_filter",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\tests\\lpc_analysis_filter.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\lpc_analysis_filter.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "lpc_analysis_filter",
+      "args": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\lpc_analysis_filter.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "build_postfilter_bypass",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\tests\\postfilter_bypass.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\postfilter_bypass.exe"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "build_postfilter_bypass_linked",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\tests\\postfilter_bypass.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\postfilter_bypass.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "postfilter_bypass",
+      "args": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\postfilter_bypass.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "build_voice_denoise_state_linked",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\tests\\voice_denoise_state.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\voice_denoise_state.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "voice_denoise_state",
+      "args": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\voice_denoise_state.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "build_quiet_release",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-DOPUSCPP_ENABLE_TEST_HOOKS",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\opus_codec.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\voip_quiet_start_latch.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\quiet_release.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "quiet_release",
+      "args": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\quiet_release.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "build_source_current",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\fec_source_quality.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "build_source_official",
+      "args": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-DUSE_OFFICIAL_ENCODER",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\fec_source_quality.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_regression",
+      "args": [
+        "python",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\check_fec_source_quality.py",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_official.exe",
+        "--output",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_regression.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "invalid_profile",
+      "args": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\fec_voip_selected2\\final_checks\\source_current.exe",
+        "1",
+        "20",
+        "24000",
+        "9",
+        "1"
+      ],
+      "exit": 2
+    }
+  ],
+  "remaining": [
+    "Full quality parity",
+    "Exact64kbps mode override and startup decisions",
+    "Final speed/resource measurements"
+  ],
+  "exclusions": [
+    "CELT transient-analysis experiment",
+    "CELT stereo-to-mono energy-history experiment",
+    "LPC accumulation experiment"
+  ]
+}

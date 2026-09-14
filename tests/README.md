@@ -2,7 +2,7 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-The speed, quality, optional processing, FEC/DTX, memory and binary-size sections below are separate measurement snapshots; each keeps the source revision it was recorded on, and those revisions remain in force for that table. The checkpoint at the end of this file is the latest isolated measurement; the speed, memory and other tables remain historical.
+The sections below are separate measurement snapshots. The FEC and full-matrix quality checkpoint is identified in `metrics/fec_validated_checkpoint.json`; older speed, memory, optional-processing and quality tables retain their original measured revisions. Both encoders use complexity 10 and -O2 -DNDEBUG where specified, with official Opus intrinsics enabled. No historical table is relabelled as a measurement of the new checkpoint.
 
 ## Quick start
 
@@ -225,12 +225,35 @@ entropy-coder state. This catches malformed payloads even when both decoders pro
 audio. Additional packet checks cover silent startup, speech-to-silence changes, and bitrate changes
 while FEC is enabled.
 
-Recovery error compares the reconstructed missing audio with normal, loss-free decoding of the
-same encoded stream; lower means less damage from the lost packet. It does not measure total error
-against the original recording. The aggregate score combines the tracked 10/20 ms scenarios before
-comparing the two encoders. In the current run, `opuscpp` reconstructs audio more accurately in all
-18 scenarios and reduces the combined error by 53.2%. It supplies recoverable backup audio in all 18
-scenarios, compared with 15 for official Opus, while using 0.3% fewer packet bytes.
+Recovery error compares reconstructed missing audio with normal, loss-free decoding of the
+same stream. The reviewed FEC checkpoint passes all 18 strict 10/20 ms cases: aggregate recovery
+error ratio 0.461509 (53.8% lower than official), maximum per-case ratio 0.984130, backup
+coverage 18/18 versus official 15/18, and packet-byte ratio 0.996333. The source identity and raw
+criteria results are recorded in [FEC checkpoint metadata](metrics/fec_validated_checkpoint.json).
+
+`fec_source_quality.cpp` separately compares recovered-frame fidelity, the following frame and
+the boundary transition against the original source. All three errors are no greater than official
+Opus on 18/18 cases, and recovered audio improves on this encoder's PLC on 18/18. Build it against
+the same `curr_`-renamed codec object as `fec_vs_official.cpp`; build the reference binary with
+`-DUSE_OFFICIAL_ENCODER` and the official library. Then run:
+
+```text
+python tests/scripts/check_fec_source_quality.py current_gate.exe official_gate.exe --output fec_source_results.json
+```
+
+The checkpoint also passes packet budgets, 240 API/reset cases, 96 encoder conformance cases,
+packet-duration/channel-remap checks, SILK reconstruction, postfilter and denoiser checks.
+`voip_quiet_start_latch.cpp` (compile with `-DOPUSCPP_ENABLE_TEST_HOOKS`) checks that silence
+does not classify as quiet speech and that later loud input releases a quiet classification.
+Complete startup independence is still open: the exact 64 kbps mode override and other mode
+decisions require further review.
+
+The full 498-configuration quality matrix has 1288 below-official fields, compared with 1580 at
+parent commit `a4a1fde`: 360 fixed, 68 newly negative and 260 worsened existing deficits. All AUDIO
+fields are unchanged; these differences are VOIP. This is an FEC-qualified checkpoint, not full
+quality/performance parity. The separate CELT transient/history and LPC experiments remain
+outside this checkpoint for individual review. Historical speed/memory tables below retain their
+original measurement provenance and do not measure this new checkpoint.
 
 ## Perceptual and memory harness
 
@@ -256,7 +279,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The speed, memory, binary-size, AUDIO/VOIP quality, optional-processing and broader-corpus figures use the same current production source. The headline encoder comparisons use complexity 10.
+The historical speed, memory, binary-size, AUDIO/VOIP quality, optional-processing and broader-corpus figures retain their recorded measurement source. The headline encoder comparisons use complexity 10.
 Default output, optional processing and their input references remain separate comparisons.
 Historical optimization/validation comparisons are explicitly labelled.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are

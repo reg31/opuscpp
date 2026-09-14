@@ -1762,6 +1762,19 @@ static void reset_voice_denoise_state(VoiceDenoiseState& state) noexcept {
   state.target_gain.fill(1);
 }
 
+struct voice_conditioning_channel {
+  opus_val32 raw_dc_memory, hp_dc_memory;
+  opus_val32 cond_lf_state, cond_dc_state, cond_score, cond_mix;
+  opus_val32 cond_mid_hp, cond_mid_hp2, cond_mid_lp;
+  opus_val32 cue_lf_ref;
+  int cue_provisional, cue_dc_seen;
+  opus_val32 cue_dc_idle;
+  opus_int64 cue_provisional_run, cue_adapt_count, cue_consec;
+  opus_val64 cue_adapt_sum;
+  opus_int64 cue_run, cue_unknown_run, cue_floor_hold, cue_strict_run, cue_adapt_run, cue_rumble_consec;
+  int cond_started, cue_dirty, cond_init_done, cond_init_dc, cue_released;
+};
+
 struct OpusEncoder {
   opus_uint16 celt_enc_offset, silk_enc_offset;
   silk_EncControlStruct silk_mode;
@@ -1787,6 +1800,9 @@ struct OpusEncoder {
   int preprocess_filter_state;
   StereoWidthState width_mem;
   opus_val32 peak_signal_energy;
+  std::array<voice_conditioning_channel, 2> conditioning;
+  opus_val32 quiet_probe_peak;
+  int quiet_probe_active_frames, quiet_probe_loud_frames;
   opus_uint32 rangeFinal;
   int nb_no_activity_ms_Q1;
   opus_val32 dtx_smoothed_energy;
@@ -1886,6 +1902,8 @@ constexpr int preprocess_filter_quiet_voice = 2;
 constexpr int silk_preserve_stereo_bias = 1;
 constexpr int silk_preserve_stereo_force = 2;
 constexpr opus_val32 quiet_voice_probe_energy = .02f;
+constexpr int quiet_voice_probe_active_frames = audio_preprocess_warmup_frames;
+constexpr int quiet_voice_release_frames = 4;
 static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   auto silkEncSizeBytes = align(silk_encoder_get_size(channels));
   if (!encoder_uses_silk(application)) {
@@ -2490,6 +2508,7 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
   if (st->application != OPUS_APPLICATION_VOIP) {
     return 1.0f;
   }
+  if (st->mode == opus_mode_celt_only && st->bitrate_bps < 40000) return 1.0f;
   const auto bitrate = st->bitrate_bps;
   if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
     return .984f;
@@ -2780,11 +2799,22 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       st->audio_preprocess_mode = audio_preprocess_music;
     }
   }
-  const bool early_quiet_voice_probe = st->bitrate_bps == 64000;
-  if (voip_style && st->channels == 1 && st->preprocess_filter_state == 0 &&
-      st->lightweight_analysis_frames >= (early_quiet_voice_probe ? 1 : audio_preprocess_warmup_frames)) {
-    const auto quiet_energy = early_quiet_voice_probe ? .01f : quiet_voice_probe_energy;
-    st->preprocess_filter_state = st->peak_signal_energy < quiet_energy ? preprocess_filter_quiet_voice : preprocess_filter_default;
+  const bool quiet_voice_active = !frame_metrics.is_silence && frame_metrics.energy > 1e-7f;
+  if (voip_style && st->channels == 1 && st->preprocess_filter_state == 0 && quiet_voice_active) {
+    st->quiet_probe_peak = std::max(st->quiet_probe_peak, frame_metrics.energy);
+    if (++st->quiet_probe_active_frames >= quiet_voice_probe_active_frames) {
+      st->preprocess_filter_state =
+          st->quiet_probe_peak < quiet_voice_probe_energy ? preprocess_filter_quiet_voice : preprocess_filter_default;
+    }
+  }
+  if (voip_style && st->channels == 1 && st->preprocess_filter_state == preprocess_filter_quiet_voice) {
+    if (quiet_voice_active && frame_metrics.energy >= quiet_voice_probe_energy) {
+      if (++st->quiet_probe_loud_frames >= quiet_voice_release_frames) {
+        st->preprocess_filter_state = preprocess_filter_default;
+      }
+    } else {
+      st->quiet_probe_loud_frames = 0;
+    }
   }
   celt_enc->high_z_tonal_Q7 = static_cast<opus_uint8>(st->lightweight_high_z_tonal_Q7);
   celt_enc->input_diff_Q10 = static_cast<opus_uint8>(clamp_value(static_cast<int>(1024.f * frame_metrics.mono_diff_ratio + .5f), 0, 255));
@@ -2998,39 +3028,284 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
              : 0.f;
 }
 
+static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate) {
+      constexpr opus_val32 lf_coef_hz = 150.f;
+      constexpr opus_val32 dc_coef_hz = 5.f;
+      const opus_val32 lf_coef = 1.f - std::exp(-6.2831853f * lf_coef_hz / static_cast<opus_val32>(sample_rate));
+      const opus_val32 dc_coef = 1.f - std::exp(-6.2831853f * dc_coef_hz / static_cast<opus_val32>(sample_rate));
+      const opus_val32 mid_hp_coef = 1.f - std::exp(-6.2831853f * 300.f / static_cast<opus_val32>(sample_rate));
+      const opus_val32 mid_lp_coef = 1.f - std::exp(-6.2831853f * 3000.f / static_cast<opus_val32>(sample_rate));
+      opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
+      opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
+      double sample_sum = 0, raw_e = 0;
+      if (state.cond_started == 0) {
+        dc = pcm[0];
+      }
+      for (int index = 0; index < frame_size * 1; ++index) {
+        const opus_val32 sample = pcm[index * stride];
+        sample_sum += sample;
+        raw_e += static_cast<double>(sample) * sample;
+        dc += dc_coef * (sample - dc);
+        const opus_val32 high = sample - dc;
+        tot_e += high * high;
+        lf += lf_coef * (high - lf);
+        lf_e += lf * lf;
+        mid_hp += mid_hp_coef * (high - mid_hp);
+        const opus_val32 hp1 = high - mid_hp;
+        mid_hp2 += mid_hp_coef * (hp1 - mid_hp2);
+        const opus_val32 hp2 = hp1 - mid_hp2;
+        mid_lp += mid_lp_coef * (hp2 - mid_lp);
+        mid_e += mid_lp * mid_lp;
+      }
+      state.cond_lf_state = lf;
+      state.cond_dc_state = dc;
+      state.cond_mid_hp = mid_hp;
+      state.cond_mid_hp2 = mid_hp2;
+      state.cond_mid_lp = mid_lp;
+      const opus_val32 samples = static_cast<opus_val32>(frame_size * 1);
+      const opus_val32 lf_abs = lf_e / samples;
+      const opus_val32 mid_abs = mid_e / samples;
+      const bool active = (tot_e / samples) > 1e-7f;
+      const double frame_mean_d = sample_sum / samples;
+      const opus_val32 frame_mean = static_cast<opus_val32>(frame_mean_d);
+      const double raw_power_d = raw_e / samples;
+      const double ac_power_d = std::max(0.0, raw_power_d - frame_mean_d * frame_mean_d);
+      const opus_val32 ac_power = static_cast<opus_val32>(ac_power_d);
+      const opus_val32 ac_rms = std::sqrt(ac_power);
+      const bool low_ac = ac_rms < .01f;
+      if (low_ac) {
+        if (state.cue_dc_seen == 0) {
+          state.cue_dc_idle = frame_mean;
+          state.cue_dc_seen = 1;
+        } else {
+          state.cue_dc_idle += (frame_mean - state.cue_dc_idle) * .2f;
+        }
+      }
+      const bool dc_evidence = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) > .02f;
+      const bool dc_fast = active && std::fabs(frame_mean) > .02f
+          && std::fabs(frame_mean) > .8f * ac_rms;
+      const bool evidence = active && lf_abs > 3e-6f && (lf_abs + mid_abs) > 1e-7f;
+      const bool source_supported = ac_power > 3e-6f;
+      const bool rumble_evidence = evidence && source_supported && lf_abs > 200.f * (mid_abs + 1e-20f);
+      bool dirty_evidence = dc_evidence || rumble_evidence;
+      const bool clean_evidence = evidence && mid_abs > 3e-4f
+          && lf_abs < 20.f * (mid_abs + 1e-20f);
+      const opus_int64 sample_count = static_cast<opus_int64>(frame_size * 1);
+      const opus_int64 run_need = static_cast<opus_int64>(100) * sample_rate / 1000;
+      const opus_int64 release_need = static_cast<opus_int64>(300) * sample_rate / 1000;
+      const opus_int64 expiry_need = static_cast<opus_int64>(400) * sample_rate / 1000;
+      const opus_int64 fallback_need = static_cast<opus_int64>(3000) * sample_rate / 1000;
+      if (dirty_evidence) {
+        state.cue_run = std::min(state.cue_run + sample_count, run_need);
+        state.cue_consec += sample_count;
+        state.cue_rumble_consec = rumble_evidence ? state.cue_rumble_consec + sample_count : 0;
+        state.cue_unknown_run = 0;
+        if (state.cue_dirty == 0 && state.cue_consec >= static_cast<opus_int64>(40) * sample_rate / 1000) {
+          state.cue_provisional = 1;
+          state.cue_provisional_run = 0;
+        }
+      } else if (clean_evidence) {
+        state.cue_consec = 0;
+        state.cue_rumble_consec = 0;
+        state.cue_run = state.cue_run > 2 * sample_count ? state.cue_run - 2 * sample_count : 0;
+        state.cue_unknown_run = 0;
+      } else {
+        state.cue_consec = 0;
+        state.cue_rumble_consec = 0;
+        state.cue_unknown_run += sample_count;
+        if (state.cue_unknown_run >= expiry_need) {
+          state.cue_run = 0;
+        }
+      }
+      if (dc_fast && state.cue_dirty == 0) {
+        state.cue_provisional = 1;
+        state.cue_provisional_run = 0;
+      }
+      const bool dc_cleared = state.cue_dc_seen != 0 && std::fabs(state.cue_dc_idle) <= .02f;
+      const bool floor_declined = state.cue_dirty != 0 &&
+          ((state.cue_lf_ref > 0.f && lf_abs < 0.5f * state.cue_lf_ref) ||
+           (dc_cleared && state.cue_rumble_consec == 0 && !rumble_evidence));
+      if (floor_declined) {
+        state.cue_floor_hold += sample_count;
+        state.cue_adapt_run = 0;
+        state.cue_adapt_sum = 0;
+        state.cue_adapt_count = 0;
+      } else if (state.cue_dirty != 0) {
+        state.cue_floor_hold = 0;
+        if (lf_abs < 0.8f * state.cue_lf_ref) {
+          state.cue_adapt_run += sample_count;
+          state.cue_adapt_sum += static_cast<opus_val64>(lf_abs) * sample_count;
+          state.cue_adapt_count += sample_count;
+          if (state.cue_adapt_run >= static_cast<opus_int64>(2000) * sample_rate / 1000) {
+            state.cue_lf_ref = static_cast<opus_val32>(state.cue_adapt_sum / state.cue_adapt_count);
+            state.cue_adapt_run = 0;
+            state.cue_adapt_sum = 0;
+            state.cue_adapt_count = 0;
+          }
+        } else {
+          state.cue_adapt_run = 0;
+          state.cue_adapt_sum = 0;
+          state.cue_adapt_count = 0;
+        }
+      } else {
+        state.cue_floor_hold = 0;
+        state.cue_adapt_run = 0;
+        state.cue_adapt_sum = 0;
+        state.cue_adapt_count = 0;
+      }
+      const bool strict_clean = evidence && mid_abs > 3e-4f
+          && lf_abs < 5.f * (mid_abs + 1e-20f);
+      if (strict_clean) {
+        state.cue_strict_run += sample_count;
+      } else {
+        state.cue_strict_run = 0;
+      }
+      const opus_int64 rumble_need = static_cast<opus_int64>(60) * sample_rate / 1000;
+      if (state.cue_run >= run_need || state.cue_rumble_consec >= rumble_need) {
+        if (state.cue_dirty == 0) {
+          state.cue_lf_ref = lf_abs;
+          state.cue_floor_hold = 0;
+          state.cue_adapt_run = 0;
+        }
+        state.cue_dirty = 1;
+        state.cue_released = 0;
+      } else if (state.cue_dirty != 0 &&
+                 ((floor_declined && state.cue_floor_hold >= release_need) ||
+                  (strict_clean && state.cue_strict_run >= fallback_need))) {
+        state.cue_dirty = 0;
+        state.cue_released = 1;
+        state.cue_lf_ref = 0.f;
+        state.cue_floor_hold = 0;
+        state.cue_adapt_run = 0;
+        state.cue_strict_run = 0;
+      }
+      opus_val32 target = state.cond_score;
+      if (active) {
+        if (state.cue_dirty != 0) {
+          target = 1.f;
+          state.cue_provisional = 0;
+          state.cue_provisional_run = 0;
+        } else if (state.cue_provisional != 0) {
+          state.cue_provisional_run += sample_count;
+          if (state.cue_provisional_run > static_cast<opus_int64>(300) * sample_rate / 1000) {
+            state.cue_provisional = 0;
+            target = 0.f;
+          } else {
+            target = (dirty_evidence || dc_fast) ? 1.f : (clean_evidence ? 0.f : state.cond_score);
+          }
+        } else {
+          target = 0.f;
+        }
+      } else if (state.cue_dirty == 0 && state.cue_released != 0 && state.cond_score > 0.f) {
+        target = 0.f;
+      }
+      if (!state.cond_started) {
+        state.cond_started = 1;
+        state.cond_score = dirty_evidence || dc_fast ? 1.f : 0.f;
+        state.cond_mix = state.cond_score;
+        state.cue_provisional = dirty_evidence ? 1 : 0;
+      } else {
+        const opus_val32 dt = static_cast<opus_val32>(frame_size) / static_cast<opus_val32>(sample_rate);
+        const opus_val32 attack = 1.f - std::exp(-dt / .10f);
+        const opus_val32 release = 1.f - std::exp(-dt / .80f);
+        const opus_val32 dc_attack = 20 <= 0
+                                         ? 1.f
+                                         : 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
+        const bool dc_driven = target == 1.f && (dc_fast || dc_evidence);
+        const opus_val32 coef = (target > state.cond_score || state.cue_provisional != 0)
+                                    ? (dc_driven ? dc_attack : attack)
+                                    : release;
+        state.cond_score += coef * (target - state.cond_score);
+      }
+#ifdef OPUSCPP_ENABLE_TEST_HOOKS
+  {
+    static int cond_trace_frame = 0;
+    if (std::getenv("OPUSCPP_COND_TRACE") != nullptr) {
+      std::fprintf(stderr,
+                   "condtrace: f=%d active=%d dcseen=%d dcidle=%.9f lf=%.9f mid=%.9f dirty=%d lfref=%.9f "
+                   "score=%.6f mix=%.6f decline=%d strict=%d prov=%d run=%lld\n",
+                   cond_trace_frame++, static_cast<int>(active), state.cue_dc_seen, static_cast<double>(state.cue_dc_idle),
+                   static_cast<double>(lf_abs), static_cast<double>(mid_abs), state.cue_dirty,
+                   static_cast<double>(state.cue_lf_ref), static_cast<double>(state.cond_score),
+                   static_cast<double>(state.cond_mix), static_cast<int>(floor_declined), static_cast<int>(strict_clean),
+                   state.cue_provisional, static_cast<long long>(state.cue_run));
+    }
+  }
+#endif
+  return dc_fast ? frame_mean : pcm[0];
+}
+
 static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
   if (st->application == OPUS_APPLICATION_VOIP) {
-    if (st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-    } else {
-      const int hp_freq_smth1 = st->mode == opus_mode_celt_only
-                                    ? silk_log_60_q15
-                                    : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
-      st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
-      const int cutoff_Hz = silk_log2lin(((st->variable_HP_smth2_Q15) >> (8)));
-      hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
+    std::array<opus_val32, 2> initial_value;
+    for (int channel = 0; channel < st->channels; ++channel) {
+      initial_value[channel] = update_voice_conditioning(st->conditioning[channel], pcm + channel, frame_size, st->channels, st->Fs);
     }
+    const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
+    st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
+    const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
+    const opus_int32 fc_q19 = static_cast<opus_int16>(2471) * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
+    const opus_val32 r_q28 = (1 << 28) - 471 * fc_q19;
+    const opus_val32 r_norm = r_q28 * (1.f / (1 << 28));
+    for (int channel = 0; channel < st->channels; ++channel) {
+      auto& state = st->conditioning[channel];
+      if (state.cond_init_done == 0) {
+        state.cond_init_done = 1;
+        st->hp_mem[2 * channel] = -r_norm * initial_value[channel];
+        st->hp_mem[2 * channel + 1] = r_norm * initial_value[channel];
+      }
+    }
+    hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
+    opus_val16 restoration = 0.f;
     if (st->channels == 1) {
       auto low_band_keep = opus_val16{0};
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
         low_band_keep = st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f
-                        : diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
+                        : diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
                                                                                         : 0.f;
-      } else if (st->bitrate_bps <= 64000 && !st->use_dtx && st->preprocess_filter_state != preprocess_filter_quiet_voice) {
+      } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
         low_band_keep = .30f;
       }
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps < voip_noisy_voice_low_band_min_bps &&
           frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
         low_band_keep = voip_quiet_hissy_voice_low_band_keep;
       }
-      if (low_band_keep > 0) {
-        blend_filtered_input(frame_pcm, pcm, frame_size, low_band_keep);
-        if (st->bitrate_bps > 16000) {
-          dc_reject(frame_pcm, frame_pcm, st->audio_speech_hp_mem, frame_size, 1, st->Fs);
-        }
+      restoration = low_band_keep;
+    }
+    const float dc_coefficient = 6.3f * 3 / st->Fs;
+    const float dc_feedback = 1.f - dc_coefficient;
+    for (int channel = 0; channel < st->channels; ++channel) {
+      auto& state = st->conditioning[channel];
+      if (state.cond_init_dc == 0) {
+        state.cond_init_dc = 1;
+        state.raw_dc_memory = initial_value[channel];
+        state.hp_dc_memory = 0.f;
       }
+      float raw_memory = state.raw_dc_memory, hp_memory = state.hp_dc_memory;
+      const opus_val32 step = (state.cond_score - state.cond_mix) / static_cast<opus_val32>(frame_size);
+      opus_val32 mix = state.cond_mix;
+      for (int i = 0; i < frame_size; ++i) {
+        const int index = i * st->channels + channel;
+        const float raw = pcm[index], hp = frame_pcm[index];
+        float protected_sample = hp;
+        if (st->channels == 1) {
+          const float raw_ac = raw - raw_memory;
+          const float hp_ac = hp - hp_memory;
+          raw_memory = dc_coefficient * raw + 1e-30f + dc_feedback * raw_memory;
+          hp_memory = dc_coefficient * hp + 1e-30f + dc_feedback * hp_memory;
+          const float base = st->bitrate_bps > 16000 && restoration > 0 ? hp_ac : hp;
+          protected_sample = base + restoration * (raw_ac - base);
+        }
+        mix += step;
+        frame_pcm[index] = raw + mix * (protected_sample - raw);
+      }
+      state.cond_mix = state.cond_score;
+      state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
+      state.hp_dc_memory = zero_tiny_float_mem(hp_memory);
+    }
+    if (st->channels == 1) {
       const bool broadband = broadband_voice_denoise_ready(st);
       if (broadband)
         apply_voice_denoise(st, frame_pcm, frame_size, frame_metrics);
@@ -4853,6 +5128,10 @@ static void init_caps(std::span<int> cap, int LM, int C) {
 #if defined(OPUSCPP_ENABLE_TEST_HOOKS)
 int opuscpp_test_hybrid_target(int base_target, int LM, int silk_offset, float tf_estimate) noexcept {
   return celt_hybrid_target(base_target, LM, silk_offset, static_cast<opus_val16>(tf_estimate));
+}
+
+int opuscpp_test_preprocess_filter_state(const OpusEncoder* st) noexcept {
+  return st->preprocess_filter_state;
 }
 #endif
 
@@ -9979,7 +10258,8 @@ struct silk_nsq_preparation {
 };
 
 static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, const silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, const SideInfoIndices* psIndices);
-static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared);
+template <bool KnownZero = false>
+static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr);
 static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control, ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr);
 struct silk_pitch_analysis_result {
   std::array<int, 4> lags{};
@@ -10538,7 +10818,9 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
   return static_cast<opus_int32>(static_cast<opus_int16>(value)) * static_cast<opus_int32>(static_cast<opus_int16>(value));
 }
 
+template <bool KnownZero>
 [[nodiscard]] static auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10) noexcept -> silk_nsq_candidate_pair {
+  if constexpr (KnownZero) return {offset_Q10, offset_Q10, 0, 0, 0, 0};
   auto q1_Q10 = residual_q10 - offset_Q10;
   auto q1_Q0 = q1_Q10 >> 10;
   if (Lambda_Q10 > 2048) {
@@ -10612,6 +10894,7 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
   return gain_adj_Q16;
 }
 
+template <bool KnownZero>
 static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std::span<const opus_int32> x_sc_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10) {
   int i;
   opus_int32 LTP_pred_Q13, LPC_pred_Q10, n_AR_Q12, n_LTP_Q13;
@@ -10650,7 +10933,7 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std:
       tmp1 = rounded_rshift<2>(tmp1);
     }
     r_Q10 = silk_signed_clamped_residual(x_sc_Q10[i] - tmp1, NSQ->rand_seed);
-    const auto candidates = silk_quantize_candidate_pair(r_Q10, Lambda_Q10, offset_Q10);
+    const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10);
     const auto best_index = candidates.dist2_Q20 + candidates.rate2_Q20 < candidates.dist1_Q20 + candidates.rate1_Q20;
     const auto sample = silk_nsq_build_sample(best_index == 0 ? candidates.q1_Q10 : candidates.q2_Q10, NSQ->rand_seed,
                                               saturating_left_shift<1>(LTP_pred_Q13), saturating_left_shift<4>(LPC_pred_Q10), x_sc_Q10[i],
@@ -10739,6 +11022,7 @@ template <int Shift>
   return wrapped >= 40 ? wrapped - 40 : wrapped;
 }
 
+template <bool KnownZero>
 static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
   opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
@@ -10794,7 +11078,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
       r_Q10 = silk_signed_clamped_residual(x_q10_data[i] - tmp1, psDD->Seed);
-      const auto candidates = silk_quantize_candidate_pair(r_Q10, Lambda_Q10, offset_Q10);
+      const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
@@ -10889,14 +11173,15 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
   }
 }
 
-template <bool Delayed>
+template <bool Delayed, bool KnownZero>
 static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
   int lag = NSQ->lagPrev;
+  const int state_count = KnownZero ? 1 : psEncC->nStatesDelayedDecision;
   std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage{};
-  auto delayed_states = std::span{psDelDec_storage}.first(static_cast<std::size_t>(psEncC->nStatesDelayedDecision));
+  auto delayed_states = std::span{psDelDec_storage}.first(static_cast<std::size_t>(state_count));
   auto* psDelDec = delayed_states.data();
   if constexpr (Delayed) {
-    for (int k = 0; k < psEncC->nStatesDelayedDecision; ++k) {
+    for (int k = 0; k < state_count; ++k) {
       auto& state = psDelDec[k];
       state.Seed = (k + psIndices->Seed) & 3;
       state.SeedInit = state.Seed;
@@ -10947,7 +11232,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
         if constexpr (Delayed) {
           if (k == 2) {
             const int Winner_ind = silk_best_delayed_state_index(delayed_states);
-            for (int i = 0; i < psEncC->nStatesDelayedDecision; ++i) {
+            for (int i = 0; i < state_count; ++i) {
               if (i != Winner_ind) {
                 psDelDec[i].RD_Q10 += (0x7FFFFFFF >> 4);
               }
@@ -10976,7 +11261,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                     {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14, {Gains_Q16, 4}, {pitchL, 4},
                                     psIndices->signalType, decisionDelay);
       const auto delayed_output_prefix = subfr > 0 ? decisionDelay : 0;
-      silk_noise_shape_quantizer_del_dec(
+      silk_noise_shape_quantizer_del_dec<KnownZero>(
           NSQ, delayed_states, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
           {pulses - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
           {pxq - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
@@ -10988,7 +11273,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                               {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                               {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                               {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
-      silk_noise_shape_quantizer(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+      silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                  {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
                                  {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
                                  {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
@@ -13173,14 +13458,16 @@ static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* p
                             psEncC->indices.signalType, psEncC->indices.quantOffsetType, psEncC->frame_length);
 }
 
-static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared) {
+
+static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
+                     const silk_nsq_state& pre_frame_nsq) {
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
     return;
   }
   const auto frame = static_cast<std::size_t>(psEnc->sCmn.nFramesEncoded);
   lbrr->flags[frame] = 1;
-  lbrr->indices[frame] = psEnc->sCmn.indices;
-  lbrr->nsq = psEnc->sCmn.sNSQ;
+  lbrr->indices[frame] = original_indices;
+  lbrr->nsq = pre_frame_nsq;
   std::array<float, 4> original_gains;
   std::copy_n(control->Gains, static_cast<std::size_t>(psEnc->sCmn.nb_subfr), original_gains.begin());
   auto& indices = lbrr->indices[frame];
@@ -13188,7 +13475,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     indices.signalType = 1;
   }
   if (frame == 0 || lbrr->flags[frame - 1] == 0) {
-    lbrr->previous_gain_index = psEnc->sShape.LastGainIndex;
+    lbrr->previous_gain_index = original_last_gain_index;
     indices.GainsIndices[0] =
         static_cast<opus_int8>(std::min<int>(indices.GainsIndices[0] + std::max(lbrr->gain_increase - gain_reduction, 2), 63));
   }
@@ -13247,8 +13534,17 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     }
     silk_nsq_preparation prepared;
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
-    if (lbrr != nullptr && lbrr->enabled) {
-      silk_generate_lbrr(psEnc, lbrr, &sEncCtrl, nsq_samples.data(), condCoding, lbrr_gain_reduction, protect_quiet_lbrr, prepared);
+    const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
+    SideInfoIndices lbrr_original_indices{};
+    std::array<float, 4> lbrr_original_gains{};
+    float lbrr_original_lambda = 0.0f;
+    opus_int8 lbrr_original_last_gain_index = 0;
+    bool use_reconstructed_lbrr_target = true;
+    if (lbrr_deferred_generate) {
+      lbrr_original_indices = psEnc->sCmn.indices;
+      std::copy_n(sEncCtrl.Gains, static_cast<std::size_t>(psEnc->sCmn.nb_subfr), lbrr_original_gains.begin());
+      lbrr_original_lambda = sEncCtrl.Lambda;
+      lbrr_original_last_gain_index = psEnc->sShape.LastGainIndex;
     }
     constexpr int max_iterations = 6;
     silk_gain_search_bound lower, upper;
@@ -13300,6 +13596,15 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
           zero_n_items(psEnc->sCmn.pulses, static_cast<std::size_t>(psEnc->sCmn.frame_length));
           silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding);
           nBits = ec_tell(psRangeEnc);
+          // Rebuild prediction and shaping history from the pulse sequence just encoded.
+          std::array<opus_int32, 4> replay_gains{};
+          auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
+          silk_gains_dequant(replay_gains.data(), psEnc->sCmn.indices.GainsIndices, &previous_gain_index,
+                             condCoding == 2, psEnc->sCmn.nb_subfr);
+          psEnc->sCmn.sNSQ = sNSQ_copy[0];
+          silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &psEnc->sCmn.sNSQ,
+                                    psEnc->sCmn.pulses, nsq_samples.data(), prepared, replay_gains.data());
+          use_reconstructed_lbrr_target = false;
         }
         if (!useCBR && iter == 0 && nBits <= maxBits) {
           break;
@@ -13368,6 +13673,18 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
       for (int index = 0; index < psEnc->sCmn.nb_subfr; ++index) {
         sEncCtrl.Gains[index] = pGains_Q16[index] / 65536.0f;
       }
+    }
+    if (lbrr_deferred_generate) {
+      std::copy_n(lbrr_original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), sEncCtrl.Gains);
+      sEncCtrl.Lambda = lbrr_original_lambda;
+      const opus_int16* lbrr_samples = nsq_samples.data();
+      const int lbrr_ltp = psEnc->sCmn.ltp_mem_length;
+      const int lbrr_fl = psEnc->sCmn.frame_length;
+      if (use_reconstructed_lbrr_target && lbrr_ltp >= lbrr_fl && lbrr_ltp <= 2 * silk_max_frame_length) {
+        lbrr_samples = &psEnc->sCmn.sNSQ.xq[lbrr_ltp - lbrr_fl];
+      }
+      silk_generate_lbrr(psEnc, lbrr, &sEncCtrl, lbrr_samples, condCoding, lbrr_gain_reduction, protect_quiet_lbrr, prepared,
+                         lbrr_original_indices, lbrr_original_last_gain_index, sNSQ_copy[0]);
     }
   }
   move_n_bytes(&psEnc->x_buf[psEnc->sCmn.frame_length],
@@ -13884,12 +14201,18 @@ static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, const silk_enco
   prepared.ltp_scale = psIndices->signalType == 2 ? silk_LTPScales_table_Q14[psIndices->LTP_scaleIndex] : 0;
 }
 
-void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared) {
+template <bool KnownZero>
+void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains) {
   std::array<opus_int32, 4> gains{};
-  for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe) {
-    gains[subframe] = float2int(psEncCtrl->Gains[subframe] * 65536.0f);
+  if constexpr (KnownZero) {
+    std::copy_n(exact_gains, psEnc->sCmn.nb_subfr, gains.begin());
+  } else {
+    for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe) {
+      gains[subframe] = float2int(psEncCtrl->Gains[subframe] * 65536.0f);
+    }
   }
-  const auto nsq = psEnc->sCmn.nStatesDelayedDecision > 1 || psEnc->sCmn.warping_Q16 > 0 ? &silk_NSQ<true> : &silk_NSQ<false>;
+  const auto nsq = psEnc->sCmn.nStatesDelayedDecision > 1 || psEnc->sCmn.warping_Q16 > 0
+                       ? &silk_NSQ<true, KnownZero> : &silk_NSQ<false, KnownZero>;
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 
