@@ -1,0 +1,2044 @@
+{
+  "baseline_commit": "9470b00fff6ec3835d398f9e6f1c79910a83b88a",
+  "source_blob": "9bfd0ad8957b5af992345ffbd19524468afa529b",
+  "source_sha256": "08549b758f6dde4295ef8b448fcf21858ba1d39b2dfe9be12d0dd9938ac0b403",
+  "object_sha256": "49ecedd74da57889d95c4217a0a61d481f7306ce9b7e8a68ff88b53e95940fac",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "parity_stdout": "transient_parity cases=160 official_attacks=44 failures=0\n",
+  "baseline_parity_stdout": "mismatch lm=0 ch=1 shape=2 allow_weak=0 tonal=0 transient=0/1 estimate=0/0.80535382 channel=0/0 weak=0/0\nmismatch lm=0 ch=1 shape=2 allow_weak=1 tonal=0 transient=0/1 estimate=0/0.832820833 channel=0/0 weak=0/0\nmismatch lm=0 ch=1 shape=3 allow_weak=0 tonal=0 transient=0/1 estimate=0/0.705590129 channel=0/0 weak=0/0\nmismatch lm=0 ch=1 shape=3 allow_weak=1 tonal=0 transient=0/1 estimate=0/0.685335636 channel=0/0 weak=0/0\nmismatch lm=0 ch=1 shape=4 allow_weak=0 tonal=0 transient=0/1 estimate=0/0.566303849 channel=0/0 weak=0/0\ntransient_parity cases=160 official_attacks=44 failures=64\n",
+  "strict_stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.10753 recovery_error=0.121571 plc_error=0.591364 packet_bytes=360 packet_hash=1755137036\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.89841\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.390344 recovery_error=0.118367 plc_error=0.324768 packet_bytes=473 packet_hash=1141564763\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.300264\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.04048 recovery_error=0.0171322 plc_error=0.705178 packet_bytes=720 packet_hash=2163148656\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0.120327\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.930935 recovery_error=0.0513969 plc_error=0.654677 packet_bytes=956 packet_hash=291859800\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.3302\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.943579 recovery_error=0.987423 plc_error=1.32533 packet_bytes=1439 packet_hash=2761135692\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.949837 recovery_error=0.911424 plc_error=0.985149 packet_bytes=2153 packet_hash=1263542557\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.12815 recovery_error=0.126741 plc_error=0.69313 packet_bytes=960 packet_hash=2975280155\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.340513\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.871272 recovery_error=0.130492 plc_error=0.652719 packet_bytes=1418 packet_hash=711503477\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.742087\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.33655 recovery_error=0.212601 plc_error=0.696445 packet_bytes=357 packet_hash=3752760615\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.843562\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=2.02557 recovery_error=0.205807 plc_error=0.874409 packet_bytes=470 packet_hash=2890195199\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.213559\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.66491 recovery_error=0.164126 plc_error=0.999534 packet_bytes=716 packet_hash=2338041665\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.799832\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.28149 recovery_error=0.141901 plc_error=0.861216 packet_bytes=956 packet_hash=471800450\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.5605\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.753396 recovery_error=1.07525 plc_error=1.30387 packet_bytes=1438 packet_hash=1272704661\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.641345 recovery_error=0.934686 plc_error=0.98379 packet_bytes=2153 packet_hash=4128170777\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.42942 recovery_error=0.189229 plc_error=1.06261 packet_bytes=960 packet_hash=1728723018\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.538564\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.55347 recovery_error=0.300637 plc_error=0.724073 packet_bytes=1418 packet_hash=2146436015\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.98413\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.59645 recovery_error=0.349508 plc_error=1.02572 packet_bytes=360 packet_hash=3099209190\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.894178\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18467 recovery_error=0.116593 plc_error=0.876698 packet_bytes=477 packet_hash=427486399\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.0892337\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.34614 recovery_error=0.236054 plc_error=1.05889 packet_bytes=715 packet_hash=3189722864\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0.613242\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.35968 recovery_error=0.260072 plc_error=1.14038 packet_bytes=960 packet_hash=2730585735\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.602523\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.922554 recovery_error=1.06478 plc_error=1.30473 packet_bytes=1439 packet_hash=595646567\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.627013 recovery_error=1.01037 plc_error=1.09244 packet_bytes=2154 packet_hash=3493203057\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.18269 recovery_error=0.3782 plc_error=1.13548 packet_bytes=960 packet_hash=1670751309\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.415373\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.08844 recovery_error=0.388305 plc_error=0.847473 packet_bytes=1435 packet_hash=3453042184\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.836429\nfec_summary recovery_error_ratio=0.461959 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.996333\n",
+  "source_criteria_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "source_rows": [
+    {
+      "key": [
+        0,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.208207178,
+        "next_fec": 0.252519003,
+        "transition_fec": 0.210815805,
+        "fidelity_ref": 0.175325531,
+        "next_ref": 0.233669525,
+        "transition_ref": 0.14392459,
+        "fidelity_plc": 0.569012961,
+        "self_consistency": 0.121570676,
+        "step_fec": 702.0,
+        "step_ref": 976.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.201713553,
+        "next_fec": 0.18507495,
+        "transition_fec": 0.167579843,
+        "fidelity_ref": 0.17606984,
+        "next_ref": 0.179490904,
+        "transition_ref": 0.137408299,
+        "fidelity_plc": 0.352493222,
+        "self_consistency": 0.11836721,
+        "step_fec": -239.0,
+        "step_ref": -255.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.180383951,
+        "next_fec": 0.169245014,
+        "transition_fec": 0.137277434,
+        "fidelity_ref": 0.179792027,
+        "next_ref": 0.16871048,
+        "transition_ref": 0.137278543,
+        "fidelity_plc": 0.714107112,
+        "self_consistency": 0.017132248,
+        "step_fec": -351.0,
+        "step_ref": -244.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.171714582,
+        "next_fec": 0.174901332,
+        "transition_fec": 0.158426627,
+        "fidelity_ref": 0.174889452,
+        "next_ref": 0.174448861,
+        "transition_ref": 0.150270595,
+        "fidelity_plc": 0.678961492,
+        "self_consistency": 0.05139695,
+        "step_fec": -274.0,
+        "step_ref": -276.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.214635214,
+        "next_fec": 0.18536604,
+        "transition_fec": 0.1530357,
+        "fidelity_ref": 0.198168493,
+        "next_ref": 0.197495367,
+        "transition_ref": 0.157572502,
+        "fidelity_plc": 0.70728375,
+        "self_consistency": 0.126741457,
+        "step_fec": -380.0,
+        "step_ref": 146.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.177555991,
+        "next_fec": 0.168484014,
+        "transition_fec": 0.146383594,
+        "fidelity_ref": 0.187132083,
+        "next_ref": 0.184124409,
+        "transition_ref": 0.144161952,
+        "fidelity_plc": 0.673331436,
+        "self_consistency": 0.130491689,
+        "step_fec": -587.5,
+        "step_ref": 238.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.30023808,
+        "next_fec": 0.334382325,
+        "transition_fec": 0.212078952,
+        "fidelity_ref": 0.230589885,
+        "next_ref": 0.27859506,
+        "transition_ref": 0.202344731,
+        "fidelity_plc": 0.723895619,
+        "self_consistency": 0.212601308,
+        "step_fec": 385.0,
+        "step_ref": 378.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.349123787,
+        "next_fec": 0.284949817,
+        "transition_fec": 0.229886973,
+        "fidelity_ref": 0.272754634,
+        "next_ref": 0.275519397,
+        "transition_ref": 0.202381461,
+        "fidelity_plc": 0.879966274,
+        "self_consistency": 0.205807303,
+        "step_fec": -165.0,
+        "step_ref": -177.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.270501785,
+        "next_fec": 0.25677572,
+        "transition_fec": 0.223064341,
+        "fidelity_ref": 0.235043865,
+        "next_ref": 0.250213517,
+        "transition_ref": 0.206490158,
+        "fidelity_plc": 0.981940559,
+        "self_consistency": 0.164126041,
+        "step_fec": -185.0,
+        "step_ref": -284.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.247680185,
+        "next_fec": 0.250396483,
+        "transition_fec": 0.198213023,
+        "fidelity_ref": 0.235257438,
+        "next_ref": 0.248952372,
+        "transition_ref": 0.216570293,
+        "fidelity_plc": 0.85843439,
+        "self_consistency": 0.141900762,
+        "step_fec": -127.0,
+        "step_ref": -311.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.302380127,
+        "next_fec": 0.285180782,
+        "transition_fec": 0.21334178,
+        "fidelity_ref": 0.292583438,
+        "next_ref": 0.289747499,
+        "transition_ref": 0.205819773,
+        "fidelity_plc": 1.074571927,
+        "self_consistency": 0.189229413,
+        "step_fec": 34.5,
+        "step_ref": -11.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.366239816,
+        "next_fec": 0.319961986,
+        "transition_fec": 0.243130305,
+        "fidelity_ref": 0.282043142,
+        "next_ref": 0.328654513,
+        "transition_ref": 0.18543955,
+        "fidelity_plc": 0.74307549,
+        "self_consistency": 0.300637473,
+        "step_fec": -387.5,
+        "step_ref": -310.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.523462468,
+        "next_fec": 0.609714954,
+        "transition_fec": 0.50977366,
+        "fidelity_ref": 0.418536535,
+        "next_ref": 0.483314231,
+        "transition_ref": 0.42590298,
+        "fidelity_plc": 0.999855701,
+        "self_consistency": 0.349507883,
+        "step_fec": 1567.0,
+        "step_ref": 2671.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.45064105,
+        "next_fec": 0.544684734,
+        "transition_fec": 0.441277973,
+        "fidelity_ref": 0.44316062,
+        "next_ref": 0.544660384,
+        "transition_ref": 0.442433603,
+        "fidelity_plc": 0.913620788,
+        "self_consistency": 0.11659279,
+        "step_fec": -790.0,
+        "step_ref": -695.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.497167574,
+        "next_fec": 0.478451209,
+        "transition_fec": 0.446035244,
+        "fidelity_ref": 0.451645316,
+        "next_ref": 0.478308127,
+        "transition_ref": 0.467632075,
+        "fidelity_plc": 1.056121188,
+        "self_consistency": 0.236053937,
+        "step_fec": -1083.0,
+        "step_ref": -1608.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.461958556,
+        "next_fec": 0.47796919,
+        "transition_fec": 0.408525898,
+        "fidelity_ref": 0.432637222,
+        "next_ref": 0.474254602,
+        "transition_ref": 0.371015197,
+        "fidelity_plc": 1.134009094,
+        "self_consistency": 0.260072425,
+        "step_fec": 91.0,
+        "step_ref": -123.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.48588989,
+        "next_fec": 0.475611082,
+        "transition_fec": 0.369590167,
+        "fidelity_ref": 0.531902714,
+        "next_ref": 0.56507988,
+        "transition_ref": 0.454155941,
+        "fidelity_plc": 1.115639228,
+        "self_consistency": 0.378199862,
+        "step_fec": -1066.0,
+        "step_ref": -501.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.481557257,
+        "next_fec": 0.454430128,
+        "transition_fec": 0.410500766,
+        "fidelity_ref": 0.491270996,
+        "next_ref": 0.491537076,
+        "transition_ref": 0.424161618,
+        "fidelity_plc": 0.892300187,
+        "self_consistency": 0.38830522,
+        "step_fec": -305.0,
+        "step_ref": -2173.5
+      },
+      "exit": 0
+    }
+  ],
+  "quality_counts": {
+    "changed": 5579,
+    "fixed": 237,
+    "negative": 1233,
+    "worsened_existing": 525,
+    "new_negative": 182
+  },
+  "quality_by_application": {
+    "voip": {
+      "changed": 3693,
+      "fixed": 108,
+      "negative": 653,
+      "worsened_existing": 271,
+      "new_negative": 67
+    },
+    "audio": {
+      "changed": 1886,
+      "negative": 580,
+      "worsened_existing": 254,
+      "new_negative": 115,
+      "fixed": 129
+    }
+  },
+  "speed": {
+    "inputs": {
+      "hazel": {
+        "path": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\agent_review_round1\\hazel.pcm",
+        "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+        "seconds": 13.46
+      },
+      "david": {
+        "path": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\agent_review_round1\\david.pcm",
+        "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+        "seconds": 11.8
+      }
+    },
+    "measurements": {
+      "baseline": {
+        "source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_mono_history\\opus_codec.cpp",
+        "source_sha256": "316c0f77c889bd7611f34e1c27e4d3904e8a7e8dbd655ba56cdcf88b9efafc33",
+        "object_sha256": "40259859975e650e519f0861dbe727d14457d1d53f3aed1ab2c4f58461a37b9d",
+        "samples": {
+          "hazel": {
+            "speed": [
+              {
+                "bitrate": "16000",
+                "encode_speedx": "0.585125",
+                "current_encode_ms": "152.144000",
+                "official_encode_ms": "89.023300",
+                "opuscpp_effective_kbps": "15.999406",
+                "official_effective_kbps": "14.372065",
+                "decode_speedx": "1.196068",
+                "current_decode_ms": "11.800500",
+                "official_decode_ms": "14.114200"
+              },
+              {
+                "bitrate": "24000",
+                "encode_speedx": "0.624311",
+                "current_encode_ms": "144.592500",
+                "official_encode_ms": "90.270700",
+                "opuscpp_effective_kbps": "24.000000",
+                "official_effective_kbps": "21.155423",
+                "decode_speedx": "1.190762",
+                "current_decode_ms": "12.318500",
+                "official_decode_ms": "14.668400"
+              },
+              {
+                "bitrate": "32000",
+                "encode_speedx": "0.570950",
+                "current_encode_ms": "158.640000",
+                "official_encode_ms": "90.575500",
+                "opuscpp_effective_kbps": "32.000000",
+                "official_effective_kbps": "28.240713",
+                "decode_speedx": "1.179709",
+                "current_decode_ms": "12.726100",
+                "official_decode_ms": "15.013100"
+              },
+              {
+                "bitrate": "48000",
+                "encode_speedx": "0.617721",
+                "current_encode_ms": "150.415400",
+                "official_encode_ms": "92.914800",
+                "opuscpp_effective_kbps": "48.000000",
+                "official_effective_kbps": "42.960475",
+                "decode_speedx": "1.177208",
+                "current_decode_ms": "14.114500",
+                "official_decode_ms": "16.615700"
+              },
+              {
+                "bitrate": "64000",
+                "encode_speedx": "2.243451",
+                "current_encode_ms": "36.244200",
+                "official_encode_ms": "81.312100",
+                "opuscpp_effective_kbps": "58.715602",
+                "official_effective_kbps": "57.082912",
+                "decode_speedx": "1.171256",
+                "current_decode_ms": "13.808000",
+                "official_decode_ms": "16.172700"
+              },
+              {
+                "bitrate": "96000",
+                "encode_speedx": "1.151468",
+                "current_encode_ms": "33.446700",
+                "official_encode_ms": "38.512800",
+                "opuscpp_effective_kbps": "87.623180",
+                "official_effective_kbps": "77.257058",
+                "decode_speedx": "1.175756",
+                "current_decode_ms": "10.730200",
+                "official_decode_ms": "12.616100"
+              },
+              {
+                "bitrate": "128000",
+                "encode_speedx": "1.123207",
+                "current_encode_ms": "35.226100",
+                "official_encode_ms": "39.566200",
+                "opuscpp_effective_kbps": "116.751263",
+                "official_effective_kbps": "102.723923",
+                "decode_speedx": "1.196071",
+                "current_decode_ms": "11.403500",
+                "official_decode_ms": "13.639400"
+              },
+              {
+                "bitrate": "192000",
+                "encode_speedx": "1.152812",
+                "current_encode_ms": "36.531900",
+                "official_encode_ms": "42.114400",
+                "opuscpp_effective_kbps": "175.007429",
+                "official_effective_kbps": "153.762259",
+                "decode_speedx": "1.188879",
+                "current_decode_ms": "12.980800",
+                "official_decode_ms": "15.432600"
+              },
+              {
+                "bitrate": "256000",
+                "encode_speedx": "1.201344",
+                "current_encode_ms": "37.340000",
+                "official_encode_ms": "44.858200",
+                "opuscpp_effective_kbps": "233.263596",
+                "official_effective_kbps": "204.829123",
+                "decode_speedx": "1.140806",
+                "current_decode_ms": "14.936200",
+                "official_decode_ms": "17.039300"
+              }
+            ],
+            "modes": [
+              {
+                "bitrate": "16000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "26919"
+              },
+              {
+                "bitrate": "16000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "24181"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "40380"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "35594"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "53840"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "47515"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "80760"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "72281"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "25",
+                "celt_frames": "648",
+                "transitions": "16",
+                "packet_bytes": "98789"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "523",
+                "celt_frames": "150",
+                "transitions": "1",
+                "packet_bytes": "96042"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "147426"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "129985"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "196434"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "172833"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "294450"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "258705"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "392466"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "344625"
+              }
+            ]
+          },
+          "david": {
+            "speed": [
+              {
+                "bitrate": "16000",
+                "encode_speedx": "2.723783",
+                "current_encode_ms": "28.321900",
+                "official_encode_ms": "77.142700",
+                "opuscpp_effective_kbps": "14.261695",
+                "official_effective_kbps": "14.062373",
+                "decode_speedx": "1.176527",
+                "current_decode_ms": "10.425600",
+                "official_decode_ms": "12.266000"
+              },
+              {
+                "bitrate": "24000",
+                "encode_speedx": "2.003635",
+                "current_encode_ms": "39.179700",
+                "official_encode_ms": "78.501800",
+                "opuscpp_effective_kbps": "21.933559",
+                "official_effective_kbps": "20.597966",
+                "decode_speedx": "1.179569",
+                "current_decode_ms": "10.962900",
+                "official_decode_ms": "12.931500"
+              },
+              {
+                "bitrate": "32000",
+                "encode_speedx": "1.839755",
+                "current_encode_ms": "43.176300",
+                "official_encode_ms": "79.433800",
+                "opuscpp_effective_kbps": "29.158644",
+                "official_effective_kbps": "27.565424",
+                "decode_speedx": "1.181521",
+                "current_decode_ms": "11.225700",
+                "official_decode_ms": "13.263400"
+              },
+              {
+                "bitrate": "48000",
+                "encode_speedx": "1.964800",
+                "current_encode_ms": "41.351800",
+                "official_encode_ms": "81.248000",
+                "opuscpp_effective_kbps": "43.158644",
+                "official_effective_kbps": "41.852203",
+                "decode_speedx": "1.182871",
+                "current_decode_ms": "12.387400",
+                "official_decode_ms": "14.652700"
+              },
+              {
+                "bitrate": "64000",
+                "encode_speedx": "1.578080",
+                "current_encode_ms": "43.290700",
+                "official_encode_ms": "68.316200",
+                "opuscpp_effective_kbps": "56.614237",
+                "official_effective_kbps": "54.105085",
+                "decode_speedx": "1.171795",
+                "current_decode_ms": "11.930500",
+                "official_decode_ms": "13.980100"
+              },
+              {
+                "bitrate": "96000",
+                "encode_speedx": "1.092857",
+                "current_encode_ms": "29.978300",
+                "official_encode_ms": "32.762000",
+                "opuscpp_effective_kbps": "84.146441",
+                "official_effective_kbps": "73.598644",
+                "decode_speedx": "1.190150",
+                "current_decode_ms": "9.201700",
+                "official_decode_ms": "10.951400"
+              },
+              {
+                "bitrate": "128000",
+                "encode_speedx": "1.078974",
+                "current_encode_ms": "31.507900",
+                "official_encode_ms": "33.996200",
+                "opuscpp_effective_kbps": "112.100339",
+                "official_effective_kbps": "97.880000",
+                "decode_speedx": "1.182448",
+                "current_decode_ms": "9.978200",
+                "official_decode_ms": "11.798700"
+              },
+              {
+                "bitrate": "192000",
+                "encode_speedx": "1.115415",
+                "current_encode_ms": "32.689000",
+                "official_encode_ms": "36.461800",
+                "opuscpp_effective_kbps": "168.008136",
+                "official_effective_kbps": "146.382373",
+                "decode_speedx": "1.178530",
+                "current_decode_ms": "11.292200",
+                "official_decode_ms": "13.308200"
+              },
+              {
+                "bitrate": "256000",
+                "encode_speedx": "1.152676",
+                "current_encode_ms": "32.810700",
+                "official_encode_ms": "37.820100",
+                "opuscpp_effective_kbps": "223.915932",
+                "official_effective_kbps": "194.978983",
+                "decode_speedx": "1.162443",
+                "current_decode_ms": "12.557600",
+                "official_decode_ms": "14.597500"
+              }
+            ],
+            "modes": [
+              {
+                "bitrate": "16000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "11",
+                "celt_frames": "579",
+                "transitions": "1",
+                "packet_bytes": "21036"
+              },
+              {
+                "bitrate": "16000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "20742"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "90",
+                "celt_frames": "500",
+                "transitions": "24",
+                "packet_bytes": "32352"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "30382"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "90",
+                "celt_frames": "500",
+                "transitions": "24",
+                "packet_bytes": "43009"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "40659"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "83",
+                "celt_frames": "507",
+                "transitions": "24",
+                "packet_bytes": "63659"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "61732"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "83",
+                "celt_frames": "507",
+                "transitions": "24",
+                "packet_bytes": "83506"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "430",
+                "celt_frames": "160",
+                "transitions": "1",
+                "packet_bytes": "79805"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "124116"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "108558"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "165348"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "144373"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "247812"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "215914"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "330276"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "287594"
+              }
+            ]
+          }
+        }
+      },
+      "transient_final": {
+        "source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\opus_codec.cpp",
+        "source_sha256": "08549b758f6dde4295ef8b448fcf21858ba1d39b2dfe9be12d0dd9938ac0b403",
+        "object_sha256": "49ecedd74da57889d95c4217a0a61d481f7306ce9b7e8a68ff88b53e95940fac",
+        "samples": {
+          "hazel": {
+            "speed": [
+              {
+                "bitrate": "16000",
+                "encode_speedx": "0.580889",
+                "current_encode_ms": "153.039000",
+                "official_encode_ms": "88.898600",
+                "opuscpp_effective_kbps": "15.999406",
+                "official_effective_kbps": "14.372065",
+                "decode_speedx": "1.165430",
+                "current_decode_ms": "11.913800",
+                "official_decode_ms": "13.884700"
+              },
+              {
+                "bitrate": "24000",
+                "encode_speedx": "0.619572",
+                "current_encode_ms": "146.748200",
+                "official_encode_ms": "90.921100",
+                "opuscpp_effective_kbps": "24.000000",
+                "official_effective_kbps": "21.155423",
+                "decode_speedx": "1.189472",
+                "current_decode_ms": "12.482600",
+                "official_decode_ms": "14.847700"
+              },
+              {
+                "bitrate": "32000",
+                "encode_speedx": "0.566943",
+                "current_encode_ms": "159.675800",
+                "official_encode_ms": "90.527000",
+                "opuscpp_effective_kbps": "32.000000",
+                "official_effective_kbps": "28.240713",
+                "decode_speedx": "1.159330",
+                "current_decode_ms": "12.930400",
+                "official_decode_ms": "14.990600"
+              },
+              {
+                "bitrate": "48000",
+                "encode_speedx": "0.607412",
+                "current_encode_ms": "154.115300",
+                "official_encode_ms": "93.611500",
+                "opuscpp_effective_kbps": "48.000000",
+                "official_effective_kbps": "42.960475",
+                "decode_speedx": "1.175005",
+                "current_decode_ms": "14.133300",
+                "official_decode_ms": "16.606700"
+              },
+              {
+                "bitrate": "64000",
+                "encode_speedx": "2.267675",
+                "current_encode_ms": "36.433000",
+                "official_encode_ms": "82.618200",
+                "opuscpp_effective_kbps": "58.716196",
+                "official_effective_kbps": "57.082912",
+                "decode_speedx": "1.180292",
+                "current_decode_ms": "13.864700",
+                "official_decode_ms": "16.364400"
+              },
+              {
+                "bitrate": "96000",
+                "encode_speedx": "1.135667",
+                "current_encode_ms": "33.841800",
+                "official_encode_ms": "38.433000",
+                "opuscpp_effective_kbps": "87.623180",
+                "official_effective_kbps": "77.257058",
+                "decode_speedx": "1.194554",
+                "current_decode_ms": "10.620700",
+                "official_decode_ms": "12.687000"
+              },
+              {
+                "bitrate": "128000",
+                "encode_speedx": "1.126087",
+                "current_encode_ms": "35.450900",
+                "official_encode_ms": "39.920800",
+                "opuscpp_effective_kbps": "116.751263",
+                "official_effective_kbps": "102.723923",
+                "decode_speedx": "1.176694",
+                "current_decode_ms": "11.677800",
+                "official_decode_ms": "13.741200"
+              },
+              {
+                "bitrate": "192000",
+                "encode_speedx": "1.140720",
+                "current_encode_ms": "36.733300",
+                "official_encode_ms": "41.902400",
+                "opuscpp_effective_kbps": "175.007429",
+                "official_effective_kbps": "153.762259",
+                "decode_speedx": "1.178185",
+                "current_decode_ms": "13.057200",
+                "official_decode_ms": "15.383800"
+              },
+              {
+                "bitrate": "256000",
+                "encode_speedx": "1.169688",
+                "current_encode_ms": "38.041000",
+                "official_encode_ms": "44.496100",
+                "opuscpp_effective_kbps": "233.263596",
+                "official_effective_kbps": "204.829123",
+                "decode_speedx": "1.164405",
+                "current_decode_ms": "14.773300",
+                "official_decode_ms": "17.202100"
+              }
+            ],
+            "modes": [
+              {
+                "bitrate": "16000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "26919"
+              },
+              {
+                "bitrate": "16000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "24181"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "40380"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "35594"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "53840"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "47515"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "616",
+                "celt_frames": "57",
+                "transitions": "3",
+                "packet_bytes": "80760"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "673",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "72281"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "25",
+                "celt_frames": "648",
+                "transitions": "16",
+                "packet_bytes": "98790"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "523",
+                "celt_frames": "150",
+                "transitions": "1",
+                "packet_bytes": "96042"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "147426"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "129985"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "196434"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "172833"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "294450"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "258705"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "392466"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "673",
+                "transitions": "0",
+                "packet_bytes": "344625"
+              }
+            ]
+          },
+          "david": {
+            "speed": [
+              {
+                "bitrate": "16000",
+                "encode_speedx": "2.673237",
+                "current_encode_ms": "28.953700",
+                "official_encode_ms": "77.400100",
+                "opuscpp_effective_kbps": "14.261695",
+                "official_effective_kbps": "14.062373",
+                "decode_speedx": "1.173993",
+                "current_decode_ms": "10.425700",
+                "official_decode_ms": "12.239700"
+              },
+              {
+                "bitrate": "24000",
+                "encode_speedx": "1.990857",
+                "current_encode_ms": "39.690400",
+                "official_encode_ms": "79.017900",
+                "opuscpp_effective_kbps": "21.941695",
+                "official_effective_kbps": "20.597966",
+                "decode_speedx": "1.174282",
+                "current_decode_ms": "10.962100",
+                "official_decode_ms": "12.872600"
+              },
+              {
+                "bitrate": "32000",
+                "encode_speedx": "1.859809",
+                "current_encode_ms": "42.650300",
+                "official_encode_ms": "79.321400",
+                "opuscpp_effective_kbps": "29.170169",
+                "official_effective_kbps": "27.565424",
+                "decode_speedx": "1.168557",
+                "current_decode_ms": "11.233600",
+                "official_decode_ms": "13.127100"
+              },
+              {
+                "bitrate": "48000",
+                "encode_speedx": "1.955139",
+                "current_encode_ms": "41.815500",
+                "official_encode_ms": "81.755100",
+                "opuscpp_effective_kbps": "43.164746",
+                "official_effective_kbps": "41.852203",
+                "decode_speedx": "1.165959",
+                "current_decode_ms": "12.577200",
+                "official_decode_ms": "14.664500"
+              },
+              {
+                "bitrate": "64000",
+                "encode_speedx": "1.569538",
+                "current_encode_ms": "43.950900",
+                "official_encode_ms": "68.982600",
+                "opuscpp_effective_kbps": "56.640000",
+                "official_effective_kbps": "54.105085",
+                "decode_speedx": "1.156643",
+                "current_decode_ms": "11.999900",
+                "official_decode_ms": "13.879600"
+              },
+              {
+                "bitrate": "96000",
+                "encode_speedx": "1.088633",
+                "current_encode_ms": "30.314800",
+                "official_encode_ms": "33.001700",
+                "opuscpp_effective_kbps": "84.146441",
+                "official_effective_kbps": "73.598644",
+                "decode_speedx": "1.195104",
+                "current_decode_ms": "9.212500",
+                "official_decode_ms": "11.009900"
+              },
+              {
+                "bitrate": "128000",
+                "encode_speedx": "1.091533",
+                "current_encode_ms": "31.468600",
+                "official_encode_ms": "34.349000",
+                "opuscpp_effective_kbps": "112.100339",
+                "official_effective_kbps": "97.880000",
+                "decode_speedx": "1.176949",
+                "current_decode_ms": "9.934500",
+                "official_decode_ms": "11.692400"
+              },
+              {
+                "bitrate": "192000",
+                "encode_speedx": "1.097024",
+                "current_encode_ms": "32.737300",
+                "official_encode_ms": "35.913600",
+                "opuscpp_effective_kbps": "168.008136",
+                "official_effective_kbps": "146.382373",
+                "decode_speedx": "1.176995",
+                "current_decode_ms": "11.174900",
+                "official_decode_ms": "13.152800"
+              },
+              {
+                "bitrate": "256000",
+                "encode_speedx": "1.142956",
+                "current_encode_ms": "33.198400",
+                "official_encode_ms": "37.944300",
+                "opuscpp_effective_kbps": "223.915932",
+                "official_effective_kbps": "194.978983",
+                "decode_speedx": "1.152725",
+                "current_decode_ms": "12.663300",
+                "official_decode_ms": "14.597300"
+              }
+            ],
+            "modes": [
+              {
+                "bitrate": "16000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "11",
+                "celt_frames": "579",
+                "transitions": "1",
+                "packet_bytes": "21036"
+              },
+              {
+                "bitrate": "16000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "20742"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "90",
+                "celt_frames": "500",
+                "transitions": "24",
+                "packet_bytes": "32364"
+              },
+              {
+                "bitrate": "24000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "30382"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "90",
+                "celt_frames": "500",
+                "transitions": "24",
+                "packet_bytes": "43026"
+              },
+              {
+                "bitrate": "32000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "40659"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "83",
+                "celt_frames": "507",
+                "transitions": "24",
+                "packet_bytes": "63668"
+              },
+              {
+                "bitrate": "48000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "590",
+                "celt_frames": "0",
+                "transitions": "0",
+                "packet_bytes": "61732"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "83",
+                "celt_frames": "507",
+                "transitions": "24",
+                "packet_bytes": "83544"
+              },
+              {
+                "bitrate": "64000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "430",
+                "celt_frames": "160",
+                "transitions": "1",
+                "packet_bytes": "79805"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "124116"
+              },
+              {
+                "bitrate": "96000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "108558"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "165348"
+              },
+              {
+                "bitrate": "128000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "144373"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "247812"
+              },
+              {
+                "bitrate": "192000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "215914"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "current",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "330276"
+              },
+              {
+                "bitrate": "256000",
+                "codec": "official",
+                "silk_frames": "0",
+                "hybrid_frames": "0",
+                "celt_frames": "590",
+                "transitions": "0",
+                "packet_bytes": "287594"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "validation_commands": [
+    {
+      "label": "source_diff",
+      "argv": [
+        "git",
+        "diff",
+        "--no-index",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\baseline.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\opus_codec.cpp"
+      ],
+      "exit": 1
+    },
+    {
+      "label": "compile_codec",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-DOpusEncoder=curr_OpusEncoder",
+        "-DOpusDecoder=curr_OpusDecoder",
+        "-Dopus_encoder_create=curr_opus_encoder_create",
+        "-Dopus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dopus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dopus_encode=curr_opus_encode",
+        "-Dopus_encode_float=curr_opus_encode_float",
+        "-Dopus_decoder_create=curr_opus_decoder_create",
+        "-Dopus_decoder_destroy=curr_opus_decoder_destroy",
+        "-Dopus_decoder_ctl=curr_opus_decoder_ctl",
+        "-Dopus_decode=curr_opus_decode",
+        "-Dopus_decode_float=curr_opus_decode_float",
+        "-Dopus_packet_get_nb_samples=curr_opus_packet_get_nb_samples",
+        "-Dopus_strerror=curr_opus_strerror",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_strict",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\fec_vs_official.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_source_gate",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\fec_case_gate.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "strict",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\strict.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "0",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_0_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "0",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "1",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_1_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "1",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_10_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "10",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_16000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "16000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_24000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "24000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_1_20_32000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "1",
+        "20",
+        "32000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_32000_0",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "32000",
+        "2",
+        "0"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "source_2_2_20_48000_1",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\source_gate.exe",
+        "2",
+        "20",
+        "48000",
+        "2",
+        "1"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_quality",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\f3b_lab\\tests\\perceptual_memory_validation.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\postfec_transient_final_lab\\quality.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compile_plain",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-c",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\opus_codec.cpp",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_vbr_budget_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\vbr_budget_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "vbr_budget_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\vbr_budget_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_celt_empty_channel",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\celt_empty_channel.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "celt_empty_channel",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\celt_empty_channel.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_packet_duration_behavior",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\packet_duration_behavior.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "packet_duration_behavior",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\packet_duration_behavior.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_decoder_channel_remap",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\decoder_channel_remap.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "decoder_channel_remap",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\decoder_channel_remap.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_api",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\cond_f3\\completion_batch\\tests\\api_reset_matrix.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\plain.o",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "api",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\api_reset_matrix.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_conformance",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "-Dcodex_OpusEncoder=curr_OpusEncoder",
+        "-Dcodex_opus_encoder_create=curr_opus_encoder_create",
+        "-Dcodex_opus_encoder_destroy=curr_opus_encoder_destroy",
+        "-Dcodex_opus_encoder_ctl=curr_opus_encoder_ctl",
+        "-Dcodex_opus_encode=curr_opus_encode",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\conformance_encode.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\conformance.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "conformance",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\conformance.exe",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\energy_redistribution\\agent_review_round1\\encode_validation\\encode_validation.bin"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "link_interop",
+      "argv": [
+        "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+        "-std=c++23",
+        "-O2",
+        "-DNDEBUG",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\src",
+        "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\changed_packet_interop.cpp",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\curr.o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+        "-o",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\interop.exe"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "interop",
+      "argv": [
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\agent_review_round2\\postfec_transient_final\\interop.exe"
+      ],
+      "exit": 0
+    }
+  ],
+  "remaining": [
+    "Per-field quality parity",
+    "Hazel 16-48kbps encode speed",
+    "Startup-dependent mode overrides"
+  ]
+}

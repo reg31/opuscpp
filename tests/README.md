@@ -481,3 +481,25 @@ identical. All four source FEC criteria pass on 18/18; packet budgets, 240 API/r
 96 conformance cases, packet-duration/channel-remap and changed-packet interoperability pass.
 The broader quality and startup limitations of the FEC checkpoint still apply. Exact identities
 are recorded in [predictor checkpoint metadata](metrics/celt_mono_energy_history_checkpoint.json).
+
+## CELT transient-analysis checkpoint
+
+The transient detector now uses the complete 128-entry official table and floating-point
+normalization, removing fixed-point scaling that suppressed real attacks. The estimate calculation
+also preserves the reference expression's floating-point types. The differential regression in
+`celt_transient_analysis.cpp` compares all outputs exactly over 160 cases, including 44 detected
+attacks: the previous implementation fails 64 cases; the corrected implementation passes all 160.
+Compile `official_transient_analysis.c` as C using the configuration, include directories and flags
+of the official CELT encoder, then link that object and the official library with the C++ test.
+
+The full quality matrix improves from 1288 to 1233 below-official fields: 237 fixed, 182 newly
+negative and 525 worsened existing deficits. This corrects an upstream parity bug and yields a net
+quality improvement; individual regressions remain open. Strict FEC and all four source criteria
+still pass 18/18, along with the packet-budget and ordinary integration checks.
+
+Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16–48 kbps
+(0.567–0.620x official speed); David encoding is faster at all nine measured rates (1.089–2.673x).
+Decode ratios exceed 1x on both inputs. These use the existing 13.46-second Hazel and 11.8-second
+David PCM, with both codecs at complexity 10 and -O2 -DNDEBUG; no explicit affinity/priority pinning.
+See [transient checkpoint metadata](metrics/celt_transient_checkpoint.json) for exact source
+identities, complete timing rows and quality counts. Full metric parity remains unfinished.

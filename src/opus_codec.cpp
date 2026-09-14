@@ -5942,13 +5942,16 @@ struct celt_input_metrics {
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
                                                  bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
-  static const unsigned char inv_table[128] = {
-      255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25, 23, 22, 21, 20, 19, 18,
-      17, 16, 16, 15, 15, 14, 13, 13, 12, 12, 12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 9,
-      9, 9, 8, 8, 8, 8, 8, 7, 7, 7, 7, 7, 7, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      6, 6, 6, 6, 6, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 4, 4, 4, 4,
-      4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3,
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
+  static constexpr auto inv_table = std::to_array<unsigned char>({
+      255, 255, 156, 110,  86,  70,  59,  51,  45,  40,  37,  33,  31,  28,  26,  25,
+       23,  22,  21,  20,  19,  18,  17,  16,  16,  15,  15,  14,  13,  13,  12,  12,
+       12,  12,  11,  11,  11,  10,  10,  10,   9,   9,   9,   9,   9,   9,   8,   8,
+        8,   8,   8,   7,   7,   7,   7,   7,   7,   6,   6,   6,   6,   6,   6,   6,
+        6,   6,   6,   6,   6,   6,   6,   6,   6,   5,   5,   5,   5,   5,   5,   5,
+        5,   5,   5,   5,   5,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,
+        4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   3,   3,
+        3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   2});
+  static_assert(inv_table.size() == 128);
   std::array<float, celt_max_frame_samples + celt_default_overlap> tmp;
   int is_transient = 0;
   opus_int32 mask_metric = 0;
@@ -5963,15 +5966,15 @@ struct celt_input_metrics {
       const float mem00 = mem0;
       mem0 = mem0 - x + .5f * mem1;
       mem1 = x - mem00;
-      tmp[i] = y * .25f;
+      tmp[i] = y;
     }
     for (int i = 0; i < 12; ++i)
       tmp[i] = 0;
     opus_val32 mean = 0;
     mem0 = 0;
     for (int i = 0; i < len2; ++i) {
-      const opus_val32 x2 = (tmp[2 * i] * tmp[2 * i] + tmp[2 * i + 1] * tmp[2 * i + 1]) * .0625f;
-      mean += x2 * (1.f / 4096.f);
+      const opus_val32 x2 = tmp[2 * i] * tmp[2 * i] + tmp[2 * i + 1] * tmp[2 * i + 1];
+      mean += x2;
       mem0 = x2 + (1.f - forward_decay) * mem0;
       tmp[i] = forward_decay * mem0;
     }
@@ -5983,7 +5986,7 @@ struct celt_input_metrics {
       maxE = std::max(maxE, 0.125f * mem0);
     }
     mean = std::sqrt(mean * maxE * .5f * len2);
-    const opus_val32 norm = static_cast<opus_val32>(len2 << 20) / (1e-15f + mean * .5f);
+    const opus_val32 norm = static_cast<opus_val32>(len2) / (1e-15f + mean);
     opus_int32 unmask = 0;
     for (int i = 12; i < len2 - 5; i += 4) {
       const int id = static_cast<int>(std::max(0.f, std::min(127.f, std::floor(64 * norm * (tmp[i] + 1e-15f)))));
@@ -6005,7 +6008,7 @@ struct celt_input_metrics {
     *weak_transient = true;
   }
   const float tf_max = std::max(0.f, std::sqrt(27.f * mask_metric) - 42.f);
-  *tf_estimate = std::sqrt(std::max(0.f, 0.0069f * std::min(163.f, tf_max) - 0.139f));
+  *tf_estimate = static_cast<float>(std::sqrt(std::max(0., 0.0069f * std::min(163.f, tf_max) - 0.139)));
   return is_transient;
 }
 
