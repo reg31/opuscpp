@@ -1,0 +1,251 @@
+{
+  "checkpoint": "CELT empty-channel energy correction",
+  "baseline_commit": "0d4d0fb",
+  "source": {
+    "path": "src/opus_codec.cpp",
+    "git_blob": "db9040ab8c4422f3a89cde606a0ca06394a85160",
+    "measured_file_sha256": "bde07950428b1c7acc7d6efa96ef0ddc8ff17a404cebc17d5cb470e4223aabc0",
+    "baseline_git_blob": "c167fee9c31f6fac390d7b648fdfd3511620ed34"
+  },
+  "build": {
+    "compiler": "MinGW GCC 16.2.0",
+    "flags": [
+      "-std=c++23",
+      "-O2",
+      "-DNDEBUG"
+    ]
+  },
+  "official": {
+    "commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+    "library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d"
+  },
+  "quality_harness": {
+    "path": "tests/perceptual_memory_validation.cpp",
+    "variant": "Metric output at 17 decimal places",
+    "sha256": "e8dc79fbed4f33a132a5e34fba3353e35142227ed0397b69852988a7cd3fcc52"
+  },
+  "quality": {
+    "configurations": 498,
+    "metric_fields_per_configuration": 12,
+    "all_fields_finite": true,
+    "full_keys_match": true,
+    "official_reference_fields_identical": true,
+    "baseline_negative_fields": 1594,
+    "candidate_negative_fields": 1580,
+    "fixed_fields": 14,
+    "new_negative_fields": 0,
+    "existing_negative_fields_improved": 33,
+    "existing_negative_fields_worsened": 4,
+    "changed_fields": 96,
+    "changed_configurations": 8,
+    "all_mono_fields_identical": true,
+    "worsened_existing_fields": [
+      {
+        "key": {
+          "group": "holdout",
+          "sample": "two_talkers",
+          "application": "audio",
+          "bitrate": 64000,
+          "pcm16": false,
+          "denoiser": false
+        },
+        "metric": "celt_highband_error",
+        "baseline": 0.0319271965094925,
+        "candidate": 0.03195256067477419,
+        "official": 0.02776435286327784,
+        "delta_vs_baseline": -2.5364165281691053e-05,
+        "delta_vs_official": -0.004188207811496352
+      },
+      {
+        "key": {
+          "group": "holdout",
+          "sample": "two_talkers_voip",
+          "application": "voip",
+          "bitrate": 64000,
+          "pcm16": false,
+          "denoiser": false
+        },
+        "metric": "celt_highband_error",
+        "baseline": 0.03341670742918543,
+        "candidate": 0.03342972281612883,
+        "official": 0.02894885928886631,
+        "delta_vs_baseline": -1.3015386943406038e-05,
+        "delta_vs_official": -0.004480863527262523
+      },
+      {
+        "key": {
+          "group": "signal",
+          "sample": "attacks_left_stereo",
+          "application": "audio",
+          "bitrate": 48000,
+          "pcm16": false,
+          "denoiser": false
+        },
+        "metric": "celt_quality",
+        "baseline": 79.10600255768601,
+        "candidate": 79.10336974229779,
+        "official": 94.5542149140496,
+        "delta_vs_baseline": -0.002632815388224685,
+        "delta_vs_official": -15.450845171751808
+      },
+      {
+        "key": {
+          "group": "signal",
+          "sample": "attacks_left_stereo",
+          "application": "audio",
+          "bitrate": 48000,
+          "pcm16": false,
+          "denoiser": false
+        },
+        "metric": "celt_masked_error",
+        "baseline": 18.75051427268994,
+        "candidate": 18.753176886516364,
+        "official": 4.479745055900154,
+        "delta_vs_baseline": -0.00266261382642341,
+        "delta_vs_official": -14.273431830616211
+      }
+    ]
+  },
+  "strict_fec": {
+    "harness_sha256": "aa23867cd9998c322b2bfd5a84e3fe5b4285f01d99d419a6e346677685c6b0cc",
+    "exit_code": 0,
+    "wins": 18,
+    "cases": 18,
+    "recovery_error_ratio": 0.467562,
+    "packet_byte_ratio": 0.997148,
+    "output_identical_to_baseline": true
+  },
+  "source_fec": {
+    "configurations": 18,
+    "fields_per_configuration": 10,
+    "all_exit_codes_zero": true,
+    "all_fields_identical_to_baseline": true,
+    "criteria": {
+      "C1": "Recovered-frame error vs official",
+      "C2": "Following-frame error vs official",
+      "C3": "Transition error vs official",
+      "C4": "Recovered-frame error vs own PLC"
+    },
+    "passed": {
+      "C1": 14,
+      "C2": 16,
+      "C3": 17,
+      "C4": 18
+    },
+    "existing_failed_criteria": [
+      {
+        "key": {
+          "profile": 0,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 32000,
+          "vbr": 0
+        },
+        "criterion": "C1",
+        "metric": "fidelity_fec",
+        "candidate": 0.68270161,
+        "official": 0.591728501
+      },
+      {
+        "key": {
+          "profile": 0,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 32000,
+          "vbr": 0
+        },
+        "criterion": "C2",
+        "metric": "next_fec",
+        "candidate": 0.712618631,
+        "official": 0.569722322
+      },
+      {
+        "key": {
+          "profile": 0,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 48000,
+          "vbr": 1
+        },
+        "criterion": "C1",
+        "metric": "fidelity_fec",
+        "candidate": 0.673818892,
+        "official": 0.649346301
+      },
+      {
+        "key": {
+          "profile": 0,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 48000,
+          "vbr": 1
+        },
+        "criterion": "C2",
+        "metric": "next_fec",
+        "candidate": 0.652788961,
+        "official": 0.643189514
+      },
+      {
+        "key": {
+          "profile": 1,
+          "channels": 1,
+          "duration_ms": 10,
+          "bitrate": 24000,
+          "vbr": 1
+        },
+        "criterion": "C3",
+        "metric": "transition_fec",
+        "candidate": 0.368013958,
+        "official": 0.271244925
+      },
+      {
+        "key": {
+          "profile": 1,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 32000,
+          "vbr": 0
+        },
+        "criterion": "C1",
+        "metric": "fidelity_fec",
+        "candidate": 0.694648651,
+        "official": 0.655200225
+      },
+      {
+        "key": {
+          "profile": 1,
+          "channels": 2,
+          "duration_ms": 20,
+          "bitrate": 48000,
+          "vbr": 1
+        },
+        "criterion": "C1",
+        "metric": "fidelity_fec",
+        "candidate": 0.698025397,
+        "official": 0.691692766
+      }
+    ]
+  },
+  "ordinary": {
+    "encoder_conformance_cases_passed": 96,
+    "vbr_budget_exit_code": 0,
+    "interoperability_cases": 4,
+    "frames_per_interoperability_case": 40,
+    "encoder_official_decoder_final_ranges_agree": true
+  },
+  "regression": {
+    "path": "tests/celt_empty_channel.cpp",
+    "git_blob": "2bb71076de29b0395b07a71875570c10cc594ffb",
+    "baseline_exit_code": 1,
+    "baseline_target_failures": 4,
+    "candidate_exit_code": 0,
+    "candidate_failures": 0,
+    "reset_identity_passes": true,
+    "build_command": "g++ -std=c++23 -O2 -DNDEBUG -I src tests/celt_empty_channel.cpp src/opus_codec.cpp -o celt_empty_channel.exe"
+  },
+  "limitations": [
+    "This is an incremental improvement; the full quality and source-FEC parity goal remains unmet.",
+    "VOIP startup-latch work remains separate and incomplete.",
+    "Speed and memory were not remeasured on this isolated source; existing tables retain their historical source revisions."
+  ]
+}

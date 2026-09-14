@@ -3773,7 +3773,7 @@ constexpr auto eMeans = numeric_blob_array<opus_val16>(
 extern constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise_floor_base;
 }
 
-static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate);
+static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel);
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
 template <bool Encode>
@@ -6059,6 +6059,16 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   } else {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
+  bool empty_channel[2] = {
+      C == 2 && std::all_of(bandE + start, bandE + end, [](float v) { return v < 1e-10f; }),
+      C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end,
+                            [](float v) { return v < 1e-10f; })};
+  // Apply this only when exactly one channel carries no energy shape; when both agree the flag is
+  // cleared, so silence and unaffected paths keep their original coarse-energy decay policy.
+  if (empty_channel[0] == empty_channel[1]) {
+    empty_channel[0] = false;
+    empty_channel[1] = false;
+  }
   auto* error = bandLogE2;
   zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
   for_each_celt_band(st, [&](int index) {
@@ -6073,7 +6083,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     std::copy_n(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE_source.begin());
 #endif
   quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                      &st->delayedIntra, st->complexity >= 4, st->loss_rate);
+                      &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel);
 #if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
   if (energy_diff) {
     std::fprintf(stderr, "ediff_coarse:");
@@ -6114,6 +6124,13 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     st->intensity =
         hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds, stereo_intensity_table.hysteresis, st->intensity);
     st->intensity = clamp_value(st->intensity, start, end);
+    // With exactly one shaped channel, enable mid/side intensity coding from the first band and
+    // disable independent dual stereo; the per-channel emptiness flag is computed once after the
+    // band energies and is reused by the coarse-energy path below.
+    if (empty_channel[0] != empty_channel[1]) {
+      st->intensity = start;
+      dual_stereo = 0;
+    }
   }
   int alloc_trim = 5;
   if (tell + (6 << 3) <= total_bits - total_boost) {
@@ -8464,7 +8481,7 @@ static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* old
 }
 
 template <bool Encode>
-static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay) {
+static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel) {
   std::array<opus_val32, 2> prev{};
   int badness = 0;
   if constexpr (Encode) {
@@ -8485,7 +8502,9 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
         qi = floor_to_int_reference(.5f + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
-        if (qi < 0 && input_energy < decay_bound) {
+        // A channel with no shape at all must fall straight to its actual (empty) energy instead of
+        // being held up by the decay limiter.
+        if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
         }
         qi0 = qi;
@@ -8533,7 +8552,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
   return badness;
 }
 
-static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate) {
+static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel) {
   int intra = force_intra || (!two_pass && *delayedIntra > 2 * C * (end - start) && nbAvailableBytes > (end - start) * C);
   const opus_int32 intra_bias = two_pass ? static_cast<opus_int32>((budget * *delayedIntra * loss_rate) / (C * 512)) : 0;
   const opus_val32 new_distortion = loss_distortion(eBands, oldEBands, start, end, C);
@@ -8555,7 +8574,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
     badness1 = process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
-                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay);
+                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel);
     std::copy_n(enc->buf + nstart_bytes, enc->offs - nstart_bytes, intra_bytes.data());
   }
   if (!intra) {
@@ -8563,7 +8582,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
     const int tell_intra = static_cast<int>(ec_tell_frac(enc));
     *enc = enc_start;
     const int badness2 = process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
-                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay);
+                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel);
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
       *enc = enc_intra;
@@ -8642,7 +8661,7 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
 
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM) {
   process_coarse_energy<false>(start, end, nullptr, oldEBands, dec->storage * 8, 0,
-                               e_prob_model[static_cast<std::size_t>(LM * 2 + intra)].data(), nullptr, dec, C, LM, intra, 0);
+                               e_prob_model[static_cast<std::size_t>(LM * 2 + intra)].data(), nullptr, dec, C, LM, intra, 0, nullptr);
 }
 
 constexpr std::array<unsigned char, 24> LOG2_FRAC_TABLE =

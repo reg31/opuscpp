@@ -2,7 +2,7 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-The speed, quality, optional processing, FEC/DTX, memory and binary-size figures below are refreshed against official Opus with both encoders at complexity 10 and both builds at -O2 -DNDEBUG. Official Opus enables x86 intrinsics. Positive and negative quality deltas are retained.
+The speed, quality, optional processing, FEC/DTX, memory and binary-size sections below are separate measurement snapshots; each keeps the source revision it was recorded on, and those revisions remain in force for that table. The checkpoint at the end of this file is the latest isolated measurement; the speed, memory and other tables remain historical.
 
 ## Quick start
 
@@ -422,3 +422,26 @@ Source CSV:
 | MinGW GCC 16.2 C++23 | Build passes with `-Wall -Wextra -Wpedantic`; unused tone-analysis warnings remain. |
 | Android arm64 Clang C++23 | Build passes with `-Wall -Wextra -Wpedantic`; unused tone-analysis warnings remain. |
 | Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
+
+## CELT empty-channel energy checkpoint
+
+`src/opus_codec.cpp` (Git blob `db9040ab8c4422f3a89cde606a0ca06394a85160`) makes one change to CELT coarse-energy
+coding. A channel that has no energy shape at all is no longer held above its real (empty) level by the coarse-energy
+decay limiter, and when exactly one coded channel is shaped, that channel is coded as mid/side intensity from the first
+band with independent dual stereo disabled. The baseline commit for every comparison in this section is `0d4d0fb`;
+the change is isolated and independent of the other uncommitted work in the tree.
+
+Measured results over the 498-case quality matrix (all tracked finite fields): 1594 -> 1580 negative fields versus
+official Opus, 14 fields fixed, 0 newly negative, 33 existing deficits improved and 4 existing deficits worsened;
+96 fields change across 8 stereo rows, and every mono row is identical. Strict FEC passes 18/18. Source-referenced
+criteria and the complete failing-key list, the four worsened fields, harness and library identities and the explicit
+limitations are recorded in `metrics/celt_empty_channel_checkpoint.json`. Ordinary checks pass: 96 encode-conformance
+cases, VBR budget, and four changed-packet interop cases x 40 frames with final-range agreement. The regression test
+`tests/celt_empty_channel.cpp` fails four one-sided stereo cases on `0d4d0fb` and passes with this change.
+
+Build and run it directly against a codec source:
+
+```
+g++ -std=c++23 -O2 -DNDEBUG -I src tests/celt_empty_channel.cpp src/opus_codec.cpp -o celt_empty_channel.exe
+celt_empty_channel.exe
+```
