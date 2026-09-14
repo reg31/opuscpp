@@ -1801,8 +1801,6 @@ struct OpusEncoder {
   StereoWidthState width_mem;
   opus_val32 peak_signal_energy;
   std::array<voice_conditioning_channel, 2> conditioning;
-  opus_val32 quiet_probe_peak;
-  int quiet_probe_active_frames, quiet_probe_loud_frames;
   opus_uint32 rangeFinal;
   int nb_no_activity_ms_Q1;
   opus_val32 dtx_smoothed_energy;
@@ -1884,26 +1882,16 @@ constexpr opus_int32 stereo_voice_mode_threshold = 44000;
 constexpr opus_int32 music_mode_threshold = 8000;
 constexpr int audio_preprocess_music = 0;
 constexpr int audio_preprocess_speech = 1;
-constexpr int preprocess_lowrate_voip_celt = 2;
-constexpr int preprocess_lowrate_voip_continuous = 3;
 constexpr int audio_preprocess_warmup_frames = 12;
 constexpr int audio_preprocess_hold_frames = 50;
 constexpr int fec_mode_settle_frames = 4;
-constexpr int voip_mode_probe_frames = 12;
-constexpr int voip_mode_min_voiced_frames = 3;
-constexpr int voip_mode_max_voiced_frames = 8;
 constexpr int stereo_preservation_probe_frames = 8;
 constexpr int quiet_tonal_bypass_hold_frames = 250;
 constexpr int tonal_confirmation_frames = 3;
 constexpr int preprocess_filter_general_audio = -2;
 constexpr int preprocess_filter_stable_tonal = -1;
-constexpr int preprocess_filter_default = 1;
-constexpr int preprocess_filter_quiet_voice = 2;
 constexpr int silk_preserve_stereo_bias = 1;
 constexpr int silk_preserve_stereo_force = 2;
-constexpr opus_val32 quiet_voice_probe_energy = .02f;
-constexpr int quiet_voice_probe_active_frames = audio_preprocess_warmup_frames;
-constexpr int quiet_voice_release_frames = 4;
 static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   auto silkEncSizeBytes = align(silk_encoder_get_size(channels));
   if (!encoder_uses_silk(application)) {
@@ -2288,7 +2276,7 @@ constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
   return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
 }
 
-static int update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics) noexcept {
+static int update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics, float raw_toneishness) noexcept {
   const auto track_score = [](int score, bool detected, int attack, int release_Q7) noexcept {
     score = detected ? score + std::max(1, (115 - score) / attack) : (score * release_Q7) >> 7;
     return clamp_value(score, 0, 115);
@@ -2301,8 +2289,9 @@ static int update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_
   const bool active = !frame_metrics.is_silence && frame_metrics.energy > 1e-7f;
   const auto diff = frame_metrics.mono_diff_ratio;
   const auto zcr = frame_metrics.mono_zero_cross_rate;
-  const bool high_z = active && is_sparse_high_z_tonal_frame(frame_metrics);
-  const bool sustained_harmonic = active && diff < .025f && zcr < .075f;
+  const bool tone_supported = st->application != OPUS_APPLICATION_VOIP || st->channels != 1 || raw_toneishness >= .98f;
+  const bool high_z = active && is_sparse_high_z_tonal_frame(frame_metrics) && tone_supported;
+  const bool sustained_harmonic = active && diff < .025f && zcr < .075f && tone_supported;
   const bool speech_activity = active && diff > .006f && diff < .12f && zcr > .018f && zcr < .18f && !sustained_harmonic;
   auto& harmonic_music = st->lightweight_harmonic_music_Q7;
   harmonic_music = track_score(harmonic_music, sustained_harmonic, 8, 104);
@@ -2335,9 +2324,6 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
   }
   auto& confidence = st->voip_noise_confidence_Q7;
 
-  if (confidence >= 115) {
-    return;
-  }
   const bool broadband_noise = !metrics.is_silence && metrics.energy > 1e-7f && metrics.energy < .03f && metrics.mono_diff_ratio > .40f &&
                                metrics.mono_zero_cross_rate > .22f;
   if (broadband_noise) {
@@ -2350,10 +2336,18 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
   }
 }
 
-[[nodiscard]] static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis) noexcept -> int {
+static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs);
+
+[[nodiscard]] static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> int {
   int voice_est = 48;
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
-    voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity);
+    float raw_toneishness = 0;
+  if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
+    opus_val32 toneish = 0;
+    tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
+    raw_toneishness = toneish;
+  }
+  voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
     if (st->application == OPUS_APPLICATION_VOIP) {
       voice_est = voice_est > 48 ? 115 : 0;
       update_voip_noise_confidence(st, analysis.activity);
@@ -2511,9 +2505,6 @@ static void blend_filtered_input(opus_res* filtered, const opus_res* input, int 
   if (st->mode == opus_mode_celt_only && st->bitrate_bps < 40000)
     return 1.0f;
   const auto bitrate = st->bitrate_bps;
-  if (st->preprocess_filter_state == preprocess_filter_quiet_voice && bitrate >= 40000 && bitrate < 64000) {
-    return .984f;
-  }
   if (bitrate >= 24000 && bitrate <= 64000) {
     return bitrate >= 40000 ? .985f : .994f;
   }
@@ -2778,45 +2769,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       --st->stereo_recovery_frames;
     }
   }
-  const auto voice_est = classify_encoder_frame(st, analysis);
+  const auto voice_est = classify_encoder_frame(st, analysis, pcm, frame_size);
   const auto voice_weight = voice_est * voice_est;
-  const bool probing_voip_mode = voip_style && st->channels == 1 && st->bitrate_bps > 16000 && st->bitrate_bps <= 64000 &&
-                                 st->lightweight_analysis_frames <= voip_mode_probe_frames;
-  if (probing_voip_mode && frame_metrics.mono_diff_ratio > .012f && frame_metrics.mono_diff_ratio < .12f &&
-      frame_metrics.mono_zero_cross_rate > .018f && frame_metrics.mono_zero_cross_rate < .18f) {
-    ++st->audio_preprocess_hold;
-  }
-  if (probing_voip_mode && st->lightweight_analysis_frames == voip_mode_probe_frames &&
-      st->audio_preprocess_hold >= audio_preprocess_warmup_frames + voip_mode_min_voiced_frames &&
-      st->audio_preprocess_hold <= audio_preprocess_warmup_frames + voip_mode_max_voiced_frames && st->lightweight_high_z_tonal_Q7 < 64) {
-    st->audio_preprocess_mode = audio_preprocess_speech;
-  }
-  const bool probing_lowrate_voip =
-      voip_style && st->channels == 1 && st->bitrate_bps <= 16000 && st->lightweight_analysis_frames <= audio_preprocess_warmup_frames;
-  if (probing_lowrate_voip && st->audio_preprocess_mode != preprocess_lowrate_voip_celt) {
-    if (st->lightweight_analysis_frames == 1) {
-      st->audio_preprocess_mode = frame_metrics.energy >= .005f ? preprocess_lowrate_voip_continuous : audio_preprocess_music;
-    } else if (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous && frame_metrics.energy < .005f) {
-      st->audio_preprocess_mode = audio_preprocess_music;
-    }
-  }
-  const bool quiet_voice_active = !frame_metrics.is_silence && frame_metrics.energy > 1e-7f;
-  if (voip_style && st->channels == 1 && st->preprocess_filter_state == 0 && quiet_voice_active) {
-    st->quiet_probe_peak = std::max(st->quiet_probe_peak, frame_metrics.energy);
-    if (++st->quiet_probe_active_frames >= quiet_voice_probe_active_frames) {
-      st->preprocess_filter_state =
-          st->quiet_probe_peak < quiet_voice_probe_energy ? preprocess_filter_quiet_voice : preprocess_filter_default;
-    }
-  }
-  if (voip_style && st->channels == 1 && st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-    if (quiet_voice_active && frame_metrics.energy >= quiet_voice_probe_energy) {
-      if (++st->quiet_probe_loud_frames >= quiet_voice_release_frames) {
-        st->preprocess_filter_state = preprocess_filter_default;
-      }
-    } else {
-      st->quiet_probe_loud_frames = 0;
-    }
-  }
   celt_enc->high_z_tonal_Q7 = static_cast<opus_uint8>(st->lightweight_high_z_tonal_Q7);
   celt_enc->input_diff_Q10 = static_cast<opus_uint8>(clamp_value(static_cast<int>(1024.f * frame_metrics.mono_diff_ratio + .5f), 0, 255));
   const bool sparse_tonal_frame = is_sparse_high_z_tonal_frame(frame_metrics);
@@ -2845,12 +2799,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const auto threshold = quality_mode_threshold(voice_weight, analysis.stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
-    const bool tonal = st->lightweight_harmonic_music_Q7 >= 64 || st->lightweight_high_z_tonal_Q7 > 64;
-    const bool speech = voice_est >= 100 || st->lightweight_vad_score_Q7 > 48;
-    const bool stable_voip_speech = voip_style && st->audio_preprocess_mode == audio_preprocess_speech;
-    if (voip_style && st->channels == 1 && (stable_voip_speech || (speech && !tonal)) && st->bitrate_bps <= 64000) {
-      st->mode = opus_mode_silk_only;
-    } else if (mature && voice_est <= 16) {
+    if (!voip_style && mature && voice_est <= 16) {
       st->mode = st->bitrate_bps >= (voip_style ? 23000 : 15000) ? opus_mode_celt_only : opus_mode_silk_only;
     }
     if (max_data_bytes < bitrate_to_bits_for_frame_rate(frame_rate > 50 ? 9000 : 6000, frame_rate) / 8) {
@@ -2862,9 +2811,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps < 20000) {
     st->mode = opus_mode_celt_only;
-  }
-  if (voip_style && st->channels == 1 && st->bitrate_bps == 64000 && st->preprocess_filter_state == preprocess_filter_quiet_voice) {
-    st->mode = opus_mode_silk_only;
   }
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
     const bool confident_high_z_tonal = st->lightweight_high_z_tonal_Q7 > 64 || sparse_tonal_frame;
@@ -2881,18 +2827,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       celt_enc->stereo_policy_celt = stereo_policy_allowed && ((previous_stereo_policy && !previous_unsteady) || (!st->stereo_recovery_frames && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && st->lightweight_harmonic_music_Q7 >= 64 && st->stereo_similarity_ms_Q1 < 160 && celt_enc->stereo_coherence_Q8 < (st->prev_mode == opus_mode_celt_only ? 51 : 25)));
     }
   }
-  if (voip_style && st->channels == 1 && st->bitrate_bps <= 16000) {
-    const bool noisy_start =
-        frame_metrics.energy > .003f && frame_metrics.mono_diff_ratio > .60f && frame_metrics.mono_zero_cross_rate > .27f;
-    const bool locked_tonal_start =
-        frame_metrics.energy > .002f && frame_metrics.mono_diff_ratio < .002f && frame_metrics.mono_zero_cross_rate < .015f;
-    if (st->lightweight_analysis_frames <= audio_preprocess_warmup_frames && (noisy_start || locked_tonal_start)) {
-      st->audio_preprocess_mode = preprocess_lowrate_voip_celt;
-    }
-    if (st->audio_preprocess_mode == preprocess_lowrate_voip_celt) {
-      st->mode = opus_mode_celt_only;
-    }
-  }
   const bool severe_voip_noise = frame_metrics.mono_diff_ratio > .8f && frame_metrics.mono_zero_cross_rate > .30f;
   if (voip_style && st->channels == 1 && (st->voip_noise_confidence_Q7 >= voip_noise_confidence_apply_Q7 || severe_voip_noise)) {
     st->mode = st->bitrate_bps <= 24000 ? opus_mode_silk_only : st->bitrate_bps <= 48000 ? opus_mode_hybrid
@@ -2905,8 +2839,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = opus_mode_silk_only;
   }
   const bool refine_lowrate_voip_celt = st->use_vbr && voip_style && st->channels == 1 && st->silk_mode.complexity >= 5 &&
-                                        st->bitrate_bps <= 16000 && frame_size == st->Fs / 50 && st->mode == opus_mode_celt_only &&
-                                        st->audio_preprocess_mode == preprocess_lowrate_voip_celt;
+                                        st->bitrate_bps <= 16000 && frame_size == st->Fs / 50 && st->mode == opus_mode_celt_only;
   celt_enc->lowrate_refinement = refine_lowrate_voip_celt;
   if (st->mode != opus_mode_celt_only && frame_size < st->Fs / 100) {
     st->mode = opus_mode_celt_only;
@@ -3260,8 +3193,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       auto low_band_keep = opus_val16{0};
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
-        low_band_keep = st->audio_preprocess_mode == preprocess_lowrate_voip_continuous ? .25f
-                        : diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
+        low_band_keep = diff >= .015f && diff < .055f                                 ? voip_mid_diff_voice_low_band_keep
                                                                                         : 0.f;
       } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
         low_band_keep = .30f;
@@ -3312,7 +3244,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       if (smoothing != 0) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
       }
-      if (st->audio_preprocess_mode == preprocess_lowrate_voip_continuous && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
+      if (st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
           frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
       }
@@ -5685,6 +5617,9 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
 
 static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   opus_val32 r00 = 0, r01 = 0, r11 = 0, r02 = 0, r12 = 0, r22 = 0;
+  if (len <= 2 * delay) {
+    return 1;
+  }
   for (int i = 0; i < len - 2 * delay; i++) {
     r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
     r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
@@ -5727,7 +5662,7 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   return 0;
 }
 
-static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness) {
+static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs) {
   int delay = 1;
   std::array<opus_val32, 2> lpc;
   std::array<opus_val16, OPUS_FRAME_SIZE_20MS + celt_default_overlap> x_sum;
@@ -5739,7 +5674,7 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
     x = x_sum.data();
   }
   int fail = tone_lpc(x, N, delay, lpc.data());
-  for (; delay <= celt_sample_rate / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
+  for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
     delay *= 2;
     fail = tone_lpc(x, N, delay, lpc.data());
   }
@@ -6301,7 +6236,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       tell = nbCompressedBytes * 8;
       enc->nbits_total += tell - ec_tell(enc);
     }
-    tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness);
+    tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness, celt_sample_rate);
     if (!silence && LM > 0 && st->complexity >= 1) {
       const bool allow_weak_transients = hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2;
       isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,

@@ -205,9 +205,9 @@ c++ -std=c++23 -O2 -DNDEBUG -DOPUSCPP_ENABLE_TEST_HOOKS -I src \
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
 speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
-signal after silence, `opuscpp` has lower aggregate wake-up NRMSE (`0.2855` vs `0.7622`)
-and gain error (`0.7705` vs `1.6463` dB), while both suppress 406 silence frames.
-That is 62.6% less re-entry error and 53.2% less gain error. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus.
+signal after silence, `opuscpp` has lower aggregate wake-up NRMSE (`0.3761` vs `0.7622`)
+and gain error (`1.5500` vs `1.6463` dB), while both suppress 406 silence frames.
+That is 50.7% less re-entry error and 5.9% less aggregate gain error. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus. Individual per-material gain errors remain mixed; the full current DTX output is retained in `metrics/voip_startup_checkpoint.json`.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -243,10 +243,8 @@ python tests/scripts/check_fec_source_quality.py current_gate.exe official_gate.
 
 The checkpoint also passes packet budgets, 240 API/reset cases, 96 encoder conformance cases,
 packet-duration/channel-remap checks, SILK reconstruction, postfilter and denoiser checks.
-`voip_quiet_start_latch.cpp` (compile with `-DOPUSCPP_ENABLE_TEST_HOOKS`) checks that silence
-does not classify as quiet speech and that later loud input releases a quiet classification.
-Complete startup independence is still open: the exact 64 kbps mode override and other mode
-decisions require further review.
+The later VOIP startup checkpoint below removes the quiet classifier and startup mode overrides;
+its behavioral regression supersedes the original classifier-state check.
 
 The full 498-configuration quality matrix has 1288 below-official fields, compared with 1580 at
 parent commit `a4a1fde`: 360 fixed, 68 newly negative and 260 worsened existing deficits. All AUDIO
@@ -516,3 +514,56 @@ now match official PCM exactly; previously recovered-frame NRMSE was 0.451981.
 implementation fails; the fix passes. All 5976 loss-free quality fields are unchanged. Strict FEC,
 all four source criteria, packet budgets and ordinary integration checks pass. See
 [concealment checkpoint metadata](metrics/silk_plc_energy_checkpoint.json).
+
+## VOIP startup checkpoint
+
+The encoder no longer uses a quiet-start classification or the first few frames to keep a
+filtering/gain/mode decision. The exact 64 kbps quiet-to-SILK override, one-shot speech-mode
+force and low-rate startup flags are removed. Low-rate processing uses current signal cues;
+noise confidence continues updating and can decay after clean input. Tone evidence reuses the
+existing LPC detector. The obsolete quiet classifier and its state are deleted.
+
+`voip_quiet_start_latch.cpp` now checks behavior through the public API: silence, quiet speech,
+low tones and noise precede the same common input. All 24 cases converge to the same steady
+mode at 16/48/64 kbps through both input APIs, and reset produces byte-identical packets. The
+previous implementation fails 12 cases. It links `src/opus_codec.cpp`; test hooks are not required.
+The separate David/low-pitch corpus check covers six histories, three rates and both APIs: all
+72 mode traces agree after the first 60 common frames. SILK reconstruction testing now seeds
+current speech evidence to select SILK instead of relying on the removed startup override.
+
+Strict FEC and all four source criteria pass 18/18. API/reset, packet budgets, conformance,
+duration/channel-remap, postfilter, denoiser and reconstruction checks pass. The full quality
+matrix improves from 1233 to 1158 below-official fields: 191 fixed, 116 newly negative and
+172 worsened existing deficits. Every AUDIO quality field is unchanged; remaining VOIP and
+AUDIO deficits remain open.
+
+The corrected VOIP decisions change mode use. David now predominantly uses hybrid at
+16-48 kbps, as official Opus does, and its earlier speed advantage at these rates disappears.
+Both codecs predominantly use hybrid on Hazel at these rates too. The remaining encode
+slowdown must therefore be addressed within that path. The table gives fresh nine-repeat
+ratios (official time/current time); below 1 means slower. Inputs are the existing 11.8-second
+David and 13.46-second Hazel PCM; complexity 10, -O2 -DNDEBUG, with official intrinsics enabled.
+There was no concurrent codec workload or explicit affinity/priority pinning.
+
+| kbps | David encode | David decode | Hazel encode | Hazel decode |
+|---:|---:|---:|---:|---:|
+| 16 | 0.560x | 1.178x | 0.574x | 1.175x |
+| 24 | 0.566x | 1.161x | 0.622x | 1.175x |
+| 32 | 0.546x | 1.176x | 0.565x | 1.180x |
+| 48 | 0.581x | 1.160x | 0.632x | 1.170x |
+| 64 | 2.342x | 1.154x | 2.519x | 1.165x |
+| 96 | 1.045x | 1.194x | 1.090x | 1.247x |
+| 128 | 1.053x | 1.181x | 1.069x | 1.186x |
+| 192 | 1.069x | 1.189x | 1.085x | 1.171x |
+| 256 | 1.100x | 1.148x | 1.134x | 1.171x |
+
+Median process-private bytes per instance (three fresh runs of 256 instances):
+
+| State | Current | Official |
+|---|---:|---:|
+| Mono encoder | 16864 | 31824 |
+| Stereo encoder | 32576 | 49072 |
+| Mono decoder | 14160 | 18304 |
+| Stereo decoder | 21232 | 27392 |
+
+Exact source identities, full timing rows and check results are in [startup checkpoint metadata](metrics/voip_startup_checkpoint.json). Full quality/speed parity remains unfinished.

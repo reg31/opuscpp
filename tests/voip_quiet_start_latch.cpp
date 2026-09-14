@@ -1,176 +1,88 @@
 #include "opus_codec.h"
-
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <iostream>
-#include <stdexcept>
-#include <string>
+#include <cstdio>
 #include <vector>
 
-#if !defined(OPUSCPP_ENABLE_TEST_HOOKS)
-#error "voip_quiet_start_latch requires -DOPUSCPP_ENABLE_TEST_HOOKS"
-#endif
-
-int opuscpp_test_preprocess_filter_state(const OpusEncoder* st) noexcept;
-
 namespace {
+constexpr int frame_size = 960;
+constexpr double pi = 3.14159265358979323846;
+using packets = std::vector<std::vector<unsigned char>>;
 
-constexpr int kQuietVoice = 2;
-constexpr int kDefaultFilter = 1;
-constexpr int kUndecided = 0;
-
-[[nodiscard]] auto make_speech(int frames, int frame_size) -> std::vector<opus_int16> {
-  auto pcm = std::vector<opus_int16>(static_cast<std::size_t>(frames * frame_size));
-  for (int frame = 0; frame < frames; ++frame) {
-    for (int i = 0; i < frame_size; ++i) {
-      const double t = static_cast<double>(frame * frame_size + i) / 48000.0;
-      const double envelope = 0.55 + 0.35 * std::sin(2.0 * 3.141592653589793 * 3.1 * t);
-      const double value = envelope * (0.45 * std::sin(2.0 * 3.141592653589793 * 210.0 * t) +
-                                       0.25 * std::sin(2.0 * 3.141592653589793 * 630.0 * t) +
-                                       0.15 * std::sin(2.0 * 3.141592653589793 * 1480.0 * t));
-      pcm[static_cast<std::size_t>(frame * frame_size + i)] = static_cast<opus_int16>(std::lrint(value * 32767.0 * 0.9));
-    }
+std::vector<opus_int16> make_input(int frames, int kind) {
+  std::vector<opus_int16> result(frames * frame_size);
+  unsigned random = 7;
+  for (int f = 0; f < frames; ++f) for (int i = 0; i < frame_size; ++i) {
+    const double t = (f * frame_size + i) / 48000.;
+    random = random * 1664525u + 1013904223u;
+    double sample = 0;
+    if (kind == 0 || kind == 2)
+      sample = f < 6 ? .35 * std::sin(2 * pi * 220 * t) + .20 * std::sin(2 * pi * 1100 * t) + .30 * std::sin(2 * pi * 3300 * t)
+                     : .3 * std::sin(2 * pi * 700 * t);
+    if (kind == 2) sample *= .02;
+    if (kind == 3) sample = .15 * std::sin(2 * pi * 100 * t);
+    if (kind == 4) sample = .12 * (static_cast<int>(random >> 16) - 32768) / 32768.;
+    result[f * frame_size + i] = static_cast<opus_int16>(std::lround(sample * 32767));
   }
-  return pcm;
+  return result;
 }
 
-[[nodiscard]] auto make_level(double amplitude, int frames, int frame_size) -> std::vector<opus_int16> {
-  auto pcm = std::vector<opus_int16>(static_cast<std::size_t>(frames * frame_size));
-  for (int frame = 0; frame < frames; ++frame) {
-    for (int i = 0; i < frame_size; ++i) {
-      const double t = static_cast<double>(frame * frame_size + i) / 48000.0;
-      const double value = amplitude * std::sin(2.0 * 3.141592653589793 * 190.0 * t);
-      pcm[static_cast<std::size_t>(frame * frame_size + i)] = static_cast<opus_int16>(std::lrint(value * 32767.0));
-    }
-  }
-  return pcm;
-}
-
-void encode_frames(OpusEncoder* enc, const std::vector<opus_int16>& pcm, int frames, int frame_size) {
-  std::array<unsigned char, 1500> packet{};
-  for (int frame = 0; frame < frames; ++frame) {
-    const auto offset = static_cast<std::size_t>(frame * frame_size);
-    const int size = opus_encode(enc, pcm.data() + offset, frame_size, packet.data(), static_cast<int>(packet.size()));
-    if (size < 0) {
-      throw std::runtime_error("encode failed");
-    }
-  }
-}
-
-[[nodiscard]] auto run_sequence(const std::vector<opus_int16>& opening, int opening_frames, const std::vector<opus_int16>& loud,
-                                int loud_frames, int bitrate) -> int {
-  constexpr int frame_size = 960;
+packets encode(int bitrate, bool float_api, const std::vector<opus_int16>& common, int prefix, bool reset) {
   int error = OPUS_OK;
-  auto enc = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
-  if (!enc || error != OPUS_OK) {
-    throw std::runtime_error("encoder create failed");
+  auto encoder = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
+  if (!encoder || error || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) ||
+      opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(10)) || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(1))) return {};
+  std::array<unsigned char, 1500> packet{};
+  std::array<float, frame_size> converted{};
+  const auto frame = [&](const opus_int16* input) {
+    if (float_api) {
+      for (int i = 0; i < frame_size; ++i) converted[i] = input[i] / 32768.f;
+      return opus_encode_float(encoder.get(), converted.data(), frame_size, packet.data(), packet.size());
+    }
+    return opus_encode(encoder.get(), input, frame_size, packet.data(), packet.size());
+  };
+  if (prefix) {
+    const auto history = make_input(50, prefix);
+    for (int f = 0; f < 50; ++f) if (frame(history.data() + f * frame_size) <= 0) return {};
   }
-  if (opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(bitrate)) != OPUS_OK) {
-    throw std::runtime_error("set bitrate failed");
+  if (reset && opus_encoder_ctl(encoder.get(), OPUS_RESET_STATE)) return {};
+  packets result;
+  for (std::size_t pos = 0; pos < common.size(); pos += frame_size) {
+    const int size = frame(common.data() + pos);
+    if (size <= 0) return {};
+    result.emplace_back(packet.begin(), packet.begin() + size);
   }
-  opus_encoder_ctl(enc.get(), OPUS_SET_COMPLEXITY(10));
-  encode_frames(enc.get(), opening, opening_frames, frame_size);
-  encode_frames(enc.get(), loud, loud_frames, frame_size);
-  return opuscpp_test_preprocess_filter_state(enc.get());
+  return result;
 }
 
-void require_state(int got, int want, const std::string& what) {
-  if (got != want) {
-    throw std::runtime_error(what + ": got state " + std::to_string(got) + " want " + std::to_string(want));
-  }
+int mode(const std::vector<unsigned char>& packet) {
+  const int configuration = packet[0] >> 3;
+  return configuration < 12 ? 0 : configuration < 16 ? 1 : 2;
 }
-
-} // namespace
+}
 
 int main() {
-  constexpr int frame_size = 960;
-  constexpr int silence_frames = 15;
-  constexpr int quiet_frames = 20;
-  constexpr int loud_frames = 30;
-  const auto silence = make_level(0.0, silence_frames, frame_size);
-  const auto quiet = make_level(0.05, quiet_frames, frame_size);
-  const auto speech = make_speech(loud_frames, frame_size);
-  const auto steady_speech = make_speech(quiet_frames + loud_frames, frame_size);
-
-  for (const int bitrate : std::array{16000, 64000}) {
-    // Sanity: steady speech must classify as the default filter.
-    require_state(run_sequence(steady_speech, 12, speech, loud_frames, bitrate), kDefaultFilter, "steady speech");
-    // Sanity: sustained quiet audio must classify as quiet voice.
-    require_state(run_sequence(quiet, quiet_frames, quiet, 1, bitrate), kQuietVoice, "sustained quiet");
-    // Regression: leading silence must not latch the quiet path.
-    if (run_sequence(silence, silence_frames, speech, loud_frames, bitrate) == kQuietVoice) {
-      throw std::runtime_error("silent opening latched quiet voice at " + std::to_string(bitrate));
-    }
-    // Regression: leading quiet audio must be invalidated by later loud speech.
-    if (run_sequence(quiet, quiet_frames, speech, loud_frames, bitrate) == kQuietVoice) {
-      throw std::runtime_error("quiet opening was not invalidated by loud speech at " + std::to_string(bitrate));
-    }
-    // Reset must return the classifier to undecided.
-    int error = OPUS_OK;
-    auto enc = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
-    opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(bitrate));
-    encode_frames(enc.get(), quiet, quiet_frames, frame_size);
-    require_state(opuscpp_test_preprocess_filter_state(enc.get()), kQuietVoice, "pre-reset quiet");
-    opus_encoder_ctl(enc.get(), OPUS_RESET_STATE);
-    require_state(opuscpp_test_preprocess_filter_state(enc.get()), kUndecided, "reset state");
-  }
-
-  // A bitrate change must not prevent the quiet decision from being invalidated.
-  {
-    int error = OPUS_OK;
-    auto enc = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
-    opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(16000));
-    encode_frames(enc.get(), quiet, quiet_frames, frame_size);
-    require_state(opuscpp_test_preprocess_filter_state(enc.get()), kQuietVoice, "quiet before bitrate change");
-    opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(64000));
-    encode_frames(enc.get(), speech, loud_frames, frame_size);
-    if (opuscpp_test_preprocess_filter_state(enc.get()) == kQuietVoice) {
-      throw std::runtime_error("bitrate change kept quiet latch");
-    }
-  }
-
-  // The float input API shares the same classifier.
-  {
-    int error = OPUS_OK;
-    auto enc = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
-    opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(64000));
-    std::vector<float> float_pcm(static_cast<std::size_t>(silence_frames * frame_size));
-    for (std::size_t i = 0; i < float_pcm.size(); ++i) {
-      float_pcm[i] = static_cast<float>(silence[i]) / 32768.0f;
-    }
-    std::array<unsigned char, 1500> packet{};
-    for (int frame = 0; frame < silence_frames; ++frame) {
-      if (opus_encode_float(enc.get(), float_pcm.data() + static_cast<std::size_t>(frame * frame_size), frame_size, packet.data(),
-                            static_cast<int>(packet.size())) < 0) {
-        throw std::runtime_error("float encode failed");
+  const auto common = make_input(200, 0);
+  int checks = 0, failures = 0;
+  for (int bitrate : {16000, 48000, 64000}) for (bool float_api : {false, true}) {
+    const auto baseline = encode(bitrate, float_api, common, 0, false);
+    if (baseline.size() != 200) return 1;
+    for (int prefix : {1, 2, 3, 4}) {
+      const auto candidate = encode(bitrate, float_api, common, prefix, false);
+      const auto after_reset = encode(bitrate, float_api, common, prefix, true);
+      if (candidate.size() != baseline.size() || after_reset != baseline) return 2;
+      for (std::size_t f = 150; f < baseline.size(); ++f) {
+        if (mode(candidate[f]) != mode(baseline[f])) {
+          std::fprintf(stderr, "VOIP startup mode persists: bitrate=%d float=%d prefix=%d frame=%zu modes=%d/%d\n",
+                       bitrate, float_api, prefix, f, mode(candidate[f]), mode(baseline[f]));
+          ++failures;
+          break;
+        }
       }
-    }
-    std::vector<float> float_speech(static_cast<std::size_t>(loud_frames * frame_size));
-    for (std::size_t i = 0; i < float_speech.size(); ++i) {
-      float_speech[i] = static_cast<float>(speech[i]) / 32768.0f;
-    }
-    for (int frame = 0; frame < loud_frames; ++frame) {
-      if (opus_encode_float(enc.get(), float_speech.data() + static_cast<std::size_t>(frame * frame_size), frame_size, packet.data(),
-                            static_cast<int>(packet.size())) < 0) {
-        throw std::runtime_error("float encode failed");
-      }
-    }
-    if (opuscpp_test_preprocess_filter_state(enc.get()) == kQuietVoice) {
-      throw std::runtime_error("float API latched quiet voice");
+      ++checks;
     }
   }
-
-  // The VOIP quiet classifier must not run for AUDIO encoders.
-  {
-    int error = OPUS_OK;
-    auto enc = make_opus_encoder(48000, 1, OPUS_APPLICATION_AUDIO, &error);
-    opus_encoder_ctl(enc.get(), OPUS_SET_BITRATE(64000));
-    encode_frames(enc.get(), quiet, quiet_frames, frame_size);
-    if (opuscpp_test_preprocess_filter_state(enc.get()) == kQuietVoice) {
-      throw std::runtime_error("AUDIO encoder entered the VOIP quiet state");
-    }
-  }
-
-  std::cout << "voip_quiet_start_latch=PASS\n";
-  return 0;
+  std::printf("voip_startup_behavior checks=%d failures=%d (mode convergence and byte-identical reset)\n", checks, failures);
+  return failures ? 3 : 0;
 }

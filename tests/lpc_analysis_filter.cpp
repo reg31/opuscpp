@@ -12,7 +12,6 @@ static bool check_silk_reconstruction() {
       const auto decoder = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(16000, 1, &error), opus_decoder_destroy};
       if (!encoder || !decoder || error || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) || opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(complexity)))
         return false;
-      encoder->audio_preprocess_mode = audio_preprocess_speech;
       std::array<opus_int16, 320> input, output;
       std::array<opus_int16, 13> tail{};
       std::array<unsigned char, 1500> packet;
@@ -25,6 +24,12 @@ static bool check_silk_reconstruction() {
           const double phase = 2 * 3.141592653589793 * (140 * t + 3 * std::sin(2 * t));
           input[i] = static_cast<opus_int16>((.6 + .4 * std::sin(11 * t)) * (7000 * std::sin(phase) + 2500 * std::sin(2 * phase) + 1500 * std::sin(3 * phase)) + noise);
         }
+        // Select SILK through current speech evidence; the retired startup flag no longer selects a mode.
+        encoder->lightweight_voice_score_Q7 = 115;
+        encoder->lightweight_vad_score_Q7 = 115;
+        encoder->lightweight_music_score_Q7 = 0;
+        encoder->lightweight_harmonic_music_Q7 = 0;
+        encoder->lightweight_high_z_tonal_Q7 = 0;
         const int bytes = opus_encode(encoder.get(), input.data(), 320, packet.data(), packet.size());
         if (bytes <= 0 || opus_decode(decoder.get(), packet.data(), bytes, output.data(), 320, 0) != 320)
           return false;
