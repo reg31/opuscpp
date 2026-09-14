@@ -468,3 +468,16 @@ Build and run it directly against a codec source:
 g++ -std=c++23 -O2 -DNDEBUG -I src tests/celt_empty_channel.cpp src/opus_codec.cpp -o celt_empty_channel.exe
 celt_empty_channel.exe
 ```
+
+## CELT stereo-to-mono predictor checkpoint
+
+The encoder now merges the previous channel energies before coding a mono stream, matching
+the decoder's predictor. `celt_mono_energy_history.cpp` covers four frame lengths and three
+asymmetric histories: the previous code fails with mismatched predictor state; the fix passes
+all 12 cases. Compile the test directly; it includes the codec source.
+
+The isolated change on `535fed4` leaves all 5976 measured quality fields and strict FEC output
+identical. All four source FEC criteria pass on 18/18; packet budgets, 240 API/reset cases,
+96 conformance cases, packet-duration/channel-remap and changed-packet interoperability pass.
+The broader quality and startup limitations of the FEC checkpoint still apply. Exact identities
+are recorded in [predictor checkpoint metadata](metrics/celt_mono_energy_history_checkpoint.json).

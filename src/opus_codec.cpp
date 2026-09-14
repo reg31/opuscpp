@@ -6222,6 +6222,10 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   const int CC = st->channels;
   const int C = st->stream_channels;
   auto [prefilter_mem, oldBandE, oldLogE, oldLogE2, energyError] = make_celt_encoder_views(st);
+  // Mono decoding predicts from the larger of the previous channel energies.
+  if (CC == 2 && C == 1)
+    for (int band = 0; band < nbEBands; ++band)
+      oldBandE[band] = std::max(oldBandE[band], oldBandE[band + nbEBands]);
   opus_int32 tell = 0, tell0_frac = 0, vbr_rate = 0, equiv_rate = 0, total_bits = 0, tot_boost = 0;
   int nbAvailableBytes = 0, effectiveBytes = 0;
   opus_val32 toneishness = 0, temporal_vbr = 0, maxDepth = 0;
