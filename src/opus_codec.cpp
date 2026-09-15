@@ -10742,9 +10742,15 @@ template <bool Warped>
 static std::array<opus_int32, 4> silk_nsq_noise_shape_feedback_four(opus_int32 diff0, opus_int32 diff1, opus_int32 diff2, opus_int32 diff3,
                                                                     opus_int32 (&lane)[24][4], const opus_int16* coefficients, int order,
                                                                     int warping_Q16) noexcept {
+  const auto mul_split32 = [](opus_int32 a, opus_int16 b16) noexcept {
+    const auto b = static_cast<opus_int32>(b16);
+    const auto high = (a >> 16) * b;
+    const auto low = (a & 65535) * b;
+    return static_cast<opus_int32>(high + (low >> 16));
+  };
   const auto warped = [&](opus_int32 delta) noexcept {
     if constexpr (Warped) {
-      return static_cast<opus_int32>((delta * static_cast<opus_int64>(static_cast<opus_int16>(warping_Q16))) >> 16);
+      return mul_split32(delta, static_cast<opus_int16>(warping_Q16));
     }
     return opus_int32{0};
   };
@@ -10757,24 +10763,24 @@ static std::array<opus_int32, 4> silk_nsq_noise_shape_feedback_four(opus_int32 d
     const auto old0 = lane[0][s];
     lane[0][s] = even[s];
     odd[s] = wrap_add(old0, warped(wrap_subtract(lane[1][s], even[s])));
-    out[s] = wrap_add(order >> 1, silk_mul_wb(even[s], coefficients[0]));
+    out[s] = wrap_add(order >> 1, mul_split32(even[s], coefficients[0]));
   }
   for (int index = 2; index < order; index += 2) {
     for (int s = 0; s < 4; ++s) {
       even[s] = wrap_add(lane[index - 1][s], warped(wrap_subtract(lane[index][s], odd[s])));
       lane[index - 1][s] = odd[s];
-      out[s] = wrap_add(out[s], silk_mul_wb(odd[s], coefficients[index - 1]));
+      out[s] = wrap_add(out[s], mul_split32(odd[s], coefficients[index - 1]));
     }
     for (int s = 0; s < 4; ++s) {
       odd[s] = wrap_add(lane[index][s], warped(wrap_subtract(lane[index + 1][s], even[s])));
       lane[index][s] = even[s];
-      out[s] = wrap_add(out[s], silk_mul_wb(even[s], coefficients[index]));
+      out[s] = wrap_add(out[s], mul_split32(even[s], coefficients[index]));
     }
   }
   for (int s = 0; s < 4; ++s)
     lane[order - 1][s] = odd[s];
   for (int s = 0; s < 4; ++s)
-    out[s] = wrap_shift_left(wrap_add(out[s], silk_mul_wb(odd[s], coefficients[order - 1])), 1);
+    out[s] = wrap_shift_left(wrap_add(out[s], mul_split32(odd[s], coefficients[order - 1])), 1);
   return out;
 }
 
