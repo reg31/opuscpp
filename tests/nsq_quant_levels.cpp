@@ -48,13 +48,23 @@ int main() {
         for (int residual = -31744; residual <= 30720; ++residual)
           for (int kz = 0; kz < 2; ++kz) {
             if (!kz) {
-              opus_int32 q1 = residual - offset; opus_int32 qb = q1 >> 10;
+              opus_int32 q1 = residual - offset;
+              opus_int32 qb = q1 >> 10;
               if (Lambda > 2048) {
                 const auto rdo = Lambda / 2 - 512;
-                if (q1 > rdo) qb = (q1 - rdo) >> 10; else if (q1 < -rdo) qb = (q1 + rdo) >> 10; else qb = q1 < 0 ? -1 : 0;
+                if (q1 > rdo)
+                  qb = (q1 - rdo) >> 10;
+                else if (q1 < -rdo)
+                  qb = (q1 + rdo) >> 10;
+                else
+                  qb = q1 < 0 ? -1 : 0;
               }
               const long idx = qb + 32;
-              if (idx < 0 || idx > 61) { std::printf("INDEX_FAIL %ld\n", idx); return 2; } max_index = std::max(max_index, idx);
+              if (idx < 0 || idx > 61) {
+                std::printf("INDEX_FAIL %ld\n", idx);
+                return 2;
+              }
+              max_index = std::max(max_index, idx);
             }
             const silk_nsq_candidate_pair a = kz ? silk_quantize_candidate_pair<true>(residual, Lambda, offset, nullptr)
                                                  : silk_quantize_candidate_pair<false>(residual, Lambda, offset, silk_nsq_quant_levels[row][col].data());
@@ -62,7 +72,8 @@ int main() {
             ++cases;
             if (a.q1_Q10 != b.q1_Q10 || a.q2_Q10 != b.q2_Q10 || a.dist1_Q20 != b.dist1_Q20 || a.dist2_Q20 != b.dist2_Q20 ||
                 a.rate1_Q20 != b.rate1_Q20 || a.rate2_Q20 != b.rate2_Q20) {
-              if (failures < 5) std::printf("FAIL row=%d col=%d lambda=%d residual=%d kz=%d\n", row, col, Lambda, residual, kz);
+              if (failures < 5)
+                std::printf("FAIL row=%d col=%d lambda=%d residual=%d kz=%d\n", row, col, Lambda, residual, kz);
               ++failures;
             }
           }

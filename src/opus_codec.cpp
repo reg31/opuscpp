@@ -10821,11 +10821,13 @@ consteval auto make_silk_nsq_quant_levels() noexcept {
     for (int col = 0; col < 2; ++col) {
       const int offset_Q10 = silk_Quantization_Offsets_Q10[row][col];
       for (int qbin = -32; qbin <= 29; ++qbin) {
-        opus_int32 q1_Q10 = qbin > 0   ? qbin * 1024 - 80 + offset_Q10
-                           : qbin == 0 ? offset_Q10
-                           : qbin == -1 ? offset_Q10 - (1024 - 80)
-                                        : qbin * 1024 + 80 + offset_Q10;
-        const opus_int32 q2_Q10 = qbin > 0 ? q1_Q10 + 1024 : qbin == 0 ? q1_Q10 + (1024 - 80) : qbin == -1 ? offset_Q10 : q1_Q10 + 1024;
+        opus_int32 q1_Q10 = qbin > 0     ? qbin * 1024 - 80 + offset_Q10
+                            : qbin == 0  ? offset_Q10
+                            : qbin == -1 ? offset_Q10 - (1024 - 80)
+                                         : qbin * 1024 + 80 + offset_Q10;
+        const opus_int32 q2_Q10 = qbin > 0 ? q1_Q10 + 1024 : qbin == 0 ? q1_Q10 + (1024 - 80)
+                                                         : qbin == -1  ? offset_Q10
+                                                                       : q1_Q10 + 1024;
         table[row][col][qbin + 32] = {static_cast<opus_int16>(q1_Q10), static_cast<opus_int16>(q2_Q10),
                                       static_cast<opus_int16>(q1_Q10 < 0 ? -q1_Q10 : q1_Q10),
                                       static_cast<opus_int16>(q2_Q10 < 0 ? -q2_Q10 : q2_Q10)};
@@ -10840,7 +10842,7 @@ static_assert(sizeof(silk_nsq_quant_levels) == 1984);
 
 template <bool KnownZero>
 [[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
-                                                                const silk_nsq_quant_level_pair* levels) noexcept -> silk_nsq_candidate_pair {
+                                                              const silk_nsq_quant_level_pair* levels) noexcept -> silk_nsq_candidate_pair {
   if constexpr (KnownZero)
     return {offset_Q10, offset_Q10, 0, 0, 0, 0};
   const opus_int32 q1_Q10 = residual_q10 - offset_Q10;
