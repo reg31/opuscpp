@@ -2914,7 +2914,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     // Limit bandwidth by expected quality, then assess FEC against coding capacity.
     static_cast<void>(decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate));
     const auto coding_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr,
-                                               st->mode, st->silk_mode.complexity, 0);
+                                                st->mode, st->silk_mode.complexity, 0);
     st->silk_mode.LBRR_coded = decide_fec(st->silk_mode, st->mode, st->bandwidth, coding_rate);
   } else {
     st->silk_mode.LBRR_coded = 0;
