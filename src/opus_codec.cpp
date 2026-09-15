@@ -10810,12 +10810,41 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
   return static_cast<opus_int32>(static_cast<opus_int16>(value)) * static_cast<opus_int32>(static_cast<opus_int16>(value));
 }
 
+// 62 bins cover the clamped residual domain [-31<<10, 30<<10] with the existing {32,100,240} offsets;
+// Lambda_Q10 > 2048 only pulls the selected index toward zero.
+struct silk_nsq_quant_level_pair {
+  opus_int16 q1_Q10, q2_Q10, abs1, abs2;
+};
+consteval auto make_silk_nsq_quant_levels() noexcept {
+  std::array<std::array<std::array<silk_nsq_quant_level_pair, 62>, 2>, 2> table{};
+  for (int row = 0; row < 2; ++row)
+    for (int col = 0; col < 2; ++col) {
+      const int offset_Q10 = silk_Quantization_Offsets_Q10[row][col];
+      for (int qbin = -32; qbin <= 29; ++qbin) {
+        opus_int32 q1_Q10 = qbin > 0   ? qbin * 1024 - 80 + offset_Q10
+                           : qbin == 0 ? offset_Q10
+                           : qbin == -1 ? offset_Q10 - (1024 - 80)
+                                        : qbin * 1024 + 80 + offset_Q10;
+        const opus_int32 q2_Q10 = qbin > 0 ? q1_Q10 + 1024 : qbin == 0 ? q1_Q10 + (1024 - 80) : qbin == -1 ? offset_Q10 : q1_Q10 + 1024;
+        table[row][col][qbin + 32] = {static_cast<opus_int16>(q1_Q10), static_cast<opus_int16>(q2_Q10),
+                                      static_cast<opus_int16>(q1_Q10 < 0 ? -q1_Q10 : q1_Q10),
+                                      static_cast<opus_int16>(q2_Q10 < 0 ? -q2_Q10 : q2_Q10)};
+      }
+    }
+  return table;
+}
+inline constexpr auto silk_nsq_quant_levels = make_silk_nsq_quant_levels();
+
+static_assert(sizeof(silk_nsq_quant_level_pair) == 8);
+static_assert(sizeof(silk_nsq_quant_levels) == 1984);
+
 template <bool KnownZero>
-[[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10) noexcept -> silk_nsq_candidate_pair {
+[[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
+                                                                const silk_nsq_quant_level_pair* levels) noexcept -> silk_nsq_candidate_pair {
   if constexpr (KnownZero)
     return {offset_Q10, offset_Q10, 0, 0, 0, 0};
-  auto q1_Q10 = residual_q10 - offset_Q10;
-  auto q1_Q0 = q1_Q10 >> 10;
+  const opus_int32 q1_Q10 = residual_q10 - offset_Q10;
+  opus_int32 q1_Q0 = q1_Q10 >> 10;
   if (Lambda_Q10 > 2048) {
     const auto rdo_offset = Lambda_Q10 / 2 - 512;
     if (q1_Q10 > rdo_offset) {
@@ -10825,26 +10854,13 @@ template <bool KnownZero>
     else
       q1_Q0 = q1_Q10 < 0 ? -1 : 0;
   }
-  opus_int32 q2_Q10;
-  if (q1_Q0 > 0) {
-    q1_Q10 = (q1_Q0 << 10) - 80 + offset_Q10;
-    q2_Q10 = q1_Q10 + 1024;
-  } else if (q1_Q0 == 0) {
-    q1_Q10 = offset_Q10;
-    q2_Q10 = q1_Q10 + (1024 - 80);
-  } else if (q1_Q0 == -1) {
-    q2_Q10 = offset_Q10;
-    q1_Q10 = q2_Q10 - (1024 - 80);
-  } else {
-    q1_Q10 = (q1_Q0 << 10) + 80 + offset_Q10;
-    q2_Q10 = q1_Q10 + 1024;
-  }
+  const auto& level = levels[q1_Q0 + 32];
   const auto lambda_i16 = static_cast<opus_int32>(static_cast<opus_int16>(Lambda_Q10));
-  const auto rd1_bias = static_cast<opus_int32>(static_cast<opus_int16>(q1_Q10 < 0 ? -q1_Q10 : q1_Q10)) * lambda_i16;
-  const auto rd2_bias = static_cast<opus_int32>(static_cast<opus_int16>(q2_Q10 < 0 ? -q2_Q10 : q2_Q10)) * lambda_i16;
-  const auto dist1 = silk_square_i16(residual_q10 - q1_Q10);
-  const auto dist2 = silk_square_i16(residual_q10 - q2_Q10);
-  return {q1_Q10, q2_Q10, dist1, dist2, rd1_bias, rd2_bias};
+  const auto dist1 = silk_square_i16(residual_q10 - level.q1_Q10);
+  const auto dist2 = silk_square_i16(residual_q10 - level.q2_Q10);
+  const auto rd1_bias = static_cast<opus_int32>(level.abs1) * lambda_i16;
+  const auto rd2_bias = static_cast<opus_int32>(level.abs2) * lambda_i16;
+  return {level.q1_Q10, level.q2_Q10, dist1, dist2, rd1_bias, rd2_bias};
 }
 
 [[nodiscard]] static auto silk_harmonic_shaping(const opus_int32* shp_lag_ptr, opus_int32 HarmShapeFIRPacked_Q14) noexcept -> opus_int32;
@@ -10888,7 +10904,7 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
 }
 
 template <bool KnownZero>
-static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std::span<const opus_int32> x_sc_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10) {
+static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_sc_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10) {
   int i;
   opus_int32 LTP_pred_Q13, LPC_pred_Q10, n_AR_Q12, n_LTP_Q13;
   opus_int32 n_LF_Q12, r_Q10, Gain_Q10, tmp1;
@@ -10926,7 +10942,7 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, std:
       tmp1 = rounded_rshift<2>(tmp1);
     }
     r_Q10 = silk_signed_clamped_residual(x_sc_Q10[i] - tmp1, NSQ->rand_seed);
-    const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10);
+    const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10, levels);
     const auto best_index = candidates.dist2_Q20 + candidates.rate2_Q20 < candidates.dist1_Q20 + candidates.rate1_Q20;
     const auto sample = silk_nsq_build_sample(best_index == 0 ? candidates.q1_Q10 : candidates.q2_Q10, NSQ->rand_seed,
                                               saturating_left_shift<1>(LTP_pred_Q13), saturating_left_shift<4>(LPC_pred_Q10), x_sc_Q10[i],
@@ -11016,7 +11032,7 @@ template <int Shift>
 }
 
 template <bool KnownZero>
-static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
+static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
   opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
       tmp2, *pred_lag_ptr, *shp_lag_ptr, *psLPC_Q14;
@@ -11088,7 +11104,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
       r_Q10 = silk_signed_clamped_residual(x_q10_data[i] - tmp1, psDD->Seed);
-      const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10);
+      const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10, levels);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
@@ -11216,6 +11232,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     NSQ->rand_seed = psIndices->Seed;
   }
   const int offset_Q10 = silk_Quantization_Offsets_Q10[psIndices->signalType >> 1][psIndices->quantOffsetType];
+  const auto* const levels = silk_nsq_quant_levels[psIndices->signalType >> 1][psIndices->quantOffsetType].data();
   int smpl_buf_idx = 0;
   int decisionDelay = std::min(40, psEncC->subfr_length);
   if constexpr (Delayed) {
@@ -11282,7 +11299,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                     psIndices->signalType, decisionDelay);
       const auto delayed_output_prefix = subfr > 0 ? decisionDelay : 0;
       silk_noise_shape_quantizer_del_dec<KnownZero>(
-          NSQ, delayed_states, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+          NSQ, delayed_states, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
           {pulses - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
           {pxq - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
           {sLTP_Q15_storage, ltp_frame_storage}, delayedGain_Q10, {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
@@ -11293,7 +11310,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                               {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                               {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                               {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
-      silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+      silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
                                             {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
