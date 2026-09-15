@@ -1,0 +1,2952 @@
+{
+  "recorded_utc": "2026-09-15T05:04:11.832640+00:00",
+  "baseline_commit": "52f62b2e1c7d3cdb3da9c3efa21ad1d0907ef10c",
+  "formatted_parent": "d0adaea4121180c7db0ffaa2c249ff81ae60a70b",
+  "source_blob": "ffe736bb339d7d2fe17bcdd5543137919d4695f4",
+  "source_sha256": "8a18594154fe88e118aa9a965c574bb642617699cc81e5b4bcb2bb4088268d96",
+  "validated_object_sha256": "442314e052feb2f0953fc61ff9c07965910198f045a0ce03800568750238c115",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "compiler": "GCC 16.2.0, C++23, -O2 -DNDEBUG; official intrinsics enabled",
+  "change": "Add the standard inline hint to silk_quantize_candidate_pair; expressions and API are unchanged.",
+  "code_generation": {
+    "baseline_outlined_candidate_pair_symbols": 1,
+    "candidate_outlined_candidate_pair_symbols": 0,
+    "note": "Observed with nm -C on the measured objects. This is not a forced-inline or vectorization claim."
+  },
+  "quality": {
+    "packet_fields_changed": 0,
+    "comparisons": 5976,
+    "baseline_negative": 1154,
+    "new_negative": 0,
+    "negative": 1154,
+    "changed": 0,
+    "fixed": 0,
+    "worsened_existing": 0,
+    "improved_existing": 0
+  },
+  "strict_ratios": [
+    0.78038,
+    0.304248,
+    0.579067,
+    0.580936,
+    0.148481,
+    0.878679,
+    0.372137,
+    0.236077,
+    0.109948,
+    0.583333,
+    0.495181,
+    0.953507,
+    0.812243,
+    0.117793,
+    0.637343,
+    0.597187,
+    0.267853,
+    0.826088
+  ],
+  "source_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "source_rows": [
+    {
+      "key": [
+        0,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.182698826,
+        "next_fec": 0.163784307,
+        "transition_fec": 0.135083518,
+        "fidelity_ref": 0.151716822,
+        "next_ref": 0.174071969,
+        "transition_ref": 0.12476702,
+        "fidelity_plc": 0.222381427,
+        "self_consistency": 0.10559916,
+        "step_fec": 819.0,
+        "step_ref": 784.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.209659222,
+        "next_fec": 0.210645127,
+        "transition_fec": 0.219502869,
+        "fidelity_ref": 0.173008541,
+        "next_ref": 0.169413448,
+        "transition_ref": 0.13747961,
+        "fidelity_plc": 0.340237299,
+        "self_consistency": 0.119937826,
+        "step_fec": -246.0,
+        "step_ref": -255.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.204479005,
+        "next_fec": 0.188797366,
+        "transition_fec": 0.267199574,
+        "fidelity_ref": 0.18000236,
+        "next_ref": 0.178687802,
+        "transition_ref": 0.171419754,
+        "fidelity_plc": 0.63878436,
+        "self_consistency": 0.082448186,
+        "step_fec": -397.0,
+        "step_ref": -376.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.189807096,
+        "next_fec": 0.186157964,
+        "transition_fec": 0.190432362,
+        "fidelity_ref": 0.184924182,
+        "next_ref": 0.174084759,
+        "transition_ref": 0.150108646,
+        "fidelity_plc": 0.664065621,
+        "self_consistency": 0.090425005,
+        "step_fec": -397.0,
+        "step_ref": -439.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.183772249,
+        "next_fec": 0.191390917,
+        "transition_fec": 0.149073301,
+        "fidelity_ref": 0.186491407,
+        "next_ref": 0.188311446,
+        "transition_ref": 0.150447449,
+        "fidelity_plc": 0.624056872,
+        "self_consistency": 0.055265598,
+        "step_fec": -392.5,
+        "step_ref": -51.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.187656953,
+        "next_fec": 0.181533735,
+        "transition_fec": 0.146465523,
+        "fidelity_ref": 0.188505857,
+        "next_ref": 0.184561717,
+        "transition_ref": 0.138403293,
+        "fidelity_plc": 0.645076695,
+        "self_consistency": 0.154510742,
+        "step_fec": -177.0,
+        "step_ref": -150.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.21107809,
+        "next_fec": 0.301142574,
+        "transition_fec": 0.179656127,
+        "fidelity_ref": 0.192284683,
+        "next_ref": 0.285110117,
+        "transition_ref": 0.176429578,
+        "fidelity_plc": 1.055150757,
+        "self_consistency": 0.093789093,
+        "step_fec": 415.0,
+        "step_ref": 454.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.376342543,
+        "next_fec": 0.323625695,
+        "transition_fec": 0.373559782,
+        "fidelity_ref": 0.271723252,
+        "next_ref": 0.288968153,
+        "transition_ref": 0.23076534,
+        "fidelity_plc": 1.062567445,
+        "self_consistency": 0.227507361,
+        "step_fec": -150.0,
+        "step_ref": -115.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.272114805,
+        "next_fec": 0.302674213,
+        "transition_fec": 0.233964878,
+        "fidelity_ref": 0.276319002,
+        "next_ref": 0.294247545,
+        "transition_ref": 0.246429429,
+        "fidelity_plc": 0.890650172,
+        "self_consistency": 0.022561322,
+        "step_fec": -225.0,
+        "step_ref": -240.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.256002953,
+        "next_fec": 0.24469795,
+        "transition_fec": 0.200705828,
+        "fidelity_ref": 0.234462363,
+        "next_ref": 0.238066879,
+        "transition_ref": 0.193688998,
+        "fidelity_plc": 0.857981976,
+        "self_consistency": 0.147681402,
+        "step_fec": -106.0,
+        "step_ref": -108.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.304848766,
+        "next_fec": 0.273817366,
+        "transition_fec": 0.234249125,
+        "fidelity_ref": 0.272702344,
+        "next_ref": 0.277172762,
+        "transition_ref": 0.208948948,
+        "fidelity_plc": 0.992549143,
+        "self_consistency": 0.173986489,
+        "step_fec": -63.5,
+        "step_ref": 143.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.361969062,
+        "next_fec": 0.262380768,
+        "transition_fec": 0.2720532,
+        "fidelity_ref": 0.275075761,
+        "next_ref": 0.260106252,
+        "transition_ref": 0.19932388,
+        "fidelity_plc": 0.737353018,
+        "self_consistency": 0.291282444,
+        "step_fec": -33.0,
+        "step_ref": -121.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.502220768,
+        "next_fec": 0.461424307,
+        "transition_fec": 0.409941939,
+        "fidelity_ref": 0.405873458,
+        "next_ref": 0.458424745,
+        "transition_ref": 0.378418092,
+        "fidelity_plc": 1.251511899,
+        "self_consistency": 0.317481809,
+        "step_fec": 2332.0,
+        "step_ref": 2390.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.467048315,
+        "next_fec": 0.530722123,
+        "transition_fec": 0.458734955,
+        "fidelity_ref": 0.442980263,
+        "next_ref": 0.523402617,
+        "transition_ref": 0.422045932,
+        "fidelity_plc": 0.908584136,
+        "self_consistency": 0.153907942,
+        "step_fec": -780.0,
+        "step_ref": -669.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.465916881,
+        "next_fec": 0.553291277,
+        "transition_fec": 0.44482723,
+        "fidelity_ref": 0.435503146,
+        "next_ref": 0.540756918,
+        "transition_ref": 0.398346634,
+        "fidelity_plc": 1.064146431,
+        "self_consistency": 0.245331167,
+        "step_fec": -1039.0,
+        "step_ref": -611.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.465139934,
+        "next_fec": 0.478030672,
+        "transition_fec": 0.476408361,
+        "fidelity_ref": 0.453764912,
+        "next_ref": 0.478792688,
+        "transition_ref": 0.432386148,
+        "fidelity_plc": 1.129389329,
+        "self_consistency": 0.257768819,
+        "step_fec": -1775.0,
+        "step_ref": -437.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.458623015,
+        "next_fec": 0.494974138,
+        "transition_fec": 0.403794446,
+        "fidelity_ref": 0.450129112,
+        "next_ref": 0.470278825,
+        "transition_ref": 0.390552628,
+        "fidelity_plc": 1.140185982,
+        "self_consistency": 0.243882412,
+        "step_fec": -292.0,
+        "step_ref": -188.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.471795117,
+        "next_fec": 0.453686747,
+        "transition_fec": 0.428127839,
+        "fidelity_ref": 0.465399608,
+        "next_ref": 0.484752964,
+        "transition_ref": 0.363197095,
+        "fidelity_plc": 0.8817543,
+        "self_consistency": 0.383504235,
+        "step_fec": -885.0,
+        "step_ref": -210.0
+      },
+      "exit": 0
+    }
+  ],
+  "checks": {
+    "pipeline_commands": 38,
+    "public_commands": 21,
+    "failures": []
+  },
+  "packet_identity": [
+    {
+      "case": "hazel_16000",
+      "bytes": 29611,
+      "packet_stream_sha256": "062b47454ee584260c279695d6896e7234b18101139559c9bc791a317d567d4c",
+      "input_sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+      "identical": true
+    },
+    {
+      "case": "hazel_32000",
+      "bytes": 56532,
+      "packet_stream_sha256": "00d58f8e8d677a15c5c937699644d4debcf46f5e26e3ec49c46127942e460adc",
+      "input_sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+      "identical": true
+    },
+    {
+      "case": "hazel_64000",
+      "bytes": 101488,
+      "packet_stream_sha256": "1aaefc9240f0254cf8588f985bcdf884c532fc471a5c1a0154a3da5a9ccadc44",
+      "input_sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+      "identical": true
+    },
+    {
+      "case": "hazel_fec60",
+      "bytes": 38245,
+      "packet_stream_sha256": "8fa8ea9ab78b64eb04b52d4c5087bc4bfe841836533c49ca9675253a6776fc81",
+      "input_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+      "identical": true
+    },
+    {
+      "case": "david_16000",
+      "bytes": 25959,
+      "packet_stream_sha256": "4950b974336f09d047480558b5c485d813f6f86bcd77f5db9cf8b495ffcfa09e",
+      "input_sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+      "identical": true
+    },
+    {
+      "case": "david_32000",
+      "bytes": 49560,
+      "packet_stream_sha256": "58931e179f0a723e53185c1382236f48fd7b2955106e3a1434eeb72cc74ac2a5",
+      "input_sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+      "identical": true
+    },
+    {
+      "case": "david_64000",
+      "bytes": 85244,
+      "packet_stream_sha256": "d1fc9349d1ca6df20899dd34e57d334a4d22ae8b8e073d49bebd4aaebc22a045",
+      "input_sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+      "identical": true
+    },
+    {
+      "case": "david_fec60",
+      "bytes": 31727,
+      "packet_stream_sha256": "5c62d731669ed1a1cbb9d730cf5eddd81846f5e8297a9d51ada9d98b8174eca7",
+      "input_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+      "identical": true
+    },
+    {
+      "case": "synthetic_audio",
+      "bytes": 50400,
+      "packet_stream_sha256": "15d9f16f278f7998b81437d820ccc39db9f72f1f7d2f318e5c9627759053efd2",
+      "input_sha256": null,
+      "identical": true
+    }
+  ],
+  "timing_summary": [
+    {
+      "sample": "david",
+      "kind": "voip",
+      "bitrate": 16000,
+      "base_encode_ms": 123.4179,
+      "candidate_encode_ms": 120.0324,
+      "encode_time_delta_pct": -2.743119109950831,
+      "base_decode_ms": 10.2414,
+      "candidate_decode_ms": 10.2168,
+      "decode_time_delta_pct": -0.24020153494640484,
+      "candidate_encode_speedx": 0.621659
+    },
+    {
+      "sample": "david",
+      "kind": "voip",
+      "bitrate": 32000,
+      "base_encode_ms": 127.0713,
+      "candidate_encode_ms": 123.5603,
+      "encode_time_delta_pct": -2.763015724243001,
+      "base_decode_ms": 11.0712,
+      "candidate_decode_ms": 11.0493,
+      "decode_time_delta_pct": -0.19781053544329907,
+      "candidate_encode_speedx": 0.620064
+    },
+    {
+      "sample": "david",
+      "kind": "voip",
+      "bitrate": 64000,
+      "base_encode_ms": 27.9689,
+      "candidate_encode_ms": 27.9678,
+      "encode_time_delta_pct": -0.003932939800999069,
+      "base_decode_ms": 11.5437,
+      "candidate_decode_ms": 11.5892,
+      "decode_time_delta_pct": 0.39415438724152985,
+      "candidate_encode_speedx": 2.38212
+    },
+    {
+      "sample": "david_60ms",
+      "kind": "fec60",
+      "bitrate": 24000,
+      "base_encode_ms": 157.6282,
+      "candidate_encode_ms": 152.2068,
+      "encode_time_delta_pct": -3.439359200955161,
+      "base_decode_ms": 7.1139,
+      "candidate_decode_ms": 7.1243,
+      "decode_time_delta_pct": 0.14619266506417095,
+      "candidate_encode_speedx": 0.547816
+    },
+    {
+      "sample": "hazel",
+      "kind": "voip",
+      "bitrate": 16000,
+      "base_encode_ms": 140.3955,
+      "candidate_encode_ms": 136.9864,
+      "encode_time_delta_pct": -2.42821173043295,
+      "base_decode_ms": 11.5672,
+      "candidate_decode_ms": 11.6118,
+      "decode_time_delta_pct": 0.38557299951587076,
+      "candidate_encode_speedx": 0.629137
+    },
+    {
+      "sample": "hazel",
+      "kind": "voip",
+      "bitrate": 32000,
+      "base_encode_ms": 135.0412,
+      "candidate_encode_ms": 131.3401,
+      "encode_time_delta_pct": -2.740719128680724,
+      "base_decode_ms": 12.7075,
+      "candidate_decode_ms": 12.644,
+      "decode_time_delta_pct": -0.4997048986818742,
+      "candidate_encode_speedx": 0.674483
+    },
+    {
+      "sample": "hazel",
+      "kind": "voip",
+      "bitrate": 64000,
+      "base_encode_ms": 31.4791,
+      "candidate_encode_ms": 31.5561,
+      "encode_time_delta_pct": 0.24460673907449326,
+      "base_decode_ms": 13.4672,
+      "candidate_decode_ms": 13.3577,
+      "decode_time_delta_pct": -0.8130866104312795,
+      "candidate_encode_speedx": 2.519485
+    },
+    {
+      "sample": "hazel_60ms",
+      "kind": "fec60",
+      "bitrate": 24000,
+      "base_encode_ms": 182.8446,
+      "candidate_encode_ms": 178.0399,
+      "encode_time_delta_pct": -2.627750559764974,
+      "base_decode_ms": 8.1066,
+      "candidate_decode_ms": 8.0774,
+      "decode_time_delta_pct": -0.3602003305948176,
+      "candidate_encode_speedx": 0.537859
+    },
+    {
+      "sample": "synthetic_music_12s",
+      "kind": "audio",
+      "bitrate": 32000,
+      "base_encode_ms": 20.8715,
+      "candidate_encode_ms": 20.7444,
+      "encode_time_delta_pct": -0.6089643772608677,
+      "base_decode_ms": 7.888,
+      "candidate_decode_ms": 7.8681,
+      "decode_time_delta_pct": -0.25228194726165665,
+      "candidate_encode_speedx": 1.861989
+    }
+  ],
+  "timing_raw": {
+    "objects": {
+      "base": "c7158de6156f9853e85dd5c16a5be848a9ccbac886e865268db57150561810d4",
+      "candidate": "442314e052feb2f0953fc61ff9c07965910198f045a0ce03800568750238c115"
+    },
+    "source_sha256": "b84b7b7f8f189da669e6e8da40157466a56a9dab3d613c81085bc5871044b965",
+    "inputs": [
+      {
+        "sample": "hazel",
+        "original_sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+        "trimmed_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+        "trimmed_seconds": 13.44
+      },
+      {
+        "sample": "david",
+        "original_sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+        "trimmed_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+        "trimmed_seconds": 11.76
+      }
+    ],
+    "measurements": [
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.636570",
+            "current_encode_ms": "140.696400",
+            "official_encode_ms": "89.563100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.185974",
+            "current_decode_ms": "11.567200",
+            "official_decode_ms": "13.718400"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.657612",
+            "current_encode_ms": "135.041200",
+            "official_encode_ms": "88.804700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.168397",
+            "current_decode_ms": "12.707500",
+            "official_decode_ms": "14.847400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.538091",
+            "current_encode_ms": "31.424800",
+            "official_encode_ms": "79.759000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.159913",
+            "current_decode_ms": "13.647400",
+            "official_decode_ms": "15.829800"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.628103",
+            "current_encode_ms": "136.796600",
+            "official_encode_ms": "85.922300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.176818",
+            "current_decode_ms": "11.567800",
+            "official_decode_ms": "13.613200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.674483",
+            "current_encode_ms": "131.924800",
+            "official_encode_ms": "88.981000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.168665",
+            "current_decode_ms": "12.644000",
+            "official_decode_ms": "14.776600"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.507721",
+            "current_encode_ms": "31.589000",
+            "official_encode_ms": "79.216400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.169735",
+            "current_decode_ms": "13.346100",
+            "official_decode_ms": "15.611400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.630572",
+            "current_encode_ms": "137.109300",
+            "official_encode_ms": "86.457300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.158609",
+            "current_decode_ms": "11.696700",
+            "official_decode_ms": "13.551900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.681813",
+            "current_encode_ms": "130.785000",
+            "official_encode_ms": "89.170900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.169316",
+            "current_decode_ms": "12.595400",
+            "official_decode_ms": "14.728000"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.539011",
+            "current_encode_ms": "31.556100",
+            "official_encode_ms": "80.121300",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.165915",
+            "current_decode_ms": "13.439400",
+            "official_decode_ms": "15.669200"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.611942",
+            "current_encode_ms": "140.395500",
+            "official_encode_ms": "85.913900",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.184388",
+            "current_decode_ms": "11.520300",
+            "official_decode_ms": "13.644500"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.671334",
+            "current_encode_ms": "135.010400",
+            "official_encode_ms": "90.637100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.147604",
+            "current_decode_ms": "13.158200",
+            "official_decode_ms": "15.100400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.522645",
+            "current_encode_ms": "31.479100",
+            "official_encode_ms": "79.410600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.175341",
+            "current_decode_ms": "13.393900",
+            "official_decode_ms": "15.742400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.584863",
+            "current_encode_ms": "148.788200",
+            "official_encode_ms": "87.020700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.067924",
+            "current_decode_ms": "12.755500",
+            "official_decode_ms": "13.621900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.655341",
+            "current_encode_ms": "135.534100",
+            "official_encode_ms": "88.821100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.163014",
+            "current_decode_ms": "12.717300",
+            "official_decode_ms": "14.790400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.614976",
+            "current_encode_ms": "31.401200",
+            "official_encode_ms": "82.113400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.182692",
+            "current_decode_ms": "13.386500",
+            "official_decode_ms": "15.832100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.632388",
+            "current_encode_ms": "136.986400",
+            "official_encode_ms": "86.628500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.261705",
+            "current_decode_ms": "11.674200",
+            "official_decode_ms": "14.729400"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.687039",
+            "current_encode_ms": "131.340100",
+            "official_encode_ms": "90.235800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.191366",
+            "current_decode_ms": "12.609900",
+            "official_decode_ms": "15.023000"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.571958",
+            "current_encode_ms": "31.541100",
+            "official_encode_ms": "81.122400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.186809",
+            "current_decode_ms": "13.337700",
+            "official_decode_ms": "15.829300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.629137",
+            "current_encode_ms": "136.535700",
+            "official_encode_ms": "85.899700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.157031",
+            "current_decode_ms": "11.788100",
+            "official_decode_ms": "13.639200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.666315",
+            "current_encode_ms": "131.879900",
+            "official_encode_ms": "87.873500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.160993",
+            "current_decode_ms": "12.676300",
+            "official_decode_ms": "14.717100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.504470",
+            "current_encode_ms": "31.653000",
+            "official_encode_ms": "79.274000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.172050",
+            "current_decode_ms": "13.420500",
+            "official_decode_ms": "15.729500"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.617600",
+            "current_encode_ms": "140.154200",
+            "official_encode_ms": "86.559300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.178891",
+            "current_decode_ms": "11.578000",
+            "official_decode_ms": "13.649200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.653400",
+            "current_encode_ms": "134.728900",
+            "official_encode_ms": "88.031800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.159616",
+            "current_decode_ms": "12.639100",
+            "official_decode_ms": "14.656500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.508625",
+            "current_encode_ms": "31.506500",
+            "official_encode_ms": "79.038000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.167273",
+            "current_decode_ms": "13.467200",
+            "official_decode_ms": "15.719900"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.612317",
+            "current_encode_ms": "140.303700",
+            "official_encode_ms": "85.910300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.176695",
+            "current_decode_ms": "11.530600",
+            "official_decode_ms": "13.568000"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.648324",
+            "current_encode_ms": "135.623000",
+            "official_encode_ms": "87.927700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.169323",
+            "current_decode_ms": "12.626200",
+            "official_decode_ms": "14.764100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.408174",
+            "current_encode_ms": "33.173100",
+            "official_encode_ms": "79.886600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.089926",
+            "current_decode_ms": "14.476400",
+            "official_decode_ms": "15.778200"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.618999",
+            "current_encode_ms": "139.006800",
+            "official_encode_ms": "86.045100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.202204",
+            "current_decode_ms": "11.560100",
+            "official_decode_ms": "13.897600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.670360",
+            "current_encode_ms": "131.426100",
+            "official_encode_ms": "88.102800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.148053",
+            "current_decode_ms": "12.794100",
+            "official_decode_ms": "14.688300"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.519485",
+            "current_encode_ms": "31.513500",
+            "official_encode_ms": "79.397800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.174648",
+            "current_decode_ms": "13.357700",
+            "official_decode_ms": "15.690600"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.623343",
+            "current_encode_ms": "137.986700",
+            "official_encode_ms": "86.013100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.164031",
+            "current_decode_ms": "11.611800",
+            "official_decode_ms": "13.516500"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.676839",
+            "current_encode_ms": "131.047800",
+            "official_encode_ms": "88.698300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.153229",
+            "current_decode_ms": "12.750200",
+            "official_decode_ms": "14.703900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.532467",
+            "current_encode_ms": "31.305600",
+            "official_encode_ms": "79.280400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.167421",
+            "current_decode_ms": "13.470200",
+            "official_decode_ms": "15.725400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.617032",
+            "current_encode_ms": "139.976000",
+            "official_encode_ms": "86.369700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.183868",
+            "current_decode_ms": "11.559400",
+            "official_decode_ms": "13.684800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.652563",
+            "current_encode_ms": "134.549200",
+            "official_encode_ms": "87.801800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.156380",
+            "current_decode_ms": "12.687700",
+            "official_decode_ms": "14.671800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.520860",
+            "current_encode_ms": "31.466400",
+            "official_encode_ms": "79.322400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.176541",
+            "current_decode_ms": "13.434300",
+            "official_decode_ms": "15.806000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.614172",
+            "current_encode_ms": "140.561200",
+            "official_encode_ms": "86.328800",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.176758",
+            "current_decode_ms": "11.690000",
+            "official_decode_ms": "13.756300"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.610825",
+            "current_encode_ms": "144.715800",
+            "official_encode_ms": "88.396100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.142835",
+            "current_decode_ms": "12.937300",
+            "official_decode_ms": "14.785200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.531675",
+            "current_encode_ms": "31.482400",
+            "official_encode_ms": "79.703200",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.177161",
+            "current_decode_ms": "13.528400",
+            "official_decode_ms": "15.925100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.630555",
+            "current_encode_ms": "136.518200",
+            "official_encode_ms": "86.082200",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.174790",
+            "current_decode_ms": "11.547600",
+            "official_decode_ms": "13.566000"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.671220",
+            "current_encode_ms": "130.983600",
+            "official_encode_ms": "87.918800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.178829",
+            "current_decode_ms": "12.501900",
+            "official_decode_ms": "14.737600"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.505455",
+            "current_encode_ms": "31.587600",
+            "official_encode_ms": "79.141300",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.186924",
+            "current_decode_ms": "13.297400",
+            "official_decode_ms": "15.783000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.524061",
+            "current_encode_ms": "182.509500",
+            "official_encode_ms": "95.646200",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.146797",
+            "current_decode_ms": "8.071700",
+            "official_decode_ms": "9.256600"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.537864",
+            "current_encode_ms": "179.094600",
+            "official_encode_ms": "96.328600",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.147015",
+            "current_decode_ms": "8.050900",
+            "official_decode_ms": "9.234500"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.536326",
+            "current_encode_ms": "179.264600",
+            "official_encode_ms": "96.144200",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.144169",
+            "current_decode_ms": "8.091200",
+            "official_decode_ms": "9.257700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.525118",
+            "current_encode_ms": "182.844600",
+            "official_encode_ms": "96.014900",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.155992",
+            "current_decode_ms": "8.067100",
+            "official_decode_ms": "9.325500"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.523722",
+            "current_encode_ms": "183.591500",
+            "official_encode_ms": "96.150900",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.061846",
+            "current_decode_ms": "8.708700",
+            "official_decode_ms": "9.247300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.537859",
+            "current_encode_ms": "177.106500",
+            "official_encode_ms": "95.258400",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.144088",
+            "current_decode_ms": "8.088800",
+            "official_decode_ms": "9.254300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.536325",
+            "current_encode_ms": "178.039900",
+            "official_encode_ms": "95.487200",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.144886",
+            "current_decode_ms": "8.077400",
+            "official_decode_ms": "9.247700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.522886",
+            "current_encode_ms": "182.447200",
+            "official_encode_ms": "95.399000",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.137849",
+            "current_decode_ms": "8.107400",
+            "official_decode_ms": "9.225000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.525698",
+            "current_encode_ms": "182.636600",
+            "official_encode_ms": "96.011700",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.192399",
+            "current_decode_ms": "8.106600",
+            "official_decode_ms": "9.666300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.540268",
+            "current_encode_ms": "176.965500",
+            "official_encode_ms": "95.608800",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.223372",
+            "current_decode_ms": "8.018900",
+            "official_decode_ms": "9.810100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.540201",
+            "current_encode_ms": "176.607400",
+            "official_encode_ms": "95.403500",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.147967",
+            "current_decode_ms": "8.057200",
+            "official_decode_ms": "9.249400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.520104",
+            "current_encode_ms": "184.071000",
+            "official_encode_ms": "95.736100",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.159971",
+            "current_decode_ms": "8.154600",
+            "official_decode_ms": "9.459100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.518863",
+            "current_encode_ms": "183.274100",
+            "official_encode_ms": "95.094200",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.144206",
+            "current_decode_ms": "8.078700",
+            "official_decode_ms": "9.243700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.537492",
+            "current_encode_ms": "178.680200",
+            "official_encode_ms": "96.039200",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.126301",
+            "current_decode_ms": "8.197900",
+            "official_decode_ms": "9.233300"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.624337",
+            "current_encode_ms": "123.417900",
+            "official_encode_ms": "77.054400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.189466",
+            "current_decode_ms": "10.241400",
+            "official_decode_ms": "12.181800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.528240",
+            "current_encode_ms": "144.800600",
+            "official_encode_ms": "76.489400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "0.948601",
+            "current_decode_ms": "13.554700",
+            "official_decode_ms": "12.858000"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.404746",
+            "current_encode_ms": "32.943900",
+            "official_encode_ms": "79.221700",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.129416",
+            "current_decode_ms": "14.098700",
+            "official_decode_ms": "15.923300"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.613332",
+            "current_encode_ms": "122.020000",
+            "official_encode_ms": "74.838800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.165927",
+            "current_decode_ms": "10.234000",
+            "official_decode_ms": "11.932100"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.617371",
+            "current_encode_ms": "124.016800",
+            "official_encode_ms": "76.564400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.154570",
+            "current_decode_ms": "11.094000",
+            "official_decode_ms": "12.808800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.538828",
+            "current_encode_ms": "28.048300",
+            "official_encode_ms": "71.209800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.229843",
+            "current_decode_ms": "11.589200",
+            "official_decode_ms": "14.252900"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.622272",
+            "current_encode_ms": "119.991500",
+            "official_encode_ms": "74.667300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.172921",
+            "current_decode_ms": "10.216800",
+            "official_decode_ms": "11.983500"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.620064",
+            "current_encode_ms": "123.425500",
+            "official_encode_ms": "76.531700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.167326",
+            "current_decode_ms": "11.022200",
+            "official_decode_ms": "12.866500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.377305",
+            "current_encode_ms": "27.967800",
+            "official_encode_ms": "66.488000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.147242",
+            "current_decode_ms": "11.697100",
+            "official_decode_ms": "13.419400"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.607621",
+            "current_encode_ms": "123.383400",
+            "official_encode_ms": "74.970300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.158466",
+            "current_decode_ms": "10.257700",
+            "official_decode_ms": "11.883200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.604262",
+            "current_encode_ms": "126.868100",
+            "official_encode_ms": "76.661600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.167100",
+            "current_decode_ms": "11.071200",
+            "official_decode_ms": "12.921200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.381816",
+            "current_encode_ms": "27.845100",
+            "official_encode_ms": "66.321900",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.157904",
+            "current_decode_ms": "11.543700",
+            "official_decode_ms": "13.366500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.604103",
+            "current_encode_ms": "123.583700",
+            "official_encode_ms": "74.657300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.175770",
+            "current_decode_ms": "10.174100",
+            "official_decode_ms": "11.962400"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.605918",
+            "current_encode_ms": "127.071300",
+            "official_encode_ms": "76.994800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.179800",
+            "current_decode_ms": "11.071200",
+            "official_decode_ms": "13.061800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.395374",
+            "current_encode_ms": "27.801500",
+            "official_encode_ms": "66.595000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.170863",
+            "current_decode_ms": "11.534400",
+            "official_decode_ms": "13.505200"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.630476",
+            "current_encode_ms": "120.032400",
+            "official_encode_ms": "75.677600",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.168689",
+            "current_decode_ms": "10.237200",
+            "official_decode_ms": "11.964100"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.621309",
+            "current_encode_ms": "123.105600",
+            "official_encode_ms": "76.486600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.160110",
+            "current_decode_ms": "11.049300",
+            "official_decode_ms": "12.818400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.382120",
+            "current_encode_ms": "27.809300",
+            "official_encode_ms": "66.245100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.153161",
+            "current_decode_ms": "11.558400",
+            "official_decode_ms": "13.328700"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.621459",
+            "current_encode_ms": "120.128400",
+            "official_encode_ms": "74.654900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.163750",
+            "current_decode_ms": "10.206400",
+            "official_decode_ms": "11.877700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.619676",
+            "current_encode_ms": "123.061800",
+            "official_encode_ms": "76.258500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.164328",
+            "current_decode_ms": "10.975600",
+            "official_decode_ms": "12.779200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.414986",
+            "current_encode_ms": "27.775400",
+            "official_encode_ms": "67.077200",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.004960",
+            "current_decode_ms": "13.406600",
+            "official_decode_ms": "13.473100"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.605101",
+            "current_encode_ms": "123.553500",
+            "official_encode_ms": "74.762400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.125237",
+            "current_decode_ms": "10.517700",
+            "official_decode_ms": "11.834900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.605215",
+            "current_encode_ms": "126.479100",
+            "official_encode_ms": "76.547000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.162996",
+            "current_decode_ms": "11.002100",
+            "official_decode_ms": "12.795400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.385618",
+            "current_encode_ms": "27.839200",
+            "official_encode_ms": "66.413700",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.163461",
+            "current_decode_ms": "11.530600",
+            "official_decode_ms": "13.415400"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.603813",
+            "current_encode_ms": "123.642300",
+            "official_encode_ms": "74.656800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.168959",
+            "current_decode_ms": "10.201900",
+            "official_decode_ms": "11.925600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.605376",
+            "current_encode_ms": "126.469700",
+            "official_encode_ms": "76.561700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.151280",
+            "current_decode_ms": "11.140900",
+            "official_decode_ms": "12.826300"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.369112",
+            "current_encode_ms": "28.044100",
+            "official_encode_ms": "66.439600",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.160998",
+            "current_decode_ms": "11.593900",
+            "official_decode_ms": "13.460500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.621659",
+            "current_encode_ms": "119.904700",
+            "official_encode_ms": "74.539800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.153235",
+            "current_decode_ms": "10.213700",
+            "official_decode_ms": "11.778800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.683705",
+            "current_encode_ms": "123.560300",
+            "official_encode_ms": "84.478800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.189131",
+            "current_decode_ms": "11.073800",
+            "official_decode_ms": "13.168200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.379803",
+            "current_encode_ms": "28.003500",
+            "official_encode_ms": "66.642800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.168750",
+            "current_decode_ms": "11.601200",
+            "official_decode_ms": "13.558900"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.621082",
+            "current_encode_ms": "120.088100",
+            "official_encode_ms": "74.584500",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.160616",
+            "current_decode_ms": "10.216900",
+            "official_decode_ms": "11.857900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.615490",
+            "current_encode_ms": "124.101800",
+            "official_encode_ms": "76.383400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.152373",
+            "current_decode_ms": "11.139800",
+            "official_decode_ms": "12.837200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.330721",
+            "current_encode_ms": "28.535800",
+            "official_encode_ms": "66.509000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.161670",
+            "current_decode_ms": "11.581600",
+            "official_decode_ms": "13.454000"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.609403",
+            "current_encode_ms": "123.003900",
+            "official_encode_ms": "74.959000",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.155603",
+            "current_decode_ms": "10.314700",
+            "official_decode_ms": "11.919700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.599343",
+            "current_encode_ms": "128.441100",
+            "official_encode_ms": "76.980300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.159330",
+            "current_decode_ms": "11.070100",
+            "official_decode_ms": "12.833900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.379461",
+            "current_encode_ms": "27.968900",
+            "official_encode_ms": "66.550900",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.167240",
+            "current_decode_ms": "11.534900",
+            "official_decode_ms": "13.464000"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.606868",
+            "current_encode_ms": "123.227000",
+            "official_encode_ms": "74.782500",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.181824",
+            "current_decode_ms": "10.200000",
+            "official_decode_ms": "12.054600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.604923",
+            "current_encode_ms": "127.415100",
+            "official_encode_ms": "77.076300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.170054",
+            "current_decode_ms": "11.104100",
+            "official_decode_ms": "12.992400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.352972",
+            "current_encode_ms": "28.216700",
+            "official_encode_ms": "66.393100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.157965",
+            "current_decode_ms": "11.591200",
+            "official_decode_ms": "13.422200"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.626513",
+            "current_encode_ms": "119.757700",
+            "official_encode_ms": "75.029800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.178203",
+            "current_decode_ms": "10.180500",
+            "official_decode_ms": "11.994700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.629986",
+            "current_encode_ms": "123.682600",
+            "official_encode_ms": "77.918300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.165590",
+            "current_decode_ms": "11.036900",
+            "official_decode_ms": "12.864500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.385607",
+            "current_encode_ms": "27.774400",
+            "official_encode_ms": "66.258800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.209632",
+            "current_decode_ms": "11.462000",
+            "official_decode_ms": "13.864800"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.531677",
+            "current_encode_ms": "156.947800",
+            "official_encode_ms": "83.445500",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.150456",
+            "current_decode_ms": "7.098400",
+            "official_decode_ms": "8.166400"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.536442",
+            "current_encode_ms": "157.037800",
+            "official_encode_ms": "84.241700",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.108043",
+            "current_decode_ms": "7.419300",
+            "official_decode_ms": "8.220900"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.548493",
+            "current_encode_ms": "159.431300",
+            "official_encode_ms": "87.447000",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.066792",
+            "current_decode_ms": "7.665600",
+            "official_decode_ms": "8.177600"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.606713",
+            "current_encode_ms": "176.726300",
+            "official_encode_ms": "107.222100",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.199180",
+            "current_decode_ms": "8.368800",
+            "official_decode_ms": "10.035700"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.499519",
+            "current_encode_ms": "166.778200",
+            "official_encode_ms": "83.308800",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.144249",
+            "current_decode_ms": "7.134900",
+            "official_decode_ms": "8.164100"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.544170",
+            "current_encode_ms": "153.196800",
+            "official_encode_ms": "83.365100",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.133719",
+            "current_decode_ms": "7.117900",
+            "official_decode_ms": "8.069700"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.551056",
+            "current_encode_ms": "151.850500",
+            "official_encode_ms": "83.678200",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.146339",
+            "current_decode_ms": "7.086300",
+            "official_decode_ms": "8.123300"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.528415",
+            "current_encode_ms": "157.369200",
+            "official_encode_ms": "83.156200",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.141090",
+            "current_decode_ms": "7.113900",
+            "official_decode_ms": "8.117600"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.523154",
+            "current_encode_ms": "159.173500",
+            "official_encode_ms": "83.272300",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.142374",
+            "current_decode_ms": "7.090500",
+            "official_decode_ms": "8.100000"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.547816",
+            "current_encode_ms": "152.094200",
+            "official_encode_ms": "83.319700",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.158262",
+            "current_decode_ms": "7.138800",
+            "official_decode_ms": "8.268600"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.550988",
+            "current_encode_ms": "151.956600",
+            "official_encode_ms": "83.726200",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.208069",
+            "current_decode_ms": "7.093800",
+            "official_decode_ms": "8.569800"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.552273",
+            "current_encode_ms": "156.991800",
+            "official_encode_ms": "86.702300",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.161571",
+            "current_decode_ms": "7.113900",
+            "official_decode_ms": "8.263300"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.525294",
+            "current_encode_ms": "157.628200",
+            "official_encode_ms": "82.801200",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.142959",
+            "current_decode_ms": "7.124400",
+            "official_decode_ms": "8.142900"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.544013",
+            "current_encode_ms": "152.206800",
+            "official_encode_ms": "82.802500",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.127591",
+            "current_decode_ms": "7.124300",
+            "official_decode_ms": "8.033300"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.844070",
+            "current_encode_ms": "21.003700",
+            "official_encode_ms": "38.732300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.353030",
+            "current_decode_ms": "7.982600",
+            "official_decode_ms": "10.800700"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.845766",
+            "current_encode_ms": "20.993400",
+            "official_encode_ms": "38.748900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.364395",
+            "current_decode_ms": "7.868100",
+            "official_decode_ms": "10.735200"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.915392",
+            "current_encode_ms": "20.749800",
+            "official_encode_ms": "39.744000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.413601",
+            "current_decode_ms": "7.843300",
+            "official_decode_ms": "11.087300"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.858539",
+            "current_encode_ms": "20.769700",
+            "official_encode_ms": "38.601300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.370570",
+            "current_decode_ms": "7.847100",
+            "official_decode_ms": "10.755000"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.862511",
+            "current_encode_ms": "20.683100",
+            "official_encode_ms": "38.522500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.373291",
+            "current_decode_ms": "7.854200",
+            "official_decode_ms": "10.786100"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.861989",
+            "current_encode_ms": "20.712100",
+            "official_encode_ms": "38.565700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.368235",
+            "current_decode_ms": "7.879200",
+            "official_decode_ms": "10.780600"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.863502",
+            "current_encode_ms": "20.727100",
+            "official_encode_ms": "38.625000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.357590",
+            "current_decode_ms": "7.915500",
+            "official_decode_ms": "10.746000"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.857207",
+            "current_encode_ms": "21.061300",
+            "official_encode_ms": "39.115200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.358386",
+            "current_decode_ms": "8.012300",
+            "official_decode_ms": "10.883800"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.969331",
+            "current_encode_ms": "21.086300",
+            "official_encode_ms": "41.525900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.392753",
+            "current_decode_ms": "8.089300",
+            "official_decode_ms": "11.266400"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.857506",
+            "current_encode_ms": "20.720800",
+            "official_encode_ms": "38.489000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.368430",
+            "current_decode_ms": "7.810700",
+            "official_decode_ms": "10.688400"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.865771",
+            "current_encode_ms": "20.744400",
+            "official_encode_ms": "38.704300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.368838",
+            "current_decode_ms": "7.830000",
+            "official_decode_ms": "10.718000"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.858012",
+            "current_encode_ms": "20.871500",
+            "official_encode_ms": "38.779500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.373149",
+            "current_decode_ms": "7.888000",
+            "official_decode_ms": "10.831400"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.857212",
+            "current_encode_ms": "20.804300",
+            "official_encode_ms": "38.638000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.373717",
+            "current_decode_ms": "7.872000",
+            "official_decode_ms": "10.813900"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.851948",
+            "current_encode_ms": "22.425300",
+            "official_encode_ms": "41.530500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.322943",
+            "current_decode_ms": "8.539600",
+            "official_decode_ms": "11.297400"
+          }
+        ]
+      }
+    ]
+  },
+  "scope_note": "Measurements cover the stated compiler and fixtures. Full official speed/quality parity remains unfinished; older benchmark tables retain their measured revisions."
+}

@@ -10805,7 +10805,7 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
 }
 
 template <bool KnownZero>
-[[nodiscard]] static auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10) noexcept -> silk_nsq_candidate_pair {
+[[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10) noexcept -> silk_nsq_candidate_pair {
   if constexpr (KnownZero)
     return {offset_Q10, offset_Q10, 0, 0, 0, 0};
   auto q1_Q10 = residual_q10 - offset_Q10;

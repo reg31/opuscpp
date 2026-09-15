@@ -4,6 +4,34 @@ This directory contains portable test harnesses and benchmark documentation for 
 
 The sections below are separate measurement snapshots. The FEC and full-matrix quality checkpoint is identified in `metrics/fec_validated_checkpoint.json`; older speed, memory, optional-processing and quality tables retain their original measured revisions. Both encoders use complexity 10 and -O2 -DNDEBUG where specified, with official Opus intrinsics enabled. No historical table is relabelled as a measurement of the new checkpoint.
 
+## NSQ candidate helper inlining checkpoint (2026-09-15)
+
+The standard `inline` hint on `silk_quantize_candidate_pair` lets the measured GCC 16.2.0/O2
+build eliminate its out-of-line helper. Arithmetic, API and encoder state are unchanged.
+All nine real-voice/FEC/AUDIO packet streams are byte-identical, and all 498 quality rows,
+5,976 fields, official references and packet metadata match the FEC allocation checkpoint.
+Expanded strict FEC, source criteria and source-bound public checks pass.
+
+Seven alternating rounds, one inner repetition, verified processor affinity and priority:
+
+| Input | Mode | kbps | Previous encode ms | New encode ms | Encode change | Decode change |
+|---|---|---:|---:|---:|---:|---:|
+| david | voip | 16 | 123.4179 | 120.0324 | -2.74% | -0.24% |
+| david | voip | 32 | 127.0713 | 123.5603 | -2.76% | -0.20% |
+| david | voip | 64 | 27.9689 | 27.9678 | -0.00% | +0.39% |
+| david_60ms | fec60 | 24 | 157.6282 | 152.2068 | -3.44% | +0.15% |
+| hazel | voip | 16 | 140.3955 | 136.9864 | -2.43% | +0.39% |
+| hazel | voip | 32 | 135.0412 | 131.3401 | -2.74% | -0.50% |
+| hazel | voip | 64 | 31.4791 | 31.5561 | +0.24% | -0.81% |
+| hazel_60ms | fec60 | 24 | 182.8446 | 178.0399 | -2.63% | -0.36% |
+| synthetic_music_12s | audio | 32 | 20.8715 | 20.7444 | -0.61% | -0.25% |
+
+VOIP16/32 encoding improves 2.4-2.8%; FEC60 improves 2.6-3.4%. Control variation is shown
+explicitly. This is a compiler-specific measurement, not a universal inlining guarantee.
+**1,154 below-official quality fields remain; full speed/quality parity is unfinished.**
+Exact identities and all raw timing rows are in
+[the checkpoint record](metrics/nsq_candidate_inline_checkpoint.json).
+
 ## FEC rate allocation checkpoint (2026-09-15)
 
 SILK now apportions normal-frame capacity after charging already-written redundancy bits.
