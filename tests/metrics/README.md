@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `bd6bbc5c124f8e020eb2cc39628132027c8d5929` on 2026-09-15 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. No extra compatibility check results are claimed here.
+Codex independently refreshed production `d7248b421de6956aad1b83fddd098898f47e6673` on 2026-09-15 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. 8 selected behavioral/regression harnesses passed on this source; broader compatibility results remain historical.
 
 ## Quality: every metric
 
@@ -27,18 +27,18 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 1.26x to 1.78x; decode: 1.20x to 1.83x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 1.27x to 1.79x; decode: 1.19x to 1.77x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 | Speech input | Mode | Frame ms | Rate bps | Current encode ms | Official encode ms | Encode ratio | Current decode ms | Official decode ms | Decode ratio |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hazel | voice | 20.0 | 16000 | 195.264900 | 132.614200 | 0.679150 | 17.273900 | 20.355600 | 1.178402 |
-| hazel | voice | 20.0 | 32000 | 187.962200 | 136.565600 | 0.726559 | 18.414900 | 21.981000 | 1.193653 |
-| hazel | voice | 20.0 | 64000 | 48.390900 | 122.680300 | 2.535194 | 20.271900 | 24.138200 | 1.190722 |
-| hazel | fec60 | 60.0 | 24000 | 168.568500 | 99.720700 | 0.591574 | 8.336600 | 9.644100 | 1.156839 |
-| david | voice | 20.0 | 16000 | 170.350600 | 113.776000 | 0.667893 | 15.256100 | 17.797500 | 1.166583 |
-| david | voice | 20.0 | 32000 | 130.454400 | 85.228100 | 0.653317 | 12.309400 | 19.209400 | 1.560547 |
-| david | voice | 20.0 | 64000 | 42.745900 | 100.563400 | 2.352586 | 17.304400 | 20.144100 | 1.164103 |
-| david | fec60 | 60.0 | 24000 | 145.217000 | 86.445700 | 0.595286 | 7.474000 | 8.334400 | 1.115119 |
+| hazel | voice | 20.0 | 16000 | 123.794700 | 85.581900 | 0.691321 | 11.437500 | 13.605600 | 1.189561 |
+| hazel | voice | 20.0 | 32000 | 118.890600 | 87.537200 | 0.736284 | 12.491600 | 14.595900 | 1.168457 |
+| hazel | voice | 20.0 | 64000 | 31.223000 | 78.885400 | 2.526516 | 13.229500 | 15.665600 | 1.184142 |
+| hazel | fec60 | 60.0 | 24000 | 156.809600 | 95.052300 | 0.606164 | 7.958000 | 9.260300 | 1.163647 |
+| david | voice | 20.0 | 16000 | 109.230800 | 74.260200 | 0.679847 | 10.111600 | 11.937400 | 1.180565 |
+| david | voice | 20.0 | 32000 | 112.199600 | 76.363600 | 0.680605 | 10.971700 | 12.726300 | 1.159921 |
+| david | voice | 20.0 | 64000 | 27.894000 | 66.016000 | 2.366674 | 11.458600 | 13.420000 | 1.171173 |
+| david | fec60 | 60.0 | 24000 | 135.297500 | 82.600600 | 0.610511 | 7.013700 | 8.054900 | 1.148452 |
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the table.
 
@@ -50,10 +50,10 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 16816 | 16848 | Not exposed |
-| official_encoder_ch1 | 31872 | 31888 | 31668 |
-| current_decoder_ch1 | 14192 | 13120 | Not exposed |
-| official_decoder_ch1 | 18304 | 18576 | 18468 |
+| current_encoder_ch1 | 16832 | 16768 | Not exposed |
+| official_encoder_ch1 | 31872 | 31696 | 31668 |
+| current_decoder_ch1 | 14192 | 13088 | Not exposed |
+| official_decoder_ch1 | 18304 | 18496 | 18468 |
 | current_encoder_ch2 | 32576 | 32512 | Not exposed |
 | official_encoder_ch2 | 49072 | 48752 | 48684 |
 | current_decoder_ch2 | 21232 | 21328 | Not exposed |
@@ -63,8 +63,8 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 322964 | 0 | 0 | 322964 |
-| android | 325800 | 472 | 0 | 326272 |
+| host | 324760 | 0 | 0 | 324760 |
+| android | 327588 | 472 | 0 | 328060 |
 
 [Binary-size CSV](binary_size.csv).
 
@@ -104,12 +104,25 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=22.1525 decode_ms=21.4934 checksum=340886119
-mono-high bytes=115 encode_ms=23.615 decode_ms=18.9733 checksum=2633358364
-stereo-mid bytes=102 encode_ms=90.6955 decode_ms=29.7489 checksum=3294895434
-stereo-high bytes=147 encode_ms=97.2936 decode_ms=31.3917 checksum=1997488960
+mono-mid bytes=76 encode_ms=21.4865 decode_ms=21.1869 checksum=340886119
+mono-high bytes=115 encode_ms=24.9614 decode_ms=20.9401 checksum=2633358364
+stereo-mid bytes=102 encode_ms=90.0466 decode_ms=29.3295 checksum=3294895434
+stereo-high bytes=147 encode_ms=97.6792 decode_ms=31.0477 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
 
-WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Compatibility, conformance, startup, latency/lookahead and toolchain checks retain their existing production validation records; additional checks were stopped as requested. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
+WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Broader compatibility/conformance and latency/lookahead records retain their historical provenance. Current selected checks are listed below. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
+
+## Current selected checks
+
+[Source-bound results and commands](selected_regressions.json) retain every output.
+
+- `voip_quiet_start_latch`: passed.
+- `vbr_budget_behavior`: passed.
+- `packet_duration_behavior`: passed.
+- `decoder_channel_remap`: passed.
+- `dtx_behavior`: passed.
+- `voice_denoise_state`: passed.
+- `hybrid_transient_budget`: passed.
+- `nsq_quant_levels`: passed.
