@@ -1,0 +1,1277 @@
+{
+  "recorded_utc": "2026-09-15T04:42:36.502264+00:00",
+  "baseline_commit": "1c18b445148e2e10aa69481e0bcba23abcb8c6e8",
+  "formatted_parent": "7e281c434fbe57ab9d919981d0e69e647de950b1",
+  "source_blob": "e9d572177be464639240b9310242054313e63733",
+  "source_sha256": "1655191840ee29fcec304881cf00003abd19987cce3cd131c6c2de2e79911b64",
+  "validated_object_sha256": "c7158de6156f9853e85dd5c16a5be848a9ccbac886e865268db57150561810d4",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "compiler": "GCC 16.2.0, C++23, -O2 -DNDEBUG; official intrinsics enabled",
+  "quality": {
+    "worsened_existing": 0,
+    "packet_fields_changed": 0,
+    "comparisons": 5976,
+    "negative": 1154,
+    "changed": 0,
+    "improved_existing": 0,
+    "baseline_negative": 1154,
+    "new_negative": 0,
+    "fixed": 0
+  },
+  "strict_summary": "fec_summary recovery_error_ratio=0.416949 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.997419",
+  "strict_ratios": [
+    0.78038,
+    0.304248,
+    0.579067,
+    0.580936,
+    0.148481,
+    0.878679,
+    0.372137,
+    0.236077,
+    0.109948,
+    0.583333,
+    0.495181,
+    0.953507,
+    0.812243,
+    0.117793,
+    0.637343,
+    0.597187,
+    0.267853,
+    0.826088
+  ],
+  "source_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "source_rows": [
+    {
+      "key": [
+        0,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.182698826,
+        "next_fec": 0.163784307,
+        "transition_fec": 0.135083518,
+        "fidelity_ref": 0.151716822,
+        "next_ref": 0.174071969,
+        "transition_ref": 0.12476702,
+        "fidelity_plc": 0.222381427,
+        "self_consistency": 0.10559916,
+        "step_fec": 819.0,
+        "step_ref": 784.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.209659222,
+        "next_fec": 0.210645127,
+        "transition_fec": 0.219502869,
+        "fidelity_ref": 0.173008541,
+        "next_ref": 0.169413448,
+        "transition_ref": 0.13747961,
+        "fidelity_plc": 0.340237299,
+        "self_consistency": 0.119937826,
+        "step_fec": -246.0,
+        "step_ref": -255.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.204479005,
+        "next_fec": 0.188797366,
+        "transition_fec": 0.267199574,
+        "fidelity_ref": 0.18000236,
+        "next_ref": 0.178687802,
+        "transition_ref": 0.171419754,
+        "fidelity_plc": 0.63878436,
+        "self_consistency": 0.082448186,
+        "step_fec": -397.0,
+        "step_ref": -376.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.189807096,
+        "next_fec": 0.186157964,
+        "transition_fec": 0.190432362,
+        "fidelity_ref": 0.184924182,
+        "next_ref": 0.174084759,
+        "transition_ref": 0.150108646,
+        "fidelity_plc": 0.664065621,
+        "self_consistency": 0.090425005,
+        "step_fec": -397.0,
+        "step_ref": -439.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.183772249,
+        "next_fec": 0.191390917,
+        "transition_fec": 0.149073301,
+        "fidelity_ref": 0.186491407,
+        "next_ref": 0.188311446,
+        "transition_ref": 0.150447449,
+        "fidelity_plc": 0.624056872,
+        "self_consistency": 0.055265598,
+        "step_fec": -392.5,
+        "step_ref": -51.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.187656953,
+        "next_fec": 0.181533735,
+        "transition_fec": 0.146465523,
+        "fidelity_ref": 0.188505857,
+        "next_ref": 0.184561717,
+        "transition_ref": 0.138403293,
+        "fidelity_plc": 0.645076695,
+        "self_consistency": 0.154510742,
+        "step_fec": -177.0,
+        "step_ref": -150.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.21107809,
+        "next_fec": 0.301142574,
+        "transition_fec": 0.179656127,
+        "fidelity_ref": 0.192284683,
+        "next_ref": 0.285110117,
+        "transition_ref": 0.176429578,
+        "fidelity_plc": 1.055150757,
+        "self_consistency": 0.093789093,
+        "step_fec": 415.0,
+        "step_ref": 454.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.376342543,
+        "next_fec": 0.323625695,
+        "transition_fec": 0.373559782,
+        "fidelity_ref": 0.271723252,
+        "next_ref": 0.288968153,
+        "transition_ref": 0.23076534,
+        "fidelity_plc": 1.062567445,
+        "self_consistency": 0.227507361,
+        "step_fec": -150.0,
+        "step_ref": -115.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.272114805,
+        "next_fec": 0.302674213,
+        "transition_fec": 0.233964878,
+        "fidelity_ref": 0.276319002,
+        "next_ref": 0.294247545,
+        "transition_ref": 0.246429429,
+        "fidelity_plc": 0.890650172,
+        "self_consistency": 0.022561322,
+        "step_fec": -225.0,
+        "step_ref": -240.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.256002953,
+        "next_fec": 0.24469795,
+        "transition_fec": 0.200705828,
+        "fidelity_ref": 0.234462363,
+        "next_ref": 0.238066879,
+        "transition_ref": 0.193688998,
+        "fidelity_plc": 0.857981976,
+        "self_consistency": 0.147681402,
+        "step_fec": -106.0,
+        "step_ref": -108.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.304848766,
+        "next_fec": 0.273817366,
+        "transition_fec": 0.234249125,
+        "fidelity_ref": 0.272702344,
+        "next_ref": 0.277172762,
+        "transition_ref": 0.208948948,
+        "fidelity_plc": 0.992549143,
+        "self_consistency": 0.173986489,
+        "step_fec": -63.5,
+        "step_ref": 143.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.361969062,
+        "next_fec": 0.262380768,
+        "transition_fec": 0.2720532,
+        "fidelity_ref": 0.275075761,
+        "next_ref": 0.260106252,
+        "transition_ref": 0.19932388,
+        "fidelity_plc": 0.737353018,
+        "self_consistency": 0.291282444,
+        "step_fec": -33.0,
+        "step_ref": -121.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.502220768,
+        "next_fec": 0.461424307,
+        "transition_fec": 0.409941939,
+        "fidelity_ref": 0.405873458,
+        "next_ref": 0.458424745,
+        "transition_ref": 0.378418092,
+        "fidelity_plc": 1.251511899,
+        "self_consistency": 0.317481809,
+        "step_fec": 2332.0,
+        "step_ref": 2390.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.467048315,
+        "next_fec": 0.530722123,
+        "transition_fec": 0.458734955,
+        "fidelity_ref": 0.442980263,
+        "next_ref": 0.523402617,
+        "transition_ref": 0.422045932,
+        "fidelity_plc": 0.908584136,
+        "self_consistency": 0.153907942,
+        "step_fec": -780.0,
+        "step_ref": -669.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.465916881,
+        "next_fec": 0.553291277,
+        "transition_fec": 0.44482723,
+        "fidelity_ref": 0.435503146,
+        "next_ref": 0.540756918,
+        "transition_ref": 0.398346634,
+        "fidelity_plc": 1.064146431,
+        "self_consistency": 0.245331167,
+        "step_fec": -1039.0,
+        "step_ref": -611.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.465139934,
+        "next_fec": 0.478030672,
+        "transition_fec": 0.476408361,
+        "fidelity_ref": 0.453764912,
+        "next_ref": 0.478792688,
+        "transition_ref": 0.432386148,
+        "fidelity_plc": 1.129389329,
+        "self_consistency": 0.257768819,
+        "step_fec": -1775.0,
+        "step_ref": -437.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.458623015,
+        "next_fec": 0.494974138,
+        "transition_fec": 0.403794446,
+        "fidelity_ref": 0.450129112,
+        "next_ref": 0.470278825,
+        "transition_ref": 0.390552628,
+        "fidelity_plc": 1.140185982,
+        "self_consistency": 0.243882412,
+        "step_fec": -292.0,
+        "step_ref": -188.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.471795117,
+        "next_fec": 0.453686747,
+        "transition_fec": 0.428127839,
+        "fidelity_ref": 0.465399608,
+        "next_ref": 0.484752964,
+        "transition_ref": 0.363197095,
+        "fidelity_plc": 0.8817543,
+        "self_consistency": 0.383504235,
+        "step_fec": -885.0,
+        "step_ref": -210.0
+      },
+      "exit": 0
+    }
+  ],
+  "extended_fec": {
+    "base": {
+      "exit": 0,
+      "stdout": "EXT key=2,40,32000,0,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.810375 recovery_error=1.07487 plc_error=1.40829 packet_bytes=1920 packet_hash=360259802\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nEXT status=PASS\nEXT key=2,40,32000,1,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.747112 recovery_error=1.23528 plc_error=1.60174 packet_bytes=1920 packet_hash=3548205500\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nEXT status=PASS\nEXT key=2,40,32000,2,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.892652 recovery_error=1.06059 plc_error=1.2212 packet_bytes=1920 packet_hash=963619700\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nEXT status=PASS\nEXT key=2,40,48000,0,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.923107 recovery_error=0.821818 plc_error=0.934941 packet_bytes=2879 packet_hash=269437714\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nEXT status=PASS\nEXT key=2,40,48000,1,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.492025 recovery_error=1.48698 plc_error=1.75933 packet_bytes=2860 packet_hash=466029197\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nEXT status=PASS\nEXT key=2,40,48000,2,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.943163 recovery_error=1.16151 plc_error=1.30032 packet_bytes=2850 packet_hash=3534249808\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nEXT status=PASS\nEXT key=2,60,32000,0,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.14162 recovery_error=0.879186 plc_error=0.978112 packet_bytes=2880 packet_hash=3323333157\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nEXT status=PASS\nEXT key=2,60,32000,1,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.89683 recovery_error=0.952874 plc_error=1.00228 packet_bytes=2880 packet_hash=2493593531\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nEXT status=PASS\nEXT key=2,60,32000,2,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=5.10825e-06 fec_plc_difference=0.669419 recovery_error=1.03237 plc_error=1.09262 packet_bytes=2880 packet_hash=539389584\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nEXT status=PASS\nEXT key=2,60,48000,0,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=3.99579e-06 fec_plc_difference=0.94572 recovery_error=0.892214 plc_error=0.989429 packet_bytes=4305 packet_hash=3917088197\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nEXT status=PASS\nEXT key=2,60,48000,1,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.89098 recovery_error=0.969214 plc_error=1.02674 packet_bytes=4284 packet_hash=4158097394\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nEXT status=PASS\nEXT key=2,60,48000,2,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=1.93561e-05 continuation_error=6.90655e-06 fec_plc_difference=0.67133 recovery_error=0.985206 plc_error=1.0761 packet_bytes=4283 packet_hash=1983142165\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nEXT status=PASS\nEXT failures=0 cases=12\n",
+      "stderr": ""
+    },
+    "candidate": {
+      "exit": 0,
+      "stdout": "EXT key=2,40,32000,0,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.688949 recovery_error=0.880562 plc_error=0.999585 packet_bytes=1920 packet_hash=1321306818\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nEXT status=PASS\nEXT key=2,40,32000,1,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.586309 recovery_error=1.20577 plc_error=1.39581 packet_bytes=1920 packet_hash=1226634058\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nEXT status=PASS\nEXT key=2,40,32000,2,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.991054 recovery_error=1.0751 plc_error=1.25339 packet_bytes=1920 packet_hash=3672666141\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nEXT status=PASS\nEXT key=2,40,48000,0,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.711551 recovery_error=1.12386 plc_error=1.46229 packet_bytes=2879 packet_hash=1366644769\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nEXT status=PASS\nEXT key=2,40,48000,1,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.65581 recovery_error=1.19805 plc_error=1.44805 packet_bytes=2879 packet_hash=555707136\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nEXT status=PASS\nEXT key=2,40,48000,2,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.986782 recovery_error=1.07538 plc_error=1.21994 packet_bytes=2871 packet_hash=1284185671\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nEXT status=PASS\nEXT key=2,60,32000,0,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.889106 recovery_error=0.908084 plc_error=0.998056 packet_bytes=2880 packet_hash=2779051490\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nEXT status=PASS\nEXT key=2,60,32000,1,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.707351 recovery_error=0.964536 plc_error=1.00356 packet_bytes=2880 packet_hash=1538683772\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nEXT status=PASS\nEXT key=2,60,32000,2,0\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.839616 recovery_error=0.978831 plc_error=1.0272 packet_bytes=2880 packet_hash=3643675781\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nEXT status=PASS\nEXT key=2,60,48000,0,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.820754 recovery_error=0.9073 plc_error=1.01404 packet_bytes=4307 packet_hash=1543567779\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nEXT status=PASS\nEXT key=2,60,48000,1,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.68314 recovery_error=0.983995 plc_error=1.03075 packet_bytes=4310 packet_hash=2945465239\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nEXT status=PASS\nEXT key=2,60,48000,2,1\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=1.6398e-05 continuation_error=0 fec_plc_difference=0.876605 recovery_error=1.00201 plc_error=1.0672 packet_bytes=4298 packet_hash=1660669893\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nEXT status=PASS\nEXT failures=0 cases=12\n",
+      "stderr": ""
+    }
+  },
+  "checks": {
+    "pipeline_commands": 41,
+    "public_commands": 21,
+    "failures": [],
+    "expanded_fec_test_sha256": "9dd312abeda2ddb8eaf4faae87a11c9bd4396a2e8d0f7539d87f344cd44e9e9b"
+  },
+  "workload_baseline_and_loss_aware_probe": {
+    "base_hazel": {
+      "packet_identity": true,
+      "input_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+      "normal_frames": 663,
+      "normal_nsq_calls": 883,
+      "lbrr_calls": 663,
+      "first_trial_overshoots": 193,
+      "zero_fallbacks": 1,
+      "lower_restores": 0
+    },
+    "base_david": {
+      "packet_identity": true,
+      "input_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+      "normal_frames": 579,
+      "normal_nsq_calls": 754,
+      "lbrr_calls": 579,
+      "first_trial_overshoots": 146,
+      "zero_fallbacks": 1,
+      "lower_restores": 0
+    },
+    "D_hazel": {
+      "packet_identity": true,
+      "input_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+      "normal_frames": 672,
+      "normal_nsq_calls": 2075,
+      "lbrr_calls": 672,
+      "first_trial_overshoots": 290,
+      "zero_fallbacks": 205,
+      "lower_restores": 0
+    },
+    "D_david": {
+      "packet_identity": true,
+      "input_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+      "normal_frames": 588,
+      "normal_nsq_calls": 1696,
+      "lbrr_calls": 588,
+      "first_trial_overshoots": 232,
+      "zero_fallbacks": 163,
+      "lower_restores": 0
+    }
+  },
+  "workload_candidate": {
+    "L_hazel": {
+      "packet_identity": true,
+      "input_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+      "normal_frames": 672,
+      "normal_nsq_calls": 915,
+      "lbrr_calls": 672,
+      "first_trial_overshoots": 169,
+      "zero_fallbacks": 5,
+      "lower_restores": 0
+    },
+    "L_david": {
+      "packet_identity": true,
+      "input_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+      "normal_frames": 588,
+      "normal_nsq_calls": 777,
+      "lbrr_calls": 588,
+      "first_trial_overshoots": 142,
+      "zero_fallbacks": 4,
+      "lower_restores": 0
+    }
+  },
+  "workload_note": "normal_nsq_calls counts normal trials; zero-fallback replay calls and LBRR calls are additional. Tracing preserved all packet bytes.",
+  "fec60_timing_summary": [
+    {
+      "sample": "hazel_60ms",
+      "base_encode_ms": 187.4754,
+      "candidate_encode_ms": 182.1265,
+      "encode_time_delta_pct": -2.8531209961413673,
+      "base_runs": [
+        186.5564,
+        186.8795,
+        187.3077,
+        187.4754,
+        187.5239,
+        187.9234,
+        190.7527
+      ],
+      "candidate_runs": [
+        181.0447,
+        181.1425,
+        181.982,
+        182.1265,
+        182.4354,
+        183.0878,
+        183.3722
+      ]
+    },
+    {
+      "sample": "david_60ms",
+      "base_encode_ms": 165.1605,
+      "candidate_encode_ms": 157.1302,
+      "encode_time_delta_pct": -4.862118969123985,
+      "base_runs": [
+        161.1774,
+        161.1857,
+        163.7545,
+        165.1605,
+        165.1685,
+        170.0199,
+        193.4685
+      ],
+      "candidate_runs": [
+        156.1575,
+        156.732,
+        156.9173,
+        157.1302,
+        157.3575,
+        158.588,
+        159.631
+      ]
+    }
+  ],
+  "fec60_timing_raw": {
+    "objects": {
+      "base": "00275f4dec448f4edd0d8667e569d73bf8f31b0f4551db52c5ced3e83ee60aa5",
+      "candidate": "c7158de6156f9853e85dd5c16a5be848a9ccbac886e865268db57150561810d4"
+    },
+    "source_sha256": "f9cae625eff0713cfc57e7fa6334ead50cd887d41e8e6b330d8f3a38bcfaecd8",
+    "inputs": [
+      {
+        "sample": "hazel",
+        "original_sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+        "trimmed_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+        "trimmed_seconds": 13.44
+      },
+      {
+        "sample": "david",
+        "original_sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+        "trimmed_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+        "trimmed_seconds": 11.76
+      }
+    ],
+    "measurements": [
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.498774",
+            "current_encode_ms": "190.752700",
+            "official_encode_ms": "95.142400",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.138192",
+            "current_decode_ms": "8.112600",
+            "official_decode_ms": "9.233700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.533000",
+            "current_encode_ms": "181.142500",
+            "official_encode_ms": "96.548900",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.263589",
+            "current_decode_ms": "8.023100",
+            "official_decode_ms": "10.137900"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.523735",
+            "current_encode_ms": "181.044700",
+            "official_encode_ms": "94.819400",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.149451",
+            "current_decode_ms": "7.991900",
+            "official_decode_ms": "9.186300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.508398",
+            "current_encode_ms": "187.307700",
+            "official_encode_ms": "95.226900",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.143540",
+            "current_decode_ms": "8.050000",
+            "official_decode_ms": "9.205500"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.513251",
+            "current_encode_ms": "186.556400",
+            "official_encode_ms": "95.750200",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.148588",
+            "current_decode_ms": "8.024900",
+            "official_decode_ms": "9.217300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.519839",
+            "current_encode_ms": "182.435400",
+            "official_encode_ms": "94.837000",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.149256",
+            "current_decode_ms": "8.014400",
+            "official_decode_ms": "9.210600"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.523322",
+            "current_encode_ms": "181.982000",
+            "official_encode_ms": "95.235100",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.144576",
+            "current_decode_ms": "8.052500",
+            "official_decode_ms": "9.216700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.518878",
+            "current_encode_ms": "186.879500",
+            "official_encode_ms": "96.967600",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.156864",
+            "current_decode_ms": "7.996100",
+            "official_decode_ms": "9.250400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.508783",
+            "current_encode_ms": "187.923400",
+            "official_encode_ms": "95.612300",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.163773",
+            "current_decode_ms": "7.977500",
+            "official_decode_ms": "9.284000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.521064",
+            "current_encode_ms": "183.372200",
+            "official_encode_ms": "95.548600",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.162848",
+            "current_decode_ms": "7.974300",
+            "official_decode_ms": "9.272900"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.521636",
+            "current_encode_ms": "182.126500",
+            "official_encode_ms": "95.003800",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.146172",
+            "current_decode_ms": "8.032300",
+            "official_decode_ms": "9.206400"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.508331",
+            "current_encode_ms": "187.475400",
+            "official_encode_ms": "95.299500",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.162093",
+            "current_decode_ms": "8.002200",
+            "official_decode_ms": "9.299300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.506534",
+            "current_encode_ms": "187.523900",
+            "official_encode_ms": "94.987300",
+            "opuscpp_effective_kbps": "71.996429",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.150836",
+            "current_decode_ms": "8.022600",
+            "official_decode_ms": "9.232700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.518900",
+            "current_encode_ms": "183.087800",
+            "official_encode_ms": "95.004300",
+            "opuscpp_effective_kbps": "66.694643",
+            "official_effective_kbps": "59.858929",
+            "decode_speedx": "1.146349",
+            "current_decode_ms": "8.035600",
+            "official_decode_ms": "9.211600"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.505703",
+            "current_encode_ms": "163.754500",
+            "official_encode_ms": "82.811100",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.132245",
+            "current_decode_ms": "7.136000",
+            "official_decode_ms": "8.079700"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.518687",
+            "current_encode_ms": "159.631000",
+            "official_encode_ms": "82.798600",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.161782",
+            "current_decode_ms": "7.072500",
+            "official_decode_ms": "8.216700"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.537505",
+            "current_encode_ms": "156.157500",
+            "official_encode_ms": "83.935400",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.127355",
+            "current_decode_ms": "7.128100",
+            "official_decode_ms": "8.035900"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.503430",
+            "current_encode_ms": "165.160500",
+            "official_encode_ms": "83.146800",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.151423",
+            "current_decode_ms": "7.103300",
+            "official_decode_ms": "8.178900"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.514088",
+            "current_encode_ms": "161.177400",
+            "official_encode_ms": "82.859300",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.142109",
+            "current_decode_ms": "7.065700",
+            "official_decode_ms": "8.069800"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.526199",
+            "current_encode_ms": "157.130200",
+            "official_encode_ms": "82.681700",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.132689",
+            "current_decode_ms": "7.134000",
+            "official_decode_ms": "8.080600"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.521111",
+            "current_encode_ms": "158.588000",
+            "official_encode_ms": "82.642000",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.142550",
+            "current_decode_ms": "7.078900",
+            "official_decode_ms": "8.088000"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.504510",
+            "current_encode_ms": "165.168500",
+            "official_encode_ms": "83.329100",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.166678",
+            "current_decode_ms": "7.114300",
+            "official_decode_ms": "8.300100"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.515208",
+            "current_encode_ms": "161.185700",
+            "official_encode_ms": "83.044200",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.112795",
+            "current_decode_ms": "7.237900",
+            "official_decode_ms": "8.054300"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.526864",
+            "current_encode_ms": "156.732000",
+            "official_encode_ms": "82.576400",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.128370",
+            "current_decode_ms": "7.116900",
+            "official_decode_ms": "8.030500"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.529939",
+            "current_encode_ms": "156.917300",
+            "official_encode_ms": "83.156600",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.140813",
+            "current_decode_ms": "7.106600",
+            "official_decode_ms": "8.107300"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "base"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.512647",
+            "current_encode_ms": "170.019900",
+            "official_encode_ms": "87.160200",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.215715",
+            "current_decode_ms": "7.178000",
+            "official_decode_ms": "8.726400"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "base",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.478462",
+            "current_encode_ms": "193.468500",
+            "official_encode_ms": "92.567300",
+            "opuscpp_effective_kbps": "71.995918",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.111319",
+            "current_decode_ms": "7.962700",
+            "official_decode_ms": "8.849100"
+          }
+        ]
+      },
+      {
+        "sample": "david_60ms",
+        "kind": "fec60",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "base",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.529942",
+            "current_encode_ms": "157.357500",
+            "official_encode_ms": "83.390300",
+            "opuscpp_effective_kbps": "63.148980",
+            "official_effective_kbps": "57.369388",
+            "decode_speedx": "1.138624",
+            "current_decode_ms": "7.099800",
+            "official_decode_ms": "8.084000"
+          }
+        ]
+      }
+    ]
+  },
+  "scope_note": "Loss-free quality and packet metadata are unchanged. The final speed sample covers FEC-on 24 kbps mono 60 ms; earlier speed tables retain their measured revisions. Full parity remains unfinished.",
+  "state_note": "No new persistent encoder state or heap allocation; prefix bit accounting is local to silk_Encode."
+}

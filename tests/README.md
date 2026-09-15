@@ -4,6 +4,38 @@ This directory contains portable test harnesses and benchmark documentation for 
 
 The sections below are separate measurement snapshots. The FEC and full-matrix quality checkpoint is identified in `metrics/fec_validated_checkpoint.json`; older speed, memory, optional-processing and quality tables retain their original measured revisions. Both encoders use complexity 10 and -O2 -DNDEBUG where specified, with official Opus intrinsics enabled. No historical table is relabelled as a measurement of the new checkpoint.
 
+## FEC rate allocation checkpoint (2026-09-15)
+
+SILK now apportions normal-frame capacity after charging already-written redundancy bits.
+A 60 ms packet could previously spend 1,514 bits before a first-frame ceiling of only 688,
+forcing repeated quantization and zero-pulse fallback. Stereo mid/side reservations now use
+the remaining capacity and analyzed channel rates. Final packet ceilings are unchanged.
+The checkpoint also restores packet-loss input to equivalent-rate selection, separates FEC
+availability from bandwidth quality, removes custom LBRR Lambda scaling, and carries LBRR
+history across consecutive internal frames.
+
+- Strict FEC: 18/18; source criteria C1-C4: 18/18 each. The public FEC test now also covers
+  stereo 40/60 ms at 32 kbps CBR and 48 kbps VBR, including quiet/startup transitions.
+- All 498 quality configurations, 5,976 metrics, official references and packet metadata are
+  unchanged. **1,154 below-official quality fields remain; full parity is not complete.**
+- 41 integration commands and 21 additional public commands pass, including startup/reset,
+  VBR limits, interoperability, DTX, denoiser, PLC and NSQ feedback checks.
+- On Hazel, the rejected loss-aware intermediate caused 2,075 normal quantizer trials and
+  205 zero fallbacks; corrected accounting reduces them to 915 and 5. Production had 883
+  and 1, with nine fewer SILK frames. Counts distinguish normal trials, replays and LBRR.
+
+FEC-on 24 kbps mono, 60 ms packets; median of seven alternating runs with verified processor
+affinity and priority. Inputs contain 13.44 s (Hazel) and 11.76 s (David) of complete frames.
+
+| Input | Previous encode time | New encode time | Time change |
+|---|---:|---:|---:|
+| Hazel | 187.4754 ms | 182.1265 ms | -2.85% |
+| David | 165.1605 ms | 157.1302 ms | -4.86% |
+
+Exact source/object identities, source criteria, extended results, workload counts and all raw
+timing rows are in [the checkpoint record](metrics/fec_rate_allocation_checkpoint.json).
+Earlier benchmark tables retain their original measured revisions.
+
 ## Quick start
 
 ### Option 1 - Run the full conformance and benchmark report in one command (recommended)
