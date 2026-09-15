@@ -567,3 +567,43 @@ Median process-private bytes per instance (three fresh runs of 256 instances):
 | Stereo decoder | 21232 | 27392 |
 
 Exact source identities, full timing rows and check results are in [startup checkpoint metadata](metrics/voip_startup_checkpoint.json). Full quality/speed parity remains unfinished.
+
+## Hybrid bitrate allocation checkpoint
+
+Hybrid encoding no longer forces a 24 kbps SILK target for requested rates from 28 to
+36 kbps. It uses the existing hybrid rate allocation. The removed target boost was absent
+from the hard-ceiling calculation, causing additional gain-search retries. The independent
+stereo LTP scaling rule retains its original rate limits.
+
+On the 13.46-second Hazel mono fixture at 32 kbps, requested SILK bitrate falls from 27000
+to 23400 bps. NSQ calls fall from 1008 to 878 for the same 618 SILK frames; first-trial
+overshoots fall from 324 to 193. Packet size remains 53840 bytes. Mono 16/24/48 kbps
+control packet streams are unchanged. These are measured work counts, not timing ratios.
+
+The complete 498-configuration matrix changes 99 of 5976 quality fields, all at 32 kbps:
+four below-official fields are fixed, no new negative fields appear, and six existing
+negative fields worsen. There are 1154 remaining below-official fields. All official
+reference fields and packet-size metadata are unchanged.
+
+Strict FEC remains 18/18, with aggregate recovery-error ratio 0.469410 and packet-byte ratio
+0.996469. All four source-quality criteria pass 18/18. Startup/reset, API, conformance,
+VBR, packet duration/channel remapping, interoperability, LPC/PLC, DTX, denoiser and
+postfilter checks pass. Full quality and speed parity remain unfinished.
+
+Nine alternating runs used logical CPU 0 and AboveNormal priority, verified inside
+each private benchmark. VOIP inputs are the same Hazel/David PCM fixtures; the AUDIO
+control uses 12 seconds of the existing synthetic music fixture. Control timing
+variation is included below. Percentages describe encoding time, so negative is faster.
+
+| Input / application | kbps | Baseline ms | Candidate ms | Change |
+|---|---:|---:|---:|---:|
+| synthetic_music_12s / audio | 32 | 22.15 | 22.18 | +0.1% |
+| david / voip | 16 | 137.35 | 139.77 | +1.8% |
+| david / voip | 32 | 149.22 | 141.20 | -5.4% |
+| david / voip | 64 | 29.31 | 29.25 | -0.2% |
+| hazel / voip | 16 | 155.58 | 155.76 | +0.1% |
+| hazel / voip | 32 | 162.89 | 148.68 | -8.7% |
+| hazel / voip | 64 | 32.80 | 32.84 | +0.1% |
+
+Exact source identities, measurements and remaining quality regressions are recorded in
+[hybrid rate checkpoint metadata](metrics/hybrid_rate_checkpoint.json).

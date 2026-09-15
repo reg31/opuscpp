@@ -1,0 +1,4412 @@
+{
+  "baseline_commit": "1094824701f1a3ded15872e64f8724b79f0abaec",
+  "formatting_base_commit": "41315e90d87183dbf31428ba9ebdeb34a9534db9",
+  "validated_source_sha256": "037c744530383abfce0917eed4808f16a1e5e5c37baabb86f550bd78e0ecf68c",
+  "validated_object_sha256": "27366d2991719a2e687a5dc0e53b9244e3bab94af7f5527a365b5bcca0eb929f",
+  "prepared_source_sha256": "c6b8a66704ae95b05f5d5d8ea8410eee2a00d7a4fec29a3ff59efc6413548e99",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "change": "Remove the28-36kbps hybrid SILK target boost; preserve the stereo LTP scaling guard with local constants.",
+  "strict_exit": 0,
+  "strict_ratios": [
+    0.89841,
+    0.300264,
+    0.143678,
+    0.586495,
+    0.340513,
+    0.742087,
+    0.843562,
+    0.213559,
+    0.822748,
+    0.594755,
+    0.538564,
+    0.98413,
+    0.894178,
+    0.0892337,
+    0.613242,
+    0.602523,
+    0.415373,
+    0.836429
+  ],
+  "source_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "source_rows": [
+    {
+      "key": [
+        0,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.208207178,
+        "next_fec": 0.252519003,
+        "transition_fec": 0.210815805,
+        "fidelity_ref": 0.175325531,
+        "next_ref": 0.233669525,
+        "transition_ref": 0.14392459,
+        "fidelity_plc": 0.569012961,
+        "self_consistency": 0.121570676,
+        "step_fec": 702.0,
+        "step_ref": 976.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.201713553,
+        "next_fec": 0.18507495,
+        "transition_fec": 0.167579843,
+        "fidelity_ref": 0.17606984,
+        "next_ref": 0.179490904,
+        "transition_ref": 0.137408299,
+        "fidelity_plc": 0.352493222,
+        "self_consistency": 0.11836721,
+        "step_fec": -239.0,
+        "step_ref": -255.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.203148759,
+        "next_fec": 0.18116753,
+        "transition_fec": 0.187359824,
+        "fidelity_ref": 0.202432383,
+        "next_ref": 0.181155396,
+        "transition_ref": 0.189226927,
+        "fidelity_plc": 0.677218624,
+        "self_consistency": 0.020457083,
+        "step_fec": -354.0,
+        "step_ref": -333.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.189962074,
+        "next_fec": 0.186142258,
+        "transition_fec": 0.18717598,
+        "fidelity_ref": 0.184838572,
+        "next_ref": 0.17414493,
+        "transition_ref": 0.150105959,
+        "fidelity_plc": 0.66412151,
+        "self_consistency": 0.091290254,
+        "step_fec": -390.0,
+        "step_ref": -438.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.214635214,
+        "next_fec": 0.18536604,
+        "transition_fec": 0.1530357,
+        "fidelity_ref": 0.198168493,
+        "next_ref": 0.197495367,
+        "transition_ref": 0.157572502,
+        "fidelity_plc": 0.70728375,
+        "self_consistency": 0.126741457,
+        "step_fec": -380.0,
+        "step_ref": 146.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.177555991,
+        "next_fec": 0.168484014,
+        "transition_fec": 0.146383594,
+        "fidelity_ref": 0.187132083,
+        "next_ref": 0.184124409,
+        "transition_ref": 0.144161952,
+        "fidelity_plc": 0.673331436,
+        "self_consistency": 0.130491689,
+        "step_fec": -587.5,
+        "step_ref": 238.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.30023808,
+        "next_fec": 0.334382325,
+        "transition_fec": 0.212078952,
+        "fidelity_ref": 0.230589885,
+        "next_ref": 0.27859506,
+        "transition_ref": 0.202344731,
+        "fidelity_plc": 0.723895619,
+        "self_consistency": 0.212601308,
+        "step_fec": 385.0,
+        "step_ref": 378.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.349123787,
+        "next_fec": 0.284949817,
+        "transition_fec": 0.229886973,
+        "fidelity_ref": 0.272754634,
+        "next_ref": 0.275519397,
+        "transition_ref": 0.202381461,
+        "fidelity_plc": 0.879966274,
+        "self_consistency": 0.205807303,
+        "step_fec": -165.0,
+        "step_ref": -177.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.285726106,
+        "next_fec": 0.296443291,
+        "transition_fec": 0.279294479,
+        "fidelity_ref": 0.224368609,
+        "next_ref": 0.252989094,
+        "transition_ref": 0.195557685,
+        "fidelity_plc": 0.825441156,
+        "self_consistency": 0.168828366,
+        "step_fec": -181.0,
+        "step_ref": -71.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.250010773,
+        "next_fec": 0.239387904,
+        "transition_fec": 0.196982567,
+        "fidelity_ref": 0.239291412,
+        "next_ref": 0.238283021,
+        "transition_ref": 0.205826354,
+        "fidelity_plc": 0.859981999,
+        "self_consistency": 0.150573096,
+        "step_fec": -165.0,
+        "step_ref": -230.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.302380127,
+        "next_fec": 0.285180782,
+        "transition_fec": 0.21334178,
+        "fidelity_ref": 0.292583438,
+        "next_ref": 0.289747499,
+        "transition_ref": 0.205819773,
+        "fidelity_plc": 1.074571927,
+        "self_consistency": 0.189229413,
+        "step_fec": 34.5,
+        "step_ref": -11.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.366239816,
+        "next_fec": 0.319961986,
+        "transition_fec": 0.243130305,
+        "fidelity_ref": 0.282043142,
+        "next_ref": 0.328654513,
+        "transition_ref": 0.18543955,
+        "fidelity_plc": 0.74307549,
+        "self_consistency": 0.300637473,
+        "step_fec": -387.5,
+        "step_ref": -310.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.523462468,
+        "next_fec": 0.609714954,
+        "transition_fec": 0.50977366,
+        "fidelity_ref": 0.418536535,
+        "next_ref": 0.483314231,
+        "transition_ref": 0.42590298,
+        "fidelity_plc": 0.999855701,
+        "self_consistency": 0.349507883,
+        "step_fec": 1567.0,
+        "step_ref": 2671.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.45064105,
+        "next_fec": 0.544684734,
+        "transition_fec": 0.441277973,
+        "fidelity_ref": 0.44316062,
+        "next_ref": 0.544660384,
+        "transition_ref": 0.442433603,
+        "fidelity_plc": 0.913620788,
+        "self_consistency": 0.11659279,
+        "step_fec": -790.0,
+        "step_ref": -695.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.497167574,
+        "next_fec": 0.478451209,
+        "transition_fec": 0.446035244,
+        "fidelity_ref": 0.451645316,
+        "next_ref": 0.478308127,
+        "transition_ref": 0.467632075,
+        "fidelity_plc": 1.056121188,
+        "self_consistency": 0.236053937,
+        "step_fec": -1083.0,
+        "step_ref": -1608.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.461958556,
+        "next_fec": 0.47796919,
+        "transition_fec": 0.408525898,
+        "fidelity_ref": 0.432637222,
+        "next_ref": 0.474254602,
+        "transition_ref": 0.371015197,
+        "fidelity_plc": 1.134009094,
+        "self_consistency": 0.260072425,
+        "step_fec": 91.0,
+        "step_ref": -123.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.48588989,
+        "next_fec": 0.475611082,
+        "transition_fec": 0.369590167,
+        "fidelity_ref": 0.531902714,
+        "next_ref": 0.56507988,
+        "transition_ref": 0.454155941,
+        "fidelity_plc": 1.115639228,
+        "self_consistency": 0.378199862,
+        "step_fec": -1066.0,
+        "step_ref": -501.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.481557257,
+        "next_fec": 0.454430128,
+        "transition_fec": 0.410500766,
+        "fidelity_ref": 0.491270996,
+        "next_ref": 0.491537076,
+        "transition_ref": 0.424161618,
+        "fidelity_plc": 0.892300187,
+        "self_consistency": 0.38830522,
+        "step_fec": -305.0,
+        "step_ref": -2173.5
+      },
+      "exit": 0
+    }
+  ],
+  "quality_counts": {
+    "worsened_existing": 6,
+    "negative": 1154,
+    "fixed": 4,
+    "baseline_negative": 1158,
+    "comparisons": 5976,
+    "improved_existing": 6,
+    "new_negative": 0,
+    "packet_fields_changed": 0,
+    "changed": 99
+  },
+  "quality_deltas": [
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 14.056026527326802,
+      "current": 14.0605889272066,
+      "official": 6.914529011832329,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 12.466050550243596,
+      "current": 12.484426980565736,
+      "official": 5.126085079543337,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.6652038248504946,
+      "current": 2.6666871440709063,
+      "official": 2.1134305494859897,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.973422596018312,
+      "current": 4.974862427514468,
+      "official": 4.941218767768564,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9987603255689813,
+      "current": 0.9990193133914121,
+      "official": 0.9930334272608509,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.60739746224458,
+      "current": 99.61390043166392,
+      "official": 99.565942982745,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.01547046862265698,
+      "current": 0.01546234464997296,
+      "official": 0.03520289214777551,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.00729502981768056,
+      "current": 0.00726540058326306,
+      "official": 0.01764927282828669,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.02113916325642279,
+      "current": 0.02020395871478547,
+      "official": 0.04259706725396731,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.3147001957010266,
+      "current": 0.30947748548648507,
+      "official": 0.34800142367102904,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hortense",
+        "input": "build/tier_quality/selector_holdout/hortense.wav",
+        "reference": "build/tier_quality/selector_holdout/hortense.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.01142105182308913,
+      "current": 0.0113017145881961,
+      "official": 0.00647965879257484,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 9.3216949943838,
+      "current": 9.299964452661712,
+      "official": 13.478109382364558,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 9.169283858242597,
+      "current": 9.066026995572276,
+      "official": 14.5785242288412,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.416375759939984,
+      "current": 2.408482177547943,
+      "official": 2.8210682703331242,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.933092873256675,
+      "current": 4.929943779892954,
+      "official": 4.927419819685772,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9966874351657893,
+      "current": 0.996150264364159,
+      "official": 0.9956834824292548,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.51589937654033,
+      "current": 99.62143073637645,
+      "official": 99.15836388460323,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.03972050007746675,
+      "current": 0.03981999807272815,
+      "official": 0.02461466832621512,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.02567492962391855,
+      "current": 0.02590034025254756,
+      "official": 0.01515077520697561,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.05473136032163533,
+      "current": 0.05695823769444085,
+      "official": 0.05870245344206395,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.38822094879952507,
+      "current": 0.30343012055619906,
+      "official": 0.676158296728606,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_synth",
+        "input": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "reference": "build/official_compare_report/current_refresh/audio/synthetic_voice_like_mono.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.01074835701655075,
+      "current": 0.01009486659613945,
+      "official": 0.015414523638956,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 14.887139855273197,
+      "current": 14.92764890028927,
+      "official": 6.202281791443651,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 13.69082586727045,
+      "current": 13.698616670293008,
+      "official": 4.052146675620852,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.7585107518102863,
+      "current": 2.7591739469173526,
+      "official": 2.0322360674148925,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.959103752167071,
+      "current": 4.960508244820053,
+      "official": 4.918222376909391,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9981536436639105,
+      "current": 0.9983216065666951,
+      "official": 0.9910591542982983,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.37385830633558,
+      "current": 99.48712456088776,
+      "official": 99.34171489887514,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.02059352687792359,
+      "current": 0.02049770689339483,
+      "official": 0.05597236197891533,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.01085783796421297,
+      "current": 0.01081622066423921,
+      "official": 0.02979754212533299,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.03297901630370978,
+      "current": 0.03194027517805723,
+      "official": 0.06125233564270362,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.50248814566949,
+      "current": 0.4113561275792368,
+      "official": 0.5283690827071468,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "hazel",
+        "input": "build/tier_quality/selector_holdout/hazel.wav",
+        "reference": "build/tier_quality/selector_holdout/hazel.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.04796807379516515,
+      "current": 0.03965017478317579,
+      "official": 0.06265973852780095,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 12.378027669382545,
+      "current": 12.330413764955146,
+      "official": 5.727521910791838,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 12.733170671806532,
+      "current": 12.64783112825794,
+      "official": 4.404409376381906,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.686090164730765,
+      "current": 2.679677861654151,
+      "official": 2.0589575545772805,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.959244203960391,
+      "current": 4.958143132096691,
+      "official": 4.923929766605339,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9976352826584043,
+      "current": 0.9975279297675533,
+      "official": 0.9917323669739067,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.45004750796477,
+      "current": 99.56813430408592,
+      "official": 99.50265324058273,
+      "tags": [
+        "fixed"
+      ]
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.0222035163128684,
+      "current": 0.02232556472632561,
+      "official": 0.04774710514422497,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.01066765833920753,
+      "current": 0.0107643076980511,
+      "official": 0.02523526824807783,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.03220939907178026,
+      "current": 0.03305426683474139,
+      "official": 0.0567990261920276,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.44117623849502974,
+      "current": 0.3462407435336178,
+      "official": 0.3988701155655104,
+      "tags": [
+        "fixed"
+      ]
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "zira",
+        "input": "build/tier_quality/selector_holdout/zira.wav",
+        "reference": "build/tier_quality/selector_holdout/zira.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.00697800804230028,
+      "current": 0.01274939620637321,
+      "official": 0.02778929251118583,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 10.221913162403755,
+      "current": 10.274010112140298,
+      "official": 5.306485399907758,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 11.442012979826966,
+      "current": 11.417253113819688,
+      "official": 3.8953507594673704,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.589411331061407,
+      "current": 2.5880124732306466,
+      "official": 2.0215145333568145,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.947647232766344,
+      "current": 4.9493358965561285,
+      "official": 4.920659817441153,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9973757047397659,
+      "current": 0.9975757288311106,
+      "official": 0.9942859380380843,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.08141007574615,
+      "current": 99.37667702386199,
+      "official": 97.20079095489427,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.02704869796607569,
+      "current": 0.02688694860235483,
+      "official": 0.04763407680524608,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.01242937565337451,
+      "current": 0.01231957836396615,
+      "official": 0.02340440906048584,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.04228077439978327,
+      "current": 0.04100711258005899,
+      "official": 0.06320816468337842,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.7382679823361474,
+      "current": 0.5002189955335952,
+      "official": 2.271306972701985,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "voice",
+        "sample": "david",
+        "input": "build/tier_quality/selector_holdout/david.wav",
+        "reference": "build/tier_quality/selector_holdout/david.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.04511803028499248,
+      "current": 0.02547291810001761,
+      "official": 0.00559703529368673,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 13.142782355293825,
+      "current": 13.157295112126953,
+      "official": 4.7789922692423765,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 12.402247168397142,
+      "current": 12.280897718787116,
+      "official": 3.2270613012051665,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.663430564284109,
+      "current": 2.6541049343658414,
+      "official": 1.9706672798319396,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.94468182275286,
+      "current": 4.9443158011780195,
+      "official": 4.933081412098693,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9978334177124445,
+      "current": 0.9978348416528366,
+      "official": 0.9966830742597633,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 98.9052979844022,
+      "current": 98.97328119638455,
+      "official": 99.40049984548725,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.01706566572953428,
+      "current": 0.01703717549149064,
+      "official": 0.04470053685163189,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.00867136765720834,
+      "current": 0.0086181705597265,
+      "official": 0.02678528072448289,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.04555570007839595,
+      "current": 0.04589106528948577,
+      "official": 0.05473632551456705,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.8805903752024292,
+      "current": 0.8256207347786387,
+      "official": 0.4810434969259454,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech",
+        "input": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_normal.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.2267445514893672,
+      "current": 0.2419072422778882,
+      "official": 0.0843743589701065,
+      "tags": [
+        "worsened_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 13.548261835437867,
+      "current": 13.519647807015193,
+      "official": 6.238359549452857,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 16.49381770515341,
+      "current": 16.47913799307094,
+      "official": 6.979089492348494,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.968916495446288,
+      "current": 2.9672593351609633,
+      "official": 2.2493970741479767,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.921251703118523,
+      "current": 4.9190517944508505,
+      "official": 4.897221921565595,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9972757422569083,
+      "current": 0.9971379910400411,
+      "official": 0.9949576717847533,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.06073144970095,
+      "current": 99.18610017208029,
+      "official": 99.14943043820357,
+      "tags": [
+        "fixed"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.01812802656900783,
+      "current": 0.01818784441542712,
+      "official": 0.04205771205675071,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.01058908614049525,
+      "current": 0.0106389429766535,
+      "official": 0.02932911248466448,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.06660441113940951,
+      "current": 0.06851057685323765,
+      "official": 0.0866797520180291,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.754965995962981,
+      "current": 0.6537840598354238,
+      "official": 0.683366038763122,
+      "tags": [
+        "fixed"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "mixed",
+        "input": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "reference": "build/tier_quality/voip_corpus/speech_music_mix.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.23635435681936998,
+      "current": 0.1738865350797484,
+      "official": 0.12365101465232457,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 5.86582664416985,
+      "current": 5.825656859917557,
+      "official": 2.6556533230171473,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 3.698346275448017,
+      "current": 3.6622567558012378,
+      "official": 1.2453944425265555,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.003272265459704,
+      "current": 2.0001463433614033,
+      "official": 1.8162034548114185,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.767235270144038,
+      "current": 4.770997611318638,
+      "official": 4.747306174856113,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9846268467823724,
+      "current": 0.9847799057575164,
+      "official": 0.9828010932155338,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.43005973121348,
+      "current": 99.50871358729236,
+      "official": 99.37853778238552,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.0440999127033059,
+      "current": 0.04430433466596082,
+      "official": 0.0638184711364715,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.03525811026473289,
+      "current": 0.03535006159066545,
+      "official": 0.04857535458708829,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.21364417048888154,
+      "current": 0.20930470084748914,
+      "official": 0.23534997899579146,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.4572565007966256,
+      "current": 0.3939977533014981,
+      "official": 0.49872106571039165,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_noise",
+        "input": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_noisy.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.08536685696931448,
+      "current": 0.05411947026632046,
+      "official": 0.04570880715431745,
+      "tags": [
+        "improved_existing"
+      ]
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "snr_db",
+      "baseline": 12.997472677938983,
+      "current": 13.08523273522252,
+      "official": 4.183169596763096,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "segmental_snr_db",
+      "baseline": 11.051170117564903,
+      "current": 11.053158593003923,
+      "official": 2.3146850124303597,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "pesq_style",
+      "baseline": 2.564264348262851,
+      "current": 2.5642808845935376,
+      "official": 1.9040601543326199,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "visqol_style",
+      "baseline": 4.976621544776604,
+      "current": 4.978016105972054,
+      "official": 4.966897324237962,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_corr",
+      "baseline": 0.9982629384632019,
+      "current": 0.9983941892366964,
+      "official": 0.9967022752411848,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_quality",
+      "baseline": 99.61466530411954,
+      "current": 99.59683288315848,
+      "official": 99.5619034077744,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "rms_error",
+      "baseline": 0.00347071601381175,
+      "current": 0.00343582532715303,
+      "official": 0.00957489970849357,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "mean_abs_error",
+      "baseline": 0.00180456482789237,
+      "current": 0.00177210163819784,
+      "official": 0.0057222931779811,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "logband_error",
+      "baseline": 0.01776558086548242,
+      "current": 0.01672147496557174,
+      "official": 0.02431542236992239,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_masked_error",
+      "baseline": 0.30886321818777024,
+      "current": 0.3231856211984101,
+      "official": 0.35124723789090295,
+      "tags": []
+    },
+    {
+      "key": {
+        "group": "broad",
+        "sample": "speech_quiet",
+        "input": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "reference": "build/tier_quality/voip_corpus/voice_quiet.wav",
+        "application": "voip",
+        "bitrate": 32000,
+        "pcm16": false,
+        "denoiser": false
+      },
+      "metric": "celt_highband_error",
+      "baseline": 0.02706761323172995,
+      "current": 0.02621689333636848,
+      "official": 0.02707996482637726,
+      "tags": []
+    }
+  ],
+  "ordinary_checks": {
+    "PipelineCommands": 39,
+    "PublicCheckCommands": 19,
+    "Failures": [],
+    "Checks": [
+      {
+        "label": "voip_quiet_start_latch",
+        "exit": 0
+      },
+      {
+        "label": "dtx_behavior",
+        "exit": 0
+      },
+      {
+        "label": "postfilter_bypass",
+        "exit": 0
+      },
+      {
+        "label": "voice_denoise_state",
+        "exit": 0
+      },
+      {
+        "label": "lpc_analysis_filter",
+        "exit": 0
+      },
+      {
+        "label": "silk_plc_energy",
+        "exit": 0
+      },
+      {
+        "label": "celt_mono_energy_history",
+        "exit": 0
+      },
+      {
+        "label": "dtx_baseline",
+        "exit": 0
+      },
+      {
+        "label": "dtx_candidate",
+        "exit": 0
+      }
+    ],
+    "CandidateSourceSHA256": "037C744530383ABFCE0917EED4808F16A1E5E5C37BAABB86F550BD78E0ECF68C",
+    "PublicCheckSourceSHA256": "037C744530383ABFCE0917EED4808F16A1E5E5C37BAABB86F550BD78E0ECF68C"
+  },
+  "nsq_hazel_32k": {
+    "baseline_overshoot_frames": 324,
+    "note": "Mono code path is identical between the combined and isolated deletion probes; the preserved LTP guard only concerns stereo.",
+    "candidate_overshoot_frames": 193,
+    "candidate_requested_silk_bps": 23400,
+    "baseline_calls": 1008,
+    "candidate_calls": 878,
+    "baseline_requested_silk_bps": 27000,
+    "packet_bytes": 53840,
+    "silk_frames": 618
+  },
+  "known_remaining": "1154below-official quality fields; hybrid encoding still below official speed. Six existing negative fields worsen in this checkpoint.",
+  "source_blob": "5ab33ede69ae5bf523cb559bde676b4cba3ac179",
+  "source_sha256": "c6b8a66704ae95b05f5d5d8ea8410eee2a00d7a4fec29a3ff59efc6413548e99",
+  "object_equivalence": {
+    "source_sha256": "c6b8a66704ae95b05f5d5d8ea8410eee2a00d7a4fec29a3ff59efc6413548e99",
+    "compiled_object": "27366d2991719a2e687a5dc0e53b9244e3bab94af7f5527a365b5bcca0eb929f",
+    "validated_object": "27366d2991719a2e687a5dc0e53b9244e3bab94af7f5527a365b5bcca0eb929f",
+    "objects_identical": true
+  },
+  "focused_speed": {
+    "source": "037c744530383abfce0917eed4808f16a1e5e5c37baabb86f550bd78e0ecf68c",
+    "objects": {
+      "head": "5791e09fb2690dbf22277957ba9f8f380db3ba3c2b7aa7dba6de3a3078329bcb",
+      "candidate": "27366d2991719a2e687a5dc0e53b9244e3bab94af7f5527a365b5bcca0eb929f"
+    },
+    "official_library": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+    "measurements": [
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.577405",
+            "current_encode_ms": "154.857900",
+            "official_encode_ms": "89.415700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.167916",
+            "current_decode_ms": "12.112600",
+            "official_decode_ms": "14.146500"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.562869",
+            "current_encode_ms": "162.886700",
+            "official_encode_ms": "91.683800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.140390",
+            "current_decode_ms": "13.369200",
+            "official_decode_ms": "15.246100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.511123",
+            "current_encode_ms": "33.332500",
+            "official_encode_ms": "83.702000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.199762",
+            "current_decode_ms": "13.933600",
+            "official_decode_ms": "16.717000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.571549",
+            "current_encode_ms": "156.830400",
+            "official_encode_ms": "89.636200",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.164963",
+            "current_decode_ms": "12.062700",
+            "official_decode_ms": "14.052600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.624040",
+            "current_encode_ms": "148.601200",
+            "official_encode_ms": "92.733100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.274252",
+            "current_decode_ms": "12.622700",
+            "official_decode_ms": "16.084500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.631115",
+            "current_encode_ms": "32.771200",
+            "official_encode_ms": "86.224800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.120418",
+            "current_decode_ms": "14.399900",
+            "official_decode_ms": "16.133900"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.631496",
+            "current_encode_ms": "154.429900",
+            "official_encode_ms": "97.521900",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.238818",
+            "current_decode_ms": "11.755000",
+            "official_decode_ms": "14.562300"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.632665",
+            "current_encode_ms": "147.802000",
+            "official_encode_ms": "93.509100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.170896",
+            "current_decode_ms": "12.855200",
+            "official_decode_ms": "15.052100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.542218",
+            "current_encode_ms": "32.577300",
+            "official_encode_ms": "82.818600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.176098",
+            "current_decode_ms": "13.919500",
+            "official_decode_ms": "16.370700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.575775",
+            "current_encode_ms": "155.340300",
+            "official_encode_ms": "89.441100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.186733",
+            "current_decode_ms": "11.854900",
+            "official_decode_ms": "14.068600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.559616",
+            "current_encode_ms": "163.133400",
+            "official_encode_ms": "91.292100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.180910",
+            "current_decode_ms": "12.940700",
+            "official_decode_ms": "15.281800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.526610",
+            "current_encode_ms": "33.270000",
+            "official_encode_ms": "84.060300",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.169573",
+            "current_decode_ms": "14.219800",
+            "official_decode_ms": "16.631100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.578190",
+            "current_encode_ms": "156.914700",
+            "official_encode_ms": "90.726500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.270482",
+            "current_decode_ms": "11.856600",
+            "official_decode_ms": "15.063600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.582515",
+            "current_encode_ms": "162.224400",
+            "official_encode_ms": "94.498100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.181013",
+            "current_decode_ms": "12.798000",
+            "official_decode_ms": "15.114600"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.575379",
+            "current_encode_ms": "32.801700",
+            "official_encode_ms": "84.476800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.185014",
+            "current_decode_ms": "13.919500",
+            "official_decode_ms": "16.494800"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.581675",
+            "current_encode_ms": "154.762600",
+            "official_encode_ms": "90.021500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.191987",
+            "current_decode_ms": "11.835200",
+            "official_decode_ms": "14.107400"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.618387",
+            "current_encode_ms": "148.151800",
+            "official_encode_ms": "91.615100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.179764",
+            "current_decode_ms": "13.025400",
+            "official_decode_ms": "15.366900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.589151",
+            "current_encode_ms": "32.575000",
+            "official_encode_ms": "84.341600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.342552",
+            "current_decode_ms": "13.840800",
+            "official_decode_ms": "18.582000"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573548",
+            "current_encode_ms": "155.516300",
+            "official_encode_ms": "89.196000",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.204385",
+            "current_decode_ms": "11.944100",
+            "official_decode_ms": "14.385300"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.617594",
+            "current_encode_ms": "149.688400",
+            "official_encode_ms": "92.446600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.184192",
+            "current_decode_ms": "13.048900",
+            "official_decode_ms": "15.452400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.534514",
+            "current_encode_ms": "33.086900",
+            "official_encode_ms": "83.859200",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.183879",
+            "current_decode_ms": "14.176700",
+            "official_decode_ms": "16.783500"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.577606",
+            "current_encode_ms": "157.167300",
+            "official_encode_ms": "90.780800",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.213065",
+            "current_decode_ms": "11.669200",
+            "official_decode_ms": "14.155500"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.567293",
+            "current_encode_ms": "161.789700",
+            "official_encode_ms": "91.782200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.182356",
+            "current_decode_ms": "13.078300",
+            "official_decode_ms": "15.463200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.536829",
+            "current_encode_ms": "32.605900",
+            "official_encode_ms": "82.715600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.193101",
+            "current_decode_ms": "13.755000",
+            "official_decode_ms": "16.411100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.580562",
+            "current_encode_ms": "155.828600",
+            "official_encode_ms": "90.468100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.219629",
+            "current_decode_ms": "11.611400",
+            "official_decode_ms": "14.161600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.568181",
+            "current_encode_ms": "162.087600",
+            "official_encode_ms": "92.095100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.174025",
+            "current_decode_ms": "13.257300",
+            "official_decode_ms": "15.564400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.550604",
+            "current_encode_ms": "32.507000",
+            "official_encode_ms": "82.912500",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.176617",
+            "current_decode_ms": "13.910300",
+            "official_decode_ms": "16.367100"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573834",
+            "current_encode_ms": "155.757300",
+            "official_encode_ms": "89.378900",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.190098",
+            "current_decode_ms": "11.882300",
+            "official_decode_ms": "14.141100"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.613609",
+            "current_encode_ms": "149.449000",
+            "official_encode_ms": "91.703300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.126212",
+            "current_decode_ms": "13.374300",
+            "official_decode_ms": "15.062300"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.505779",
+            "current_encode_ms": "33.506700",
+            "official_encode_ms": "83.960400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.160870",
+            "current_decode_ms": "14.372500",
+            "official_decode_ms": "16.684600"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.535564",
+            "current_encode_ms": "167.711200",
+            "official_encode_ms": "89.820000",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.175204",
+            "current_decode_ms": "11.970600",
+            "official_decode_ms": "14.067900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.621751",
+            "current_encode_ms": "148.322000",
+            "official_encode_ms": "92.219300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.170955",
+            "current_decode_ms": "13.067200",
+            "official_decode_ms": "15.301100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.523952",
+            "current_encode_ms": "32.926900",
+            "official_encode_ms": "83.105900",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.181533",
+            "current_decode_ms": "13.816200",
+            "official_decode_ms": "16.324300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.581108",
+            "current_encode_ms": "155.265400",
+            "official_encode_ms": "90.225900",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.159558",
+            "current_decode_ms": "12.043300",
+            "official_decode_ms": "13.964900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.563165",
+            "current_encode_ms": "163.006700",
+            "official_encode_ms": "91.799700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.167391",
+            "current_decode_ms": "13.097500",
+            "official_decode_ms": "15.289900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.527523",
+            "current_encode_ms": "32.766700",
+            "official_encode_ms": "82.818600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.185889",
+            "current_decode_ms": "13.742600",
+            "official_decode_ms": "16.297200"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.579610",
+            "current_encode_ms": "155.482900",
+            "official_encode_ms": "90.119400",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.177187",
+            "current_decode_ms": "11.835500",
+            "official_decode_ms": "13.932600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.560023",
+            "current_encode_ms": "164.369800",
+            "official_encode_ms": "92.050900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.193079",
+            "current_decode_ms": "13.159400",
+            "official_decode_ms": "15.700200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.533790",
+            "current_encode_ms": "33.428100",
+            "official_encode_ms": "84.699800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.181463",
+            "current_decode_ms": "14.252500",
+            "official_decode_ms": "16.838800"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.572173",
+            "current_encode_ms": "156.774500",
+            "official_encode_ms": "89.702100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.206859",
+            "current_decode_ms": "11.759700",
+            "official_decode_ms": "14.192300"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.623428",
+            "current_encode_ms": "148.677200",
+            "official_encode_ms": "92.689600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.176106",
+            "current_decode_ms": "12.988200",
+            "official_decode_ms": "15.275500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.587335",
+            "current_encode_ms": "32.435000",
+            "official_encode_ms": "83.920200",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.168898",
+            "current_decode_ms": "14.152900",
+            "official_decode_ms": "16.543300"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.576082",
+            "current_encode_ms": "156.154200",
+            "official_encode_ms": "89.957600",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.212265",
+            "current_decode_ms": "11.788100",
+            "official_decode_ms": "14.290300"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.609951",
+            "current_encode_ms": "151.677700",
+            "official_encode_ms": "92.516000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.176573",
+            "current_decode_ms": "12.804900",
+            "official_decode_ms": "15.065900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.528377",
+            "current_encode_ms": "33.082800",
+            "official_encode_ms": "83.645800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.213189",
+            "current_decode_ms": "14.052800",
+            "official_decode_ms": "17.048700"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.577205",
+            "current_encode_ms": "155.581700",
+            "official_encode_ms": "89.802500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.182171",
+            "current_decode_ms": "11.833400",
+            "official_decode_ms": "13.989100"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.567738",
+            "current_encode_ms": "163.469900",
+            "official_encode_ms": "92.808100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.238799",
+            "current_decode_ms": "13.306600",
+            "official_decode_ms": "16.484200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.579862",
+            "current_encode_ms": "32.990100",
+            "official_encode_ms": "85.109900",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.205502",
+            "current_decode_ms": "13.922500",
+            "official_decode_ms": "16.783600"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.570653",
+            "current_encode_ms": "158.207000",
+            "official_encode_ms": "90.281300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.202532",
+            "current_decode_ms": "11.738400",
+            "official_decode_ms": "14.115800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.566766",
+            "current_encode_ms": "162.808900",
+            "official_encode_ms": "92.274600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.180118",
+            "current_decode_ms": "13.071400",
+            "official_decode_ms": "15.425800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.583780",
+            "current_encode_ms": "32.261800",
+            "official_encode_ms": "83.357400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.169098",
+            "current_decode_ms": "14.068800",
+            "official_decode_ms": "16.447800"
+          }
+        ]
+      },
+      {
+        "sample": "hazel",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.580089",
+            "current_encode_ms": "155.165300",
+            "official_encode_ms": "90.009700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.193869",
+            "current_decode_ms": "11.894600",
+            "official_decode_ms": "14.200600"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.609856",
+            "current_encode_ms": "151.471500",
+            "official_encode_ms": "92.375800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.178708",
+            "current_decode_ms": "13.064300",
+            "official_decode_ms": "15.399000"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.520732",
+            "current_encode_ms": "32.842200",
+            "official_encode_ms": "82.786400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.183996",
+            "current_decode_ms": "13.865500",
+            "official_decode_ms": "16.416700"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.530587",
+            "current_encode_ms": "147.923800",
+            "official_encode_ms": "78.486400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.175841",
+            "current_decode_ms": "10.654500",
+            "official_decode_ms": "12.528000"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.540381",
+            "current_encode_ms": "149.217100",
+            "official_encode_ms": "80.634100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.166833",
+            "current_decode_ms": "11.549900",
+            "official_decode_ms": "13.476800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.348484",
+            "current_encode_ms": "30.406300",
+            "official_encode_ms": "71.408700",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.168120",
+            "current_decode_ms": "12.485100",
+            "official_decode_ms": "14.584100"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.569104",
+            "current_encode_ms": "139.771700",
+            "official_encode_ms": "79.544700",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.144808",
+            "current_decode_ms": "10.705900",
+            "official_decode_ms": "12.256200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.585998",
+            "current_encode_ms": "141.199700",
+            "official_encode_ms": "82.742800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.211295",
+            "current_decode_ms": "11.105800",
+            "official_decode_ms": "13.452400"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.377059",
+            "current_encode_ms": "29.207400",
+            "official_encode_ms": "69.427700",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.171320",
+            "current_decode_ms": "12.151500",
+            "official_decode_ms": "14.233300"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.537884",
+            "current_encode_ms": "145.709100",
+            "official_encode_ms": "78.374600",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.147172",
+            "current_decode_ms": "10.840400",
+            "official_decode_ms": "12.435800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.568497",
+            "current_encode_ms": "140.799700",
+            "official_encode_ms": "80.044200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.158533",
+            "current_decode_ms": "11.463200",
+            "official_decode_ms": "13.280500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.355310",
+            "current_encode_ms": "29.525200",
+            "official_encode_ms": "69.541000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.187888",
+            "current_decode_ms": "11.839500",
+            "official_decode_ms": "14.064000"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.570282",
+            "current_encode_ms": "139.607500",
+            "official_encode_ms": "79.615600",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.152727",
+            "current_decode_ms": "10.918200",
+            "official_decode_ms": "12.585700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.541120",
+            "current_encode_ms": "150.951100",
+            "official_encode_ms": "81.682600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.168876",
+            "current_decode_ms": "11.451000",
+            "official_decode_ms": "13.384800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.398809",
+            "current_encode_ms": "29.314800",
+            "official_encode_ms": "70.320600",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.164486",
+            "current_decode_ms": "12.326900",
+            "official_decode_ms": "14.354500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.572716",
+            "current_encode_ms": "137.022900",
+            "official_encode_ms": "78.475200",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.158565",
+            "current_decode_ms": "10.782300",
+            "official_decode_ms": "12.492000"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.526716",
+            "current_encode_ms": "152.640000",
+            "official_encode_ms": "80.397900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.171434",
+            "current_decode_ms": "11.300000",
+            "official_decode_ms": "13.237200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.400390",
+            "current_encode_ms": "28.901600",
+            "official_encode_ms": "69.375100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.152454",
+            "current_decode_ms": "12.084300",
+            "official_decode_ms": "13.926600"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.571832",
+            "current_encode_ms": "137.385000",
+            "official_encode_ms": "78.561100",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.215618",
+            "current_decode_ms": "10.334000",
+            "official_decode_ms": "12.562200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.579493",
+            "current_encode_ms": "141.258100",
+            "official_encode_ms": "81.858100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.173202",
+            "current_decode_ms": "11.400000",
+            "official_decode_ms": "13.374500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.400192",
+            "current_encode_ms": "29.091000",
+            "official_encode_ms": "69.824000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.179332",
+            "current_decode_ms": "12.128900",
+            "official_decode_ms": "14.304000"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.568510",
+            "current_encode_ms": "139.859400",
+            "official_encode_ms": "79.511400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.117655",
+            "current_decode_ms": "11.041600",
+            "official_decode_ms": "12.340700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.568562",
+            "current_encode_ms": "143.413100",
+            "official_encode_ms": "81.539300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.207920",
+            "current_decode_ms": "11.416900",
+            "official_decode_ms": "13.790700"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.389319",
+            "current_encode_ms": "29.763800",
+            "official_encode_ms": "71.115200",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.152941",
+            "current_decode_ms": "12.358400",
+            "official_decode_ms": "14.248500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.575257",
+            "current_encode_ms": "136.510900",
+            "official_encode_ms": "78.528900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.137033",
+            "current_decode_ms": "10.831000",
+            "official_decode_ms": "12.315200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.539494",
+            "current_encode_ms": "149.071700",
+            "official_encode_ms": "80.423300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.185600",
+            "current_decode_ms": "11.229500",
+            "official_decode_ms": "13.313700"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.425283",
+            "current_encode_ms": "28.985200",
+            "official_encode_ms": "70.297300",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.167676",
+            "current_decode_ms": "12.033900",
+            "official_decode_ms": "14.051700"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.556859",
+            "current_encode_ms": "140.072000",
+            "official_encode_ms": "78.000300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.175151",
+            "current_decode_ms": "10.532600",
+            "official_decode_ms": "12.377400"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.535511",
+            "current_encode_ms": "149.059000",
+            "official_encode_ms": "79.822800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.185831",
+            "current_decode_ms": "11.226300",
+            "official_decode_ms": "13.312500"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.373587",
+            "current_encode_ms": "29.319000",
+            "official_encode_ms": "69.591200",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.161125",
+            "current_decode_ms": "12.111700",
+            "official_decode_ms": "14.063200"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573494",
+            "current_encode_ms": "136.728300",
+            "official_encode_ms": "78.412900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.146213",
+            "current_decode_ms": "10.888200",
+            "official_decode_ms": "12.480200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.566312",
+            "current_encode_ms": "141.086100",
+            "official_encode_ms": "79.898800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.172495",
+            "current_decode_ms": "11.436300",
+            "official_decode_ms": "13.409000"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.398358",
+            "current_encode_ms": "30.005200",
+            "official_encode_ms": "71.963200",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.165886",
+            "current_decode_ms": "12.340400",
+            "official_decode_ms": "14.387500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.569670",
+            "current_encode_ms": "138.946100",
+            "official_encode_ms": "79.153400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.185774",
+            "current_decode_ms": "10.755000",
+            "official_decode_ms": "12.753000"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.576212",
+            "current_encode_ms": "141.481500",
+            "official_encode_ms": "81.523300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.170093",
+            "current_decode_ms": "11.470200",
+            "official_decode_ms": "13.421200"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.391913",
+            "current_encode_ms": "29.170500",
+            "official_encode_ms": "69.773300",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.169434",
+            "current_decode_ms": "11.870100",
+            "official_decode_ms": "13.881300"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573343",
+            "current_encode_ms": "137.350300",
+            "official_encode_ms": "78.748900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.192091",
+            "current_decode_ms": "10.671000",
+            "official_decode_ms": "12.720800"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.543062",
+            "current_encode_ms": "149.099000",
+            "official_encode_ms": "80.970000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.138247",
+            "current_decode_ms": "11.576400",
+            "official_decode_ms": "13.176800"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.343716",
+            "current_encode_ms": "29.722800",
+            "official_encode_ms": "69.661800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.165144",
+            "current_decode_ms": "11.806700",
+            "official_decode_ms": "13.756500"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.568633",
+            "current_encode_ms": "138.417500",
+            "official_encode_ms": "78.708700",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.232737",
+            "current_decode_ms": "10.338700",
+            "official_decode_ms": "12.744900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.542951",
+            "current_encode_ms": "148.109200",
+            "official_encode_ms": "80.416000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.160901",
+            "current_decode_ms": "11.597800",
+            "official_decode_ms": "13.463900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.398584",
+            "current_encode_ms": "28.950200",
+            "official_encode_ms": "69.439500",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.176511",
+            "current_decode_ms": "11.946000",
+            "official_decode_ms": "14.054600"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.570804",
+            "current_encode_ms": "139.886400",
+            "official_encode_ms": "79.847700",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.180118",
+            "current_decode_ms": "10.554200",
+            "official_decode_ms": "12.455200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.564135",
+            "current_encode_ms": "144.426000",
+            "official_encode_ms": "81.475700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.181595",
+            "current_decode_ms": "11.607700",
+            "official_decode_ms": "13.715600"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.390127",
+            "current_encode_ms": "29.639800",
+            "official_encode_ms": "70.842900",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.183194",
+            "current_decode_ms": "12.121600",
+            "official_decode_ms": "14.342200"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.569692",
+            "current_encode_ms": "137.155600",
+            "official_encode_ms": "78.136500",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.174234",
+            "current_decode_ms": "10.627100",
+            "official_decode_ms": "12.478700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.570378",
+            "current_encode_ms": "140.986900",
+            "official_encode_ms": "80.415800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.138511",
+            "current_decode_ms": "11.520400",
+            "official_decode_ms": "13.116100"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.430508",
+            "current_encode_ms": "28.941400",
+            "official_encode_ms": "70.342300",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.186059",
+            "current_decode_ms": "11.967700",
+            "official_decode_ms": "14.194400"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573431",
+            "current_encode_ms": "136.559500",
+            "official_encode_ms": "78.307400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.178833",
+            "current_decode_ms": "10.562900",
+            "official_decode_ms": "12.451900"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.559813",
+            "current_encode_ms": "151.560200",
+            "official_encode_ms": "84.845300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.374562",
+            "current_decode_ms": "11.375700",
+            "official_decode_ms": "15.636600"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.450293",
+            "current_encode_ms": "29.169900",
+            "official_encode_ms": "71.474800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.199341",
+            "current_decode_ms": "11.842000",
+            "official_decode_ms": "14.202600"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "head",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.578561",
+            "current_encode_ms": "136.791900",
+            "official_encode_ms": "79.142400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.189056",
+            "current_decode_ms": "10.518600",
+            "official_decode_ms": "12.507200"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.538802",
+            "current_encode_ms": "151.575800",
+            "official_encode_ms": "81.669300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.150650",
+            "current_decode_ms": "11.837400",
+            "official_decode_ms": "13.620700"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.365174",
+            "current_encode_ms": "30.143700",
+            "official_encode_ms": "71.295100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.199416",
+            "current_decode_ms": "11.985500",
+            "official_decode_ms": "14.375600"
+          }
+        ]
+      },
+      {
+        "sample": "david",
+        "kind": "voip",
+        "side": "candidate",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.562461",
+            "current_encode_ms": "139.846300",
+            "official_encode_ms": "78.658100",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.169204",
+            "current_decode_ms": "10.669400",
+            "official_decode_ms": "12.474700"
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.569531",
+            "current_encode_ms": "140.846900",
+            "official_encode_ms": "80.216700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.195416",
+            "current_decode_ms": "11.252900",
+            "official_decode_ms": "13.451900"
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.383306",
+            "current_encode_ms": "29.245300",
+            "official_encode_ms": "69.700500",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.148595",
+            "current_decode_ms": "12.102000",
+            "official_decode_ms": "13.900300"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.822465",
+            "current_encode_ms": "22.126400",
+            "official_encode_ms": "40.324600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.377959",
+            "current_decode_ms": "8.305400",
+            "official_decode_ms": "11.444500"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 0,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.868784",
+            "current_encode_ms": "21.736600",
+            "official_encode_ms": "40.621000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.379744",
+            "current_decode_ms": "8.332200",
+            "official_decode_ms": "11.496300"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.839803",
+            "current_encode_ms": "22.279500",
+            "official_encode_ms": "40.989900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.335620",
+            "current_decode_ms": "8.353800",
+            "official_decode_ms": "11.157500"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 1,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.827882",
+            "current_encode_ms": "22.149300",
+            "official_encode_ms": "40.486300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.346741",
+            "current_decode_ms": "8.393300",
+            "official_decode_ms": "11.303600"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.840516",
+            "current_encode_ms": "22.169000",
+            "official_encode_ms": "40.802400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.401233",
+            "current_decode_ms": "7.929800",
+            "official_decode_ms": "11.111500"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 2,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.887392",
+            "current_encode_ms": "21.677000",
+            "official_encode_ms": "40.913000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.326203",
+            "current_decode_ms": "8.578400",
+            "official_decode_ms": "11.376700"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.828053",
+            "current_encode_ms": "22.181200",
+            "official_encode_ms": "40.548400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.336951",
+            "current_decode_ms": "8.468600",
+            "official_decode_ms": "11.322100"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 3,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.822153",
+            "current_encode_ms": "22.412000",
+            "official_encode_ms": "40.838100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.357294",
+            "current_decode_ms": "8.235800",
+            "official_decode_ms": "11.178400"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.746243",
+            "current_encode_ms": "23.723900",
+            "official_encode_ms": "41.427700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.312498",
+            "current_decode_ms": "8.650300",
+            "official_decode_ms": "11.353500"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 4,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.887980",
+            "current_encode_ms": "22.048700",
+            "official_encode_ms": "41.627500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.351717",
+            "current_decode_ms": "8.239000",
+            "official_decode_ms": "11.136800"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.837971",
+            "current_encode_ms": "22.112100",
+            "official_encode_ms": "40.641400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.365325",
+            "current_decode_ms": "8.134400",
+            "official_decode_ms": "11.106100"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 5,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.844110",
+            "current_encode_ms": "21.902600",
+            "official_encode_ms": "40.390800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.381045",
+            "current_decode_ms": "8.291400",
+            "official_decode_ms": "11.450800"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.871746",
+            "current_encode_ms": "22.150600",
+            "official_encode_ms": "41.460300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.384203",
+            "current_decode_ms": "8.310200",
+            "official_decode_ms": "11.503000"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 6,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "2.008918",
+            "current_encode_ms": "22.403000",
+            "official_encode_ms": "45.005800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.420955",
+            "current_decode_ms": "8.909500",
+            "official_decode_ms": "12.660000"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.836205",
+            "current_encode_ms": "22.625200",
+            "official_encode_ms": "41.544500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.363929",
+            "current_decode_ms": "8.267000",
+            "official_decode_ms": "11.275600"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 7,
+        "order": [
+          "candidate",
+          "head"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.881419",
+            "current_encode_ms": "22.104700",
+            "official_encode_ms": "41.588200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.403364",
+            "current_decode_ms": "8.269700",
+            "official_decode_ms": "11.605400"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "head",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.897501",
+            "current_encode_ms": "21.969900",
+            "official_encode_ms": "41.687900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.325500",
+            "current_decode_ms": "8.659600",
+            "official_decode_ms": "11.478300"
+          }
+        ]
+      },
+      {
+        "sample": "synthetic_music_12s",
+        "kind": "audio",
+        "side": "candidate",
+        "repeat": 8,
+        "order": [
+          "head",
+          "candidate"
+        ],
+        "setup": "BENCH_SETUP affinity=1 priority=32768",
+        "rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.837704",
+            "current_encode_ms": "22.329600",
+            "official_encode_ms": "41.035200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.301447",
+            "current_decode_ms": "8.864900",
+            "official_decode_ms": "11.537200"
+          }
+        ]
+      }
+    ]
+  },
+  "focused_speed_summary": [
+    {
+      "kind": "audio",
+      "sample": "synthetic_music_12s",
+      "bitrate": 32000,
+      "baseline_encode_ms": 22.1493,
+      "candidate_encode_ms": 22.1812,
+      "encode_time_change_percent": 0.144022610195349,
+      "baseline_decode_ms": 8.3054,
+      "candidate_decode_ms": 8.3538,
+      "baseline_official_encode_ms": 40.8381,
+      "candidate_official_encode_ms": 40.9899
+    },
+    {
+      "kind": "voip",
+      "sample": "david",
+      "bitrate": 16000,
+      "baseline_encode_ms": 137.3503,
+      "candidate_encode_ms": 139.7717,
+      "encode_time_change_percent": 1.7629375399980995,
+      "baseline_decode_ms": 10.6545,
+      "candidate_decode_ms": 10.7059,
+      "baseline_official_encode_ms": 78.5289,
+      "candidate_official_encode_ms": 78.6581
+    },
+    {
+      "kind": "voip",
+      "sample": "david",
+      "bitrate": 32000,
+      "baseline_encode_ms": 149.2171,
+      "candidate_encode_ms": 141.1997,
+      "encode_time_change_percent": -5.3729766896689295,
+      "baseline_decode_ms": 11.451,
+      "candidate_decode_ms": 11.4363,
+      "baseline_official_encode_ms": 80.6341,
+      "candidate_official_encode_ms": 81.4757
+    },
+    {
+      "kind": "voip",
+      "sample": "david",
+      "bitrate": 64000,
+      "baseline_encode_ms": 29.3148,
+      "candidate_encode_ms": 29.2453,
+      "encode_time_change_percent": -0.2370816106540108,
+      "baseline_decode_ms": 12.0339,
+      "candidate_decode_ms": 12.1216,
+      "baseline_official_encode_ms": 70.2973,
+      "candidate_official_encode_ms": 69.824
+    },
+    {
+      "kind": "voip",
+      "sample": "hazel",
+      "bitrate": 16000,
+      "baseline_encode_ms": 155.5817,
+      "candidate_encode_ms": 155.7573,
+      "encode_time_change_percent": 0.11286674461068458,
+      "baseline_decode_ms": 11.8355,
+      "candidate_decode_ms": 11.8823,
+      "baseline_official_encode_ms": 90.2259,
+      "candidate_official_encode_ms": 89.82
+    },
+    {
+      "kind": "voip",
+      "sample": "hazel",
+      "bitrate": 32000,
+      "baseline_encode_ms": 162.8867,
+      "candidate_encode_ms": 148.6772,
+      "encode_time_change_percent": -8.723548331447562,
+      "baseline_decode_ms": 13.0975,
+      "candidate_decode_ms": 13.0254,
+      "baseline_official_encode_ms": 92.0509,
+      "candidate_official_encode_ms": 92.4466
+    },
+    {
+      "kind": "voip",
+      "sample": "hazel",
+      "bitrate": 64000,
+      "baseline_encode_ms": 32.8017,
+      "candidate_encode_ms": 32.8422,
+      "encode_time_change_percent": 0.12346921043726589,
+      "baseline_decode_ms": 13.9225,
+      "candidate_decode_ms": 14.0528,
+      "baseline_official_encode_ms": 83.702,
+      "candidate_official_encode_ms": 83.8592
+    }
+  ]
+}

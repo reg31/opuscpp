@@ -2233,24 +2233,11 @@ static opus_int32 compute_equiv_rate(opus_int32 bitrate, int channels, int frame
   return equiv;
 }
 
-constexpr auto hybrid_silk_lowrate_boost_min_bps = 28000;
-constexpr auto hybrid_silk_lowrate_boost_max_bps = 36000;
-constexpr auto hybrid_silk_lowrate_target_bps = 24000;
-constexpr auto hybrid_silk_lowrate_reserve_bps = 2000;
 constexpr opus_int32 voip_mono_silk_budget_boost_min_bps = 16000;
 constexpr opus_int32 voip_mono_silk_budget_boost_max_bps = 64000;
 constexpr opus_int32 voip_mono_silk_budget_boost_default_bps = 3000;
 constexpr opus_int32 voip_mono_silk_budget_boost_lowrate_bps = 2000;
 constexpr int lightweight_analysis_frame_limit = 127;
-
-[[nodiscard]] static constexpr opus_int32 hybrid_silk_lowrate_boost_bps(opus_int32 user_bitrate_bps, opus_int32 silk_bitrate_bps) noexcept {
-  if (user_bitrate_bps < hybrid_silk_lowrate_boost_min_bps || user_bitrate_bps > hybrid_silk_lowrate_boost_max_bps) {
-    return silk_bitrate_bps;
-  }
-  const auto payload_limit_bps = std::max<opus_int32>(500, user_bitrate_bps - hybrid_silk_lowrate_reserve_bps);
-  const auto target_bps = std::min<opus_int32>(hybrid_silk_lowrate_target_bps, payload_limit_bps);
-  return std::min<opus_int32>(payload_limit_bps, std::max<opus_int32>(silk_bitrate_bps, target_bps));
-}
 
 [[nodiscard]] static constexpr auto voip_mono_silk_budget_boost(const OpusEncoder* st) noexcept -> opus_int32 {
   if (st->application != OPUS_APPLICATION_VOIP || st->channels != 1 || st->bitrate_bps < voip_mono_silk_budget_boost_min_bps ||
@@ -3361,9 +3348,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (st->mode == opus_mode_hybrid) {
       st->silk_mode.bitRate =
           compute_silk_rate_for_hybrid(total_bitRate, curr_bandwidth, st->use_vbr, st->stream_channels, st->silk_mode.LBRR_coded != 0);
-      if (st->use_vbr) {
-        st->silk_mode.bitRate = hybrid_silk_lowrate_boost_bps(st->bitrate_bps, st->silk_mode.bitRate);
-      }
       if (voip_silk_boost != 0) {
         st->silk_mode.bitRate = std::min<opus_int32>(total_bitRate - 500, st->silk_mode.bitRate + voip_silk_boost);
       }
@@ -13860,8 +13844,10 @@ void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[
 void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
   constexpr auto code_independently = 0;
   constexpr auto plc_assumed_packet_loss_percent = 3;
+  constexpr auto plc_ltp_scale_min_bps = 28000;
+  constexpr auto plc_ltp_scale_max_bps = 36000;
   if (condCoding == code_independently && psEnc->sCmn.nChannelsInternal == 2 &&
-      psEnc->sCmn.TargetRate_bps >= hybrid_silk_lowrate_boost_min_bps && psEnc->sCmn.TargetRate_bps <= hybrid_silk_lowrate_boost_max_bps) {
+      psEnc->sCmn.TargetRate_bps >= plc_ltp_scale_min_bps && psEnc->sCmn.TargetRate_bps <= plc_ltp_scale_max_bps) {
     const auto round_loss = plc_assumed_packet_loss_percent * psEnc->sCmn.nFramesPerPacket;
     const auto scaled_gain = static_cast<opus_int32>(psEncCtrl->LTPredCodGain) * round_loss;
     psEnc->sCmn.indices.LTP_scaleIndex = scaled_gain > silk_log2lin(2900 - psEnc->sCmn.SNR_dB_Q7);
