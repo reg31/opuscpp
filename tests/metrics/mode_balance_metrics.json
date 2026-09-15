@@ -1,0 +1,5 @@
+{
+  "source_commit": "fcf29787f607e706e1cad80f51080057199240d1",
+  "source_sha256": "8a18594154fe88e118aa9a965c574bb642617699cc81e5b4bcb2bb4088268d96",
+  "stdout": "speech_like,silk_pct=0.0,hybrid_pct=4.3,celt_pct=95.7\nharmonic_music,silk_pct=0.0,hybrid_pct=0.0,celt_pct=100.0\n"
+}

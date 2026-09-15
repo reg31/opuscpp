@@ -132,7 +132,7 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
 The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
-5.4% to 23.2% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
+4.7% to 12.7% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
 The optional state is 68 bytes, with a 7.5 KiB temporary stack cache for frames of up to 960 samples.
 Broader on/off tests still contain quality losses: this is not a universal improvement. See the
 [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
@@ -163,9 +163,7 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
 quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in all 18 scenarios. Its combined reconstruction error is 53.2% lower, it supplies
-recoverable backup audio in all 18 scenarios compared with 15 for official Opus, and it uses 0.3%
-fewer packet bytes.
+more accurately in all 18 scenarios. The expanded 36-configuration benchmark has 58.3% lower combined reconstruction error and 0.3% fewer packet bytes. The 18 scored cases have recoverable backup in all 18 scenarios versus 15 for official Opus. All source-quality criteria pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.

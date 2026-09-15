@@ -1,32 +1,32 @@
 {
-  "source_sha256": "b7abdaf5fa6fd629fa1a67a2e8172dacf3248f0937cb5efa6e9dea54cc49f5b9",
-  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
-  "scope": "Current denoiser on/off measurements, same clean reference",
-  "flags": "-O2 -DNDEBUG",
+  "source_commit": "fcf29787f607e706e1cad80f51080057199240d1",
+  "source_sha256": "8a18594154fe88e118aa9a965c574bb642617699cc81e5b4bcb2bb4088268d96",
   "quality": {
-    "seconds": 6,
-    "complexity": 10,
-    "application": "VOIP",
-    "postfilter": 0,
     "boundary_passed": 25,
     "boundary_total": 25,
     "broader_comparisons_vs_bypass": 246,
     "negative_counts_vs_bypass": {
-      "pesq_style": 2,
+      "snr_db": 1,
+      "segmental_snr_db": 2,
+      "rms_error": 1,
+      "mean_abs_error": 0,
+      "pesq_style": 1,
       "visqol_style": 0,
-      "celt_quality": 4
-    },
-    "previous_version_comparison": "voice_denoise_vs_previous.csv is historical and was not rerun"
+      "logband_corr": 5,
+      "logband_error": 0,
+      "celt_quality": 4,
+      "celt_masked_error": 4,
+      "celt_highband_error": 0,
+      "stereo_width_error": 0
+    }
   },
   "timing": {
     "audio_seconds": 60,
     "measured_runs": 9,
     "warmup_runs": 1,
-    "affinity_mask": 16,
-    "priority": "above_normal",
-    "parallel_workloads": false
+    "affinity_mask": 1,
+    "priority": "above_normal"
   },
   "optional_state_bytes": 68,
-  "validation": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes\n"
+  "temporary_stack_cache_bytes": 7680
 }

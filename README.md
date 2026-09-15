@@ -14,7 +14,7 @@ implementation without packet-format changes as long as it stays within the supp
 described in `src/README.md`. Custom Opus is intentionally unsupported.
 
 In short: `opuscpp` is a portable C++23 alternative to official Opus for C++ users:
-source-embeddable, standards-compatible, and faster to both encode and decode in the tracked O2 benchmark against an official build using platform intrinsics. At complexity 10, encoding runs at 1.23x to 1.78x official Opus speed across the tracked bitrates.
+source-embeddable, standards-compatible, and faster to both encode and decode in the tracked stereo AUDIO O2 benchmark against an official build using platform intrinsics. At complexity 10, encoding runs at 1.19x to 1.80x official Opus speed across the tracked AUDIO bitrates.
 
 Minimal integration looks like:
 
@@ -28,17 +28,17 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 
 - Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
 - Standard Opus packets and the documented single-stream API/CTL subset.
-- Complexity-10 encoding is faster than official Opus at 9/9 measured bitrates (1.23x to 1.78x).
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured bitrates (1.19x to 1.83x).
+- Complexity-10 encoding is faster than official Opus at 9/9 measured AUDIO bitrates (1.19x to 1.80x).
+- Decode is faster than official Opus with x86 intrinsics in 9/9 measured AUDIO bitrates (1.16x to 1.88x).
 - Transient detection runs for every fullband CELT frame (matching official Opus gating), improving percussive content.
-- Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 8/9 tracked bitrates; VOIP improves them in 6/9 and 4/9 respectively. 18/18 rows still lose at least one measured quality field. No universal quality advantage is claimed.
+- Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 8/9 tracked bitrates; VOIP improves them in 6/9 and 8/9. The full 498-case matrix has 1,154 below-official fields out of 5,976; all 12 metrics and signed deltas are retained.
 - Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
-- API, FEC, DTX, long-frame and 291,755 malformed-packet checks passed; trapping UBSan found no issue in the exercised cases.
-- Optional DTX: zero false DTX packets on the tracked active-content set, 62.6% lower re-entry error and 53.2% lower gain error at 16/24&nbsp;kbps.
-- Optional FEC: lower missing-frame error in all 18 tracked loss scenarios; 53.2% lower combined recovery error, protection in 18 scenarios versus 15, and 0.3% fewer bytes.
-- 22.3% to 45.6% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `309,308 B` (text + data + BSS).
+- Compatibility results refer to the existing production validation; this benchmark refresh does not claim a new complete compatibility run.
+- Optional DTX: zero false DTX packets on the tracked active-content set, 50.7% lower aggregate re-entry error and 5.9% lower aggregate gain error at 16/24&nbsp;kbps.
+- Optional FEC: lower missing-frame error in all 18 scored loss scenarios. Across the expanded 36-configuration run, combined recovery error is 58.3% lower and packet bytes are 0.3% lower. Source-quality criteria pass 18/18 each.
+- 22.5% to 47.3% lower measured private allocation footprint across the listed encoder/decoder configurations.
+- Host object: `322,176 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang builds (unused tone-analysis warnings remain).
 
 ## Pros and cons
@@ -46,9 +46,9 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 | Pros | Cons |
 |---|---|
 | Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |
-| Encoding is 1.23x to 1.78x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
-| Faster decode in 9/9 measured bitrates (1.19x to 1.83x). | Official Opus supports a broader feature surface and ecosystem. |
-| 22.3% to 45.6% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
+| Encoding is 1.19x to 1.80x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
+| Faster decode in 9/9 measured AUDIO bitrates (1.16x to 1.88x). | Official Opus supports a broader feature surface and ecosystem. |
+| 22.5% to 47.3% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
 | Pure portable C++23, without ASM or SIMD intrinsics. | Current builds report unused tone-analysis warnings. |
 
 ## Quick start
@@ -90,6 +90,8 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
+Measurements refreshed independently by Codex on 2026-09-15 for production `fcf2978`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.
+
 Quality and effective-bitrate columns use the current encoder at complexity 10; [quality metadata](tests/metrics/quality_run_metadata.json) records the source and matched settings. Speed uses the same production source at complexity 10; [speed metadata](tests/metrics/speed_run_metadata.json) records the isolated run. Memory is the tracked snapshot identified by [run metadata](tests/metrics/run_metadata.json).
 Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels
 independently. Both quality gains and losses are retained.
@@ -108,30 +110,32 @@ official PESQ/ViSQOL tooling or listening tests.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.780x | 1.826x | +0.0003 | -0.0012 | 16.000 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.667x | 1.411x | +0.3784 | +0.0959 | 24.000 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 1.612x | 1.399x | +0.5420 | +0.0929 | 32.000 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.519x | 1.338x | +0.1637 | +0.0132 | 48.000 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.502x | 1.270x | +0.1396 | +0.0052 | 64.000 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.480x | 1.198x | +0.2907 | +0.0127 | 96.000 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 1.414x | 1.199x | +0.1907 | +0.0042 | 128.000 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.287x | 1.214x | +0.0714 | +0.0030 | 192.000 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 1.229x | 1.193x | +0.0350 | +0.0022 | 256.000 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 1.797x | 1.878x | +0.0003 | -0.0014 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.769x | 1.421x | +0.3781 | +0.0963 | 24.000 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 1.744x | 1.394x | +0.5416 | +0.0929 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.590x | 1.282x | +0.1634 | +0.0127 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.526x | 1.249x | +0.1394 | +0.0047 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.549x | 1.189x | +0.2902 | +0.0125 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.484x | 1.164x | +0.1902 | +0.0042 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.325x | 1.240x | +0.0709 | +0.0028 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.193x | 1.233x | +0.0341 | +0.0020 | 256.000 kbps | 256.737 kbps |
 
+
+Separate real-speech VOIP encoding is slower at 16/32 kbps: **0.62x to 0.71x** official speed on Hazel/David. At 64 kbps it reaches **2.40x to 2.49x**. [All speech timings](tests/metrics/README.md#speed-payload-rate-and-processing-costs) retain the slower cases.
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0894 | +0.0167 | 15.997 kbps | 12.072 kbps |
-| 24&nbsp;kbps | +0.1276 | +0.0013 | 24.000 kbps | 24.020 kbps |
-| 32&nbsp;kbps | +0.1958 | +0.0094 | 32.000 kbps | 32.088 kbps |
-| 48&nbsp;kbps | +0.0635 | -0.0127 | 48.000 kbps | 48.409 kbps |
-| 64&nbsp;kbps | -0.6057 | -0.0031 | 63.963 kbps | 64.515 kbps |
-| 96&nbsp;kbps | +0.0117 | +0.0028 | 96.000 kbps | 96.499 kbps |
-| 128&nbsp;kbps | -0.0089 | -0.0018 | 128.000 kbps | 128.489 kbps |
-| 192&nbsp;kbps | -0.0008 | -0.0004 | 192.000 kbps | 192.472 kbps |
-| 256&nbsp;kbps | +0.0012 | -0.0004 | 256.000 kbps | 256.464 kbps |
+| 16&nbsp;kbps | +0.1703 | +0.0202 | 15.997 kbps | 12.072 kbps |
+| 24&nbsp;kbps | -0.3443 | +0.0017 | 23.997 kbps | 24.020 kbps |
+| 32&nbsp;kbps | -0.4126 | +0.0025 | 31.997 kbps | 32.088 kbps |
+| 48&nbsp;kbps | -0.5072 | +0.0001 | 47.997 kbps | 48.409 kbps |
+| 64&nbsp;kbps | +0.2648 | -0.0049 | 64.000 kbps | 64.515 kbps |
+| 96&nbsp;kbps | +0.6546 | +0.0061 | 96.000 kbps | 96.499 kbps |
+| 128&nbsp;kbps | +0.7434 | +0.0029 | 128.000 kbps | 128.489 kbps |
+| 192&nbsp;kbps | +1.0911 | +0.0047 | 192.000 kbps | 192.472 kbps |
+| 256&nbsp;kbps | +1.1005 | +0.0052 | 256.000 kbps | 256.464 kbps |
 
 Mode-selection check at 32&nbsp;kbps mono: for the separate detector synthetic test signal, AUDIO mode selected
 CELT for 95.7% of frames and hybrid for 4.3%. For the sustained harmonic/music sample, it selected
@@ -147,20 +151,20 @@ can slightly change the measurement.
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 17,248 B | 31,712 B | -45.6% |
-| Encoder stereo | 32,320 B | 48,880 B | -33.9% |
-| Decoder mono | 14,176 B | 18,288 B | -22.5% |
-| Decoder stereo | 21,248 B | 27,360 B | -22.3% |
+| Encoder mono | 16,800 B | 31,872 B | -47.3% |
+| Encoder stereo | 32,576 B | 49,072 B | -33.6% |
+| Decoder mono | 14,192 B | 18,304 B | -22.5% |
+| Decoder stereo | 21,232 B | 27,392 B | -22.5% |
 
 ## Conformance
 
 The implementation is standard Opus compatible. The measured conformance gates are:
 
-- RFC decode conformance: 24/24 mono+stereo RFC 8251 updated vector checks passed in this run.
+- RFC decode conformance: 24/24 mono+stereo RFC 8251 updated vector checks passed in the existing production validation.
 - Encode interoperability validation: 96/96 generated encode cases produced packets accepted by the
   official Opus decoder.
 - API behavior validation: decoder channel-remap, packet/frame-duration rejection, encoder-lookahead, VBR-budget, and guarded-DTX checks passed
-  in the current run.
+  in the existing production validation.
 - Android arm64 Clang build: C++23 build check passed in the measured configuration.
 - MinGW GCC build: C++23 build check passed in the measured configuration.
 
