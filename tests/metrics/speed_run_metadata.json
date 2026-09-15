@@ -1,9 +1,9 @@
 {
-  "source_commit": "fcf29787f607e706e1cad80f51080057199240d1",
-  "source_sha256": "8a18594154fe88e118aa9a965c574bb642617699cc81e5b4bcb2bb4088268d96",
+  "source_commit": "bd6bbc5c124f8e020eb2cc39628132027c8d5929",
+  "source_sha256": "89fa51eed627a90c2f5770f3f3e99d5959769e10b82206eac1d07de5b14d81bb",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "object_sha256": "442314e052feb2f0953fc61ff9c07965910198f045a0ce03800568750238c115",
-  "plain_object_sha256": "e216e6d61d0e9eda2184b65310b84d577edda3c6966b3f7dc080c638ca904adf",
+  "object_sha256": "c59806a1c47bff12cd5e02663bc2482ee42d20ce92f32d98a7cd75542d143a81",
+  "plain_object_sha256": "723ef986e8bfe4a60d0b6be2ea18a543e383fc1d90e04012ca75fe005ac78a77",
   "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
   "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
   "compiler": "g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0",
@@ -11,11 +11,11 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_production_20260915\\src",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_production_20260915\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\ar_quality_validation\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\ar_quality_validation\\tests"
   ],
   "quality_driver_sha256": "e8dc79fbed4f33a132a5e34fba3353e35142227ed0397b69852988a7cd3fcc52",
-  "quality_binary_sha256": "a1e50ef3b8736a0abe65659c103901a8a009340e017dca606cf0deac092e45c8",
+  "quality_binary_sha256": "196dac0b2c5395e2d805a92bc1c671d265e169f1289956ade05cced69d094d2f",
   "fixtures": {
     "synthetic_music_like_stereo.wav": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
     "synthetic_tonal_stress_mono.wav": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
@@ -25,7 +25,7 @@
   "executor": "Codex root",
   "sanitizers": false,
   "harness_sha256": "d230cc7dcafef632dd886c02fce3e38910a44588ebe43b4ca6699f36f377d27c",
-  "binary_sha256": "1fd9a1a53e2ce0dd1296f85371ac7158b2b12d51c45d66bb7fc473d235ee589d",
+  "binary_sha256": "cd40f2baf7c36e759e94f59cf266c0ca8a7b61eac5dae6cae51ad8aa5183561f",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,
