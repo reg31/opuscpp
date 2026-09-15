@@ -607,3 +607,39 @@ variation is included below. Percentages describe encoding time, so negative is 
 
 Exact source identities, measurements and remaining quality regressions are recorded in
 [hybrid rate checkpoint metadata](metrics/hybrid_rate_checkpoint.json).
+
+## SILK shaping-feedback checkpoint
+
+Delayed-decision NSQ computes the shaping feedback of four independent candidate states
+together. Per-lane integer operations retain their original order. The temporary history
+tracks winner-state replacements and is copied back at the subframe boundary.
+
+All 5976 quality fields, official references and packet metadata are unchanged across the
+498-configuration matrix. Strict FEC and all four source criteria pass 18/18. Current-source
+NSQ captures match pulses, Seed and named state; forced-zero replay state also matches.
+Startup/reset, API/conformance, VBR, interoperability, LPC/PLC, DTX, denoiser and postfilter
+checks pass. The standalone `nsq_shaping_feedback.cpp` regression checks 19200 lane results
+against the scalar helper, including independent full-range histories and untouched tails.
+
+The compiler-reported frame reservation for `silk_NSQ<true, false>` increases from 10112
+to 10592 bytes (+480). Other NSQ template instantiations retain their previous frame sizes.
+These are per-function reservations, not total nested stack usage. There are no new heap
+allocations or persistent encoder-state fields.
+
+Nine rounds rotated the baseline, first probe and final candidate. The private benchmark
+verified logical-CPU-0 affinity and AboveNormal priority before timing. The selected
+candidate reduced encoding time by 5.5-6.5% at 16/32 kbps; control timings are included below.
+This is a measured code-layout/data-flow improvement, not a claim that every loop uses SIMD.
+
+| Input | kbps | Baseline encode ms | Candidate encode ms | Time change |
+|---|---:|---:|---:|---:|
+| voip_hazel | 16 | 148.86 | 139.23 | -6.5% |
+| voip_hazel | 32 | 142.02 | 134.23 | -5.5% |
+| voip_hazel | 64 | 31.24 | 31.18 | -0.2% |
+| voip_david | 16 | 130.34 | 123.05 | -5.6% |
+| voip_david | 32 | 134.09 | 126.69 | -5.5% |
+| voip_david | 64 | 27.80 | 27.78 | -0.1% |
+| audio | 32 | 20.97 | 20.86 | -0.5% |
+
+Full quality/speed parity remains unfinished, with 1154 below-official quality fields.
+Full measurements and identities are in [feedback checkpoint metadata](metrics/nsq_feedback_checkpoint.json).

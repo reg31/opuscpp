@@ -1,0 +1,2131 @@
+{
+  "baseline_commit": "76acfe95afae038563cc3e4f206e8598ae4630a3",
+  "source_blob": "a3933f39d4c21559c9cb6b86fd31f26828f6dd2a",
+  "source_sha256": "8d1d1cb89628060a16c2a9ba44dd1fee26d41b38ba5ae96b7db3b241ad7cf9a0",
+  "validated_object_sha256": "00275f4dec448f4edd0d8667e569d73bf8f31b0f4551db52c5ced3e83ee60aa5",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_library_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "source_bound_checks": {
+    "pipeline_commands": 39,
+    "public_commands": 19,
+    "failures": []
+  },
+  "permanent_check": {
+    "source": "tests/nsq_shaping_feedback.cpp",
+    "sha256": "a2cc28c571f2355ee9cb4dd6b8e3fd2d1a9b0f3fe7dfcad3a5060bc72cf459c3",
+    "cases": 19200,
+    "failures": 0
+  },
+  "strict_ratios": [
+    0.89841,
+    0.300264,
+    0.143678,
+    0.586495,
+    0.340513,
+    0.742087,
+    0.843562,
+    0.213559,
+    0.822748,
+    0.594755,
+    0.538564,
+    0.98413,
+    0.894178,
+    0.0892337,
+    0.613242,
+    0.602523,
+    0.415373,
+    0.836429
+  ],
+  "source_counts": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "source_rows": [
+    {
+      "key": [
+        0,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.208207178,
+        "next_fec": 0.252519003,
+        "transition_fec": 0.210815805,
+        "fidelity_ref": 0.175325531,
+        "next_ref": 0.233669525,
+        "transition_ref": 0.14392459,
+        "fidelity_plc": 0.569012961,
+        "self_consistency": 0.121570676,
+        "step_fec": 702.0,
+        "step_ref": 976.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.201713553,
+        "next_fec": 0.18507495,
+        "transition_fec": 0.167579843,
+        "fidelity_ref": 0.17606984,
+        "next_ref": 0.179490904,
+        "transition_ref": 0.137408299,
+        "fidelity_plc": 0.352493222,
+        "self_consistency": 0.11836721,
+        "step_fec": -239.0,
+        "step_ref": -255.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.203148759,
+        "next_fec": 0.18116753,
+        "transition_fec": 0.187359824,
+        "fidelity_ref": 0.202432383,
+        "next_ref": 0.181155396,
+        "transition_ref": 0.189226927,
+        "fidelity_plc": 0.677218624,
+        "self_consistency": 0.020457083,
+        "step_fec": -354.0,
+        "step_ref": -333.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.189962074,
+        "next_fec": 0.186142258,
+        "transition_fec": 0.18717598,
+        "fidelity_ref": 0.184838572,
+        "next_ref": 0.17414493,
+        "transition_ref": 0.150105959,
+        "fidelity_plc": 0.66412151,
+        "self_consistency": 0.091290254,
+        "step_fec": -390.0,
+        "step_ref": -438.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.214635214,
+        "next_fec": 0.18536604,
+        "transition_fec": 0.1530357,
+        "fidelity_ref": 0.198168493,
+        "next_ref": 0.197495367,
+        "transition_ref": 0.157572502,
+        "fidelity_plc": 0.70728375,
+        "self_consistency": 0.126741457,
+        "step_fec": -380.0,
+        "step_ref": 146.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        0,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.177555991,
+        "next_fec": 0.168484014,
+        "transition_fec": 0.146383594,
+        "fidelity_ref": 0.187132083,
+        "next_ref": 0.184124409,
+        "transition_ref": 0.144161952,
+        "fidelity_plc": 0.673331436,
+        "self_consistency": 0.130491689,
+        "step_fec": -587.5,
+        "step_ref": 238.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.30023808,
+        "next_fec": 0.334382325,
+        "transition_fec": 0.212078952,
+        "fidelity_ref": 0.230589885,
+        "next_ref": 0.27859506,
+        "transition_ref": 0.202344731,
+        "fidelity_plc": 0.723895619,
+        "self_consistency": 0.212601308,
+        "step_fec": 385.0,
+        "step_ref": 378.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.349123787,
+        "next_fec": 0.284949817,
+        "transition_fec": 0.229886973,
+        "fidelity_ref": 0.272754634,
+        "next_ref": 0.275519397,
+        "transition_ref": 0.202381461,
+        "fidelity_plc": 0.879966274,
+        "self_consistency": 0.205807303,
+        "step_fec": -165.0,
+        "step_ref": -177.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.285726106,
+        "next_fec": 0.296443291,
+        "transition_fec": 0.279294479,
+        "fidelity_ref": 0.224368609,
+        "next_ref": 0.252989094,
+        "transition_ref": 0.195557685,
+        "fidelity_plc": 0.825441156,
+        "self_consistency": 0.168828366,
+        "step_fec": -181.0,
+        "step_ref": -71.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.250010773,
+        "next_fec": 0.239387904,
+        "transition_fec": 0.196982567,
+        "fidelity_ref": 0.239291412,
+        "next_ref": 0.238283021,
+        "transition_ref": 0.205826354,
+        "fidelity_plc": 0.859981999,
+        "self_consistency": 0.150573096,
+        "step_fec": -165.0,
+        "step_ref": -230.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.302380127,
+        "next_fec": 0.285180782,
+        "transition_fec": 0.21334178,
+        "fidelity_ref": 0.292583438,
+        "next_ref": 0.289747499,
+        "transition_ref": 0.205819773,
+        "fidelity_plc": 1.074571927,
+        "self_consistency": 0.189229413,
+        "step_fec": 34.5,
+        "step_ref": -11.5
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        1,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.366239816,
+        "next_fec": 0.319961986,
+        "transition_fec": 0.243130305,
+        "fidelity_ref": 0.282043142,
+        "next_ref": 0.328654513,
+        "transition_ref": 0.18543955,
+        "fidelity_plc": 0.74307549,
+        "self_consistency": 0.300637473,
+        "step_fec": -387.5,
+        "step_ref": -310.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        10,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.523462468,
+        "next_fec": 0.609714954,
+        "transition_fec": 0.50977366,
+        "fidelity_ref": 0.418536535,
+        "next_ref": 0.483314231,
+        "transition_ref": 0.42590298,
+        "fidelity_plc": 0.999855701,
+        "self_consistency": 0.349507883,
+        "step_fec": 1567.0,
+        "step_ref": 2671.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        16000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.45064105,
+        "next_fec": 0.544684734,
+        "transition_fec": 0.441277973,
+        "fidelity_ref": 0.44316062,
+        "next_ref": 0.544660384,
+        "transition_ref": 0.442433603,
+        "fidelity_plc": 0.913620788,
+        "self_consistency": 0.11659279,
+        "step_fec": -790.0,
+        "step_ref": -695.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        24000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.497167574,
+        "next_fec": 0.478451209,
+        "transition_fec": 0.446035244,
+        "fidelity_ref": 0.451645316,
+        "next_ref": 0.478308127,
+        "transition_ref": 0.467632075,
+        "fidelity_plc": 1.056121188,
+        "self_consistency": 0.236053937,
+        "step_fec": -1083.0,
+        "step_ref": -1608.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        1,
+        20,
+        32000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.461958556,
+        "next_fec": 0.47796919,
+        "transition_fec": 0.408525898,
+        "fidelity_ref": 0.432637222,
+        "next_ref": 0.474254602,
+        "transition_ref": 0.371015197,
+        "fidelity_plc": 1.134009094,
+        "self_consistency": 0.260072425,
+        "step_fec": 91.0,
+        "step_ref": -123.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        32000,
+        0
+      ],
+      "fields": {
+        "fidelity_fec": 0.48588989,
+        "next_fec": 0.475611082,
+        "transition_fec": 0.369590167,
+        "fidelity_ref": 0.531902714,
+        "next_ref": 0.56507988,
+        "transition_ref": 0.454155941,
+        "fidelity_plc": 1.115639228,
+        "self_consistency": 0.378199862,
+        "step_fec": -1066.0,
+        "step_ref": -501.0
+      },
+      "exit": 0
+    },
+    {
+      "key": [
+        2,
+        2,
+        20,
+        48000,
+        1
+      ],
+      "fields": {
+        "fidelity_fec": 0.481557257,
+        "next_fec": 0.454430128,
+        "transition_fec": 0.410500766,
+        "fidelity_ref": 0.491270996,
+        "next_ref": 0.491537076,
+        "transition_ref": 0.424161618,
+        "fidelity_plc": 0.892300187,
+        "self_consistency": 0.38830522,
+        "step_fec": -305.0,
+        "step_ref": -2173.5
+      },
+      "exit": 0
+    }
+  ],
+  "quality_counts": {
+    "changed": 0,
+    "comparisons": 5976,
+    "negative": 1154,
+    "packet_fields_changed": 0,
+    "worsened_existing": 0,
+    "fixed": 0,
+    "improved_existing": 0,
+    "new_negative": 0,
+    "baseline_negative": 1154
+  },
+  "quality_file_hashes": [
+    {
+      "Path": "build/energy_redistribution/postfec_no_hybrid_target_boost_isolated_lab/quality.json",
+      "Hash": "7662EE7FA0B2C8A477A5F5464102C95A60C6D6434F16AF024D146843D932CAF1"
+    },
+    {
+      "Path": "build/energy_redistribution/postfec_no_hybrid_target_boost_isolated_lab/quality_extra.json",
+      "Hash": "48E263391AE7F4186E3ADA55765ED16E9801D23DC6C54C794F81B321AFF527D8"
+    },
+    {
+      "Path": "build/energy_redistribution/fourlane_v1_validation_lab/quality.json",
+      "Hash": "8E24F5E51E46BC14B63A88484DDBD44D2D6003C4E6FA2FC88B1D0FDE31D15C31"
+    },
+    {
+      "Path": "build/energy_redistribution/fourlane_v1_validation_lab/quality_extra.json",
+      "Hash": "48E263391AE7F4186E3ADA55765ED16E9801D23DC6C54C794F81B321AFF527D8"
+    }
+  ],
+  "timing_rounds": 9,
+  "timing_order": "rotating baseline/V0/V1",
+  "timing_setup": "driver-verified affinity=1 priority=32768",
+  "measurements": [
+    {
+      "Sample": "voip_hazel",
+      "Bitrate": 16000,
+      "base": {
+        "EncodeMs": 148.856,
+        "DecodeMs": 11.5364,
+        "OfficialEncodeMs": 85.9407,
+        "Rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.579707",
+            "current_encode_ms": "147.485100",
+            "official_encode_ms": "85.498100",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.153933",
+            "current_decode_ms": "11.573200",
+            "official_decode_ms": "13.354700",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.568637",
+            "current_encode_ms": "150.167200",
+            "official_encode_ms": "85.390600",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.170865",
+            "current_decode_ms": "11.481000",
+            "official_decode_ms": "13.442700",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.583954",
+            "current_encode_ms": "147.170400",
+            "official_encode_ms": "85.940700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.175831",
+            "current_decode_ms": "11.457000",
+            "official_decode_ms": "13.471500",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.624115",
+            "current_encode_ms": "168.677700",
+            "official_encode_ms": "105.274300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.383827",
+            "current_decode_ms": "12.864400",
+            "official_decode_ms": "17.802100",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.574170",
+            "current_encode_ms": "148.782500",
+            "official_encode_ms": "85.426500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.176967",
+            "current_decode_ms": "11.445100",
+            "official_decode_ms": "13.470500",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.576204",
+            "current_encode_ms": "148.981400",
+            "official_encode_ms": "85.843700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.164913",
+            "current_decode_ms": "11.536400",
+            "official_decode_ms": "13.438900",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.586085",
+            "current_encode_ms": "147.281100",
+            "official_encode_ms": "86.319300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.151958",
+            "current_decode_ms": "11.761800",
+            "official_decode_ms": "13.549100",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.577266",
+            "current_encode_ms": "149.043700",
+            "official_encode_ms": "86.037800",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.184185",
+            "current_decode_ms": "11.560100",
+            "official_decode_ms": "13.689300",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.587912",
+            "current_encode_ms": "148.856000",
+            "official_encode_ms": "87.514300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.193537",
+            "current_decode_ms": "11.394200",
+            "official_decode_ms": "13.599400",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 139.2301,
+        "DecodeMs": 11.4407,
+        "OfficialEncodeMs": 85.6099,
+        "Rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.598923",
+            "current_encode_ms": "141.891900",
+            "official_encode_ms": "84.982300",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.184452",
+            "current_decode_ms": "11.405700",
+            "official_decode_ms": "13.509500",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.615794",
+            "current_encode_ms": "138.716600",
+            "official_encode_ms": "85.420800",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.189362",
+            "current_decode_ms": "11.390900",
+            "official_decode_ms": "13.547900",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.616318",
+            "current_encode_ms": "138.625700",
+            "official_encode_ms": "85.437500",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.172414",
+            "current_decode_ms": "11.511800",
+            "official_decode_ms": "13.496600",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.618951",
+            "current_encode_ms": "139.230100",
+            "official_encode_ms": "86.176600",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.188915",
+            "current_decode_ms": "11.413600",
+            "official_decode_ms": "13.569800",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.623963",
+            "current_encode_ms": "140.512600",
+            "official_encode_ms": "87.674700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.230015",
+            "current_decode_ms": "11.413600",
+            "official_decode_ms": "14.038900",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.611930",
+            "current_encode_ms": "139.330400",
+            "official_encode_ms": "85.260400",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.172778",
+            "current_decode_ms": "11.460400",
+            "official_decode_ms": "13.440500",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.623698",
+            "current_encode_ms": "139.071600",
+            "official_encode_ms": "86.738700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.157308",
+            "current_decode_ms": "11.744500",
+            "official_decode_ms": "13.592000",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.637636",
+            "current_encode_ms": "139.194900",
+            "official_encode_ms": "88.755700",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.177105",
+            "current_decode_ms": "11.440700",
+            "official_decode_ms": "13.466900",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.611917",
+            "current_encode_ms": "139.904400",
+            "official_encode_ms": "85.609900",
+            "opuscpp_effective_kbps": "15.999406",
+            "official_effective_kbps": "14.372065",
+            "decode_speedx": "1.184794",
+            "current_decode_ms": "11.445200",
+            "official_decode_ms": "13.560200",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -6.466585156124038
+    },
+    {
+      "Sample": "voip_hazel",
+      "Bitrate": 32000,
+      "base": {
+        "EncodeMs": 142.0167,
+        "DecodeMs": 12.5366,
+        "OfficialEncodeMs": 87.8745,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.619854",
+            "current_encode_ms": "141.032500",
+            "official_encode_ms": "87.419500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.163886",
+            "current_decode_ms": "12.542900",
+            "official_decode_ms": "14.598500",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.616032",
+            "current_encode_ms": "141.292300",
+            "official_encode_ms": "87.040600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.157569",
+            "current_decode_ms": "12.619200",
+            "official_decode_ms": "14.607600",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.618555",
+            "current_encode_ms": "140.892500",
+            "official_encode_ms": "87.149800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.170703",
+            "current_decode_ms": "12.399900",
+            "official_decode_ms": "14.516600",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.624289",
+            "current_encode_ms": "159.715500",
+            "official_encode_ms": "99.708700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.224911",
+            "current_decode_ms": "12.994000",
+            "official_decode_ms": "15.916500",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.640831",
+            "current_encode_ms": "142.796200",
+            "official_encode_ms": "91.508300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.203294",
+            "current_decode_ms": "12.466700",
+            "official_decode_ms": "15.001100",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.604286",
+            "current_encode_ms": "145.418800",
+            "official_encode_ms": "87.874500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.231064",
+            "current_decode_ms": "12.394400",
+            "official_decode_ms": "15.258300",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.604054",
+            "current_encode_ms": "145.087300",
+            "official_encode_ms": "87.640500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.167577",
+            "current_decode_ms": "12.483800",
+            "official_decode_ms": "14.575800",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.620147",
+            "current_encode_ms": "142.016700",
+            "official_encode_ms": "88.071300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.126966",
+            "current_decode_ms": "12.963300",
+            "official_decode_ms": "14.609200",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.621887",
+            "current_encode_ms": "141.578500",
+            "official_encode_ms": "88.045800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.164646",
+            "current_decode_ms": "12.536600",
+            "official_decode_ms": "14.600700",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 134.2262,
+        "DecodeMs": 12.542,
+        "OfficialEncodeMs": 87.5653,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.656148",
+            "current_encode_ms": "133.743400",
+            "official_encode_ms": "87.755500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.160729",
+            "current_decode_ms": "12.523600",
+            "official_decode_ms": "14.536500",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.650292",
+            "current_encode_ms": "134.226200",
+            "official_encode_ms": "87.286200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.174932",
+            "current_decode_ms": "12.542000",
+            "official_decode_ms": "14.736000",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.651067",
+            "current_encode_ms": "134.365000",
+            "official_encode_ms": "87.480600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.168118",
+            "current_decode_ms": "12.481100",
+            "official_decode_ms": "14.579400",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.639001",
+            "current_encode_ms": "136.431800",
+            "official_encode_ms": "87.180100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.156820",
+            "current_decode_ms": "12.567900",
+            "official_decode_ms": "14.538800",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.659413",
+            "current_encode_ms": "133.861800",
+            "official_encode_ms": "88.270200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.155163",
+            "current_decode_ms": "12.626100",
+            "official_decode_ms": "14.585200",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.646417",
+            "current_encode_ms": "135.585100",
+            "official_encode_ms": "87.644500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.183504",
+            "current_decode_ms": "12.528900",
+            "official_decode_ms": "14.828000",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.653183",
+            "current_encode_ms": "134.059400",
+            "official_encode_ms": "87.565300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.170079",
+            "current_decode_ms": "12.500100",
+            "official_decode_ms": "14.626100",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.649984",
+            "current_encode_ms": "133.931200",
+            "official_encode_ms": "87.053200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.158192",
+            "current_decode_ms": "12.586600",
+            "official_decode_ms": "14.577700",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.625863",
+            "current_encode_ms": "140.802100",
+            "official_encode_ms": "88.122800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "28.240713",
+            "decode_speedx": "1.108905",
+            "current_decode_ms": "13.128000",
+            "official_decode_ms": "14.557700",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -5.485622465526929
+    },
+    {
+      "Sample": "voip_hazel",
+      "Bitrate": 64000,
+      "base": {
+        "EncodeMs": 31.2405,
+        "DecodeMs": 13.2723,
+        "OfficialEncodeMs": 79.1138,
+        "Rows": [
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.487799",
+            "current_encode_ms": "31.439400",
+            "official_encode_ms": "78.214900",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.170607",
+            "current_decode_ms": "13.214000",
+            "official_decode_ms": "15.468400",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.558979",
+            "current_encode_ms": "31.208500",
+            "official_encode_ms": "79.861900",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.183171",
+            "current_decode_ms": "13.272300",
+            "official_decode_ms": "15.703400",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.536649",
+            "current_encode_ms": "31.158700",
+            "official_encode_ms": "79.038700",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.170685",
+            "current_decode_ms": "13.373200",
+            "official_decode_ms": "15.655800",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.463446",
+            "current_encode_ms": "34.383300",
+            "official_encode_ms": "84.701400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.044930",
+            "current_decode_ms": "15.105600",
+            "official_decode_ms": "15.784300",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.546763",
+            "current_encode_ms": "31.121500",
+            "official_encode_ms": "79.259100",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.182951",
+            "current_decode_ms": "13.276800",
+            "official_decode_ms": "15.705800",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.510786",
+            "current_encode_ms": "31.565100",
+            "official_encode_ms": "79.253200",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.179645",
+            "current_decode_ms": "13.202700",
+            "official_decode_ms": "15.574500",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.534487",
+            "current_encode_ms": "31.054800",
+            "official_encode_ms": "78.708000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.181061",
+            "current_decode_ms": "13.256300",
+            "official_decode_ms": "15.656500",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.497303",
+            "current_encode_ms": "31.679700",
+            "official_encode_ms": "79.113800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.173070",
+            "current_decode_ms": "13.333900",
+            "official_decode_ms": "15.641600",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.525075",
+            "current_encode_ms": "31.240500",
+            "official_encode_ms": "78.884600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.181638",
+            "current_decode_ms": "13.240600",
+            "official_decode_ms": "15.645600",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 31.1837,
+        "DecodeMs": 13.3004,
+        "OfficialEncodeMs": 78.8024,
+        "Rows": [
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.526093",
+            "current_encode_ms": "31.113300",
+            "official_encode_ms": "78.595100",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.186181",
+            "current_decode_ms": "13.179100",
+            "official_decode_ms": "15.632800",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.628161",
+            "current_encode_ms": "31.066700",
+            "official_encode_ms": "81.648300",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.200866",
+            "current_decode_ms": "13.300400",
+            "official_decode_ms": "15.972000",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.531861",
+            "current_encode_ms": "31.124300",
+            "official_encode_ms": "78.802400",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.179445",
+            "current_decode_ms": "13.297100",
+            "official_decode_ms": "15.683200",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.500783",
+            "current_encode_ms": "31.346500",
+            "official_encode_ms": "78.390800",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.177376",
+            "current_decode_ms": "13.240200",
+            "official_decode_ms": "15.588700",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.508857",
+            "current_encode_ms": "31.442600",
+            "official_encode_ms": "78.885000",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.169729",
+            "current_decode_ms": "13.363100",
+            "official_decode_ms": "15.631200",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.539178",
+            "current_encode_ms": "31.107000",
+            "official_encode_ms": "78.986200",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.161042",
+            "current_decode_ms": "13.471600",
+            "official_decode_ms": "15.641100",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.458563",
+            "current_encode_ms": "32.046000",
+            "official_encode_ms": "78.787100",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.175103",
+            "current_decode_ms": "13.375000",
+            "official_decode_ms": "15.717000",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.515789",
+            "current_encode_ms": "31.183700",
+            "official_encode_ms": "78.451600",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.174169",
+            "current_decode_ms": "13.282500",
+            "official_decode_ms": "15.595900",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.512767",
+            "current_encode_ms": "33.141200",
+            "official_encode_ms": "83.276100",
+            "opuscpp_effective_kbps": "58.719762",
+            "official_effective_kbps": "57.082912",
+            "decode_speedx": "1.184128",
+            "current_decode_ms": "13.958200",
+            "official_decode_ms": "16.528300",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -0.18181527184263357
+    },
+    {
+      "Sample": "voip_david",
+      "Bitrate": 16000,
+      "base": {
+        "EncodeMs": 130.3441,
+        "DecodeMs": 10.0933,
+        "OfficialEncodeMs": 75.089,
+        "Rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.567012",
+            "current_encode_ms": "130.883200",
+            "official_encode_ms": "74.212300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.188563",
+            "current_decode_ms": "10.053400",
+            "official_decode_ms": "11.949100",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.559662",
+            "current_encode_ms": "132.608600",
+            "official_encode_ms": "74.216000",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.176847",
+            "current_decode_ms": "10.114400",
+            "official_decode_ms": "11.903100",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.589619",
+            "current_encode_ms": "130.185400",
+            "official_encode_ms": "76.759800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.198879",
+            "current_decode_ms": "10.058400",
+            "official_decode_ms": "12.058800",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.576171",
+            "current_encode_ms": "130.324100",
+            "official_encode_ms": "75.089000",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.181589",
+            "current_decode_ms": "10.123400",
+            "official_decode_ms": "11.961700",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.573169",
+            "current_encode_ms": "130.344100",
+            "official_encode_ms": "74.709200",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.174598",
+            "current_decode_ms": "10.086000",
+            "official_decode_ms": "11.847000",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.578223",
+            "current_encode_ms": "130.318100",
+            "official_encode_ms": "75.352900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.181972",
+            "current_decode_ms": "10.093300",
+            "official_decode_ms": "11.930000",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.602768",
+            "current_encode_ms": "154.977300",
+            "official_encode_ms": "93.415400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.367064",
+            "current_decode_ms": "11.814000",
+            "official_decode_ms": "16.150500",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.579574",
+            "current_encode_ms": "130.073400",
+            "official_encode_ms": "75.387200",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.166844",
+            "current_decode_ms": "10.241300",
+            "official_decode_ms": "11.950000",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.567648",
+            "current_encode_ms": "131.935300",
+            "official_encode_ms": "74.892800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.175238",
+            "current_decode_ms": "10.090300",
+            "official_decode_ms": "11.858500",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 123.0481,
+        "DecodeMs": 10.1923,
+        "OfficialEncodeMs": 74.5448,
+        "Rows": [
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.606076",
+            "current_encode_ms": "122.995800",
+            "official_encode_ms": "74.544800",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.161396",
+            "current_decode_ms": "10.192300",
+            "official_decode_ms": "11.837300",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.624605",
+            "current_encode_ms": "122.699000",
+            "official_encode_ms": "76.638400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.181219",
+            "current_decode_ms": "10.159000",
+            "official_decode_ms": "12.000000",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.602874",
+            "current_encode_ms": "123.910400",
+            "official_encode_ms": "74.702400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.167243",
+            "current_decode_ms": "10.173800",
+            "official_decode_ms": "11.875300",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.604754",
+            "current_encode_ms": "122.880000",
+            "official_encode_ms": "74.312200",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.166815",
+            "current_decode_ms": "10.126200",
+            "official_decode_ms": "11.815400",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.605898",
+            "current_encode_ms": "122.911600",
+            "official_encode_ms": "74.471900",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.168480",
+            "current_decode_ms": "10.165000",
+            "official_decode_ms": "11.877600",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.604143",
+            "current_encode_ms": "126.591500",
+            "official_encode_ms": "76.479400",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.156068",
+            "current_decode_ms": "10.292300",
+            "official_decode_ms": "11.898600",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.604262",
+            "current_encode_ms": "123.048100",
+            "official_encode_ms": "74.353300",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.144745",
+            "current_decode_ms": "10.315400",
+            "official_decode_ms": "11.808500",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.641508",
+            "current_encode_ms": "125.718000",
+            "official_encode_ms": "80.649100",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.192115",
+            "current_decode_ms": "10.572300",
+            "official_decode_ms": "12.603400",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "16000",
+            "encode_speedx": "0.597063",
+            "current_encode_ms": "124.589400",
+            "official_encode_ms": "74.387700",
+            "opuscpp_effective_kbps": "15.999322",
+            "official_effective_kbps": "14.062373",
+            "decode_speedx": "1.158384",
+            "current_decode_ms": "10.226400",
+            "official_decode_ms": "11.846100",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -5.597491562717449
+    },
+    {
+      "Sample": "voip_david",
+      "Bitrate": 32000,
+      "base": {
+        "EncodeMs": 134.0882,
+        "DecodeMs": 10.9688,
+        "OfficialEncodeMs": 76.6582,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.572849",
+            "current_encode_ms": "134.199800",
+            "official_encode_ms": "76.876200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.155937",
+            "current_decode_ms": "11.007000",
+            "official_decode_ms": "12.723400",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.575639",
+            "current_encode_ms": "133.934400",
+            "official_encode_ms": "77.097900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.143445",
+            "current_decode_ms": "11.061400",
+            "official_decode_ms": "12.648100",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.569581",
+            "current_encode_ms": "134.006800",
+            "official_encode_ms": "76.327700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.159990",
+            "current_decode_ms": "10.968800",
+            "official_decode_ms": "12.723700",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.580868",
+            "current_encode_ms": "133.825800",
+            "official_encode_ms": "77.735100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.176133",
+            "current_decode_ms": "10.915600",
+            "official_decode_ms": "12.838200",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.561940",
+            "current_encode_ms": "135.388000",
+            "official_encode_ms": "76.080000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.171197",
+            "current_decode_ms": "10.896200",
+            "official_decode_ms": "12.761600",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.569159",
+            "current_encode_ms": "134.686700",
+            "official_encode_ms": "76.658200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.164293",
+            "current_decode_ms": "10.969400",
+            "official_decode_ms": "12.771600",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.563944",
+            "current_encode_ms": "174.085500",
+            "official_encode_ms": "98.174400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.414799",
+            "current_decode_ms": "13.444600",
+            "official_decode_ms": "19.021400",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.569127",
+            "current_encode_ms": "133.934300",
+            "official_encode_ms": "76.225600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.159757",
+            "current_decode_ms": "10.967900",
+            "official_decode_ms": "12.720100",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.568972",
+            "current_encode_ms": "134.088200",
+            "official_encode_ms": "76.292400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.160450",
+            "current_decode_ms": "10.959200",
+            "official_decode_ms": "12.717600",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 126.6898,
+        "DecodeMs": 11.0666,
+        "OfficialEncodeMs": 76.1208,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.601305",
+            "current_encode_ms": "126.775100",
+            "official_encode_ms": "76.230500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.150329",
+            "current_decode_ms": "11.035100",
+            "official_decode_ms": "12.694000",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.601750",
+            "current_encode_ms": "126.499100",
+            "official_encode_ms": "76.120800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.156120",
+            "current_decode_ms": "11.122200",
+            "official_decode_ms": "12.858600",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.601606",
+            "current_encode_ms": "126.478700",
+            "official_encode_ms": "76.090400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.158261",
+            "current_decode_ms": "10.995100",
+            "official_decode_ms": "12.735200",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.600325",
+            "current_encode_ms": "126.689800",
+            "official_encode_ms": "76.055000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.158196",
+            "current_decode_ms": "11.095700",
+            "official_decode_ms": "12.851000",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.600024",
+            "current_encode_ms": "126.856000",
+            "official_encode_ms": "76.116600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.151390",
+            "current_decode_ms": "11.078700",
+            "official_decode_ms": "12.755900",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.604620",
+            "current_encode_ms": "127.915300",
+            "official_encode_ms": "77.340100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.164115",
+            "current_decode_ms": "11.066600",
+            "official_decode_ms": "12.882800",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.603683",
+            "current_encode_ms": "126.562000",
+            "official_encode_ms": "76.403300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.155204",
+            "current_decode_ms": "11.019700",
+            "official_decode_ms": "12.730000",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.622971",
+            "current_encode_ms": "126.799400",
+            "official_encode_ms": "78.992300",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.150538",
+            "current_decode_ms": "11.049700",
+            "official_decode_ms": "12.713100",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "0.600984",
+            "current_encode_ms": "126.514000",
+            "official_encode_ms": "76.032900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "27.565424",
+            "decode_speedx": "1.158217",
+            "current_decode_ms": "11.089200",
+            "official_decode_ms": "12.843700",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -5.517562320920111
+    },
+    {
+      "Sample": "voip_david",
+      "Bitrate": 64000,
+      "base": {
+        "EncodeMs": 27.8034,
+        "DecodeMs": 11.5258,
+        "OfficialEncodeMs": 66.1565,
+        "Rows": [
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.385480",
+            "current_encode_ms": "27.764600",
+            "official_encode_ms": "66.231900",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.162595",
+            "current_decode_ms": "11.476400",
+            "official_decode_ms": "13.342400",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.346969",
+            "current_encode_ms": "28.141400",
+            "official_encode_ms": "66.047000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.160143",
+            "current_decode_ms": "11.571500",
+            "official_decode_ms": "13.424600",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.354953",
+            "current_encode_ms": "28.008500",
+            "official_encode_ms": "65.958700",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.158011",
+            "current_decode_ms": "11.525800",
+            "official_decode_ms": "13.347000",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.491764",
+            "current_encode_ms": "27.803400",
+            "official_encode_ms": "69.279500",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.163837",
+            "current_decode_ms": "11.542600",
+            "official_decode_ms": "13.433700",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.386665",
+            "current_encode_ms": "27.715700",
+            "official_encode_ms": "66.148100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.163371",
+            "current_decode_ms": "11.485500",
+            "official_decode_ms": "13.361900",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.360641",
+            "current_encode_ms": "28.024800",
+            "official_encode_ms": "66.156500",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.164020",
+            "current_decode_ms": "11.479700",
+            "official_decode_ms": "13.362600",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.377600",
+            "current_encode_ms": "34.249700",
+            "official_encode_ms": "81.432100",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.055675",
+            "current_decode_ms": "14.349400",
+            "official_decode_ms": "15.148300",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.393728",
+            "current_encode_ms": "27.786700",
+            "official_encode_ms": "66.513800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.178700",
+            "current_decode_ms": "11.570200",
+            "official_decode_ms": "13.637800",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.380041",
+            "current_encode_ms": "27.769600",
+            "official_encode_ms": "66.092800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.165598",
+            "current_decode_ms": "11.446400",
+            "official_decode_ms": "13.341900",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 27.7779,
+        "DecodeMs": 11.5222,
+        "OfficialEncodeMs": 66.3868,
+        "Rows": [
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.392128",
+            "current_encode_ms": "27.777900",
+            "official_encode_ms": "66.448300",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.176039",
+            "current_decode_ms": "11.448600",
+            "official_decode_ms": "13.464000",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.437697",
+            "current_encode_ms": "27.823600",
+            "official_encode_ms": "67.825500",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.135781",
+            "current_decode_ms": "11.760100",
+            "official_decode_ms": "13.356900",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.383432",
+            "current_encode_ms": "27.689400",
+            "official_encode_ms": "65.995800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.169803",
+            "current_decode_ms": "11.522200",
+            "official_decode_ms": "13.478700",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.381067",
+            "current_encode_ms": "27.723700",
+            "official_encode_ms": "66.012000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.166417",
+            "current_decode_ms": "11.476600",
+            "official_decode_ms": "13.386500",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.381984",
+            "current_encode_ms": "27.891200",
+            "official_encode_ms": "66.436400",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.170468",
+            "current_decode_ms": "11.446700",
+            "official_decode_ms": "13.398000",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.379745",
+            "current_encode_ms": "27.896600",
+            "official_encode_ms": "66.386800",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.175796",
+            "current_decode_ms": "11.524700",
+            "official_decode_ms": "13.550700",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.327169",
+            "current_encode_ms": "28.744800",
+            "official_encode_ms": "66.894000",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.139210",
+            "current_decode_ms": "11.724000",
+            "official_decode_ms": "13.356100",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.382196",
+            "current_encode_ms": "27.754600",
+            "official_encode_ms": "66.116900",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.172540",
+            "current_decode_ms": "11.473300",
+            "official_decode_ms": "13.452900",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "64000",
+            "encode_speedx": "2.389201",
+            "current_encode_ms": "27.751200",
+            "official_encode_ms": "66.303200",
+            "opuscpp_effective_kbps": "56.192542",
+            "official_effective_kbps": "54.105085",
+            "decode_speedx": "1.325769",
+            "current_decode_ms": "11.527800",
+            "official_decode_ms": "15.283200",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -0.09171540171346582
+    },
+    {
+      "Sample": "audio",
+      "Bitrate": 32000,
+      "base": {
+        "EncodeMs": 20.9674,
+        "DecodeMs": 7.8872,
+        "OfficialEncodeMs": 38.7014,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.835473",
+            "current_encode_ms": "21.048800",
+            "official_encode_ms": "38.634500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.347222",
+            "current_decode_ms": "7.956300",
+            "official_decode_ms": "10.718900",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.849585",
+            "current_encode_ms": "20.819700",
+            "official_encode_ms": "38.507800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.365243",
+            "current_decode_ms": "7.813700",
+            "official_decode_ms": "10.667600",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.862429",
+            "current_encode_ms": "21.274800",
+            "official_encode_ms": "39.622800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.298943",
+            "current_decode_ms": "8.285200",
+            "official_decode_ms": "10.762000",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.842246",
+            "current_encode_ms": "20.967400",
+            "official_encode_ms": "38.627100",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.372438",
+            "current_decode_ms": "7.840500",
+            "official_decode_ms": "10.760600",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.858851",
+            "current_encode_ms": "20.967900",
+            "official_encode_ms": "38.976200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.353620",
+            "current_decode_ms": "7.895200",
+            "official_decode_ms": "10.687100",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.861770",
+            "current_encode_ms": "20.821800",
+            "official_encode_ms": "38.765400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.376888",
+            "current_decode_ms": "7.820100",
+            "official_decode_ms": "10.767400",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.854234",
+            "current_encode_ms": "20.777100",
+            "official_encode_ms": "38.525600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.359943",
+            "current_decode_ms": "7.914300",
+            "official_decode_ms": "10.763000",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.859946",
+            "current_encode_ms": "20.910500",
+            "official_encode_ms": "38.892400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.357643",
+            "current_decode_ms": "7.887200",
+            "official_decode_ms": "10.708000",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.836069",
+            "current_encode_ms": "21.078400",
+            "official_encode_ms": "38.701400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.357036",
+            "current_decode_ms": "7.885200",
+            "official_decode_ms": "10.700500",
+            "Repeat": 8
+          }
+        ]
+      },
+      "v1": {
+        "EncodeMs": 20.8642,
+        "DecodeMs": 7.8847,
+        "OfficialEncodeMs": 38.6157,
+        "Rows": [
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.853500",
+            "current_encode_ms": "20.864200",
+            "official_encode_ms": "38.671800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.384389",
+            "current_decode_ms": "7.903200",
+            "official_decode_ms": "10.941100",
+            "Repeat": 0
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.853814",
+            "current_encode_ms": "20.841300",
+            "official_encode_ms": "38.635900",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.358922",
+            "current_decode_ms": "7.851000",
+            "official_decode_ms": "10.668900",
+            "Repeat": 1
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.828890",
+            "current_encode_ms": "21.092900",
+            "official_encode_ms": "38.576600",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.346601",
+            "current_decode_ms": "7.948900",
+            "official_decode_ms": "10.704000",
+            "Repeat": 2
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.856550",
+            "current_encode_ms": "20.784900",
+            "official_encode_ms": "38.588200",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.379641",
+            "current_decode_ms": "7.831600",
+            "official_decode_ms": "10.804800",
+            "Repeat": 3
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.737003",
+            "current_encode_ms": "23.131800",
+            "official_encode_ms": "40.180000",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.235821",
+            "current_decode_ms": "8.688800",
+            "official_decode_ms": "10.737800",
+            "Repeat": 4
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.839704",
+            "current_encode_ms": "20.986800",
+            "official_encode_ms": "38.609500",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.357339",
+            "current_decode_ms": "7.886900",
+            "official_decode_ms": "10.705200",
+            "Repeat": 5
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.843315",
+            "current_encode_ms": "20.882700",
+            "official_encode_ms": "38.493400",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.365369",
+            "current_decode_ms": "7.829900",
+            "official_decode_ms": "10.690700",
+            "Repeat": 6
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.856318",
+            "current_encode_ms": "20.805600",
+            "official_encode_ms": "38.621800",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.351821",
+            "current_decode_ms": "7.884700",
+            "official_decode_ms": "10.658700",
+            "Repeat": 7
+          },
+          {
+            "bitrate": "32000",
+            "encode_speedx": "1.864097",
+            "current_encode_ms": "20.715500",
+            "official_encode_ms": "38.615700",
+            "opuscpp_effective_kbps": "32.000000",
+            "official_effective_kbps": "33.006667",
+            "decode_speedx": "1.378556",
+            "current_decode_ms": "7.864100",
+            "official_decode_ms": "10.841100",
+            "Repeat": 8
+          }
+        ]
+      },
+      "V1EncodeTimeChangePercent": -0.4921926419107825
+    }
+  ],
+  "stack_frame_bytes": {
+    "baseline": 10112,
+    "candidate": 10592,
+    "delta": 480
+  },
+  "stack_scope": "silk_NSQ<Delayed=true, KnownZero=false> per-function reservation, not nested peak",
+  "persistent_state_layout_changed": false,
+  "new_heap_allocations": false,
+  "remaining": "1154below-official quality fields and remaining hybrid speed gap; no full-parity claim"
+}
