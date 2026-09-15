@@ -108,20 +108,19 @@ six-second AUDIO validation. Payload rates in the speed CSV can therefore differ
 decoder output; the quality values are synthetic objective proxy scores, not a replacement for
 official PESQ/ViSQOL tooling or listening tests.
 
-| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate | VOIP encode (Hazel / David) | VOIP decode (Hazel / David) |
-|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.797x | 1.878x | +0.0003 | -0.0014 | 16.000 kbps | 17.065 kbps | 0.632x / 0.624x | 1.160x / 1.157x |
-| 24&nbsp;kbps | 1.769x | 1.421x | +0.3781 | +0.0963 | 24.000 kbps | 25.229 kbps | — | — |
-| 32&nbsp;kbps | 1.744x | 1.394x | +0.5416 | +0.0929 | 32.000 kbps | 33.613 kbps | 0.668x / 0.715x | 1.167x / 1.177x |
-| 48&nbsp;kbps | 1.590x | 1.282x | +0.1634 | +0.0127 | 48.000 kbps | 48.560 kbps | — | — |
-| 64&nbsp;kbps | 1.526x | 1.249x | +0.1394 | +0.0047 | 64.000 kbps | 64.613 kbps | 2.488x / 2.396x | 1.153x / 1.185x |
-| 96&nbsp;kbps | 1.549x | 1.189x | +0.2902 | +0.0125 | 96.000 kbps | 96.697 kbps | — | — |
-| 128&nbsp;kbps | 1.484x | 1.164x | +0.1902 | +0.0042 | 128.000 kbps | 128.759 kbps | — | — |
-| 192&nbsp;kbps | 1.325x | 1.240x | +0.0709 | +0.0028 | 192.000 kbps | 192.900 kbps | — | — |
-| 256&nbsp;kbps | 1.193x | 1.233x | +0.0341 | +0.0020 | 256.000 kbps | 256.737 kbps | — | — |
+| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
+|---:|---:|---:|---:|---:|---:|---:|
+| 16&nbsp;kbps | 1.797x | 1.878x | +0.0003 | -0.0014 | 16.000 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.769x | 1.421x | +0.3781 | +0.0963 | 24.000 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 1.744x | 1.394x | +0.5416 | +0.0929 | 32.000 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.590x | 1.282x | +0.1634 | +0.0127 | 48.000 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.526x | 1.249x | +0.1394 | +0.0047 | 64.000 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.549x | 1.189x | +0.2902 | +0.0125 | 96.000 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.484x | 1.164x | +0.1902 | +0.0042 | 128.000 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.325x | 1.240x | +0.0709 | +0.0028 | 192.000 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.193x | 1.233x | +0.0341 | +0.0020 | 256.000 kbps | 256.737 kbps |
 
 
-Real-speech 20 ms VOIP speed columns use the Hazel and David recordings, while the quality and effective-bitrate columns use the six-second synthetic fixture, so those rows are not directly comparable. An em dash (—) means not measured for the 20 ms speech workload; separate FEC60 timings are in [All speech timings](tests/metrics/README.md#speed-payload-rate-and-processing-costs).
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
