@@ -21,18 +21,18 @@
 
 static int g_checks = 0;
 static int g_failures = 0;
-#define CHECK(cond, msg)                                                   \
-  do {                                                                     \
-    ++g_checks;                                                            \
-    if (!(cond)) {                                                         \
-      ++g_failures;                                                        \
-      std::printf("FAIL %s (line %d)\n", (msg), __LINE__);                 \
-    }                                                                      \
+#define CHECK(cond, msg)                                   \
+  do {                                                     \
+    ++g_checks;                                            \
+    if (!(cond)) {                                         \
+      ++g_failures;                                        \
+      std::printf("FAIL %s (line %d)\n", (msg), __LINE__); \
+    }                                                      \
   } while (0)
 
 namespace {
 constexpr int test_fs = 48000;
-constexpr int test_frame = 960;  // 20 ms
+constexpr int test_frame = 960; // 20 ms
 constexpr float test_pi = 3.14159265358979323846f;
 
 void make_tone(std::vector<float>& pcm, float freq_hz, float amplitude, float& phase) {
@@ -41,13 +41,15 @@ void make_tone(std::vector<float>& pcm, float freq_hz, float amplitude, float& p
   for (int i = 0; i < test_frame; ++i) {
     pcm[static_cast<std::size_t>(i)] = amplitude * std::sin(phase);
     phase += step;
-    if (phase > 2.f * test_pi) phase -= 2.f * test_pi;
+    if (phase > 2.f * test_pi)
+      phase -= 2.f * test_pi;
   }
 }
 
 void make_dc_with_ac(std::vector<float>& pcm, float dc, float freq_hz, float amplitude, float& phase) {
   make_tone(pcm, freq_hz, amplitude, phase);
-  for (auto& sample : pcm) sample += dc;
+  for (auto& sample : pcm)
+    sample += dc;
 }
 
 // A state that has completed its first frame and is then placed at a known
@@ -84,11 +86,12 @@ double run_clean_frames(voice_conditioning_channel& state, int frames, std::vect
   for (int f = 0; f < frames; ++f) {
     make_tone(pcm, 1000.f, 0.2f, phase);
     update_voice_conditioning(state, pcm.data(), test_frame, 1, test_fs);
-    if (trace) trace->push_back(static_cast<double>(state.cond_score));
+    if (trace)
+      trace->push_back(static_cast<double>(state.cond_score));
   }
   return static_cast<double>(state.cond_score);
 }
-}  // namespace
+} // namespace
 
 int main() {
   // 1 kHz at amplitude 0.2: the 150 Hz LF one-pole sees almost nothing while the
