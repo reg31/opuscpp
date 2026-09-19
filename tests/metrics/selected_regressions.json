@@ -1,6 +1,6 @@
 {
-  "source_commit": "d7248b421de6956aad1b83fddd098898f47e6673",
-  "source_sha256": "8f51d083e979b6ad2a0c89c86df92590268f9300bb2aa004030d0a1865469a2b",
+  "source_commit": "c25774c6d3100a8c008c37ac8727c9ee47f67b32",
+  "source_sha256": "fa93142ddc50cdacf50152d85db5807c073f6dd640cd93deb3a5a7e12880ba79",
   "results": {
     "voip_quiet_start_latch": "voip_startup_behavior checks=24 failures=0 (mode convergence and byte-identical reset)\n",
     "vbr_budget_behavior": "vbr_budget_behavior=PASS\n",
@@ -9,64 +9,64 @@
     "dtx_behavior": "dtx_behavior=PASS silence_packets=29 tonal_packets=0 digital_silence_packets=86\n",
     "voice_denoise_state": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes\n",
     "hybrid_transient_budget": "hybrid_transient_budget=PASS\n",
-    "nsq_quant_levels": "ORACLE cases=7495800 failures=0 max_index_seen=61 table_bytes=1984\n"
+    "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0\n"
   },
   "commands": {
     "check_decoder_channel_remap.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\decoder_channel_remap.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\decoder_channel_remap.exe"
       ],
       "exit": 0,
-      "seconds": 0.13786610000533983
+      "seconds": 0.0925783999991836
     },
     "check_dtx_behavior.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\dtx_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\dtx_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.11144000000786036
+      "seconds": 0.08762059999571647
     },
     "check_hybrid_transient_budget.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\hybrid_transient_budget.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\hybrid_transient_budget.exe"
       ],
       "exit": 0,
-      "seconds": 0.07590280000295024
-    },
-    "check_nsq_quant_levels.cmd": {
-      "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\nsq_quant_levels.exe"
-      ],
-      "exit": 0,
-      "seconds": 0.09049159999995027
+      "seconds": 0.05843260000983719
     },
     "check_packet_duration_behavior.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\packet_duration_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\packet_duration_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.435319599986542
+      "seconds": 0.33780759999353904
     },
     "check_vbr_budget_behavior.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\vbr_budget_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\vbr_budget_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 11.488288099993952
+      "seconds": 11.238849299988942
+    },
+    "check_voice_conditioning_release.cmd": {
+      "argv": [
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\voice_conditioning_release.exe"
+      ],
+      "exit": 0,
+      "seconds": 0.07947750001039822
     },
     "check_voice_denoise_state.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\voice_denoise_state.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\voice_denoise_state.exe"
       ],
       "exit": 0,
-      "seconds": 0.4541689000034239
+      "seconds": 0.46370600000955164
     },
     "check_voip_quiet_start_latch.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\nsq_levels_release\\voip_quiet_start_latch.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\provisional_C_release\\voip_quiet_start_latch.exe"
       ],
       "exit": 0,
-      "seconds": 2.252757099995506
+      "seconds": 2.206101999996463
     }
   },
   "sanitizers": false

@@ -1,10 +1,10 @@
 # Complete production metrics
 
-Codex independently refreshed production `d7248b421de6956aad1b83fddd098898f47e6673` on 2026-09-15 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. 8 selected behavioral/regression harnesses passed on this source; broader compatibility results remain historical.
+Codex independently refreshed production `c25774c6d3100a8c008c37ac8727c9ee47f67b32` on 2026-09-19 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. 8 selected behavioral/regression harnesses passed on this source; broader compatibility results remain historical.
 
 ## Quality: every metric
 
-The parity matrix contains 498 cases and 5,976 comparisons; 1,154 fields are below official. The separate 806-run publication suite includes headline complexity 9/10 controls, broader content, postfilter and denoiser comparisons. Overlapping cases in these suites are not independent observations.
+The parity matrix contains 498 cases and 5,976 comparisons; 1,134 fields are below official. The separate 806-run publication suite includes headline complexity 9/10 controls, broader content, postfilter and denoiser comparisons. Overlapping cases in these suites are not independent observations.
 
 | Metric | Better direction | Below official / 498 parity cases | Below official / 806 publication cases |
 |---|---|---:|---:|
@@ -13,11 +13,11 @@ The parity matrix contains 498 cases and 5,976 comparisons; 1,154 fields are bel
 | rms_error | Lower | 44 | 42 |
 | mean_abs_error | Lower | 38 | 42 |
 | pesq_style | Higher | 40 | 41 |
-| visqol_style | Higher | 116 | 113 |
-| logband_corr | Higher | 109 | 150 |
-| logband_error | Lower | 120 | 129 |
-| celt_quality | Higher | 159 | 204 |
-| celt_masked_error | Lower | 159 | 204 |
+| visqol_style | Higher | 110 | 113 |
+| logband_corr | Higher | 103 | 150 |
+| logband_error | Lower | 116 | 129 |
+| celt_quality | Higher | 157 | 204 |
+| celt_masked_error | Lower | 157 | 204 |
 | celt_highband_error | Lower | 240 | 289 |
 | stereo_width_error | Lower | 43 | 29 |
 
@@ -27,18 +27,18 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 1.27x to 1.79x; decode: 1.19x to 1.77x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 1.27x to 1.79x; decode: 1.20x to 1.81x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 | Speech input | Mode | Frame ms | Rate bps | Current encode ms | Official encode ms | Encode ratio | Current decode ms | Official decode ms | Decode ratio |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hazel | voice | 20.0 | 16000 | 123.794700 | 85.581900 | 0.691321 | 11.437500 | 13.605600 | 1.189561 |
-| hazel | voice | 20.0 | 32000 | 118.890600 | 87.537200 | 0.736284 | 12.491600 | 14.595900 | 1.168457 |
-| hazel | voice | 20.0 | 64000 | 31.223000 | 78.885400 | 2.526516 | 13.229500 | 15.665600 | 1.184142 |
-| hazel | fec60 | 60.0 | 24000 | 156.809600 | 95.052300 | 0.606164 | 7.958000 | 9.260300 | 1.163647 |
-| david | voice | 20.0 | 16000 | 109.230800 | 74.260200 | 0.679847 | 10.111600 | 11.937400 | 1.180565 |
-| david | voice | 20.0 | 32000 | 112.199600 | 76.363600 | 0.680605 | 10.971700 | 12.726300 | 1.159921 |
-| david | voice | 20.0 | 64000 | 27.894000 | 66.016000 | 2.366674 | 11.458600 | 13.420000 | 1.171173 |
-| david | fec60 | 60.0 | 24000 | 135.297500 | 82.600600 | 0.610511 | 7.013700 | 8.054900 | 1.148452 |
+| hazel | voice | 20.0 | 16000 | 125.090300 | 86.186500 | 0.688994 | 11.442800 | 13.557000 | 1.184762 |
+| hazel | voice | 20.0 | 32000 | 121.555900 | 88.262600 | 0.726107 | 12.464400 | 14.860000 | 1.192195 |
+| hazel | voice | 20.0 | 64000 | 31.161300 | 79.180000 | 2.540972 | 13.249600 | 15.726400 | 1.186934 |
+| hazel | fec60 | 60.0 | 24000 | 157.407900 | 95.738100 | 0.608217 | 7.948600 | 9.222300 | 1.160242 |
+| david | voice | 20.0 | 16000 | 109.082000 | 76.688600 | 0.703036 | 10.100100 | 11.963100 | 1.184454 |
+| david | voice | 20.0 | 32000 | 112.381600 | 76.546800 | 0.681133 | 11.008200 | 12.761000 | 1.159227 |
+| david | voice | 20.0 | 64000 | 27.925000 | 65.931900 | 2.361035 | 11.453600 | 13.348200 | 1.165415 |
+| david | fec60 | 60.0 | 24000 | 135.879000 | 82.729200 | 0.608845 | 7.015800 | 8.034200 | 1.145158 |
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the table.
 
@@ -50,21 +50,21 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 16832 | 16768 | Not exposed |
-| official_encoder_ch1 | 31872 | 31696 | 31668 |
-| current_decoder_ch1 | 14192 | 13088 | Not exposed |
-| official_decoder_ch1 | 18304 | 18496 | 18468 |
-| current_encoder_ch2 | 32576 | 32512 | Not exposed |
-| official_encoder_ch2 | 49072 | 48752 | 48684 |
-| current_decoder_ch2 | 21232 | 21328 | Not exposed |
+| current_encoder_ch1 | 16832 | 16864 | Not exposed |
+| official_encoder_ch1 | 31888 | 31904 | 31668 |
+| current_decoder_ch1 | 14128 | 13104 | Not exposed |
+| official_decoder_ch1 | 18352 | 18576 | 18468 |
+| current_encoder_ch2 | 32576 | 32496 | Not exposed |
+| official_encoder_ch2 | 48880 | 48720 | 48684 |
+| current_decoder_ch2 | 21264 | 21312 | Not exposed |
 | official_decoder_ch2 | 27392 | 27280 | 27236 |
 
 [Memory CSV](memory_vs_official.csv). Denoiser optional state: 68 bytes; temporary stack cache: 7,680 bytes. Compiler-reported NSQ stack reservations in earlier checkpoint sections are historical function reservations, not newly measured peak memory.
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 324760 | 0 | 0 | 324760 |
-| android | 327588 | 472 | 0 | 328060 |
+| host | 324824 | 0 | 0 | 324824 |
+| android | 327580 | 472 | 0 | 328052 |
 
 [Binary-size CSV](binary_size.csv).
 
@@ -104,10 +104,10 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=21.4865 decode_ms=21.1869 checksum=340886119
-mono-high bytes=115 encode_ms=24.9614 decode_ms=20.9401 checksum=2633358364
-stereo-mid bytes=102 encode_ms=90.0466 decode_ms=29.3295 checksum=3294895434
-stereo-high bytes=147 encode_ms=97.6792 decode_ms=31.0477 checksum=1997488960
+mono-mid bytes=76 encode_ms=21.2294 decode_ms=20.6518 checksum=340886119
+mono-high bytes=115 encode_ms=23.0046 decode_ms=18.648 checksum=2633358364
+stereo-mid bytes=102 encode_ms=88.8085 decode_ms=29.08 checksum=3294895434
+stereo-high bytes=147 encode_ms=100.017 decode_ms=30.8951 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
@@ -125,4 +125,4 @@ WER/CER: not measured; no configured ASR engine/transcript manifest. No result i
 - `dtx_behavior`: passed.
 - `voice_denoise_state`: passed.
 - `hybrid_transient_budget`: passed.
-- `nsq_quant_levels`: passed.
+- `voice_conditioning_release`: passed.
