@@ -3141,7 +3141,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
                                      ? 1.f
                                      : 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
     const bool dc_driven = target == 1.f && (dc_fast || dc_evidence);
-    const opus_val32 coef = (target > state.cond_score || state.cue_provisional != 0)
+    const opus_val32 coef = (target > state.cond_score)
                                 ? (dc_driven ? dc_attack : attack)
                                 : release;
     state.cond_score += coef * (target - state.cond_score);
