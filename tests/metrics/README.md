@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `c25774c6d3100a8c008c37ac8727c9ee47f67b32` on 2026-09-19 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. 8 selected behavioral/regression harnesses passed on this source; broader compatibility results remain historical.
+Codex independently refreshed production `65a99c0c343232935dcd65c5194c7cde84ef6221` on 2026-09-20 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. 8 selected behavioral/regression harnesses passed on this source; broader compatibility results remain historical.
 
 ## Quality: every metric
 
@@ -27,18 +27,18 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 1.27x to 1.79x; decode: 1.20x to 1.81x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 1.27x to 1.77x; decode: 1.19x to 1.82x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 | Speech input | Mode | Frame ms | Rate bps | Current encode ms | Official encode ms | Encode ratio | Current decode ms | Official decode ms | Decode ratio |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hazel | voice | 20.0 | 16000 | 125.090300 | 86.186500 | 0.688994 | 11.442800 | 13.557000 | 1.184762 |
-| hazel | voice | 20.0 | 32000 | 121.555900 | 88.262600 | 0.726107 | 12.464400 | 14.860000 | 1.192195 |
-| hazel | voice | 20.0 | 64000 | 31.161300 | 79.180000 | 2.540972 | 13.249600 | 15.726400 | 1.186934 |
-| hazel | fec60 | 60.0 | 24000 | 157.407900 | 95.738100 | 0.608217 | 7.948600 | 9.222300 | 1.160242 |
-| david | voice | 20.0 | 16000 | 109.082000 | 76.688600 | 0.703036 | 10.100100 | 11.963100 | 1.184454 |
-| david | voice | 20.0 | 32000 | 112.381600 | 76.546800 | 0.681133 | 11.008200 | 12.761000 | 1.159227 |
-| david | voice | 20.0 | 64000 | 27.925000 | 65.931900 | 2.361035 | 11.453600 | 13.348200 | 1.165415 |
-| david | fec60 | 60.0 | 24000 | 135.879000 | 82.729200 | 0.608845 | 7.015800 | 8.034200 | 1.145158 |
+| hazel | voice | 20.0 | 16000 | 126.435100 | 85.610500 | 0.677110 | 11.469400 | 13.539200 | 1.180463 |
+| hazel | voice | 20.0 | 32000 | 120.071800 | 87.689300 | 0.730307 | 12.549800 | 14.579500 | 1.161732 |
+| hazel | voice | 20.0 | 64000 | 30.988800 | 78.986400 | 2.548869 | 13.321300 | 15.748400 | 1.182197 |
+| hazel | fec60 | 60.0 | 24000 | 156.290600 | 96.136600 | 0.615114 | 7.923300 | 9.378300 | 1.183636 |
+| david | voice | 20.0 | 16000 | 108.432000 | 74.457000 | 0.686670 | 10.084500 | 11.875600 | 1.177609 |
+| david | voice | 20.0 | 32000 | 112.432600 | 76.215300 | 0.677875 | 10.972500 | 12.717000 | 1.158988 |
+| david | voice | 20.0 | 64000 | 27.519900 | 66.010500 | 2.398646 | 11.483600 | 13.443100 | 1.170635 |
+| david | fec60 | 60.0 | 24000 | 135.010100 | 82.890400 | 0.613957 | 7.032900 | 8.045500 | 1.143980 |
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the table.
 
@@ -63,8 +63,8 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 324824 | 0 | 0 | 324824 |
-| android | 327580 | 472 | 0 | 328052 |
+| host | 324888 | 0 | 0 | 324888 |
+| android | 327684 | 472 | 0 | 328156 |
 
 [Binary-size CSV](binary_size.csv).
 
@@ -104,10 +104,10 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=21.2294 decode_ms=20.6518 checksum=340886119
-mono-high bytes=115 encode_ms=23.0046 decode_ms=18.648 checksum=2633358364
-stereo-mid bytes=102 encode_ms=88.8085 decode_ms=29.08 checksum=3294895434
-stereo-high bytes=147 encode_ms=100.017 decode_ms=30.8951 checksum=1997488960
+mono-mid bytes=76 encode_ms=21.3811 decode_ms=21.9111 checksum=340886119
+mono-high bytes=115 encode_ms=23.6668 decode_ms=18.7651 checksum=2633358364
+stereo-mid bytes=102 encode_ms=92.191 decode_ms=29.4364 checksum=3294895434
+stereo-high bytes=147 encode_ms=97.9409 decode_ms=31.6701 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
