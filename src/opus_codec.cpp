@@ -11852,14 +11852,19 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
     const auto gain_tmp_Q7 = cb_gain_Q7[k];
     const auto penalty = wrap_shift_left(std::max(gain_tmp_Q7 - max_gain_Q7, 0), 11);
     auto sum1_Q15 = fixed_q<15>(1.001);
-    for (int row = 0; row < 5; ++row) {
+    const auto accumulate_row = [&]<int row>() {
       auto sum2_Q24 = neg_xX_Q24[static_cast<std::size_t>(row)];
       for (int column = row + 1; column < 5; ++column) {
         sum2_Q24 = wrap_add(sum2_Q24, XX_Q17[row * 5 + column] * cb_row_Q7[column]);
       }
       sum2_Q24 = wrap_add(wrap_shift_left(sum2_Q24, 1), XX_Q17[row * 5 + row] * cb_row_Q7[row]);
       sum1_Q15 = silk_mla_wb(sum1_Q15, sum2_Q24, cb_row_Q7[row]);
-    }
+    };
+    accumulate_row.template operator()<0>();
+    accumulate_row.template operator()<1>();
+    accumulate_row.template operator()<2>();
+    accumulate_row.template operator()<3>();
+    accumulate_row.template operator()<4>();
     if (sum1_Q15 >= 0) {
       const auto bits_res_Q8 = static_cast<opus_int16>(subfr_len) * static_cast<opus_int16>(silk_lin2log(sum1_Q15 + penalty) - (15 << 7));
       const auto bits_tot_Q8 = wrap_add(bits_res_Q8, wrap_shift_left(cl_Q5[k], 2));
@@ -14183,17 +14188,18 @@ void silk_warped_autocorrelation_FLP(float* corr, const float* input, const floa
   std::array<double, 24 + 1> state{};
   std::array<double, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
-    double tmp1 = input[n];
+    const double sample = input[n];
+    double tmp1 = sample;
     for (int i = 0; i < order; i += 2) {
       double tmp2 = state[i] + warping * state[i + 1] - warping * tmp1;
       state[i] = tmp1;
-      C[i] += state[0] * tmp1;
+      C[i] += sample * tmp1;
       tmp1 = state[i + 1] + warping * state[i + 2] - warping * tmp2;
       state[i + 1] = tmp2;
-      C[i + 1] += state[0] * tmp2;
+      C[i + 1] += sample * tmp2;
     }
     state[order] = tmp1;
-    C[order] += state[0] * tmp1;
+    C[order] += sample * tmp1;
   }
   for (int index = 0; index <= order; ++index) {
     corr[index] = static_cast<float>(C[index]);
