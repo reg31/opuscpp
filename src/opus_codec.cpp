@@ -2333,9 +2333,15 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
     float raw_toneishness = 0;
     if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
-      opus_val32 toneish = 0;
-      tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
-      raw_toneishness = toneish;
+      const bool needs_raw_tone =
+          !analysis.activity.is_silence && analysis.activity.energy > 1e-7f &&
+          (is_sparse_high_z_tonal_frame(analysis.activity) ||
+           (analysis.activity.mono_diff_ratio < .025f && analysis.activity.mono_zero_cross_rate < .075f));
+      if (needs_raw_tone) {
+        opus_val32 toneish = 0;
+        tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
+        raw_toneishness = toneish;
+      }
     }
     voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
     if (st->application == OPUS_APPLICATION_VOIP) {
