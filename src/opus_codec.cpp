@@ -388,7 +388,8 @@ struct SignalBwTemporal {
   void reset() noexcept {
     active_samples = 0;
     last_frame_samples = 0;
-    for (auto& r : remaining) r = 0;
+    for (auto& r : remaining)
+      r = 0;
   }
 
   void observe(int band) noexcept {
@@ -397,18 +398,22 @@ struct SignalBwTemporal {
   }
 
   int advance(bool active, int source, std::int32_t n, int end_minus_1) noexcept {
-    if (!active) return source;
+    if (!active)
+      return source;
     const bool bootstrap = active_samples < bootstrap_samples;
     const std::int32_t elapsed = last_frame_samples;
-    for (auto& r : remaining) r = r > elapsed ? r - elapsed : 0;
+    for (auto& r : remaining)
+      r = r > elapsed ? r - elapsed : 0;
     int expanded = source;
     if (bootstrap) {
       observe(end_minus_1);
       expanded = end_minus_1;
     } else {
       for (int b = tracked_first_band; b < tracked_first_band + tracked_bands; ++b)
-        if (remaining[b - tracked_first_band] > 0 && b > expanded) expanded = b;
-      if (source >= 0) observe(source);
+        if (remaining[b - tracked_first_band] > 0 && b > expanded)
+          expanded = b;
+      if (source >= 0)
+        observe(source);
     }
     if (active_samples >= bootstrap_samples)
       active_samples = bootstrap_samples;
@@ -3377,8 +3382,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
   auto* celt_enc = encoder_celt_state(st);
-  if (st->mode == opus_mode_silk_only || skip_celt_for_dtx) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
- celt_enc->signal_bw_temporal.reset(); }
+  if (st->mode == opus_mode_silk_only || skip_celt_for_dtx) {
+    std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+    celt_enc->signal_bw_temporal.reset();
+  }
 #if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
   celt_diag().encode_mode = st->mode;
 #endif
@@ -3614,10 +3621,14 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
     }
-    if (st->prev_channels != st->stream_channels) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
- celt_enc->signal_bw_temporal.reset(); }
-    if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
- celt_enc->signal_bw_temporal.reset(); }
+    if (st->prev_channels != st->stream_channels) {
+      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+      celt_enc->signal_bw_temporal.reset();
+    }
+    if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes) {
+      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+      celt_enc->signal_bw_temporal.reset();
+    }
     if (!skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes) {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255);
       if (ret < 0) {
@@ -6222,7 +6233,10 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
 }
 
 [[nodiscard]] static int celt_signal_bw_min_bandwidth(opus_int32 equiv_rate, int C) noexcept {
-  return equiv_rate < 32000 * C ? 13 : equiv_rate < 48000 * C ? 16 : equiv_rate < 60000 * C ? 18 : equiv_rate < 80000 * C ? 19 : 20;
+  return equiv_rate < 32000 * C ? 13 : equiv_rate < 48000 * C ? 16
+                                   : equiv_rate < 60000 * C   ? 18
+                                   : equiv_rate < 80000 * C   ? 19
+                                                              : 20;
 }
 
 [[nodiscard]] static int celt_estimate_signal_bandwidth_source(const celt_glog* bandLogE, int end, int C, int lsb_depth,
@@ -6240,13 +6254,14 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
 }
 
 static void celt_update_signal_bw_retained(CeltEncoderInternal* st, const celt_glog* bandLogE, int end, int C, int LM,
-                                              celt_glog frame_short) {
+                                           celt_glog frame_short) {
   const celt_glog frame_decay = static_cast<celt_glog>(signal_bw_retained_decay_20ms * ((1 << LM) / 8.f));
   for (int r = 0; r < signal_bw_retained_bands; ++r)
     st->signal_bw_retained[r] -= frame_decay;
   for (int b = signal_bw_retained_first_band; b < end; ++b) {
     celt_glog band_e = bandLogE[b];
-    if (C == 2) band_e = std::max(band_e, bandLogE[celt_default_nb_ebands + b]);
+    if (C == 2)
+      band_e = std::max(band_e, bandLogE[celt_default_nb_ebands + b]);
     const int r = b - signal_bw_retained_first_band;
     st->signal_bw_retained[r] = std::max(band_e - frame_short, st->signal_bw_retained[r]);
   }
@@ -6367,7 +6382,8 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       if (st->bitrate > 0) {
         const opus_int32 qr_adjust = (40 * C + 20) * ((400 >> LM) - 50);
         const opus_int32 qr_desired = st->bitrate - qr_adjust;
-        if (qr_desired > 0) qr_equiv_rate = qr_desired;
+        if (qr_desired > 0)
+          qr_equiv_rate = qr_desired;
       }
       const celt_glog frame_short = shortBlocks != 0 ? static_cast<celt_glog>(0.5f * LM) : celt_glog{0};
       if (signal_bw_main)
