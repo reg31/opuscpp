@@ -340,7 +340,7 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
   return "PASS clip=" + clip.label + " scenario=" + std::string{current.name} + " frames=" + std::to_string(validation_case.frames.size());
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   try {

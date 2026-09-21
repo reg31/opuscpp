@@ -76,7 +76,7 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
   }
 }
 
-} // namespace
+}
 
 int main() {
   for (const int application : std::array{OPUS_APPLICATION_AUDIO, OPUS_APPLICATION_VOIP}) {

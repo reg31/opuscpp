@@ -2888,11 +2888,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   } else if (st->Fs >= 48000 && st->bandwidth == 1104 && st->auto_bandwidth == 1105 &&
              st->silk_mode.inWBmodeWithoutVariableLP) {
-    // SILK held its bandwidth switch: promote ONLY the stalled SWB ceiling to fullband when the
-    // current fullband threshold (same helper and hysteresis the ordinary choice uses, with the
-    // current voice weight and channel context) is met and SILK is already at 16 kHz with LP ready.
-    // Lower-band ceilings are never widened; the ordinary bitrate/sample-rate/FEC constraints below
-    // still apply, and the Fs guard keeps rates below 48 kHz out of this fullband-only check.
     const auto threshold_slot = static_cast<std::size_t>(2 * (1105 - 1102));
     int threshold = quality_bandwidth_threshold(voice_weight, music_bandwidth_thresholds_common[threshold_slot],
                                                 voice_bandwidth_thresholds_common[threshold_slot]);
@@ -2933,7 +2928,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->bandwidth = std::min(st->bandwidth, 1104);
   }
   if (st->silk_mode.useInBandFEC) {
-    // Limit bandwidth by expected quality, then assess FEC against coding capacity.
     static_cast<void>(decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate));
     const auto coding_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr,
                                                 st->mode, st->silk_mode.complexity, 0);
@@ -3361,9 +3355,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     refresh_redundancy();
   }
   const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
-  // Positive allocator budget identifies a governed frame: single-frame callers clamp max_data_bytes
-  // to the governed frame budget before this point, and multiframe callers set frame_max_bytes from
-  // that budget. Only then may leftover packet capacity back the hybrid CELT rate max below.
   const bool governed_frame = allocator_target_bits > 0;
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
   const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid ? nominal_target_bits : allocator_target_bits;
@@ -6180,7 +6171,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   const int CC = st->channels;
   const int C = st->stream_channels;
   auto [prefilter_mem, oldBandE, oldLogE, oldLogE2, energyError] = make_celt_encoder_views(st);
-  // Mono decoding predicts from the larger of the previous channel energies.
   if (CC == 2 && C == 1)
     for (int band = 0; band < nbEBands; ++band)
       oldBandE[band] = std::max(oldBandE[band], oldBandE[band + nbEBands]);
@@ -6305,8 +6295,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end, [](float v) {
         return v < 1e-10f;
       })};
-  // Apply this only when exactly one channel carries no energy shape; when both agree the flag is
-  // cleared, so silence and unaffected paths keep their original coarse-energy decay policy.
   if (empty_channel[0] == empty_channel[1]) {
     empty_channel[0] = false;
     empty_channel[1] = false;
@@ -6366,9 +6354,6 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     st->intensity =
         hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds, stereo_intensity_table.hysteresis, st->intensity);
     st->intensity = clamp_value(st->intensity, start, end);
-    // With exactly one shaped channel, enable mid/side intensity coding from the first band and
-    // disable independent dual stereo; the per-channel emptiness flag is computed once after the
-    // band energies and is reused by the coarse-energy path below.
     if (empty_channel[0] != empty_channel[1]) {
       st->intensity = start;
       dual_stereo = 0;
@@ -8744,8 +8729,6 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
         qi = floor_to_int_reference(.5f + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
-        // A channel with no shape at all must fall straight to its actual (empty) energy instead of
-        // being held up by the decay limiter.
         if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
         }
@@ -10836,8 +10819,6 @@ static auto silk_finish_nsq(const silk_encoder_state* psEncC, silk_nsq_state* NS
   return static_cast<opus_int32>(static_cast<opus_int16>(value)) * static_cast<opus_int32>(static_cast<opus_int16>(value));
 }
 
-// 62 bins cover the clamped residual domain [-31<<10, 30<<10] with the existing {32,100,240} offsets;
-// Lambda_Q10 > 2048 only pulls the selected index toward zero.
 struct silk_nsq_quant_level_pair {
   opus_int16 q1_Q10, q2_Q10, abs1, abs2;
 };
@@ -13550,7 +13531,6 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     indices.signalType = 1;
   }
   if (frame == 0 || lbrr->flags[frame - 1] == 0) {
-    // A packet boundary or LBRR gap ends the carried history.
     lbrr->nsq = pre_frame_nsq;
     lbrr->previous_gain_index = original_last_gain_index;
     indices.GainsIndices[0] =
@@ -13667,7 +13647,6 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
           zero_n_items(psEnc->sCmn.pulses, static_cast<std::size_t>(psEnc->sCmn.frame_length));
           silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding);
           nBits = ec_tell(psRangeEnc);
-          // Rebuild prediction and shaping history from the pulse sequence just encoded.
           std::array<opus_int32, 4> replay_gains{};
           auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
           silk_gains_dequant(replay_gains.data(), psEnc->sCmn.indices.GainsIndices, &previous_gain_index,

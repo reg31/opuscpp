@@ -31,7 +31,7 @@ void fill_tone(std::array<opus_int16, frame_size>& pcm, double& phase, double fr
   }
 }
 
-} // namespace
+}
 
 int main() {
   int error = OPUS_OK;

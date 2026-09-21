@@ -107,7 +107,7 @@ void run_case(const char* label, const std::vector<std::int16_t>& pcm) {
             << ",hybrid_pct=" << (100.0 * hybrid / total) << ",celt_pct=" << (100.0 * celt / total) << '\n';
 }
 
-} // namespace
+}
 
 int main() {
   try {

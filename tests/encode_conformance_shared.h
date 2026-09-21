@@ -55,7 +55,7 @@ consteval auto make_scenarios() noexcept {
 }
 
 inline constexpr auto scenarios = make_scenarios();
-inline constexpr std::uint32_t validation_magic = 0x454E4346u; // ENCF
+inline constexpr std::uint32_t validation_magic = 0x454E4346u;
 inline constexpr std::uint32_t validation_version = 1u;
 
 [[nodiscard]] constexpr auto scenario_bitrate(const scenario& value, int channels) noexcept -> int {
@@ -207,4 +207,4 @@ inline void write_validation(const fs::path& output_path, std::span<const case_r
   return cases;
 }
 
-} // namespace encode_conformance
+}

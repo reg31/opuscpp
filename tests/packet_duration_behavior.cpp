@@ -50,7 +50,7 @@ bool check_cbr_capacity() {
   return true;
 }
 
-} // namespace
+}
 
 int main() {
   auto ok = check_cbr_capacity();

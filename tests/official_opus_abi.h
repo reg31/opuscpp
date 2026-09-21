@@ -2,9 +2,6 @@
 
 #include <cstdint>
 
-// Minimal official Opus C ABI used by comparison-only tests.
-// This keeps opuscpp's test sources independent from third-party headers while
-// still linking against an explicitly built official library.
 
 struct OpusEncoder;
 struct OpusDecoder;

@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <vector>
 
-// Keep the encoder predictor identical to the decoder across stereo-to-mono changes.
 int main() {
   int checks = 0;
   for (int lm = 0; lm <= 3; ++lm)

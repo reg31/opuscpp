@@ -390,7 +390,7 @@ template <typename Samples>
 struct celt_metric_tables final {
   static constexpr int window_size = 480;
   static constexpr int freq_bins = 200;
-  static constexpr double absolute_mask_amplitude = 1.0 / 1024.0; // Roughly -60 dBFS.
+  static constexpr double absolute_mask_amplitude = 1.0 / 1024.0;
   static constexpr double absolute_mask_magnitude = absolute_mask_amplitude * (window_size - 1) / 4.0;
   static constexpr double absolute_mask_energy = absolute_mask_magnitude * absolute_mask_magnitude;
   std::array<double, window_size> window{};
@@ -423,7 +423,7 @@ struct celt_metric_tables final {
 
 void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref, std::span<const float> deg, int channels) {
   static constexpr int nbands = 21;
-  static constexpr int high_band_start = 17; // 8 kHz and above in the CELT band map.
+  static constexpr int high_band_start = 17;
   static const auto tables = make_celt_metric_tables();
   const auto frames = ref.size() / static_cast<std::size_t>(channels);
   if (frames < celt_metric_tables::window_size) {
@@ -431,7 +431,6 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
   }
 
   auto previous_mask = std::array<std::array<double, 2>, nbands>{};
-  // Ignore codec startup; its unprimed first 10 ms otherwise dominates the 16th-order score.
   for (std::size_t start = celt_metric_tables::window_size; start + celt_metric_tables::window_size <= frames;
        start += celt_metric_tables::window_size) {
     auto ref_energy = std::array<std::array<double, 2>, nbands>{};
@@ -500,7 +499,6 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
     int frame_count = 0;
     for (int band = 0; band < nbands; ++band) {
       for (int ch = 0; ch < channels; ++ch) {
-        // Do not let inaudible energy in a spectral null dominate the whole-file score.
         const auto masked_ref = ref_energy[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
                                 0.1 * mask[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)] +
                                 celt_metric_tables::absolute_mask_energy;
@@ -514,8 +512,6 @@ void add_celt_perceptual_metrics(totals& out, std::span<const std::int16_t> ref,
         const auto sc = shape_cross[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
         const auto sr = shape_refsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
         const auto sd = shape_degsq[static_cast<std::size_t>(band)][static_cast<std::size_t>(ch)];
-        // Only score spectral-magnitude similarity when the reference band is audible;
-        // quiet/gap windows are excluded (decoded silence there is tracked via energy).
         if (sr > celt_metric_tables::absolute_mask_energy) {
           out.celt_shape_corr[static_cast<std::size_t>(band)] += sc / std::sqrt(sr * sd + 1e-30);
           ++out.celt_shape_count[static_cast<std::size_t>(band)];
@@ -990,7 +986,7 @@ void run_quality(const options& opt) {
   }
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   try {

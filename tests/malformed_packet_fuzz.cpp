@@ -162,7 +162,7 @@ private:
   return true;
 }
 
-} // namespace
+}
 
 int main() {
   try {

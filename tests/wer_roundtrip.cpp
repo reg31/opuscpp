@@ -178,7 +178,7 @@ auto write_wav(const std::string& path, const wav_data& wav) -> void {
   return output;
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   try {

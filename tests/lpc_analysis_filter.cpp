@@ -24,7 +24,6 @@ static bool check_silk_reconstruction() {
           const double phase = 2 * 3.141592653589793 * (140 * t + 3 * std::sin(2 * t));
           input[i] = static_cast<opus_int16>((.6 + .4 * std::sin(11 * t)) * (7000 * std::sin(phase) + 2500 * std::sin(2 * phase) + 1500 * std::sin(3 * phase)) + noise);
         }
-        // Select SILK through current speech evidence; the retired startup flag no longer selects a mode.
         encoder->lightweight_voice_score_Q7 = 115;
         encoder->lightweight_vad_score_Q7 = 115;
         encoder->lightweight_music_score_Q7 = 0;

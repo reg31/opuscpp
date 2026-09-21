@@ -1,22 +1,3 @@
-// Regression test: an explicit unconstrained-VBR hybrid VOIP stream must not grow with caller buffer.
-//
-// Scenario: mono VOIP at 16 kbps (the voip_mono_silk_budget_boost window), VBR=1 and
-// OPUS_SET_VBR_CONSTRAINT(0), actual hybrid packets. Large caller max_data_bytes must not be converted
-// into a requested CELT rate: packet sequences must stay capacity-invariant while both buffers are
-// verified nonbinding (natural packets well below the smallest buffer, measured across all runs).
-// Every returned packet is size-checked, every packet is decoded with a finite-output check, and every
-// ctl return is checked. Covers 10/20 ms frames and the float API, plus 40/60 ms multiframe packets,
-// without imposing a new strict average-bitrate contract. The automatic-bitrate case is a labeled
-// capacity-invariance compatibility control only: automatic mode selection may legitimately choose
-// non-hybrid frames, so its observed mode counts are reported instead of a hybrid requirement.
-//
-// Source under test is the codec translation unit itself (internal-test style):
-//   production:            tests/unconstrained_capacity_vbr.cpp -> #include "../src/opus_codec.cpp"
-//   private candidate run: -DOPUSCPP_UNCONSTRAINED_CAPACITY_SRC='"C/opus_codec.cpp"'
-//
-// Build and run standalone (there is no CMake registration here):
-//   g++ -std=c++23 -O2 -DNDEBUG -Isrc tests/unconstrained_capacity_vbr.cpp -o unconstrained_capacity_vbr_test
-//   ./unconstrained_capacity_vbr_test
 #ifndef OPUSCPP_UNCONSTRAINED_CAPACITY_SRC
 #define OPUSCPP_UNCONSTRAINED_CAPACITY_SRC "../src/opus_codec.cpp"
 #endif
@@ -190,10 +171,6 @@ void check_case(bool use_float, int frame_size) {
               static_cast<int>(small.size()), max_packet);
 }
 
-// Compatibility control only: automatic mode selection may legitimately choose non-hybrid frames, so
-// hybrid coverage is not required here; the observed mode counts are printed. AUTO supplies no
-// governor budget under either constraint flag, so both VBR_CONSTRAINT values are checked; the two
-// settings are not required to produce the same packets as each other.
 void check_automatic_capacity_control(int vbr_constraint) {
   constexpr int frame_size = 960;
   const auto pcm16 = make_pcm16();
@@ -213,16 +190,16 @@ void check_automatic_capacity_control(int vbr_constraint) {
               decoded.silk_count);
 }
 
-} // namespace
+}
 
 int main() {
   try {
-    check_case(false, 960);  // 20 ms int16
-    check_case(true, 960);   // 20 ms float
-    check_case(false, 480);  // 10 ms int16
-    check_case(true, 480);   // 10 ms float
-    check_case(false, 1920); // 40 ms multiframe int16
-    check_case(false, 2880); // 60 ms multiframe int16
+    check_case(false, 960);
+    check_case(true, 960);
+    check_case(false, 480);
+    check_case(true, 480);
+    check_case(false, 1920);
+    check_case(false, 2880);
     check_automatic_capacity_control(0);
     check_automatic_capacity_control(1);
     std::printf("unconstrained_capacity_vbr %s checks=%d failures=%d\n", g_failures == 0 ? "PASS" : "FAIL", g_checks, g_failures);

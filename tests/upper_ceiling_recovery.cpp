@@ -1,18 +1,3 @@
-// Regression test for upper-CELT-boundary recovery when SILK holds its bandwidth switch.
-//
-// Scenario: hybrid at 24 kbps (above the legacy fullband cap threshold) -> low SILK rate -> back to
-// 24 kbps with sustained voiced + high-band input while SILK keeps its switch gate held. The SWB/FB
-// ceiling must be refreshed from the cached ordinary fullband choice, producing sustained FB packets
-// once SILK is WB/LP ready. Decoding every packet must remain valid. A 24 kHz input must never
-// select FB.
-//
-// Source under test is the codec translation unit itself (internal-test style):
-//   production:            tests/upper_ceiling_recovery.cpp -> #include "../src/opus_codec.cpp"
-//   private candidate run: -DOPUSCPP_UPPER_CEILING_SRC='"C/opus_codec.cpp"'
-//
-// Build and run standalone (there is no CMake registration here):
-//   g++ -std=c++23 -O2 -DNDEBUG -Isrc tests/upper_ceiling_recovery.cpp -o upper_ceiling_recovery_test
-//   ./upper_ceiling_recovery_test
 #ifndef OPUSCPP_UPPER_CEILING_SRC
 #define OPUSCPP_UPPER_CEILING_SRC "../src/opus_codec.cpp"
 #endif
@@ -57,7 +42,7 @@ void make_frame(std::vector<std::int16_t>& out, int frame_size, int sample_rate,
 
 struct packet_info {
   int config = 0;
-  int bandwidth = 0; // 1104 SWB, 1105 FB, 0 otherwise
+  int bandwidth = 0;
   bool hybrid = false;
   int pre_bw = 0;
   int pre_auto = 0;
@@ -67,8 +52,6 @@ struct packet_info {
   bool held_eligible = false;
 };
 
-// 24 kbps -> 8 kbps -> 24 kbps; high content throughout. Returns per-packet TOC info; decodes every
-// packet when a decoder is available.
 std::vector<packet_info> run_recovery_sequence() {
   int error = 0;
   auto* enc = opus_encoder_create(48000, 1, OPUS_APPLICATION_VOIP, &error);
@@ -91,7 +74,7 @@ std::vector<packet_info> run_recovery_sequence() {
   std::vector<std::int16_t> decoded(960);
   auto* st = reinterpret_cast<OpusEncoder*>(enc);
   std::vector<packet_info> out;
-  int requested_bitrate = 24000; // the configured test setting for the current phase
+  int requested_bitrate = 24000;
   for (int frame = 0; frame < 64; ++frame) {
     if (frame == 12 || frame == 34) {
       check_ctl(opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, 8000), "set low bitrate");
@@ -118,9 +101,6 @@ std::vector<packet_info> run_recovery_sequence() {
     if (info.hybrid) {
       info.bandwidth = info.config < 14 ? 1104 : 1105;
     }
-    // Eligible only in the configured 24 kbps phase, with the previous resolved mode hybrid, the
-    // returned packet actually hybrid, SWB stalled under a cached fullband ceiling, SILK WB/LP ready
-    // and the switch gate held. A rate decrease or a mode reset therefore cannot be called eligible.
     info.held_eligible = requested_bitrate == 24000 && info.pre_mode == opus_mode_hybrid && info.pre_bw == 1104 &&
                          info.pre_auto == 1105 && info.pre_wb_lp && !info.pre_allow && info.hybrid;
     std::printf(
@@ -142,7 +122,6 @@ void check_recovery_sequence() {
   if (packets.size() != 64) {
     return;
   }
-  // Both low-rate segments must be SILK (config < 12), not merely non-hybrid.
   int low_silk = 0;
   for (int i = 12; i < 22; ++i) {
     low_silk += packets[static_cast<std::size_t>(i)].config < 12 ? 1 : 0;
@@ -151,7 +130,6 @@ void check_recovery_sequence() {
     low_silk += packets[static_cast<std::size_t>(i)].config < 12 ? 1 : 0;
   }
   check(low_silk == 20, "low-rate segments should be SILK", low_silk);
-  // The intended recovery paths must run in hybrid mode.
   int recovery_hybrid = 0;
   for (int i = 22; i < 34; ++i) {
     recovery_hybrid += packets[static_cast<std::size_t>(i)].hybrid ? 1 : 0;
@@ -160,9 +138,6 @@ void check_recovery_sequence() {
     recovery_hybrid += packets[static_cast<std::size_t>(i)].hybrid ? 1 : 0;
   }
   check(recovery_hybrid >= 16, "recovery windows should be hybrid", recovery_hybrid);
-  // Upper-boundary contract: a held-but-eligible frame (SWB stalled while the cached ordinary ceiling
-  // is fullband, SILK already WB/LP ready, switch gate held) must be fullband once the current rate
-  // ceiling permits it. No fixed minimum run length is used as the pass criterion.
   int eligible = 0;
   int eligible_not_fb = 0;
   for (int i = 0; i < 64; ++i) {
@@ -214,7 +189,6 @@ void check_24k_input_ceiling() {
     if (config >= 12 && config < 16) {
       ++hybrid_frames;
     }
-    // Count fullband through the canonical TOC parser so a CELT-only fullband packet cannot be missed.
     if (ref_opus_packet_get_bandwidth(packet.data()) == 1105) {
       ++fb_frames;
     }
@@ -226,7 +200,7 @@ void check_24k_input_ceiling() {
   opus_encoder_destroy(enc);
   opus_decoder_destroy(dec);
 }
-} // namespace
+}
 
 int main() {
   check_recovery_sequence();

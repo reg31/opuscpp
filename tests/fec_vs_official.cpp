@@ -233,7 +233,7 @@ template <typename Encoder, auto EncoderCreate, auto EncoderDestroy, auto Encode
   return {recovery_error, plc_error, packet_bytes, has_fec};
 }
 
-} // namespace
+}
 
 int main() {
   try {

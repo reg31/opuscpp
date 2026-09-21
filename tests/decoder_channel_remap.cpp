@@ -48,7 +48,7 @@ void fill_stereo(std::span<opus_int16> pcm) noexcept {
   }
 }
 
-} // namespace
+}
 
 int main() {
   constexpr auto sample_rate = 48000;

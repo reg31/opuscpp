@@ -1,15 +1,15 @@
-// Regression test for the VOIP voice-conditioning falling-score envelope.
-//
-// Behavior under test: once the cue has started, a falling score must follow the
-// normal release envelope regardless of whether `cue_provisional` is set. The
-// provisional state must not select a faster fall coefficient, must still expire,
-// and must not pin protection; genuine rumble/DC evidence must still attack
-// quickly, and repeated clean input must recover toward the raw endpoint through
-// the existing release behavior.
-//
-// Source under test is the codec translation unit itself (internal-test style):
-//   production:            tests/voice_conditioning_release.cpp  ->  #include "../src/opus_codec.cpp"
-//   private candidate run: -DOPUSCPP_VOICE_CONDITIONING_SRC='"C/opus_codec.cpp"'
+
+
+
+
+
+
+
+
+
+
+
+
 #ifndef OPUSCPP_VOICE_CONDITIONING_SRC
 #define OPUSCPP_VOICE_CONDITIONING_SRC "../src/opus_codec.cpp"
 #endif
@@ -32,7 +32,7 @@ static int g_failures = 0;
 
 namespace {
 constexpr int test_fs = 48000;
-constexpr int test_frame = 960; // 20 ms
+constexpr int test_frame = 960;
 constexpr float test_pi = 3.14159265358979323846f;
 
 void make_tone(std::vector<float>& pcm, float freq_hz, float amplitude, float& phase) {
@@ -52,9 +52,9 @@ void make_dc_with_ac(std::vector<float>& pcm, float dc, float freq_hz, float amp
     sample += dc;
 }
 
-// A state that has completed its first frame and is then placed at a known
-// started scenario; all cue counters are cleared so the next frames only see the
-// incoming evidence.
+
+
+
 void start_state(voice_conditioning_channel& state, float score, int provisional) {
   state = voice_conditioning_channel{};
   std::vector<float> warmup;
@@ -91,13 +91,13 @@ double run_clean_frames(voice_conditioning_channel& state, int frames, std::vect
   }
   return static_cast<double>(state.cond_score);
 }
-} // namespace
+}
 
 int main() {
-  // 1 kHz at amplitude 0.2: the 150 Hz LF one-pole sees almost nothing while the
-  // 300-3000 Hz mid band sees the full tone -> unambiguous clean evidence.
 
-  // A: provisional and normal states must decline identically on clean evidence.
+
+
+
   {
     voice_conditioning_channel normal, provisional;
     start_state(normal, 0.8f, 0);
@@ -119,7 +119,7 @@ int main() {
     std::printf("A: normal_f20=%.3f provisional_f20=%.3f\n", tn[19], tp[19]);
   }
 
-  // B: provisional expiry must not pin protection and must clear after ~300 ms.
+
   {
     voice_conditioning_channel state;
     start_state(state, 0.8f, 1);
@@ -128,7 +128,7 @@ int main() {
     CHECK(state.cond_score < 0.6, "provisional expiry does not hold the score");
   }
 
-  // C: genuine rumble evidence still attacks quickly and latches.
+
   {
     voice_conditioning_channel state;
     start_state(state, 0.2f, 0);
@@ -141,8 +141,8 @@ int main() {
       update_voice_conditioning(state, rumble.data(), test_frame, 1, test_fs);
       if (f == 5) {
         rumble6 = state.cond_score;
-        // Latch occurs at ~60-100 ms of rumble evidence and the attack time
-        // constant is ~100 ms, so six frames is the first defensible bound.
+
+
         CHECK(state.cond_score > 0.5, "rumble attacks within six frames");
       }
     }
@@ -151,7 +151,7 @@ int main() {
     std::printf("rumble f6=%.3f f20=%.3f\n", rumble6, static_cast<double>(state.cond_score));
   }
 
-  // C2: DC-plus-AC evidence attacks immediately through the DC fast path.
+
   {
     voice_conditioning_channel state;
     start_state(state, 0.2f, 0);
@@ -163,7 +163,7 @@ int main() {
     std::printf("C2: dc_f1=%.3f\n", static_cast<double>(state.cond_score));
   }
 
-  // D: repeated clean input recovers toward the raw endpoint after contamination.
+
   {
     voice_conditioning_channel state;
     start_state(state, 0.2f, 0);

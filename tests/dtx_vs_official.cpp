@@ -191,7 +191,7 @@ struct reentry_score {
 
 [[nodiscard]] auto score_reentry(std::span<const std::int16_t> decoded, std::span<const std::int16_t> source, int first_frame,
                                  int frames) noexcept -> reentry_score {
-  constexpr std::size_t codec_lookahead = 312; // Standard 48 kHz Opus encoder lookahead.
+  constexpr std::size_t codec_lookahead = 312;
   const auto begin = static_cast<std::size_t>(first_frame * frame_size);
   const auto end = begin + static_cast<std::size_t>(frames * frame_size);
   double source_energy = 0.0;
@@ -219,7 +219,7 @@ struct reentry_score {
   return output;
 }
 
-} // namespace
+}
 
 int main() {
   try {

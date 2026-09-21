@@ -40,7 +40,7 @@ std::optional<int> parse_int(std::string_view value) {
   return parsed;
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   if (argc != 6) {
@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const int max_frame = rate * 2; // 120 ms max
+  const int max_frame = rate * 2;
   std::vector<unsigned char> packet(1275);
   std::vector<float> out(max_frame * channels);
   std::vector<int16_t> out16(max_frame * channels);

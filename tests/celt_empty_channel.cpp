@@ -1,7 +1,3 @@
-// Corrected ordinary regression check for the absent-channel energy/width problem.
-// Alignment mirrors the validated width_diag harness: flush frames are encoded, the decoder output has
-// lookahead*channels erased, and the comparison is truncated to the true (unpadded) reference length.
-// Fresh codecs per segment; reset is tested as an explicit fresh-vs-reset packet identity check.
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -84,7 +80,7 @@ auto measure(int frame_size, int application, int bitrate, int frames, sample_fn
   if (decoded.size() < erase_n + signal_samples)
     return {false, 0, 0, 0, -1};
   decoded.erase(decoded.begin(), decoded.begin() + static_cast<std::ptrdiff_t>(erase_n));
-  decoded.resize(signal_samples); // truncate to the true reference, no synthetic tail
+  decoded.resize(signal_samples);
 
   std::vector<int16_t> ref(pcm.begin(), pcm.begin() + static_cast<std::ptrdiff_t>(signal_samples));
   double e0 = 0, e1 = 0, agg = 0;
@@ -114,7 +110,6 @@ auto measure(int frame_size, int application, int bitrate, int frames, sample_fn
   return {true, windows ? agg / windows : 0.0, ratio, hash, packets.front().empty() ? -1 : packets.front()[0]};
 }
 
-// reset-vs-fresh: encode segment, reset, encode again; the post-reset packets must equal a fresh encode
 auto reset_identity(int frame_size, int application, int bitrate, int frames, sample_fn fn) -> bool {
   int error = 0;
   std::unique_ptr<OpusEncoder, void (*)(OpusEncoder*)> enc{opus_encoder_create(fs, 2, application, &error), opus_encoder_destroy};
@@ -162,7 +157,7 @@ void both_active(int16_t& l, int16_t& r, double t, int) {
   l = static_cast<int16_t>(std::lround(v));
   r = static_cast<int16_t>(std::lround(9000.0 * std::sin(2.0 * pi * 330.0 * t + 0.7)));
 }
-void alternating(int16_t& l, int16_t& r, double t, int) { // both -> right absent -> both
+void alternating(int16_t& l, int16_t& r, double t, int) {
   const double v = 12000.0 * std::sin(2.0 * pi * 220.0 * t);
   const bool right_absent = std::fmod(t, 0.4) < 0.2;
   l = static_cast<int16_t>(std::lround(v));
@@ -179,7 +174,7 @@ void both_silent(int16_t& l, int16_t& r, double, int) {
   l = 0;
   r = 0;
 }
-} // namespace
+}
 
 int main() {
   int failures = 0;

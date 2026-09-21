@@ -137,7 +137,7 @@ void configure_encoder(OpusEncoder* encoder, int channels, const scenario& curre
   return result;
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   try {

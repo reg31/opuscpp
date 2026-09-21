@@ -30,11 +30,6 @@ def synth_voice_like(seconds: float, channels: int, breath_snr_db: float = 30.0)
     out: list[int] = []
     rng = random.Random(1)
 
-    # Voiced source: a glottal impulse train shaped by three formant resonators,
-    # then radiated (first difference) and gated by a syllable-rate envelope.
-    # The pitch phase is accumulated from the instantaneous frequency, so the
-    # realized pitch stays near the intended range instead of chirping far
-    # outside it (as sin(2*pi*f0(t)*t) does when f0 varies with time).
     formants = ((700.0, 80.0), (1220.0, 90.0), (2600.0, 130.0))
     resonators: list[tuple[float, float, float]] = []
     for freq, bandwidth in formants:
@@ -65,9 +60,6 @@ def synth_voice_like(seconds: float, channels: int, breath_snr_db: float = 30.0)
         envelope = 0.25 + 0.75 * max(0.0, math.sin(2.0 * math.pi * 2.6 * t)) ** 0.7
         voiced.append(envelope * radiated)
 
-    # The formant path is very low in absolute level, so normalize the voiced
-    # component on its own before adding breath at a controlled SNR. Mixing the
-    # raw components would leave the fixture dominated by the breath noise.
     voiced_rms = math.sqrt(sum(value * value for value in voiced) / len(voiced)) or 1.0
     voiced = [value / voiced_rms for value in voiced]
 
@@ -90,10 +82,6 @@ def synth_voice_like(seconds: float, channels: int, breath_snr_db: float = 30.0)
 
 
 def synth_tonal_stress(seconds: float, channels: int) -> list[int]:
-    # The historical synthetic voice fixture, retained as a tonal stress case.
-    # Its phase is sin(2*pi*f0(t)*t) rather than an accumulated phase, so the
-    # instantaneous frequency sweeps far outside the nominal 120 Hz (and
-    # reverses), which is exactly the stress behavior it is kept for.
     frames = int(seconds * SAMPLE_RATE)
     out: list[int] = []
     rng = random.Random(1)

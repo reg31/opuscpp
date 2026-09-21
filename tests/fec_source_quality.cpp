@@ -87,7 +87,7 @@ auto nrmse(const std::vector<double>& error, const std::vector<double>& referenc
   return std::sqrt(e / r);
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv) {
   const int channels = argc > 1 ? std::atoi(argv[1]) : 1;
@@ -165,7 +165,6 @@ int main(int argc, char** argv) {
   const auto samples = static_cast<std::size_t>(frame_size * channels);
   std::vector<std::int16_t> scratch(samples);
 
-  // Loss-free branch: normal decode 0..9, keep frame 8 and frame 9 outputs.
   std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)> lossfree{opus_decoder_create(sample_rate, channels, &error),
                                                                          opus_decoder_destroy};
   std::vector<std::int16_t> ref8(samples), refnext(samples);
@@ -178,7 +177,6 @@ int main(int argc, char** argv) {
     }
   }
 
-  // Recovery branch: decode 0..7, FEC decode of packet 9 (recovers frame 8), then normal decode of packet 9.
   std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)> rec{opus_decoder_create(sample_rate, channels, &error),
                                                                     opus_decoder_destroy};
   for (int frame = 0; frame < dropped_packet; ++frame) {
@@ -196,7 +194,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  // PLC branch: decode 0..7, then conceal frame 8.
   std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)> plc_dec{opus_decoder_create(sample_rate, channels, &error),
                                                                         opus_decoder_destroy};
   for (int frame = 0; frame < dropped_packet; ++frame) {
@@ -231,8 +228,6 @@ int main(int argc, char** argv) {
     }
     return nrmse(e, r);
   };
-  // Transition: boundary-spanning window of the recovered frame 8 tail and next frame head,
-  // compared against the same aligned original window (common reference).
   const auto transition = [&](const std::vector<std::int16_t>& prev, const std::vector<std::int16_t>& next) {
     std::vector<double> e, r;
     for (int i = frame_size - boundary_window; i < frame_size; ++i) {
@@ -272,7 +267,6 @@ int main(int argc, char** argv) {
     }
     return nrmse(e, r);
   };
-  // Mid/side error shares, weighted against total source energy (stereo only).
   double ms_src = 0.0, lf_mid = 0.0, lf_side = 0.0, fec_mid = 0.0, fec_side = 0.0;
   if (channels == 2) {
     for (int i = 0; i < frame_size; ++i) {

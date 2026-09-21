@@ -299,8 +299,6 @@ def emit_metrics_report(
     return md_path
 
 def find_vector_dir(vector_root: pathlib.Path) -> pathlib.Path:
-    # RFC 8251 updates the normative decoder vectors. Prefer it whenever both
-    # historical and updated bundles are available in tests/external.
     for preferred in ("rfc8251", "rfc6716"):
         preferred_root = vector_root / preferred
         if preferred_root.exists():
@@ -425,10 +423,6 @@ def run_rfc_decode_conformance(harness: pathlib.Path, opus_compare: pathlib.Path
             if channels == 2:
                 compare_args.append("-s")
             compare_args.extend(["-r", "48000"])
-            # RFC 8251 includes an alternate "m" reference for the permitted
-            # no-phase-inversion mono-downmix behavior. The opuscpp mono path
-            # intentionally uses that behavior, so try it first for mono runs
-            # and avoid a guaranteed failed opus_compare pass on those vectors.
             if channels == 1:
                 dec_candidates = [vector_dir / f"{stem}m.dec", vector_dir / f"{stem}.dec"]
             else:

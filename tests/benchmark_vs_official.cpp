@@ -184,7 +184,7 @@ auto median_ms(std::vector<double> values) -> double {
   return values[values.size() / 2];
 }
 
-} // namespace
+}
 
 int main() {
   try {
@@ -204,8 +204,6 @@ int main() {
       cases.back().official_decode_runs.reserve(benchmark_repetitions);
     }
 
-    // Sweep in different orders so CPU boost and thermal drift do not favour
-    // the same bitrate in every repetition.
     for (int run = 0; run < benchmark_repetitions; ++run) {
       for (std::size_t step = 0; step < cases.size(); ++step) {
         const auto index = run == 0 ? step : run == 1 ? cases.size() - 1 - step

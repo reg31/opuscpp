@@ -183,7 +183,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   return result;
 }
 
-} // namespace
+}
 
 int main() {
   try {
