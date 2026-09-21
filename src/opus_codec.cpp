@@ -13328,8 +13328,7 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
     reset_side_prediction();
     silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
   } else if (preserve_stereo != silk_preserve_stereo_force &&
-             ((!preserve_stereo && total_rate_bps > 30000) ||
-              (prev_speech_act_Q8 < 32 && total_rate_bps > 20000 && total_rate_bps < 28000) ||
+             ((prev_speech_act_Q8 < 32 && total_rate_bps > 20000 && total_rate_bps < 28000) ||
               8 * total_rate_bps < (was_mid_only ? 13 : 11) * min_mid_rate_bps ||
               silk_mul_wb(frac_Q16, state->smth_width_Q14) < (was_mid_only ? fixed_q<14>(0.05) : fixed_q<14>(0.02)))) {
     quantize_smoothed_pred();

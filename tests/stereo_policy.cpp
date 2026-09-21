@@ -109,5 +109,31 @@ int main() {
     if (!check(config, 0, false))
       return 1;
   }
+
+  {
+    stereo_enc_state st{};
+    st.smth_width_Q14 = 1 << 14;
+    st.width_prev_Q14 = 0;
+    std::vector<opus_int16> x1(200), x2(200);
+    silk_stereo_pred_indices ix{};
+    opus_uint8 mid_only = 0;
+    opus_int32 rates[2] = {0, 0};
+    for (int frame = 0; frame < 4; ++frame) {
+      for (int n = 0; n < 160; ++n) {
+        const int i = 160 * frame + n;
+        const double t = static_cast<double>(i) / 16000.0;
+        const double env = 1.0 + 0.8 * std::sin(2.0 * 3.141592653589793 * 2.7 * t);
+        x1[n + 2] = static_cast<opus_int16>(env * 11000.0 * std::sin(2.0 * 3.141592653589793 * 440.0 * t));
+        x2[n + 2] = static_cast<opus_int16>(env * 8000.0 * std::sin(2.0 * 3.141592653589793 * 660.0 * t + 0.7));
+      }
+      mid_only = 0;
+      rates[0] = rates[1] = 0;
+      silk_stereo_LR_to_MS(&st, x1.data() + 2, x2.data() + 2, ix, &mid_only, rates, 40000, 100, 0, 0, 16, 160);
+    }
+    if (mid_only != 0 || rates[1] <= 0) {
+      std::cout << "stereo_width_regression=FAIL mid_only=" << static_cast<int>(mid_only) << " side_rate=" << rates[1] << std::endl;
+      return 1;
+    }
+  }
   std::cout << "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, rejected float input, reset, roundtrip)\n";
 }
