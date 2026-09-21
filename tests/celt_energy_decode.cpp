@@ -45,7 +45,7 @@ int main() {
   for (int bit = 0; bit < 12; ++bit)
     ec_enc_bit_logp(&enc, 0, 1);
   ec_enc_bit_logp(&enc, 0, 3);
-  process_coarse_energy<true>(17, 19, energy.data(), old_energy.data(), 16, ec_tell(&enc), e_prob_model[6].data(), error.data(), &enc, 1, 3, 0, 16);
+  process_coarse_energy<true>(17, 19, energy.data(), old_energy.data(), 16, ec_tell(&enc), e_prob_model[6].data(), error.data(), &enc, 1, 3, 0, 16, nullptr);
   ec_enc_done(&enc);
   int status = OPUS_OK;
   auto decoder = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(48000, 1, &status), opus_decoder_destroy};

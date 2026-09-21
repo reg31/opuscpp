@@ -369,6 +369,56 @@ struct SILKInfo {
   int offset, bitrateBps, actualSilkBps, signalType;
 };
 
+constexpr celt_glog signal_bw_retained_margin = 0.7924812436103821f;
+constexpr celt_glog signal_bw_retained_decay_20ms = 0.007249784655869007f;
+constexpr celt_glog signal_bw_retained_inactive = -1e30f;
+constexpr int signal_bw_retained_first_band = 14;
+constexpr int signal_bw_retained_bands = 7;
+
+struct SignalBwTemporal {
+  static constexpr int tracked_first_band = 14;
+  static constexpr int tracked_bands = 7;
+  static constexpr std::int32_t bootstrap_samples = 2880;
+  static constexpr std::int32_t window_samples = 5760;
+
+  std::int32_t active_samples{};
+  std::int32_t last_frame_samples{};
+  std::int32_t remaining[tracked_bands]{};
+
+  void reset() noexcept {
+    active_samples = 0;
+    last_frame_samples = 0;
+    for (auto& r : remaining) r = 0;
+  }
+
+  void observe(int band) noexcept {
+    if (band >= tracked_first_band && band < tracked_first_band + tracked_bands)
+      remaining[band - tracked_first_band] = window_samples + 1;
+  }
+
+  int advance(bool active, int source, std::int32_t n, int end_minus_1) noexcept {
+    if (!active) return source;
+    const bool bootstrap = active_samples < bootstrap_samples;
+    const std::int32_t elapsed = last_frame_samples;
+    for (auto& r : remaining) r = r > elapsed ? r - elapsed : 0;
+    int expanded = source;
+    if (bootstrap) {
+      observe(end_minus_1);
+      expanded = end_minus_1;
+    } else {
+      for (int b = tracked_first_band; b < tracked_first_band + tracked_bands; ++b)
+        if (remaining[b - tracked_first_band] > 0 && b > expanded) expanded = b;
+      if (source >= 0) observe(source);
+    }
+    if (active_samples >= bootstrap_samples)
+      active_samples = bootstrap_samples;
+    else
+      active_samples = std::min(active_samples + n, bootstrap_samples);
+    last_frame_samples = n;
+    return expanded;
+  }
+};
+
 struct CeltEncoderInternal {
   int channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
@@ -387,6 +437,8 @@ struct CeltEncoderInternal {
   opus_val16 stereo_saving;
   int intensity;
   celt_glog spec_avg;
+  celt_glog signal_bw_retained[signal_bw_retained_bands];
+  SignalBwTemporal signal_bw_temporal;
 };
 
 struct alignas(8) CeltDecoderInternal {
@@ -3325,6 +3377,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
   auto* celt_enc = encoder_celt_state(st);
+  if (st->mode == opus_mode_silk_only || skip_celt_for_dtx) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+ celt_enc->signal_bw_temporal.reset(); }
 #if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
   celt_diag().encode_mode = st->mode;
 #endif
@@ -3446,6 +3500,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     } else
       st->silk_mode.opusCanSwitch = st->silk_mode.switchReady && !nonfinal_frame;
     if (nBytes == 0) {
+      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+      celt_enc->signal_bw_temporal.reset();
       stage_storage.finish_frame(st);
       st->rangeFinal = 0;
       data[-1] = gen_toc(st->mode, frame_rate, curr_bandwidth, st->stream_channels);
@@ -3558,9 +3614,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
     }
+    if (st->prev_channels != st->stream_channels) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+ celt_enc->signal_bw_temporal.reset(); }
+    if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes) { std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+ celt_enc->signal_bw_temporal.reset(); }
     if (!skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes) {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255);
       if (ret < 0) {
+        std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+        celt_enc->signal_bw_temporal.reset();
         return -3;
       }
       if (redundancy && celt_to_silk && st->mode == opus_mode_hybrid && nb_compr_bytes != ret) {
@@ -3597,6 +3659,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->prev_channels = st->stream_channels;
   st->prev_framesize = frame_size;
   if (ec_tell(&enc) > (max_data_bytes - 1) * 8) {
+    std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+    celt_enc->signal_bw_temporal.reset();
     if (max_data_bytes < 2) {
       return -2;
     }
@@ -6157,13 +6221,46 @@ template <typename Operation> static inline void for_each_celt_band(const CeltEn
   }
 }
 
+[[nodiscard]] static int celt_signal_bw_min_bandwidth(opus_int32 equiv_rate, int C) noexcept {
+  return equiv_rate < 32000 * C ? 13 : equiv_rate < 48000 * C ? 16 : equiv_rate < 60000 * C ? 18 : equiv_rate < 80000 * C ? 19 : 20;
+}
+
+[[nodiscard]] static int celt_estimate_signal_bandwidth_source(const celt_glog* bandLogE, int end, int C, int lsb_depth,
+                                                               celt_glog short_offset, const celt_glog* retained) noexcept {
+  for (int i = end - 1; i >= signal_bw_retained_first_band; --i) {
+    const celt_glog thr = celt_noise_floor_base[static_cast<std::size_t>(i)] + static_cast<celt_glog>(9 - lsb_depth);
+    if (retained != nullptr && retained[i - signal_bw_retained_first_band] > thr + signal_bw_retained_margin)
+      return i;
+    for (int c = 0; c < C; ++c) {
+      if (bandLogE[c * celt_default_nb_ebands + i] - short_offset > thr)
+        return i;
+    }
+  }
+  return -1;
+}
+
+static void celt_update_signal_bw_retained(CeltEncoderInternal* st, const celt_glog* bandLogE, int end, int C, int LM,
+                                              celt_glog frame_short) {
+  const celt_glog frame_decay = static_cast<celt_glog>(signal_bw_retained_decay_20ms * ((1 << LM) / 8.f));
+  for (int r = 0; r < signal_bw_retained_bands; ++r)
+    st->signal_bw_retained[r] -= frame_decay;
+  for (int b = signal_bw_retained_first_band; b < end; ++b) {
+    celt_glog band_e = bandLogE[b];
+    if (C == 2) band_e = std::max(band_e, bandLogE[celt_default_nb_ebands + b]);
+    const int r = b - signal_bw_retained_first_band;
+    st->signal_bw_retained[r] = std::max(band_e - frame_short, st->signal_bw_retained[r]);
+  }
+}
+
 static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
+  const bool signal_bw_main = enc != nullptr;
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
   constexpr int nbEBands = celt_default_nb_ebands;
   constexpr int overlap = celt_default_overlap;
   const int start = st->start;
   const int end = st->end;
+  int signal_bandwidth = end - 1;
   const bool hybrid = start != 0;
   const int LM = celt_frame_lm(frame_size);
   const int M = 1 << LM;
@@ -6265,6 +6362,25 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       tf_chan = 0;
     }
     compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
+    {
+      opus_int32 qr_equiv_rate = equiv_rate;
+      if (st->bitrate > 0) {
+        const opus_int32 qr_adjust = (40 * C + 20) * ((400 >> LM) - 50);
+        const opus_int32 qr_desired = st->bitrate - qr_adjust;
+        if (qr_desired > 0) qr_equiv_rate = qr_desired;
+      }
+      const celt_glog frame_short = shortBlocks != 0 ? static_cast<celt_glog>(0.5f * LM) : celt_glog{0};
+      if (signal_bw_main)
+        celt_update_signal_bw_retained(st, bandLogE, end, C, LM, frame_short);
+      const int min_bandwidth = celt_signal_bw_min_bandwidth(qr_equiv_rate, C);
+      const int floor_bandwidth = std::min(min_bandwidth, end - 1);
+      const int source_bandwidth = celt_estimate_signal_bandwidth_source(bandLogE, end, C, st->lsb_depth, frame_short,
+                                                                         signal_bw_main ? st->signal_bw_retained : nullptr);
+      const bool active_audio = signal_bw_main && !silence;
+      const int expanded_source =
+          signal_bw_main ? st->signal_bw_temporal.advance(active_audio, source_bandwidth, N, end - 1) : source_bandwidth;
+      signal_bandwidth = std::min(std::max(floor_bandwidth, expanded_source), end - 1);
+    }
     temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
     copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
     if (transient_enabled)
@@ -6435,7 +6551,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
   bits -= anti_collapse_rsv;
   codedBands =
       clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
-                             pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, end - 1);
+                             pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
   st->lastCodedBands =
       static_cast<opus_uint8>(st->lastCodedBands ? clamp_value(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
@@ -6525,6 +6641,8 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   const auto band_count = static_cast<std::size_t>(st->channels * celt_default_nb_ebands);
   std::fill_n(views.oldLogE, band_count, -(28.f));
   std::fill_n(views.oldLogE2, band_count, -(28.f));
+  std::fill_n(st->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+  st->signal_bw_temporal.reset();
   st->delayedIntra = 1;
 }
 
@@ -8941,8 +9059,9 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
     int band_bits = bits[band] + percoeff * band_width + rem;
     if (band_bits >= std::max(thresh[band], alloc_floor + (1 << 3))) {
       if (encode) {
-        const int depth_threshold = codedBands > 17 ? (band < prev ? 7 : 9) : 0;
-        if (codedBands <= start + 2 || (band_bits > (depth_threshold * band_width << LM << 3) >> 4 && band <= signalBandwidth)) {
+        const bool depth_eligible = codedBands > 17;
+        const int depth_threshold = depth_eligible ? (band > signalBandwidth ? 9 : (band < prev ? 7 : 9)) : 0;
+        if (codedBands <= start + 2 || (band_bits > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || depth_eligible))) {
           ec_enc_bit_logp(ec, 1, 1);
           break;
         }
