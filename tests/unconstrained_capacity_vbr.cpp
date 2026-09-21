@@ -88,9 +88,9 @@ struct decode_check final {
                                  const std::vector<std::int16_t>& pcm16, const std::vector<float>& pcm_f) -> packet_vector {
   int error = OPUS_OK;
   std::unique_ptr<OpusEncoder, void (*)(OpusEncoder*)> encoder(opus_encoder_create(sample_rate, channels, OPUS_APPLICATION_VOIP, &error),
-                                                              [](OpusEncoder* st) {
-                                                                opus_encoder_destroy(st);
-                                                              });
+                                                               [](OpusEncoder* st) {
+                                                                 opus_encoder_destroy(st);
+                                                               });
   if (!encoder || error != OPUS_OK) {
     throw std::runtime_error("encoder create failed");
   }
@@ -122,9 +122,9 @@ struct decode_check final {
 [[nodiscard]] auto decode_and_check(bool use_float, int frame_size, const packet_vector& packets) -> decode_check {
   int error = OPUS_OK;
   std::unique_ptr<OpusDecoder, void (*)(OpusDecoder*)> decoder(opus_decoder_create(sample_rate, channels, &error),
-                                                              [](OpusDecoder* st) {
-                                                                opus_decoder_destroy(st);
-                                                              });
+                                                               [](OpusDecoder* st) {
+                                                                 opus_decoder_destroy(st);
+                                                               });
   if (!decoder || error != OPUS_OK) {
     throw std::runtime_error("decoder create failed");
   }
@@ -217,12 +217,12 @@ void check_automatic_capacity_control(int vbr_constraint) {
 
 int main() {
   try {
-    check_case(false, 960);   // 20 ms int16
-    check_case(true, 960);    // 20 ms float
-    check_case(false, 480);   // 10 ms int16
-    check_case(true, 480);    // 10 ms float
-    check_case(false, 1920);  // 40 ms multiframe int16
-    check_case(false, 2880);  // 60 ms multiframe int16
+    check_case(false, 960);  // 20 ms int16
+    check_case(true, 960);   // 20 ms float
+    check_case(false, 480);  // 10 ms int16
+    check_case(true, 480);   // 10 ms float
+    check_case(false, 1920); // 40 ms multiframe int16
+    check_case(false, 2880); // 60 ms multiframe int16
     check_automatic_capacity_control(0);
     check_automatic_capacity_control(1);
     std::printf("unconstrained_capacity_vbr %s checks=%d failures=%d\n", g_failures == 0 ? "PASS" : "FAIL", g_checks, g_failures);
