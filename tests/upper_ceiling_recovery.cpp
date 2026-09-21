@@ -57,7 +57,7 @@ void make_frame(std::vector<std::int16_t>& out, int frame_size, int sample_rate,
 
 struct packet_info {
   int config = 0;
-  int bandwidth = 0;  // 1104 SWB, 1105 FB, 0 otherwise
+  int bandwidth = 0; // 1104 SWB, 1105 FB, 0 otherwise
   bool hybrid = false;
   int pre_bw = 0;
   int pre_auto = 0;
@@ -75,8 +75,10 @@ std::vector<packet_info> run_recovery_sequence() {
   auto* dec = opus_decoder_create(48000, 1, &error);
   check(enc != nullptr && dec != nullptr, "create");
   if (enc == nullptr || dec == nullptr) {
-    if (enc != nullptr) opus_encoder_destroy(enc);
-    if (dec != nullptr) opus_decoder_destroy(dec);
+    if (enc != nullptr)
+      opus_encoder_destroy(enc);
+    if (dec != nullptr)
+      opus_decoder_destroy(dec);
     return {};
   }
   check_ctl(opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, 24000), "set initial bitrate");
@@ -185,8 +187,10 @@ void check_24k_input_ceiling() {
   auto* dec = opus_decoder_create(24000, 1, &error);
   check(enc != nullptr && dec != nullptr, "24k create");
   if (enc == nullptr || dec == nullptr) {
-    if (enc != nullptr) opus_encoder_destroy(enc);
-    if (dec != nullptr) opus_decoder_destroy(dec);
+    if (enc != nullptr)
+      opus_encoder_destroy(enc);
+    if (dec != nullptr)
+      opus_decoder_destroy(dec);
     return;
   }
   check_ctl(opus_encoder_ctl(enc, OPUS_SET_BITRATE_REQUEST, 24000), "24k set bitrate");
