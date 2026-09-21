@@ -3361,6 +3361,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     refresh_redundancy();
   }
   const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  // Positive allocator budget identifies a governed frame: single-frame callers clamp max_data_bytes
+  // to the governed frame budget before this point, and multiframe callers set frame_max_bytes from
+  // that budget. Only then may leftover packet capacity back the hybrid CELT rate max below.
+  const bool governed_frame = allocator_target_bits > 0;
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
   const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid ? nominal_target_bits : allocator_target_bits;
   const int bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), silk_target_bits) - 8;
@@ -3541,7 +3545,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (st->mode == opus_mode_hybrid) {
       if (st->use_vbr) {
         opus_int32 celt_vbr_bps = allocator_bitrate_bps - st->silk_mode.bitRate;
-        if (voip_silk_boost != 0) {
+        if (voip_silk_boost != 0 && governed_frame) {
           const opus_int32 remaining_bits = std::max<opus_int32>(0, 8 * nb_compr_bytes - ec_tell(&enc));
           celt_vbr_bps = std::max(celt_vbr_bps, bits_to_bitrate_for_frame_rate(remaining_bits, frame_rate));
         }
