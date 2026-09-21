@@ -181,7 +181,7 @@ The test harnesses and detailed metrics are in `tests/`.
 
 ## License
 
-This project is derived from Opus 1.6.1 and retains the upstream Opus license text in `LICENSE`.
+This project is derived from Opus 1.6.1 (tracked upstream commit [503d81b138d7](https://github.com/xiph/opus/commit/503d81b138d76621aae4b12786e90de48aa8db3a)) and retains the upstream Opus license text in `LICENSE`.
 
 ## Real-world use: Melo
 
