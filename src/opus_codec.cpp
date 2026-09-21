@@ -3384,7 +3384,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     } else {
       st->silk_mode.bitRate = total_bitRate;
     }
-    st->silk_mode.payloadSize_ms = 1000 / frame_rate;
+    st->silk_mode.payloadSize_ms = 1000 * frame_size / st->Fs;
     st->silk_mode.nChannelsAPI = st->channels;
     st->silk_mode.nChannelsInternal = st->stream_channels;
     st->silk_mode.desiredInternalSampleRate = curr_bandwidth == 1101 ? 8000 : curr_bandwidth == 1102 ? 12000
