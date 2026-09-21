@@ -1,15 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
 #ifndef OPUSCPP_VOICE_CONDITIONING_SRC
 #define OPUSCPP_VOICE_CONDITIONING_SRC "../src/opus_codec.cpp"
 #endif
@@ -52,9 +42,6 @@ void make_dc_with_ac(std::vector<float>& pcm, float dc, float freq_hz, float amp
     sample += dc;
 }
 
-
-
-
 void start_state(voice_conditioning_channel& state, float score, int provisional) {
   state = voice_conditioning_channel{};
   std::vector<float> warmup;
@@ -95,9 +82,6 @@ double run_clean_frames(voice_conditioning_channel& state, int frames, std::vect
 
 int main() {
 
-
-
-
   {
     voice_conditioning_channel normal, provisional;
     start_state(normal, 0.8f, 0);
@@ -119,7 +103,6 @@ int main() {
     std::printf("A: normal_f20=%.3f provisional_f20=%.3f\n", tn[19], tp[19]);
   }
 
-
   {
     voice_conditioning_channel state;
     start_state(state, 0.8f, 1);
@@ -127,7 +110,6 @@ int main() {
     CHECK(state.cue_provisional == 0, "provisional expires under clean evidence");
     CHECK(state.cond_score < 0.6, "provisional expiry does not hold the score");
   }
-
 
   {
     voice_conditioning_channel state;
@@ -142,7 +124,6 @@ int main() {
       if (f == 5) {
         rumble6 = state.cond_score;
 
-
         CHECK(state.cond_score > 0.5, "rumble attacks within six frames");
       }
     }
@@ -150,7 +131,6 @@ int main() {
     CHECK(state.cue_dirty == 1, "rumble latches the dirty state");
     std::printf("rumble f6=%.3f f20=%.3f\n", rumble6, static_cast<double>(state.cond_score));
   }
-
 
   {
     voice_conditioning_channel state;
@@ -162,7 +142,6 @@ int main() {
     CHECK(state.cond_score > 0.6, "DC evidence attacks within one frame");
     std::printf("C2: dc_f1=%.3f\n", static_cast<double>(state.cond_score));
   }
-
 
   {
     voice_conditioning_channel state;
