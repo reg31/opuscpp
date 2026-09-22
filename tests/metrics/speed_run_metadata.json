@@ -1,5 +1,5 @@
 {
-  "source_commit": "31c0660d1313175d505732bfbec8268cadf978ab",
+  "source_commit": "5d531c6430d82e1dcf910fe9f880b8047274a709",
   "source_sha256": "a9d09c23ccb6b7165fd9de01d3894053eaf5491ebdb091d050865dc9c88c6c91",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "object_sha256": "26491cdd3dbcc09d310f5edcbce38a2d4ddd27cf2ae88f1bbbe29afbb27ca48b",
@@ -11,11 +11,11 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_q2_20260922\\src",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_q2_20260922\\tests"
+    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_requested_20260922\\src",
+    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_requested_20260922\\tests"
   ],
   "quality_driver_sha256": "e8dc79fbed4f33a132a5e34fba3353e35142227ed0397b69852988a7cd3fcc52",
-  "quality_binary_sha256": "be147716643b76522e9bf607d8018cb9a2edfb5e73282671e49775e9f1201679",
+  "quality_binary_sha256": "c650e661d8528b17e8f895898dbc6790deb36ab34a268e42bac583fc540e23e5",
   "fixtures": {
     "synthetic_music_like_stereo.wav": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
     "synthetic_tonal_stress_mono.wav": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
@@ -26,10 +26,10 @@
   "sanitizers": false,
   "quality_negative_fields": 1129,
   "measurement_date": "2026-09-22",
-  "completed_utc": "2026-09-21T23:50:35.697064+00:00",
-  "root_runner_sha256": "3eb98fcc6e263acd371c0a4f6e73a2279a081bb6522b2fcf0bfe7253f477889f",
+  "completed_utc": "2026-09-22T06:37:29.186634+00:00",
+  "root_runner_sha256": "1128e1de73bc43ce2c46cce5a6096eeb6868123bd461c438454fe9de2d858b95",
   "harness_sha256": "b71011a03c8631dfd8debd09a1f96f71607c0a5586c5beb2db3d3395179a6e6f",
-  "binary_sha256": "e7bbf60fd26a48dfd679e4ef7be3b9a9fcd91b33f9bf36b014d83c9ea1c75be8",
+  "binary_sha256": "52ebeae39a14722b28256e519a2f7156c58a4a050fb2f0e354f365ec0e183117",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,

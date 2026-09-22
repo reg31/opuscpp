@@ -2,7 +2,7 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-The current benchmark tables were refreshed independently by Codex on 2026-09-22 for production `31c0660`. Both codecs use complexity 10 and `-O2 -DNDEBUG`, with official Opus intrinsics enabled. [Every metric and full results](metrics/README.md) are retained. Named per-commit checkpoint sections are historical comparisons; their measurements are not relabelled as new runs. Broader compatibility/conformance and selected regression results retain their original source commits in [regression metadata](metrics/selected_regressions.json).
+The current benchmark tables were refreshed independently by Codex on 2026-09-22 for production `5d531c6`. Both codecs use complexity 10 and `-O2 -DNDEBUG`, with official Opus intrinsics enabled. [Every metric and full results](metrics/README.md) are retained. Named per-commit checkpoint sections are historical comparisons; their measurements are not relabelled as new runs. Broader compatibility/conformance and selected regression results retain their original source commits in [regression metadata](metrics/selected_regressions.json).
 
 
 
@@ -371,18 +371,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.780x | 1.844x | 629x | 353x | 2395x | 1299x |
-| 24&nbsp;kbps | 1.741x | 1.373x | 567x | 326x | 1592x | 1159x |
-| 32&nbsp;kbps | 1.753x | 1.364x | 571x | 326x | 1549x | 1135x |
-| 48&nbsp;kbps | 1.612x | 1.339x | 482x | 299x | 1290x | 964x |
-| 64&nbsp;kbps | 1.565x | 1.263x | 412x | 264x | 1077x | 853x |
-| 96&nbsp;kbps | 1.544x | 1.200x | 332x | 215x | 809x | 674x |
-| 128&nbsp;kbps | 1.462x | 1.205x | 284x | 194x | 705x | 585x |
-| 192&nbsp;kbps | 1.305x | 1.227x | 231x | 177x | 610x | 497x |
-| 256&nbsp;kbps | 1.271x | 1.184x | 215x | 169x | 536x | 453x |
+| 16&nbsp;kbps | 1.789x | 1.808x | 615x | 344x | 2307x | 1276x |
+| 24&nbsp;kbps | 1.767x | 1.374x | 561x | 318x | 1539x | 1120x |
+| 32&nbsp;kbps | 1.732x | 1.367x | 554x | 320x | 1512x | 1106x |
+| 48&nbsp;kbps | 1.611x | 1.302x | 471x | 292x | 1253x | 963x |
+| 64&nbsp;kbps | 1.546x | 1.265x | 401x | 259x | 1045x | 826x |
+| 96&nbsp;kbps | 1.552x | 1.192x | 323x | 208x | 778x | 653x |
+| 128&nbsp;kbps | 1.451x | 1.205x | 277x | 191x | 681x | 565x |
+| 192&nbsp;kbps | 1.318x | 1.211x | 227x | 172x | 591x | 488x |
+| 256&nbsp;kbps | 1.262x | 1.199x | 208x | 165x | 527x | 440x |
 
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.27x to 1.78x); decoding at 9/9 (1.18x to 1.84x). The separate real-speech VOIP timings, including slower cases, are in [the complete results](metrics/README.md).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.26x to 1.79x); decoding at 9/9 (1.19x to 1.81x). The separate real-speech VOIP timings, including slower cases, are in [the complete results](metrics/README.md).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -463,20 +463,20 @@ The 15.5/20 kbps cases have PESQ-style gains +0.1211/+0.1140 and ViSQOL-style ga
 
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at six rates, 1 has a negative PESQ-style delta, 0 negative ViSQOL-style deltas, and 4 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
-End-to-end encode overhead is **5.0% to 12.9%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+End-to-end encode overhead is **2.3% to 12.1%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
 
 The optional state is 68 bytes. A 7.5 KiB temporary stack cache avoids repeating filter work for frames of up to 960 samples; longer frames recompute. The existing 90-configuration state/bounds/reset result retains its original validation provenance. Both toolchains build; unused tone-analysis warnings remain.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0965 | +0.0779 | 12.9% |
-| 24&nbsp;kbps | +0.1637 | +0.1057 | 7.8% |
-| 32&nbsp;kbps | +0.1993 | +0.1229 | 7.8% |
-| 48&nbsp;kbps | +0.2082 | +0.1264 | 8.3% |
-| 64&nbsp;kbps | +0.1955 | +0.1500 | 7.4% |
-| 96&nbsp;kbps | +0.2127 | +0.1551 | 5.5% |
-| 128&nbsp;kbps | +0.2123 | +0.1574 | 5.0% |
-| 192&nbsp;kbps | +0.2152 | +0.1593 | 5.4% |
+| 16&nbsp;kbps | +0.0965 | +0.0779 | 12.1% |
+| 24&nbsp;kbps | +0.1637 | +0.1057 | 7.2% |
+| 32&nbsp;kbps | +0.1993 | +0.1229 | 7.2% |
+| 48&nbsp;kbps | +0.2082 | +0.1264 | 6.7% |
+| 64&nbsp;kbps | +0.1955 | +0.1500 | 6.6% |
+| 96&nbsp;kbps | +0.2127 | +0.1551 | 4.1% |
+| 128&nbsp;kbps | +0.2123 | +0.1574 | 2.3% |
+| 192&nbsp;kbps | +0.2152 | +0.1593 | 4.6% |
 | 256&nbsp;kbps | +0.2158 | +0.1593 | 5.4% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
@@ -496,10 +496,10 @@ structure sizes or peak stack usage; allocator/page rounding contributes to smal
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 16,912 B | 31,824 B | -46.9% |
-| Encoder stereo | 32,576 B | 49,104 B | -33.7% |
-| Decoder mono | 14,160 B | 18,384 B | -23.0% |
-| Decoder stereo | 21,152 B | 27,312 B | -22.6% |
+| Encoder mono | 16,960 B | 31,840 B | -46.7% |
+| Encoder stereo | 32,704 B | 48,880 B | -33.1% |
+| Decoder mono | 14,128 B | 18,320 B | -22.9% |
+| Decoder stereo | 21,312 B | 27,280 B | -21.9% |
 
 Source CSV:
 

@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `31c0660d1313175d505732bfbec8268cadf978ab` on 2026-09-22 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. No extra compatibility check results are claimed here.
+Codex independently refreshed production `5d531c6430d82e1dcf910fe9f880b8047274a709` on 2026-09-22 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. No extra compatibility check results are claimed here.
 
 ## Quality: every metric
 
@@ -27,18 +27,18 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 1.27x to 1.78x; decode: 1.18x to 1.84x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 1.26x to 1.79x; decode: 1.19x to 1.81x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 | Speech input | Mode | Frame ms | Rate bps | Current encode ms | Official encode ms | Encode ratio | Current decode ms | Official decode ms | Decode ratio |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hazel | voice | 20.0 | 16000 | 121.124700 | 86.916900 | 0.717582 | 11.471900 | 13.593300 | 1.184921 |
-| hazel | voice | 20.0 | 32000 | 116.018300 | 87.935800 | 0.757948 | 12.516100 | 14.711100 | 1.175374 |
-| hazel | voice | 20.0 | 64000 | 31.067800 | 79.049800 | 2.544429 | 13.272800 | 15.633600 | 1.177868 |
-| hazel | fec60 | 60.0 | 24000 | 147.411200 | 95.398700 | 0.647160 | 7.951100 | 9.223000 | 1.159965 |
-| david | voice | 20.0 | 16000 | 105.179700 | 74.700600 | 0.710219 | 10.168900 | 11.857900 | 1.166095 |
-| david | voice | 20.0 | 32000 | 109.195000 | 77.186400 | 0.706868 | 10.951900 | 12.763500 | 1.165414 |
-| david | voice | 20.0 | 64000 | 27.531100 | 66.736000 | 2.424022 | 11.414500 | 13.406800 | 1.174541 |
-| david | fec60 | 60.0 | 24000 | 125.199700 | 83.675300 | 0.668335 | 7.034400 | 8.086700 | 1.149593 |
+| hazel | voice | 20.0 | 16000 | 180.041700 | 123.767200 | 0.687436 | 16.629800 | 20.013900 | 1.203496 |
+| hazel | voice | 20.0 | 32000 | 160.587300 | 130.632100 | 0.813465 | 18.397300 | 21.471900 | 1.167122 |
+| hazel | voice | 20.0 | 64000 | 46.426300 | 117.492500 | 2.530732 | 19.545700 | 22.884600 | 1.170825 |
+| hazel | fec60 | 60.0 | 24000 | 151.222800 | 99.764000 | 0.659715 | 8.268000 | 10.116400 | 1.223561 |
+| david | voice | 20.0 | 16000 | 159.787400 | 116.596300 | 0.729696 | 15.225200 | 18.054100 | 1.185804 |
+| david | voice | 20.0 | 32000 | 129.856400 | 109.815000 | 0.845665 | 13.877000 | 18.850700 | 1.358413 |
+| david | voice | 20.0 | 64000 | 41.560400 | 98.937400 | 2.380569 | 16.974800 | 19.783800 | 1.165481 |
+| david | fec60 | 60.0 | 24000 | 127.115900 | 84.185300 | 0.662272 | 7.103700 | 8.123400 | 1.143545 |
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the table.
 
@@ -50,14 +50,14 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 16912 | 16944 | Not exposed |
-| official_encoder_ch1 | 31824 | 31872 | 31668 |
-| current_decoder_ch1 | 14160 | 13072 | Not exposed |
-| official_decoder_ch1 | 18384 | 18560 | 18468 |
-| current_encoder_ch2 | 32576 | 32544 | Not exposed |
-| official_encoder_ch2 | 49104 | 48736 | 48684 |
-| current_decoder_ch2 | 21152 | 21328 | Not exposed |
-| official_decoder_ch2 | 27312 | 27264 | 27236 |
+| current_encoder_ch1 | 16960 | 16912 | Not exposed |
+| official_encoder_ch1 | 31840 | 31888 | 31668 |
+| current_decoder_ch1 | 14128 | 13056 | Not exposed |
+| official_decoder_ch1 | 18320 | 18560 | 18468 |
+| current_encoder_ch2 | 32704 | 32560 | Not exposed |
+| official_encoder_ch2 | 48880 | 48736 | 48684 |
+| current_decoder_ch2 | 21312 | 21312 | Not exposed |
+| official_decoder_ch2 | 27280 | 27248 | 27236 |
 
 [Memory CSV](memory_vs_official.csv). Denoiser optional state: 68 bytes; temporary stack cache: 7,680 bytes. Compiler-reported NSQ stack reservations in earlier checkpoint sections are historical function reservations, not newly measured peak memory.
 
@@ -104,10 +104,10 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=22.4273 decode_ms=21.2759 checksum=340886119
-mono-high bytes=115 encode_ms=22.6111 decode_ms=18.5971 checksum=2633358364
-stereo-mid bytes=102 encode_ms=87.5962 decode_ms=30.7354 checksum=3294895434
-stereo-high bytes=147 encode_ms=94.6321 decode_ms=31.1846 checksum=1997488960
+mono-mid bytes=76 encode_ms=20.7975 decode_ms=20.54 checksum=340886119
+mono-high bytes=115 encode_ms=22.2117 decode_ms=18.1456 checksum=2633358364
+stereo-mid bytes=102 encode_ms=86.4728 decode_ms=28.4399 checksum=3294895434
+stereo-high bytes=147 encode_ms=92.9415 decode_ms=29.9699 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
