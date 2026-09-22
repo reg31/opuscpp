@@ -16,7 +16,7 @@ dtx_reentry,16000,fricative_voice,,,0.517449,0.824224,4.885377,5.128546
 dtx_false_positive,24000,voice,0,0,,,,
 dtx_reentry,24000,voice,,,0.030224,0.631924,0.002966,0.149767
 dtx_false_positive,24000,quiet_voice,0,0,,,,
-dtx_reentry,24000,quiet_voice,,,0.106121,0.733938,0.054799,0.046976
+dtx_reentry,24000,quiet_voice,,,0.096648,0.733938,0.069974,0.046976
 dtx_false_positive,24000,far_field,0,0,,,,
 dtx_reentry,24000,far_field,,,0.573663,0.800514,0.467741,1.010243
 dtx_false_positive,24000,noisy_voice,0,0,,,,
