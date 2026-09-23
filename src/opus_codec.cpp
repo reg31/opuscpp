@@ -5798,7 +5798,24 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     }
     gain1 = (.75f);
   } else if (enabled && complexity >= 5) {
+    bool cached_valid = false;
     if (!st->lowrate_refinement && st->prefilter_gain > (.2f) && st->prefilter_period >= min_period) {
+      const int cached_period = static_cast<int>(st->prefilter_period);
+      double cached_xy = 0, cached_xx = 0, cached_yy = 0;
+      for (int c = 0; c < CC; ++c) {
+        const opus_val16* cached_x = reinterpret_cast<const opus_val16*>(pre[c] + max_period);
+        const opus_val16* cached_xt = reinterpret_cast<const opus_val16*>(pre[c] + max_period - cached_period);
+        opus_val32 channel_xy = 0, channel_xx = 0;
+        dual_inner_prod_c(cached_x, cached_xt, cached_x, N, channel_xy, channel_xx);
+        const opus_val32 channel_yy = celt_inner_prod_c(cached_xt, cached_xt, N);
+        cached_xy += static_cast<double>(channel_xy);
+        cached_xx += static_cast<double>(channel_xx);
+        cached_yy += static_cast<double>(channel_yy);
+      }
+      const double cached_rho = cached_xy / std::sqrt(cached_xx * cached_yy + 1e-30);
+      cached_valid = cached_rho >= static_cast<double>(st->prefilter_gain);
+    }
+    if (cached_valid) {
       pitch_index = st->prefilter_period;
       gain1 = st->prefilter_gain;
     } else {
