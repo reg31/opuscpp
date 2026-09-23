@@ -6347,7 +6347,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
                                       toneishness, tf_estimate, input_metrics.abs_sum);
     transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
     transient_got_disabled = !transient_enabled;
-    if (!transient_enabled && st->stereo_policy_celt)
+    if (!transient_enabled)
       isTransient = 0;
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
     compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
