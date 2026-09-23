@@ -1,21 +1,21 @@
 {
-  "source_commit": "f944dc7565ee5925ffb95ebd3fcb208171efb1cd",
-  "source_sha256": "7bdc1d452de3bc8291be6418a3559a1a85ce392757319e1d1446cd44d72d2eb5",
+  "source_commit": "a247cd18ed737af1b94295a526ecfbe945f8257a",
+  "source_sha256": "a0c06118db122baee91d90f0cfe39bdde93d0b035dab1e651b12fc190fe1e432",
   "quality": {
     "boundary_passed": 25,
     "boundary_total": 25,
     "broader_comparisons_vs_bypass": 246,
     "negative_counts_vs_bypass": {
-      "snr_db": 3,
-      "segmental_snr_db": 2,
-      "rms_error": 3,
+      "snr_db": 1,
+      "segmental_snr_db": 3,
+      "rms_error": 1,
       "mean_abs_error": 0,
       "pesq_style": 2,
-      "visqol_style": 1,
+      "visqol_style": 0,
       "logband_corr": 5,
       "logband_error": 0,
-      "celt_quality": 2,
-      "celt_masked_error": 2,
+      "celt_quality": 3,
+      "celt_masked_error": 3,
       "celt_highband_error": 0,
       "stereo_width_error": 0
     }
@@ -28,5 +28,6 @@
     "priority": "above_normal"
   },
   "optional_state_bytes": 68,
-  "temporary_stack_cache_bytes": 7680
+  "state_check_cases": 90,
+  "stack_peak_measurement": "not measured"
 }

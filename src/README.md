@@ -132,7 +132,7 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
 The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
-2.9% to 5.9% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
+-0.2% to 5.7% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
 The optional state is 68 bytes, with a 7.5 KiB temporary stack cache for frames of up to 960 samples.
 Broader on/off tests still contain quality losses: this is not a universal improvement. See the
 [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
@@ -160,7 +160,7 @@ opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(10));
 Recovery requires one packet of delay. If packet `N` is missing and packet `N+1` arrives, decode
 `N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with
 `decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
-concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms packets in both directions against official Opus, including VBR and CBR. The separate FEC candidate `cc0df2af` (source SHA-256 `cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601`) passes the standard 18/18 recovery comparison and packet-byte gate (ratio 0.993345; 14,627 candidate bytes vs 14,725 official) and all four source criteria on 18/18 cases. This is an FEC-scoped follow-up; the complete quality, speed and memory tables remain bound to the S6 source `f944dc7` in the full snapshot. Known non-FEC tradeoff: David mono VOIP at 16 kb/s CBR has celt_highband_error 0.06521369 on the a9 baseline and 0.07885415 on this candidate (official Opus 0.02062780). The candidate DTX comparison remains PASS; re-entry NRMSE moves 0.375632 to 0.374613 and gain error moves 1.531290 to 1.405174 dB (official 0.762239 and 1.646307). See [`fec_s7_candidate_validation.json`](../tests/metrics/fec_s7_candidate_validation.json). The complete S6 snapshot remains in [full metric inventory](../tests/metrics/README.md); its original FEC result was packet-byte ratio 1.00102 and C3 17/18.
+concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms packets in both directions against official Opus, including VBR and CBR. FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. Current per-case standard and source measurements are in the [full metric inventory](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.

@@ -1,10 +1,10 @@
 {
-  "source_commit": "f944dc7565ee5925ffb95ebd3fcb208171efb1cd",
-  "source_blob": "98262c57303c01095900a165242307b5c1d2a306",
-  "source_sha256": "7bdc1d452de3bc8291be6418a3559a1a85ce392757319e1d1446cd44d72d2eb5",
+  "source_commit": "a247cd18ed737af1b94295a526ecfbe945f8257a",
+  "source_blob": "56e2b855807cb4da19b2ab00d97242c225064149",
+  "source_sha256": "a0c06118db122baee91d90f0cfe39bdde93d0b035dab1e651b12fc190fe1e432",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "f944dc7565ee5925ffb95ebd3fcb208171efb1cd",
+  "tests_commit": "a247cd18ed737af1b94295a526ecfbe945f8257a",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -42,9 +42,10 @@
     "tests/silk_packet_duration.cpp": "182ed3e9455f6850ba213994947a06927e8312be1e7f76ed04cfa9659c3560c5",
     "tests/silk_plc_energy.cpp": "acde4aaa46dbb1b3e16c619a820e7246f5aa8d5a512fcbecbe5678e53336faea",
     "tests/stereo_policy.cpp": "1f026ec9d701147a2dba3bce7e04e9024c18a7329adb74d9e7b011b73d16d46a",
+    "tests/transient_invariant.cpp": "fc67a3f66a907b62c88ac8e342b1ac09ca9684fbdf8de3c9664ade9606aced6a",
     "tests/unconstrained_capacity_vbr.cpp": "24263a4f2a15a00f98130e9341ea7160b650aa9e735f28d2cf08280657900359",
     "tests/upper_ceiling_recovery.cpp": "c8aae81852fa8ed43cf4622d66da6b994f856a0f39f47e755d5f8e7008d7f134",
-    "tests/vbr_budget_behavior.cpp": "f2764f6734261290d05bdfefb7b7a5b636868e4e6e4d73246a9d66965e764105",
+    "tests/vbr_budget_behavior.cpp": "41bfbf6d192a59aa632c3afcc871c03bbdf90a43135e2917046ff0bee5ec7fe0",
     "tests/voice_conditioning_release.cpp": "3b2f7118e80c17240631e95b485cd3acdf7ed1b14e7600eb7567132b69c97239",
     "tests/voice_denoise_state.cpp": "6f2932c647c9b343ed27f08d42268fbdacec39ade354a60a3e783c1a7ecb3aa2",
     "tests/voip_quiet_start_latch.cpp": "4d39502eddcf9ff721a3a98ed7456cc70f623da741f47824cc02481b966279d4",
@@ -57,14 +58,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\src",
-    "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20260923\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20260923\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "67192d2b85480cdf215c1d0673668292b69433567b8940a5dca89e7602b0b2b0",
   "quality_driver_diff_sha256": "ea0ee8742d476a4777421b0094071f6adf2317040a8361e0745615cf95bdc2f3",
   "quality_driver_transformation": "exactly two std::setprecision(8) -> std::setprecision(17) replacements; pinned public test copy remains unchanged",
-  "quality_binary_sha256": "cf1a63a817a6f4f659c6114923c3a5ca3232d56bdfe5f1a8fa18247a9fc86841",
+  "quality_binary_sha256": "085ce4f1a192acd09326bbfedc0a21991c3843071ac9e9b4b33e493c8e73a4ed",
   "quality_baseline_hashes": {
     "quality.json": "ad5c2d463eef79177b61acdcafea3a4b36aa48a681b32b0d3c3d3312da774207",
     "quality_extra.json": "b07c3e2c078df1137202dc688781bbdbe69687a01c05677db093fbe2bd2a18bb"
@@ -77,8 +78,10 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
-    "setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\scripts\\setup_official_compare.py",
+    "setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594",
+    "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
+    "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
   },
   "fixtures": {
     "synthetic_music_like_stereo.wav": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
@@ -89,28 +92,23 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 1038,
-  "acceptance_status": "failed_known_fec_criterion",
+  "quality_negative_fields": 917,
+  "acceptance_status": "pass",
   "acceptance_counts": [
     18,
     18,
-    17,
+    18,
     18
   ],
-  "standard_fec_acceptance": "FAIL",
+  "standard_fec_acceptance": "PASS",
   "measurement_date": "2026-09-23",
-  "completed_utc": "2026-09-23T12:16:41.655969+00:00",
-  "root_runner_sha256": "fc6ae7ddf03ca2df6685435fd6714f6eb2673de1786352d1846da5534e280a66",
-  "phase_runner_sha256": "60c7af20f48d298236a80bb5b5c91ca2d9bc16e03d11f4b7da78cf631f21904b",
-  "input_manifest_sha256": "42831006bdf737d2e408c3131b123fe173efd9e870839907e2a19201da931156",
-  "object_sha256": "9fc590e7e8ee5e24716534862a55528c996a2482cb349dbd78a00ccb4479e03e",
-  "plain_object_sha256": "289a48f275194d9d834540f4039fbf438d17e2c4dcecb4a088df24c439043ae1",
-  "codex_object_sha256": "f3a8f3671f163463d6ac62b88ad929fbf383d8d4408ccf48deed6295f4aa1c2e",
-  "codec_object_sha256": {
-    "curr": "9fc590e7e8ee5e24716534862a55528c996a2482cb349dbd78a00ccb4479e03e",
-    "plain": "289a48f275194d9d834540f4039fbf438d17e2c4dcecb4a088df24c439043ae1",
-    "codex": "f3a8f3671f163463d6ac62b88ad929fbf383d8d4408ccf48deed6295f4aa1c2e"
-  },
+  "completed_utc": "2026-09-23T16:16:04.175192+00:00",
+  "root_runner_sha256": "d7d54093a9d6c6a912c3512c5ba30356a9614a0c8660e24352249420bb14106a",
+  "phase_runner_sha256": "e9552abff06c86d4ceac2ae7fbe67e4974913458727cfcea33814d519017de07",
+  "input_manifest_sha256": "f0af3ad52e3f2c38388b4577d0c8cb01bac46cd8268129ca5478cd426814f87b",
+  "resume_provenance_sha256": "fd5919702fa65ec9695990bf20af526e8801d8c62fcd35d5e07a47b20cb052d5",
+  "pre_resume_root_runner_sha256": "cf01b4f7eab52038afa0b196d032c102cdb09499b7a84170ba355bd876cee7e6",
+  "pre_resume_phase_runner_sha256": "c70a2af4a148cb5b68a21ade00302743fe47514f2fa4777f5d065367f9966c6c",
   "complexities": [
     9,
     10
@@ -141,18 +139,18 @@
     "stereo_width_error"
   ],
   "quality_negatives": {
-    "snr_db": 38,
-    "segmental_snr_db": 39,
-    "rms_error": 38,
-    "mean_abs_error": 33,
-    "pesq_style": 37,
+    "snr_db": 28,
+    "segmental_snr_db": 35,
+    "rms_error": 28,
+    "mean_abs_error": 27,
+    "pesq_style": 35,
     "visqol_style": 93,
-    "logband_corr": 91,
-    "logband_error": 94,
-    "celt_quality": 143,
-    "celt_masked_error": 143,
-    "celt_highband_error": 246,
-    "stereo_width_error": 43
+    "logband_corr": 84,
+    "logband_error": 95,
+    "celt_quality": 122,
+    "celt_masked_error": 122,
+    "celt_highband_error": 214,
+    "stereo_width_error": 34
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL"
 }
