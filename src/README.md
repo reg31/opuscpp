@@ -163,7 +163,7 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
 quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in all 18 scenarios. The expanded 36-configuration benchmark has 58.3% lower combined reconstruction error and 0.3% fewer packet bytes. The 18 scored cases have recoverable backup in all 18 scenarios versus 15 for official Opus. All source-quality criteria pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
+more accurately in all 18 scenarios. The 18 scored 10/20 ms cases have 53.9% lower combined reconstruction error and 0.3% fewer packet bytes. Recoverable backup is present in all 18 scenarios versus 15 for official Opus. All source-quality criteria pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.

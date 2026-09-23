@@ -306,7 +306,7 @@ audio. Additional packet checks cover silent startup, speech-to-silence changes,
 while FEC is enabled.
 
 Recovery error compares reconstructed missing audio with normal, loss-free decoding of the
-same stream. The current benchmark passes all 18 scored strict 10/20 ms cases (maximum ratio 0.953507). The expanded 36-configuration run has aggregate recovery error ratio 0.416949 (58.3% lower), backup coverage 18/18 versus official 15/18, and packet-byte ratio 0.997419. This aggregate covers the expanded run and is not directly comparable with older matrices. All ratios, 72 direction rows and source-quality criteria are in [current FEC metadata](metrics/fec_run_metadata.json).
+same stream. The current benchmark passes all 18 scored strict 10/20 ms cases (maximum ratio 0.975971). Those 18 cases have aggregate recovery error ratio 0.461407 (53.9% lower), backup coverage 18/18 versus official 15/18, and packet-byte ratio 0.996537. The full interoperability run covers 36 configurations and emits 72 direction rows; its 40/60 ms cases are excluded from this scored aggregate. All ratios, direction rows and source-quality criteria are in [current FEC metadata](metrics/fec_run_metadata.json).
 
 `fec_source_quality.cpp` separately compares recovered-frame fidelity, the following frame and
 the boundary transition against the original source. All three errors are no greater than official
@@ -571,8 +571,8 @@ negative and 525 worsened existing deficits. This corrects an upstream parity bu
 quality improvement; individual regressions remain open. Strict FEC and all four source criteria
 still pass 18/18, along with the packet-budget and ordinary integration checks.
 
-Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16–48 kbps
-(0.567–0.620x official speed); David encoding is faster at all nine measured rates (1.089–2.673x).
+Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16Ã¢â‚¬â€œ48 kbps
+(0.567Ã¢â‚¬â€œ0.620x official speed); David encoding is faster at all nine measured rates (1.089Ã¢â‚¬â€œ2.673x).
 Decode ratios exceed 1x on both inputs. These use the existing 13.46-second Hazel and 11.8-second
 David PCM, with both codecs at complexity 10 and -O2 -DNDEBUG; no explicit affinity/priority pinning.
 See [transient checkpoint metadata](metrics/celt_transient_checkpoint.json) for exact source

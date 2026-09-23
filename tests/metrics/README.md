@@ -70,7 +70,7 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 ## FEC and DTX
 
-FEC: 18/18 strict scored ratios; maximum 0.975971. C1 recovered-source fidelity, C2 following-frame fidelity, C3 source transition error and C4 recovered fidelity versus own PLC each pass 18/18. The expanded 36-configuration aggregate recovery ratio is 0.461407, packet-byte ratio 0.996537; backup coverage is 18/18 versus official 15/18. FEC is retained as regression coverage, with no further optimization in this round.
+FEC: 18/18 strict scored ratios; maximum 0.975971. C1 recovered-source fidelity, C2 following-frame fidelity, C3 source transition error and C4 recovered fidelity versus own PLC each pass 18/18. The aggregate recovery ratio across the 18 scored 10/20 ms cases is 0.461407, packet-byte ratio 0.996537; backup coverage is 18/18 versus official 15/18. FEC is retained as regression coverage, with no further optimization in this round.
 
 [Every FEC direction field](fec_interop_metrics.csv) includes decoder/continuation errors, recovered-to-PLC difference, recovery/PLC error, packet bytes and hashes. [Every source comparison](fec_source_metrics.json) includes fidelity_fec, next_fec, transition_fec, fidelity_ref, next_ref, transition_ref, fidelity_plc, self_consistency, step_fec and step_ref, for both codecs. [Strict ratios and complete output](fec_run_metadata.json).
 

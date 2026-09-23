@@ -36,7 +36,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
 - Compatibility results refer to the existing production validation; this benchmark refresh does not claim a new complete compatibility run.
 - Optional DTX: zero false DTX packets on the tracked active-content set, 50.7% lower aggregate re-entry error and 5.8% lower aggregate gain error at 16/24&nbsp;kbps.
-- Optional FEC: lower missing-frame error in all 18 scored loss scenarios. Across the expanded 36-configuration run, combined recovery error is 53.9% lower and packet bytes are 0.3% lower. Source-quality criteria pass 18/18 each.
+- Optional FEC: lower missing-frame error in all 18 scored loss scenarios. Across the 18 scored 10/20 ms cases, combined recovery error is 53.9% lower and packet bytes are 0.3% lower. Source-quality criteria pass 18/18 each.
 - 21.9% to 46.7% lower measured private allocation footprint across the listed encoder/decoder configurations.
 - Host object: `327,780 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang builds (unused tone-analysis warnings remain).
