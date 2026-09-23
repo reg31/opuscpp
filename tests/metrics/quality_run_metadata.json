@@ -1,10 +1,10 @@
 {
-  "source_commit": "a247cd18ed737af1b94295a526ecfbe945f8257a",
-  "source_blob": "56e2b855807cb4da19b2ab00d97242c225064149",
-  "source_sha256": "a0c06118db122baee91d90f0cfe39bdde93d0b035dab1e651b12fc190fe1e432",
+  "source_commit": "1379e10724e422adf722da45e843b669faed56e1",
+  "source_blob": "1a32388b6010ce26b496c19a304d6032f86860c7",
+  "source_sha256": "9c9337dfddd5565001e2aba72f9cd1581d53f2b1d2374a34743c6c206d24edba",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "a247cd18ed737af1b94295a526ecfbe945f8257a",
+  "tests_commit": "1379e10724e422adf722da45e843b669faed56e1",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -58,14 +58,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20260923\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20260923\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "67192d2b85480cdf215c1d0673668292b69433567b8940a5dca89e7602b0b2b0",
   "quality_driver_diff_sha256": "ea0ee8742d476a4777421b0094071f6adf2317040a8361e0745615cf95bdc2f3",
   "quality_driver_transformation": "exactly two std::setprecision(8) -> std::setprecision(17) replacements; pinned public test copy remains unchanged",
-  "quality_binary_sha256": "085ce4f1a192acd09326bbfedc0a21991c3843071ac9e9b4b33e493c8e73a4ed",
+  "quality_binary_sha256": "1f8321d0ff02f524df9a3d21733c8981cf2d7655ea0b81f63bfb3097aa0145a4",
   "quality_baseline_hashes": {
     "quality.json": "ad5c2d463eef79177b61acdcafea3a4b36aa48a681b32b0d3c3d3312da774207",
     "quality_extra.json": "b07c3e2c078df1137202dc688781bbdbe69687a01c05677db093fbe2bd2a18bb"
@@ -92,7 +92,7 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 917,
+  "quality_negative_fields": 828,
   "acceptance_status": "pass",
   "acceptance_counts": [
     18,
@@ -102,13 +102,10 @@
   ],
   "standard_fec_acceptance": "PASS",
   "measurement_date": "2026-09-23",
-  "completed_utc": "2026-09-23T16:16:04.175192+00:00",
-  "root_runner_sha256": "d7d54093a9d6c6a912c3512c5ba30356a9614a0c8660e24352249420bb14106a",
-  "phase_runner_sha256": "e9552abff06c86d4ceac2ae7fbe67e4974913458727cfcea33814d519017de07",
-  "input_manifest_sha256": "f0af3ad52e3f2c38388b4577d0c8cb01bac46cd8268129ca5478cd426814f87b",
-  "resume_provenance_sha256": "fd5919702fa65ec9695990bf20af526e8801d8c62fcd35d5e07a47b20cb052d5",
-  "pre_resume_root_runner_sha256": "cf01b4f7eab52038afa0b196d032c102cdb09499b7a84170ba355bd876cee7e6",
-  "pre_resume_phase_runner_sha256": "c70a2af4a148cb5b68a21ade00302743fe47514f2fa4777f5d065367f9966c6c",
+  "completed_utc": "2026-09-23T22:37:09.500177+00:00",
+  "root_runner_sha256": "4fe198a903daf51e658211bdf383e2e6527aff31e3e55fb390d5795f495e2b77",
+  "phase_runner_sha256": "89fb8fe01ad217d1130eb4b4f8ae2014ea32779f90d3be2aa68c5f8d6a8b1b6a",
+  "input_manifest_sha256": "15cbfcd876a994f70466261c6dab295b3972cff784519f189b61cd6c128035f7",
   "complexities": [
     9,
     10
@@ -139,18 +136,18 @@
     "stereo_width_error"
   ],
   "quality_negatives": {
-    "snr_db": 28,
-    "segmental_snr_db": 35,
-    "rms_error": 28,
-    "mean_abs_error": 27,
-    "pesq_style": 35,
-    "visqol_style": 93,
-    "logband_corr": 84,
-    "logband_error": 95,
-    "celt_quality": 122,
-    "celt_masked_error": 122,
-    "celt_highband_error": 214,
-    "stereo_width_error": 34
+    "snr_db": 18,
+    "segmental_snr_db": 29,
+    "rms_error": 18,
+    "mean_abs_error": 20,
+    "pesq_style": 30,
+    "visqol_style": 70,
+    "logband_corr": 69,
+    "logband_error": 72,
+    "celt_quality": 124,
+    "celt_masked_error": 124,
+    "celt_highband_error": 229,
+    "stereo_width_error": 25
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL"
 }
