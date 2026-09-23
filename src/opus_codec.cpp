@@ -424,7 +424,31 @@ struct SignalBwTemporal {
   }
 };
 
+
+struct classical_leak_info {
+  int valid;
+  opus_uint8 leak_boost[19];
+};
+struct classical_leak_state {
+  int initialized;
+  int mem_fill;
+  int write_pos;
+  int read_pos;
+  int read_subframe;
+  float inmem[720];
+  opus_val32 downmix_state[3];
+  classical_leak_info info[100];
+  int valid;
+  opus_uint8 leak_boost[19];
+};
+struct CeltEncoderInternal;
+static void classical_leak_reset(classical_leak_state* s);
+static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth);
+static void classical_leak_consume(classical_leak_state* s, int frame_size, int Fs);
+static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt);
 struct CeltEncoderInternal {
+  bool classical_leak_valid = false;
+  opus_uint8 classical_leak_boost[19]{};
   int channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
   int vbr, constrained_vbr, lsb_depth, loss_rate;
@@ -1833,6 +1857,7 @@ struct voice_conditioning_channel {
 };
 
 struct OpusEncoder {
+  classical_leak_state classical_leak;
   opus_uint16 celt_enc_offset, silk_enc_offset;
   silk_EncControlStruct silk_mode;
   int application, channels, delay_compensation;
@@ -2762,6 +2787,12 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
 
   auto* celt_enc = encoder_celt_state(st);
+  if (st->silk_mode.complexity >= 7 && st->Fs >= 16000 && st->Fs <= 48000) {
+    classical_leak_ingest_pcm(&st->classical_leak, pcm, frame_size, st->channels, st->Fs, lsb_depth);
+  } else if (st->classical_leak.initialized) {
+    classical_leak_reset(&st->classical_leak);
+    celt_enc->classical_leak_valid = false;
+  }
   st->bitrate_bps = user_bitrate_to_bitrate(st, frame_rate, max_data_bytes);
   const bool previous_stereo_policy = st->prev_mode != 0 && celt_enc->stereo_policy_celt;
   const bool previous_unsteady = st->stereo_recovery_frames != 0;
@@ -3362,6 +3393,10 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
 }
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
+  if (st->classical_leak.initialized) {
+    classical_leak_consume(&st->classical_leak, frame_size, st->Fs);
+    classical_leak_export(&st->classical_leak, encoder_celt_state(st));
+  }
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
   ec_enc enc;
@@ -3920,6 +3955,8 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
 }
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
+  classical_leak_reset(&st->classical_leak);
+  celt_enc->classical_leak_valid = false;
   auto* voice_denoise = st->voice_denoise;
   zero_object_tail(*st, offsetof(OpusEncoder, bitrate_bps));
   st->voice_denoise = voice_denoise;
@@ -4153,12 +4190,12 @@ static int bitexact_log2tan(int isin, int icos) {
   return (ls - lc) * (1 << 11) + bitexact_log2tan_poly(isin) - bitexact_log2tan_poly(icos);
 }
 
+template <bool Normalise = true>
 static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
   const int M = 1 << LM;
   const int N = M * celt_short_mdct_size;
-  const int analysis_prefix = C == 2 ? celt_stereo_analysis_bands : 0;
   for (int c = 0; c < C; ++c) {
     const int channel_offset = c * N;
     const int energy_offset = c * nbEBands;
@@ -4169,10 +4206,13 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
       const opus_val32 sum = 1e-27f + celt_inner_prod_c(band, band, band_width);
       bandE[i + energy_offset] = std::sqrt(sum);
       bandLogE[i + energy_offset] = std::log2(bandE[i + energy_offset]) - eMeans[i];
-      if (i < analysis_prefix || i >= start) {
-        const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
-        for (int j = 0; j < band_width; ++j) {
-          band[j] *= gain;
+      if constexpr (Normalise) {
+        const int analysis_prefix = C == 2 ? celt_stereo_analysis_bands : 0;
+        if (i < analysis_prefix || i >= start) {
+          const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
+          for (int j = 0; j < band_width; ++j) {
+            band[j] *= gain;
+          }
         }
       }
     }
@@ -5630,6 +5670,11 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
+    if (st->classical_leak_valid) {
+      for (i = start; i < std::min(19, end); ++i) {
+        follower[i] += (1.f / 64.f) * static_cast<celt_glog>(st->classical_leak_boost[i]);
+      }
+    }
     apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
 #if defined(OPUSCPP_ENABLE_DEMAND_TRACE)
     if (std::getenv("OPUSCPP_DEMAND") != nullptr) {
@@ -6367,6 +6412,19 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (!transient_enabled)
       isTransient = 0;
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
+    const bool second_mdct = shortBlocks != 0 && st->complexity >= 8 &&
+                             (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement);
+    std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> second_mdct_bandLogE;
+    if (second_mdct) {
+      std::array<celt_ener, celt_max_channels * celt_default_nb_ebands> second_mdct_bandE;
+      compute_mdcts(0, in, freq, C, CC, LM, st->upsample);
+      compute_band_energies_and_normalise<false>(freq, second_mdct_bandE.data(), second_mdct_bandLogE.data(), start, end, C, LM);
+      for (int c = 0; c < C; ++c) {
+        for (int i = 0; i < end; ++i) {
+          second_mdct_bandLogE[c * nbEBands + i] += 0.5f * LM;
+        }
+      }
+    }
     compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample);
     if (CC == 2 && C == 1) {
       tf_chan = 0;
@@ -6393,7 +6451,13 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
       signal_bandwidth = std::min(std::max(floor_bandwidth, expanded_source), end - 1);
     }
     temporal_vbr = celt_update_temporal_vbr(st, bandLogE, LM, shortBlocks);
-    copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
+    if (second_mdct) {
+      for (int c = 0; c < C; ++c) {
+        copy_n_items(second_mdct_bandLogE.data() + c * nbEBands, static_cast<std::size_t>(end), bandLogE2 + c * nbEBands);
+      }
+    } else {
+      copy_n_items(bandLogE, static_cast<std::size_t>(C * nbEBands), bandLogE2);
+    }
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
@@ -8410,6 +8474,201 @@ static constexpr kiss_fft_state fft_state48000_960_0{480, 1.f / 480, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
 static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
+
+static const float classical_analysis_window[240] = {
+  0.000043f, 0.000171f, 0.000385f, 0.000685f, 0.001071f, 0.001541f, 0.002098f, 0.002739f,
+  0.003466f, 0.004278f, 0.005174f, 0.006156f, 0.007222f, 0.008373f, 0.009607f, 0.010926f,
+  0.012329f, 0.013815f, 0.015385f, 0.017037f, 0.018772f, 0.020590f, 0.022490f, 0.024472f,
+  0.026535f, 0.028679f, 0.030904f, 0.033210f, 0.035595f, 0.038060f, 0.040604f, 0.043227f,
+  0.045928f, 0.048707f, 0.051564f, 0.054497f, 0.057506f, 0.060591f, 0.063752f, 0.066987f,
+  0.070297f, 0.073680f, 0.077136f, 0.080665f, 0.084265f, 0.087937f, 0.091679f, 0.095492f,
+  0.099373f, 0.103323f, 0.107342f, 0.111427f, 0.115579f, 0.119797f, 0.124080f, 0.128428f,
+  0.132839f, 0.137313f, 0.141849f, 0.146447f, 0.151105f, 0.155823f, 0.160600f, 0.165435f,
+  0.170327f, 0.175276f, 0.180280f, 0.185340f, 0.190453f, 0.195619f, 0.200838f, 0.206107f,
+  0.211427f, 0.216797f, 0.222215f, 0.227680f, 0.233193f, 0.238751f, 0.244353f, 0.250000f,
+  0.255689f, 0.261421f, 0.267193f, 0.273005f, 0.278856f, 0.284744f, 0.290670f, 0.296632f,
+  0.302628f, 0.308658f, 0.314721f, 0.320816f, 0.326941f, 0.333097f, 0.339280f, 0.345492f,
+  0.351729f, 0.357992f, 0.364280f, 0.370590f, 0.376923f, 0.383277f, 0.389651f, 0.396044f,
+  0.402455f, 0.408882f, 0.415325f, 0.421783f, 0.428254f, 0.434737f, 0.441231f, 0.447736f,
+  0.454249f, 0.460770f, 0.467298f, 0.473832f, 0.480370f, 0.486912f, 0.493455f, 0.500000f,
+  0.506545f, 0.513088f, 0.519630f, 0.526168f, 0.532702f, 0.539230f, 0.545751f, 0.552264f,
+  0.558769f, 0.565263f, 0.571746f, 0.578217f, 0.584675f, 0.591118f, 0.597545f, 0.603956f,
+  0.610349f, 0.616723f, 0.623077f, 0.629410f, 0.635720f, 0.642008f, 0.648271f, 0.654508f,
+  0.660720f, 0.666903f, 0.673059f, 0.679184f, 0.685279f, 0.691342f, 0.697372f, 0.703368f,
+  0.709330f, 0.715256f, 0.721144f, 0.726995f, 0.732807f, 0.738579f, 0.744311f, 0.750000f,
+  0.755647f, 0.761249f, 0.766807f, 0.772320f, 0.777785f, 0.783203f, 0.788573f, 0.793893f,
+  0.799162f, 0.804381f, 0.809547f, 0.814660f, 0.819720f, 0.824724f, 0.829673f, 0.834565f,
+  0.839400f, 0.844177f, 0.848895f, 0.853553f, 0.858151f, 0.862687f, 0.867161f, 0.871572f,
+  0.875920f, 0.880203f, 0.884421f, 0.888573f, 0.892658f, 0.896677f, 0.900627f, 0.904508f,
+  0.908321f, 0.912063f, 0.915735f, 0.919335f, 0.922864f, 0.926320f, 0.929703f, 0.933013f,
+  0.936248f, 0.939409f, 0.942494f, 0.945503f, 0.948436f, 0.951293f, 0.954072f, 0.956773f,
+  0.959396f, 0.961940f, 0.964405f, 0.966790f, 0.969096f, 0.971321f, 0.973465f, 0.975528f,
+  0.977510f, 0.979410f, 0.981228f, 0.982963f, 0.984615f, 0.986185f, 0.987671f, 0.989074f,
+  0.990393f, 0.991627f, 0.992778f, 0.993844f, 0.994826f, 0.995722f, 0.996534f, 0.997261f,
+  0.997902f, 0.998459f, 0.998929f, 0.999315f, 0.999615f, 0.999829f, 0.999957f, 1.000000f
+};
+static const int classical_tbands[19] = {4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 136, 160, 192, 240};
+
+static void classical_leak_reset(classical_leak_state* s) {
+  zero_n_bytes(s, sizeof(*s));
+}
+
+static float classical_leak_down2_hp(opus_val32* S, opus_val32* out, const opus_val32* in, int inLen) {
+  const int len2 = inLen / 2;
+  float hp = 0;
+  for (int k = 0; k < len2; ++k) {
+    opus_val32 in32 = in[2 * k];
+    opus_val32 Y = in32 - S[0];
+    opus_val32 X = Y * 0.6074371f;
+    opus_val32 out32 = S[0] + X;
+    S[0] = in32 + X;
+    opus_val32 hp32 = out32;
+    in32 = in[2 * k + 1];
+    Y = in32 - S[1];
+    X = Y * 0.15063f;
+    out32 = out32 + S[1] + X;
+    S[1] = in32 + X;
+    Y = -in32 - S[2];
+    X = Y * 0.15063f;
+    hp32 = hp32 + S[2] + X;
+    S[2] = -in32 + X;
+    hp += hp32 * hp32;
+    out[k] = 0.5f * out32;
+  }
+  return hp;
+}
+
+static void classical_leak_process(classical_leak_state* s) {
+  kiss_fft_cpx in[480];
+  kiss_fft_cpx out[480];
+  const int N = 480, N2 = 240;
+  for (int i = 0; i < N2; ++i) {
+    const float w = classical_analysis_window[i];
+    in[i].r = w * s->inmem[i];
+    in[i].i = w * s->inmem[N2 + i];
+    in[N - i - 1].r = w * s->inmem[N - i - 1];
+    in[N - i - 1].i = w * s->inmem[N + N2 - i - 1];
+  }
+  const kiss_fft_state* kst = &fft_state48000_960_0;
+  for (int i = 0; i < N; ++i) {
+    out[kst->bitrev[i]].r = in[i].r * kst->scale;
+    out[kst->bitrev[i]].i = in[i].i * kst->scale;
+  }
+  fft_impl_480(out, kst);
+  float band_log2[19];
+  {
+    const float X1r = 2 * out[0].r, X2r = 2 * out[0].i;
+    float E = X1r * X1r + X2r * X2r;
+    for (int i = 1; i < 4; ++i)
+      E += out[i].r * out[i].r + out[N - i].r * out[N - i].r + out[i].i * out[i].i + out[N - i].i * out[N - i].i;
+    E *= (1.f / 32768.f / 32768.f);
+    band_log2[0] = .5f * 1.442695f * std::log(E + 1e-10f);
+  }
+  for (int b = 0; b < 18; ++b) {
+    float E = 0;
+    for (int i = classical_tbands[b]; i < classical_tbands[b + 1]; ++i)
+      E += out[i].r * out[i].r + out[N - i].r * out[N - i].r + out[i].i * out[i].i + out[N - i].i * out[N - i].i;
+    E *= (1.f / 32768.f / 32768.f);
+    band_log2[b + 1] = .5f * 1.442695f * std::log(E + 1e-10f);
+  }
+  float leakage_from[19], leakage_to[19];
+  leakage_from[0] = band_log2[0];
+  leakage_to[0] = band_log2[0] - 2.5f;
+  for (int b = 1; b < 19; ++b) {
+    const float leak_slope = 2.f * (classical_tbands[b] - classical_tbands[b - 1]) / 4.f;
+    leakage_from[b] = std::min(leakage_from[b - 1] + leak_slope, band_log2[b]);
+    leakage_to[b] = std::max(leakage_to[b - 1] - leak_slope, band_log2[b] - 2.5f);
+  }
+  for (int b = 16; b >= 0; --b) {
+    const float leak_slope = 2.f * (classical_tbands[b + 1] - classical_tbands[b]) / 4.f;
+    leakage_from[b] = std::min(leakage_from[b + 1] + leak_slope, leakage_from[b]);
+    leakage_to[b] = std::max(leakage_to[b + 1] - leak_slope, leakage_to[b]);
+  }
+  classical_leak_info* rec = &s->info[s->write_pos++];
+  if (s->write_pos >= 100) s->write_pos -= 100;
+  rec->valid = 1;
+  for (int b = 0; b < 19; ++b) {
+    const float boost = std::max(0.f, leakage_to[b] - band_log2[b]) + std::max(0.f, band_log2[b] - (leakage_from[b] + 2.5f));
+    rec->leak_boost[b] = static_cast<opus_uint8>(std::min(255, static_cast<int>(std::floor(.5f + 64.f * boost))));
+  }
+}
+
+static void classical_leak_ingest(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth) {
+  const float scale = 32768.f;
+  const float thr = 32768.f / static_cast<float>(1 << (lsb_depth < 30 ? lsb_depth : 30));
+  if (!s->initialized) { s->mem_fill = 240; s->initialized = 1; }
+  std::array<opus_val32, 1440> dmix;
+  std::array<opus_val32, 720> a24;
+  int len = 0;
+  if (Fs == 48000) {
+    for (int j = 0; j < frame_size; ++j)
+      dmix[j] = channels == 2 ? scale * 0.5f * (pcm[2 * j] + pcm[2 * j + 1]) : scale * pcm[j];
+    classical_leak_down2_hp(s->downmix_state, a24.data(), dmix.data(), frame_size);
+    len = frame_size / 2;
+  } else if (Fs == 24000) {
+    for (int j = 0; j < frame_size; ++j)
+      a24[j] = channels == 2 ? scale * 0.5f * (pcm[2 * j] + pcm[2 * j + 1]) : scale * pcm[j];
+    len = frame_size;
+  } else if (Fs == 16000) {
+    for (int j = 0; j < frame_size; ++j)
+      dmix[j] = channels == 2 ? scale * 0.5f * (pcm[2 * j] + pcm[2 * j + 1]) : scale * pcm[j];
+    std::array<opus_val32, 2160> tri;
+    for (int j = 0; j < frame_size; ++j) { tri[3 * j] = dmix[j]; tri[3 * j + 1] = dmix[j]; tri[3 * j + 2] = dmix[j]; }
+    classical_leak_down2_hp(s->downmix_state, a24.data(), tri.data(), 3 * frame_size);
+    len = 3 * frame_size / 2;
+  } else {
+    return;
+  }
+  int consumed = 0;
+  while (consumed < len) {
+    const int fill = std::min(len - consumed, 720 - s->mem_fill);
+    for (int j = 0; j < fill; ++j) s->inmem[s->mem_fill + j] = static_cast<float>(a24[consumed + j]);
+    s->mem_fill += fill;
+    consumed += fill;
+    if (s->mem_fill < 720) break;
+    bool silence = true;
+    for (int i = 0; i < 720; ++i) if (std::fabs(s->inmem[i]) > thr) { silence = false; break; }
+    if (silence) {
+      int prev = s->write_pos - 1;
+      if (prev < 0) prev += 100;
+      s->info[s->write_pos] = s->info[prev];
+      s->write_pos++;
+      if (s->write_pos >= 100) s->write_pos -= 100;
+    } else {
+      classical_leak_process(s);
+    }
+    for (int i = 0; i < 240; ++i) s->inmem[i] = s->inmem[480 + i];
+    s->mem_fill = 240;
+  }
+}
+
+static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth) {
+  int leak_done = 0;
+  const int leak_slice = Fs * 3 / 100;
+  while (leak_done < frame_size) {
+    const int leak_n = std::min(frame_size - leak_done, leak_slice);
+    classical_leak_ingest(s, pcm + static_cast<std::size_t>(leak_done) * channels, leak_n, channels, Fs, lsb_depth);
+    leak_done += leak_n;
+  }
+}
+
+static void classical_leak_consume(classical_leak_state* s, int frame_size, int Fs) {
+  int pos = s->read_pos;
+  s->read_subframe += frame_size / (Fs / 400);
+  while (s->read_subframe >= 8) { s->read_subframe -= 8; s->read_pos++; }
+  if (s->read_pos >= 100) s->read_pos -= 100;
+  if (frame_size > Fs / 50 && pos != s->write_pos) { pos++; if (pos >= 100) pos = 0; }
+  if (pos == s->write_pos) pos--;
+  if (pos < 0) pos = 99;
+  s->valid = s->info[pos].valid;
+  for (int i = 0; i < 19; ++i) s->leak_boost[i] = s->info[pos].leak_boost[i];
+}
+
+static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt) {
+  celt->classical_leak_valid = s->valid != 0;
+  for (int i = 0; i < 19; ++i) celt->classical_leak_boost[i] = s->leak_boost[i];
+}
+
 static constexpr CeltModeInternal mode48000_960_120 = {
     eband5ms.data(),
     band_allocation.data(),
