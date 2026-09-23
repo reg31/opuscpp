@@ -2,7 +2,7 @@
   "counts": [
     18,
     18,
-    18,
+    17,
     18
   ],
   "rows": [
@@ -16,7 +16,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -24,24 +24,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,30,32,34,28,29,29,31,31,32,31,28,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.163784307 next_ref=0.174071969 fidelity_fec=0.182698826 fidelity_ref=0.151716822 fidelity_plc=0.222381427 transition_fec=0.135083518 transition_ref=0.124767020 step_fec=819.000 step_ref=784.000 self_consistency=0.105599160\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,30,32,29,29,32,30,33,34,34,32,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.203523303 next_ref=0.181654581 fidelity_fec=0.170125062 fidelity_ref=0.154468565 fidelity_plc=0.206066590 transition_fec=0.150126881 transition_ref=0.117627457 step_fec=1027.000 step_ref=863.000 self_consistency=0.076839196\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.182698826,
-          "next_fec": 0.163784307,
-          "transition_fec": 0.135083518,
-          "fidelity_ref": 0.151716822,
-          "next_ref": 0.174071969,
-          "transition_ref": 0.12476702,
-          "fidelity_plc": 0.222381427,
-          "self_consistency": 0.10559916,
-          "step_fec": 819.0,
-          "step_ref": 784.0
+          "fidelity_fec": 0.170125062,
+          "next_fec": 0.203523303,
+          "transition_fec": 0.150126881,
+          "fidelity_ref": 0.154468565,
+          "next_ref": 0.181654581,
+          "transition_ref": 0.117627457,
+          "fidelity_plc": 0.20606659,
+          "self_consistency": 0.076839196,
+          "step_fec": 1027.0,
+          "step_ref": 863.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -81,7 +81,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -89,24 +89,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,40,41,39,43,42,37,40,39,41,40,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.210645127 next_ref=0.169413448 fidelity_fec=0.209659222 fidelity_ref=0.173008541 fidelity_plc=0.340237299 transition_fec=0.219502869 transition_ref=0.137479610 step_fec=-246.000 step_ref=-255.000 self_consistency=0.119937826\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,43,39,40,41,41,40,41,42,41,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.176682807 next_ref=0.173489085 fidelity_fec=0.189007951 fidelity_ref=0.165328280 fidelity_plc=0.315691776 transition_fec=0.148728863 transition_ref=0.159493123 step_fec=-296.000 step_ref=-182.000 self_consistency=0.084944196\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.209659222,
-          "next_fec": 0.210645127,
-          "transition_fec": 0.219502869,
-          "fidelity_ref": 0.173008541,
-          "next_ref": 0.169413448,
-          "transition_ref": 0.13747961,
-          "fidelity_plc": 0.340237299,
-          "self_consistency": 0.119937826,
-          "step_fec": -246.0,
-          "step_ref": -255.0
+          "fidelity_fec": 0.189007951,
+          "next_fec": 0.176682807,
+          "transition_fec": 0.148728863,
+          "fidelity_ref": 0.16532828,
+          "next_ref": 0.173489085,
+          "transition_ref": 0.159493123,
+          "fidelity_plc": 0.315691776,
+          "self_consistency": 0.084944196,
+          "step_fec": -296.0,
+          "step_ref": -182.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -146,7 +146,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -154,24 +154,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,53,65,60,56,63,60,63,59,60,50,67,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.188797366 next_ref=0.178687802 fidelity_fec=0.204479005 fidelity_ref=0.180002360 fidelity_plc=0.638784360 transition_fec=0.267199574 transition_ref=0.171419754 step_fec=-397.000 step_ref=-376.000 self_consistency=0.082448186\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,64,65,65,65,65,69,68,64,58,60,57,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.185587030 next_ref=0.170173911 fidelity_fec=0.195365232 fidelity_ref=0.175095256 fidelity_plc=0.573265878 transition_fec=0.180959826 transition_ref=0.149239135 step_fec=-277.000 step_ref=-263.000 self_consistency=0.095204588\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.204479005,
-          "next_fec": 0.188797366,
-          "transition_fec": 0.267199574,
-          "fidelity_ref": 0.18000236,
-          "next_ref": 0.178687802,
-          "transition_ref": 0.171419754,
-          "fidelity_plc": 0.63878436,
-          "self_consistency": 0.082448186,
-          "step_fec": -397.0,
-          "step_ref": -376.0
+          "fidelity_fec": 0.195365232,
+          "next_fec": 0.18558703,
+          "transition_fec": 0.180959826,
+          "fidelity_ref": 0.175095256,
+          "next_ref": 0.170173911,
+          "transition_ref": 0.149239135,
+          "fidelity_plc": 0.573265878,
+          "self_consistency": 0.095204588,
+          "step_fec": -277.0,
+          "step_ref": -263.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -211,7 +211,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -219,24 +219,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,77,83,80,80,80,80,80,78,80,80,81,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.192208994 next_ref=0.173020606 fidelity_fec=0.180191028 fidelity_ref=0.174534695 fidelity_plc=0.615623676 transition_fec=0.153070053 transition_ref=0.154202506 step_fec=-202.000 step_ref=-598.000 self_consistency=0.095239442\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=88,87,89,92,91,93,97,92,88,81,84,81,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.196881385 next_ref=0.169948279 fidelity_fec=0.196623425 fidelity_ref=0.173598555 fidelity_plc=0.604970480 transition_fec=0.152648852 transition_ref=0.163424313 step_fec=-417.000 step_ref=-529.000 self_consistency=0.117689499\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.180191028,
-          "next_fec": 0.192208994,
-          "transition_fec": 0.153070053,
-          "fidelity_ref": 0.174534695,
-          "next_ref": 0.173020606,
-          "transition_ref": 0.154202506,
-          "fidelity_plc": 0.615623676,
-          "self_consistency": 0.095239442,
-          "step_fec": -202.0,
-          "step_ref": -598.0
+          "fidelity_fec": 0.196623425,
+          "next_fec": 0.196881385,
+          "transition_fec": 0.152648852,
+          "fidelity_ref": 0.173598555,
+          "next_ref": 0.169948279,
+          "transition_ref": 0.163424313,
+          "fidelity_plc": 0.60497048,
+          "self_consistency": 0.117689499,
+          "step_fec": -417.0,
+          "step_ref": -529.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -276,7 +276,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -301,7 +301,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -341,7 +341,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -349,24 +349,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=116,102,130,127,114,131,115,106,138,103,130,116,\nms_src=9408722302.500000 ms_lf_mid=267389336.500000 ms_lf_side=5681042.500000 ms_fec_mid=375754591.500000 ms_fec_side=46904473.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.188010137 next_ref=0.195114469 fidelity_fec=0.211948218 fidelity_ref=0.170361702 fidelity_plc=0.641189273 transition_fec=0.159215499 transition_ref=0.124989678 step_fec=-438.500 step_ref=-570.500 self_consistency=0.183959475\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,115,127,135,122,122,124,115,118,115,111,107,\nms_src=9408722302.500000 ms_lf_mid=304992613.250000 ms_lf_side=6412586.250000 ms_fec_mid=339348483.500000 ms_fec_side=32828681.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.185015579 next_ref=0.184886560 fidelity_fec=0.198888438 fidelity_ref=0.181927187 fidelity_plc=0.631368316 transition_fec=0.152616386 transition_ref=0.147885081 step_fec=-79.500 step_ref=179.000 self_consistency=0.162414215\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.211948218,
-          "next_fec": 0.188010137,
-          "transition_fec": 0.159215499,
-          "fidelity_ref": 0.170361702,
-          "next_ref": 0.195114469,
-          "transition_ref": 0.124989678,
-          "fidelity_plc": 0.641189273,
-          "self_consistency": 0.183959475,
-          "step_fec": -438.5,
-          "step_ref": -570.5
+          "fidelity_fec": 0.198888438,
+          "next_fec": 0.185015579,
+          "transition_fec": 0.152616386,
+          "fidelity_ref": 0.181927187,
+          "next_ref": 0.18488656,
+          "transition_ref": 0.147885081,
+          "fidelity_plc": 0.631368316,
+          "self_consistency": 0.162414215,
+          "step_fec": -79.5,
+          "step_ref": 179.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -406,7 +406,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -414,24 +414,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,34,28,28,35,28,29,34,28,27,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.301142574 next_ref=0.285110117 fidelity_fec=0.211078090 fidelity_ref=0.192284683 fidelity_plc=1.055150757 transition_fec=0.179656127 transition_ref=0.176429578 step_fec=415.000 step_ref=454.000 self_consistency=0.093789093\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,31,27,26,30,30,27,29,32,27,25,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.393770312 next_ref=0.267425871 fidelity_fec=0.294225848 fidelity_ref=0.231528302 fidelity_plc=0.869005913 transition_fec=0.420358036 transition_ref=0.263823607 step_fec=476.000 step_ref=491.000 self_consistency=0.219354483\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.21107809,
-          "next_fec": 0.301142574,
-          "transition_fec": 0.179656127,
-          "fidelity_ref": 0.192284683,
-          "next_ref": 0.285110117,
-          "transition_ref": 0.176429578,
-          "fidelity_plc": 1.055150757,
-          "self_consistency": 0.093789093,
-          "step_fec": 415.0,
-          "step_ref": 454.0
+          "fidelity_fec": 0.294225848,
+          "next_fec": 0.393770312,
+          "transition_fec": 0.420358036,
+          "fidelity_ref": 0.231528302,
+          "next_ref": 0.267425871,
+          "transition_ref": 0.263823607,
+          "fidelity_plc": 0.869005913,
+          "self_consistency": 0.219354483,
+          "step_fec": 476.0,
+          "step_ref": 491.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -457,7 +457,7 @@
       "criteria_pass": [
         true,
         true,
-        true,
+        false,
         true
       ]
     },
@@ -471,7 +471,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -479,24 +479,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,36,40,44,45,36,45,35,39,40,45,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.323625695 next_ref=0.288968153 fidelity_fec=0.376342543 fidelity_ref=0.271723252 fidelity_plc=1.062567445 transition_fec=0.373559782 transition_ref=0.230765340 step_fec=-150.000 step_ref=-115.000 self_consistency=0.227507361\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,38,38,38,37,38,38,38,33,32,40,36,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.313744881 next_ref=0.273598675 fidelity_fec=0.416602677 fidelity_ref=0.280063644 fidelity_plc=0.793484716 transition_fec=0.301065504 transition_ref=0.199387998 step_fec=-153.000 step_ref=-145.000 self_consistency=0.258859315\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.376342543,
-          "next_fec": 0.323625695,
-          "transition_fec": 0.373559782,
-          "fidelity_ref": 0.271723252,
-          "next_ref": 0.288968153,
-          "transition_ref": 0.23076534,
-          "fidelity_plc": 1.062567445,
-          "self_consistency": 0.227507361,
-          "step_fec": -150.0,
-          "step_ref": -115.0
+          "fidelity_fec": 0.416602677,
+          "next_fec": 0.313744881,
+          "transition_fec": 0.301065504,
+          "fidelity_ref": 0.280063644,
+          "next_ref": 0.273598675,
+          "transition_ref": 0.199387998,
+          "fidelity_plc": 0.793484716,
+          "self_consistency": 0.258859315,
+          "step_fec": -153.0,
+          "step_ref": -145.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -536,7 +536,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -544,24 +544,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,52,59,71,63,58,54,67,57,54,63,60,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.302674213 next_ref=0.294247545 fidelity_fec=0.272114805 fidelity_ref=0.276319002 fidelity_plc=0.890650172 transition_fec=0.233964878 transition_ref=0.246429429 step_fec=-225.000 step_ref=-240.000 self_consistency=0.022561322\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,61,61,61,66,62,53,57,63,56,55,50,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.263015077 next_ref=0.255928902 fidelity_fec=0.311036872 fidelity_ref=0.238347617 fidelity_plc=0.848928159 transition_fec=0.261740833 transition_ref=0.198191370 step_fec=-62.000 step_ref=-96.000 self_consistency=0.197808505\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.272114805,
-          "next_fec": 0.302674213,
-          "transition_fec": 0.233964878,
-          "fidelity_ref": 0.276319002,
-          "next_ref": 0.294247545,
-          "transition_ref": 0.246429429,
-          "fidelity_plc": 0.890650172,
-          "self_consistency": 0.022561322,
-          "step_fec": -225.0,
-          "step_ref": -240.0
+          "fidelity_fec": 0.311036872,
+          "next_fec": 0.263015077,
+          "transition_fec": 0.261740833,
+          "fidelity_ref": 0.238347617,
+          "next_ref": 0.255928902,
+          "transition_ref": 0.19819137,
+          "fidelity_plc": 0.848928159,
+          "self_consistency": 0.197808505,
+          "step_fec": -62.0,
+          "step_ref": -96.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -601,7 +601,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -609,24 +609,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,76,84,80,79,79,80,78,82,78,80,80,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.247907642 next_ref=0.232894050 fidelity_fec=0.278787169 fidelity_ref=0.240817296 fidelity_plc=0.851624113 transition_fec=0.206834423 transition_ref=0.222928695 step_fec=-142.000 step_ref=-332.000 self_consistency=0.164047450\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=84,88,84,81,77,81,80,88,88,83,80,79,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.236289083 next_ref=0.234891530 fidelity_fec=0.254856368 fidelity_ref=0.234087358 fidelity_plc=0.774616313 transition_fec=0.193707955 transition_ref=0.207693841 step_fec=-164.000 step_ref=-317.000 self_consistency=0.147570538\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.278787169,
-          "next_fec": 0.247907642,
-          "transition_fec": 0.206834423,
-          "fidelity_ref": 0.240817296,
-          "next_ref": 0.23289405,
-          "transition_ref": 0.222928695,
-          "fidelity_plc": 0.851624113,
-          "self_consistency": 0.16404745,
-          "step_fec": -142.0,
-          "step_ref": -332.0
+          "fidelity_fec": 0.254856368,
+          "next_fec": 0.236289083,
+          "transition_fec": 0.193707955,
+          "fidelity_ref": 0.234087358,
+          "next_ref": 0.23489153,
+          "transition_ref": 0.207693841,
+          "fidelity_plc": 0.774616313,
+          "self_consistency": 0.147570538,
+          "step_fec": -164.0,
+          "step_ref": -317.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -666,7 +666,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -691,7 +691,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -731,7 +731,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -739,24 +739,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=120,96,142,95,125,141,105,132,113,126,114,114,\nms_src=1148697612.000000 ms_lf_mid=85769942.500000 ms_lf_side=2082072.500000 ms_fec_mid=93898336.250000 ms_fec_side=22484144.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.275964320 next_ref=0.270186379 fidelity_fec=0.318303157 fidelity_ref=0.276549581 fidelity_plc=0.837110743 transition_fec=0.223785346 transition_ref=0.190766776 step_fec=-194.500 step_ref=-139.500 self_consistency=0.297828185\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,114,112,109,107,133,119,121,115,110,121,109,\nms_src=1148697612.000000 ms_lf_mid=73540709.500000 ms_lf_side=2098362.500000 ms_fec_mid=103620463.250000 ms_fec_side=23049026.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.269115885 next_ref=0.269026811 fidelity_fec=0.332072683 fidelity_ref=0.256608027 fidelity_plc=0.972772925 transition_fec=0.226059906 transition_ref=0.193049946 step_fec=-113.000 step_ref=-34.000 self_consistency=0.298467590\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.318303157,
-          "next_fec": 0.27596432,
-          "transition_fec": 0.223785346,
-          "fidelity_ref": 0.276549581,
-          "next_ref": 0.270186379,
-          "transition_ref": 0.190766776,
-          "fidelity_plc": 0.837110743,
-          "self_consistency": 0.297828185,
-          "step_fec": -194.5,
-          "step_ref": -139.5
+          "fidelity_fec": 0.332072683,
+          "next_fec": 0.269115885,
+          "transition_fec": 0.226059906,
+          "fidelity_ref": 0.256608027,
+          "next_ref": 0.269026811,
+          "transition_ref": 0.193049946,
+          "fidelity_plc": 0.972772925,
+          "self_consistency": 0.29846759,
+          "step_fec": -113.0,
+          "step_ref": -34.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -796,7 +796,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -804,24 +804,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,33,29,33,30,31,29,29,30,29,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.461424307 next_ref=0.458424745 fidelity_fec=0.502220768 fidelity_ref=0.405873458 fidelity_plc=1.251511899 transition_fec=0.409941939 transition_ref=0.378418092 step_fec=2332.000 step_ref=2390.000 self_consistency=0.317481809\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,31,29,29,30,29,29,34,30,29,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.474156981 next_ref=0.461755891 fidelity_fec=0.468514943 fidelity_ref=0.401301964 fidelity_plc=1.178647212 transition_fec=0.418488699 transition_ref=0.371461951 step_fec=2068.000 step_ref=2427.000 self_consistency=0.231115009\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.502220768,
-          "next_fec": 0.461424307,
-          "transition_fec": 0.409941939,
-          "fidelity_ref": 0.405873458,
-          "next_ref": 0.458424745,
-          "transition_ref": 0.378418092,
-          "fidelity_plc": 1.251511899,
-          "self_consistency": 0.317481809,
-          "step_fec": 2332.0,
-          "step_ref": 2390.0
+          "fidelity_fec": 0.468514943,
+          "next_fec": 0.474156981,
+          "transition_fec": 0.418488699,
+          "fidelity_ref": 0.401301964,
+          "next_ref": 0.461755891,
+          "transition_ref": 0.371461951,
+          "fidelity_plc": 1.178647212,
+          "self_consistency": 0.231115009,
+          "step_fec": 2068.0,
+          "step_ref": 2427.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -861,7 +861,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -869,24 +869,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=38,35,43,41,38,42,39,37,47,35,39,43,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.530722123 next_ref=0.523402617 fidelity_fec=0.467048315 fidelity_ref=0.442980263 fidelity_plc=0.908584136 transition_fec=0.458734955 transition_ref=0.422045932 step_fec=-780.000 step_ref=-669.000 self_consistency=0.153907942\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=38,35,33,37,39,39,37,38,38,36,41,36,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.487120409 next_ref=0.484996867 fidelity_fec=0.517329607 fidelity_ref=0.459196364 fidelity_plc=1.043649595 transition_fec=0.422445510 transition_ref=0.413261217 step_fec=-693.000 step_ref=-785.000 self_consistency=0.217247347\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.467048315,
-          "next_fec": 0.530722123,
-          "transition_fec": 0.458734955,
-          "fidelity_ref": 0.442980263,
-          "next_ref": 0.523402617,
-          "transition_ref": 0.422045932,
-          "fidelity_plc": 0.908584136,
-          "self_consistency": 0.153907942,
-          "step_fec": -780.0,
-          "step_ref": -669.0
+          "fidelity_fec": 0.517329607,
+          "next_fec": 0.487120409,
+          "transition_fec": 0.42244551,
+          "fidelity_ref": 0.459196364,
+          "next_ref": 0.484996867,
+          "transition_ref": 0.413261217,
+          "fidelity_plc": 1.043649595,
+          "self_consistency": 0.217247347,
+          "step_fec": -693.0,
+          "step_ref": -785.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -926,7 +926,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -934,24 +934,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,57,63,63,59,46,68,57,71,48,68,55,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.553291277 next_ref=0.540756918 fidelity_fec=0.465916881 fidelity_ref=0.435503146 fidelity_plc=1.064146431 transition_fec=0.444827230 transition_ref=0.398346634 step_fec=-1039.000 step_ref=-611.000 self_consistency=0.245331167\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,59,61,58,59,55,60,60,55,59,61,54,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.503982762 next_ref=0.489469052 fidelity_fec=0.469645959 fidelity_ref=0.447708373 fidelity_plc=0.832436104 transition_fec=0.434698928 transition_ref=0.411788227 step_fec=-894.000 step_ref=-658.000 self_consistency=0.239984238\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.465916881,
-          "next_fec": 0.553291277,
-          "transition_fec": 0.44482723,
-          "fidelity_ref": 0.435503146,
-          "next_ref": 0.540756918,
-          "transition_ref": 0.398346634,
-          "fidelity_plc": 1.064146431,
-          "self_consistency": 0.245331167,
-          "step_fec": -1039.0,
-          "step_ref": -611.0
+          "fidelity_fec": 0.469645959,
+          "next_fec": 0.503982762,
+          "transition_fec": 0.434698928,
+          "fidelity_ref": 0.447708373,
+          "next_ref": 0.489469052,
+          "transition_ref": 0.411788227,
+          "fidelity_plc": 0.832436104,
+          "self_consistency": 0.239984238,
+          "step_fec": -894.0,
+          "step_ref": -658.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -991,7 +991,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -999,24 +999,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,77,80,79,80,83,81,76,82,78,81,83,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.466011560 next_ref=0.467107104 fidelity_fec=0.483306455 fidelity_ref=0.465697912 fidelity_plc=0.868990608 transition_fec=0.445455365 transition_ref=0.447011237 step_fec=-546.000 step_ref=-1011.000 self_consistency=0.292265037\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=83,92,84,77,80,84,84,84,79,83,79,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.469799523 next_ref=0.474690173 fidelity_fec=0.467104462 fidelity_ref=0.456723585 fidelity_plc=1.094976914 transition_fec=0.407160964 transition_ref=0.430735533 step_fec=-539.000 step_ref=-1340.000 self_consistency=0.264567804\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.483306455,
-          "next_fec": 0.46601156,
-          "transition_fec": 0.445455365,
-          "fidelity_ref": 0.465697912,
-          "next_ref": 0.467107104,
-          "transition_ref": 0.447011237,
-          "fidelity_plc": 0.868990608,
-          "self_consistency": 0.292265037,
-          "step_fec": -546.0,
-          "step_ref": -1011.0
+          "fidelity_fec": 0.467104462,
+          "next_fec": 0.469799523,
+          "transition_fec": 0.407160964,
+          "fidelity_ref": 0.456723585,
+          "next_ref": 0.474690173,
+          "transition_ref": 0.430735533,
+          "fidelity_plc": 1.094976914,
+          "self_consistency": 0.264567804,
+          "step_fec": -539.0,
+          "step_ref": -1340.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -1056,7 +1056,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -1081,7 +1081,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -1121,7 +1121,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_current.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -1129,24 +1129,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,109,127,102,135,113,122,120,122,123,122,117,\nms_src=6586426492.500000 ms_lf_mid=1542268035.750000 ms_lf_side=7013424.750000 ms_fec_mid=1763708818.500000 ms_fec_side=72616671.500000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.462869048 next_ref=0.496668851 fidelity_fec=0.528019433 fidelity_ref=0.484998323 fidelity_plc=0.878596562 transition_fec=0.442528684 transition_ref=0.384617486 step_fec=-358.000 step_ref=-208.500 self_consistency=0.435858674\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,128,117,103,115,100,112,111,113,115,113,114,\nms_src=6586426492.500000 ms_lf_mid=1631426594.000000 ms_lf_side=8230588.000000 ms_fec_mid=1615472550.000000 ms_fec_side=65091952.000000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.465356484 next_ref=0.508762154 fidelity_fec=0.505129425 fidelity_ref=0.498943769 fidelity_plc=1.019101902 transition_fec=0.423459001 transition_ref=0.427898348 step_fec=167.500 step_ref=428.000 self_consistency=0.434927393\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.528019433,
-          "next_fec": 0.462869048,
-          "transition_fec": 0.442528684,
-          "fidelity_ref": 0.484998323,
-          "next_ref": 0.496668851,
-          "transition_ref": 0.384617486,
-          "fidelity_plc": 0.878596562,
-          "self_consistency": 0.435858674,
-          "step_fec": -358.0,
-          "step_ref": -208.5
+          "fidelity_fec": 0.505129425,
+          "next_fec": 0.465356484,
+          "transition_fec": 0.423459001,
+          "fidelity_ref": 0.498943769,
+          "next_ref": 0.508762154,
+          "transition_ref": 0.427898348,
+          "fidelity_plc": 1.019101902,
+          "self_consistency": 0.434927393,
+          "step_fec": 167.5,
+          "step_ref": 428.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\q80_prod_fec1_20260923\\strict_official.exe",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\fec_source_official.exe",
           "2",
           "20",
           "48000",

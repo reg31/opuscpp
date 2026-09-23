@@ -132,7 +132,7 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
 The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
-2.3% to 12.1% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
+2.9% to 5.9% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
 The optional state is 68 bytes, with a 7.5 KiB temporary stack cache for frames of up to 960 samples.
 Broader on/off tests still contain quality losses: this is not a universal improvement. See the
 [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
@@ -161,9 +161,7 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 `N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with
 `decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
-packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
-quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in 18 of 18 scenarios. The latest focused check of 18 scored 10/20 ms cases has aggregate recovery-error ratio 0.509621 (49.0% lower) and packet-byte ratio 1.00102 (0.1% more bytes). Recovery is better in 18/18 cases and backup coverage is 18/18 versus official 15/18, but the scored acceptance check fails its packet-byte requirement. Source criteria C1, C2 and C4 pass 18/18; C3 passes 17/18, with a new mono 10 ms, 24 kbps, profile-1 VBR transition-error regression. See the [focused rate-control checkpoint](../tests/metrics/s6_governor_checkpoint.json) and [earlier full metrics](../tests/metrics/README.md).
+packets in both directions against official Opus, including VBR and CBR. The S6 refresh records 18/18 recovery wins, but packet-byte ratio 1.00102 fails the <=1 gate. Source criteria C1/C2/C3/C4 are 18/18, 18/18, 17/18, 18/18. C3 fails for mono 10 ms, 24 kb/s, profile-1 VBR (transition_fec 0.420358036 vs official 0.271244925). See the [full metric inventory](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.
