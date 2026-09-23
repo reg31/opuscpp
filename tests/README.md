@@ -571,8 +571,8 @@ negative and 525 worsened existing deficits. This corrects an upstream parity bu
 quality improvement; individual regressions remain open. Strict FEC and all four source criteria
 still pass 18/18, along with the packet-budget and ordinary integration checks.
 
-Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16Ã¢â‚¬â€œ48 kbps
-(0.567Ã¢â‚¬â€œ0.620x official speed); David encoding is faster at all nine measured rates (1.089Ã¢â‚¬â€œ2.673x).
+Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16-48 kbps
+(0.567-0.620x official speed); David encoding is faster at all nine measured rates (1.089-2.673x).
 Decode ratios exceed 1x on both inputs. These use the existing 13.46-second Hazel and 11.8-second
 David PCM, with both codecs at complexity 10 and -O2 -DNDEBUG; no explicit affinity/priority pinning.
 See [transient checkpoint metadata](metrics/celt_transient_checkpoint.json) for exact source
