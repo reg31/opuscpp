@@ -1,7 +1,5 @@
 # opuscpp
 
-The latest rate-control change removes the extra packet governor from SILK/hybrid while retaining it for CELT-only runs. The [focused checkpoint](tests/metrics/s6_governor_checkpoint.json) records its quality, bitrate, and timing tradeoffs: four real-speech metric deficits were fixed, nine remain, and six existing deficits worsened. The full benchmark tables below retain their stated earlier measurement revision; they are not a full refresh of this change. The FEC checkpoint also records one new source-transition failure and a packet-byte ratio of 1.00102 versus official; parity is not achieved.
-
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API,
 derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is
 designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`,
@@ -91,6 +89,8 @@ Unsupported families include custom Opus, multistream helpers, repacketizer help
 APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
+
+The latest rate-control change removes the extra packet governor from SILK/hybrid while retaining it for CELT-only runs. The [focused checkpoint](tests/metrics/s6_governor_checkpoint.json) records its quality, bitrate, and timing tradeoffs: four real-speech metric deficits were fixed, nine remain, and six existing deficits worsened. The full benchmark tables below retain their stated earlier measurement revision; they are not a full refresh of this change. The FEC checkpoint also records one new source-transition failure and a packet-byte ratio of 1.00102 versus official; parity is not achieved.
 
 Measurements refreshed independently by Codex on 2026-09-22 for production `5d531c6`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.
 
