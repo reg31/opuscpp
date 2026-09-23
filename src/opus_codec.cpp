@@ -424,7 +424,6 @@ struct SignalBwTemporal {
   }
 };
 
-
 struct classical_leak_info {
   int valid;
   opus_uint8 leak_boost[19];
@@ -8476,37 +8475,36 @@ static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
 
 static const float classical_analysis_window[240] = {
-  0.000043f, 0.000171f, 0.000385f, 0.000685f, 0.001071f, 0.001541f, 0.002098f, 0.002739f,
-  0.003466f, 0.004278f, 0.005174f, 0.006156f, 0.007222f, 0.008373f, 0.009607f, 0.010926f,
-  0.012329f, 0.013815f, 0.015385f, 0.017037f, 0.018772f, 0.020590f, 0.022490f, 0.024472f,
-  0.026535f, 0.028679f, 0.030904f, 0.033210f, 0.035595f, 0.038060f, 0.040604f, 0.043227f,
-  0.045928f, 0.048707f, 0.051564f, 0.054497f, 0.057506f, 0.060591f, 0.063752f, 0.066987f,
-  0.070297f, 0.073680f, 0.077136f, 0.080665f, 0.084265f, 0.087937f, 0.091679f, 0.095492f,
-  0.099373f, 0.103323f, 0.107342f, 0.111427f, 0.115579f, 0.119797f, 0.124080f, 0.128428f,
-  0.132839f, 0.137313f, 0.141849f, 0.146447f, 0.151105f, 0.155823f, 0.160600f, 0.165435f,
-  0.170327f, 0.175276f, 0.180280f, 0.185340f, 0.190453f, 0.195619f, 0.200838f, 0.206107f,
-  0.211427f, 0.216797f, 0.222215f, 0.227680f, 0.233193f, 0.238751f, 0.244353f, 0.250000f,
-  0.255689f, 0.261421f, 0.267193f, 0.273005f, 0.278856f, 0.284744f, 0.290670f, 0.296632f,
-  0.302628f, 0.308658f, 0.314721f, 0.320816f, 0.326941f, 0.333097f, 0.339280f, 0.345492f,
-  0.351729f, 0.357992f, 0.364280f, 0.370590f, 0.376923f, 0.383277f, 0.389651f, 0.396044f,
-  0.402455f, 0.408882f, 0.415325f, 0.421783f, 0.428254f, 0.434737f, 0.441231f, 0.447736f,
-  0.454249f, 0.460770f, 0.467298f, 0.473832f, 0.480370f, 0.486912f, 0.493455f, 0.500000f,
-  0.506545f, 0.513088f, 0.519630f, 0.526168f, 0.532702f, 0.539230f, 0.545751f, 0.552264f,
-  0.558769f, 0.565263f, 0.571746f, 0.578217f, 0.584675f, 0.591118f, 0.597545f, 0.603956f,
-  0.610349f, 0.616723f, 0.623077f, 0.629410f, 0.635720f, 0.642008f, 0.648271f, 0.654508f,
-  0.660720f, 0.666903f, 0.673059f, 0.679184f, 0.685279f, 0.691342f, 0.697372f, 0.703368f,
-  0.709330f, 0.715256f, 0.721144f, 0.726995f, 0.732807f, 0.738579f, 0.744311f, 0.750000f,
-  0.755647f, 0.761249f, 0.766807f, 0.772320f, 0.777785f, 0.783203f, 0.788573f, 0.793893f,
-  0.799162f, 0.804381f, 0.809547f, 0.814660f, 0.819720f, 0.824724f, 0.829673f, 0.834565f,
-  0.839400f, 0.844177f, 0.848895f, 0.853553f, 0.858151f, 0.862687f, 0.867161f, 0.871572f,
-  0.875920f, 0.880203f, 0.884421f, 0.888573f, 0.892658f, 0.896677f, 0.900627f, 0.904508f,
-  0.908321f, 0.912063f, 0.915735f, 0.919335f, 0.922864f, 0.926320f, 0.929703f, 0.933013f,
-  0.936248f, 0.939409f, 0.942494f, 0.945503f, 0.948436f, 0.951293f, 0.954072f, 0.956773f,
-  0.959396f, 0.961940f, 0.964405f, 0.966790f, 0.969096f, 0.971321f, 0.973465f, 0.975528f,
-  0.977510f, 0.979410f, 0.981228f, 0.982963f, 0.984615f, 0.986185f, 0.987671f, 0.989074f,
-  0.990393f, 0.991627f, 0.992778f, 0.993844f, 0.994826f, 0.995722f, 0.996534f, 0.997261f,
-  0.997902f, 0.998459f, 0.998929f, 0.999315f, 0.999615f, 0.999829f, 0.999957f, 1.000000f
-};
+    0.000043f, 0.000171f, 0.000385f, 0.000685f, 0.001071f, 0.001541f, 0.002098f, 0.002739f,
+    0.003466f, 0.004278f, 0.005174f, 0.006156f, 0.007222f, 0.008373f, 0.009607f, 0.010926f,
+    0.012329f, 0.013815f, 0.015385f, 0.017037f, 0.018772f, 0.020590f, 0.022490f, 0.024472f,
+    0.026535f, 0.028679f, 0.030904f, 0.033210f, 0.035595f, 0.038060f, 0.040604f, 0.043227f,
+    0.045928f, 0.048707f, 0.051564f, 0.054497f, 0.057506f, 0.060591f, 0.063752f, 0.066987f,
+    0.070297f, 0.073680f, 0.077136f, 0.080665f, 0.084265f, 0.087937f, 0.091679f, 0.095492f,
+    0.099373f, 0.103323f, 0.107342f, 0.111427f, 0.115579f, 0.119797f, 0.124080f, 0.128428f,
+    0.132839f, 0.137313f, 0.141849f, 0.146447f, 0.151105f, 0.155823f, 0.160600f, 0.165435f,
+    0.170327f, 0.175276f, 0.180280f, 0.185340f, 0.190453f, 0.195619f, 0.200838f, 0.206107f,
+    0.211427f, 0.216797f, 0.222215f, 0.227680f, 0.233193f, 0.238751f, 0.244353f, 0.250000f,
+    0.255689f, 0.261421f, 0.267193f, 0.273005f, 0.278856f, 0.284744f, 0.290670f, 0.296632f,
+    0.302628f, 0.308658f, 0.314721f, 0.320816f, 0.326941f, 0.333097f, 0.339280f, 0.345492f,
+    0.351729f, 0.357992f, 0.364280f, 0.370590f, 0.376923f, 0.383277f, 0.389651f, 0.396044f,
+    0.402455f, 0.408882f, 0.415325f, 0.421783f, 0.428254f, 0.434737f, 0.441231f, 0.447736f,
+    0.454249f, 0.460770f, 0.467298f, 0.473832f, 0.480370f, 0.486912f, 0.493455f, 0.500000f,
+    0.506545f, 0.513088f, 0.519630f, 0.526168f, 0.532702f, 0.539230f, 0.545751f, 0.552264f,
+    0.558769f, 0.565263f, 0.571746f, 0.578217f, 0.584675f, 0.591118f, 0.597545f, 0.603956f,
+    0.610349f, 0.616723f, 0.623077f, 0.629410f, 0.635720f, 0.642008f, 0.648271f, 0.654508f,
+    0.660720f, 0.666903f, 0.673059f, 0.679184f, 0.685279f, 0.691342f, 0.697372f, 0.703368f,
+    0.709330f, 0.715256f, 0.721144f, 0.726995f, 0.732807f, 0.738579f, 0.744311f, 0.750000f,
+    0.755647f, 0.761249f, 0.766807f, 0.772320f, 0.777785f, 0.783203f, 0.788573f, 0.793893f,
+    0.799162f, 0.804381f, 0.809547f, 0.814660f, 0.819720f, 0.824724f, 0.829673f, 0.834565f,
+    0.839400f, 0.844177f, 0.848895f, 0.853553f, 0.858151f, 0.862687f, 0.867161f, 0.871572f,
+    0.875920f, 0.880203f, 0.884421f, 0.888573f, 0.892658f, 0.896677f, 0.900627f, 0.904508f,
+    0.908321f, 0.912063f, 0.915735f, 0.919335f, 0.922864f, 0.926320f, 0.929703f, 0.933013f,
+    0.936248f, 0.939409f, 0.942494f, 0.945503f, 0.948436f, 0.951293f, 0.954072f, 0.956773f,
+    0.959396f, 0.961940f, 0.964405f, 0.966790f, 0.969096f, 0.971321f, 0.973465f, 0.975528f,
+    0.977510f, 0.979410f, 0.981228f, 0.982963f, 0.984615f, 0.986185f, 0.987671f, 0.989074f,
+    0.990393f, 0.991627f, 0.992778f, 0.993844f, 0.994826f, 0.995722f, 0.996534f, 0.997261f,
+    0.997902f, 0.998459f, 0.998929f, 0.999315f, 0.999615f, 0.999829f, 0.999957f, 1.000000f};
 static const int classical_tbands[19] = {4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 136, 160, 192, 240};
 
 static void classical_leak_reset(classical_leak_state* s) {
@@ -8585,7 +8583,8 @@ static void classical_leak_process(classical_leak_state* s) {
     leakage_to[b] = std::max(leakage_to[b + 1] - leak_slope, leakage_to[b]);
   }
   classical_leak_info* rec = &s->info[s->write_pos++];
-  if (s->write_pos >= 100) s->write_pos -= 100;
+  if (s->write_pos >= 100)
+    s->write_pos -= 100;
   rec->valid = 1;
   for (int b = 0; b < 19; ++b) {
     const float boost = std::max(0.f, leakage_to[b] - band_log2[b]) + std::max(0.f, band_log2[b] - (leakage_from[b] + 2.5f));
@@ -8596,7 +8595,10 @@ static void classical_leak_process(classical_leak_state* s) {
 static void classical_leak_ingest(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth) {
   const float scale = 32768.f;
   const float thr = 32768.f / static_cast<float>(1 << (lsb_depth < 30 ? lsb_depth : 30));
-  if (!s->initialized) { s->mem_fill = 240; s->initialized = 1; }
+  if (!s->initialized) {
+    s->mem_fill = 240;
+    s->initialized = 1;
+  }
   std::array<opus_val32, 1440> dmix;
   std::array<opus_val32, 720> a24;
   int len = 0;
@@ -8613,7 +8615,11 @@ static void classical_leak_ingest(classical_leak_state* s, const opus_res* pcm, 
     for (int j = 0; j < frame_size; ++j)
       dmix[j] = channels == 2 ? scale * 0.5f * (pcm[2 * j] + pcm[2 * j + 1]) : scale * pcm[j];
     std::array<opus_val32, 2160> tri;
-    for (int j = 0; j < frame_size; ++j) { tri[3 * j] = dmix[j]; tri[3 * j + 1] = dmix[j]; tri[3 * j + 2] = dmix[j]; }
+    for (int j = 0; j < frame_size; ++j) {
+      tri[3 * j] = dmix[j];
+      tri[3 * j + 1] = dmix[j];
+      tri[3 * j + 2] = dmix[j];
+    }
     classical_leak_down2_hp(s->downmix_state, a24.data(), tri.data(), 3 * frame_size);
     len = 3 * frame_size / 2;
   } else {
@@ -8622,22 +8628,31 @@ static void classical_leak_ingest(classical_leak_state* s, const opus_res* pcm, 
   int consumed = 0;
   while (consumed < len) {
     const int fill = std::min(len - consumed, 720 - s->mem_fill);
-    for (int j = 0; j < fill; ++j) s->inmem[s->mem_fill + j] = static_cast<float>(a24[consumed + j]);
+    for (int j = 0; j < fill; ++j)
+      s->inmem[s->mem_fill + j] = static_cast<float>(a24[consumed + j]);
     s->mem_fill += fill;
     consumed += fill;
-    if (s->mem_fill < 720) break;
+    if (s->mem_fill < 720)
+      break;
     bool silence = true;
-    for (int i = 0; i < 720; ++i) if (std::fabs(s->inmem[i]) > thr) { silence = false; break; }
+    for (int i = 0; i < 720; ++i)
+      if (std::fabs(s->inmem[i]) > thr) {
+        silence = false;
+        break;
+      }
     if (silence) {
       int prev = s->write_pos - 1;
-      if (prev < 0) prev += 100;
+      if (prev < 0)
+        prev += 100;
       s->info[s->write_pos] = s->info[prev];
       s->write_pos++;
-      if (s->write_pos >= 100) s->write_pos -= 100;
+      if (s->write_pos >= 100)
+        s->write_pos -= 100;
     } else {
       classical_leak_process(s);
     }
-    for (int i = 0; i < 240; ++i) s->inmem[i] = s->inmem[480 + i];
+    for (int i = 0; i < 240; ++i)
+      s->inmem[i] = s->inmem[480 + i];
     s->mem_fill = 240;
   }
 }
@@ -8655,18 +8670,30 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
 static void classical_leak_consume(classical_leak_state* s, int frame_size, int Fs) {
   int pos = s->read_pos;
   s->read_subframe += frame_size / (Fs / 400);
-  while (s->read_subframe >= 8) { s->read_subframe -= 8; s->read_pos++; }
-  if (s->read_pos >= 100) s->read_pos -= 100;
-  if (frame_size > Fs / 50 && pos != s->write_pos) { pos++; if (pos >= 100) pos = 0; }
-  if (pos == s->write_pos) pos--;
-  if (pos < 0) pos = 99;
+  while (s->read_subframe >= 8) {
+    s->read_subframe -= 8;
+    s->read_pos++;
+  }
+  if (s->read_pos >= 100)
+    s->read_pos -= 100;
+  if (frame_size > Fs / 50 && pos != s->write_pos) {
+    pos++;
+    if (pos >= 100)
+      pos = 0;
+  }
+  if (pos == s->write_pos)
+    pos--;
+  if (pos < 0)
+    pos = 99;
   s->valid = s->info[pos].valid;
-  for (int i = 0; i < 19; ++i) s->leak_boost[i] = s->info[pos].leak_boost[i];
+  for (int i = 0; i < 19; ++i)
+    s->leak_boost[i] = s->info[pos].leak_boost[i];
 }
 
 static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt) {
   celt->classical_leak_valid = s->valid != 0;
-  for (int i = 0; i < 19; ++i) celt->classical_leak_boost[i] = s->leak_boost[i];
+  for (int i = 0; i < 19; ++i)
+    celt->classical_leak_boost[i] = s->leak_boost[i];
 }
 
 static constexpr CeltModeInternal mode48000_960_120 = {
