@@ -1,5 +1,7 @@
 # Complete production metrics
 
+A later [rate-control checkpoint](s6_governor_checkpoint.json) records the mode-scoped governor change on the current source. It covers 12 real-speech settings, eight selected headline targets, and separate timing and lifecycle checks. It does not refresh the full tables below. Nine real-speech metric deficits remain; six existing deficits and three headline PESQ-style deltas worsened. The FEC checkpoint also records one new source-transition failure and a packet-byte ratio of 1.00102 versus official; parity is not achieved.
+
 Codex independently refreshed production `5d531c6430d82e1dcf910fe9f880b8047274a709` on 2026-09-22 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. No extra compatibility check results are claimed here.
 
 ## Quality: every metric

@@ -1,5 +1,7 @@
 # opuscpp
 
+The latest rate-control change removes the extra packet governor from SILK/hybrid while retaining it for CELT-only runs. The [focused checkpoint](tests/metrics/s6_governor_checkpoint.json) records its quality, bitrate, and timing tradeoffs: four real-speech metric deficits were fixed, nine remain, and six existing deficits worsened. The full benchmark tables below retain their stated earlier measurement revision; they are not a full refresh of this change. The FEC checkpoint also records one new source-transition failure and a packet-byte ratio of 1.00102 versus official; parity is not achieved.
+
 `opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API,
 derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is
 designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`,
@@ -36,7 +38,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
 - Compatibility results refer to the existing production validation; this benchmark refresh does not claim a new complete compatibility run.
 - Optional DTX: zero false DTX packets on the tracked active-content set, 50.7% lower aggregate re-entry error and 5.8% lower aggregate gain error at 16/24&nbsp;kbps.
-- Optional FEC: eligible streams can select SILK/hybrid from the first frame. The 18 scored 10/20 ms cases have aggregate recovery-error ratio 0.482074 (51.8% lower) and packet-byte ratio 0.996061 (0.4% fewer bytes). Recovery is better in 17/18 cases; the profile-0 stereo 20 ms, 48 kbps VBR case has ratio 1.04615, so the scored acceptance check remains failed. Backup coverage is 18/18 versus official 15/18. Source-fidelity criteria C1-C4 each pass 18/18.
+- Optional FEC: eligible streams can select SILK/hybrid from the first frame. The latest focused check of 18 scored 10/20 ms cases has aggregate recovery-error ratio 0.509621 (49.0% lower) and packet-byte ratio 1.00102 (0.1% more bytes). Recovery is better in 18/18 cases and backup coverage is 18/18 versus official 15/18, but the scored acceptance check fails its packet-byte requirement. Source criteria C1, C2 and C4 pass 18/18; C3 passes 17/18, with a new mono 10 ms, 24 kbps, profile-1 VBR transition-error regression.
 - 21.9% to 46.7% lower measured private allocation footprint across the listed encoder/decoder configurations.
 - Host object: `327,780 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang builds (unused tone-analysis warnings remain).

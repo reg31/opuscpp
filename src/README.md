@@ -102,7 +102,7 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_SET_DTX_REQUEST` | `OPUS_SET_DTX(x)` | Enables guarded discontinuous transmission; default is off. |
 | `OPUS_GET_DTX_REQUEST` | `OPUS_GET_DTX(&x)` | Returns the DTX setting. |
 | `OPUS_GET_IN_DTX_REQUEST` | `OPUS_GET_IN_DTX(&x)` | Reports whether the encoder is currently suppressing inactive frames. |
-| `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. |
+| `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. SILK/hybrid uses native rate control; the additional packet-credit budget applies to CELT-only runs. Constrained VBR does not impose a universal per-packet ceiling. |
 | `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |
 | `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |
 | `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |
@@ -163,7 +163,7 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
 quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in 17 of 18 scenarios. The 18 scored 10/20 ms cases have aggregate recovery-error ratio 0.482074 (51.8% lower) and packet-byte ratio 0.996061 (0.4% fewer bytes). Recovery is better in 17/18 cases; the profile-0 stereo 20 ms, 48 kbps VBR case has ratio 1.04615, so the scored acceptance check remains failed. Backup coverage is 18/18 versus official 15/18. Source-fidelity criteria C1-C4 each pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
+more accurately in 18 of 18 scenarios. The latest focused check of 18 scored 10/20 ms cases has aggregate recovery-error ratio 0.509621 (49.0% lower) and packet-byte ratio 1.00102 (0.1% more bytes). Recovery is better in 18/18 cases and backup coverage is 18/18 versus official 15/18, but the scored acceptance check fails its packet-byte requirement. Source criteria C1, C2 and C4 pass 18/18; C3 passes 17/18, with a new mono 10 ms, 24 kbps, profile-1 VBR transition-error regression. See the [focused rate-control checkpoint](../tests/metrics/s6_governor_checkpoint.json) and [earlier full metrics](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.

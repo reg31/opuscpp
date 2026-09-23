@@ -2782,10 +2782,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   const bool stereo_policy_allowed = allow_stereo_policy(st, frame_size);
   const bool voip_style = st->application == OPUS_APPLICATION_VOIP;
   const bool first = st->prev_mode == 0;
-  const bool governed_vbr = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
-  const opus_int32 requested_frame_bits =
-      governed_vbr ? next_vbr_target_bits(st, frame_size) : bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
-  const auto frame_budget = make_vbr_frame_budget(requested_frame_bits, st->vbr_budget_reservoir_bits);
   if (!st->use_vbr) {
     const opus_int32 cbr_budget_bytes = (bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate) + 4) / 8;
     cbr_bytes = std::min(cbr_budget_bytes, max_data_bytes);
@@ -2998,6 +2994,15 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   } else if (st->bandwidth <= 1103 && st->mode == opus_mode_hybrid) {
     st->mode = opus_mode_silk_only;
   }
+  const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
+  const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_celt_only;
+  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_celt_only;
+  if (outer_vbr_eligible && governed_vbr != previous_outer_eligible) {
+    reset_vbr_budget(st);
+  }
+  const opus_int32 requested_frame_bits =
+      governed_vbr ? next_vbr_target_bits(st, frame_size) : bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  const auto frame_budget = make_vbr_frame_budget(requested_frame_bits, st->vbr_budget_reservoir_bits);
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
     return encode_multiframe_packet(
         st, pcm, frame_size, data, out_data_bytes,

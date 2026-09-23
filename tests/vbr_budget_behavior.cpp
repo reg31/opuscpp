@@ -49,30 +49,55 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
   require_ok(opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)), "set bitrate failed");
   require_ok(opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(1)), "set VBR failed");
   require_ok(opus_encoder_ctl(encoder.get(), OPUS_SET_VBR_CONSTRAINT(1)), "set constrained VBR failed");
+  auto decoder = make_opus_decoder(sample_rate, channels, &error);
+  if (!decoder || error != OPUS_OK) {
+    throw std::runtime_error("decoder create failed");
+  }
 
   std::array<unsigned char, 4000> packet{};
+  std::array<std::int16_t, 5760 * 2> decoded{};
   const int frame_count = total_samples / frame_size;
-  long long total_bytes = 0;
+  int celt_run_frames = 0;
+  long long celt_run_target_bits = 0;
+  long long celt_run_bytes = 0;
+  bool previous_celt = false;
   for (int frame = 0; frame < frame_count; ++frame) {
     const auto offset = static_cast<std::size_t>(frame * frame_size * channels);
     const int packet_size = opus_encode(encoder.get(), pcm.data() + offset, frame_size, packet.data(), static_cast<int>(packet.size()));
-    if (packet_size < 0) {
+    if (packet_size <= 0) {
       throw std::runtime_error("encode failed");
     }
-    const auto cumulative_target_bits = static_cast<long long>(bitrate) * (frame + 1) * frame_size / sample_rate;
-    const auto frame_target_bits = cumulative_target_bits - static_cast<long long>(bitrate) * frame * frame_size / sample_rate;
-    if (packet_size > credit_capped_packet_bytes(static_cast<int>(frame_target_bits))) {
-      throw std::runtime_error("VBR credit cap exceeded");
+    if (packet_size > static_cast<int>(packet.size())) {
+      throw std::runtime_error("physical packet bound exceeded");
     }
-    total_bytes += packet_size;
-    if (total_bytes * 8 > cumulative_target_bits) {
-      throw std::runtime_error("VBR cumulative budget exceeded");
+    const int decoded_samples = opus_decode(decoder.get(), packet.data(), packet_size, decoded.data(), 5760, 0);
+    if (decoded_samples != frame_size) {
+      throw std::runtime_error("decode failed");
     }
-  }
-
-  const long long target_total_bits = static_cast<long long>(bitrate) * frame_count * frame_size / sample_rate;
-  if (total_bytes * 8 > target_total_bits) {
-    throw std::runtime_error("VBR average budget exceeded");
+    const bool celt_only = (packet[0] & 0x80) != 0;
+    if (celt_only) {
+      if (!previous_celt) {
+        celt_run_frames = 0;
+        celt_run_target_bits = 0;
+        celt_run_bytes = 0;
+      }
+      ++celt_run_frames;
+      const auto run_target_bits = static_cast<long long>(bitrate) * celt_run_frames * frame_size / sample_rate;
+      const auto frame_target_bits = run_target_bits - celt_run_target_bits;
+      celt_run_target_bits = run_target_bits;
+      celt_run_bytes += packet_size;
+      if (packet_size > credit_capped_packet_bytes(static_cast<int>(frame_target_bits))) {
+        throw std::runtime_error("CELT credit cap exceeded");
+      }
+      if (celt_run_bytes * 8 > celt_run_target_bits) {
+        throw std::runtime_error("CELT cumulative budget exceeded");
+      }
+    } else {
+      celt_run_frames = 0;
+      celt_run_target_bits = 0;
+      celt_run_bytes = 0;
+    }
+    previous_celt = celt_only;
   }
 }
 

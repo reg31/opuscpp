@@ -1,5 +1,7 @@
 # Tests and Metrics
 
+The current VBR budget test checks packet and cumulative budgets within CELT-only runs, and physical packet bounds plus exact decoded duration in every mode. SILK/hybrid uses native rate control. The original universal-budget test passed on the prior source and failed on this change; that policy migration and remaining quality deficits are recorded in the [focused checkpoint](metrics/s6_governor_checkpoint.json). Full benchmark tables retain their stated measurement revision. The FEC checkpoint also records one new source-transition failure and a packet-byte ratio of 1.00102 versus official; parity is not achieved.
+
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
 The current benchmark tables were refreshed independently by Codex on 2026-09-22 for production `5d531c6`. Both codecs use complexity 10 and `-O2 -DNDEBUG`, with official Opus intrinsics enabled. [Every metric and full results](metrics/README.md) are retained. Named per-commit checkpoint sections are historical comparisons; their measurements are not relabelled as new runs. Broader compatibility/conformance and selected regression results retain their original source commits in [regression metadata](metrics/selected_regressions.json).
@@ -264,7 +266,7 @@ the RFC decode vectors:
 | Packet-duration helper behavior | Passed |
 | Overflow-safe encoder frame and packet-duration validation | Passed |
 | Encoder lookahead and restricted-low-delay behavior | Passed |
-| VBR budget behavior | Passed |
+| VBR budget behavior (CELT-run budgets; all-mode packet bounds and decoded duration) | Passed |
 | Hybrid transient bit budget | Passed |
 | Guarded DTX behavior, refresh, and quiet-tonal protection | Passed |
 | DTX active-content and re-entry comparison vs official Opus | Passed |
