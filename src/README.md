@@ -143,7 +143,7 @@ In-band FEC is optional and disabled by default. When enabled for SILK or hybrid
 encoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only
 packets cannot carry this redundancy. Its extra encoder state is allocated lazily on first enable
 and released with the encoder. `opuscpp` spends more of the redundancy budget on recoverable
-detail than official Opus and keeps a settled mono VOIP stream in a FEC-capable mode through
+detail than official Opus and keeps a mono VOIP stream in a FEC-capable mode through
 32&nbsp;kbps, or stereo through 48&nbsp;kbps, when packet protection is explicitly requested.
 Mode `2` keeps confidently music-like input in CELT-only mode rather than forcing SILK solely for FEC; those
 CELT-only packets cannot carry redundancy.
@@ -163,7 +163,7 @@ Recovery requires one packet of delay. If packet `N` is missing and packet `N+1`
 concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
 packets in both directions against official Opus, including VBR and CBR. Across the tracked nominal,
 quiet, and noisy 10/20 ms one-packet-loss quality matrix, `opuscpp` reconstructs the missing audio
-more accurately in all 18 scenarios. The 18 scored 10/20 ms cases have 53.9% lower combined reconstruction error and 0.3% fewer packet bytes. Recoverable backup is present in all 18 scenarios versus 15 for official Opus. All source-quality criteria pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
+more accurately in 17 of 18 scenarios. The 18 scored 10/20 ms cases have aggregate recovery-error ratio 0.482074 (51.8% lower) and packet-byte ratio 0.996061 (0.4% fewer bytes). Recovery is better in 17/18 cases; the profile-0 stereo 20 ms, 48 kbps VBR case has ratio 1.04615, so the scored acceptance check remains failed. Backup coverage is 18/18 versus official 15/18. Source-fidelity criteria C1-C4 each pass 18/18. See the [complete current metrics](../tests/metrics/README.md).
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.

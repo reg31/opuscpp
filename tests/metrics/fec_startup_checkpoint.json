@@ -1,0 +1,192 @@
+{
+  "source_commit": "32f44fcf192833be3100541d735aa160e8eab323",
+  "source_sha256": "fd587b6cd9dd57fbf6a3400b7d6125fffb0b3482d101548ff74f73d915f4b013",
+  "application": "VOIP",
+  "effective_fec": 1,
+  "dropped_packet": 1,
+  "method": "Existing fec_source_quality.cpp with dropped_packet changed from 8 to 1. Separate normal, FEC and PLC decoders; encoder-lookahead source alignment retained.",
+  "test_source_sha256": "025bd8bc452f8a4a9fbbba6b168051884c0c94b5145c05b80b885c33c8d929f6",
+  "rows": [
+    {
+      "channels": 1,
+      "bitrate": 32000,
+      "frame_ms": 20,
+      "profile": 0,
+      "vbr": 1,
+      "public": {
+        "metrics": {
+          "ms_src": 0.0,
+          "ms_lf_mid": 0.0,
+          "ms_lf_side": 0.0,
+          "ms_fec_mid": 0.0,
+          "ms_fec_side": 0.0,
+          "ch": 1.0,
+          "ms": 20.0,
+          "br": 32000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.224719206,
+          "next_ref": 0.183298907,
+          "fidelity_fec": 0.34736624,
+          "fidelity_ref": 0.188553814,
+          "fidelity_plc": 0.34736624,
+          "transition_fec": 0.442648939,
+          "transition_ref": 0.290744379,
+          "step_fec": 543.0,
+          "step_ref": -527.0,
+          "self_consistency": 0.348155654
+        },
+        "stdout": "pkt_toc=f8,f8,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,80,80,77,83,80,80,80,78,80,80,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.224719206 next_ref=0.183298907 fidelity_fec=0.347366240 fidelity_ref=0.188553814 fidelity_plc=0.347366240 transition_fec=0.442648939 transition_ref=0.290744379 step_fec=543.000 step_ref=-527.000 self_consistency=0.348155654\n"
+      },
+      "candidate": {
+        "metrics": {
+          "ms_src": 0.0,
+          "ms_lf_mid": 0.0,
+          "ms_lf_side": 0.0,
+          "ms_fec_mid": 0.0,
+          "ms_fec_side": 0.0,
+          "ch": 1.0,
+          "ms": 20.0,
+          "br": 32000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.181112666,
+          "next_ref": 0.180518944,
+          "fidelity_fec": 0.205424276,
+          "fidelity_ref": 0.197762795,
+          "fidelity_plc": 1.056518858,
+          "transition_fec": 0.324031739,
+          "transition_ref": 0.323369062,
+          "step_fec": 22.0,
+          "step_ref": -49.0,
+          "self_consistency": 0.097678388
+        },
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=80,77,83,80,80,80,80,80,78,80,80,81,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.181112666 next_ref=0.180518944 fidelity_fec=0.205424276 fidelity_ref=0.197762795 fidelity_plc=1.056518858 transition_fec=0.324031739 transition_ref=0.323369062 step_fec=22.000 step_ref=-49.000 self_consistency=0.097678388\n"
+      },
+      "official": {
+        "metrics": {
+          "ms_src": 0.0,
+          "ms_lf_mid": 0.0,
+          "ms_lf_side": 0.0,
+          "ms_fec_mid": 0.0,
+          "ms_fec_side": 0.0,
+          "ch": 1.0,
+          "ms": 20.0,
+          "br": 32000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.685980126,
+          "next_ref": 0.680706242,
+          "fidelity_fec": 0.614917612,
+          "fidelity_ref": 0.671371289,
+          "fidelity_plc": 0.825692566,
+          "transition_fec": 1.511626064,
+          "transition_ref": 1.373677912,
+          "step_fec": 1176.0,
+          "step_ref": 629.0,
+          "self_consistency": 0.216245484
+        },
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,86,97,98,79,86,93,93,95,87,78,67,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.685980126 next_ref=0.680706242 fidelity_fec=0.614917612 fidelity_ref=0.671371289 fidelity_plc=0.825692566 transition_fec=1.511626064 transition_ref=1.373677912 step_fec=1176.000 step_ref=629.000 self_consistency=0.216245484\n"
+      }
+    },
+    {
+      "channels": 2,
+      "bitrate": 48000,
+      "frame_ms": 20,
+      "profile": 0,
+      "vbr": 1,
+      "public": {
+        "metrics": {
+          "ms_src": 7295908200.5,
+          "ms_lf_mid": 225561429.25,
+          "ms_lf_side": 8006301.25,
+          "ms_fec_mid": 4418411114.25,
+          "ms_fec_side": 48827147.25,
+          "ch": 2.0,
+          "ms": 20.0,
+          "br": 48000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.277955428,
+          "next_ref": 0.19936886,
+          "fidelity_fec": 0.782491949,
+          "fidelity_ref": 0.178923234,
+          "fidelity_plc": 0.782491949,
+          "transition_fec": 0.758562827,
+          "transition_ref": 0.282725443,
+          "step_fec": -509.0,
+          "step_ref": -393.0,
+          "self_consistency": 0.845349807
+        },
+        "stdout": "pkt_toc=fc,fc,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=120,120,120,115,102,143,120,114,124,111,127,114,\nms_src=7295908200.500000 ms_lf_mid=225561429.250000 ms_lf_side=8006301.250000 ms_fec_mid=4418411114.250000 ms_fec_side=48827147.250000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.277955428 next_ref=0.199368860 fidelity_fec=0.782491949 fidelity_ref=0.178923234 fidelity_plc=0.782491949 transition_fec=0.758562827 transition_ref=0.282725443 step_fec=-509.000 step_ref=-393.000 self_consistency=0.845349807\n"
+      },
+      "candidate": {
+        "metrics": {
+          "ms_src": 7295908200.5,
+          "ms_lf_mid": 320194175.75,
+          "ms_lf_side": 3926198.75,
+          "ms_fec_mid": 361330728.0,
+          "ms_fec_side": 70142374.0,
+          "ch": 2.0,
+          "ms": 20.0,
+          "br": 48000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.189961709,
+          "next_ref": 0.180688474,
+          "fidelity_fec": 0.243185224,
+          "fidelity_ref": 0.210772276,
+          "fidelity_plc": 1.038853566,
+          "transition_fec": 0.343608438,
+          "transition_ref": 0.324566274,
+          "step_fec": 606.5,
+          "step_ref": -1.5,
+          "self_consistency": 0.20396874
+        },
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=116,102,130,127,114,131,115,106,138,103,130,116,\nms_src=7295908200.500000 ms_lf_mid=320194175.750000 ms_lf_side=3926198.750000 ms_fec_mid=361330728.000000 ms_fec_side=70142374.000000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.189961709 next_ref=0.180688474 fidelity_fec=0.243185224 fidelity_ref=0.210772276 fidelity_plc=1.038853566 transition_fec=0.343608438 transition_ref=0.324566274 step_fec=606.500 step_ref=-1.500 self_consistency=0.203968740\n"
+      },
+      "official": {
+        "metrics": {
+          "ms_src": 7295908200.5,
+          "ms_lf_mid": 3237900901.25,
+          "ms_lf_side": 22704761.25,
+          "ms_fec_mid": 3362909685.75,
+          "ms_fec_side": 80170953.75,
+          "ch": 2.0,
+          "ms": 20.0,
+          "br": 48000.0,
+          "p": 0.0,
+          "vbr": 1.0,
+          "lookahead": 312.0,
+          "next_fec": 0.731995134,
+          "next_ref": 0.689788905,
+          "fidelity_fec": 0.686963902,
+          "fidelity_ref": 0.668512387,
+          "fidelity_plc": 0.988056977,
+          "transition_fec": 1.443289745,
+          "transition_ref": 1.293686143,
+          "step_fec": 286.0,
+          "step_ref": -169.5,
+          "self_consistency": 0.217490263
+        },
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=137,119,120,117,114,121,130,129,126,123,114,108,\nms_src=7295908200.500000 ms_lf_mid=3237900901.250000 ms_lf_side=22704761.250000 ms_fec_mid=3362909685.750000 ms_fec_side=80170953.750000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.731995134 next_ref=0.689788905 fidelity_fec=0.686963902 fidelity_ref=0.668512387 fidelity_plc=0.988056977 transition_fec=1.443289745 transition_ref=1.293686143 step_fec=286.000 step_ref=-169.500 self_consistency=0.217490263\n"
+      }
+    }
+  ],
+  "regression": {
+    "checks": 26,
+    "candidate_failures": 0,
+    "old_source_failures": 2,
+    "apis": [
+      "int16",
+      "float"
+    ],
+    "reset_after_populated_history": true
+  },
+  "invalid_probe_excluded": "Earlier loss_probe.cpp reused one decoder for FEC and PLC and omitted lookahead. None of its quality values are included."
+}

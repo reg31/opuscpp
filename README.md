@@ -36,7 +36,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - Updated RFC decode vectors: 24/24 passed; encode interoperability: 96/96 passed.
 - Compatibility results refer to the existing production validation; this benchmark refresh does not claim a new complete compatibility run.
 - Optional DTX: zero false DTX packets on the tracked active-content set, 50.7% lower aggregate re-entry error and 5.8% lower aggregate gain error at 16/24&nbsp;kbps.
-- Optional FEC: lower missing-frame error in all 18 scored loss scenarios. Across the 18 scored 10/20 ms cases, combined recovery error is 53.9% lower and packet bytes are 0.3% lower. Source-quality criteria pass 18/18 each.
+- Optional FEC: eligible streams can select SILK/hybrid from the first frame. The 18 scored 10/20 ms cases have aggregate recovery-error ratio 0.482074 (51.8% lower) and packet-byte ratio 0.996061 (0.4% fewer bytes). Recovery is better in 17/18 cases; the profile-0 stereo 20 ms, 48 kbps VBR case has ratio 1.04615, so the scored acceptance check remains failed. Backup coverage is 18/18 versus official 15/18. Source-fidelity criteria C1-C4 each pass 18/18.
 - 21.9% to 46.7% lower measured private allocation footprint across the listed encoder/decoder configurations.
 - Host object: `327,780 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang builds (unused tone-analysis warnings remain).
@@ -91,6 +91,8 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 ## Published benchmark snapshot vs official Opus
 
 Measurements refreshed independently by Codex on 2026-09-22 for production `5d531c6`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.
+
+FEC startup behavior and measurements were updated separately at `32f44fc`; other benchmark tables retain their recorded full-run source. [FEC results and remaining deficit](tests/metrics/fec_run_metadata.json).
 
 Quality and effective-bitrate columns use the current encoder at complexity 10; [quality metadata](tests/metrics/quality_run_metadata.json) records the source and matched settings. Speed uses the same production source at complexity 10; [speed metadata](tests/metrics/speed_run_metadata.json) records the isolated run. Memory is the tracked snapshot identified by [run metadata](tests/metrics/run_metadata.json).
 Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels

@@ -22,9 +22,9 @@
     "decode_speed_vs_official.csv": "91f42c36a71269b766862cd315880556fcb7018f7f048a128e82446646de1602",
     "dtx_metrics.csv": "2efe2723d5885e3c696385eef4e944149a9ae24f4e74291f28011271c67a0f82",
     "encode_speed_vs_official.csv": "d3b15132682eae1c45915ea58f1d9552d17eb5633c5c04b3bb92588a4aa33a4d",
-    "fec_interop_metrics.csv": "762cb66889113dc058ee03159fbe2bdbef8be0ce4f933c59b22766ca9c942ccd",
-    "fec_run_metadata.json": "4f9302707b8c37bc92e0c90cad7d8b411629fc221f15378a34c38c264a04fcb6",
-    "fec_source_metrics.json": "7ceef160d6c4ec6d3f2214d1e4f8197e6175065041a43bd849460077e5caa3b3",
+    "fec_interop_metrics.csv": "37edf7f9989873a5ddad90e568be508820c7d6b786e9f00cbccd3fee897cf615",
+    "fec_run_metadata.json": "7af09c8b9bf74e33a921e0cf4e61c518efecaa8243665e264f25665bbd55c425",
+    "fec_source_metrics.json": "7e4590b5ad575f4d2561317cb0071600fc58837cb88961550b17991dbb8bd3ce",
     "memory_vs_official.csv": "2cef211176337f41dbf141aa07c9612a3989a9c476bb9085c374e3623e11f777",
     "mode_balance_metrics.json": "3f18bb864a88457e9af605829d1dd3edfbd862b24f99dec1a7c948d46a9b8f19",
     "postfilter_pcm16_path.csv": "827470dcceb02b5da910049dcbf61ae8c729d1fe9285f68ee0a838c116bd9d67",
@@ -36,8 +36,8 @@
     "quality_run_metadata.json": "77c44600ffcd5afb89d6028cbd4b23e4c45039adbf0edcb3d1bd353c1e308170",
     "quality_vs_official.csv": "b68813539555cd059fa882865090c05ae9f1edbdec51ccdbeb35986cc75204e9",
     "quality_vs_official_voip.csv": "96a44b2ed47e47704f1ae1f42c645856f739a0fbba25c770b391cdf822b5341b",
-    "README.md": "5045c74a6e54a8ff3d9edfcffb4620e99fb9c2c46aa218d40cd20c947a1184de",
-    "run_metadata.json": "411dba2425171c01995c92d1194834c4c82189ab3e94b945a48a6ca4881472e8",
+    "README.md": "c30402d5eb47c9747c1c0883bbf2660b37f59e73d5817a7aa778822fd4ccfa64",
+    "run_metadata.json": "d420eb29395aebfb9e2dbda6f7bcd4a36dc9278b38d098ff27edb7464e3a1aed",
     "speed_run_metadata.json": "0f27ee4aac50ea41bba4fb270c822d32c8ffc10c0cec9b003c2da5b8b79a69e1",
     "speed_vs_official_intrinsics_60s.csv": "92e559383dca8a61ccb652d18706e09fef56aa12e9c834a4cc7020756c2ddc79",
     "voice_denoise_boundary.csv": "f3a1566250d74f8247363481a8357f0fea20b7ffb1ad4cdcf5c63e7588938b88",
@@ -45,7 +45,8 @@
     "voice_denoise_provenance.json": "dd45ef9530a2c96a11482d2ab0bf1047ae0c69a3b80f8d881e3390d108b11b38",
     "voice_denoise_quality_voip.csv": "e7d80903abfc8cdec43da7482cf4839b24e3ae71ba39613c8148fe940a7e7174",
     "voice_denoise_timing.csv": "2f9275671f92cd262fbd55d2c2d2a8cc05bd385790a115af1ee721b4c6de6d21",
-    "voice_speed_vs_official.csv": "986cb0a6174bd6df9555c999fbd9072a418c63485c429ea65091582c7de58e7f"
+    "voice_speed_vs_official.csv": "986cb0a6174bd6df9555c999fbd9072a418c63485c429ea65091582c7de58e7f",
+    "fec_startup_checkpoint.json": "b50b0545aac41e2bde299c25b571b6c8e02fb02ffbb58a6129ed7c2c0b8006fe"
   },
   "unavailable": [
     "WER",
@@ -56,5 +57,11 @@
     "per-commit checkpoint deltas",
     "NSQ work counters",
     "previous-version experiments"
-  ]
+  ],
+  "fec_override": {
+    "source_commit": "32f44fcf192833be3100541d735aa160e8eab323",
+    "source_sha256": "fd587b6cd9dd57fbf6a3400b7d6125fffb0b3482d101548ff74f73d915f4b013",
+    "acceptance_exit": 1,
+    "metadata": "fec_run_metadata.json"
+  }
 }

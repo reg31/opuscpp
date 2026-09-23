@@ -287,7 +287,7 @@ speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The 
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
 signal after silence, `opuscpp` has lower aggregate wake-up NRMSE (`0.3761` vs `0.7622`)
 and gain error (`1.5500` vs `1.6463` dB), while both suppress 406 silence frames.
-That is 50.7% less re-entry error and 5.9% less aggregate gain error. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`.
+That is 50.7% less re-entry error and 5.8% less aggregate gain error. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`.
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -306,7 +306,7 @@ audio. Additional packet checks cover silent startup, speech-to-silence changes,
 while FEC is enabled.
 
 Recovery error compares reconstructed missing audio with normal, loss-free decoding of the
-same stream. The current benchmark passes all 18 scored strict 10/20 ms cases (maximum ratio 0.975971). Those 18 cases have aggregate recovery error ratio 0.461407 (53.9% lower), backup coverage 18/18 versus official 15/18, and packet-byte ratio 0.996537. The full interoperability run covers 36 configurations and emits 72 direction rows; its 40/60 ms cases are excluded from this scored aggregate. All ratios, direction rows and source-quality criteria are in [current FEC metadata](metrics/fec_run_metadata.json).
+same stream. The 18 scored 10/20 ms cases have aggregate recovery-error ratio 0.482074 (51.8% lower) and packet-byte ratio 0.996061 (0.4% fewer bytes). Recovery is better in 17/18 cases; the profile-0 stereo 20 ms, 48 kbps VBR case has ratio 1.04615, so the scored acceptance check remains failed. Backup coverage is 18/18 versus official 15/18. Source-fidelity criteria C1-C4 each pass 18/18. The full interoperability run covers 36 configurations and 72 direction rows; 40/60 ms cases are excluded from the scored aggregate. Both standard harnesses encode with FEC=1 after checking the FEC=2 CTL round trip. [Current FEC metadata](metrics/fec_run_metadata.json).
 
 `fec_source_quality.cpp` separately compares recovered-frame fidelity, the following frame and
 the boundary transition against the original source. All three errors are no greater than official
@@ -719,3 +719,7 @@ This is a measured code-layout/data-flow improvement, not a claim that every loo
 
 Full quality/speed parity remains unfinished, with 1154 below-official quality fields.
 Full measurements and identities are in [feedback checkpoint metadata](metrics/nsq_feedback_checkpoint.json).
+
+## FEC startup mode regression
+
+The `32f44fc` update removes the fixed startup wait before eligible FEC mode selection. The existing startup/reset harness now has 26 checks; its two new int16/float first-packet checks fail on the previous source and pass with the fix, including reset after populated history. In two aligned packet-1 loss controls, source error falls from 0.347366240 to 0.205424276 (mono 32 kbps) and from 0.782491949 to 0.243185224 (stereo 48 kbps). The later packet-8 self-reference comparison still has one deficit, reported above. [Startup measurements](metrics/fec_startup_checkpoint.json).
