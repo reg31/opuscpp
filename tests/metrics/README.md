@@ -103,6 +103,10 @@ stereo-mid bytes=102 encode_ms=105.246 decode_ms=35.1229 checksum=3294895434
 stereo-high bytes=147 encode_ms=112.824 decode_ms=32.164 checksum=1997488960
 ```
 
+## Scoped CELT-native budget follow-up (separate source)
+
+A focused two-case candidate returns CELT-only VBR frames to CELT's native constrained controller while retaining the outer governor for SILK-only frames. Across 24 selected quality fields, 6 deficits are fixed, none are new, 2 existing CELT deficits worsen, and 6 improve; the candidate deficit count falls from 14 to 8. Plucked AUDIO64 mean packet size rises from 160.00 to 161.64 bytes (official 161.236); Hortense24 shows two CELT deficits fixed. The candidate also passes the saved VBR budget, packet-duration, strict 18-case C1-C4, and standard 18/18 FEC recovery/byte gates. This is not a full quality, speed, or memory refresh and does not claim parity. Full values, hashes, packet/PCM neutrality, gate rows, and tradeoffs are in [the focused candidate checkpoint](celt_native_budget_checkpoint.json).
+
 ## Unavailable and historical measurements
 
 No sanitizer run was made. Broader compatibility/conformance, startup and latency/lookahead records retain their original source commits and validation dates; this refresh does not claim a new complete compatibility campaign. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.

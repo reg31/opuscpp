@@ -76,7 +76,7 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
     }
     const bool celt_only = (packet[0] & 0x80) != 0;
     const bool silk_only = !celt_only && (((packet[0] >> 3) & 0x1F) <= 11);
-    const bool governed = celt_only || silk_only;
+    const bool governed = silk_only;
     if (governed) {
       if (!previous_celt) {
         celt_run_frames = 0;

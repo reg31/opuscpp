@@ -2982,8 +2982,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = opus_mode_silk_only;
   }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
-  const bool governed_vbr = outer_vbr_eligible && st->mode != opus_mode_hybrid;
-  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode != opus_mode_hybrid;
+  const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
+  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_silk_only;
   if (outer_vbr_eligible && governed_vbr != previous_outer_eligible) {
     reset_vbr_budget(st);
   }

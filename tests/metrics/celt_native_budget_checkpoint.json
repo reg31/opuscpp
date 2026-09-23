@@ -1,0 +1,1388 @@
+{
+  "schema": "opuscpp.celt_native_budget_quality_checkpoint.v1",
+  "created_utc": "2026-09-23T14:34:42.669269+00:00",
+  "evidence_source": "work/audio64_bw19_obs_20260923/controller_results.json",
+  "evidence_scope": "24 quality-field comparisons across two cases; no new scoring or codec run.",
+  "lineage": {
+    "parent_public_commit": "798c5bfbe06d569ba04372c3da6094aa8b7382f8",
+    "parent_source_sha256": "8b932134bcc12bbbeb9620c2493fa5d015caec55ba4db86ac9fe8e027cb86da1",
+    "candidate_source_sha256": "baf3f5bb15f05714495d26e302dbdcbdf2fd5057a233fdaa96caa6ddb596375b",
+    "candidate_diff_sha256": "056d6ac24f5d3b99a524199ff0d1c05ab7c18084f0de64c2a4e634073f2831a1",
+    "candidate_object_sha256": "c278d279879f471814353f55513b2c382d1ebd41a4f4135a143b0115e52c52f9",
+    "test_parent_sha256": "9cc210f20cb4dceb69857d00faddff0f3a41d814e2db5c501159fc4a70d4097f",
+    "candidate_test_sha256": "41bfbf6d192a59aa632c3afcc871c03bbdf90a43135e2917046ff0bee5ec7fe0",
+    "candidate_test_change": "Only the mode-policy expectation changes from CELT-only OR SILK-only to SILK-only for outer-budget assertions; packets are still encoded and decoded across all matrix cases.",
+    "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+    "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+    "quality_source": "work/audio64_bw19_obs_20260923/controller_results.json; independently bound to the clean candidate below",
+    "release_gate_status": "Focused gates passed on candidate source baf3f5bb; not a full matrix, timing, or memory refresh."
+  },
+  "classification_definition": {
+    "higher_is_better": [
+      "celt_quality",
+      "logband_corr",
+      "pesq_style",
+      "segmental_snr_db",
+      "snr_db",
+      "visqol_style"
+    ],
+    "lower_is_better": [
+      "celt_highband_error",
+      "celt_masked_error",
+      "logband_error",
+      "mean_abs_error",
+      "rms_error",
+      "stereo_width_error"
+    ],
+    "fixed": "parent was below official and candidate is not",
+    "new": "parent was not below official and candidate is below official",
+    "worsened_existing": "both below official and candidate is farther from official",
+    "improved_existing": "both below official and candidate is closer to official",
+    "tolerance": "strict directional comparisons; raw JSON values retained"
+  },
+  "classification_counts": {
+    "fixed": 6,
+    "new": 0,
+    "worsened_existing": 2,
+    "improved_existing": 6,
+    "unchanged_existing": 0,
+    "improved_without_deficit": 8,
+    "regressed_without_deficit": 1,
+    "unchanged_without_deficit": 1
+  },
+  "summary": {
+    "comparisons": 24,
+    "fixed": 6,
+    "new": 0,
+    "worsened_existing": 2,
+    "improved_existing": 6,
+    "parent_deficits": 14,
+    "candidate_deficits": 8
+  },
+  "cases": [
+    {
+      "case": "audio64_bw19",
+      "comparisons": [
+        {
+          "case": "audio64_bw19",
+          "metric": "snr_db",
+          "direction": "higher",
+          "parent_current": 20.920961790640394,
+          "candidate_current": 22.808804077261954,
+          "official": 22.831977478510076,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": 1.8878422866215594,
+          "candidate_gap_to_official": 0.023173401248122616,
+          "parent_gap_to_official": 1.911015687869682,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "segmental_snr_db",
+          "direction": "higher",
+          "parent_current": 23.36414445512012,
+          "candidate_current": 24.29716082249681,
+          "official": 23.929168343233258,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.9330163673766911,
+          "candidate_gap_to_official": 0.3679924792635525,
+          "parent_gap_to_official": 0.5650238881131386,
+          "classification": "fixed"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "rms_error",
+          "direction": "lower",
+          "parent_current": 0.01437462878798683,
+          "candidate_current": 0.01156656822626178,
+          "official": 0.01153575048587856,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": -0.0028080605617250513,
+          "candidate_gap_to_official": 3.081774038321897e-05,
+          "parent_gap_to_official": 0.0028388783021082702,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "mean_abs_error",
+          "direction": "lower",
+          "parent_current": 0.0077296103267188,
+          "candidate_current": 0.00656903792042326,
+          "official": 0.00667366118718802,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -0.00116057240629554,
+          "candidate_gap_to_official": 0.00010462326676476032,
+          "parent_gap_to_official": 0.0010559491395307798,
+          "classification": "fixed"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "pesq_style",
+          "direction": "higher",
+          "parent_current": 3.4778635183099778,
+          "candidate_current": 3.5490209031732185,
+          "official": 3.5226504344552754,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.07115738486324075,
+          "candidate_gap_to_official": 0.02637046871794313,
+          "parent_gap_to_official": 0.04478691614529762,
+          "classification": "fixed"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "visqol_style",
+          "direction": "higher",
+          "parent_current": 4.948124279130664,
+          "candidate_current": 4.957424711433338,
+          "official": 4.960139958869317,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": 0.0093004323026733,
+          "candidate_gap_to_official": 0.0027152474359795065,
+          "parent_gap_to_official": 0.012015679738652807,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "logband_corr",
+          "direction": "higher",
+          "parent_current": 0.9983142253296945,
+          "candidate_current": 0.9989372441238195,
+          "official": 0.9990911092466573,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": 0.0006230187941249632,
+          "candidate_gap_to_official": 0.00015386512283788178,
+          "parent_gap_to_official": 0.000776883916962845,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "logband_error",
+          "direction": "lower",
+          "parent_current": 0.04303894767678004,
+          "candidate_current": 0.03545343403434147,
+          "official": 0.03322471318472229,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": -0.00758551364243857,
+          "candidate_gap_to_official": 0.002228720849619184,
+          "parent_gap_to_official": 0.009814234492057754,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "celt_quality",
+          "direction": "higher",
+          "parent_current": 97.9818841377662,
+          "candidate_current": 97.89042693497947,
+          "official": 98.70596002859821,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": -0.09145720278672798,
+          "candidate_gap_to_official": 0.8155330936187397,
+          "parent_gap_to_official": 0.7240758908320117,
+          "classification": "worsened_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "celt_masked_error",
+          "direction": "lower",
+          "parent_current": 1.6310064114021297,
+          "candidate_current": 1.7057140279568004,
+          "official": 1.0419884861567372,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": 0.07470761655467073,
+          "candidate_gap_to_official": 0.6637255418000632,
+          "parent_gap_to_official": 0.5890179252453924,
+          "classification": "worsened_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "celt_highband_error",
+          "direction": "lower",
+          "parent_current": 0.00571765140467622,
+          "candidate_current": 0.00134663095879216,
+          "official": 0.00013862022535765,
+          "parent_deficit": true,
+          "candidate_deficit": true,
+          "candidate_minus_parent": -0.00437102044588406,
+          "candidate_gap_to_official": 0.00120801073343451,
+          "parent_gap_to_official": 0.00557903117931857,
+          "classification": "improved_existing"
+        },
+        {
+          "case": "audio64_bw19",
+          "metric": "stereo_width_error",
+          "direction": "lower",
+          "parent_current": 0.0108146510145674,
+          "candidate_current": 0.00834226554566083,
+          "official": 0.01038879830733465,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -0.0024723854689065686,
+          "candidate_gap_to_official": 0.0020465327616738197,
+          "parent_gap_to_official": 0.00042585270723274893,
+          "classification": "fixed"
+        }
+      ],
+      "available_packet_data": {
+        "parent_avg_bytes": 160.0,
+        "candidate_avg_bytes": 161.64,
+        "official_avg_bytes": null,
+        "parent_packet_count": null,
+        "candidate_packet_count": null,
+        "official_packet_count": null,
+        "parent_packet_hash": "434f5cc4e9c9b2591e71b3586947b7cb40a1e0ece6f4ab1670a12bc22521259b",
+        "candidate_packet_hash": "a043e24c9c35f93590cd3ba8d8d612c9b4242a43853682832a3ff76c8dd4e5f0",
+        "official_packet_hash": null
+      },
+      "raw_trace_log_parent": [
+        "cur_outer nb_compr=159 bitrate=64000 celt_br=64000 nominal=1280 alloc_bps=64000 res=0 rem=0 mode=1002",
+        "off_bw19_pre bl0=2.559115 bl1=2.572531 ob0=-6.482574 ob1=-6.832580 short=8 C=2 end=21 LM=3 nb=320",
+        "off_bw19_hint valid=1 abw=20 minbw=16 sigbw=20 eq=64000",
+        "off_bw19_alloc nb=177 tellfrac=856 bits=10514 prev=18 coded=20 hint=20"
+      ],
+      "raw_trace_log_candidate": [
+        "cur_outer nb_compr=1275 bitrate=64000 celt_br=64000 nominal=1280 alloc_bps=64000 res=0 rem=0 mode=1002",
+        "off_bw19_pre bl0=2.559115 bl1=2.572531 ob0=-6.482574 ob1=-6.832580 short=8 C=2 end=21 LM=3 nb=320",
+        "off_bw19_hint valid=1 abw=20 minbw=16 sigbw=20 eq=64000",
+        "off_bw19_alloc nb=177 tellfrac=856 bits=10514 prev=18 coded=20 hint=20"
+      ]
+    },
+    {
+      "case": "hortense",
+      "comparisons": [
+        {
+          "case": "hortense",
+          "metric": "snr_db",
+          "direction": "higher",
+          "parent_current": 13.7479413590834,
+          "candidate_current": 13.754891172517032,
+          "official": 6.908303122889839,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.006949813433632102,
+          "candidate_gap_to_official": 6.846588049627194,
+          "parent_gap_to_official": 6.8396382361935615,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "segmental_snr_db",
+          "direction": "higher",
+          "parent_current": 11.962034287357318,
+          "candidate_current": 11.96402964792276,
+          "official": 4.9726375413294,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.0019953605654432494,
+          "candidate_gap_to_official": 6.991392106593361,
+          "parent_gap_to_official": 6.989396746027918,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "rms_error",
+          "direction": "lower",
+          "parent_current": 0.01602904793673694,
+          "candidate_current": 0.01601622779480778,
+          "official": 0.03522813399094547,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -1.282014192915959e-05,
+          "candidate_gap_to_official": 0.019211906196137694,
+          "parent_gap_to_official": 0.019199086054208534,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "mean_abs_error",
+          "direction": "lower",
+          "parent_current": 0.00762752893353219,
+          "candidate_current": 0.00760969010596907,
+          "official": 0.01775231207429929,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -1.783882756311965e-05,
+          "candidate_gap_to_official": 0.010142621968330223,
+          "parent_gap_to_official": 0.010124783140767101,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "pesq_style",
+          "direction": "higher",
+          "parent_current": 2.6278570943421755,
+          "candidate_current": 2.628001216141851,
+          "official": 2.102004190967479,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.00014412179967537853,
+          "candidate_gap_to_official": 0.5259970251743717,
+          "parent_gap_to_official": 0.5258529033746964,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "visqol_style",
+          "direction": "higher",
+          "parent_current": 4.967197571220906,
+          "candidate_current": 4.967300983813049,
+          "official": 4.93565323861868,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.0001034125921428597,
+          "candidate_gap_to_official": 0.03164774519436886,
+          "parent_gap_to_official": 0.031544332602226,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "logband_corr",
+          "direction": "higher",
+          "parent_current": 0.9984651414054071,
+          "candidate_current": 0.9984760250601147,
+          "official": 0.9924818153296223,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 1.0883654707583013e-05,
+          "candidate_gap_to_official": 0.005994209730492361,
+          "parent_gap_to_official": 0.005983326075784778,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "logband_error",
+          "direction": "lower",
+          "parent_current": 0.02621432575309589,
+          "candidate_current": 0.02613694909589816,
+          "official": 0.04695716555915835,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -7.737665719773079e-05,
+          "candidate_gap_to_official": 0.020820216463260186,
+          "parent_gap_to_official": 0.020742839806062455,
+          "classification": "improved_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "celt_quality",
+          "direction": "higher",
+          "parent_current": 99.09105954088837,
+          "candidate_current": 99.58249092133651,
+          "official": 99.54623541632034,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.49143138044814805,
+          "candidate_gap_to_official": 0.036255505016171696,
+          "parent_gap_to_official": 0.45517587543197635,
+          "classification": "fixed"
+        },
+        {
+          "case": "hortense",
+          "metric": "celt_masked_error",
+          "direction": "lower",
+          "parent_current": 0.7304772209505546,
+          "candidate_current": 0.33470646508746565,
+          "official": 0.36383777614124996,
+          "parent_deficit": true,
+          "candidate_deficit": false,
+          "candidate_minus_parent": -0.3957707558630889,
+          "candidate_gap_to_official": 0.029131311053784303,
+          "parent_gap_to_official": 0.3666394448093046,
+          "classification": "fixed"
+        },
+        {
+          "case": "hortense",
+          "metric": "celt_highband_error",
+          "direction": "lower",
+          "parent_current": 0.01156614618338951,
+          "candidate_current": 0.01156723905160961,
+          "official": 0.01157251453253508,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 1.0928682201011286e-06,
+          "candidate_gap_to_official": 5.2754809254686175e-06,
+          "parent_gap_to_official": 6.368349145569746e-06,
+          "classification": "regressed_without_deficit"
+        },
+        {
+          "case": "hortense",
+          "metric": "stereo_width_error",
+          "direction": "lower",
+          "parent_current": 0.0,
+          "candidate_current": 0.0,
+          "official": 0.0,
+          "parent_deficit": false,
+          "candidate_deficit": false,
+          "candidate_minus_parent": 0.0,
+          "candidate_gap_to_official": 0.0,
+          "parent_gap_to_official": 0.0,
+          "classification": "unchanged_without_deficit"
+        }
+      ],
+      "available_packet_data": {
+        "parent_avg_bytes": null,
+        "candidate_avg_bytes": null,
+        "official_avg_bytes": null,
+        "parent_packet_count": null,
+        "candidate_packet_count": null,
+        "official_packet_count": null,
+        "parent_packet_hash": "1ac80f18fc9f630a1e60527078648c3b16012643a4ea98a3c220fb3138acfcdc",
+        "candidate_packet_hash": "085cbb3e29c945ac8e4df75c8f0adc9a8f0774d8da007caba2ae304d46a3924d",
+        "official_packet_hash": null
+      },
+      "raw_trace_log_parent": null,
+      "raw_trace_log_candidate": null
+    }
+  ],
+  "limitations": {
+    "focused_quality_summary": {
+      "comparisons": 24,
+      "fixed": 6,
+      "new": 0,
+      "worsened_existing": 2,
+      "improved_existing": 6,
+      "parent_deficits": 14,
+      "candidate_deficits": 8
+    },
+    "plucked_delayed64": "Two existing CELT deficits worsen (celt_quality 97.981884→97.890427 vs official 98.705960; celt_masked_error 1.631006→1.705714 vs 1.041988). High-band error improves 0.005718→0.001347 but remains above official 0.000139; mean packet bytes rises 160.00→161.64 vs 161.236.",
+    "hortense24_voip": "Two CELT deficits are fixed (candidate celt_quality 99.582491 vs official 99.546235; celt_masked_error 0.334706 vs 0.363838); no new deficit among these 12 fields.",
+    "scope": "Two selected cases (24 fields) only. No full quality matrix, speed, memory, or broad compatibility refresh. Other existing negative deltas remain."
+  },
+  "clean_candidate_neutrality": {
+    "source_identity": {
+      "candidate_source": "baf3f5bb15f05714495d26e302dbdcbdf2fd5057a233fdaa96caa6ddb596375b",
+      "candidate_diff": "056d6ac24f5d3b99a524199ff0d1c05ab7c18084f0de64c2a4e634073f2831a1",
+      "candidate_object": "c278d279879f471814353f55513b2c382d1ebd41a4f4135a143b0115e52c52f9"
+    },
+    "candidate_object_reused": true,
+    "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+    "all_printed_quality_fields_exact": true,
+    "packet_pcm_hashes_exact": {
+      "p165_cand": {
+        "all_printed_quality_fields_exact": true,
+        "hashes": {
+          "_current.pkt": {
+            "clean": "a043e24c9c35f93590cd3ba8d8d612c9b4242a43853682832a3ff76c8dd4e5f0",
+            "observed": "a043e24c9c35f93590cd3ba8d8d612c9b4242a43853682832a3ff76c8dd4e5f0"
+          },
+          "_current.pcm": {
+            "clean": "429779c23779c1e4412166a8fc74f6974076093e494d0fadfa34aad6314cf597",
+            "observed": "429779c23779c1e4412166a8fc74f6974076093e494d0fadfa34aad6314cf597"
+          },
+          "_official.pkt": {
+            "clean": "b3ebbae45772b6bf951354ee9a14f828c4bb77f5af2f907e236991e2c5477acf",
+            "observed": "b3ebbae45772b6bf951354ee9a14f828c4bb77f5af2f907e236991e2c5477acf"
+          },
+          "_official.pcm": {
+            "clean": "6a98a4ebff6d6721d349d263a57ef7889c05d4faf6c1913bca6b8469c5f85029",
+            "observed": "6a98a4ebff6d6721d349d263a57ef7889c05d4faf6c1913bca6b8469c5f85029"
+          }
+        },
+        "passed": true,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\audio64_celt_native_controller_20260923\\root_clean_verification\\quality_clean.exe",
+          "--input",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\plucked_delayed.wav",
+          "--reference",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\plucked_delayed.wav",
+          "--application",
+          "audio",
+          "--bitrate",
+          "64000",
+          "--complexity",
+          "10",
+          "--current-postfilter",
+          "0",
+          "--skip-memory",
+          "--max-seconds",
+          "6"
+        ]
+      },
+      "hort_cand": {
+        "all_printed_quality_fields_exact": true,
+        "hashes": {
+          "_current.pkt": {
+            "clean": "085cbb3e29c945ac8e4df75c8f0adc9a8f0774d8da007caba2ae304d46a3924d",
+            "observed": "085cbb3e29c945ac8e4df75c8f0adc9a8f0774d8da007caba2ae304d46a3924d"
+          },
+          "_current.pcm": {
+            "clean": "b9e7ca61c845693c3e41906eb8723bad54f6782beb9f19c7419dcc3ffccdb4e7",
+            "observed": "b9e7ca61c845693c3e41906eb8723bad54f6782beb9f19c7419dcc3ffccdb4e7"
+          },
+          "_official.pkt": {
+            "clean": "c5d58375ef629245427c97ec2f24f714633532572914266c26a68aee3b82d327",
+            "observed": "c5d58375ef629245427c97ec2f24f714633532572914266c26a68aee3b82d327"
+          },
+          "_official.pcm": {
+            "clean": "a7ab7e24994c110d532ca0f918a2b6d1d931d0997a1c8cd4aaca0b7294a6e940",
+            "observed": "a7ab7e24994c110d532ca0f918a2b6d1d931d0997a1c8cd4aaca0b7294a6e940"
+          }
+        },
+        "passed": true,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\audio64_celt_native_controller_20260923\\root_clean_verification\\quality_clean.exe",
+          "--input",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hortense.wav",
+          "--reference",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hortense.wav",
+          "--application",
+          "voip",
+          "--bitrate",
+          "24000",
+          "--complexity",
+          "10",
+          "--current-postfilter",
+          "0",
+          "--skip-memory"
+        ]
+      }
+    },
+    "commands": {
+      "p165_cand": [
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\audio64_celt_native_controller_20260923\\root_clean_verification\\quality_clean.exe",
+        "--input",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\plucked_delayed.wav",
+        "--reference",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\plucked_delayed.wav",
+        "--application",
+        "audio",
+        "--bitrate",
+        "64000",
+        "--complexity",
+        "10",
+        "--current-postfilter",
+        "0",
+        "--skip-memory",
+        "--max-seconds",
+        "6"
+      ],
+      "hort_cand": [
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\audio64_celt_native_controller_20260923\\root_clean_verification\\quality_clean.exe",
+        "--input",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hortense.wav",
+        "--reference",
+        "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hortense.wav",
+        "--application",
+        "voip",
+        "--bitrate",
+        "24000",
+        "--complexity",
+        "10",
+        "--current-postfilter",
+        "0",
+        "--skip-memory"
+      ]
+    },
+    "fixture_sha256": {
+      "audio64_plucked_delayed": "39b2c4a6101eca62b4970c7a62e0fba90f552670a034fbec94fa3c3cc6204dcb",
+      "voip24_hortense": "92aac471cca1972ee119b2317b77019973bded072cbbbc32a7c15c64e6a281b9"
+    }
+  },
+  "byte_comparisons": {
+    "units": "mean packet bytes; packet hashes are SHA-256",
+    "audio64_plucked_delayed": {
+      "packets": 250,
+      "parent_mean_bytes": 160.0,
+      "candidate_mean_bytes": 161.64,
+      "official_mean_bytes": 161.236,
+      "parent_packet_sha256": "434f5cc4e9c9b2591e71b3586947b7cb40a1e0ece6f4ab1670a12bc22521259b",
+      "candidate_packet_sha256": "a043e24c9c35f93590cd3ba8d8d612c9b4242a43853682832a3ff76c8dd4e5f0",
+      "remaining_tradeoff": "Candidate uses 1.64 more mean bytes than parent and 0.404 more than official."
+    },
+    "voip24_hortense": {
+      "packets": 691,
+      "parent_mean_bytes": 52.775687,
+      "candidate_mean_bytes": 52.832127,
+      "official_mean_bytes": 52.44862518089725,
+      "parent_packet_sha256": "1ac80f18fc9f630a1e60527078648c3b16012643a4ea98a3c220fb3138acfcdc",
+      "candidate_packet_sha256": "085cbb3e29c945ac8e4df75c8f0adc9a8f0774d8da007caba2ae304d46a3924d"
+    }
+  },
+  "fec_release_gates": {
+    "strict_source_criteria": {
+      "counts": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "case_count": 18,
+      "rows": [
+        {
+          "key": [
+            1,
+            10,
+            24000,
+            0,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.182698826,
+            "next_fec": 0.163784307,
+            "transition_fec": 0.135083518,
+            "fidelity_ref": 0.151716822,
+            "next_ref": 0.174071969,
+            "transition_ref": 0.12476702,
+            "fidelity_plc": 0.222381427,
+            "self_consistency": 0.10559916,
+            "step_fec": 819.0,
+            "step_ref": 784.0
+          },
+          "official": {
+            "fidelity_fec": 0.59928158,
+            "next_fec": 0.701482242,
+            "transition_fec": 0.43400845,
+            "fidelity_ref": 0.652016973,
+            "next_ref": 0.712033028,
+            "transition_ref": 0.483983207,
+            "fidelity_plc": 0.524882059,
+            "self_consistency": 0.13531762,
+            "step_fec": 835.0,
+            "step_ref": 820.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            16000,
+            0,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.209659222,
+            "next_fec": 0.210645127,
+            "transition_fec": 0.219502869,
+            "fidelity_ref": 0.173008541,
+            "next_ref": 0.169413448,
+            "transition_ref": 0.13747961,
+            "fidelity_plc": 0.340237299,
+            "self_consistency": 0.119937826,
+            "step_fec": -246.0,
+            "step_ref": -255.0
+          },
+          "official": {
+            "fidelity_fec": 0.738268655,
+            "next_fec": 0.96740496,
+            "transition_fec": 0.8000232,
+            "fidelity_ref": 0.651415492,
+            "next_ref": 0.648971154,
+            "transition_ref": 0.239399895,
+            "fidelity_plc": 0.738268655,
+            "self_consistency": 0.394210135,
+            "step_fec": -259.0,
+            "step_ref": -271.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            24000,
+            0,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.204479005,
+            "next_fec": 0.188797366,
+            "transition_fec": 0.267199574,
+            "fidelity_ref": 0.18000236,
+            "next_ref": 0.178687802,
+            "transition_ref": 0.171419754,
+            "fidelity_plc": 0.63878436,
+            "self_consistency": 0.082448186,
+            "step_fec": -397.0,
+            "step_ref": -376.0
+          },
+          "official": {
+            "fidelity_fec": 0.643683622,
+            "next_fec": 0.722510345,
+            "transition_fec": 0.304709106,
+            "fidelity_ref": 0.684492399,
+            "next_ref": 0.665065994,
+            "transition_ref": 0.263676337,
+            "fidelity_plc": 0.962712569,
+            "self_consistency": 0.142381179,
+            "step_fec": -62.0,
+            "step_ref": -217.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            32000,
+            0,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.184838624,
+            "next_fec": 0.196522009,
+            "transition_fec": 0.190273034,
+            "fidelity_ref": 0.184899543,
+            "next_ref": 0.180965935,
+            "transition_ref": 0.142852865,
+            "fidelity_plc": 0.61392566,
+            "self_consistency": 0.137317826,
+            "step_fec": -645.0,
+            "step_ref": -349.0
+          },
+          "official": {
+            "fidelity_fec": 0.63561068,
+            "next_fec": 0.73277849,
+            "transition_fec": 0.279519207,
+            "fidelity_ref": 0.673763989,
+            "next_ref": 0.674820852,
+            "transition_ref": 0.263568908,
+            "fidelity_plc": 0.986097425,
+            "self_consistency": 0.155653909,
+            "step_fec": -208.0,
+            "step_ref": -143.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            32000,
+            0,
+            0
+          ],
+          "current": {
+            "fidelity_fec": 0.242827748,
+            "next_fec": 0.209899231,
+            "transition_fec": 0.180373901,
+            "fidelity_ref": 0.20528851,
+            "next_ref": 0.205180633,
+            "transition_ref": 0.16158478,
+            "fidelity_plc": 0.658306677,
+            "self_consistency": 0.160090547,
+            "step_fec": -399.0,
+            "step_ref": -22.0
+          },
+          "official": {
+            "fidelity_fec": 0.591728501,
+            "next_fec": 0.569722322,
+            "transition_fec": 0.301290007,
+            "fidelity_ref": 0.570480556,
+            "next_ref": 0.624301232,
+            "transition_ref": 0.293012622,
+            "fidelity_plc": 0.775555783,
+            "self_consistency": 0.372207589,
+            "step_fec": -292.0,
+            "step_ref": -113.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            48000,
+            0,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.198888438,
+            "next_fec": 0.185015579,
+            "transition_fec": 0.152616386,
+            "fidelity_ref": 0.181927187,
+            "next_ref": 0.18488656,
+            "transition_ref": 0.147885081,
+            "fidelity_plc": 0.631368316,
+            "self_consistency": 0.162414215,
+            "step_fec": -79.5,
+            "step_ref": 179.0
+          },
+          "official": {
+            "fidelity_fec": 0.649346301,
+            "next_fec": 0.643189514,
+            "transition_fec": 0.29877634,
+            "fidelity_ref": 0.675348136,
+            "next_ref": 0.673463254,
+            "transition_ref": 0.245741464,
+            "fidelity_plc": 0.766489712,
+            "self_consistency": 0.175844263,
+            "step_fec": -448.0,
+            "step_ref": 517.5
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            10,
+            24000,
+            1,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.21107809,
+            "next_fec": 0.301142574,
+            "transition_fec": 0.179656127,
+            "fidelity_ref": 0.192284683,
+            "next_ref": 0.285110117,
+            "transition_ref": 0.176429578,
+            "fidelity_plc": 1.055150757,
+            "self_consistency": 0.093789093,
+            "step_fec": 415.0,
+            "step_ref": 454.0
+          },
+          "official": {
+            "fidelity_fec": 0.718125669,
+            "next_fec": 0.828987679,
+            "transition_fec": 0.271244925,
+            "fidelity_ref": 0.663621132,
+            "next_ref": 0.746284936,
+            "transition_ref": 0.43631859,
+            "fidelity_plc": 1.432051461,
+            "self_consistency": 0.252028112,
+            "step_fec": 364.0,
+            "step_ref": 453.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            16000,
+            1,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.376342543,
+            "next_fec": 0.323625695,
+            "transition_fec": 0.373559782,
+            "fidelity_ref": 0.271723252,
+            "next_ref": 0.288968153,
+            "transition_ref": 0.23076534,
+            "fidelity_plc": 1.062567445,
+            "self_consistency": 0.227507361,
+            "step_fec": -150.0,
+            "step_ref": -115.0
+          },
+          "official": {
+            "fidelity_fec": 1.026548022,
+            "next_fec": 0.895819017,
+            "transition_fec": 0.969528753,
+            "fidelity_ref": 0.713662654,
+            "next_ref": 0.671142318,
+            "transition_ref": 0.323463324,
+            "fidelity_plc": 1.026548022,
+            "self_consistency": 0.963701829,
+            "step_fec": -138.0,
+            "step_ref": -281.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            24000,
+            1,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.272114805,
+            "next_fec": 0.302674213,
+            "transition_fec": 0.233964878,
+            "fidelity_ref": 0.276319002,
+            "next_ref": 0.294247545,
+            "transition_ref": 0.246429429,
+            "fidelity_plc": 0.890650172,
+            "self_consistency": 0.022561322,
+            "step_fec": -225.0,
+            "step_ref": -240.0
+          },
+          "official": {
+            "fidelity_fec": 0.680104609,
+            "next_fec": 0.692728199,
+            "transition_fec": 0.286478785,
+            "fidelity_ref": 0.662625406,
+            "next_ref": 0.674010356,
+            "transition_ref": 0.304954609,
+            "fidelity_plc": 0.898602395,
+            "self_consistency": 0.205200526,
+            "step_fec": -338.0,
+            "step_ref": -54.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            32000,
+            1,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.300103331,
+            "next_fec": 0.274352011,
+            "transition_fec": 0.220067714,
+            "fidelity_ref": 0.272171568,
+            "next_ref": 0.273689161,
+            "transition_ref": 0.239245201,
+            "fidelity_plc": 0.94775838,
+            "self_consistency": 0.218188546,
+            "step_fec": -121.0,
+            "step_ref": -87.0
+          },
+          "official": {
+            "fidelity_fec": 0.687278128,
+            "next_fec": 0.667569423,
+            "transition_fec": 0.355132206,
+            "fidelity_ref": 0.699792919,
+            "next_ref": 0.695406526,
+            "transition_ref": 0.344063639,
+            "fidelity_plc": 1.024089821,
+            "self_consistency": 0.253168213,
+            "step_fec": -79.0,
+            "step_ref": -255.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            32000,
+            1,
+            0
+          ],
+          "current": {
+            "fidelity_fec": 0.333060724,
+            "next_fec": 0.301330211,
+            "transition_fec": 0.215214098,
+            "fidelity_ref": 0.300469911,
+            "next_ref": 0.280623826,
+            "transition_ref": 0.25497183,
+            "fidelity_plc": 0.831490593,
+            "self_consistency": 0.268495828,
+            "step_fec": -146.5,
+            "step_ref": -48.5
+          },
+          "official": {
+            "fidelity_fec": 0.655200225,
+            "next_fec": 0.699512813,
+            "transition_fec": 0.328470094,
+            "fidelity_ref": 0.740837026,
+            "next_ref": 0.606513713,
+            "transition_ref": 0.422564016,
+            "fidelity_plc": 0.892767677,
+            "self_consistency": 0.351359484,
+            "step_fec": -212.0,
+            "step_ref": -84.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            48000,
+            1,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.332072683,
+            "next_fec": 0.269115885,
+            "transition_fec": 0.226059906,
+            "fidelity_ref": 0.256608027,
+            "next_ref": 0.269026811,
+            "transition_ref": 0.193049946,
+            "fidelity_plc": 0.972772925,
+            "self_consistency": 0.29846759,
+            "step_fec": -113.0,
+            "step_ref": -34.0
+          },
+          "official": {
+            "fidelity_fec": 0.691692766,
+            "next_fec": 0.656869339,
+            "transition_fec": 0.351514524,
+            "fidelity_ref": 0.701001368,
+            "next_ref": 0.644568194,
+            "transition_ref": 0.271908344,
+            "fidelity_plc": 0.817771695,
+            "self_consistency": 0.305485418,
+            "step_fec": -180.5,
+            "step_ref": -294.5
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            10,
+            24000,
+            2,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.502220768,
+            "next_fec": 0.461424307,
+            "transition_fec": 0.409941939,
+            "fidelity_ref": 0.405873458,
+            "next_ref": 0.458424745,
+            "transition_ref": 0.378418092,
+            "fidelity_plc": 1.251511899,
+            "self_consistency": 0.317481809,
+            "step_fec": 2332.0,
+            "step_ref": 2390.0
+          },
+          "official": {
+            "fidelity_fec": 0.775779791,
+            "next_fec": 0.755986329,
+            "transition_fec": 0.658332111,
+            "fidelity_ref": 0.684159635,
+            "next_ref": 0.775056677,
+            "transition_ref": 0.478974903,
+            "fidelity_plc": 1.455379434,
+            "self_consistency": 0.390870655,
+            "step_fec": 2382.0,
+            "step_ref": 2459.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            16000,
+            2,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.467048315,
+            "next_fec": 0.530722123,
+            "transition_fec": 0.458734955,
+            "fidelity_ref": 0.442980263,
+            "next_ref": 0.523402617,
+            "transition_ref": 0.422045932,
+            "fidelity_plc": 0.908584136,
+            "self_consistency": 0.153907942,
+            "step_fec": -780.0,
+            "step_ref": -669.0
+          },
+          "official": {
+            "fidelity_fec": 1.000974038,
+            "next_fec": 0.963422471,
+            "transition_fec": 1.142807447,
+            "fidelity_ref": 0.782495425,
+            "next_ref": 0.821001778,
+            "transition_ref": 0.549944469,
+            "fidelity_plc": 1.000974038,
+            "self_consistency": 1.306601049,
+            "step_fec": -269.0,
+            "step_ref": -1025.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            24000,
+            2,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.465916881,
+            "next_fec": 0.553291277,
+            "transition_fec": 0.44482723,
+            "fidelity_ref": 0.435503146,
+            "next_ref": 0.540756918,
+            "transition_ref": 0.398346634,
+            "fidelity_plc": 1.064146431,
+            "self_consistency": 0.245331167,
+            "step_fec": -1039.0,
+            "step_ref": -611.0
+          },
+          "official": {
+            "fidelity_fec": 0.802790967,
+            "next_fec": 0.684358962,
+            "transition_fec": 0.486687027,
+            "fidelity_ref": 0.749776717,
+            "next_ref": 0.751198817,
+            "transition_ref": 0.47551309,
+            "fidelity_plc": 0.829666861,
+            "self_consistency": 0.384927814,
+            "step_fec": -1298.0,
+            "step_ref": -567.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            1,
+            20,
+            32000,
+            2,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.483214188,
+            "next_fec": 0.544271741,
+            "transition_fec": 0.433117248,
+            "fidelity_ref": 0.52029514,
+            "next_ref": 0.544329318,
+            "transition_ref": 0.480020563,
+            "fidelity_plc": 1.074948336,
+            "self_consistency": 0.385321303,
+            "step_fec": -154.0,
+            "step_ref": -560.0
+          },
+          "official": {
+            "fidelity_fec": 0.770283448,
+            "next_fec": 0.783660495,
+            "transition_fec": 0.556042528,
+            "fidelity_ref": 0.781625766,
+            "next_ref": 0.805697505,
+            "transition_ref": 0.480377265,
+            "fidelity_plc": 1.044183405,
+            "self_consistency": 0.431638723,
+            "step_fec": -1532.0,
+            "step_ref": -1238.0
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            32000,
+            2,
+            0
+          ],
+          "current": {
+            "fidelity_fec": 0.529142726,
+            "next_fec": 0.524047494,
+            "transition_fec": 0.526095569,
+            "fidelity_ref": 0.5556404,
+            "next_ref": 0.576660706,
+            "transition_ref": 0.577425323,
+            "fidelity_plc": 1.039309295,
+            "self_consistency": 0.395170624,
+            "step_fec": -170.5,
+            "step_ref": -781.0
+          },
+          "official": {
+            "fidelity_fec": 0.887603124,
+            "next_fec": 0.777073975,
+            "transition_fec": 0.550334475,
+            "fidelity_ref": 0.701289068,
+            "next_ref": 0.770098236,
+            "transition_ref": 0.690378675,
+            "fidelity_plc": 0.983255154,
+            "self_consistency": 0.910507142,
+            "step_fec": 509.5,
+            "step_ref": -196.5
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "key": [
+            2,
+            20,
+            48000,
+            2,
+            1
+          ],
+          "current": {
+            "fidelity_fec": 0.505129425,
+            "next_fec": 0.465356484,
+            "transition_fec": 0.423459001,
+            "fidelity_ref": 0.498943769,
+            "next_ref": 0.508762154,
+            "transition_ref": 0.427898348,
+            "fidelity_plc": 1.019101902,
+            "self_consistency": 0.434927393,
+            "step_fec": 167.5,
+            "step_ref": 428.0
+          },
+          "official": {
+            "fidelity_fec": 0.788928344,
+            "next_fec": 0.787404278,
+            "transition_fec": 0.503490469,
+            "fidelity_ref": 0.789947322,
+            "next_ref": 0.785626099,
+            "transition_ref": 0.475419065,
+            "fidelity_plc": 1.05022455,
+            "self_consistency": 0.464241453,
+            "step_fec": -607.0,
+            "step_ref": 666.5
+          },
+          "criteria_pass": [
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "units": "raw values and ratios exactly as emitted by strict_candidate.json"
+    },
+    "standard_recovery": {
+      "fec_quiet_packet_validation": "PASS",
+      "fec_interop": "official_to_opuscpp",
+      "channels": "2",
+      "duration_ms": "60",
+      "vbr": "1",
+      "profile": "2",
+      "decoder_error": "0",
+      "continuation_error": "7.13752e-06",
+      "fec_plc_difference": "0.75349",
+      "recovery_error": "1.10799",
+      "plc_error": "1.16167",
+      "packet_bytes": "3231",
+      "packet_hash": "2102507914",
+      "fec_quality_ratio_opuscpp_vs_official": "0.936856",
+      "recovery_error_ratio": "0.504119",
+      "wins": "18/18",
+      "coverage": "18/18",
+      "official_coverage": "15/18",
+      "packet_byte_ratio": "0.993345"
+    },
+    "status": "PASS for the saved focused candidate run: 18/18 source cases in C1-C4, standard 18/18 recovery wins and coverage, packet-byte ratio below 1. This does not mean full quality parity."
+  },
+  "behavior_gates": {
+    "vbr_budget_behavior": {
+      "build_exit": 0,
+      "run_exit": 0,
+      "result": "vbr_budget_behavior=PASS",
+      "flags": "-std=c++23 -O2 -DNDEBUG"
+    },
+    "packet_duration_behavior": {
+      "build_exit": 0,
+      "run_exit": 0,
+      "result": "packet_duration_behavior=PASS"
+    },
+    "test_policy": "The outer governor packet/cumulative budget assertions apply to SILK-only runs. Runtime throw checks remain active with NDEBUG; encoding and decoding still execute for every application/channel/duration/rate combination."
+  },
+  "packet165_controller_observation": {
+    "units": {
+      "nb_compr": "bytes of outer frame capacity in parent; candidate native-controller output capacity as recorded by observer",
+      "tellfrac": "eighth-bits; one-unit delta equals 0.125 bit",
+      "coded": "number of coded bands"
+    },
+    "parent": {
+      "nb_compr": 159,
+      "tellfrac": 894,
+      "coded": 19,
+      "hint": 20
+    },
+    "candidate": {
+      "nb_compr": 214,
+      "tellfrac": 895,
+      "coded": 20,
+      "hint": 20
+    },
+    "official_coded_bands": 20,
+    "candidate_matches_official_band19_decision": true,
+    "mean_packet_bytes": {
+      "parent": 160.0,
+      "candidate": 161.64,
+      "official": 161.236
+    }
+  }
+}
