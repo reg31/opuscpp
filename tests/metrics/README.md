@@ -63,6 +63,10 @@ FEC effective setting is 1. The standard 18-case recovery comparison records 18/
 
 [Every FEC direction field](fec_interop_metrics.csv) includes decoder/continuation errors, recovered-to-PLC difference, recovery/PLC error, packet bytes and hashes. [Every source comparison](fec_source_metrics.json) includes fidelity_fec, next_fec, transition_fec, fidelity_ref, next_ref, transition_ref, fidelity_plc, self_consistency, step_fec and step_ref, for both codecs. [Strict ratios and complete output](fec_run_metadata.json).
 
+### Later FEC-only candidate (separate source)
+
+The separate FEC candidate `cc0df2af` (source SHA-256 `cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601`) passes the standard 18/18 recovery comparison and packet-byte gate (ratio 0.993345; 14,627 candidate bytes vs 14,725 official) and all four source criteria on 18/18 cases. This is an FEC-scoped follow-up; the complete quality, speed and memory tables remain bound to the S6 source `f944dc7` in the full snapshot. Known non-FEC tradeoff: David mono VOIP at 16 kb/s CBR has celt_highband_error 0.06521369 on the a9 baseline and 0.07885415 on this candidate (official Opus 0.02062780). The candidate DTX comparison remains PASS; re-entry NRMSE moves 0.375632 to 0.374613 and gain error moves 1.531290 to 1.405174 dB (official 0.762239 and 1.646307). See [`fec_s7_candidate_validation.json`](fec_s7_candidate_validation.json). The full-refresh quality, timing and memory tables on this page remain measurements of source `f944dc7`; `fec_run_metadata.json` and the complete S6 FEC rows are retained without rewriting them. Candidate source/object, test and official-archive bindings, all 18 source cases, all 72 standard rows, exact official controls, and all four CBR control results are in [the candidate validation record](fec_s7_candidate_validation.json).
+
 DTX aggregate fields (individual material losses remain in the CSV):
 
 | Field | Value |

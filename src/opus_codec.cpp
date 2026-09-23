@@ -2292,20 +2292,7 @@ static opus_int32 compute_equiv_rate(opus_int32 bitrate, int channels, int frame
   return equiv;
 }
 
-constexpr opus_int32 voip_mono_silk_budget_boost_min_bps = 16000;
-constexpr opus_int32 voip_mono_silk_budget_boost_max_bps = 64000;
-constexpr opus_int32 voip_mono_silk_budget_boost_default_bps = 3000;
-constexpr opus_int32 voip_mono_silk_budget_boost_lowrate_bps = 2000;
 constexpr int lightweight_analysis_frame_limit = 127;
-
-[[nodiscard]] static constexpr auto voip_mono_silk_budget_boost(const OpusEncoder* st) noexcept -> opus_int32 {
-  if (st->application != OPUS_APPLICATION_VOIP || st->channels != 1 || st->bitrate_bps < voip_mono_silk_budget_boost_min_bps ||
-      st->bitrate_bps >= voip_mono_silk_budget_boost_max_bps) {
-    return 0;
-  }
-  return st->bitrate_bps <= voip_mono_silk_budget_boost_min_bps ? voip_mono_silk_budget_boost_lowrate_bps
-                                                                : voip_mono_silk_budget_boost_default_bps;
-}
 
 constexpr opus_int32 voip_voice_low_band_keep_min_bps = 16000;
 constexpr opus_int32 voip_noisy_voice_low_band_min_bps = 22000;
@@ -2995,8 +2982,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = opus_mode_silk_only;
   }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
-  const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_celt_only;
-  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_celt_only;
+  const bool governed_vbr = outer_vbr_eligible && st->mode != opus_mode_hybrid;
+  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode != opus_mode_hybrid;
   if (outer_vbr_eligible && governed_vbr != previous_outer_eligible) {
     reset_vbr_budget(st);
   }
@@ -3393,7 +3380,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
 #if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
   celt_diag().encode_mode = st->mode;
 #endif
-  opus_int32 voip_silk_boost = 0;
   auto refresh_redundancy = [&] {
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
     redundancy = redundancy_bytes != 0;
@@ -3420,7 +3406,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     refresh_redundancy();
   }
   const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
-  const bool governed_frame = allocator_target_bits > 0;
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
   const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid ? nominal_target_bits : allocator_target_bits;
   const int bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), silk_target_bits) - 8;
@@ -3436,14 +3421,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   opus_val16 HB_gain = 1.0f;
   if (st->mode != opus_mode_celt_only) {
-    voip_silk_boost = voip_mono_silk_budget_boost(st);
     const opus_int32 total_bitRate = bits_to_bitrate_for_frame_rate(bits_target, frame_rate);
     if (st->mode == opus_mode_hybrid) {
       st->silk_mode.bitRate =
           compute_silk_rate_for_hybrid(total_bitRate, curr_bandwidth, st->use_vbr, st->stream_channels, st->silk_mode.LBRR_coded != 0);
-      if (voip_silk_boost != 0) {
-        st->silk_mode.bitRate = std::min<opus_int32>(total_bitRate - 500, st->silk_mode.bitRate + voip_silk_boost);
-      }
       const opus_int32 celt_rate = total_bitRate - st->silk_mode.bitRate;
       HB_gain = 1.0f - std::exp2(-celt_rate * (1.f / 1024));
     } else {
@@ -3483,9 +3464,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       } else {
         opus_int32 maxBitRate = compute_silk_rate_for_hybrid(st->silk_mode.maxBits * frame_rate, curr_bandwidth, st->use_vbr,
                                                              st->stream_channels, st->silk_mode.LBRR_coded != 0);
-        if (voip_silk_boost != 0) {
-          maxBitRate = std::min<opus_int32>(st->silk_mode.maxBits * frame_rate, maxBitRate + voip_silk_boost);
-        }
         st->silk_mode.maxBits = bitrate_to_bits_for_frame_rate(maxBitRate, frame_rate);
       }
     }
@@ -3603,10 +3581,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (st->mode == opus_mode_hybrid) {
       if (st->use_vbr) {
         opus_int32 celt_vbr_bps = allocator_bitrate_bps - st->silk_mode.bitRate;
-        if (voip_silk_boost != 0 && governed_frame) {
-          const opus_int32 remaining_bits = std::max<opus_int32>(0, 8 * nb_compr_bytes - ec_tell(&enc));
-          celt_vbr_bps = std::max(celt_vbr_bps, bits_to_bitrate_for_frame_rate(remaining_bits, frame_rate));
-        }
         celt_enc->bitrate = std::min<opus_int32>(std::max<opus_int32>(500, celt_vbr_bps), 750000 * celt_enc->channels);
         celt_enc->constrained_vbr = 0;
         celt_enc->loss_rate = st->silk_mode.packetLossPercentage;

@@ -48,6 +48,21 @@
     1
   ],
   "files": {
+    "README.md": {
+      "bytes": 14317,
+      "sha256": "45ee12669a28f25c04ac9aa61cbe39cb93ca4c735fe9a53fcc25bf58f8c0958f",
+      "git_blob_sha1": "6366637daba2caa54a55954874183dfede7881fe"
+    },
+    "src/README.md": {
+      "bytes": 11287,
+      "sha256": "fa4740c1da67dc72585945b6d8c91a4d4c57888f4495cdebddb5aff0141cd379",
+      "git_blob_sha1": "907a3450b47b89fa63b3dfc882aadb7c77d394fd"
+    },
+    "tests/README.md": {
+      "bytes": 43034,
+      "sha256": "725831ac5454793f9bae7d1715e5afcbe75f138ded0af3c1759bd87684495f87",
+      "git_blob_sha1": "9a272551130c4e93b591651e6243699419d341d9"
+    },
     "tests/metrics/binary_size.csv": {
       "bytes": 77,
       "sha256": "2310867706f82714fea1b8aa3a6f0fd8b311a47c768e972eb9d0a7b3b0a56ac8",
@@ -97,6 +112,11 @@
       "bytes": 20871,
       "sha256": "e7342b9824bd973a6430d5bdc8082b3cb3a841b4c3c4ddcb750ae9391aec1cca",
       "git_blob_sha1": "88ba00682ed1cb3de9e2156f80a31d04fdd2d66d"
+    },
+    "tests/metrics/fec_s7_candidate_validation.json": {
+      "bytes": 195459,
+      "sha256": "d5ff7407949bcd0ebf1c14496509273a842378481d3373c612f2bc94ce64dd7b",
+      "git_blob_sha1": "e81b048fa9d43c89c32eb7adbbff39f47dece60e"
     },
     "tests/metrics/fec_source_metrics.json": {
       "bytes": 47821,
@@ -214,9 +234,9 @@
       "git_blob_sha1": "e2d50a328c67eff7461098dace0c6201dae2c752"
     },
     "tests/metrics/README.md": {
-      "bytes": 6762,
-      "sha256": "f216f77b2b06a9937eb436f88040897225d8546b81edf70af2bd29fa1e40b3da",
-      "git_blob_sha1": "08a08cc0d1cfdce41a456f8ca4f7c5ab8678a89d"
+      "bytes": 8089,
+      "sha256": "8a3dc05ccad1c989e5bd5c9edb5ab905e8f9010004671181dc7481793a1d918f",
+      "git_blob_sha1": "276fe4dcbd6a3c43799b453af2dad08aece37318"
     },
     "tests/metrics/run_metadata.json": {
       "bytes": 1062319,
@@ -287,21 +307,12 @@
       "bytes": 78865,
       "sha256": "e3910e7cb6c656cb25ae054a58b3a0edfcea95843b53b32458657b6f272fa6a4",
       "git_blob_sha1": "25afef6662690e1373a1b09b576a00d3979f5eaa"
-    },
-    "README.md": {
-      "bytes": 13784,
-      "sha256": "e5ccd7f3b8ea156c41c04c244c8734ba6eca037d75d41103dcbacb203acee3d5",
-      "git_blob_sha1": "1be570f77ecca96215c1422c5db0adc7d3e0d532"
-    },
-    "src/README.md": {
-      "bytes": 10575,
-      "sha256": "fc0bcabe5004c8d0bc88a707d3def1b989c3ab39ca071696aa1909a2edaa9bdc",
-      "git_blob_sha1": "d5e91aaf41626ecd2b2cd9413a761f287433d9cd"
-    },
-    "tests/README.md": {
-      "bytes": 42827,
-      "sha256": "b45da37694deac7d35e05a9a280eb3d7d5add505f9dd1d5f8855194eedcf5012",
-      "git_blob_sha1": "30b768738e1a95dc1d93240975204c7231724e0e"
     }
+  },
+  "supplemental_fec_candidate": {
+    "source_sha256": "cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601",
+    "object_sha256": "0244a9f1a605ec2417a0302fc9427b3c17d656b6841aefe32a0c44d9689f1bfd",
+    "validation_path": "tests/metrics/fec_s7_candidate_validation.json",
+    "scope": "FEC-only follow-up; full S6 tables remain on f944dc7"
   }
 }

@@ -75,7 +75,9 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
       throw std::runtime_error("decode failed");
     }
     const bool celt_only = (packet[0] & 0x80) != 0;
-    if (celt_only) {
+    const bool silk_only = !celt_only && (((packet[0] >> 3) & 0x1F) <= 11);
+    const bool governed = celt_only || silk_only;
+    if (governed) {
       if (!previous_celt) {
         celt_run_frames = 0;
         celt_run_target_bits = 0;
@@ -97,7 +99,7 @@ void check_case(int application, int channels, int bitrate, int frame_size) {
       celt_run_target_bits = 0;
       celt_run_bytes = 0;
     }
-    previous_celt = celt_only;
+    previous_celt = governed;
   }
 }
 

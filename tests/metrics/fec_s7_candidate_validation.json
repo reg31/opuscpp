@@ -1,0 +1,4311 @@
+{
+  "schema": "opuscpp.scoped-fec-candidate-validation.v1",
+  "created_utc": "2026-09-23T13:14:45.051256+00:00",
+  "scope": "FEC-specific follow-up on the measured S6 production snapshot; not a full quality/performance refresh.",
+  "candidate": {
+    "source_sha256": "cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601",
+    "object_sha256": "0244a9f1a605ec2417a0302fc9427b3c17d656b6841aefe32a0c44d9689f1bfd",
+    "source_parent_sha256": "7bdc1d452de3bc8291be6418a3559a1a85ce392757319e1d1446cd44d72d2eb5",
+    "source_parent_commit": "af22fb3c652480f78a4443cf5afcba6e52f470ba",
+    "scope_repair_parent_source_sha256": "a3d48ce1cc377e2664df78873490dd88e1d8773428249331861da066b2bda31b",
+    "source_diff_sha256": "d5fc2fb19562a1f1d16cbffbd222e01ea9213973c15c94aaf8319737ca5eafb8",
+    "scope_repair_diff_sha256": "8f270754697b6c590b8ab8a80461922d5fcf21cce46c319029f2dfbc93f3cea1",
+    "s7_removal_diff_sha256": "6fad48703f8669651c2f10b2999c8dd182ea66f365e38c807ed3ddf7575c4cf7",
+    "object_build_exit": 0
+  },
+  "official_reference": {
+    "commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+    "archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+    "compiler": "g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0",
+    "flags": [
+      "-std=c++23",
+      "-O2",
+      "-DNDEBUG",
+      "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\src",
+      "-IC:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\codex_s6_20260923\\tests"
+    ]
+  },
+  "test_bindings": {
+    "fec_source_quality_sha256": "fc6b8985121ecb130eec78d58aeb2d620c83288be1b0d6ce7701b88912a6dc72",
+    "fec_vs_official_sha256": "720c447da1f0eb1dd2ef5b913bb5adbe4398aabc0370ccfe177a04391917d434",
+    "source_quality_check_script_sha256": "736d9b7d55c272da8c791f9ed369a9dcfc63fefb903cedba1bcf52d69dc3e7cd",
+    "vbr_budget_behavior_sha256": "9cc210f20cb4dceb69857d00faddff0f3a41d814e2db5c501159fc4a70d4097f",
+    "vbr_budget_behavior_source": "work/hazel_s6_vbr_scope_20260923/package/vbr_budget_behavior.cpp",
+    "vbr_budget_behavior_scope": "Checks fractional packet and cumulative budgets for governed SILK-only and CELT-only runs, hybrid native rate control, physical packet bounds and full decoded duration."
+  },
+  "all18_source_quality": {
+    "parent_counts": [
+      18,
+      18,
+      17,
+      18
+    ],
+    "candidate_counts": [
+      18,
+      18,
+      18,
+      18
+    ],
+    "candidate_pass": true,
+    "official_controls_fields_identical_parent_candidate": true,
+    "rows": [
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          0,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "10",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,30,32,34,28,29,29,31,31,32,31,28,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.163784307 next_ref=0.174071969 fidelity_fec=0.182698826 fidelity_ref=0.151716822 fidelity_plc=0.222381427 transition_fec=0.135083518 transition_ref=0.124767020 step_fec=819.000 step_ref=784.000 self_consistency=0.105599160\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.182698826,
+            "next_fec": 0.163784307,
+            "transition_fec": 0.135083518,
+            "fidelity_ref": 0.151716822,
+            "next_ref": 0.174071969,
+            "transition_ref": 0.12476702,
+            "fidelity_plc": 0.222381427,
+            "self_consistency": 0.10559916,
+            "step_fec": 819.0,
+            "step_ref": 784.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "10",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,35,31,30,30,32,30,31,33,31,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.701482242 next_ref=0.712033028 fidelity_fec=0.599281580 fidelity_ref=0.652016973 fidelity_plc=0.524882059 transition_fec=0.434008450 transition_ref=0.483983207 step_fec=835.000 step_ref=820.000 self_consistency=0.135317620\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.59928158,
+            "next_fec": 0.701482242,
+            "transition_fec": 0.43400845,
+            "fidelity_ref": 0.652016973,
+            "next_ref": 0.712033028,
+            "transition_ref": 0.483983207,
+            "fidelity_plc": 0.524882059,
+            "self_consistency": 0.13531762,
+            "step_fec": 835.0,
+            "step_ref": 820.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "10",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,30,32,29,29,32,30,33,34,34,32,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.203523303 next_ref=0.181654581 fidelity_fec=0.170125062 fidelity_ref=0.154468565 fidelity_plc=0.206066590 transition_fec=0.150126881 transition_ref=0.117627457 step_fec=1027.000 step_ref=863.000 self_consistency=0.076839196\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.170125062,
+            "next_fec": 0.203523303,
+            "transition_fec": 0.150126881,
+            "fidelity_ref": 0.154468565,
+            "next_ref": 0.181654581,
+            "transition_ref": 0.117627457,
+            "fidelity_plc": 0.20606659,
+            "self_consistency": 0.076839196,
+            "step_fec": 1027.0,
+            "step_ref": 863.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          0,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "16000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,40,41,39,43,42,37,40,39,41,40,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.210645127 next_ref=0.169413448 fidelity_fec=0.209659222 fidelity_ref=0.173008541 fidelity_plc=0.340237299 transition_fec=0.219502869 transition_ref=0.137479610 step_fec=-246.000 step_ref=-255.000 self_consistency=0.119937826\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.209659222,
+            "next_fec": 0.210645127,
+            "transition_fec": 0.219502869,
+            "fidelity_ref": 0.173008541,
+            "next_ref": 0.169413448,
+            "transition_ref": 0.13747961,
+            "fidelity_plc": 0.340237299,
+            "self_consistency": 0.119937826,
+            "step_fec": -246.0,
+            "step_ref": -255.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "16000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=45,43,52,49,42,51,50,48,45,43,34,34,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.967404960 next_ref=0.648971154 fidelity_fec=0.738268655 fidelity_ref=0.651415492 fidelity_plc=0.738268655 transition_fec=0.800023200 transition_ref=0.239399895 step_fec=-259.000 step_ref=-271.000 self_consistency=0.394210135\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.738268655,
+            "next_fec": 0.96740496,
+            "transition_fec": 0.8000232,
+            "fidelity_ref": 0.651415492,
+            "next_ref": 0.648971154,
+            "transition_ref": 0.239399895,
+            "fidelity_plc": 0.738268655,
+            "self_consistency": 0.394210135,
+            "step_fec": -259.0,
+            "step_ref": -271.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "16000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,43,39,40,41,41,40,41,42,41,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.176682807 next_ref=0.173489085 fidelity_fec=0.189007951 fidelity_ref=0.165328280 fidelity_plc=0.315691776 transition_fec=0.148728863 transition_ref=0.159493123 step_fec=-296.000 step_ref=-182.000 self_consistency=0.084944196\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.189007951,
+            "next_fec": 0.176682807,
+            "transition_fec": 0.148728863,
+            "fidelity_ref": 0.16532828,
+            "next_ref": 0.173489085,
+            "transition_ref": 0.159493123,
+            "fidelity_plc": 0.315691776,
+            "self_consistency": 0.084944196,
+            "step_fec": -296.0,
+            "step_ref": -182.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          0,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,53,65,60,56,63,60,63,59,60,50,67,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.188797366 next_ref=0.178687802 fidelity_fec=0.204479005 fidelity_ref=0.180002360 fidelity_plc=0.638784360 transition_fec=0.267199574 transition_ref=0.171419754 step_fec=-397.000 step_ref=-376.000 self_consistency=0.082448186\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.204479005,
+            "next_fec": 0.188797366,
+            "transition_fec": 0.267199574,
+            "fidelity_ref": 0.18000236,
+            "next_ref": 0.178687802,
+            "transition_ref": 0.171419754,
+            "fidelity_plc": 0.63878436,
+            "self_consistency": 0.082448186,
+            "step_fec": -397.0,
+            "step_ref": -376.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,69,76,74,57,64,66,73,72,62,59,53,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.722510345 next_ref=0.665065994 fidelity_fec=0.643683622 fidelity_ref=0.684492399 fidelity_plc=0.962712569 transition_fec=0.304709106 transition_ref=0.263676337 step_fec=-62.000 step_ref=-217.000 self_consistency=0.142381179\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.643683622,
+            "next_fec": 0.722510345,
+            "transition_fec": 0.304709106,
+            "fidelity_ref": 0.684492399,
+            "next_ref": 0.665065994,
+            "transition_ref": 0.263676337,
+            "fidelity_plc": 0.962712569,
+            "self_consistency": 0.142381179,
+            "step_fec": -62.0,
+            "step_ref": -217.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "24000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,64,65,65,65,65,69,68,64,58,60,57,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.185587030 next_ref=0.170173911 fidelity_fec=0.195365232 fidelity_ref=0.175095256 fidelity_plc=0.573265878 transition_fec=0.180959826 transition_ref=0.149239135 step_fec=-277.000 step_ref=-263.000 self_consistency=0.095204588\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.195365232,
+            "next_fec": 0.18558703,
+            "transition_fec": 0.180959826,
+            "fidelity_ref": 0.175095256,
+            "next_ref": 0.170173911,
+            "transition_ref": 0.149239135,
+            "fidelity_plc": 0.573265878,
+            "self_consistency": 0.095204588,
+            "step_fec": -277.0,
+            "step_ref": -263.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          0,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "32000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,83,90,87,80,85,95,94,92,86,88,73,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.196522009 next_ref=0.180965935 fidelity_fec=0.184838624 fidelity_ref=0.184899543 fidelity_plc=0.613925660 transition_fec=0.190273034 transition_ref=0.142852865 step_fec=-645.000 step_ref=-349.000 self_consistency=0.137317826\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.184838624,
+            "next_fec": 0.196522009,
+            "transition_fec": 0.190273034,
+            "fidelity_ref": 0.184899543,
+            "next_ref": 0.180965935,
+            "transition_ref": 0.142852865,
+            "fidelity_plc": 0.61392566,
+            "self_consistency": 0.137317826,
+            "step_fec": -645.0,
+            "step_ref": -349.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "32000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,86,97,98,79,86,93,93,95,87,78,67,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.732778490 next_ref=0.674820852 fidelity_fec=0.635610680 fidelity_ref=0.673763989 fidelity_plc=0.986097425 transition_fec=0.279519207 transition_ref=0.263568908 step_fec=-208.000 step_ref=-143.000 self_consistency=0.155653909\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.63561068,
+            "next_fec": 0.73277849,
+            "transition_fec": 0.279519207,
+            "fidelity_ref": 0.673763989,
+            "next_ref": 0.674820852,
+            "transition_ref": 0.263568908,
+            "fidelity_plc": 0.986097425,
+            "self_consistency": 0.155653909,
+            "step_fec": -208.0,
+            "step_ref": -143.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "32000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=88,87,89,92,91,93,97,92,88,81,84,81,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.196881385 next_ref=0.169948279 fidelity_fec=0.196623425 fidelity_ref=0.173598555 fidelity_plc=0.604970480 transition_fec=0.152648852 transition_ref=0.163424313 step_fec=-417.000 step_ref=-529.000 self_consistency=0.117689499\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.196623425,
+            "next_fec": 0.196881385,
+            "transition_fec": 0.152648852,
+            "fidelity_ref": 0.173598555,
+            "next_ref": 0.169948279,
+            "transition_ref": 0.163424313,
+            "fidelity_plc": 0.60497048,
+            "self_consistency": 0.117689499,
+            "step_fec": -417.0,
+            "step_ref": -529.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          0,
+          0
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "32000",
+            "0",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=390852982.750000 ms_lf_side=5662303.750000 ms_fec_mid=531857254.250000 ms_fec_side=22931022.250000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.209899231 next_ref=0.205180633 fidelity_fec=0.242827748 fidelity_ref=0.205288510 fidelity_plc=0.658306677 transition_fec=0.180373901 transition_ref=0.161584780 step_fec=-399.000 step_ref=-22.000 self_consistency=0.160090547\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.242827748,
+            "next_fec": 0.209899231,
+            "transition_fec": 0.180373901,
+            "fidelity_ref": 0.20528851,
+            "next_ref": 0.205180633,
+            "transition_ref": 0.16158478,
+            "fidelity_plc": 0.658306677,
+            "self_consistency": 0.160090547,
+            "step_fec": -399.0,
+            "step_ref": -22.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "32000",
+            "0",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=3036674259.250000 ms_lf_side=25376209.250000 ms_fec_mid=3255825232.500000 ms_fec_side=38569435.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.569722322 next_ref=0.624301232 fidelity_fec=0.591728501 fidelity_ref=0.570480556 fidelity_plc=0.775555783 transition_fec=0.301290007 transition_ref=0.293012622 step_fec=-292.000 step_ref=-113.000 self_consistency=0.372207589\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.591728501,
+            "next_fec": 0.569722322,
+            "transition_fec": 0.301290007,
+            "fidelity_ref": 0.570480556,
+            "next_ref": 0.624301232,
+            "transition_ref": 0.293012622,
+            "fidelity_plc": 0.775555783,
+            "self_consistency": 0.372207589,
+            "step_fec": -292.0,
+            "step_ref": -113.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "32000",
+            "0",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=390852982.750000 ms_lf_side=5662303.750000 ms_fec_mid=531857254.250000 ms_fec_side=22931022.250000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.209899231 next_ref=0.205180633 fidelity_fec=0.242827748 fidelity_ref=0.205288510 fidelity_plc=0.658306677 transition_fec=0.180373901 transition_ref=0.161584780 step_fec=-399.000 step_ref=-22.000 self_consistency=0.160090547\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.242827748,
+            "next_fec": 0.209899231,
+            "transition_fec": 0.180373901,
+            "fidelity_ref": 0.20528851,
+            "next_ref": 0.205180633,
+            "transition_ref": 0.16158478,
+            "fidelity_plc": 0.658306677,
+            "self_consistency": 0.160090547,
+            "step_fec": -399.0,
+            "step_ref": -22.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          0,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "48000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,115,127,135,122,122,124,115,118,115,111,107,\nms_src=9408722302.500000 ms_lf_mid=304992613.250000 ms_lf_side=6412586.250000 ms_fec_mid=339348483.500000 ms_fec_side=32828681.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.185015579 next_ref=0.184886560 fidelity_fec=0.198888438 fidelity_ref=0.181927187 fidelity_plc=0.631368316 transition_fec=0.152616386 transition_ref=0.147885081 step_fec=-79.500 step_ref=179.000 self_consistency=0.162414215\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.198888438,
+            "next_fec": 0.185015579,
+            "transition_fec": 0.152616386,
+            "fidelity_ref": 0.181927187,
+            "next_ref": 0.18488656,
+            "transition_ref": 0.147885081,
+            "fidelity_plc": 0.631368316,
+            "self_consistency": 0.162414215,
+            "step_fec": -79.5,
+            "step_ref": 179.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "48000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=137,119,120,117,114,121,130,129,126,123,114,108,\nms_src=9408722302.500000 ms_lf_mid=4262215416.750000 ms_lf_side=29056772.750000 ms_fec_mid=3922665704.500000 ms_fec_side=44527880.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.643189514 next_ref=0.673463254 fidelity_fec=0.649346301 fidelity_ref=0.675348136 fidelity_plc=0.766489712 transition_fec=0.298776340 transition_ref=0.245741464 step_fec=-448.000 step_ref=517.500 self_consistency=0.175844263\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.649346301,
+            "next_fec": 0.643189514,
+            "transition_fec": 0.29877634,
+            "fidelity_ref": 0.675348136,
+            "next_ref": 0.673463254,
+            "transition_ref": 0.245741464,
+            "fidelity_plc": 0.766489712,
+            "self_consistency": 0.175844263,
+            "step_fec": -448.0,
+            "step_ref": 517.5
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "48000",
+            "0",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,115,127,135,122,122,124,115,118,115,111,107,\nms_src=9408722302.500000 ms_lf_mid=304992613.250000 ms_lf_side=6412586.250000 ms_fec_mid=339348483.500000 ms_fec_side=32828681.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.185015579 next_ref=0.184886560 fidelity_fec=0.198888438 fidelity_ref=0.181927187 fidelity_plc=0.631368316 transition_fec=0.152616386 transition_ref=0.147885081 step_fec=-79.500 step_ref=179.000 self_consistency=0.162414215\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.198888438,
+            "next_fec": 0.185015579,
+            "transition_fec": 0.152616386,
+            "fidelity_ref": 0.181927187,
+            "next_ref": 0.18488656,
+            "transition_ref": 0.147885081,
+            "fidelity_plc": 0.631368316,
+            "self_consistency": 0.162414215,
+            "step_fec": -79.5,
+            "step_ref": 179.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          1,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "10",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,34,28,28,35,28,29,34,28,27,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.301142574 next_ref=0.285110117 fidelity_fec=0.211078090 fidelity_ref=0.192284683 fidelity_plc=1.055150757 transition_fec=0.179656127 transition_ref=0.176429578 step_fec=415.000 step_ref=454.000 self_consistency=0.093789093\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.21107809,
+            "next_fec": 0.301142574,
+            "transition_fec": 0.179656127,
+            "fidelity_ref": 0.192284683,
+            "next_ref": 0.285110117,
+            "transition_ref": 0.176429578,
+            "fidelity_plc": 1.055150757,
+            "self_consistency": 0.093789093,
+            "step_fec": 415.0,
+            "step_ref": 454.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "10",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,32,33,29,28,29,30,32,29,32,28,27,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.828987679 next_ref=0.746284936 fidelity_fec=0.718125669 fidelity_ref=0.663621132 fidelity_plc=1.432051461 transition_fec=0.271244925 transition_ref=0.436318590 step_fec=364.000 step_ref=453.000 self_consistency=0.252028112\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.718125669,
+            "next_fec": 0.828987679,
+            "transition_fec": 0.271244925,
+            "fidelity_ref": 0.663621132,
+            "next_ref": 0.746284936,
+            "transition_ref": 0.43631859,
+            "fidelity_plc": 1.432051461,
+            "self_consistency": 0.252028112,
+            "step_fec": 364.0,
+            "step_ref": 453.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "10",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,31,27,26,30,30,27,29,32,27,25,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.393770312 next_ref=0.267425871 fidelity_fec=0.294225848 fidelity_ref=0.231528302 fidelity_plc=0.869005913 transition_fec=0.420358036 transition_ref=0.263823607 step_fec=476.000 step_ref=491.000 self_consistency=0.219354483\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.294225848,
+            "next_fec": 0.393770312,
+            "transition_fec": 0.420358036,
+            "fidelity_ref": 0.231528302,
+            "next_ref": 0.267425871,
+            "transition_ref": 0.263823607,
+            "fidelity_plc": 0.869005913,
+            "self_consistency": 0.219354483,
+            "step_fec": 476.0,
+            "step_ref": 491.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          false,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          1,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "16000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,36,40,44,45,36,45,35,39,40,45,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.323625695 next_ref=0.288968153 fidelity_fec=0.376342543 fidelity_ref=0.271723252 fidelity_plc=1.062567445 transition_fec=0.373559782 transition_ref=0.230765340 step_fec=-150.000 step_ref=-115.000 self_consistency=0.227507361\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.376342543,
+            "next_fec": 0.323625695,
+            "transition_fec": 0.373559782,
+            "fidelity_ref": 0.271723252,
+            "next_ref": 0.288968153,
+            "transition_ref": 0.23076534,
+            "fidelity_plc": 1.062567445,
+            "self_consistency": 0.227507361,
+            "step_fec": -150.0,
+            "step_ref": -115.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "16000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=41,42,40,36,41,39,38,39,34,35,39,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.895819017 next_ref=0.671142318 fidelity_fec=1.026548022 fidelity_ref=0.713662654 fidelity_plc=1.026548022 transition_fec=0.969528753 transition_ref=0.323463324 step_fec=-138.000 step_ref=-281.000 self_consistency=0.963701829\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 1.026548022,
+            "next_fec": 0.895819017,
+            "transition_fec": 0.969528753,
+            "fidelity_ref": 0.713662654,
+            "next_ref": 0.671142318,
+            "transition_ref": 0.323463324,
+            "fidelity_plc": 1.026548022,
+            "self_consistency": 0.963701829,
+            "step_fec": -138.0,
+            "step_ref": -281.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "16000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,38,38,38,37,38,38,38,33,32,40,36,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.313744881 next_ref=0.273598675 fidelity_fec=0.416602677 fidelity_ref=0.280063644 fidelity_plc=0.793484716 transition_fec=0.301065504 transition_ref=0.199387998 step_fec=-153.000 step_ref=-145.000 self_consistency=0.258859315\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.416602677,
+            "next_fec": 0.313744881,
+            "transition_fec": 0.301065504,
+            "fidelity_ref": 0.280063644,
+            "next_ref": 0.273598675,
+            "transition_ref": 0.199387998,
+            "fidelity_plc": 0.793484716,
+            "self_consistency": 0.258859315,
+            "step_fec": -153.0,
+            "step_ref": -145.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          1,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,52,59,71,63,58,54,67,57,54,63,60,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.302674213 next_ref=0.294247545 fidelity_fec=0.272114805 fidelity_ref=0.276319002 fidelity_plc=0.890650172 transition_fec=0.233964878 transition_ref=0.246429429 step_fec=-225.000 step_ref=-240.000 self_consistency=0.022561322\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.272114805,
+            "next_fec": 0.302674213,
+            "transition_fec": 0.233964878,
+            "fidelity_ref": 0.276319002,
+            "next_ref": 0.294247545,
+            "transition_ref": 0.246429429,
+            "fidelity_plc": 0.890650172,
+            "self_consistency": 0.022561322,
+            "step_fec": -225.0,
+            "step_ref": -240.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=58,62,66,60,61,59,58,64,62,54,57,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.692728199 next_ref=0.674010356 fidelity_fec=0.680104609 fidelity_ref=0.662625406 fidelity_plc=0.898602395 transition_fec=0.286478785 transition_ref=0.304954609 step_fec=-338.000 step_ref=-54.000 self_consistency=0.205200526\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.680104609,
+            "next_fec": 0.692728199,
+            "transition_fec": 0.286478785,
+            "fidelity_ref": 0.662625406,
+            "next_ref": 0.674010356,
+            "transition_ref": 0.304954609,
+            "fidelity_plc": 0.898602395,
+            "self_consistency": 0.205200526,
+            "step_fec": -338.0,
+            "step_ref": -54.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "24000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,61,61,61,66,62,53,57,63,56,55,50,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.263015077 next_ref=0.255928902 fidelity_fec=0.311036872 fidelity_ref=0.238347617 fidelity_plc=0.848928159 transition_fec=0.261740833 transition_ref=0.198191370 step_fec=-62.000 step_ref=-96.000 self_consistency=0.197808505\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.311036872,
+            "next_fec": 0.263015077,
+            "transition_fec": 0.261740833,
+            "fidelity_ref": 0.238347617,
+            "next_ref": 0.255928902,
+            "transition_ref": 0.19819137,
+            "fidelity_plc": 0.848928159,
+            "self_consistency": 0.197808505,
+            "step_fec": -62.0,
+            "step_ref": -96.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          1,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "32000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=82,80,77,74,78,81,82,78,78,73,74,68,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.274352011 next_ref=0.273689161 fidelity_fec=0.300103331 fidelity_ref=0.272171568 fidelity_plc=0.947758380 transition_fec=0.220067714 transition_ref=0.239245201 step_fec=-121.000 step_ref=-87.000 self_consistency=0.218188546\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.300103331,
+            "next_fec": 0.274352011,
+            "transition_fec": 0.220067714,
+            "fidelity_ref": 0.272171568,
+            "next_ref": 0.273689161,
+            "transition_ref": 0.239245201,
+            "fidelity_plc": 0.94775838,
+            "self_consistency": 0.218188546,
+            "step_fec": -121.0,
+            "step_ref": -87.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "32000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=76,80,84,79,78,78,76,75,75,77,75,69,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.667569423 next_ref=0.695406526 fidelity_fec=0.687278128 fidelity_ref=0.699792919 fidelity_plc=1.024089821 transition_fec=0.355132206 transition_ref=0.344063639 step_fec=-79.000 step_ref=-255.000 self_consistency=0.253168213\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.687278128,
+            "next_fec": 0.667569423,
+            "transition_fec": 0.355132206,
+            "fidelity_ref": 0.699792919,
+            "next_ref": 0.695406526,
+            "transition_ref": 0.344063639,
+            "fidelity_plc": 1.024089821,
+            "self_consistency": 0.253168213,
+            "step_fec": -79.0,
+            "step_ref": -255.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "32000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=84,88,84,81,77,81,80,88,88,83,80,79,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=1 vbr=1 lookahead=312 next_fec=0.236289083 next_ref=0.234891530 fidelity_fec=0.254856368 fidelity_ref=0.234087358 fidelity_plc=0.774616313 transition_fec=0.193707955 transition_ref=0.207693841 step_fec=-164.000 step_ref=-317.000 self_consistency=0.147570538\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.254856368,
+            "next_fec": 0.236289083,
+            "transition_fec": 0.193707955,
+            "fidelity_ref": 0.234087358,
+            "next_ref": 0.23489153,
+            "transition_ref": 0.207693841,
+            "fidelity_plc": 0.774616313,
+            "self_consistency": 0.147570538,
+            "step_fec": -164.0,
+            "step_ref": -317.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          1,
+          0
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "32000",
+            "1",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=101670663.000000 ms_lf_side=2036247.000000 ms_fec_mid=111134845.750000 ms_fec_side=16289543.750000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.301330211 next_ref=0.280623826 fidelity_fec=0.333060724 fidelity_ref=0.300469911 fidelity_plc=0.831490593 transition_fec=0.215214098 transition_ref=0.254971830 step_fec=-146.500 step_ref=-48.500 self_consistency=0.268495828\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.333060724,
+            "next_fec": 0.301330211,
+            "transition_fec": 0.215214098,
+            "fidelity_ref": 0.300469911,
+            "next_ref": 0.280623826,
+            "transition_ref": 0.25497183,
+            "fidelity_plc": 0.831490593,
+            "self_consistency": 0.268495828,
+            "step_fec": -146.5,
+            "step_ref": -48.5
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "32000",
+            "1",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=621507163.250000 ms_lf_side=8943459.250000 ms_fec_mid=466499625.500000 ms_fec_side=26621710.500000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.699512813 next_ref=0.606513713 fidelity_fec=0.655200225 fidelity_ref=0.740837026 fidelity_plc=0.892767677 transition_fec=0.328470094 transition_ref=0.422564016 step_fec=-212.000 step_ref=-84.000 self_consistency=0.351359484\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.655200225,
+            "next_fec": 0.699512813,
+            "transition_fec": 0.328470094,
+            "fidelity_ref": 0.740837026,
+            "next_ref": 0.606513713,
+            "transition_ref": 0.422564016,
+            "fidelity_plc": 0.892767677,
+            "self_consistency": 0.351359484,
+            "step_fec": -212.0,
+            "step_ref": -84.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "32000",
+            "1",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=101670663.000000 ms_lf_side=2036247.000000 ms_fec_mid=111134845.750000 ms_fec_side=16289543.750000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.301330211 next_ref=0.280623826 fidelity_fec=0.333060724 fidelity_ref=0.300469911 fidelity_plc=0.831490593 transition_fec=0.215214098 transition_ref=0.254971830 step_fec=-146.500 step_ref=-48.500 self_consistency=0.268495828\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.333060724,
+            "next_fec": 0.301330211,
+            "transition_fec": 0.215214098,
+            "fidelity_ref": 0.300469911,
+            "next_ref": 0.280623826,
+            "transition_ref": 0.25497183,
+            "fidelity_plc": 0.831490593,
+            "self_consistency": 0.268495828,
+            "step_fec": -146.5,
+            "step_ref": -48.5
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          1,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "48000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,114,112,109,107,133,119,121,115,110,121,109,\nms_src=1148697612.000000 ms_lf_mid=73540709.500000 ms_lf_side=2098362.500000 ms_fec_mid=103620463.250000 ms_fec_side=23049026.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.269115885 next_ref=0.269026811 fidelity_fec=0.332072683 fidelity_ref=0.256608027 fidelity_plc=0.972772925 transition_fec=0.226059906 transition_ref=0.193049946 step_fec=-113.000 step_ref=-34.000 self_consistency=0.298467590\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.332072683,
+            "next_fec": 0.269115885,
+            "transition_fec": 0.226059906,
+            "fidelity_ref": 0.256608027,
+            "next_ref": 0.269026811,
+            "transition_ref": 0.193049946,
+            "fidelity_plc": 0.972772925,
+            "self_consistency": 0.29846759,
+            "step_fec": -113.0,
+            "step_ref": -34.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "48000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,111,123,120,123,109,106,111,109,115,111,100,\nms_src=1148697612.000000 ms_lf_mid=554007426.250000 ms_lf_side=10465932.250000 ms_fec_mid=521022829.250000 ms_fec_side=28558773.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.656869339 next_ref=0.644568194 fidelity_fec=0.691692766 fidelity_ref=0.701001368 fidelity_plc=0.817771695 transition_fec=0.351514524 transition_ref=0.271908344 step_fec=-180.500 step_ref=-294.500 self_consistency=0.305485418\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.691692766,
+            "next_fec": 0.656869339,
+            "transition_fec": 0.351514524,
+            "fidelity_ref": 0.701001368,
+            "next_ref": 0.644568194,
+            "transition_ref": 0.271908344,
+            "fidelity_plc": 0.817771695,
+            "self_consistency": 0.305485418,
+            "step_fec": -180.5,
+            "step_ref": -294.5
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "48000",
+            "1",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,114,112,109,107,133,119,121,115,110,121,109,\nms_src=1148697612.000000 ms_lf_mid=73540709.500000 ms_lf_side=2098362.500000 ms_fec_mid=103620463.250000 ms_fec_side=23049026.250000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.269115885 next_ref=0.269026811 fidelity_fec=0.332072683 fidelity_ref=0.256608027 fidelity_plc=0.972772925 transition_fec=0.226059906 transition_ref=0.193049946 step_fec=-113.000 step_ref=-34.000 self_consistency=0.298467590\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.332072683,
+            "next_fec": 0.269115885,
+            "transition_fec": 0.226059906,
+            "fidelity_ref": 0.256608027,
+            "next_ref": 0.269026811,
+            "transition_ref": 0.193049946,
+            "fidelity_plc": 0.972772925,
+            "self_consistency": 0.29846759,
+            "step_fec": -113.0,
+            "step_ref": -34.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          2,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "10",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,33,29,33,30,31,29,29,30,29,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.461424307 next_ref=0.458424745 fidelity_fec=0.502220768 fidelity_ref=0.405873458 fidelity_plc=1.251511899 transition_fec=0.409941939 transition_ref=0.378418092 step_fec=2332.000 step_ref=2390.000 self_consistency=0.317481809\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.502220768,
+            "next_fec": 0.461424307,
+            "transition_fec": 0.409941939,
+            "fidelity_ref": 0.405873458,
+            "next_ref": 0.458424745,
+            "transition_ref": 0.378418092,
+            "fidelity_plc": 1.251511899,
+            "self_consistency": 0.317481809,
+            "step_fec": 2332.0,
+            "step_ref": 2390.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "10",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,34,29,31,30,29,27,30,31,30,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.755986329 next_ref=0.775056677 fidelity_fec=0.775779791 fidelity_ref=0.684159635 fidelity_plc=1.455379434 transition_fec=0.658332111 transition_ref=0.478974903 step_fec=2382.000 step_ref=2459.000 self_consistency=0.390870655\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.775779791,
+            "next_fec": 0.755986329,
+            "transition_fec": 0.658332111,
+            "fidelity_ref": 0.684159635,
+            "next_ref": 0.775056677,
+            "transition_ref": 0.478974903,
+            "fidelity_plc": 1.455379434,
+            "self_consistency": 0.390870655,
+            "step_fec": 2382.0,
+            "step_ref": 2459.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "10",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,31,31,29,29,30,29,29,34,30,29,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.474156981 next_ref=0.461755891 fidelity_fec=0.468514943 fidelity_ref=0.401301964 fidelity_plc=1.178647212 transition_fec=0.418488699 transition_ref=0.371461951 step_fec=2068.000 step_ref=2427.000 self_consistency=0.231115009\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.468514943,
+            "next_fec": 0.474156981,
+            "transition_fec": 0.418488699,
+            "fidelity_ref": 0.401301964,
+            "next_ref": 0.461755891,
+            "transition_ref": 0.371461951,
+            "fidelity_plc": 1.178647212,
+            "self_consistency": 0.231115009,
+            "step_fec": 2068.0,
+            "step_ref": 2427.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          2,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "16000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=38,35,43,41,38,42,39,37,47,35,39,43,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.530722123 next_ref=0.523402617 fidelity_fec=0.467048315 fidelity_ref=0.442980263 fidelity_plc=0.908584136 transition_fec=0.458734955 transition_ref=0.422045932 step_fec=-780.000 step_ref=-669.000 self_consistency=0.153907942\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.467048315,
+            "next_fec": 0.530722123,
+            "transition_fec": 0.458734955,
+            "fidelity_ref": 0.442980263,
+            "next_ref": 0.523402617,
+            "transition_ref": 0.422045932,
+            "fidelity_plc": 0.908584136,
+            "self_consistency": 0.153907942,
+            "step_fec": -780.0,
+            "step_ref": -669.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "16000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=39,42,44,33,38,35,36,36,35,37,38,37,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.963422471 next_ref=0.821001778 fidelity_fec=1.000974038 fidelity_ref=0.782495425 fidelity_plc=1.000974038 transition_fec=1.142807447 transition_ref=0.549944469 step_fec=-269.000 step_ref=-1025.000 self_consistency=1.306601049\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 1.000974038,
+            "next_fec": 0.963422471,
+            "transition_fec": 1.142807447,
+            "fidelity_ref": 0.782495425,
+            "next_ref": 0.821001778,
+            "transition_ref": 0.549944469,
+            "fidelity_plc": 1.000974038,
+            "self_consistency": 1.306601049,
+            "step_fec": -269.0,
+            "step_ref": -1025.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "16000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=38,35,33,37,39,39,37,38,38,36,41,36,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.487120409 next_ref=0.484996867 fidelity_fec=0.517329607 fidelity_ref=0.459196364 fidelity_plc=1.043649595 transition_fec=0.422445510 transition_ref=0.413261217 step_fec=-693.000 step_ref=-785.000 self_consistency=0.217247347\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.517329607,
+            "next_fec": 0.487120409,
+            "transition_fec": 0.42244551,
+            "fidelity_ref": 0.459196364,
+            "next_ref": 0.484996867,
+            "transition_ref": 0.413261217,
+            "fidelity_plc": 1.043649595,
+            "self_consistency": 0.217247347,
+            "step_fec": -693.0,
+            "step_ref": -785.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          2,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,57,63,63,59,46,68,57,71,48,68,55,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.553291277 next_ref=0.540756918 fidelity_fec=0.465916881 fidelity_ref=0.435503146 fidelity_plc=1.064146431 transition_fec=0.444827230 transition_ref=0.398346634 step_fec=-1039.000 step_ref=-611.000 self_consistency=0.245331167\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.465916881,
+            "next_fec": 0.553291277,
+            "transition_fec": 0.44482723,
+            "fidelity_ref": 0.435503146,
+            "next_ref": 0.540756918,
+            "transition_ref": 0.398346634,
+            "fidelity_plc": 1.064146431,
+            "self_consistency": 0.245331167,
+            "step_fec": -1039.0,
+            "step_ref": -611.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,67,64,59,61,59,53,60,55,61,55,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.684358962 next_ref=0.751198817 fidelity_fec=0.802790967 fidelity_ref=0.749776717 fidelity_plc=0.829666861 transition_fec=0.486687027 transition_ref=0.475513090 step_fec=-1298.000 step_ref=-567.000 self_consistency=0.384927814\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.802790967,
+            "next_fec": 0.684358962,
+            "transition_fec": 0.486687027,
+            "fidelity_ref": 0.749776717,
+            "next_ref": 0.751198817,
+            "transition_ref": 0.47551309,
+            "fidelity_plc": 0.829666861,
+            "self_consistency": 0.384927814,
+            "step_fec": -1298.0,
+            "step_ref": -567.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "24000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=54,59,61,58,59,55,60,60,55,59,61,54,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.503982762 next_ref=0.489469052 fidelity_fec=0.469645959 fidelity_ref=0.447708373 fidelity_plc=0.832436104 transition_fec=0.434698928 transition_ref=0.411788227 step_fec=-894.000 step_ref=-658.000 self_consistency=0.239984238\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.469645959,
+            "next_fec": 0.503982762,
+            "transition_fec": 0.434698928,
+            "fidelity_ref": 0.447708373,
+            "next_ref": 0.489469052,
+            "transition_ref": 0.411788227,
+            "fidelity_plc": 0.832436104,
+            "self_consistency": 0.239984238,
+            "step_fec": -894.0,
+            "step_ref": -658.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          2,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "1",
+            "20",
+            "32000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,83,83,76,77,75,72,75,67,77,81,73,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.544271741 next_ref=0.544329318 fidelity_fec=0.483214188 fidelity_ref=0.520295140 fidelity_plc=1.074948336 transition_fec=0.433117248 transition_ref=0.480020563 step_fec=-154.000 step_ref=-560.000 self_consistency=0.385321303\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.483214188,
+            "next_fec": 0.544271741,
+            "transition_fec": 0.433117248,
+            "fidelity_ref": 0.52029514,
+            "next_ref": 0.544329318,
+            "transition_ref": 0.480020563,
+            "fidelity_plc": 1.074948336,
+            "self_consistency": 0.385321303,
+            "step_fec": -154.0,
+            "step_ref": -560.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "1",
+            "20",
+            "32000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,82,83,81,79,81,82,72,74,77,76,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.783660495 next_ref=0.805697505 fidelity_fec=0.770283448 fidelity_ref=0.781625766 fidelity_plc=1.044183405 transition_fec=0.556042528 transition_ref=0.480377265 step_fec=-1532.000 step_ref=-1238.000 self_consistency=0.431638723\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.770283448,
+            "next_fec": 0.783660495,
+            "transition_fec": 0.556042528,
+            "fidelity_ref": 0.781625766,
+            "next_ref": 0.805697505,
+            "transition_ref": 0.480377265,
+            "fidelity_plc": 1.044183405,
+            "self_consistency": 0.431638723,
+            "step_fec": -1532.0,
+            "step_ref": -1238.0
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "1",
+            "20",
+            "32000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=83,92,84,77,80,84,84,84,79,83,79,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.469799523 next_ref=0.474690173 fidelity_fec=0.467104462 fidelity_ref=0.456723585 fidelity_plc=1.094976914 transition_fec=0.407160964 transition_ref=0.430735533 step_fec=-539.000 step_ref=-1340.000 self_consistency=0.264567804\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.467104462,
+            "next_fec": 0.469799523,
+            "transition_fec": 0.407160964,
+            "fidelity_ref": 0.456723585,
+            "next_ref": 0.474690173,
+            "transition_ref": 0.430735533,
+            "fidelity_plc": 1.094976914,
+            "self_consistency": 0.264567804,
+            "step_fec": -539.0,
+            "step_ref": -1340.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          2,
+          0
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "32000",
+            "2",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=2009637846.000000 ms_lf_side=23830794.000000 ms_fec_mid=1792686491.250000 ms_fec_side=51460396.250000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.524047494 next_ref=0.576660706 fidelity_fec=0.529142726 fidelity_ref=0.555640400 fidelity_plc=1.039309295 transition_fec=0.526095569 transition_ref=0.577425323 step_fec=-170.500 step_ref=-781.000 self_consistency=0.395170624\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.529142726,
+            "next_fec": 0.524047494,
+            "transition_fec": 0.526095569,
+            "fidelity_ref": 0.5556404,
+            "next_ref": 0.576660706,
+            "transition_ref": 0.577425323,
+            "fidelity_plc": 1.039309295,
+            "self_consistency": 0.395170624,
+            "step_fec": -170.5,
+            "step_ref": -781.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "32000",
+            "2",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=3223186750.500000 ms_lf_side=16059666.500000 ms_fec_mid=5140494910.750000 ms_fec_side=48550764.750000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.777073975 next_ref=0.770098236 fidelity_fec=0.887603124 fidelity_ref=0.701289068 fidelity_plc=0.983255154 transition_fec=0.550334475 transition_ref=0.690378675 step_fec=509.500 step_ref=-196.500 self_consistency=0.910507142\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.887603124,
+            "next_fec": 0.777073975,
+            "transition_fec": 0.550334475,
+            "fidelity_ref": 0.701289068,
+            "next_ref": 0.770098236,
+            "transition_ref": 0.690378675,
+            "fidelity_plc": 0.983255154,
+            "self_consistency": 0.910507142,
+            "step_fec": 509.5,
+            "step_ref": -196.5
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "32000",
+            "2",
+            "0"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=2009637846.000000 ms_lf_side=23830794.000000 ms_fec_mid=1792686491.250000 ms_fec_side=51460396.250000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.524047494 next_ref=0.576660706 fidelity_fec=0.529142726 fidelity_ref=0.555640400 fidelity_plc=1.039309295 transition_fec=0.526095569 transition_ref=0.577425323 step_fec=-170.500 step_ref=-781.000 self_consistency=0.395170624\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.529142726,
+            "next_fec": 0.524047494,
+            "transition_fec": 0.526095569,
+            "fidelity_ref": 0.5556404,
+            "next_ref": 0.576660706,
+            "transition_ref": 0.577425323,
+            "fidelity_plc": 1.039309295,
+            "self_consistency": 0.395170624,
+            "step_fec": -170.5,
+            "step_ref": -781.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          2,
+          1
+        ],
+        "candidate": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_candidate.exe",
+            "2",
+            "20",
+            "48000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,128,117,103,115,100,112,111,113,115,113,114,\nms_src=6586426492.500000 ms_lf_mid=1631426594.000000 ms_lf_side=8230588.000000 ms_fec_mid=1615472550.000000 ms_fec_side=65091952.000000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.465356484 next_ref=0.508762154 fidelity_fec=0.505129425 fidelity_ref=0.498943769 fidelity_plc=1.019101902 transition_fec=0.423459001 transition_ref=0.427898348 step_fec=167.500 step_ref=428.000 self_consistency=0.434927393\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.505129425,
+            "next_fec": 0.465356484,
+            "transition_fec": 0.423459001,
+            "fidelity_ref": 0.498943769,
+            "next_ref": 0.508762154,
+            "transition_ref": 0.427898348,
+            "fidelity_plc": 1.019101902,
+            "self_consistency": 0.434927393,
+            "step_fec": 167.5,
+            "step_ref": 428.0
+          }
+        },
+        "official": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_official.exe",
+            "2",
+            "20",
+            "48000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=123,123,121,112,106,116,111,113,113,103,112,112,\nms_src=6586426492.500000 ms_lf_mid=4091577293.750000 ms_lf_side=18463304.750000 ms_fec_mid=4034010024.750000 ms_fec_side=65434065.750000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.787404278 next_ref=0.785626099 fidelity_fec=0.788928344 fidelity_ref=0.789947322 fidelity_plc=1.050224550 transition_fec=0.503490469 transition_ref=0.475419065 step_fec=-607.000 step_ref=666.500 self_consistency=0.464241453\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.788928344,
+            "next_fec": 0.787404278,
+            "transition_fec": 0.503490469,
+            "fidelity_ref": 0.789947322,
+            "next_ref": 0.785626099,
+            "transition_ref": 0.475419065,
+            "fidelity_plc": 1.05022455,
+            "self_consistency": 0.464241453,
+            "step_fec": -607.0,
+            "step_ref": 666.5
+          }
+        },
+        "parent": {
+          "command": [
+            "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\hazel_s6_s7_byte_20260923\\sq_parent.exe",
+            "2",
+            "20",
+            "48000",
+            "2",
+            "1"
+          ],
+          "exit": 0,
+          "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,128,117,103,115,100,112,111,113,115,113,114,\nms_src=6586426492.500000 ms_lf_mid=1631426594.000000 ms_lf_side=8230588.000000 ms_fec_mid=1615472550.000000 ms_fec_side=65091952.000000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.465356484 next_ref=0.508762154 fidelity_fec=0.505129425 fidelity_ref=0.498943769 fidelity_plc=1.019101902 transition_fec=0.423459001 transition_ref=0.427898348 step_fec=167.500 step_ref=428.000 self_consistency=0.434927393\n",
+          "stderr": "",
+          "fields": {
+            "fidelity_fec": 0.505129425,
+            "next_fec": 0.465356484,
+            "transition_fec": 0.423459001,
+            "fidelity_ref": 0.498943769,
+            "next_ref": 0.508762154,
+            "transition_ref": 0.427898348,
+            "fidelity_plc": 1.019101902,
+            "self_consistency": 0.434927393,
+            "step_fec": 167.5,
+            "step_ref": 428.0
+          }
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "parent_criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    ],
+    "raw_check_stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 18] out of 18\n"
+  },
+  "standard_interop": {
+    "candidate_exit": 0,
+    "quiet_packet_validation": "PASS",
+    "summary": {
+      "fec_quiet_packet_validation": "PASS",
+      "fec_interop": "official_to_opuscpp",
+      "channels": "2",
+      "duration_ms": "60",
+      "vbr": "1",
+      "profile": "2",
+      "decoder_error": "0",
+      "continuation_error": "7.13752e-06",
+      "fec_plc_difference": "0.75349",
+      "recovery_error": "1.10799",
+      "plc_error": "1.16167",
+      "packet_bytes": "3231",
+      "packet_hash": "2102507914",
+      "fec_quality_ratio_opuscpp_vs_official": "0.936856",
+      "recovery_error_ratio": "0.504119",
+      "wins": "18/18",
+      "coverage": "18/18",
+      "official_coverage": "15/18",
+      "packet_byte_ratio": "0.993345"
+    },
+    "scored_10_20ms_packet_bytes": {
+      "cur": 14627,
+      "off": 14725,
+      "ratio": 0.993345
+    },
+    "s6_snapshot_packet_bytes": {
+      "cur": 14740,
+      "off": 14725,
+      "ratio": 1.001019
+    },
+    "parent_scope_repair_packet_bytes": {
+      "cur": 14788,
+      "off": 14725,
+      "ratio": 1.004278
+    },
+    "trusted_fd587_fec1": {
+      "cur": 14667,
+      "off": 14725,
+      "ratio": 0.996061
+    },
+    "candidate_rows_72": [
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.163895",
+        "recovery_error": "0.105599",
+        "plc_error": "0.197493",
+        "packet_bytes": "358",
+        "packet_hash": "1841044307"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.205145",
+        "recovery_error": "0.135318",
+        "plc_error": "0.224148",
+        "packet_bytes": "372",
+        "packet_hash": "1324389596"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.414877",
+        "recovery_error": "0.119938",
+        "plc_error": "0.309919",
+        "packet_bytes": "476",
+        "packet_hash": "1628940976"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0.0186432",
+        "continuation_error": "0.0268084",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.39421",
+        "plc_error": "0.39421",
+        "packet_bytes": "536",
+        "packet_hash": "3350711441"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.905579",
+        "recovery_error": "0.0824482",
+        "plc_error": "0.609174",
+        "packet_bytes": "715",
+        "packet_hash": "459643054"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.784571",
+        "recovery_error": "0.142381",
+        "plc_error": "0.563075",
+        "packet_bytes": "784",
+        "packet_hash": "1163433600"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "1.02563e-05",
+        "fec_plc_difference": "0.802672",
+        "recovery_error": "0.137318",
+        "plc_error": "0.580063",
+        "packet_bytes": "1039",
+        "packet_hash": "4253892721"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.809627",
+        "recovery_error": "0.155654",
+        "plc_error": "0.604963",
+        "packet_bytes": "1045",
+        "packet_hash": "1629674417"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.1749",
+        "recovery_error": "0.295239",
+        "plc_error": "0.934046",
+        "packet_bytes": "1436",
+        "packet_hash": "1049238512"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.92494",
+        "plc_error": "0.92494",
+        "packet_bytes": "1531",
+        "packet_hash": "3924694166"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "4.93186",
+        "recovery_error": "0.129519",
+        "plc_error": "0.980594",
+        "packet_bytes": "2144",
+        "packet_hash": "2329200867"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "4.7039",
+        "recovery_error": "0.205409",
+        "plc_error": "1.00674",
+        "packet_bytes": "2385",
+        "packet_hash": "388587422"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.87233",
+        "recovery_error": "0.160091",
+        "plc_error": "0.641451",
+        "packet_bytes": "960",
+        "packet_hash": "1537408900"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "7.48855e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.558616",
+        "recovery_error": "0.372208",
+        "plc_error": "0.430651",
+        "packet_bytes": "960",
+        "packet_hash": "2809601673"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "7.5246e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.759874",
+        "recovery_error": "0.162414",
+        "plc_error": "0.60449",
+        "packet_bytes": "1457",
+        "packet_hash": "2450938695"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.577497",
+        "recovery_error": "0.175844",
+        "plc_error": "0.430018",
+        "packet_bytes": "1458",
+        "packet_hash": "1512200190"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.607957",
+        "recovery_error": "1.25243",
+        "plc_error": "1.46713",
+        "packet_bytes": "1920",
+        "packet_hash": "671923789"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "2.44987e-05",
+        "fec_plc_difference": "0.0352956",
+        "recovery_error": "1.23912",
+        "plc_error": "1.23932",
+        "packet_bytes": "1920",
+        "packet_hash": "1072333892"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.974491",
+        "recovery_error": "0.883041",
+        "plc_error": "0.9847",
+        "packet_bytes": "2880",
+        "packet_hash": "3264846908"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.999116",
+        "recovery_error": "0.997726",
+        "plc_error": "1.04132",
+        "packet_bytes": "2880",
+        "packet_hash": "1151446590"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "1.47576e-05",
+        "fec_plc_difference": "0.582234",
+        "recovery_error": "1.23704",
+        "plc_error": "1.48908",
+        "packet_bytes": "2580",
+        "packet_hash": "3686123554"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.21571",
+        "plc_error": "1.21571",
+        "packet_bytes": "2170",
+        "packet_hash": "1763800708"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.35023",
+        "recovery_error": "0.890838",
+        "plc_error": "0.994191",
+        "packet_bytes": "3862",
+        "packet_hash": "3229741963"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.30215",
+        "recovery_error": "0.959635",
+        "plc_error": "1.0433",
+        "packet_bytes": "3271",
+        "packet_hash": "854065508"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.826105",
+        "recovery_error": "0.0937891",
+        "plc_error": "1.06871",
+        "packet_bytes": "354",
+        "packet_hash": "3568338275"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.89641",
+        "recovery_error": "0.252028",
+        "plc_error": "1.30545",
+        "packet_bytes": "352",
+        "packet_hash": "3480715193"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.04137",
+        "recovery_error": "0.227507",
+        "plc_error": "1.06466",
+        "packet_bytes": "471",
+        "packet_hash": "3312247315"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.963702",
+        "plc_error": "0.963702",
+        "packet_bytes": "455",
+        "packet_hash": "1212346763"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.28776",
+        "recovery_error": "0.0225613",
+        "plc_error": "0.90996",
+        "packet_bytes": "713",
+        "packet_hash": "925670027"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.23828",
+        "recovery_error": "0.205201",
+        "plc_error": "0.773119",
+        "packet_bytes": "717",
+        "packet_hash": "3784289538"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.65209",
+        "recovery_error": "0.218189",
+        "plc_error": "0.970819",
+        "packet_bytes": "925",
+        "packet_hash": "2641312495"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.60603",
+        "recovery_error": "0.253168",
+        "plc_error": "1.11962",
+        "packet_bytes": "922",
+        "packet_hash": "1300010798"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.355",
+        "recovery_error": "0.580926",
+        "plc_error": "1.2724",
+        "packet_bytes": "1434",
+        "packet_hash": "3038745499"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.31792",
+        "plc_error": "1.31792",
+        "packet_bytes": "1439",
+        "packet_hash": "2364538229"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "3.68183",
+        "recovery_error": "0.183731",
+        "plc_error": "0.947512",
+        "packet_bytes": "2121",
+        "packet_hash": "997116833"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "4.24257",
+        "recovery_error": "0.225036",
+        "plc_error": "0.968894",
+        "packet_bytes": "2268",
+        "packet_hash": "1086936650"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.79462",
+        "recovery_error": "0.268496",
+        "plc_error": "0.819261",
+        "packet_bytes": "960",
+        "packet_hash": "81571165"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.6109",
+        "recovery_error": "0.351359",
+        "plc_error": "0.888535",
+        "packet_bytes": "960",
+        "packet_hash": "1461312841"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.46242",
+        "recovery_error": "0.298468",
+        "plc_error": "0.996417",
+        "packet_bytes": "1418",
+        "packet_hash": "3770297261"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.32706",
+        "recovery_error": "0.305485",
+        "plc_error": "0.768328",
+        "packet_bytes": "1386",
+        "packet_hash": "2497701838"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.571206",
+        "recovery_error": "1.36387",
+        "plc_error": "1.6362",
+        "packet_bytes": "1920",
+        "packet_hash": "850318719"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.25563",
+        "plc_error": "1.25563",
+        "packet_bytes": "1920",
+        "packet_hash": "1856102685"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.752881",
+        "recovery_error": "0.934864",
+        "plc_error": "0.984754",
+        "packet_bytes": "2880",
+        "packet_hash": "1834392603"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.2527",
+        "recovery_error": "0.961128",
+        "plc_error": "0.94681",
+        "packet_bytes": "2880",
+        "packet_hash": "3847613618"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.550923",
+        "recovery_error": "1.45115",
+        "plc_error": "1.7239",
+        "packet_bytes": "2504",
+        "packet_hash": "1530413863"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.10372",
+        "plc_error": "1.10372",
+        "packet_bytes": "2242",
+        "packet_hash": "3726648296"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.782648",
+        "recovery_error": "0.959155",
+        "plc_error": "1.01717",
+        "packet_bytes": "3760",
+        "packet_hash": "3906785562"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.26334",
+        "recovery_error": "1.06617",
+        "plc_error": "1.06037",
+        "packet_bytes": "3332",
+        "packet_hash": "841396521"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.7288",
+        "recovery_error": "0.317482",
+        "plc_error": "1.29083",
+        "packet_bytes": "357",
+        "packet_hash": "331240025"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.42088",
+        "recovery_error": "0.390871",
+        "plc_error": "1.35837",
+        "packet_bytes": "355",
+        "packet_hash": "4150343682"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.39336",
+        "recovery_error": "0.153908",
+        "plc_error": "0.878896",
+        "packet_bytes": "477",
+        "packet_hash": "1129047991"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.3066",
+        "plc_error": "1.3066",
+        "packet_bytes": "450",
+        "packet_hash": "3300984284"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.10436",
+        "recovery_error": "0.245331",
+        "plc_error": "1.09146",
+        "packet_bytes": "709",
+        "packet_hash": "2924882834"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.38405",
+        "recovery_error": "0.384928",
+        "plc_error": "0.91166",
+        "packet_bytes": "704",
+        "packet_hash": "2479386608"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "1.3979e-05",
+        "fec_plc_difference": "1.27432",
+        "recovery_error": "0.385321",
+        "plc_error": "1.08792",
+        "packet_bytes": "918",
+        "packet_hash": "212640641"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.32619",
+        "recovery_error": "0.431639",
+        "plc_error": "0.978261",
+        "packet_bytes": "944",
+        "packet_hash": "747387683"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.41078",
+        "recovery_error": "0.604743",
+        "plc_error": "1.25245",
+        "packet_bytes": "1435",
+        "packet_hash": "3830815173"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.1447",
+        "recovery_error": "1.07428",
+        "plc_error": "1.08708",
+        "packet_bytes": "1575",
+        "packet_hash": "997291461"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.39775",
+        "recovery_error": "0.249121",
+        "plc_error": "1.00705",
+        "packet_bytes": "2125",
+        "packet_hash": "1703599199"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.77879",
+        "recovery_error": "0.395711",
+        "plc_error": "1.04518",
+        "packet_bytes": "2357",
+        "packet_hash": "892054109"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "8.29707e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.14378",
+        "recovery_error": "0.395171",
+        "plc_error": "1.07736",
+        "packet_bytes": "960",
+        "packet_hash": "1322879724"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "9.50748e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.76858",
+        "recovery_error": "0.910507",
+        "plc_error": "0.941432",
+        "packet_bytes": "960",
+        "packet_hash": "4186063651"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.09327",
+        "recovery_error": "0.434927",
+        "plc_error": "1.04021",
+        "packet_bytes": "1360",
+        "packet_hash": "265592651"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "1.0643e-05",
+        "fec_plc_difference": "1.37663",
+        "recovery_error": "0.464241",
+        "plc_error": "1.22988",
+        "packet_bytes": "1365",
+        "packet_hash": "3875186059"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "1.65457e-05",
+        "fec_plc_difference": "0.874993",
+        "recovery_error": "1.11275",
+        "plc_error": "1.20427",
+        "packet_bytes": "1920",
+        "packet_hash": "3118864615"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.853",
+        "recovery_error": "1.49306",
+        "plc_error": "1.6166",
+        "packet_bytes": "1920",
+        "packet_hash": "1293452873"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "6.95594e-06",
+        "fec_plc_difference": "0.615657",
+        "recovery_error": "0.968356",
+        "plc_error": "1.05203",
+        "packet_bytes": "2880",
+        "packet_hash": "2305533703"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.637888",
+        "recovery_error": "1.13296",
+        "plc_error": "1.1874",
+        "packet_bytes": "2880",
+        "packet_hash": "2967788143"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.946986",
+        "recovery_error": "1.11483",
+        "plc_error": "1.25177",
+        "packet_bytes": "2627",
+        "packet_hash": "805896440"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.783478",
+        "recovery_error": "1.32386",
+        "plc_error": "1.33769",
+        "packet_bytes": "2137",
+        "packet_hash": "3590897921"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.702587",
+        "recovery_error": "0.93931",
+        "plc_error": "0.989162",
+        "packet_bytes": "3910",
+        "packet_hash": "1689823919"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "7.13752e-06",
+        "fec_plc_difference": "0.75349",
+        "recovery_error": "1.10799",
+        "plc_error": "1.16167",
+        "packet_bytes": "3231",
+        "packet_hash": "2102507914"
+      }
+    ],
+    "parent_rows_72": [
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.174736",
+        "recovery_error": "0.0768392",
+        "plc_error": "0.169885",
+        "packet_bytes": "373",
+        "packet_hash": "482409113"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.205145",
+        "recovery_error": "0.135318",
+        "plc_error": "0.224148",
+        "packet_bytes": "372",
+        "packet_hash": "1324389596"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.286337",
+        "recovery_error": "0.0849442",
+        "plc_error": "0.286686",
+        "packet_bytes": "477",
+        "packet_hash": "579460316"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0.0186432",
+        "continuation_error": "0.0268084",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.39421",
+        "plc_error": "0.39421",
+        "packet_bytes": "536",
+        "packet_hash": "3350711441"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.687427",
+        "recovery_error": "0.0952046",
+        "plc_error": "0.542235",
+        "packet_bytes": "759",
+        "packet_hash": "3528027174"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.784571",
+        "recovery_error": "0.142381",
+        "plc_error": "0.563075",
+        "packet_bytes": "784",
+        "packet_hash": "1163433600"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.726553",
+        "recovery_error": "0.117689",
+        "plc_error": "0.579006",
+        "packet_bytes": "1063",
+        "packet_hash": "4042330149"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.809627",
+        "recovery_error": "0.155654",
+        "plc_error": "0.604963",
+        "packet_bytes": "1045",
+        "packet_hash": "1629674417"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.46376",
+        "recovery_error": "0.358956",
+        "plc_error": "0.888151",
+        "packet_bytes": "1410",
+        "packet_hash": "1111723445"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.92494",
+        "plc_error": "0.92494",
+        "packet_bytes": "1531",
+        "packet_hash": "3924694166"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "5.24274",
+        "recovery_error": "0.117641",
+        "plc_error": "0.989418",
+        "packet_bytes": "2127",
+        "packet_hash": "3315277483"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "4.7039",
+        "recovery_error": "0.205409",
+        "plc_error": "1.00674",
+        "packet_bytes": "2385",
+        "packet_hash": "388587422"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.87233",
+        "recovery_error": "0.160091",
+        "plc_error": "0.641451",
+        "packet_bytes": "960",
+        "packet_hash": "1537408900"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "7.48855e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.558616",
+        "recovery_error": "0.372208",
+        "plc_error": "0.430651",
+        "packet_bytes": "960",
+        "packet_hash": "2809601673"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "7.5246e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.759874",
+        "recovery_error": "0.162414",
+        "plc_error": "0.60449",
+        "packet_bytes": "1457",
+        "packet_hash": "2450938695"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.577497",
+        "recovery_error": "0.175844",
+        "plc_error": "0.430018",
+        "packet_bytes": "1458",
+        "packet_hash": "1512200190"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.607957",
+        "recovery_error": "1.25243",
+        "plc_error": "1.46713",
+        "packet_bytes": "1920",
+        "packet_hash": "671923789"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "2.44987e-05",
+        "fec_plc_difference": "0.0352956",
+        "recovery_error": "1.23912",
+        "plc_error": "1.23932",
+        "packet_bytes": "1920",
+        "packet_hash": "1072333892"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.974491",
+        "recovery_error": "0.883041",
+        "plc_error": "0.9847",
+        "packet_bytes": "2880",
+        "packet_hash": "3264846908"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.999116",
+        "recovery_error": "0.997726",
+        "plc_error": "1.04132",
+        "packet_bytes": "2880",
+        "packet_hash": "1151446590"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "1.47576e-05",
+        "fec_plc_difference": "0.582234",
+        "recovery_error": "1.23704",
+        "plc_error": "1.48908",
+        "packet_bytes": "2580",
+        "packet_hash": "3686123554"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.21571",
+        "plc_error": "1.21571",
+        "packet_bytes": "2170",
+        "packet_hash": "1763800708"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.35023",
+        "recovery_error": "0.890838",
+        "plc_error": "0.994191",
+        "packet_bytes": "3862",
+        "packet_hash": "3229741963"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "0",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.30215",
+        "recovery_error": "0.959635",
+        "plc_error": "1.0433",
+        "packet_bytes": "3271",
+        "packet_hash": "854065508"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.01228",
+        "recovery_error": "0.219354",
+        "plc_error": "0.886843",
+        "packet_bytes": "337",
+        "packet_hash": "755487053"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.89641",
+        "recovery_error": "0.252028",
+        "plc_error": "1.30545",
+        "packet_bytes": "352",
+        "packet_hash": "3480715193"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.862667",
+        "recovery_error": "0.258859",
+        "plc_error": "0.761863",
+        "packet_bytes": "440",
+        "packet_hash": "4007591935"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "0.963702",
+        "plc_error": "0.963702",
+        "packet_bytes": "455",
+        "packet_hash": "1212346763"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.32902",
+        "recovery_error": "0.197809",
+        "plc_error": "0.863067",
+        "packet_bytes": "700",
+        "packet_hash": "3158881976"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.23828",
+        "recovery_error": "0.205201",
+        "plc_error": "0.773119",
+        "packet_bytes": "717",
+        "packet_hash": "3784289538"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.23692",
+        "recovery_error": "0.147571",
+        "plc_error": "0.753019",
+        "packet_bytes": "993",
+        "packet_hash": "422266168"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.60603",
+        "recovery_error": "0.253168",
+        "plc_error": "1.11962",
+        "packet_bytes": "922",
+        "packet_hash": "1300010798"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.17482",
+        "recovery_error": "0.600115",
+        "plc_error": "1.56062",
+        "packet_bytes": "1328",
+        "packet_hash": "3750243916"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.31792",
+        "plc_error": "1.31792",
+        "packet_bytes": "1439",
+        "packet_hash": "2364538229"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "3.85049",
+        "recovery_error": "0.161054",
+        "plc_error": "0.960291",
+        "packet_bytes": "2048",
+        "packet_hash": "984614226"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "4.24257",
+        "recovery_error": "0.225036",
+        "plc_error": "0.968894",
+        "packet_bytes": "2268",
+        "packet_hash": "1086936650"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.79462",
+        "recovery_error": "0.268496",
+        "plc_error": "0.819261",
+        "packet_bytes": "960",
+        "packet_hash": "81571165"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.6109",
+        "recovery_error": "0.351359",
+        "plc_error": "0.888535",
+        "packet_bytes": "960",
+        "packet_hash": "1461312841"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.46242",
+        "recovery_error": "0.298468",
+        "plc_error": "0.996417",
+        "packet_bytes": "1418",
+        "packet_hash": "3770297261"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.32706",
+        "recovery_error": "0.305485",
+        "plc_error": "0.768328",
+        "packet_bytes": "1386",
+        "packet_hash": "2497701838"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.571206",
+        "recovery_error": "1.36387",
+        "plc_error": "1.6362",
+        "packet_bytes": "1920",
+        "packet_hash": "850318719"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.25563",
+        "plc_error": "1.25563",
+        "packet_bytes": "1920",
+        "packet_hash": "1856102685"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.752881",
+        "recovery_error": "0.934864",
+        "plc_error": "0.984754",
+        "packet_bytes": "2880",
+        "packet_hash": "1834392603"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.2527",
+        "recovery_error": "0.961128",
+        "plc_error": "0.94681",
+        "packet_bytes": "2880",
+        "packet_hash": "3847613618"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.550923",
+        "recovery_error": "1.45115",
+        "plc_error": "1.7239",
+        "packet_bytes": "2504",
+        "packet_hash": "1530413863"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.10372",
+        "plc_error": "1.10372",
+        "packet_bytes": "2242",
+        "packet_hash": "3726648296"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.782648",
+        "recovery_error": "0.959155",
+        "plc_error": "1.01717",
+        "packet_bytes": "3760",
+        "packet_hash": "3906785562"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "1",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.26334",
+        "recovery_error": "1.06617",
+        "plc_error": "1.06037",
+        "packet_bytes": "3332",
+        "packet_hash": "841396521"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.81516",
+        "recovery_error": "0.231115",
+        "plc_error": "1.2156",
+        "packet_bytes": "354",
+        "packet_hash": "573256307"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "10",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.42088",
+        "recovery_error": "0.390871",
+        "plc_error": "1.35837",
+        "packet_bytes": "355",
+        "packet_hash": "4150343682"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.55686",
+        "recovery_error": "0.217247",
+        "plc_error": "1.02593",
+        "packet_bytes": "447",
+        "packet_hash": "978920048"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0",
+        "recovery_error": "1.3066",
+        "plc_error": "1.3066",
+        "packet_bytes": "450",
+        "packet_hash": "3300984284"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.17224",
+        "recovery_error": "0.239984",
+        "plc_error": "0.77367",
+        "packet_bytes": "695",
+        "packet_hash": "2677638817"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.38405",
+        "recovery_error": "0.384928",
+        "plc_error": "0.91166",
+        "packet_bytes": "704",
+        "packet_hash": "2479386608"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.25206",
+        "recovery_error": "0.264568",
+        "plc_error": "1.11855",
+        "packet_bytes": "987",
+        "packet_hash": "632358179"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.32619",
+        "recovery_error": "0.431639",
+        "plc_error": "0.978261",
+        "packet_bytes": "944",
+        "packet_hash": "747387683"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.66736",
+        "recovery_error": "0.682687",
+        "plc_error": "1.18893",
+        "packet_bytes": "1385",
+        "packet_hash": "1448673825"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.1447",
+        "recovery_error": "1.07428",
+        "plc_error": "1.08708",
+        "packet_bytes": "1575",
+        "packet_hash": "997291461"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.53311",
+        "recovery_error": "0.264841",
+        "plc_error": "1.08771",
+        "packet_bytes": "2064",
+        "packet_hash": "1310633097"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "1",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "2.77879",
+        "recovery_error": "0.395711",
+        "plc_error": "1.04518",
+        "packet_bytes": "2357",
+        "packet_hash": "892054109"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "8.29707e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.14378",
+        "recovery_error": "0.395171",
+        "plc_error": "1.07736",
+        "packet_bytes": "960",
+        "packet_hash": "1322879724"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "9.50748e-06",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.76858",
+        "recovery_error": "0.910507",
+        "plc_error": "0.941432",
+        "packet_bytes": "960",
+        "packet_hash": "4186063651"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "1.09327",
+        "recovery_error": "0.434927",
+        "plc_error": "1.04021",
+        "packet_bytes": "1360",
+        "packet_hash": "265592651"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "20",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "1.0643e-05",
+        "fec_plc_difference": "1.37663",
+        "recovery_error": "0.464241",
+        "plc_error": "1.22988",
+        "packet_bytes": "1365",
+        "packet_hash": "3875186059"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "1.65457e-05",
+        "fec_plc_difference": "0.874993",
+        "recovery_error": "1.11275",
+        "plc_error": "1.20427",
+        "packet_bytes": "1920",
+        "packet_hash": "3118864615"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.853",
+        "recovery_error": "1.49306",
+        "plc_error": "1.6166",
+        "packet_bytes": "1920",
+        "packet_hash": "1293452873"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "6.95594e-06",
+        "fec_plc_difference": "0.615657",
+        "recovery_error": "0.968356",
+        "plc_error": "1.05203",
+        "packet_bytes": "2880",
+        "packet_hash": "2305533703"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "0",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.637888",
+        "recovery_error": "1.13296",
+        "plc_error": "1.1874",
+        "packet_bytes": "2880",
+        "packet_hash": "2967788143"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.946986",
+        "recovery_error": "1.11483",
+        "plc_error": "1.25177",
+        "packet_bytes": "2627",
+        "packet_hash": "805896440"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "40",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.783478",
+        "recovery_error": "1.32386",
+        "plc_error": "1.33769",
+        "packet_bytes": "2137",
+        "packet_hash": "3590897921"
+      },
+      {
+        "direction": "opuscpp_to_official",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "0",
+        "fec_plc_difference": "0.702587",
+        "recovery_error": "0.93931",
+        "plc_error": "0.989162",
+        "packet_bytes": "3910",
+        "packet_hash": "1689823919"
+      },
+      {
+        "direction": "official_to_opuscpp",
+        "channels": "2",
+        "duration_ms": "60",
+        "vbr": "1",
+        "profile": "2",
+        "decoder_error": "0",
+        "continuation_error": "7.13752e-06",
+        "fec_plc_difference": "0.75349",
+        "recovery_error": "1.10799",
+        "plc_error": "1.16167",
+        "packet_bytes": "3231",
+        "packet_hash": "2102507914"
+      }
+    ],
+    "official_to_opuscpp_rows_identical_parent_candidate": true,
+    "raw_candidate_stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.163895 recovery_error=0.105599 plc_error=0.197493 packet_bytes=358 packet_hash=1841044307\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.78038\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.414877 recovery_error=0.119938 plc_error=0.309919 packet_bytes=476 packet_hash=1628940976\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.304248\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.905579 recovery_error=0.0824482 plc_error=0.609174 packet_bytes=715 packet_hash=459643054\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0.579067\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=1.02563e-05 fec_plc_difference=0.802672 recovery_error=0.137318 plc_error=0.580063 packet_bytes=1039 packet_hash=4253892721\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.8822\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.1749 recovery_error=0.295239 plc_error=0.934046 packet_bytes=1436 packet_hash=1049238512\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.93186 recovery_error=0.129519 plc_error=0.980594 packet_bytes=2144 packet_hash=2329200867\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.87233 recovery_error=0.160091 plc_error=0.641451 packet_bytes=960 packet_hash=1537408900\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.430111\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=7.5246e-06 continuation_error=0 fec_plc_difference=0.759874 recovery_error=0.162414 plc_error=0.60449 packet_bytes=1457 packet_hash=2450938695\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.923625\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.607957 recovery_error=1.25243 plc_error=1.46713 packet_bytes=1920 packet_hash=671923789\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.974491 recovery_error=0.883041 plc_error=0.9847 packet_bytes=2880 packet_hash=3264846908\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=1.47576e-05 fec_plc_difference=0.582234 recovery_error=1.23704 plc_error=1.48908 packet_bytes=2580 packet_hash=3686123554\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.35023 recovery_error=0.890838 plc_error=0.994191 packet_bytes=3862 packet_hash=3229741963\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.826105 recovery_error=0.0937891 plc_error=1.06871 packet_bytes=354 packet_hash=3568338275\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.372137\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.04137 recovery_error=0.227507 plc_error=1.06466 packet_bytes=471 packet_hash=3312247315\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.236077\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.28776 recovery_error=0.0225613 plc_error=0.90996 packet_bytes=713 packet_hash=925670027\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.109948\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.65209 recovery_error=0.218189 plc_error=0.970819 packet_bytes=925 packet_hash=2641312495\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.861832\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.355 recovery_error=0.580926 plc_error=1.2724 packet_bytes=1434 packet_hash=3038745499\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=3.68183 recovery_error=0.183731 plc_error=0.947512 packet_bytes=2121 packet_hash=997116833\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.79462 recovery_error=0.268496 plc_error=0.819261 packet_bytes=960 packet_hash=81571165\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.764163\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.46242 recovery_error=0.298468 plc_error=0.996417 packet_bytes=1418 packet_hash=3770297261\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.977027\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.571206 recovery_error=1.36387 plc_error=1.6362 packet_bytes=1920 packet_hash=850318719\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.752881 recovery_error=0.934864 plc_error=0.984754 packet_bytes=2880 packet_hash=1834392603\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.550923 recovery_error=1.45115 plc_error=1.7239 packet_bytes=2504 packet_hash=1530413863\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.782648 recovery_error=0.959155 plc_error=1.01717 packet_bytes=3760 packet_hash=3906785562\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.7288 recovery_error=0.317482 plc_error=1.29083 packet_bytes=357 packet_hash=331240025\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.812243\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.39336 recovery_error=0.153908 plc_error=0.878896 packet_bytes=477 packet_hash=1129047991\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.117793\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.10436 recovery_error=0.245331 plc_error=1.09146 packet_bytes=709 packet_hash=2924882834\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0.637343\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.3979e-05 fec_plc_difference=1.27432 recovery_error=0.385321 plc_error=1.08792 packet_bytes=918 packet_hash=212640641\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.892694\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.41078 recovery_error=0.604743 plc_error=1.25245 packet_bytes=1435 packet_hash=3830815173\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.39775 recovery_error=0.249121 plc_error=1.00705 packet_bytes=2125 packet_hash=1703599199\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=8.29707e-06 continuation_error=0 fec_plc_difference=1.14378 recovery_error=0.395171 plc_error=1.07736 packet_bytes=960 packet_hash=1322879724\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.434012\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.09327 recovery_error=0.434927 plc_error=1.04021 packet_bytes=1360 packet_hash=265592651\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.936856\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=1.65457e-05 fec_plc_difference=0.874993 recovery_error=1.11275 plc_error=1.20427 packet_bytes=1920 packet_hash=3118864615\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=6.95594e-06 fec_plc_difference=0.615657 recovery_error=0.968356 plc_error=1.05203 packet_bytes=2880 packet_hash=2305533703\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.946986 recovery_error=1.11483 plc_error=1.25177 packet_bytes=2627 packet_hash=805896440\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.702587 recovery_error=0.93931 plc_error=0.989162 packet_bytes=3910 packet_hash=1689823919\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nfec_summary recovery_error_ratio=0.504119 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993345\n",
+    "raw_parent_stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.174736 recovery_error=0.0768392 plc_error=0.169885 packet_bytes=373 packet_hash=482409113\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.567843\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.286337 recovery_error=0.0849442 plc_error=0.286686 packet_bytes=477 packet_hash=579460316\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.215479\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.687427 recovery_error=0.0952046 plc_error=0.542235 packet_bytes=759 packet_hash=3528027174\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0.66866\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.726553 recovery_error=0.117689 plc_error=0.579006 packet_bytes=1063 packet_hash=4042330149\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.756097\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.46376 recovery_error=0.358956 plc_error=0.888151 packet_bytes=1410 packet_hash=1111723445\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=5.24274 recovery_error=0.117641 plc_error=0.989418 packet_bytes=2127 packet_hash=3315277483\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.87233 recovery_error=0.160091 plc_error=0.641451 packet_bytes=960 packet_hash=1537408900\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.430111\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=7.5246e-06 continuation_error=0 fec_plc_difference=0.759874 recovery_error=0.162414 plc_error=0.60449 packet_bytes=1457 packet_hash=2450938695\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.923625\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.607957 recovery_error=1.25243 plc_error=1.46713 packet_bytes=1920 packet_hash=671923789\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.974491 recovery_error=0.883041 plc_error=0.9847 packet_bytes=2880 packet_hash=3264846908\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=1.47576e-05 fec_plc_difference=0.582234 recovery_error=1.23704 plc_error=1.48908 packet_bytes=2580 packet_hash=3686123554\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.35023 recovery_error=0.890838 plc_error=0.994191 packet_bytes=3862 packet_hash=3229741963\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.01228 recovery_error=0.219354 plc_error=0.886843 packet_bytes=337 packet_hash=755487053\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.870357\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.862667 recovery_error=0.258859 plc_error=0.761863 packet_bytes=440 packet_hash=4007591935\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.268609\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32902 recovery_error=0.197809 plc_error=0.863067 packet_bytes=700 packet_hash=3158881976\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.963977\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23692 recovery_error=0.147571 plc_error=0.753019 packet_bytes=993 packet_hash=422266168\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.582895\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.17482 recovery_error=0.600115 plc_error=1.56062 packet_bytes=1328 packet_hash=3750243916\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=3.85049 recovery_error=0.161054 plc_error=0.960291 packet_bytes=2048 packet_hash=984614226\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.79462 recovery_error=0.268496 plc_error=0.819261 packet_bytes=960 packet_hash=81571165\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.764163\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.46242 recovery_error=0.298468 plc_error=0.996417 packet_bytes=1418 packet_hash=3770297261\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.977027\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.571206 recovery_error=1.36387 plc_error=1.6362 packet_bytes=1920 packet_hash=850318719\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.752881 recovery_error=0.934864 plc_error=0.984754 packet_bytes=2880 packet_hash=1834392603\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.550923 recovery_error=1.45115 plc_error=1.7239 packet_bytes=2504 packet_hash=1530413863\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.782648 recovery_error=0.959155 plc_error=1.01717 packet_bytes=3760 packet_hash=3906785562\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.81516 recovery_error=0.231115 plc_error=1.2156 packet_bytes=354 packet_hash=573256307\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.591283\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.55686 recovery_error=0.217247 plc_error=1.02593 packet_bytes=447 packet_hash=978920048\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.166269\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.17224 recovery_error=0.239984 plc_error=0.77367 packet_bytes=695 packet_hash=2677638817\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0.623453\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.25206 recovery_error=0.264568 plc_error=1.11855 packet_bytes=987 packet_hash=632358179\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.612938\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.66736 recovery_error=0.682687 plc_error=1.18893 packet_bytes=1385 packet_hash=1448673825\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.53311 recovery_error=0.264841 plc_error=1.08771 packet_bytes=2064 packet_hash=1310633097\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=8.29707e-06 continuation_error=0 fec_plc_difference=1.14378 recovery_error=0.395171 plc_error=1.07736 packet_bytes=960 packet_hash=1322879724\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.434012\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.09327 recovery_error=0.434927 plc_error=1.04021 packet_bytes=1360 packet_hash=265592651\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.936856\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=1.65457e-05 fec_plc_difference=0.874993 recovery_error=1.11275 plc_error=1.20427 packet_bytes=1920 packet_hash=3118864615\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=6.95594e-06 fec_plc_difference=0.615657 recovery_error=0.968356 plc_error=1.05203 packet_bytes=2880 packet_hash=2305533703\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.946986 recovery_error=1.11483 plc_error=1.25177 packet_bytes=2627 packet_hash=805896440\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.702587 recovery_error=0.93931 plc_error=0.989162 packet_bytes=3910 packet_hash=1689823919\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nfec_summary recovery_error_ratio=0.509621 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=1.00102\n"
+  },
+  "known_cbr_quality_tradeoff": {
+    "scope": "four mono VOIP CBR quality controls at 16/32 kbps; 12 proxy metrics; not a full parity matrix",
+    "david_16000_celt_highband_error": {
+      "a9": "0.06521369455045452",
+      "candidate": "0.07885415237990399",
+      "official": "0.02062779933182339",
+      "classification": "worsened versus a9; explicitly retained as a known non-FEC regression"
+    },
+    "all_four_controls": {
+      "david_16000": {
+        "vs_a9": {
+          "new": [],
+          "fixed": [],
+          "worsened": [
+            "celt_highband_error"
+          ],
+          "improved": [],
+          "base_loss": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error",
+            "celt_highband_error"
+          ],
+          "base_gain": [],
+          "base_loss_still_at_or_above_official": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error"
+          ]
+        },
+        "vs_s7": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [],
+          "base_gain": [],
+          "base_loss_still_at_or_above_official": []
+        },
+        "max_metric_absdiff_vs_s7": 0.0,
+        "avg_packet_bytes": "40.00000000000000000",
+        "highband_a9": "0.06521369455045452",
+        "highband_s7": "0.07885415237990399",
+        "highband_cand": "0.07885415237990399",
+        "highband_official": "0.02062779933182339",
+        "metrics_current": {
+          "snr_db": "8.60509698947186052",
+          "segmental_snr_db": "9.16462525305453291",
+          "rms_error": "0.03258270775533241",
+          "mean_abs_error": "0.01589131306788254",
+          "pesq_style": "2.41596260816652419",
+          "visqol_style": "4.90800100308451537",
+          "logband_corr": "0.99296381990865223",
+          "logband_error": "0.07348769794681601",
+          "celt_quality": "98.50084357764708898",
+          "celt_masked_error": "1.20840588853192665",
+          "celt_highband_error": "0.07885415237990399",
+          "stereo_width_error": "0.00000000000000000"
+        }
+      },
+      "hazel_16000": {
+        "vs_a9": {
+          "new": [],
+          "fixed": [
+            "celt_highband_error"
+          ],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error"
+          ],
+          "base_gain": [
+            "celt_highband_error"
+          ],
+          "base_loss_still_at_or_above_official": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error"
+          ]
+        },
+        "vs_s7": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [],
+          "base_gain": [],
+          "base_loss_still_at_or_above_official": []
+        },
+        "max_metric_absdiff_vs_s7": 0.0,
+        "avg_packet_bytes": "40.00000000000000000",
+        "highband_a9": "0.07519046737596100",
+        "highband_s7": "0.05658427244910456",
+        "highband_cand": "0.05658427244910456",
+        "highband_official": "0.06387251996435507",
+        "metrics_current": {
+          "snr_db": "12.93584237339763376",
+          "segmental_snr_db": "11.17820832054394309",
+          "rms_error": "0.02578075341514667",
+          "mean_abs_error": "0.01385087412308474",
+          "pesq_style": "2.56966716386903027",
+          "visqol_style": "4.92712491965280641",
+          "logband_corr": "0.99537937733048976",
+          "logband_error": "0.05858025080434309",
+          "celt_quality": "98.99116471066065515",
+          "celt_masked_error": "0.81116681463732121",
+          "celt_highband_error": "0.05658427244910456",
+          "stereo_width_error": "0.00000000000000000"
+        }
+      },
+      "david_32000": {
+        "vs_a9": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [
+            "celt_highband_error"
+          ],
+          "base_loss": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error"
+          ],
+          "base_gain": [
+            "celt_quality",
+            "celt_masked_error",
+            "celt_highband_error"
+          ],
+          "base_loss_still_at_or_above_official": [
+            "snr_db",
+            "segmental_snr_db",
+            "rms_error",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error"
+          ]
+        },
+        "vs_s7": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [],
+          "base_gain": [],
+          "base_loss_still_at_or_above_official": []
+        },
+        "max_metric_absdiff_vs_s7": 0.0,
+        "avg_packet_bytes": "80.00000000000000000",
+        "highband_a9": "0.02703474016349366",
+        "highband_s7": "0.01790875878306623",
+        "highband_cand": "0.01790875878306623",
+        "highband_official": "0.00802732320270018",
+        "metrics_current": {
+          "snr_db": "10.07685777672176997",
+          "segmental_snr_db": "10.96620860885123960",
+          "rms_error": "0.02750420736963719",
+          "mean_abs_error": "0.01269709417584842",
+          "pesq_style": "2.55415473704107798",
+          "visqol_style": "4.94436334787706055",
+          "logband_corr": "0.99701827349160477",
+          "logband_error": "0.04480674173712226",
+          "celt_quality": "99.36626994304391758",
+          "celt_masked_error": "0.50859732018775405",
+          "celt_highband_error": "0.01790875878306623",
+          "stereo_width_error": "0.00000000000000000"
+        }
+      },
+      "hazel_32000": {
+        "vs_a9": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [
+            "segmental_snr_db",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error",
+            "celt_highband_error"
+          ],
+          "base_gain": [
+            "snr_db",
+            "rms_error"
+          ],
+          "base_loss_still_at_or_above_official": [
+            "segmental_snr_db",
+            "mean_abs_error",
+            "pesq_style",
+            "visqol_style",
+            "logband_corr",
+            "logband_error",
+            "celt_quality",
+            "celt_masked_error",
+            "celt_highband_error"
+          ]
+        },
+        "vs_s7": {
+          "new": [],
+          "fixed": [],
+          "worsened": [],
+          "improved": [],
+          "base_loss": [],
+          "base_gain": [],
+          "base_loss_still_at_or_above_official": []
+        },
+        "max_metric_absdiff_vs_s7": 0.0,
+        "avg_packet_bytes": "80.00000000000000000",
+        "highband_a9": "0.04246373028927961",
+        "highband_s7": "0.06283602103308830",
+        "highband_cand": "0.06283602103308830",
+        "highband_official": "0.06983443792466594",
+        "metrics_current": {
+          "snr_db": "14.50822809281666004",
+          "segmental_snr_db": "12.90407496004957189",
+          "rms_error": "0.02151177857836533",
+          "mean_abs_error": "0.01138061809941817",
+          "pesq_style": "2.69985793609146008",
+          "visqol_style": "4.95539300576742914",
+          "logband_corr": "0.99788822689485190",
+          "logband_error": "0.03595677497398051",
+          "celt_quality": "99.36182459941325362",
+          "celt_masked_error": "0.51217635606923073",
+          "celt_highband_error": "0.06283602103308830",
+          "stereo_width_error": "0.00000000000000000"
+        }
+      }
+    },
+    "vbr_transfer_controls": {
+      "david_16000": {
+        "max_metric_absdiff": 0.0,
+        "same_packets": true,
+        "packets": "590",
+        "avg_packet_bytes": "34.02711864406779796"
+      },
+      "hazel_16000": {
+        "max_metric_absdiff": 0.0,
+        "same_packets": true,
+        "packets": "673",
+        "avg_packet_bytes": "34.97771173848439474"
+      }
+    },
+    "raw_stdout": {
+      "cbr_david_16000.stdout.txt": "perceptual validation bitrate=16000 official_bitrate=16000 input=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav reference=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav official_decoder_complexity=0 complexity=10 channels=1 current_postfilter_level=0 current_postfilter_requested_level=0 current_voice_denoise=0 current_voice_denoise_requested=0 pcm16=0 alignment=encoder_lookahead spectral_channels=independent frames=590\n  current  snr_db=8.60509698947186052 segmental_snr_db=9.16462525305453291 rms_error=0.03258270775533241 mean_abs_error=0.01589131306788254 pesq_style=2.41596260816652419 visqol_style=4.90800100308451537 logband_corr=0.99296381990865223 logband_error=0.07348769794681601 celt_quality=98.50084357764708898 celt_masked_error=1.20840588853192665 celt_highband_error=0.07885415237990399 stereo_width_error=0.00000000000000000 avg_packet_bytes=40.00000000000000000 encode_ms=105.48760000000000048 packets=590\n  official snr_db=4.76178024325240123 segmental_snr_db=3.36533871857664613 rms_error=0.05071693624616048 mean_abs_error=0.02569951798939376 pesq_style=1.98004915752939503 visqol_style=4.88003030244134894 logband_corr=0.98916110405436397 logband_error=0.09568552600545684 celt_quality=97.81760185348510106 celt_masked_error=1.76525176715451204 celt_highband_error=0.02062779933182339 stereo_width_error=0.00000000000000000 avg_packet_bytes=40.00000000000000000 encode_ms=89.52809999999999491 packets=590\n  delta current_minus_official snr_db=3.84331674621945929 rms_error=-0.01813422849082807 mean_abs_error=-0.00980820492151122 pesq_style=0.43591345063712916 visqol_style=0.02797070064316642 logband_corr=0.00380271585428826 celt_quality=0.68324172416198792 celt_masked_error=-0.55684587862258539 celt_highband_error=0.05822635304808060 stereo_width_error=0.00000000000000000 packet_bytes=0.00000000000000000 packet_bytes_pct=0.00000000000000000 encode_speed_ratio_current_vs_official=1.17826246731473150\n",
+      "cbr_hazel_16000.stdout.txt": "perceptual validation bitrate=16000 official_bitrate=16000 input=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav reference=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav official_decoder_complexity=0 complexity=10 channels=1 current_postfilter_level=0 current_postfilter_requested_level=0 current_voice_denoise=0 current_voice_denoise_requested=0 pcm16=0 alignment=encoder_lookahead spectral_channels=independent frames=673\n  current  snr_db=12.93584237339763376 segmental_snr_db=11.17820832054394309 rms_error=0.02578075341514667 mean_abs_error=0.01385087412308474 pesq_style=2.56966716386903027 visqol_style=4.92712491965280641 logband_corr=0.99537937733048976 logband_error=0.05858025080434309 celt_quality=98.99116471066065515 celt_masked_error=0.81116681463732121 celt_highband_error=0.05658427244910456 stereo_width_error=0.00000000000000000 avg_packet_bytes=40.00000000000000000 encode_ms=121.60899999999999466 packets=673\n  official snr_db=6.02891531716983131 segmental_snr_db=3.50083284240689885 rms_error=0.05710076909180334 mean_abs_error=0.03103351356917361 pesq_style=1.99063949640599014 visqol_style=4.89151354364252278 logband_corr=0.98867023534063336 logband_error=0.08364354254050475 celt_quality=98.75606602582477933 celt_masked_error=1.00138847870969183 celt_highband_error=0.06387251996435507 stereo_width_error=0.00000000000000000 avg_packet_bytes=40.00000000000000000 encode_ms=96.48189999999999600 packets=673\n  delta current_minus_official snr_db=6.90692705622780245 rms_error=-0.03132001567665667 mean_abs_error=-0.01718263944608887 pesq_style=0.57902766746304013 visqol_style=0.03561137601028364 logband_corr=0.00670914198985639 celt_quality=0.23509868483587582 celt_masked_error=-0.19022166407237062 celt_highband_error=-0.00728824751525051 stereo_width_error=0.00000000000000000 packet_bytes=0.00000000000000000 packet_bytes_pct=0.00000000000000000 encode_speed_ratio_current_vs_official=1.26043330407050447\n",
+      "cbr_david_32000.stdout.txt": "perceptual validation bitrate=32000 official_bitrate=32000 input=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav reference=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav official_decoder_complexity=0 complexity=10 channels=1 current_postfilter_level=0 current_postfilter_requested_level=0 current_voice_denoise=0 current_voice_denoise_requested=0 pcm16=0 alignment=encoder_lookahead spectral_channels=independent frames=590\n  current  snr_db=10.07685777672176997 segmental_snr_db=10.96620860885123960 rms_error=0.02750420736963719 mean_abs_error=0.01269709417584842 pesq_style=2.55415473704107798 visqol_style=4.94436334787706055 logband_corr=0.99701827349160477 logband_error=0.04480674173712226 celt_quality=99.36626994304391758 celt_masked_error=0.50859732018775405 celt_highband_error=0.01790875878306623 stereo_width_error=0.00000000000000000 avg_packet_bytes=80.00000000000000000 encode_ms=99.65989999999999327 packets=590\n  official snr_db=5.30374914846834855 segmental_snr_db=3.90641315883121099 rms_error=0.04764908497926695 mean_abs_error=0.02340439287148430 pesq_style=2.02226724077099673 visqol_style=4.91961664240428398 logband_corr=0.99406156119370204 logband_error=0.06389537833355262 celt_quality=97.61137602672495461 celt_masked_error=1.93409133683915258 celt_highband_error=0.00802732320270018 stereo_width_error=0.00000000000000000 avg_packet_bytes=80.00000000000000000 encode_ms=85.17709999999999582 packets=590\n  delta current_minus_official snr_db=4.77310862825342141 rms_error=-0.02014487760962976 mean_abs_error=-0.01070729869563588 pesq_style=0.53188749627008125 visqol_style=0.02474670547277658 logband_corr=0.00295671229790273 celt_quality=1.75489391631896297 celt_masked_error=-1.42549401665139852 celt_highband_error=0.00988143558036605 stereo_width_error=0.00000000000000000 packet_bytes=0.00000000000000000 packet_bytes_pct=0.00000000000000000 encode_speed_ratio_current_vs_official=1.17003161647907716\n",
+      "cbr_hazel_32000.stdout.txt": "perceptual validation bitrate=32000 official_bitrate=32000 input=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav reference=C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav official_decoder_complexity=0 complexity=10 channels=1 current_postfilter_level=0 current_postfilter_requested_level=0 current_voice_denoise=0 current_voice_denoise_requested=0 pcm16=0 alignment=encoder_lookahead spectral_channels=independent frames=673\n  current  snr_db=14.50822809281666004 segmental_snr_db=12.90407496004957189 rms_error=0.02151177857836533 mean_abs_error=0.01138061809941817 pesq_style=2.69985793609146008 visqol_style=4.95539300576742914 logband_corr=0.99788822689485190 logband_error=0.03595677497398051 celt_quality=99.36182459941325362 celt_masked_error=0.51217635606923073 celt_highband_error=0.06283602103308830 stereo_width_error=0.00000000000000000 avg_packet_bytes=80.00000000000000000 encode_ms=110.09489999999999554 packets=673\n  official snr_db=6.20701211783562723 segmental_snr_db=4.05488348173034918 rms_error=0.05594188778811356 mean_abs_error=0.02979644371592896 pesq_style=2.03241244147831379 visqol_style=4.91729185018193071 logband_corr=0.99085511613758703 logband_error=0.06185792498486233 celt_quality=99.33440914952058165 celt_masked_error=0.53425262761146641 celt_highband_error=0.06983443792466594 stereo_width_error=0.00000000000000000 avg_packet_bytes=80.00000000000000000 encode_ms=117.50860000000000127 packets=673\n  delta current_minus_official snr_db=8.30121597498103370 rms_error=-0.03443010920974823 mean_abs_error=-0.01841582561651079 pesq_style=0.66744549461314628 visqol_style=0.03810115558549843 logband_corr=0.00703311075726487 celt_quality=0.02741544989267197 celt_masked_error=-0.02207627154223568 celt_highband_error=-0.00699841689157764 stereo_width_error=0.00000000000000000 packet_bytes=0.00000000000000000 packet_bytes_pct=0.00000000000000000 encode_speed_ratio_current_vs_official=0.93690929855346750\n"
+    }
+  },
+  "evidence_files": {
+    "strict_candidate.json": {
+      "sha256": "58d6106f6213ec5b9238b484eef175c8626162b1746b780b9840a5e1ec25ee6e",
+      "bytes": 48850
+    },
+    "strict_parent.json": {
+      "sha256": "306025a88eecbc257e7a11a98eb6c096475a2a8162f3dcd029feb1253a91fbcb",
+      "bytes": 48801
+    },
+    "run_std_candidate.stdout.txt": {
+      "sha256": "704f8c5b9abe9a6f847a557a269defd97f8a586c92446676cdf4b6812a83816c",
+      "bytes": 17054
+    },
+    "run_std_parent.stdout.txt": {
+      "sha256": "1e5cc2d0abb4913a7a4bb5ef16fad60deeb0799e671e61a8c2dbc8e75b21435e",
+      "bytes": 17039
+    },
+    "cbr_check.json": {
+      "sha256": "25053f058b9e92f6147bf0395e4e33941fe582273fb814125e9ef253947c4347",
+      "bytes": 7298
+    },
+    "check18_candidate.stdout.txt": {
+      "sha256": "39008984c43f9ce5ef52485e72d2162a19f68a75043c8bbdd6553108a050568f",
+      "bytes": 60
+    },
+    "regression.json": {
+      "sha256": "4509c7bbb965216e06e2b7b329516146ea6840edf6729876c603fb56bd367367",
+      "bytes": 3593
+    },
+    "RELEASE_CHECK.md": {
+      "sha256": "6e726de9bf2305605e2b597c70a9981d1701393c6ce88e6e7c85bcb4fbeb4ba4",
+      "bytes": 3220
+    }
+  },
+  "limits": [
+    "Candidate qualifies the recorded standard FEC and 18-case C1-C4 gates only.",
+    "No full 498-case or 806-case quality, speed, memory, or VOIP timing refresh was run for this candidate.",
+    "The existing full S6 benchmark snapshot remains bound to source f944dc7/7bdc1d45; its FEC failure is retained unchanged as historical full-refresh data.",
+    "David mono VOIP CBR 16 kbps CELT high-band error worsens from 0.06521369 to 0.07885415; official is 0.02062780."
+  ],
+  "behavioral_regression_checks": {
+    "source": {
+      "parent": "7bdc1d452de3bc8291be6418a3559a1a85ce392757319e1d1446cd44d72d2eb5",
+      "candidate": "cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601"
+    },
+    "tests": {
+      "parent_stereo_policy": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, rejected float input, reset, roundtrip)"
+        ],
+        "stderr_tail": []
+      },
+      "parent_packet_duration": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "packet_duration_behavior=PASS"
+        ],
+        "stderr_tail": []
+      },
+      "parent_quiet_start_fec": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
+        ],
+        "stderr_tail": []
+      },
+      "parent_vbr_budget": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "vbr_budget_behavior=PASS"
+        ],
+        "stderr_tail": []
+      },
+      "parent_dtx_vs_official": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "dtx_false_positive bitrate=24000 material=fricative_voice opuscpp=0 official=0",
+          "dtx_reentry bitrate=24000 material=fricative_voice opuscpp_nrmse=0.058581 official_nrmse=0.827184 opuscpp_gain_db=0.016459 official_gain_db=5.112439",
+          "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.375632 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=1.531290 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0"
+        ],
+        "stderr_tail": []
+      },
+      "candidate_stereo_policy": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "stereo_policy_guard=PASS (activation, copies, unstable startup, protected settings, rejected float input, reset, roundtrip)"
+        ],
+        "stderr_tail": []
+      },
+      "candidate_packet_duration": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "packet_duration_behavior=PASS"
+        ],
+        "stderr_tail": []
+      },
+      "candidate_quiet_start_fec": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
+        ],
+        "stderr_tail": []
+      },
+      "candidate_vbr_budget": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "vbr_budget_behavior=PASS"
+        ],
+        "stderr_tail": []
+      },
+      "candidate_dtx_vs_official": {
+        "build_exit": 0,
+        "exit": 0,
+        "stdout_tail": [
+          "dtx_false_positive bitrate=24000 material=fricative_voice opuscpp=0 official=0",
+          "dtx_reentry bitrate=24000 material=fricative_voice opuscpp_nrmse=0.077870 official_nrmse=0.827184 opuscpp_gain_db=0.012520 official_gain_db=5.112439",
+          "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.374613 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=1.405174 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0"
+        ],
+        "stderr_tail": []
+      }
+    },
+    "hashes": {
+      "candidate.cpp": "cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601",
+      "parent.o": "90d687a62c05e3831ef41b6f79ab77c3f388172b857628b2fc08ef9c6ecdaa9a",
+      "candidate.o": "0244a9f1a605ec2417a0302fc9427b3c17d656b6841aefe32a0c44d9689f1bfd",
+      "budget_test": "9cc210f20cb4dceb69857d00faddff0f3a41d814e2db5c501159fc4a70d4097f",
+      "quiet_start_fec_ext": "bfc6de233f53c8f3b5fbb6c659491507e5afb3e88bb7cac4d5d5152809403764"
+    }
+  },
+  "dtx_candidate_vs_parent": {
+    "status": "PASS",
+    "parent": {
+      "reentry_nrmse": 0.375632,
+      "reentry_gain_db": 1.53129,
+      "official_reentry_nrmse": 0.762239,
+      "official_reentry_gain_db": 1.646307
+    },
+    "candidate": {
+      "reentry_nrmse": 0.374613,
+      "reentry_gain_db": 1.405174,
+      "official_reentry_nrmse": 0.762239,
+      "official_reentry_gain_db": 1.646307
+    },
+    "metric_movement": {
+      "reentry_nrmse": -0.001019,
+      "reentry_gain_db": -0.126116
+    },
+    "false_positive_packets": {
+      "candidate": 0,
+      "official": 0
+    },
+    "silence_dtx_packets": {
+      "candidate": 406,
+      "official": 406
+    },
+    "steady_noise_dtx_packets": {
+      "candidate": 120,
+      "official": 0
+    },
+    "note": "Both parent and candidate DTX comparison exit 0; preserve measured movement even though the aggregate check passes."
+  }
+}

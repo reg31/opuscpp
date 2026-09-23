@@ -102,7 +102,7 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_SET_DTX_REQUEST` | `OPUS_SET_DTX(x)` | Enables guarded discontinuous transmission; default is off. |
 | `OPUS_GET_DTX_REQUEST` | `OPUS_GET_DTX(&x)` | Returns the DTX setting. |
 | `OPUS_GET_IN_DTX_REQUEST` | `OPUS_GET_IN_DTX(&x)` | Reports whether the encoder is currently suppressing inactive frames. |
-| `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. SILK/hybrid uses native rate control; the additional packet-credit budget applies to CELT-only runs. Constrained VBR does not impose a universal per-packet ceiling. |
+| `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. SILK-only and CELT-only frames use the additional packet-credit budget; hybrid frames use native rate control. Constrained VBR does not impose a universal per-packet ceiling. |
 | `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |
 | `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |
 | `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |
@@ -160,8 +160,7 @@ opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(10));
 Recovery requires one packet of delay. If packet `N` is missing and packet `N+1` arrives, decode
 `N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with
 `decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
-concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms
-packets in both directions against official Opus, including VBR and CBR. The S6 refresh records 18/18 recovery wins, but packet-byte ratio 1.00102 fails the <=1 gate. Source criteria C1/C2/C3/C4 are 18/18, 18/18, 17/18, 18/18. C3 fails for mono 10 ms, 24 kb/s, profile-1 VBR (transition_fec 0.420358036 vs official 0.271244925). See the [full metric inventory](../tests/metrics/README.md).
+concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms packets in both directions against official Opus, including VBR and CBR. The separate FEC candidate `cc0df2af` (source SHA-256 `cc0df2af5b8ccc5166969d800764d08032f5e3baf1bee78bffbc0647b2c6d601`) passes the standard 18/18 recovery comparison and packet-byte gate (ratio 0.993345; 14,627 candidate bytes vs 14,725 official) and all four source criteria on 18/18 cases. This is an FEC-scoped follow-up; the complete quality, speed and memory tables remain bound to the S6 source `f944dc7` in the full snapshot. Known non-FEC tradeoff: David mono VOIP at 16 kb/s CBR has celt_highband_error 0.06521369 on the a9 baseline and 0.07885415 on this candidate (official Opus 0.02062780). The candidate DTX comparison remains PASS; re-entry NRMSE moves 0.375632 to 0.374613 and gain error moves 1.531290 to 1.405174 dB (official 0.762239 and 1.646307). See [`fec_s7_candidate_validation.json`](../tests/metrics/fec_s7_candidate_validation.json). The complete S6 snapshot remains in [full metric inventory](../tests/metrics/README.md); its original FEC result was packet-byte ratio 1.00102 and C3 17/18.
 
 This recovery error compares each recovered frame with normal, loss-free decoding of the same
 encoded stream; it measures damage from packet loss, not total error against the original recording.
