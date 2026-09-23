@@ -1941,7 +1941,6 @@ constexpr int audio_preprocess_music = 0;
 constexpr int audio_preprocess_speech = 1;
 constexpr int audio_preprocess_warmup_frames = 12;
 constexpr int audio_preprocess_hold_frames = 50;
-constexpr int fec_mode_settle_frames = 4;
 constexpr int stereo_preservation_probe_frames = 8;
 constexpr int quiet_tonal_bypass_hold_frames = 250;
 constexpr int tonal_confirmation_frames = 3;
@@ -2887,7 +2886,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if (voip_style && st->silk_mode.useInBandFEC && (st->silk_mode.useInBandFEC != 2 || voice_est > 25) &&
       st->silk_mode.packetLossPercentage > 0 && st->mode == opus_mode_celt_only &&
-      st->lightweight_analysis_frames >= fec_mode_settle_frames && frame_size >= st->Fs / 100 &&
+      frame_size >= st->Fs / 100 &&
       st->bitrate_bps <= std::array{32000, 48000}[static_cast<std::size_t>(st->channels - 1)]) {
     st->mode = opus_mode_silk_only;
   }

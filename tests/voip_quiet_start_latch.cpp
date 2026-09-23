@@ -32,11 +32,14 @@ std::vector<opus_int16> make_input(int frames, int kind) {
   return result;
 }
 
-packets encode(int bitrate, bool float_api, const std::vector<opus_int16>& common, int prefix, bool reset) {
+packets encode(int bitrate, bool float_api, const std::vector<opus_int16>& common, int prefix, bool reset, int fec = 0) {
   int error = OPUS_OK;
   auto encoder = make_opus_encoder(48000, 1, OPUS_APPLICATION_VOIP, &error);
   if (!encoder || error || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) ||
       opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(10)) || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(1)))
+    return {};
+  if (fec != 0 && (opus_encoder_ctl(encoder.get(), OPUS_SET_INBAND_FEC(fec)) ||
+                   opus_encoder_ctl(encoder.get(), OPUS_SET_PACKET_LOSS_PERC(15))))
     return {};
   std::array<unsigned char, 1500> packet{};
   std::array<float, frame_size> converted{};
@@ -97,6 +100,19 @@ int main() {
         ++checks;
       }
     }
+  for (bool float_api : {false, true}) {
+    const auto fec_stream = encode(32000, float_api, common, 0, false, 1);
+    const auto fec_reset = encode(32000, float_api, common, 3, true, 1);
+    if (fec_stream.size() != 200 || fec_reset != fec_stream) {
+      std::fprintf(stderr, "FEC1 startup reset mismatch: float=%d\n", float_api);
+      ++failures;
+    }
+    if (fec_stream.empty() || mode(fec_stream[0]) == 2) {
+      std::fprintf(stderr, "FEC1 startup first packet is CELT: float=%d\n", float_api);
+      ++failures;
+    }
+    ++checks;
+  }
   std::printf("voip_startup_behavior checks=%d failures=%d (mode convergence and byte-identical reset)\n", checks, failures);
   return failures ? 3 : 0;
 }
