@@ -5576,7 +5576,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
   follower[1] += (.5f) * low_rate_lf_boost;
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, bool extra_depth = false, const celt_norm* normalized = nullptr, int frame_n = 0, int* importance = nullptr) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -5653,11 +5653,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     const bool constrained_steady = (!st->vbr || st->constrained_vbr) && !isTransient;
     for (i = start; i < end; i++) {
       if (constrained_steady) {
-        if (extra_depth) {
-          const int first = eBands[i] << LM, width = (eBands[i + 1] - eBands[i]) << LM;
-          const float correlation = normalized && C == 2 ? clamp_value(celt_inner_prod_c(normalized + first, normalized + frame_n + first, width), -1.f, 1.f) : 0.f;
-          follower[i] *= 2.f - correlation * correlation;
-        }
         if (i >= 12) {
           follower[i] *= .25f;
         } else if (i >= 8) {
@@ -5715,8 +5710,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       std::fprintf(stderr, "offsets:");
       for (i = start; i < end; ++i)
         std::fprintf(stderr, " %d", offsets[i]);
-      std::fprintf(stderr, " tot_boost=%d effBytes=%d extra_depth=%d\n", static_cast<int>(tot_boost),
-                   static_cast<int>(effectiveBytes), extra_depth ? 1 : 0);
+      std::fprintf(stderr, " tot_boost=%d effBytes=%d\n", static_cast<int>(tot_boost),
+                   static_cast<int>(effectiveBytes));
     }
 #endif
   }
@@ -6460,7 +6455,7 @@ static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, i
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, true, freq, N, importance.data());
+                                 &tot_boost, toneishness, importance.data());
   }
   auto* X = freq;
 
