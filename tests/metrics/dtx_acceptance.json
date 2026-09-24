@@ -1,0 +1,11 @@
+{
+  "acceptance": "FAIL",
+  "gate_exit_code": 1,
+  "reporting_exit_code": 1,
+  "summary": "dtx_comparison=FAIL false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.426177 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=1.855549 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
+  "original_source_sha256": "da4c831bf8665f0cb8006425fc0e58bfec5f88434f81bfbb3ddfc7c27d3cb93f",
+  "reporting_source_sha256": "07bff621ef013f6fc6772ba53c9bae6d4ea4637ad112957716940f659e73a210",
+  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\dtx_reporting.cpp",
+  "waiver": false,
+  "failure_is_non_gating_for_measurement_completion": true
+}

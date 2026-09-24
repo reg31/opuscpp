@@ -1,0 +1,10 @@
+{
+  "kind": "initial_run_reporting_provenance",
+  "runner_sha256": "8378f1175f8df2b4fd5c299e3824b89e047cb63dd8f9ec40e094a908fb204244",
+  "original_runner_provenance": {
+    "root_runner_sha256": "4fe198a903daf51e658211bdf383e2e6527aff31e3e55fb390d5795f495e2b77",
+    "phase_runner_sha256": "8378f1175f8df2b4fd5c299e3824b89e047cb63dd8f9ec40e094a908fb204244"
+  },
+  "reason": "Aggregate reporting precedes the unchanged DTX acceptance predicate; failure status is preserved.",
+  "waiver": false
+}

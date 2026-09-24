@@ -1,6 +1,6 @@
 {
-  "source_commit": "1379e10724e422adf722da45e843b669faed56e1",
-  "source_sha256": "9c9337dfddd5565001e2aba72f9cd1581d53f2b1d2374a34743c6c206d24edba",
+  "source_commit": "6d931a266893dc8eea678feca2b57d15dbb16e12",
+  "source_sha256": "083a13104d07430b3382115ef4a90c21dfaf209e0f0e93bc5cdf8abe73a477c1",
   "results": {
     "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0",
     "voice_denoise_state": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes",
@@ -19,298 +19,298 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\conformance_decode.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe"
       ],
       "exit": 0,
-      "seconds": 9.491295899963006
+      "seconds": 12.076394999981858
     },
     "compat_command_002.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector01.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector01_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector01_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.10740390000864863
+      "seconds": 0.11526799999410287
     },
     "compat_command_003.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector02.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector02_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector02_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.02676239999709651
+      "seconds": 0.03491230000508949
     },
     "compat_command_004.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector03.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector03_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector03_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03617500001564622
+      "seconds": 0.02658159995917231
     },
     "compat_command_005.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector04.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector04_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector04_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03379670000867918
+      "seconds": 0.034929400018882006
     },
     "compat_command_006.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector05.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector05_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector05_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04448219999903813
+      "seconds": 0.05313910002587363
     },
     "compat_command_007.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector06.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector06_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector06_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04637100000400096
+      "seconds": 0.04679920000489801
     },
     "compat_command_008.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector07.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector07_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector07_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04444069997407496
+      "seconds": 0.03598260000580922
     },
     "compat_command_009.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector08.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector08_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector08_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.037959299981594086
+      "seconds": 0.042479600000660866
     },
     "compat_command_010.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector09.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector09_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector09_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05302079999819398
+      "seconds": 0.0556114999926649
     },
     "compat_command_011.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector10.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector10_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector10_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06268619996262714
+      "seconds": 0.06294860003981739
     },
     "compat_command_012.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector11.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector11_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector11_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.0565364999929443
+      "seconds": 0.05113899998832494
     },
     "compat_command_013.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector12.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector12_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector12_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.028603700047824532
+      "seconds": 0.03752849996089935
     },
     "compat_command_014.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector01.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector01_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector01_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06732660002307966
+      "seconds": 0.0674970000400208
     },
     "compat_command_015.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector02.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector02_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector02_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.030437299981713295
+      "seconds": 0.029178099997807294
     },
     "compat_command_016.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector03.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector03_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector03_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03629900002852082
+      "seconds": 0.029671399970538914
     },
     "compat_command_017.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector04.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector04_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector04_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03879920003237203
+      "seconds": 0.047186999989207834
     },
     "compat_command_018.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector05.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector05_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector05_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05442040000343695
+      "seconds": 0.053281999949831516
     },
     "compat_command_019.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector06.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector06_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector06_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05460280005354434
+      "seconds": 0.052083399961702526
     },
     "compat_command_020.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector07.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector07_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector07_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04202280001481995
+      "seconds": 0.04087049997178838
     },
     "compat_command_021.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector08.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector08_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector08_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04870210000080988
+      "seconds": 0.05170829995768145
     },
     "compat_command_022.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector09.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector09_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector09_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06151569995563477
+      "seconds": 0.0576909999945201
     },
     "compat_command_023.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector10.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector10_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector10_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06823930004611611
+      "seconds": 0.0685683999909088
     },
     "compat_command_024.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector11.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector11_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector11_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05298759997822344
+      "seconds": 0.054966700030490756
     },
     "compat_command_025.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector12.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\rfc_decode\\testvector12_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\rfc_decode\\testvector12_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04231160000199452
+      "seconds": 0.03246060002129525
     },
     "compat_command_026.cmd": {
       "argv": [
@@ -337,10 +337,10 @@
         "-c",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\codex_opus_codec.o"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\codex_opus_codec.o"
       ],
       "exit": 0,
-      "seconds": 8.61736520001432
+      "seconds": 11.450897999980953
     },
     "compat_command_027.cmd": {
       "argv": [
@@ -353,10 +353,10 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\official_encode_validation.cpp",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\official_encode_validation.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\official_encode_validation.exe"
       ],
       "exit": 0,
-      "seconds": 2.1965547999716364
+      "seconds": 2.0986566999927163
     },
     "compat_command_028.cmd": {
       "argv": [
@@ -369,31 +369,31 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\conformance_encode.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\codex_opus_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\codex_opus_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\conformance_encode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\conformance_encode.exe"
       ],
       "exit": 0,
-      "seconds": 2.991587000025902
+      "seconds": 2.8782123000128195
     },
     "compat_command_029.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\official_encode_validation.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\official_encode_validation.exe",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\encode_validation.bin"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\encode_validation.bin"
       ],
       "exit": 0,
-      "seconds": 17.91352330002701
+      "seconds": 26.492914699949324
     },
     "compat_command_030.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\conformance_encode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\conformance_encode.exe",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\encode_validation\\encode_validation.bin"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\encode_validation\\encode_validation.bin"
       ],
       "exit": 0,
-      "seconds": 5.39391780004371
+      "seconds": 6.5223309000139125
     },
     "compat_command_031.cmd": {
       "argv": [
@@ -406,17 +406,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\decoder_channel_remap.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\decoder_channel_remap.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\decoder_channel_remap.exe"
       ],
       "exit": 0,
-      "seconds": 9.76089239999419
+      "seconds": 12.90152220003074
     },
     "compat_command_032.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\decoder_channel_remap.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\decoder_channel_remap.exe"
       ],
       "exit": 0,
-      "seconds": 0.06742749997647479
+      "seconds": 0.08730730001116171
     },
     "compat_command_033.cmd": {
       "argv": [
@@ -429,17 +429,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\packet_duration_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\packet_duration_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\packet_duration_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 9.548309000034351
+      "seconds": 12.447183299984317
     },
     "compat_command_034.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\packet_duration_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\packet_duration_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.22818590002134442
+      "seconds": 0.23455360002117231
     },
     "compat_command_035.cmd": {
       "argv": [
@@ -452,17 +452,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\vbr_budget_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 9.486234199954197
+      "seconds": 12.38752700004261
     },
     "compat_command_036.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 8.475316900003236
+      "seconds": 12.06510209996486
     },
     "compat_command_037.cmd": {
       "argv": [
@@ -475,17 +475,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\dtx_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\dtx_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\dtx_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 9.43429860001197
+      "seconds": 12.338309500017203
     },
     "compat_command_038.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\dtx_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\dtx_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.06819999997969717
+      "seconds": 0.07610169996041805
     },
     "compat_command_039.cmd": {
       "argv": [
@@ -498,17 +498,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\postfilter_bypass.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\postfilter_bypass.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\postfilter_bypass.exe"
       ],
       "exit": 0,
-      "seconds": 9.598313900001813
+      "seconds": 12.805963099992368
     },
     "compat_command_040.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\postfilter_bypass.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\postfilter_bypass.exe"
       ],
       "exit": 0,
-      "seconds": 0.9731695000082254
+      "seconds": 0.9682551000150852
     },
     "compat_command_041.cmd": {
       "argv": [
@@ -518,17 +518,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\lpc_analysis_filter.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
       ],
       "exit": 0,
-      "seconds": 9.246192699996755
+      "seconds": 12.217525999993086
     },
     "compat_command_042.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
       ],
       "exit": 0,
-      "seconds": 0.5434289000113495
+      "seconds": 0.516318499983754
     },
     "compat_command_043.cmd": {
       "argv": [
@@ -538,17 +538,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\celt_energy_decode.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\celt_energy_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\celt_energy_decode.exe"
       ],
       "exit": 0,
-      "seconds": 9.018261399993207
+      "seconds": 11.923438600031659
     },
     "compat_command_044.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\celt_energy_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\celt_energy_decode.exe"
       ],
       "exit": 0,
-      "seconds": 0.055525299976579845
+      "seconds": 0.06309339997824281
     },
     "compat_command_045.cmd": {
       "argv": [
@@ -558,17 +558,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\stereo_policy.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\stereo_policy.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\stereo_policy.exe"
       ],
       "exit": 0,
-      "seconds": 9.395562799996696
+      "seconds": 12.013960799959023
     },
     "compat_command_046.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\stereo_policy.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\stereo_policy.exe"
       ],
       "exit": 0,
-      "seconds": 0.3552862000069581
+      "seconds": 0.3800736000412144
     },
     "compat_command_047.cmd": {
       "argv": [
@@ -595,10 +595,10 @@
         "-c",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\current_codec.o"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\current_codec.o"
       ],
       "exit": 0,
-      "seconds": 8.553470599988941
+      "seconds": 11.085658200026955
     },
     "compat_command_048.cmd": {
       "argv": [
@@ -609,20 +609,20 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\dtx_vs_official.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\current_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\current_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\dtx_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\dtx_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 1.2475090000079945
+      "seconds": 1.1756506999954581
     },
     "compat_command_049.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\dtx_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\dtx_vs_official.exe"
       ],
-      "exit": 0,
-      "seconds": 1.031703800021205
+      "exit": 1,
+      "seconds": 1.113410699996166
     },
     "compat_command_050.cmd": {
       "argv": [
@@ -633,20 +633,20 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\fec_vs_official.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\current_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\current_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\fec_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\fec_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 1.3798433000338264
+      "seconds": 1.3568990000057966
     },
     "compat_command_051.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\api_behavior\\fec_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\api_behavior\\fec_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 0.9208512000041083
+      "seconds": 0.9204487000242807
     },
     "compat_link_transient_invariant.cmd": {
       "argv": [
@@ -654,14 +654,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests\\transient_invariant.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests\\transient_invariant.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\transient_invariant.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\transient_invariant.exe"
       ],
       "exit": 0,
-      "seconds": 8.65517759998329
+      "seconds": 11.406562699994538
     },
     "compat_link_voice_conditioning_release.cmd": {
       "argv": [
@@ -669,14 +669,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests\\voice_conditioning_release.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests\\voice_conditioning_release.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voice_conditioning_release.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voice_conditioning_release.exe"
       ],
       "exit": 0,
-      "seconds": 8.671463799953926
+      "seconds": 11.500895400007721
     },
     "compat_link_voice_denoise_state.cmd": {
       "argv": [
@@ -684,14 +684,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests\\voice_denoise_state.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests\\voice_denoise_state.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voice_denoise_state.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voice_denoise_state.exe"
       ],
       "exit": 0,
-      "seconds": 8.713346999953501
+      "seconds": 11.443445399985649
     },
     "compat_link_voip_quiet_start_latch.cmd": {
       "argv": [
@@ -699,43 +699,43 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\tests\\voip_quiet_start_latch.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\src\\opus_codec.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\tests\\voip_quiet_start_latch.cpp",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voip_quiet_start_latch.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voip_quiet_start_latch.exe"
       ],
       "exit": 0,
-      "seconds": 9.44097990001319
+      "seconds": 11.865826099994592
     },
     "compat_run_transient_invariant.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\transient_invariant.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\transient_invariant.exe"
       ],
       "exit": 0,
-      "seconds": 0.05565629998454824
+      "seconds": 0.07298810000065714
     },
     "compat_run_voice_conditioning_release.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voice_conditioning_release.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voice_conditioning_release.exe"
       ],
       "exit": 0,
-      "seconds": 0.05980049999197945
+      "seconds": 0.06663929997012019
     },
     "compat_run_voice_denoise_state.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voice_denoise_state.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voice_denoise_state.exe"
       ],
       "exit": 0,
-      "seconds": 0.3054944999748841
+      "seconds": 0.3090059999958612
     },
     "compat_run_voip_quiet_start_latch.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classical_leak_20260923\\compatibility\\voip_quiet_start_latch.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\classifier_verified_20260924\\compatibility\\voip_quiet_start_latch.exe"
       ],
       "exit": 0,
-      "seconds": 1.392356500029564
+      "seconds": 1.618866299977526
     }
   },
   "sanitizers": false
