@@ -29,6 +29,7 @@ static bool check_silk_reconstruction() {
         encoder->lightweight_music_score_Q7 = 0;
         encoder->lightweight_harmonic_music_Q7 = 0;
         encoder->lightweight_high_z_tonal_Q7 = 0;
+        encoder->classical_leak.analysis_offset = static_cast<int>(input.size());
         const int bytes = opus_encode(encoder.get(), input.data(), 320, packet.data(), packet.size());
         if (bytes <= 0 || opus_decode(decoder.get(), packet.data(), bytes, output.data(), 320, 0) != 320)
           return false;
