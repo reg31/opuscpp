@@ -9416,9 +9416,11 @@ static float classifier_sigmoid_approx(float x) {
 }
 
 static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows, int cols, int col_stride, const float* x) {
-  for (int i = 0; i < rows; ++i) {
-    for (int j = 0; j < cols; ++j) {
-      out[i] += weights[j * col_stride + i] * x[j];
+  for (int j = 0; j < cols; ++j) {
+    const float xj = x[j];
+    const opus_int8* column = weights + j * col_stride;
+    for (int i = 0; i < rows; ++i) {
+      out[i] += column[i] * xj;
     }
   }
 }
