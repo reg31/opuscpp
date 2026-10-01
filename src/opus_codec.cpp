@@ -3078,13 +3078,16 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   if (st->mode == opus_mode_celt_only && st->classical_leak.out_info.valid) {
     const int det_band = st->classical_leak.out_info.bandwidth;
-    const int mapped = det_band <= 12 ? 1101 : det_band <= 14 ? 1102 : det_band <= 16 ? 1103 : det_band <= 18 ? 1104 : 1105;
+    const int mapped = det_band <= 12 ? 1101 : det_band <= 14 ? 1102
+                                           : det_band <= 16   ? 1103
+                                           : det_band <= 18   ? 1104
+                                                              : 1105;
     const int sc = st->stream_channels;
-    const int floor_bw = equiv_rate <= 18000 * sc ? 1101
-                        : equiv_rate <= 24000 * sc ? 1102
-                        : equiv_rate <= 30000 * sc ? 1103
-                        : equiv_rate <= 44000 * sc ? 1104
-                                                  : 1105;
+    const int floor_bw = equiv_rate <= 18000 * sc   ? 1101
+                         : equiv_rate <= 24000 * sc ? 1102
+                         : equiv_rate <= 30000 * sc ? 1103
+                         : equiv_rate <= 44000 * sc ? 1104
+                                                    : 1105;
     st->bandwidth = std::min(st->bandwidth, std::max(mapped, floor_bw));
     if (st->bandwidth == 1102) {
       st->bandwidth = 1103;
