@@ -3076,6 +3076,20 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   } else if (st->bandwidth <= 1103 && st->mode == opus_mode_hybrid) {
     st->mode = opus_mode_silk_only;
   }
+  if (st->mode == opus_mode_celt_only && st->classical_leak.out_info.valid) {
+    const int det_band = st->classical_leak.out_info.bandwidth;
+    const int mapped = det_band <= 12 ? 1101 : det_band <= 14 ? 1102 : det_band <= 16 ? 1103 : det_band <= 18 ? 1104 : 1105;
+    const int sc = st->stream_channels;
+    const int floor_bw = equiv_rate <= 18000 * sc ? 1101
+                        : equiv_rate <= 24000 * sc ? 1102
+                        : equiv_rate <= 30000 * sc ? 1103
+                        : equiv_rate <= 44000 * sc ? 1104
+                                                  : 1105;
+    st->bandwidth = std::min(st->bandwidth, std::max(mapped, floor_bw));
+    if (st->bandwidth == 1102) {
+      st->bandwidth = 1103;
+    }
+  }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
   const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
   const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_silk_only;
