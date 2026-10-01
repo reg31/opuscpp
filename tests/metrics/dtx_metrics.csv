@@ -22,7 +22,7 @@ dtx_reentry,24000,far_field,,,0.555001,0.800514,1.146028,1.010243
 dtx_false_positive,24000,noisy_voice,0,0,,,,
 dtx_reentry,24000,noisy_voice,,,0.911143,1.027264,2.491943,1.346731
 dtx_false_positive,24000,two_speakers,0,0,,,,
-dtx_reentry,24000,two_speakers,,,0.054179,0.559172,0.069845,0.188358
+dtx_reentry,24000,two_speakers,,,0.053295,0.559172,0.025307,0.188358
 dtx_false_positive,24000,speech_music,0,0,,,,
 dtx_reentry,24000,speech_music,,,0.056331,0.488405,0.001141,0.039267
 dtx_false_positive,24000,fricative_voice,0,0,,,,
