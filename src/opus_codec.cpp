@@ -5392,7 +5392,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> metric{};
-  std::array<int, celt_default_nb_ebands> path0{}, path1{};
+  std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1;
   int selcost[2];
   int tf_select = 0;
@@ -5434,7 +5434,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       metric[i] -= 1;
   }
   int cost0, cost1;
-  for (int sel = 0; sel < 2; sel++) {
+  if (isTransient) for (int sel = 0; sel < 2; sel++) {
     cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
     cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]) + (isTransient ? 0 : lambda);
     for (int i = 1; i < len; i++) {
@@ -5446,7 +5446,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     cost0 = std::min(cost0, cost1);
     selcost[sel] = cost0;
   }
-  if (selcost[1] < selcost[0] && isTransient)
+  if (isTransient && selcost[1] < selcost[0])
     tf_select = 1;
   cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 0]);
   cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 1]) + (isTransient ? 0 : lambda);
@@ -10679,7 +10679,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   }
   const ec_enc enc_start = *enc;
   const opus_uint32 nstart_bytes = enc->offs;
-  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> old_intra{};
+  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> old_intra;
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> err_intra{};
   std::array<unsigned char, 1275> intra_bytes;
   int badness1 = 0;
