@@ -5434,18 +5434,19 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       metric[i] -= 1;
   }
   int cost0, cost1;
-  if (isTransient) for (int sel = 0; sel < 2; sel++) {
-    cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
-    cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]) + (isTransient ? 0 : lambda);
-    for (int i = 1; i < len; i++) {
-      const int curr0 = std::min(cost0, cost1 + lambda);
-      const int curr1 = std::min(cost0 + lambda, cost1);
-      cost0 = curr0 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
-      cost1 = curr1 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]);
+  if (isTransient)
+    for (int sel = 0; sel < 2; sel++) {
+      cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
+      cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]) + (isTransient ? 0 : lambda);
+      for (int i = 1; i < len; i++) {
+        const int curr0 = std::min(cost0, cost1 + lambda);
+        const int curr1 = std::min(cost0 + lambda, cost1);
+        cost0 = curr0 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
+        cost1 = curr1 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]);
+      }
+      cost0 = std::min(cost0, cost1);
+      selcost[sel] = cost0;
     }
-    cost0 = std::min(cost0, cost1);
-    selcost[sel] = cost0;
-  }
   if (isTransient && selcost[1] < selcost[0])
     tf_select = 1;
   cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * tf_select + 0]);
