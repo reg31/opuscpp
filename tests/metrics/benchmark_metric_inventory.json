@@ -95,9 +95,9 @@
       "git_blob_sha1": "85ec4ca55abd90e2c64f3f0aa1d4f52d4e3cfe74"
     },
     "tests/metrics/README.md": {
-      "bytes": 7879,
-      "sha256": "793181a0a6cd0f3b2c2e5372685b12f60c828112eafd63bc40c1ae43ce0450ea",
-      "git_blob_sha1": "0fe405e592420a7d763d7f5dd3012ed5e180192f"
+      "bytes": 8387,
+      "sha256": "022d25ba19bf09ce14ff6ca93764ae4ecb7f1463ec9292d14366ffcc7c2a3ddd",
+      "git_blob_sha1": "212c13b6229ddc430b4fb24762f300a2c710302e"
     },
     "tests/metrics/acceptance.json": {
       "bytes": 672,
@@ -393,6 +393,11 @@
       "bytes": 14334,
       "sha256": "0dbe352e489ffd609973f168a37650f8620bed3ac6d384a56fa6a1242941a736",
       "git_blob_sha1": "11384230002aa9c0c5519ba983c8551dc8c07786"
+    },
+    "tests/metrics/encoder_retained_storage_checkpoint.json": {
+      "bytes": 56111,
+      "sha256": "3dba8c012c4fa05383938005fb6aef5a3afa81c0bfab6c5f2ff2cb4d81ce575f",
+      "git_blob_sha1": "da302526a27ad5b3e9ea3095933e455021c4e193"
     }
   },
   "source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
@@ -406,5 +411,10 @@
     "NSQ work counters",
     "previous-version experiments",
     "working-memory baseline experiment"
-  ]
+  ],
+  "subsequent_storage_checkpoint": {
+    "path": "tests/metrics/encoder_retained_storage_checkpoint.json",
+    "source_sha256_git_normalized": "90a84abedff022bcd3ae72cec3a4fca24acd7949ca6179964db5256edd88beb5",
+    "scope": "Focused storage/identity/timing checkpoint; current full-suite tables retain their original measurement revision."
+  }
 }

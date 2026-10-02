@@ -1,0 +1,1781 @@
+{
+  "status": "Selected after root code review and bounded validation; retained allocation reduction, with small mixed timing results and no universal speed claim.",
+  "basis": {
+    "basis_commit": "c2f02393997d7ae94d7352c991cc760cd540a2a4",
+    "basis_source_blob": "f5907b4176e11b3645a79bdb58137563c5fe139c",
+    "scope": "Only reviewed SILK delay48,framepulses,packetinput +encoder-onlylog removal. No suffix/pending/ring experiments; all sourcecommenttokens unchanged.",
+    "files": {
+      "baseline.cpp": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
+      "candidate.cpp": "bcec1818c668c920a58b4a02680606f3b85e6ee870a194ef08d33ba2866ebbea",
+      "candidate.patch": "1ef44c7b4ee9ed1cb37ab90f67e79c1e249a2dd02ada4fae86f63ab888968797"
+    },
+    "unit_diffs": {
+      "private-validation\\retained35_silk\\packet_input.patch": "43af7bd3b566749a1a0463f8083975cdd76af5677c17b8839ff19a9be359afdf",
+      "private-validation\\non_silk_35\\encoder_logs.diff": "99932395fd9a07a0f6739f3b31e6419788f480225836a34dcc8d47645d011abe"
+    }
+  },
+  "bindings": {
+    "baseline.cpp": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
+    "candidate.cpp": "bcec1818c668c920a58b4a02680606f3b85e6ee870a194ef08d33ba2866ebbea",
+    "candidate.patch": "1ef44c7b4ee9ed1cb37ab90f67e79c1e249a2dd02ada4fae86f63ab888968797",
+    "manifest.json": "0fe14ecdda37c8805633b66c9b281caf03ca61a92b84d52998ffc14771d662d9",
+    "candidate.o": "028a8c79c8f7015c92909cb1ff90e32726970b9acae14630f8bf1bbbd7213d13",
+    "candidate.su": "365ea4597612b4f57a8d44dc889fe8383d735f316115f26104084f774c8a4bdb",
+    "identity.exe": "312142057646aefde97e727353103c0dd76e874e66ab9f9a4ceee1f69df3ef9e",
+    "identity_stdout.txt": "dc7ac6baad2cf4000cd2d689100ce03b07671e8b9406c35f11ac43547b2902e8",
+    "mixed_gate.exe": "ffa2a94a110f4a3824d8c978bead006b95048be951b06fe4ff02f6e76d292474",
+    "mixed_stdout.txt": "9c9207ea83f42b40dade7517f7cfeca9cfbb512bb4c532be13e8d47c196d7548",
+    "layout.cpp": "438e53d8a4820137949d3942ebb604040dabf05d8053e070235ede2726f9d4ad",
+    "layout.exe": "61f521a4ce1cfebf1d6d299bfe9a98c7b3556b0519102afcafc08938983b8c37",
+    "layout_stdout.txt": "765bad0697e878e4d7c6388727570a86d73bd996214ea1cd16fcba3670180cb8",
+    "peak_probe.cpp": "bb99cf873d200c9ebe9397dac715862ad3e5002476f5e1a7f091c1b2a73f3d32",
+    "baseline_peak.exe": "b95d0e930578ffb69e8e80bed010045afe1800e9809d64106a552fa1d292b2b2",
+    "candidate_peak.exe": "01c45fbaee9c91add5fe8f5ba494f8509a2fceac84adfdbcf90586a6679eab11",
+    "baseline_peak_stdout.txt": "060b5e4b65d9ec9ce85f1911bc31ac9b83a51786694a7001cf3a99b2823c2187",
+    "candidate_peak_stdout.txt": "96b3bb5f4a1ee9da8d3ee6a96d9208f44267de7ee32f7ce778914889debd049c",
+    "dll_wrapper.cpp": "030451f67587ef729acd227f6651ecd4247b8a43f3f283263957bf518d1cd521",
+    "paired_encoder.cpp": "1aecf6cd391839403641d71f30edcd411b2c2ef00ff912040cb73c277773a238",
+    "paired_encoder.exe": "816a8c88d678a8e6fb8ad184206ffc87f2ba134bf0a2160fa542da685de305ae",
+    "paired_baseline.dll": "e0fcd944641292435a3cfc6aa114a08666c5ad24837c155a753503034c2f3178",
+    "paired_candidate.dll": "d7251cb2102f9e65109d01633ad36e98f1a4eab383f61b11fd44e068c0696f6e",
+    "paired_timing_report.json": "29ec3370b86957911f24275851e906143b63b2d0e1c96f9b3b035131ad4f896e",
+    "paired_timing.csv": "e86acacb7f3de47b28878b5609f654db63b7611dfcca864447660e1606558a2d",
+    "timing_event.json": "a67bf86ba07d7f712a1dfcb8ab58b9e42a2b09aee9f31d2d29b219e6d4e165f0",
+    "job_events.json": "c7069e9ec5eec9dc9487116ee72fdf4349899eff3f6d9f5ca57fcfef78c16b7c",
+    "build_validate.py": "62ef9b0c6b53ab5738df6846df9de2a879beb2bf56bff16af109b5f9bd6121ef",
+    "measure_allocation.py": "cff1eec4599499f23a9fbb969a45817a8f5cf76e7c8152562a0d2e16518fe832",
+    "build_timing.py": "70c975251f2eac1163ce149b32a344912bbc1ee27cc182e66aa7de0522227aa1",
+    "run_paired_timing.py": "b1eef421e46e754d93afc097cfabc189f8a4422e379594aee56ef30b92c59d0e",
+    "speech_fixture_binding.json": "8626e78e99f2a13402263c59323a1e202e1ca06435fd71941e070b7e4367f2f6",
+    "speech_full_histogram.csv": "513654d894b9bf216d5ce97e60470b88d8ac8a5e789f51c9750d6f61f8455ed6",
+    "speech_verify_event.json": "8ee964e9e890c721fa0a00137893c3512432a684c21f680b6478d515dfacf960",
+    "paired_missing_speech.cpp": "701ca922913dedd43b6eb4d4e538c7967e5737a166d330496de6a0943bf1f452",
+    "paired_missing_speech.exe": "7e693333a2d72281b5c55638e079cdba283b881f021313e0c05f15106939b1ba",
+    "speech_paired_timing_report.json": "a7d96e13dfe0ba629f1938ff8f6210e020c76f9e8438e20e8d18d3694a8d8246",
+    "speech_paired_timing.csv": "e774c92d301875b850d4d6122e16fdcf26131d531ca905778b32192788403e3a",
+    "speech_timing_event.json": "01f403aff31d66ac89509717c695727356ed34f04077932832895aed3fa68441",
+    "timing_scope_correction.json": "02f340b4a0760a0e900d7ec7fb5e047291043966495b7d895a4f7008466c90cf",
+    "run_speech_timing.py": "6a5855bde6a450876b8c7588f252f6eb6030193887ea613893b12b5796688514"
+  },
+  "flags": [
+    "-std=c++23",
+    "-O2",
+    "-DNDEBUG",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-fstack-usage"
+  ],
+  "scope": "Only reviewed delay48,frame-local mainpulses,packet-local initialized inputbuffers/positions,encoder-only oldLogE/oldLogE2 removal. No suffix/pending/ring or FEC/HP policy experiments. Source comment tokens unchanged.",
+  "identity": {
+    "frames": 77760,
+    "cases": 1620,
+    "packet_pcm_sha256": "6521551d747fb032287407f9a7dfd0947907c860d3d03e830fdce20f6c7be2db",
+    "packet_pcm_bytes": 475677525,
+    "gold_reused": true,
+    "mode_counts": {
+      "silk": 6069,
+      "hybrid": 3172,
+      "celt": 68519,
+      "dtx": 5292
+    },
+    "mixed_attempts": 8000,
+    "mixed_packet_pcm_and_return_sha256": "c4373b149ba6671981e0dbcbccd1bb6875c886ab8adcb40b6e4e8f408393a4b7",
+    "mixed_internal_rate_changes": 48,
+    "mixed_coded_channel_changes": 380,
+    "mixed_baseline_errors_preserved": 12,
+    "decode_errors": 0,
+    "limit": "Mixed within-instance duration/rate/bitrate fixture has12 existing internal−3 results; exact return/retry records preserved, no policy repair in this batch."
+  },
+  "requested_retained": {
+    "baseline859_semantic99": [
+      23648,
+      35952
+    ],
+    "candidate_create_and48steady": [
+      22416,
+      33488
+    ],
+    "saved": [
+      1232,
+      2464
+    ],
+    "original32": [
+      30824,
+      46624
+    ],
+    "cumulative_reduction_percent": [
+      27.277446145860374,
+      28.17433081674674
+    ],
+    "official_requested": [
+      31668,
+      48684
+    ],
+    "reference_reduction_percent": [
+      29.21561197423267,
+      31.213540382877337
+    ],
+    "restricted_lowdelay": [
+      15992,
+      20736
+    ],
+    "fec_optional_owner_bytes_unchanged": 6388,
+    "decoder_create": [
+      12448,
+      21216
+    ],
+    "decoder_creation_saved_vsbaseline": [
+      96,
+      96
+    ],
+    "limit": "Direct requested payload for normal encoder creation and48 steady encodes. Published OS-private per-instance metric must be measured by publication after integration; do not substitute requested payload for private bytes."
+  },
+  "working_fixture": {
+    "method": "Same peak-only Windows/GCC marker harness,4MiB thread stack,8 warmups+32 measured20msVOIP PCM16 encodes; no timed throughput in memory probe. Encodelive requested allocation remains constant, so retained+stack highwater sum is valid for this fixture. Stack includes harness overhead and is not a universal encoder peak.",
+    "baseline_rows": [
+      {
+        "channels": "1",
+        "application": "2048",
+        "duration_ms": "20",
+        "float_api": "0",
+        "retained_bytes": "23648",
+        "peak_live_bytes": "23648",
+        "stack_touched_bytes": "61616",
+        "working_bytes": "85264"
+      },
+      {
+        "channels": "2",
+        "application": "2048",
+        "duration_ms": "20",
+        "float_api": "0",
+        "retained_bytes": "35952",
+        "peak_live_bytes": "35952",
+        "stack_touched_bytes": "67376",
+        "working_bytes": "103328"
+      }
+    ],
+    "candidate_rows": [
+      {
+        "channels": "1",
+        "application": "2048",
+        "duration_ms": "20",
+        "float_api": "0",
+        "retained_bytes": "22416",
+        "peak_live_bytes": "22416",
+        "stack_touched_bytes": "63296",
+        "working_bytes": "85712"
+      },
+      {
+        "channels": "2",
+        "application": "2048",
+        "duration_ms": "20",
+        "float_api": "0",
+        "retained_bytes": "33488",
+        "peak_live_bytes": "33488",
+        "stack_touched_bytes": "69056",
+        "working_bytes": "102544"
+      }
+    ],
+    "stack_delta": [
+      1680,
+      1680
+    ],
+    "working_sum_delta": [
+      448,
+      -784
+    ],
+    "limit": "Mono working sum increases448B while retained bytes fall1232B. Stereo sum falls784B. This is a retained-memory improvement, not a claim of lower total working memory in every path."
+  },
+  "code_size": {
+    "baseline_text_rodata_unwind": 358184,
+    "candidate": 359664,
+    "increase_bytes": 1480,
+    "increase_percent": 0.4131954526165323
+  },
+  "timing": {
+    "event": {
+      "start_utc": "2026-10-02T16:56:57.020101+00:00",
+      "pid": 13172,
+      "affinity_mask": 1,
+      "priority": "HIGH_PRIORITY_CLASS",
+      "exe": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\encoder_landable_20261002\\paired_encoder.exe",
+      "end_utc": "2026-10-02T16:57:46.935030+00:00",
+      "exit_code": 0
+    },
+    "same_process": true,
+    "variant_map": {
+      "0": "baselineA",
+      "1": "baselineB control",
+      "2": "landablecandidateBCEC"
+    },
+    "all_warmup_and_chunk_packet_range_hashes_match": true,
+    "scope": "Onlysix20msPCM16cases,16rotatingchunks×2000encodes pervariant. Noextra timing.",
+    "rows": 288,
+    "summary": [
+      {
+        "channels": 1,
+        "mode": 0,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 4611.025,
+            "1": 4552.23,
+            "2": 4593.852
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.4589942526025126,
+              "aggregate_percent": -1.2750961011922524,
+              "min_percent": -9.167011636999211,
+              "max_percent": 3.145935051663451
+            },
+            "candidate": {
+              "median_percent": 0.7203156079149675,
+              "aggregate_percent": -0.37243346110680253,
+              "min_percent": -8.701225027980941,
+              "max_percent": 6.3841262631997076
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 4593.75,
+            "1": 4531.25,
+            "2": 4546.875
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.3605442176870763,
+              "min_percent": -10.526315789473683,
+              "max_percent": 5.882352941176472
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.0204081632653073,
+              "min_percent": -5.555555555555558,
+              "max_percent": 5.882352941176472
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 15134652556.0,
+            "1": 14948700061.0,
+            "2": 15091183983.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.32376767543988993,
+              "aggregate_percent": -1.228653874358554,
+              "min_percent": -8.901138545497123,
+              "max_percent": 3.0219987305091456
+            },
+            "candidate": {
+              "median_percent": 0.5009046907980541,
+              "aggregate_percent": -0.2872122292808532,
+              "min_percent": -8.53972448796897,
+              "max_percent": 6.194994908953144
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "1": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "2": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          }
+        }
+      },
+      {
+        "channels": 1,
+        "mode": 1,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 1495.1476,
+            "1": 1489.7629,
+            "2": 1489.8132
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.5223822272512724,
+              "aggregate_percent": -0.36014504521159063,
+              "min_percent": -7.444095034715048,
+              "max_percent": 5.027111898198022
+            },
+            "candidate": {
+              "median_percent": -0.26985391127669067,
+              "aggregate_percent": -0.35678082886264617,
+              "min_percent": -5.701529335868393,
+              "max_percent": 2.942854804588846
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 1515.625,
+            "1": 1468.75,
+            "2": 1484.375
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": -3.0927835051546393,
+              "min_percent": -16.666666666666664,
+              "max_percent": 19.999999999999996
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -2.0618556701030966,
+              "min_percent": -16.666666666666664,
+              "max_percent": 19.999999999999996
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 4911853029.0,
+            "1": 4887614130.0,
+            "2": 4891616337.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.5499390251210323,
+              "aggregate_percent": -0.4934776927748352,
+              "min_percent": -7.427361074847028,
+              "max_percent": 4.423511078746367
+            },
+            "candidate": {
+              "median_percent": -0.23539520537042558,
+              "aggregate_percent": -0.4119970992723321,
+              "min_percent": -5.710531128747265,
+              "max_percent": 2.276510655081987
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 582,
+            "celt": 31418
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 582,
+            "celt": 31418
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 582,
+            "celt": 31418
+          }
+        }
+      },
+      {
+        "channels": 1,
+        "mode": 2,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 1873.222,
+            "1": 1861.333,
+            "2": 1848.621
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.42312762134040227,
+              "aggregate_percent": -0.6346818476400506,
+              "min_percent": -12.752412368591415,
+              "max_percent": 7.591385427840591
+            },
+            "candidate": {
+              "median_percent": 0.24186881034303775,
+              "aggregate_percent": -1.3132986907051003,
+              "min_percent": -12.991974969727515,
+              "max_percent": 14.528863462189644
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 1843.75,
+            "1": 1859.375,
+            "2": 1812.5
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 0.8474576271186418,
+              "min_percent": -12.5,
+              "max_percent": 14.28571428571428
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.6949152542372836,
+              "min_percent": -22.22222222222222,
+              "max_percent": 14.28571428571428
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 6152126075.0,
+            "1": 6114177188.0,
+            "2": 6071302828.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.41965404387884764,
+              "aggregate_percent": -0.616841828944481,
+              "min_percent": -12.954224455465123,
+              "max_percent": 7.109403793475111
+            },
+            "candidate": {
+              "median_percent": 0.2366714418752136,
+              "aggregate_percent": -1.313744972302111,
+              "min_percent": -13.034880862123256,
+              "max_percent": 15.107864365234636
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 0,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 2649.855,
+            "1": 2653.814,
+            "2": 2595.571
+          },
+          "paired": {
+            "control": {
+              "median_percent": -1.1311808359424524,
+              "aggregate_percent": 0.149404401372899,
+              "min_percent": -10.596334254520222,
+              "max_percent": 33.439176027963825
+            },
+            "candidate": {
+              "median_percent": -0.9310051726282575,
+              "aggregate_percent": -2.0485649214768364,
+              "min_percent": -22.726805108534307,
+              "max_percent": 11.78470063522099
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 2625.0,
+            "1": 2625.0,
+            "2": 2546.875
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 0.0,
+              "min_percent": -9.999999999999998,
+              "max_percent": 33.33333333333333
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -2.9761904761904767,
+              "min_percent": -23.076923076923073,
+              "max_percent": 11.111111111111116
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 8687651946.0,
+            "1": 8711508056.0,
+            "2": 8509297991.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": -1.0243859765124874,
+              "aggregate_percent": 0.27459790226729286,
+              "min_percent": -10.354662390834847,
+              "max_percent": 34.01580772524755
+            },
+            "candidate": {
+              "median_percent": -0.679335355135785,
+              "aggregate_percent": -2.0529592588261814,
+              "min_percent": -23.3291139203476,
+              "max_percent": 9.175530041143576
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 892,
+            "hybrid": 0,
+            "celt": 31108
+          },
+          "1": {
+            "silk": 892,
+            "hybrid": 0,
+            "celt": 31108
+          },
+          "2": {
+            "silk": 892,
+            "hybrid": 0,
+            "celt": 31108
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 1,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 2318.184,
+            "1": 2330.568,
+            "2": 2329.674
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.2719648663510932,
+              "aggregate_percent": 0.5342112619188155,
+              "min_percent": -2.6930380880719307,
+              "max_percent": 8.58440972171659
+            },
+            "candidate": {
+              "median_percent": 0.3294345630786122,
+              "aggregate_percent": 0.4956465923326103,
+              "min_percent": -3.166609520544028,
+              "max_percent": 6.464825847846001
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 2328.125,
+            "1": 2296.875,
+            "2": 2296.875
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.342281879194629,
+              "min_percent": -11.111111111111116,
+              "max_percent": 12.5
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.342281879194629,
+              "min_percent": -11.111111111111116,
+              "max_percent": 12.5
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 7612484080.0,
+            "1": 7655494497.0,
+            "2": 7649882170.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.36842680419933993,
+              "aggregate_percent": 0.5649984492315685,
+              "min_percent": -2.6705864293762316,
+              "max_percent": 8.607739062676112
+            },
+            "candidate": {
+              "median_percent": 0.18848669459489154,
+              "aggregate_percent": 0.4912731456247599,
+              "min_percent": -2.919847656665542,
+              "max_percent": 6.378154679148174
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 738,
+            "celt": 31262
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 738,
+            "celt": 31262
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 738,
+            "celt": 31262
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 2,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 3514.517,
+            "1": 3617.594,
+            "2": 3610.482
+          },
+          "paired": {
+            "control": {
+              "median_percent": 1.0125470775728451,
+              "aggregate_percent": 2.9328923433860288,
+              "min_percent": -7.329576679216199,
+              "max_percent": 45.42175259610131
+            },
+            "candidate": {
+              "median_percent": 1.398386732730128,
+              "aggregate_percent": 2.730531677610326,
+              "min_percent": -3.0027964766216497,
+              "max_percent": 14.393787575150307
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 3500.0,
+            "1": 3562.5,
+            "2": 3609.375
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 1.7857142857142794,
+              "min_percent": -12.5,
+              "max_percent": 42.85714285714286
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": 3.125,
+              "min_percent": -7.14285714285714,
+              "max_percent": 19.999999999999996
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 11540396557.0,
+            "1": 11879981315.0,
+            "2": 11845625574.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.8573277378927324,
+              "aggregate_percent": 2.942574428207312,
+              "min_percent": -7.331659130365331,
+              "max_percent": 45.76929335778341
+            },
+            "candidate": {
+              "median_percent": 0.9249073032199018,
+              "aggregate_percent": 2.6448745976138888,
+              "min_percent": -2.7772796555591617,
+              "max_percent": 13.85196465936489
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          }
+        }
+      }
+    ],
+    "bindings": {
+      "baseline.cpp": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
+      "candidate.cpp": "bcec1818c668c920a58b4a02680606f3b85e6ee870a194ef08d33ba2866ebbea",
+      "candidate.o": "028a8c79c8f7015c92909cb1ff90e32726970b9acae14630f8bf1bbbd7213d13",
+      "dll_wrapper.cpp": "030451f67587ef729acd227f6651ecd4247b8a43f3f283263957bf518d1cd521",
+      "paired_encoder.cpp": "1aecf6cd391839403641d71f30edcd411b2c2ef00ff912040cb73c277773a238",
+      "paired_encoder.exe": "816a8c88d678a8e6fb8ad184206ffc87f2ba134bf0a2160fa542da685de305ae",
+      "paired_baseline.dll": "e0fcd944641292435a3cfc6aa114a08666c5ad24837c155a753503034c2f3178",
+      "paired_candidate.dll": "d7251cb2102f9e65109d01633ad36e98f1a4eab383f61b11fd44e068c0696f6e",
+      "paired_timing.csv": "e86acacb7f3de47b28878b5609f654db63b7611dfcca864447660e1606558a2d"
+    }
+  },
+  "timing_limit": "Originalthree wrongly-labeled syntheticrows areexcludedfrom mode-specificclaims. Only C1SILK and C1/C2CELT syntheticrows used; realHazel/David replacedmissinghybridC1/C2 andSILKC2 afterfull32k histogram verification. Candidate/control variation retained; C1hybrid medianwall+0.311% vscontrol+1.459%, aggregate+2.780% vscontrol+1.304%. No precisezero-cost,universal no-slowdown,or speedupclaim; no additional timing.",
+  "production": {
+    "parent_commit": "c2f02393997d7ae94d7352c991cc760cd540a2a4",
+    "source_sha256_git_normalized": "90a84abedff022bcd3ae72cec3a4fca24acd7949ca6179964db5256edd88beb5",
+    "source_git_blob_sha1": "b47fd0fb14d2fb534d0ad6725ca4c64f16110819",
+    "private_report_sha256": "3a9e0a79964752c173011a43fe1a4a61d6fa69872c8b84d41610bb1b0e35ef6a",
+    "full_benchmark_tables_remain_bound_to": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
+    "readme_os_private_memory_not_relabelled": true
+  },
+  "timing_scope_correction": {
+    "raw_report_sha256": "29ec3370b86957911f24275851e906143b63b2d0e1c96f9b3b035131ad4f896e",
+    "status": "Original claimedsteady-state intendedmodecoverage wasfalse; rawreport preserved",
+    "valid_cells": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "missing_cells": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "actual_counts": {
+      "C1_requested0": {
+        "0": {
+          "silk": 32000,
+          "hybrid": 0,
+          "celt": 0
+        },
+        "1": {
+          "silk": 32000,
+          "hybrid": 0,
+          "celt": 0
+        },
+        "2": {
+          "silk": 32000,
+          "hybrid": 0,
+          "celt": 0
+        }
+      },
+      "C1_requested1": {
+        "0": {
+          "silk": 0,
+          "hybrid": 582,
+          "celt": 31418
+        },
+        "1": {
+          "silk": 0,
+          "hybrid": 582,
+          "celt": 31418
+        },
+        "2": {
+          "silk": 0,
+          "hybrid": 582,
+          "celt": 31418
+        }
+      },
+      "C1_requested2": {
+        "0": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        },
+        "1": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        },
+        "2": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        }
+      },
+      "C2_requested0": {
+        "0": {
+          "silk": 892,
+          "hybrid": 0,
+          "celt": 31108
+        },
+        "1": {
+          "silk": 892,
+          "hybrid": 0,
+          "celt": 31108
+        },
+        "2": {
+          "silk": 892,
+          "hybrid": 0,
+          "celt": 31108
+        }
+      },
+      "C2_requested1": {
+        "0": {
+          "silk": 0,
+          "hybrid": 738,
+          "celt": 31262
+        },
+        "1": {
+          "silk": 0,
+          "hybrid": 738,
+          "celt": 31262
+        },
+        "2": {
+          "silk": 0,
+          "hybrid": 738,
+          "celt": 31262
+        }
+      },
+      "C2_requested2": {
+        "0": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        },
+        "1": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        },
+        "2": {
+          "silk": 0,
+          "hybrid": 0,
+          "celt": 32000
+        }
+      }
+    },
+    "scope": "Only C1SILK andC1/C2CELT rows qualify their named modes. RequestedhybridC1/C2 andrequestedSILKC2 aremixed/predominantlyCELT andnot usedtoconclude requested-modeperformance. Fullhistogram mustbeverifiedbeforefocusedmissing-cell timing."
+  },
+  "speech_full_verification": {
+    "driver_source_sha256": "701ca922913dedd43b6eb4d4e538c7967e5737a166d330496de6a0943bf1f452",
+    "exe_sha256": "7e693333a2d72281b5c55638e079cdba283b881f021313e0c05f15106939b1ba",
+    "histogram_sha256": "513654d894b9bf216d5ce97e60470b88d8ac8a5e789f51c9750d6f61f8455ed6",
+    "input_binding": {
+      "hazel": {
+        "input_wav": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav",
+        "input_sha256": "b9483d7532ea7905ec024130df4250e88f58fbb6df6ec82e5ebde972a4baed0e",
+        "48000_pcm_sha256": "43c5e6a0e60b01bbc0aabc664e9f4ce4983a236a9970c04826a785e526e001b6",
+        "16000_pcm_sha256": "1b966110d78960b744ff844c71a741bc24a75c91189996a76c167f4a4d5fd0cd",
+        "preparation": "Signedi16mono48kHzsource;16kHzbenchmarkfixture uses everythirdsample. Noquality/resamplerclaim."
+      },
+      "david": {
+        "input_wav": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav",
+        "input_sha256": "e6b1303da26847c3fecdc7b3a7395e5403cda6b67253cc3888ab2d8813cc6cb0",
+        "48000_pcm_sha256": "b9f53c8640dfc435cadcb575de8c63511bdf537316a9c936bd6dec95dacb382c",
+        "16000_pcm_sha256": "1772babc7cda2ca349ccf401e0a867bc5dd258ab1ac077de40ab8615afb3970c",
+        "preparation": "Signedi16mono48kHzsource;16kHzbenchmarkfixture uses everythirdsample. Noquality/resamplerclaim."
+      }
+    },
+    "event": {
+      "start_utc": "2026-10-02T17:11:54.702656+00:00",
+      "pid": 36448,
+      "argv": [
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\encoder_landable_20261002\\paired_missing_speech.exe",
+        "--verify-full"
+      ],
+      "timing": false,
+      "end_utc": "2026-10-02T17:13:18.119179+00:00",
+      "exit_code": 0
+    },
+    "per_state_frames": 32000,
+    "C1_hybrid_counts": [
+      0,
+      32000,
+      0
+    ],
+    "C2_hybrid_counts": [
+      0,
+      32000,
+      0
+    ],
+    "C2_silk_counts": [
+      32000,
+      0,
+      0
+    ],
+    "all_packet_range_hashes_match": true
+  },
+  "qualified_mode_timing": {
+    "summary": [
+      {
+        "channels": 1,
+        "mode": 0,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 4611.025,
+            "1": 4552.23,
+            "2": 4593.852
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.4589942526025126,
+              "aggregate_percent": -1.2750961011922524,
+              "min_percent": -9.167011636999211,
+              "max_percent": 3.145935051663451
+            },
+            "candidate": {
+              "median_percent": 0.7203156079149675,
+              "aggregate_percent": -0.37243346110680253,
+              "min_percent": -8.701225027980941,
+              "max_percent": 6.3841262631997076
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 4593.75,
+            "1": 4531.25,
+            "2": 4546.875
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.3605442176870763,
+              "min_percent": -10.526315789473683,
+              "max_percent": 5.882352941176472
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.0204081632653073,
+              "min_percent": -5.555555555555558,
+              "max_percent": 5.882352941176472
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 15134652556.0,
+            "1": 14948700061.0,
+            "2": 15091183983.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": -0.32376767543988993,
+              "aggregate_percent": -1.228653874358554,
+              "min_percent": -8.901138545497123,
+              "max_percent": 3.0219987305091456
+            },
+            "candidate": {
+              "median_percent": 0.5009046907980541,
+              "aggregate_percent": -0.2872122292808532,
+              "min_percent": -8.53972448796897,
+              "max_percent": 6.194994908953144
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "1": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "2": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          }
+        }
+      },
+      {
+        "channels": 1,
+        "mode": 1,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 5535.382,
+            "1": 5607.55,
+            "2": 5689.276
+          },
+          "paired": {
+            "control": {
+              "median_percent": 1.4594099321971754,
+              "aggregate_percent": 1.3037582591409302,
+              "min_percent": -2.499271640836098,
+              "max_percent": 5.463271942405168
+            },
+            "candidate": {
+              "median_percent": 0.3112554075017093,
+              "aggregate_percent": 2.780187528159761,
+              "min_percent": -2.1351495912838248,
+              "max_percent": 16.334436192721125
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 5531.25,
+            "1": 5546.875,
+            "2": 5640.625
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 0.28248587570620654,
+              "min_percent": -8.695652173913048,
+              "max_percent": 4.761904761904767
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": 1.9774011299435124,
+              "min_percent": -4.545454545454541,
+              "max_percent": 18.181818181818187
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 18180572853.0,
+            "1": 18419687613.0,
+            "2": 18686392954.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 1.3891930241550665,
+              "aggregate_percent": 1.3152212635618055,
+              "min_percent": -2.48204661108401,
+              "max_percent": 5.500177470808398
+            },
+            "candidate": {
+              "median_percent": 0.258855583295603,
+              "aggregate_percent": 2.782201117037597,
+              "min_percent": -1.9970426943371145,
+              "max_percent": 16.084770171015972
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          }
+        }
+      },
+      {
+        "channels": 1,
+        "mode": 2,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 1873.222,
+            "1": 1861.333,
+            "2": 1848.621
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.42312762134040227,
+              "aggregate_percent": -0.6346818476400506,
+              "min_percent": -12.752412368591415,
+              "max_percent": 7.591385427840591
+            },
+            "candidate": {
+              "median_percent": 0.24186881034303775,
+              "aggregate_percent": -1.3132986907051003,
+              "min_percent": -12.991974969727515,
+              "max_percent": 14.528863462189644
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 1843.75,
+            "1": 1859.375,
+            "2": 1812.5
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 0.8474576271186418,
+              "min_percent": -12.5,
+              "max_percent": 14.28571428571428
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -1.6949152542372836,
+              "min_percent": -22.22222222222222,
+              "max_percent": 14.28571428571428
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 6152126075.0,
+            "1": 6114177188.0,
+            "2": 6071302828.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.41965404387884764,
+              "aggregate_percent": -0.616841828944481,
+              "min_percent": -12.954224455465123,
+              "max_percent": 7.109403793475111
+            },
+            "candidate": {
+              "median_percent": 0.2366714418752136,
+              "aggregate_percent": -1.313744972302111,
+              "min_percent": -13.034880862123256,
+              "max_percent": 15.107864365234636
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 0,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 11205.523,
+            "1": 11138.032,
+            "2": 11021.967
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.8985878406754466,
+              "aggregate_percent": -0.6023012045042409,
+              "min_percent": -17.18817831064371,
+              "max_percent": 16.611184841924565
+            },
+            "candidate": {
+              "median_percent": 0.21592583364983264,
+              "aggregate_percent": -1.6380850764395216,
+              "min_percent": -17.783872242248055,
+              "max_percent": 8.028416223728808
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 11218.75,
+            "1": 11109.375,
+            "2": 10953.125
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": -0.974930362116988,
+              "min_percent": -18.867924528301884,
+              "max_percent": 18.60465116279071
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -2.36768802228412,
+              "min_percent": -20.75471698113207,
+              "max_percent": 4.761904761904767
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 36800192184.0,
+            "1": 36575731043.0,
+            "2": 36182652183.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.6996356962916006,
+              "aggregate_percent": -0.6099455673429621,
+              "min_percent": -16.96209060631062,
+              "max_percent": 16.4289644428562
+            },
+            "candidate": {
+              "median_percent": 0.10511510142118263,
+              "aggregate_percent": -1.6780890651666103,
+              "min_percent": -17.4745687302699,
+              "max_percent": 7.451874984085349
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "1": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          },
+          "2": {
+            "silk": 32000,
+            "hybrid": 0,
+            "celt": 0
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 1,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 7925.181,
+            "1": 8046.412,
+            "2": 7848.167
+          },
+          "paired": {
+            "control": {
+              "median_percent": 1.018032071009567,
+              "aggregate_percent": 1.5296937697700574,
+              "min_percent": -15.144742723424386,
+              "max_percent": 23.59342790080621
+            },
+            "candidate": {
+              "median_percent": -0.024746086275173607,
+              "aggregate_percent": -0.9717632947436661,
+              "min_percent": -17.144234392939474,
+              "max_percent": 10.366424273497877
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 7890.625,
+            "1": 7968.75,
+            "2": 7859.375
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 0.990099009900991,
+              "min_percent": -18.918918918918916,
+              "max_percent": 25.806451612903224
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": -0.3960396039603964,
+              "min_percent": -18.918918918918916,
+              "max_percent": 10.000000000000009
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 26029042421.0,
+            "1": 26423555526.0,
+            "2": 25751639914.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.9289510263143952,
+              "aggregate_percent": 1.5156650737243815,
+              "min_percent": -15.155042265116325,
+              "max_percent": 23.522272721257043
+            },
+            "candidate": {
+              "median_percent": -0.022374431802602013,
+              "aggregate_percent": -1.0657422678607475,
+              "min_percent": -17.103593803938523,
+              "max_percent": 10.25511554854248
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 32000,
+            "celt": 0
+          }
+        }
+      },
+      {
+        "channels": 2,
+        "mode": 2,
+        "frames_per_variant": 32000,
+        "encode_ms": {
+          "total": {
+            "0": 3514.517,
+            "1": 3617.594,
+            "2": 3610.482
+          },
+          "paired": {
+            "control": {
+              "median_percent": 1.0125470775728451,
+              "aggregate_percent": 2.9328923433860288,
+              "min_percent": -7.329576679216199,
+              "max_percent": 45.42175259610131
+            },
+            "candidate": {
+              "median_percent": 1.398386732730128,
+              "aggregate_percent": 2.730531677610326,
+              "min_percent": -3.0027964766216497,
+              "max_percent": 14.393787575150307
+            }
+          }
+        },
+        "cpu_ms": {
+          "total": {
+            "0": 3500.0,
+            "1": 3562.5,
+            "2": 3609.375
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.0,
+              "aggregate_percent": 1.7857142857142794,
+              "min_percent": -12.5,
+              "max_percent": 42.85714285714286
+            },
+            "candidate": {
+              "median_percent": 0.0,
+              "aggregate_percent": 3.125,
+              "min_percent": -7.14285714285714,
+              "max_percent": 19.999999999999996
+            }
+          }
+        },
+        "cycles": {
+          "total": {
+            "0": 11540396557.0,
+            "1": 11879981315.0,
+            "2": 11845625574.0
+          },
+          "paired": {
+            "control": {
+              "median_percent": 0.8573277378927324,
+              "aggregate_percent": 2.942574428207312,
+              "min_percent": -7.331659130365331,
+              "max_percent": 45.76929335778341
+            },
+            "candidate": {
+              "median_percent": 0.9249073032199018,
+              "aggregate_percent": 2.6448745976138888,
+              "min_percent": -2.7772796555591617,
+              "max_percent": 13.85196465936489
+            }
+          }
+        },
+        "actual_mode_counts": {
+          "0": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "1": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          },
+          "2": {
+            "silk": 0,
+            "hybrid": 0,
+            "celt": 32000
+          }
+        }
+      }
+    ],
+    "valid_synthetic_cells": [
+      [
+        1,
+        0
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        2,
+        2
+      ]
+    ],
+    "real_speech_cells": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        0
+      ]
+    ],
+    "speech_report": {
+      "event": {
+        "start_utc": "2026-10-02T17:28:49.578739+00:00",
+        "pid": 33456,
+        "affinity_mask": 1,
+        "priority": "HIGH_PRIORITY_CLASS",
+        "exe": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\encoder_landable_20261002\\paired_missing_speech.exe",
+        "end_utc": "2026-10-02T17:30:03.968185+00:00",
+        "exit_code": 0
+      },
+      "same_process": true,
+      "variant_map": {
+        "0": "baselineA",
+        "1": "baselineB control",
+        "2": "landablecandidateBCEC"
+      },
+      "all_warmup_and_chunk_packet_range_hashes_match": true,
+      "scope": "Onlysix20msPCM16cases,16rotatingchunks×2000encodes pervariant. Noextra timing.",
+      "rows": 144,
+      "summary": [
+        {
+          "channels": 1,
+          "mode": 1,
+          "frames_per_variant": 32000,
+          "encode_ms": {
+            "total": {
+              "0": 5535.382,
+              "1": 5607.55,
+              "2": 5689.276
+            },
+            "paired": {
+              "control": {
+                "median_percent": 1.4594099321971754,
+                "aggregate_percent": 1.3037582591409302,
+                "min_percent": -2.499271640836098,
+                "max_percent": 5.463271942405168
+              },
+              "candidate": {
+                "median_percent": 0.3112554075017093,
+                "aggregate_percent": 2.780187528159761,
+                "min_percent": -2.1351495912838248,
+                "max_percent": 16.334436192721125
+              }
+            }
+          },
+          "cpu_ms": {
+            "total": {
+              "0": 5531.25,
+              "1": 5546.875,
+              "2": 5640.625
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.0,
+                "aggregate_percent": 0.28248587570620654,
+                "min_percent": -8.695652173913048,
+                "max_percent": 4.761904761904767
+              },
+              "candidate": {
+                "median_percent": 0.0,
+                "aggregate_percent": 1.9774011299435124,
+                "min_percent": -4.545454545454541,
+                "max_percent": 18.181818181818187
+              }
+            }
+          },
+          "cycles": {
+            "total": {
+              "0": 18180572853.0,
+              "1": 18419687613.0,
+              "2": 18686392954.0
+            },
+            "paired": {
+              "control": {
+                "median_percent": 1.3891930241550665,
+                "aggregate_percent": 1.3152212635618055,
+                "min_percent": -2.48204661108401,
+                "max_percent": 5.500177470808398
+              },
+              "candidate": {
+                "median_percent": 0.258855583295603,
+                "aggregate_percent": 2.782201117037597,
+                "min_percent": -1.9970426943371145,
+                "max_percent": 16.084770171015972
+              }
+            }
+          },
+          "actual_mode_counts": {
+            "0": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            },
+            "1": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            },
+            "2": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            }
+          }
+        },
+        {
+          "channels": 2,
+          "mode": 1,
+          "frames_per_variant": 32000,
+          "encode_ms": {
+            "total": {
+              "0": 7925.181,
+              "1": 8046.412,
+              "2": 7848.167
+            },
+            "paired": {
+              "control": {
+                "median_percent": 1.018032071009567,
+                "aggregate_percent": 1.5296937697700574,
+                "min_percent": -15.144742723424386,
+                "max_percent": 23.59342790080621
+              },
+              "candidate": {
+                "median_percent": -0.024746086275173607,
+                "aggregate_percent": -0.9717632947436661,
+                "min_percent": -17.144234392939474,
+                "max_percent": 10.366424273497877
+              }
+            }
+          },
+          "cpu_ms": {
+            "total": {
+              "0": 7890.625,
+              "1": 7968.75,
+              "2": 7859.375
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.0,
+                "aggregate_percent": 0.990099009900991,
+                "min_percent": -18.918918918918916,
+                "max_percent": 25.806451612903224
+              },
+              "candidate": {
+                "median_percent": 0.0,
+                "aggregate_percent": -0.3960396039603964,
+                "min_percent": -18.918918918918916,
+                "max_percent": 10.000000000000009
+              }
+            }
+          },
+          "cycles": {
+            "total": {
+              "0": 26029042421.0,
+              "1": 26423555526.0,
+              "2": 25751639914.0
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.9289510263143952,
+                "aggregate_percent": 1.5156650737243815,
+                "min_percent": -15.155042265116325,
+                "max_percent": 23.522272721257043
+              },
+              "candidate": {
+                "median_percent": -0.022374431802602013,
+                "aggregate_percent": -1.0657422678607475,
+                "min_percent": -17.103593803938523,
+                "max_percent": 10.25511554854248
+              }
+            }
+          },
+          "actual_mode_counts": {
+            "0": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            },
+            "1": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            },
+            "2": {
+              "silk": 0,
+              "hybrid": 32000,
+              "celt": 0
+            }
+          }
+        },
+        {
+          "channels": 2,
+          "mode": 0,
+          "frames_per_variant": 32000,
+          "encode_ms": {
+            "total": {
+              "0": 11205.523,
+              "1": 11138.032,
+              "2": 11021.967
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.8985878406754466,
+                "aggregate_percent": -0.6023012045042409,
+                "min_percent": -17.18817831064371,
+                "max_percent": 16.611184841924565
+              },
+              "candidate": {
+                "median_percent": 0.21592583364983264,
+                "aggregate_percent": -1.6380850764395216,
+                "min_percent": -17.783872242248055,
+                "max_percent": 8.028416223728808
+              }
+            }
+          },
+          "cpu_ms": {
+            "total": {
+              "0": 11218.75,
+              "1": 11109.375,
+              "2": 10953.125
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.0,
+                "aggregate_percent": -0.974930362116988,
+                "min_percent": -18.867924528301884,
+                "max_percent": 18.60465116279071
+              },
+              "candidate": {
+                "median_percent": 0.0,
+                "aggregate_percent": -2.36768802228412,
+                "min_percent": -20.75471698113207,
+                "max_percent": 4.761904761904767
+              }
+            }
+          },
+          "cycles": {
+            "total": {
+              "0": 36800192184.0,
+              "1": 36575731043.0,
+              "2": 36182652183.0
+            },
+            "paired": {
+              "control": {
+                "median_percent": 0.6996356962916006,
+                "aggregate_percent": -0.6099455673429621,
+                "min_percent": -16.96209060631062,
+                "max_percent": 16.4289644428562
+              },
+              "candidate": {
+                "median_percent": 0.10511510142118263,
+                "aggregate_percent": -1.6780890651666103,
+                "min_percent": -17.4745687302699,
+                "max_percent": 7.451874984085349
+              }
+            }
+          },
+          "actual_mode_counts": {
+            "0": {
+              "silk": 32000,
+              "hybrid": 0,
+              "celt": 0
+            },
+            "1": {
+              "silk": 32000,
+              "hybrid": 0,
+              "celt": 0
+            },
+            "2": {
+              "silk": 32000,
+              "hybrid": 0,
+              "celt": 0
+            }
+          }
+        }
+      ],
+      "bindings": {
+        "baseline.cpp": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
+        "candidate.cpp": "bcec1818c668c920a58b4a02680606f3b85e6ee870a194ef08d33ba2866ebbea",
+        "candidate.o": "028a8c79c8f7015c92909cb1ff90e32726970b9acae14630f8bf1bbbd7213d13",
+        "dll_wrapper.cpp": "030451f67587ef729acd227f6651ecd4247b8a43f3f283263957bf518d1cd521",
+        "paired_missing_speech.cpp": "701ca922913dedd43b6eb4d4e538c7967e5737a166d330496de6a0943bf1f452",
+        "paired_missing_speech.exe": "7e693333a2d72281b5c55638e079cdba283b881f021313e0c05f15106939b1ba",
+        "speech_fixture_binding.json": "8626e78e99f2a13402263c59323a1e202e1ca06435fd71941e070b7e4367f2f6",
+        "speech_full_histogram.csv": "513654d894b9bf216d5ce97e60470b88d8ac8a5e789f51c9750d6f61f8455ed6",
+        "paired_baseline.dll": "e0fcd944641292435a3cfc6aa114a08666c5ad24837c155a753503034c2f3178",
+        "paired_candidate.dll": "d7251cb2102f9e65109d01633ad36e98f1a4eab383f61b11fd44e068c0696f6e",
+        "speech_paired_timing.csv": "e774c92d301875b850d4d6122e16fdcf26131d531ca905778b32192788403e3a"
+      }
+    },
+    "all_actual_intended_modes_32000_per_state": true,
+    "original_mixed_rows_excluded": [
+      [
+        1,
+        1
+      ],
+      [
+        2,
+        1
+      ],
+      [
+        2,
+        0
+      ]
+    ]
+  }
+}

@@ -115,3 +115,7 @@ Raw outputs and the 99c2bcb source binding are in [selected regression metadata]
 ## Unavailable and historical measurements
 
 WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Named historical compatibility, startup and latency/lookahead checkpoints retain their original source commits and validation dates. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
+
+## Encoder retained-storage checkpoint
+
+A subsequent storage change reduces requested encoder allocation by 1,232 bytes per channel, to 22,416 B mono and 33,488 B stereo. Packet, range, decoded PCM and FEC PCM identity passed 77,760 frames; focused timing is small and mixed. These requested-payload figures are separate from the process-private table above, which remains bound to the full `99c2bcb` refresh. [Source bindings, complete timing results and limits](encoder_retained_storage_checkpoint.json).
