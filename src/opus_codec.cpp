@@ -1086,7 +1086,7 @@ struct silk_decoder_state {
   opus_uint16 exc_low[((5 * 4) * 16)];
   opus_int8 exc_high[((5 * 4) * 16)];
   opus_int32 sLPC_Q14_buf[16];
-  opus_int16 outBuf[((5 * 4) * 16) + 2 * (5 * 16)], prevNLSF_Q15[16], ec_prevLagIndex;
+  opus_int16 outBuf[((5 * 4) * 16)], prevNLSF_Q15[16], ec_prevLagIndex;
   SideInfoIndices indices;
   int nFramesDecoded, nFramesPerPacket, lossCnt;
   opus_uint16 lagPrev, frame_length, ltp_mem_length;
@@ -11603,11 +11603,30 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
       lag = control.pitchL[k];
       if (k == 0 || (k == 2 && NLSF_interpolation_flag)) {
         const int start_idx = state.ltp_mem_length - lag - state.LPC_order - 5 / 2;
+        const int length = state.ltp_mem_length - start_idx;
+        auto* filtered = sLTP + start_idx;
         if (k == 2) {
-          copy_n_bytes(xq, static_cast<std::size_t>(2 * state.subfr_length * sizeof(opus_int16)), &state.outBuf[state.ltp_mem_length]);
+          const int current_length = 2 * state.subfr_length;
+          const int history_length = std::max(0, length - current_length);
+          if (history_length == 0) {
+            silk_LPC_analysis_filter(filtered, xq + current_length - length, A_Q12, length, state.LPC_order);
+          } else {
+            if (history_length >= state.LPC_order) {
+              silk_LPC_analysis_filter(filtered, state.outBuf + state.ltp_mem_length - history_length, A_Q12, history_length, state.LPC_order);
+            } else {
+              zero_n_items(filtered, static_cast<std::size_t>(state.LPC_order));
+            }
+            silk_LPC_analysis_filter(filtered + history_length, xq, A_Q12, current_length, state.LPC_order);
+            std::array<opus_int16, 32> bridge_input, bridge_output;
+            const int bridge_history = std::min(history_length, static_cast<int>(state.LPC_order));
+            copy_n_items(state.outBuf + state.ltp_mem_length - bridge_history, static_cast<std::size_t>(bridge_history), bridge_input.data());
+            copy_n_items(xq, static_cast<std::size_t>(state.LPC_order), bridge_input.data() + bridge_history);
+            silk_LPC_analysis_filter(bridge_output.data(), bridge_input.data(), A_Q12, bridge_history + state.LPC_order, state.LPC_order);
+            copy_n_items(bridge_output.data() + state.LPC_order, static_cast<std::size_t>(bridge_history), filtered + std::max(history_length, static_cast<int>(state.LPC_order)));
+          }
+        } else {
+          silk_LPC_analysis_filter(filtered, state.outBuf + start_idx, A_Q12, length, state.LPC_order);
         }
-        silk_LPC_analysis_filter(&sLTP[start_idx], &state.outBuf[start_idx + k * state.subfr_length], A_Q12,
-                                 state.ltp_mem_length - start_idx, state.LPC_order);
         if (k == 0) {
           inv_gain_Q31 = wrap_shift_left(silk_mul_wb(inv_gain_Q31, control.LTP_scale_Q14), 2);
         }
