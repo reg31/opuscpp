@@ -97,5 +97,12 @@
   "invalid_preliminary_harness_runs": {
     "run_focused_20261002_181415": "Compile/API argument mismatch; not validation evidence.",
     "run_focused_20261002_181430": "PCM16-scale values passed to float API; all3680 attempts rejected. Invalid test input, not a codec result."
+  },
+  "test_only_recovery": {
+    "commit": "767d7c9134ebbe6c138432d1a7d49ee02c822a86",
+    "test_git_normalized_sha256": "5c586c5bf810cbad204847a7f0c1a57a282ebbc4e49da7c3fe596a538d37754c",
+    "codec_source_commit": "c019647331f67b772fbad9ea1e597a12ac4a89e9",
+    "codec_source_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+    "integrated_test_result": "PASS"
   }
 }

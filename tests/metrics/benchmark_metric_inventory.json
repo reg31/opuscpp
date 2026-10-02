@@ -1,10 +1,10 @@
 {
-  "document_base_commit": "859c05792c929b447f625ddacf6b9908f161b6ab",
-  "measurement_source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
-  "source_sha256": "65adc6514ec3eadac06f55a7e3ef65b7e9e1747ecfae876b315155e662e3190a",
+  "document_base_commit": "bbd39ba4fec07170b8a7f9d9cfe190d0034eae4f",
+  "measurement_source_commit": "c019647331f67b772fbad9ea1e597a12ac4a89e9",
+  "source_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
   "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
   "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
-  "input_manifest_sha256": "dc15599608af8cd67e4b9fb0442fdc70ad6b79cdab8c5774338c742bf92bd4aa",
+  "input_manifest_sha256": "faa3d29e955c70d073c9af703c89b95b76b501be992df3738195cb7fbe8011b8",
   "parity_rows": 498,
   "publication_rows": 806,
   "quality_fields": [
@@ -48,6 +48,7 @@
     "C4": []
   },
   "fresh_compatibility": {
+    "source_commit": "c019647331f67b772fbad9ea1e597a12ac4a89e9",
     "rfc_decode": {
       "passed": "24",
       "total": "24",
@@ -55,6 +56,13 @@
     },
     "encode_interoperability": {
       "passed": "96"
+    },
+    "test_only_recovery_commit": "767d7c9134ebbe6c138432d1a7d49ee02c822a86",
+    "focused_source_bound_regressions": {
+      "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0",
+      "voice_denoise_state": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes",
+      "transient_invariant": "focused policy=0 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\nnormal_attack policy=0 saturated=0 detected=1 flag_space=1 overflow=0 rejected=0 ret=80 range_match=1 wire_transient=1 decoded=960 PASS\nsaturated_steady policy=0 saturated=1 detected=0 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\npolicy_true policy=1 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\ncelt_unsignaled_transient_invariant checks=4 failures=0",
+      "voip_quiet_start_latch": "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
     }
   },
   "historical_preserved_not_used_for_current_metrics": [
@@ -76,28 +84,30 @@
     "s6_governor_checkpoint.json",
     "silk_plc_energy_checkpoint.json",
     "voice_denoise_vs_previous.csv",
-    "voip_startup_checkpoint.json"
+    "voip_startup_checkpoint.json",
+    "encoder_retained_storage_checkpoint.json",
+    "multiframe_budget_checkpoint.json"
   ],
   "files": {
     "README.md": {
-      "bytes": 13730,
-      "sha256": "b13471d048626d0e5761bd1570338fb34cbb8cda9e69dfce881615a77a009efe",
-      "git_blob_sha1": "2c316f981d02316ad2a03fc0b2963c292d1cedcd"
+      "bytes": 13712,
+      "sha256": "ff31383cbe8a096137a0f09b81184c5f59a6e96328abedccc406dc7e35b3be11",
+      "git_blob_sha1": "cd2fdb26641373d599fb85bc7b60a9e45c974ece"
     },
     "src/README.md": {
       "bytes": 10647,
-      "sha256": "a4b1cd82713804498c2baf84e8e7498de7c6d99c4e6e3c3045728d61ff231491",
-      "git_blob_sha1": "15aaec362d8a6c17f7085d6b47a25962424c8a94"
+      "sha256": "c8649b3ce23127f3d0d4625fe719aa5d4b094888db5a41dee515b0e9661c76b1",
+      "git_blob_sha1": "cc2db7bca3afb4defd962c36bbf853a5d2cd7882"
     },
     "tests/README.md": {
-      "bytes": 38312,
-      "sha256": "c85f291c2a39febefb29426e21533fe69e03e0a046829803835dfec0952d334c",
-      "git_blob_sha1": "85ec4ca55abd90e2c64f3f0aa1d4f52d4e3cfe74"
+      "bytes": 38422,
+      "sha256": "64e95c47f0d57cc19dd5b0eed8d8d8e6d1b79172da040f81d8e1bd233f1c1d65",
+      "git_blob_sha1": "7fe3d1803d3c2a87e334e9904cdb214fce34661b"
     },
     "tests/metrics/README.md": {
-      "bytes": 8876,
-      "sha256": "fb1284fb349d6e852a11d0c47f2d3d537c516ffb131ecb21a9d5aa4e802c6c11",
-      "git_blob_sha1": "40e264eb223098a4ba98cf6e34bd4b908ec553b4"
+      "bytes": 8406,
+      "sha256": "5d4c6497319ce3821abbe601bb0819545943d4c3896f250ce0e51b4e916bfa8b",
+      "git_blob_sha1": "bfc5f98410db9df86ff0c7c1a5ba1df923059301"
     },
     "tests/metrics/acceptance.json": {
       "bytes": 672,
@@ -106,8 +116,8 @@
     },
     "tests/metrics/binary_size.csv": {
       "bytes": 77,
-      "sha256": "76cafdaa84b68faf527577ed2779707367d2865ebd43d7d630ad35647e63136e",
-      "git_blob_sha1": "629483a384a1c74b8429611ae3b3b1b215e48799"
+      "sha256": "344320bde54614fd2cb9f31cdd3794c956e79436b65e7a9fed13dc8210e855c7",
+      "git_blob_sha1": "000e905503dc8b200d5912e9055216d3b9497397"
     },
     "tests/metrics/celt_empty_channel_checkpoint.json": {
       "bytes": 7221,
@@ -130,19 +140,19 @@
       "git_blob_sha1": "8c1c548754fd8b1d09c8caec3840314da767ec27"
     },
     "tests/metrics/compatibility_validation.json": {
-      "bytes": 109769,
-      "sha256": "42adcfd57ef192917f131eb2651b1666a72127ee4ed95c253233c09a080fcd46",
-      "git_blob_sha1": "152439f1d4e75776f85b7ec56b1568192ca4f5e0"
+      "bytes": 113150,
+      "sha256": "94e57789300aebb2a7908c72879eab131cbb44d074b9652afb7320c63fa3dced",
+      "git_blob_sha1": "ebf106ee13ac5ac6af922b5699ee5fb7b1b53a11"
     },
     "tests/metrics/decode_speed_vs_official.csv": {
-      "bytes": 381,
-      "sha256": "525e225d2d2670feb2a478ae14e691282a4116de7ea9f6e1f21a82987ccbd620",
-      "git_blob_sha1": "2d064267ba6ea1b7e2c24050bddae1bc583f809f"
+      "bytes": 380,
+      "sha256": "1f8b86704e6a5da2224c7052547d132912fb44ef02a29636a4169cbe1b3ef266",
+      "git_blob_sha1": "338232a8eaca0ff45eeecb5930d956e2b2c67957"
     },
     "tests/metrics/dtx_acceptance.json": {
       "bytes": 902,
-      "sha256": "ea5b130720376049722153f8cfb9ad25eb2057bb03c57084bae4d58581f34eb7",
-      "git_blob_sha1": "46e6d31ae77f7f1ca88b6b94d549603c0f591db5"
+      "sha256": "7230cefb7776d5454a8938d41abb1dd125e1cea1f91b45bd278149e8e4c86bbf",
+      "git_blob_sha1": "0b5567474cedcfd871debfbd37afba2bf0de5aea"
     },
     "tests/metrics/dtx_metrics.csv": {
       "bytes": 1682,
@@ -150,14 +160,14 @@
       "git_blob_sha1": "84a0442de6f6bc7336976b1f4a61037c7e3a0813"
     },
     "tests/metrics/encode_speed_vs_official.csv": {
-      "bytes": 628,
-      "sha256": "c0cf4220f6b6ec5f635946f70ea97a68668d91ce98f7b63a20392fcbdd8d342b",
-      "git_blob_sha1": "3c6e1c7e7c8bec6e5d06f5c79427bc33d896202f"
+      "bytes": 626,
+      "sha256": "d701ee6f3cfdee1cbc70bb7bc7b551870116af8552ced0e9b37201f7e3f0b121",
+      "git_blob_sha1": "ed7ca09a0833dc97494320a41cb0e309c433c69f"
     },
     "tests/metrics/fec_interop_metrics.csv": {
-      "bytes": 5532,
-      "sha256": "b105e56ebb4c6bb7e040007bb92c2b117644f6d283d9dcb4d595c677bcedc705",
-      "git_blob_sha1": "ea238e41734ba3df2dd1089f538bbc5271f2bfbf"
+      "bytes": 5533,
+      "sha256": "4299985d5fd913d514caad111eab983dec69c4abff021aa527154ec48895546a",
+      "git_blob_sha1": "92cb310cbf8b7b9c8b05f7b9db1b2d3f48b9b03f"
     },
     "tests/metrics/fec_rate_allocation_checkpoint.json": {
       "bytes": 46353,
@@ -165,9 +175,9 @@
       "git_blob_sha1": "16e99e3abe5baf2065f1b299e72a481f80a57f73"
     },
     "tests/metrics/fec_run_metadata.json": {
-      "bytes": 18061,
-      "sha256": "9b98b434672c697c64fada30dbe6c82557039f14d697d5b3ae7590cd23aa368d",
-      "git_blob_sha1": "447c75d602366d1a58dad7b768e7a78368b4517b"
+      "bytes": 18062,
+      "sha256": "ba38c10b20765f2c5fbd098afb03c35fce103f0c362f89142aecff82cbebd09e",
+      "git_blob_sha1": "8b5cd34e5e4064d9e29506bd7b57c158a6855fca"
     },
     "tests/metrics/fec_s7_candidate_validation.json": {
       "bytes": 195459,
@@ -176,8 +186,8 @@
     },
     "tests/metrics/fec_source_metrics.json": {
       "bytes": 50552,
-      "sha256": "e446b27bee47bd555f3546634e8ca9a6cfbefdc1420c54934c4d14574507c8ed",
-      "git_blob_sha1": "d30aa6b0b8f1a4d36bd59b091a09ec244879fe19"
+      "sha256": "8ff82b0e79d01d9be64c84c6708c78bbacc0f46e42036b70f1483cd05e7550b4",
+      "git_blob_sha1": "1ea648276025208c44141f09ec0086fee3239c9d"
     },
     "tests/metrics/fec_startup_checkpoint.json": {
       "bytes": 8566,
@@ -201,13 +211,13 @@
     },
     "tests/metrics/memory_vs_official.csv": {
       "bytes": 397,
-      "sha256": "8e50104eaf2d53219975ec9961c5d51bd1d6d3ee4de45ee99d4fa72dd934da2c",
-      "git_blob_sha1": "191cd5cd6cf634bbc2968b3659d18bbabf23b7bf"
+      "sha256": "5d8ea74fb1199d51ef2f98ec26b6d318029980a0fb4bc61297d721d5ae738ae5",
+      "git_blob_sha1": "82823f25503bc7f8ec64890d2c5448a958e8079c"
     },
     "tests/metrics/mode_balance_metrics.json": {
       "bytes": 283,
-      "sha256": "5c03482d28f468857e48f4b718249aa4f3060fda2774b0ede8d6cd91fdfec181",
-      "git_blob_sha1": "22d334d813c6537c877e7a0d6bf2f0ace06731e0"
+      "sha256": "5dbe8bf371e9a4306b0df82b4f502bfca15a1a0a111e69406e9d56443609a481",
+      "git_blob_sha1": "041ccaffb3183cbdb704b87c5c4c106f89ca305c"
     },
     "tests/metrics/nsq_candidate_inline_checkpoint.json": {
       "bytes": 90574,
@@ -220,9 +230,9 @@
       "git_blob_sha1": "86fb6b03432f1e8d0967fc8f70eecd785dff9814"
     },
     "tests/metrics/postfilter_pcm16_path.csv": {
-      "bytes": 1627,
-      "sha256": "081afc5d65f222508baa40b8d08ba7943aefd6266f69cb00be4c590c10d4aba9",
-      "git_blob_sha1": "f846821209794a20f935d2db7d825235fbf28daa"
+      "bytes": 1609,
+      "sha256": "270e1caaf7440c5f039f0a39305f7c9fd1e2d120c62def0d20bcb86b0a8b3e6b",
+      "git_blob_sha1": "f4fa128b348135cc23ff0ef1a922cb35c091e0e2"
     },
     "tests/metrics/postfilter_quality_voip.csv": {
       "bytes": 223,
@@ -230,9 +240,9 @@
       "git_blob_sha1": "c899f18ceb80d717eb687b865de81d512a2ed28a"
     },
     "tests/metrics/production_quality_matrix.csv": {
-      "bytes": 637405,
-      "sha256": "8e24afe1dc0ba71e9c4332a783e5816e1cb1d604b78c7babf560ccbd74411e43",
-      "git_blob_sha1": "3c2a1d74d5a865f8d663e97c990de6cd3f3bbb60"
+      "bytes": 637935,
+      "sha256": "5075fb8b368dcbe8016c031c0af8b1b8b15d58b3b6cd2ed6d89090d93164ef9c",
+      "git_blob_sha1": "acd4ad4c1d5213c804a05a6164805ce5110029b8"
     },
     "tests/metrics/production_quality_published.csv": {
       "bytes": 803624,
@@ -280,9 +290,9 @@
       "git_blob_sha1": "39271bf77e2d98a0a6c02a8d225985f1119319f8"
     },
     "tests/metrics/quality_run_metadata.json": {
-      "bytes": 9938,
-      "sha256": "1d53a2d59424f264f101f32a4d94e82929d163ab6fae99af50140f521279852c",
-      "git_blob_sha1": "06d561aa7773edb2a00880b9eeb407e23e853551"
+      "bytes": 11223,
+      "sha256": "9685decb43a21cac45764aa83cd2f91a8919185fe2bad9fd101a8e8a57feb767",
+      "git_blob_sha1": "9fe58154574d7e84a16d463ee27c3398a9bed416"
     },
     "tests/metrics/quality_vs_official.csv": {
       "bytes": 1975,
@@ -305,9 +315,9 @@
       "git_blob_sha1": "6506a340f898823f77edae95661f5bf12cf4c436"
     },
     "tests/metrics/run_metadata.json": {
-      "bytes": 1221497,
-      "sha256": "de1d4d27111ae9747c0abc4bfa3e6707ee47fe08995a463d78434ca85920b800",
-      "git_blob_sha1": "646e9bcd16074386b818bae6c3724b06ab8f5830"
+      "bytes": 1223639,
+      "sha256": "ac6ff6d9af29b6fd6296f00fe3983e4f9134b8bea6c18943a18734c5f6a6a33d",
+      "git_blob_sha1": "6bf6be12e173af769e0921b55f0e542ddc5a02a8"
     },
     "tests/metrics/s6_governor_checkpoint.json": {
       "bytes": 62055,
@@ -325,14 +335,14 @@
       "git_blob_sha1": "b6221d12012c7ad98f387ca47300c1bbf41db684"
     },
     "tests/metrics/speed_run_metadata.json": {
-      "bytes": 9284,
-      "sha256": "3541bc7ed8bcc7870f7f4ccc2f904dee5c5efd1b3573927ce8ac8bf55213291e",
-      "git_blob_sha1": "945f803e09636133d75797e4bf6f8b059c16eece"
+      "bytes": 10569,
+      "sha256": "cfb5bbf3c47070f0d2bb300b97dc5a5ce83e4a157c6eafec7099f23b78588bc7",
+      "git_blob_sha1": "87f5a71e303a8a1f72532bfd1f246f188c183608"
     },
     "tests/metrics/speed_vs_official_intrinsics_60s.csv": {
-      "bytes": 944,
-      "sha256": "44dd331f7d1e781a8d3e774934ae736fc2070b73d8f5ac8ae62277c614aad119",
-      "git_blob_sha1": "711e3b6d559a021c2a7492f397d256c7b2d1b218"
+      "bytes": 945,
+      "sha256": "dcb91c9bf2ae4e7637d19b7f52345a44baf35300fbd034491ae4754634078251",
+      "git_blob_sha1": "4ebe008b2e5fa84881612dd2b53b88425038e244"
     },
     "tests/metrics/standard_fec_acceptance.json": {
       "bytes": 259,
@@ -351,18 +361,18 @@
     },
     "tests/metrics/voice_denoise_provenance.json": {
       "bytes": 836,
-      "sha256": "5c64632197ab76ca4cb2a6cf4c03536c19257546c1dc5b9ea8bc0459a156fbb8",
-      "git_blob_sha1": "8daeeefd6de8db50665d20a5bf853235d2d59bc3"
+      "sha256": "e384c1aa1160998d2f601075f2fd6c67eafa891e0f84877345d28479af79632c",
+      "git_blob_sha1": "ee10c0e7830dbd6166d381abaa57591725d925a9"
     },
     "tests/metrics/voice_denoise_quality_voip.csv": {
-      "bytes": 821,
-      "sha256": "3e2c3cc98de3e4e56a66bfe40483cb5261fb0204dbd33933f05ba54af6ff44df",
-      "git_blob_sha1": "c11c620792ffaded3624a15a1f4f2022820d69b3"
+      "bytes": 823,
+      "sha256": "3a7d05aa324b0b1a05de1853f10cfc24a001ed01f2e6f7247037dee4ab1c8643",
+      "git_blob_sha1": "99e67ce6bf0fbba43a627fa8c543f483ec14ed38"
     },
     "tests/metrics/voice_denoise_timing.csv": {
-      "bytes": 567,
-      "sha256": "61fe0afa64c852445344d46972e395e1cb2dc9ad5c1b1d013e433b7262041281",
-      "git_blob_sha1": "f525b2cd2d240b13e83ec43b06f36cb2e95cedd8"
+      "bytes": 569,
+      "sha256": "0752bc350db07186559f249c82a159fb4139d582ba5e34586545ffc79209b46d",
+      "git_blob_sha1": "5bb97667a512a1d7593c7f6e081a64c34607a76c"
     },
     "tests/metrics/voice_denoise_vs_previous.csv": {
       "bytes": 39926,
@@ -370,9 +380,9 @@
       "git_blob_sha1": "01f91bf36a145670363c9eb1b6dd7bbd0486dd1c"
     },
     "tests/metrics/voice_speed_vs_official.csv": {
-      "bytes": 1079,
-      "sha256": "bb77092fd0427340308145bcd89f5474a44d7921478f5bf9bab7c61b5b0a938a",
-      "git_blob_sha1": "32bf2b502fdcfb4e6ff8993ae20b109d4235d7aa"
+      "bytes": 1080,
+      "sha256": "0dc3c4a78b467d82475f610896c3de1d476aa3980dec3445d7d48bba76c07e31",
+      "git_blob_sha1": "0b067644c07ebe75d137deb3a518c5da77835657"
     },
     "tests/metrics/voip_startup_checkpoint.json": {
       "bytes": 78865,
@@ -400,9 +410,14 @@
       "git_blob_sha1": "da302526a27ad5b3e9ea3095933e455021c4e193"
     },
     "tests/metrics/multiframe_budget_checkpoint.json": {
-      "bytes": 6957,
-      "sha256": "4e79f294b444f7301fe69a3bc8f6c2e79f5e5b31871a1a018128b3c18c3bb218",
-      "git_blob_sha1": "8cba001cf101e48605e3c4b3e893beaa5c3a05e5"
+      "bytes": 7351,
+      "sha256": "bbaff718bf0a19b5bd363336e1f4e0ee6174de2d3dc5651a37814b3fd259c801",
+      "git_blob_sha1": "6149a00963dc656d1cb8273c05acee01c8154ebf"
+    },
+    "tests/metrics/compatibility_recovery_767d7c9.json": {
+      "bytes": 2630,
+      "sha256": "de124eda9679e8cb0c74cba34d14c218e90f1d7b8b1e70b0bf9bc9c34abdf4cf",
+      "git_blob_sha1": "fbc1a3b987eee81e8685397ab6853e33f2eef7b1"
     }
   },
   "source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
@@ -420,11 +435,20 @@
   "subsequent_storage_checkpoint": {
     "path": "tests/metrics/encoder_retained_storage_checkpoint.json",
     "source_sha256_git_normalized": "90a84abedff022bcd3ae72cec3a4fca24acd7949ca6179964db5256edd88beb5",
-    "scope": "Focused storage/identity/timing checkpoint; current full-suite tables retain their original measurement revision."
+    "scope": "Focused storage/identity/timing checkpoint; current full-suite tables retain their original measurement revision. This checkpoint remains a scoped record; current full tables come from c019647.",
+    "included_in_current_full_refresh_source": "c019647331f67b772fbad9ea1e597a12ac4a89e9"
   },
   "subsequent_multiframe_checkpoint": {
     "path": "tests/metrics/multiframe_budget_checkpoint.json",
     "source_sha256_git_normalized": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
-    "scope": "Focused multiframe behavior correction; full-suite refresh follows separately."
+    "scope": "Focused multiframe behavior correction; full-suite refresh follows separately. This checkpoint remains a scoped record; current full tables come from c019647.",
+    "included_in_current_full_refresh_source": "c019647331f67b772fbad9ea1e597a12ac4a89e9"
+  },
+  "compatibility_test_repair": {
+    "commit": "767d7c9134ebbe6c138432d1a7d49ee02c822a86",
+    "test_git_normalized_sha256": "5c586c5bf810cbad204847a7f0c1a57a282ebbc4e49da7c3fe596a538d37754c",
+    "codec_source_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+    "original_failed_state_sha256": "d33baa6c8ffc52f72dc052d804819bb40cb01f342c4c0d6c3f485ec6e67d2c09",
+    "measurement_phases_rerun": []
   }
 }

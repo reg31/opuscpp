@@ -1,0 +1,29 @@
+{
+  "status": "PASS",
+  "source_commit": "c019647331f67b772fbad9ea1e597a12ac4a89e9",
+  "source_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+  "test_commit": "767d7c9134ebbe6c138432d1a7d49ee02c822a86",
+  "test_blob": "836228d4cae7fa49d260a039ee81d646b5773ce5",
+  "test_git_normalized_sha256": "5c586c5bf810cbad204847a7f0c1a57a282ebbc4e49da7c3fe596a538d37754c",
+  "frozen_codec_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+  "original_failed_state_sha256": "d33baa6c8ffc52f72dc052d804819bb40cb01f342c4c0d6c3f485ec6e67d2c09",
+  "original_failed_transient_compile_cmd_sha256": "8285302e77ea3ec1c5434969962e67706b71badb3334388a503abad95d88ad17",
+  "original_failed_transient_compile_stderr_sha256": "3e01b5605c11bffdc465ac6999017d1f66bde2f76eac697c7a7dec10ed6d92eb",
+  "recovery_executables": {
+    "transient_invariant": "feaea69071f8856b977186fbda9b31c1bdb565e1c06c6d7b801186d4b39747d2",
+    "voip_quiet_start_latch": "897d98f7f5d54b9d26c692ae79c6143100572c6b69c2a5e5940a0fb136f37035"
+  },
+  "fresh_compatibility_recovered_sha256": "53e08e690c8a99f23c4a212a0d37e3b022165b728954232b28da746cc6ab302e",
+  "recovery_directory": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_c019647\\compatibility_recovery_767d7c9",
+  "measurement_phases_rerun": [],
+  "original_logs_and_root_refresh_state_modified": false,
+  "completed_after_recovery": [
+    "other_metrics selected regressions only"
+  ],
+  "focused_results": {
+    "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0",
+    "voice_denoise_state": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes",
+    "transient_invariant": "focused policy=0 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\nnormal_attack policy=0 saturated=0 detected=1 flag_space=1 overflow=0 rejected=0 ret=80 range_match=1 wire_transient=1 decoded=960 PASS\nsaturated_steady policy=0 saturated=1 detected=0 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\npolicy_true policy=1 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\ncelt_unsignaled_transient_invariant checks=4 failures=0",
+    "voip_quiet_start_latch": "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
+  }
+}

@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b` on 2026-10-02 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh compatibility checks were run for this source; raw results and bindings are linked below.
+Codex independently refreshed production `c019647331f67b772fbad9ea1e597a12ac4a89e9` on 2026-10-02 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. The current source-bound compatibility checks completed; their test-only recovery provenance is recorded below.
 
 ## Quality: every metric
 
@@ -27,41 +27,39 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 1.08x to 1.29x; decode: 1.22x to 1.83x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 1.07x to 1.28x; decode: 1.18x to 1.81x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 [Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. Raw timing samples are in [run metadata](run_metadata.json).
 
 ## Memory and object size
 
-The encoder and decoder rows are from the complete source `99c2bcb` refresh, measured together with 256 instances per group across three fresh processes and FEC/denoising disabled. Private/working-set page deltas are not exact object sizes.
+Median of three fresh processes, 256 instances each. FEC and denoising disabled for state allocation measurements. Private/working-set page deltas are not exact object sizes or peak stack usage.
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 23824 | 23824 | Not exposed |
-| official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 14176 | 13120 | Not exposed |
-| official_decoder_ch1 | 18400 | 18544 | 18468 |
-| current_encoder_ch2 | 36080 | 35968 | Not exposed |
-| official_encoder_ch2 | 48880 | 48720 | 48684 |
-| current_decoder_ch2 | 21344 | 21360 | Not exposed |
-| official_decoder_ch2 | 27376 | 27248 | 27236 |
+| current_encoder_ch1 | 22592 | 22592 | Not exposed |
+| official_encoder_ch1 | 31824 | 31920 | 31668 |
+| current_decoder_ch1 | 14256 | 13120 | Not exposed |
+| official_decoder_ch1 | 18320 | 18528 | 18468 |
+| current_encoder_ch2 | 33616 | 33504 | Not exposed |
+| official_encoder_ch2 | 48880 | 48704 | 48684 |
+| current_decoder_ch2 | 21168 | 21248 | Not exposed |
+| official_decoder_ch2 | 27280 | 27248 | 27236 |
 
 [Memory CSV](memory_vs_official.csv). Denoiser optional state: 68 bytes; temporary stack cache: 7,680 bytes. Compiler-reported NSQ stack reservations in earlier checkpoint sections are historical function reservations, not newly measured peak memory.
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 358184 | 0 | 0 | 358184 |
-| android | 358716 | 472 | 0 | 359188 |
+| host | 359728 | 0 | 0 | 359728 |
+| android | 356404 | 472 | 0 | 356876 |
 
 [Binary-size CSV](binary_size.csv).
 
 ## FEC and DTX
 
-FEC: 18/18 strict scored ratios; maximum 0.977027. C1 recovered-source fidelity, C2 following-frame fidelity, C3 source transition error and C4 recovered fidelity versus own PLC each pass 18/18. FEC effective setting is 1. The scored recovery aggregate contains 18 10/20 ms cases: 18/18 recovery wins, aggregate recovery ratio 0.504119, and packet-byte ratio 0.993345. The separate interoperability run covers 36 configurations and emits 72 direction rows; 40/60 ms cases remain in the raw report but are excluded from that scored aggregate. Source criteria C1-C4 each pass 18/18. See [FEC acceptance](acceptance.json).
+FEC: 18/18 strict scored ratios; maximum 0.977027. C1 recovered-source fidelity, C2 following-frame fidelity, C3 source transition error and C4 recovered fidelity versus own PLC each pass 18/18. The scored recovery aggregate contains 18 10/20 ms cases: recovery ratio 0.504119, packet-byte ratio 0.993345, and backup coverage 18/18 versus official 15/18. The separate interoperability run covers 36 configurations and emits 72 direction rows; 40/60 ms cases remain in the raw report but are excluded from the scored aggregate. See [FEC acceptance](acceptance.json).
 
 [Every FEC direction field](fec_interop_metrics.csv) includes decoder/continuation errors, recovered-to-PLC difference, recovery/PLC error, packet bytes and hashes. [Every source comparison](fec_source_metrics.json) includes fidelity_fec, next_fec, transition_fec, fidelity_ref, next_ref, transition_ref, fidelity_plc, self_consistency, step_fec and step_ref, for both codecs. [Strict ratios and complete output](fec_run_metadata.json).
-
-DTX acceptance FAIL under the unchanged criteria: false positives remain zero, aggregate re-entry NRMSE is 44.1% lower, but aggregate gain error is 12.5% higher; steady-noise DTX counts are 120 versus 0 for official. No waiver was applied. See [DTX acceptance](dtx_acceptance.json) and [runner recovery provenance](measurement_runner_recovery.json). All per-case DTX rows are retained below and in the CSV.
 
 DTX aggregate fields (individual material losses remain in the CSV):
 
@@ -79,7 +77,20 @@ DTX aggregate fields (individual material losses remain in the CSV):
 | steady_noise_dtx_opuscpp | 120 |
 | steady_noise_dtx_official | 0 |
 
-[All DTX false-positive and re-entry measurements](dtx_metrics.csv).
+[All DTX false-positive and re-entry measurements](dtx_metrics.csv); the unchanged aggregate gate is FAIL ([acceptance record](dtx_acceptance.json)).
+
+## Fresh compatibility and test-only recovery
+
+The c019647 full refresh completed all seven phases. Saved current-source results include 24/24 RFC 8251 decode vectors, 96 encode-interoperability checks, API behavior checks, and four selected regressions. The final two selected checks ran after test-only maintenance commit `767d7c9`; codec source SHA-256 remains `f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f`. No quality, memory, timing, speech-timing, or other metric phase was rerun for the test repair. Full outputs are in [compatibility validation](compatibility_validation.json), with the explicit repair binding in [recovery metadata](compatibility_recovery_767d7c9.json). The original stale-test compile failure is retained in the run logs and marked as superseded by the test-only repair.
+
+Supplemental source-bound checkpoints remain separate from the full-refresh measurements: [retained storage](encoder_retained_storage_checkpoint.json), [CELT native-budget evidence](celt_native_budget_checkpoint.json), and [multiframe packet-budget regression](multiframe_budget_checkpoint.json). Their embedded source revisions and scopes remain attached; they do not replace the c019647 metric tables.
+
+Current selected checks, with raw outputs in [compatibility validation](compatibility_validation.json):
+
+- `voice_conditioning_release`: PASS (133 checks).
+- `voice_denoise_state`: PASS (90 cases).
+- `transient_invariant`: PASS (4 checks).
+- `voip_quiet_start_latch`: PASS (26 checks).
 
 ## Mode selection
 
@@ -93,33 +104,12 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=21.7555 decode_ms=23.1211 checksum=340886119
-mono-high bytes=115 encode_ms=23.6736 decode_ms=19.0117 checksum=2633358364
-stereo-mid bytes=102 encode_ms=89.1458 decode_ms=29.2035 checksum=3294895434
-stereo-high bytes=147 encode_ms=94.8076 decode_ms=30.9023 checksum=1997488960
+mono-mid bytes=76 encode_ms=21.8944 decode_ms=21.3281 checksum=340886119
+mono-high bytes=115 encode_ms=22.819 decode_ms=19.2188 checksum=2633358364
+stereo-mid bytes=102 encode_ms=102.443 decode_ms=31.1517 checksum=3294895434
+stereo-high bytes=147 encode_ms=94.4811 decode_ms=30.8276 checksum=1997488960
 ```
-
-## Fresh compatibility checks
-
-Fresh source-bound results for `99c2bcb` include 24/24 RFC 8251 decoder vectors, 96 encode-interoperability cases, API/lookahead behavior and four focused current-source regressions. No sanitizer was run. Full source, fixture, binary and command bindings are in [fresh compatibility metadata](compatibility_validation.json).
-
-## Current selected checks
-
-- `voice_conditioning_release`: PASS (133 checks).
-- `voice_denoise_state`: PASS (90 cases).
-- `transient_invariant`: PASS (4 checks).
-- `voip_quiet_start_latch`: PASS (26 checks).
-
-Raw outputs and the 99c2bcb source binding are in [selected regression metadata](selected_regressions.json).
 
 ## Unavailable and historical measurements
 
-WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Named historical compatibility, startup and latency/lookahead checkpoints retain their original source commits and validation dates. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
-
-## Encoder retained-storage checkpoint
-
-A subsequent storage change reduces requested encoder allocation by 1,232 bytes per channel, to 22,416 B mono and 33,488 B stereo. Packet, range, decoded PCM and FEC PCM identity passed 77,760 frames; focused timing is small and mixed. These requested-payload figures are separate from the process-private table above, which remains bound to the full `99c2bcb` refresh. [Source bindings, complete timing results and limits](encoder_retained_storage_checkpoint.json).
-
-## Long-packet budget checkpoint
-
-An equal per-subframe ceiling prevents the last SILK frame in a 100 ms packet from changing bandwidth when earlier frames consume the shared budget. The mixed-duration corpus improves from 12 encoding errors to zero; 3,680 focused cases and the integrated duration regression pass. Multiframe bytes may change; the full benchmark tables retain their stated measurement revision. [Before/after evidence and validation](multiframe_budget_checkpoint.json).
+WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Named historical compatibility, startup and latency/lookahead checkpoints retain their original source commits and dates. The c019647 compatibility checks are current; the test-only repair and its unchanged codec source are bound above. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
