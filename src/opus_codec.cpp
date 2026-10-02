@@ -6423,9 +6423,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   bool weak_transient = false;
   bool input_release = false;
   ec_enc local_encoder;
-  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_default_overlap)> input_storage;
+  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
+  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
   auto* freq = frequency_storage.data();
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
@@ -6789,7 +6789,6 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     return -3;
   return nbCompressedBytes;
 }
-
 
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
   return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
