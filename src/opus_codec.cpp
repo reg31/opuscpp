@@ -974,7 +974,6 @@ static auto silk_nsq_working_state(const silk_nsq_history& history) noexcept -> 
   return state;
 }
 
-
 struct silk_VAD_state {
   std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
   std::array<opus_int32, 4> XnrgSubfr, NrgRatioSmth_Q8;
@@ -1864,11 +1863,14 @@ struct silk_sample_history {
     silk_short2float_array(values, base.data(), static_cast<opus_int32>(base.size()));
     for (std::size_t byte = 0; byte < tags.size(); ++byte) {
       const auto bits = tags[byte];
-      if (bits == 0) continue;
+      if (bits == 0)
+        continue;
       for (unsigned lane = 0; lane < 4; ++lane) {
         const auto tag = (bits >> (2 * lane)) & 3;
-        if (tag == 1) values[4 * byte + lane] += 1e-6f;
-        else if (tag == 2) values[4 * byte + lane] -= 1e-6f;
+        if (tag == 1)
+          values[4 * byte + lane] += 1e-6f;
+        else if (tag == 2)
+          values[4 * byte + lane] -= 1e-6f;
       }
     }
   }
@@ -6487,9 +6489,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   bool weak_transient = false;
   bool input_release = false;
   ec_enc local_encoder;
-  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_default_overlap)> input_storage;
+  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
+  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
   auto* freq = frequency_storage.data();
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
@@ -6853,7 +6855,6 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     return -3;
   return nbCompressedBytes;
 }
-
 
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
   return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
