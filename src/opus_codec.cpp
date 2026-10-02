@@ -937,13 +937,36 @@ static auto silk_CLZ_FRAC(opus_int32 value, opus_int32* lz, opus_int32* frac_Q7)
   return silk_varq_shift(result, 61 - b_headroom - Qres);
 }
 
-struct silk_nsq_state {
-  opus_int16 xq[2 * ((5 * 4) * 16)];
-  opus_int32 sLTP_shp_Q14[2 * ((5 * 4) * 16)], sLPC_Q14[(5 * 16) + 16], sAR2_Q14[24], sLF_AR_shp_Q14, sDiff_shp_Q14;
+template <int History, int Lpc>
+struct silk_nsq_storage {
+  opus_int16 xq[History];
+  opus_int32 sLTP_shp_Q14[History], sLPC_Q14[Lpc], sAR2_Q14[24], sLF_AR_shp_Q14, sDiff_shp_Q14;
   int lagPrev, sLTP_buf_idx, sLTP_shp_buf_idx;
   opus_int32 rand_seed, prev_gain_Q16;
   int rewhite_flag;
 };
+using silk_nsq_state = silk_nsq_storage<640, 96>;
+using silk_nsq_history = silk_nsq_storage<320, 16>;
+static_assert(sizeof(silk_nsq_history) == 2112);
+
+template <int A, int B, int C, int D>
+  requires(A >= 320 && B >= 16 && C >= 320 && D >= 16)
+static void silk_copy_nsq_history(silk_nsq_storage<A, B>& target, const silk_nsq_storage<C, D>& source) noexcept {
+  copy_n_items(source.xq, 320, target.xq);
+  copy_n_items(source.sLTP_shp_Q14, 320, target.sLTP_shp_Q14);
+  copy_n_items(source.sLPC_Q14, 16, target.sLPC_Q14);
+  using Target = silk_nsq_storage<A, B>;
+  using Source = silk_nsq_storage<C, D>;
+  static_assert(sizeof(Target) - offsetof(Target, sAR2_Q14) == sizeof(Source) - offsetof(Source, sAR2_Q14));
+  copy_n_bytes(source.sAR2_Q14, sizeof(Source) - offsetof(Source, sAR2_Q14), target.sAR2_Q14);
+}
+
+static auto silk_nsq_working_state(const silk_nsq_history& history) noexcept -> silk_nsq_state {
+  silk_nsq_state state{};
+  silk_copy_nsq_history(state, history);
+  return state;
+}
+
 
 struct silk_VAD_state {
   std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
@@ -994,7 +1017,7 @@ struct silk_lbrr_channel_state {
   std::array<std::array<opus_int8, (5 * 4) * 16>, 3> pulses;
   std::array<opus_int8, 3> flags;
   opus_int8 previous_gain_index;
-  silk_nsq_state nsq;
+  silk_nsq_history nsq;
   int enabled, gain_increase;
 };
 
@@ -1008,7 +1031,7 @@ struct silk_encoder_state {
   opus_int32 variable_HP_smth1_Q15;
   silk_LP_state sLP;
   silk_VAD_state sVAD;
-  silk_nsq_state sNSQ;
+  silk_nsq_history sNSQ;
   std::array<opus_int16, 16> prev_NLSFq_Q15;
   int speech_activity_Q8;
   opus_int8 prevSignalType;
@@ -15442,7 +15465,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     indices.signalType = 1;
   }
   if (frame == 0 || lbrr->flags[frame - 1] == 0) {
-    lbrr->nsq = pre_frame_nsq;
+    silk_copy_nsq_history(lbrr->nsq, pre_frame_nsq);
     lbrr->previous_gain_index = original_last_gain_index;
     indices.GainsIndices[0] =
         static_cast<opus_int8>(std::min<int>(indices.GainsIndices[0] + std::max(lbrr->gain_increase - gain_reduction, 2), 63));
@@ -15452,7 +15475,9 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
   for (int index = 0; index < psEnc->sCmn.nb_subfr; ++index) {
     control->Gains[index] = gains_Q16[static_cast<std::size_t>(index)] * (1.0f / 65536.0f);
   }
-  silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr->nsq, lbrr->pulses[frame].data(), samples, prepared);
+  auto lbrr_nsq = silk_nsq_working_state(lbrr->nsq);
+  silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr_nsq, lbrr->pulses[frame].data(), samples, prepared);
+  silk_copy_nsq_history(lbrr->nsq, lbrr_nsq);
   std::copy_n(original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), control->Gains);
 }
 
@@ -15517,10 +15542,11 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     int gain_lock[4] = {};
     opus_int16 best_gain_mult[4];
     int best_sum[4];
+    auto nsq_working = silk_nsq_working_state(psEnc->sCmn.sNSQ);
     silk_nsq_state sNSQ_copy[2];
     ec_enc sRangeEnc_copy, sRangeEnc_copy2;
     sRangeEnc_copy = *psRangeEnc;
-    sNSQ_copy[0] = psEnc->sCmn.sNSQ;
+    sNSQ_copy[0] = nsq_working;
     const opus_int32 seed_copy = psEnc->sCmn.indices.Seed;
     const opus_int16 ec_prevLagIndex_copy = psEnc->sCmn.ec_prevLagIndex;
     const int ec_prevSignalType_copy = psEnc->sCmn.ec_prevSignalType;
@@ -15535,12 +15561,12 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
       } else {
         if (iter > 0) {
           *psRangeEnc = sRangeEnc_copy;
-          psEnc->sCmn.sNSQ = sNSQ_copy[0];
+          nsq_working = sNSQ_copy[0];
           psEnc->sCmn.indices.Seed = seed_copy;
           psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
           psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
         }
-        silk_NSQ_wrapper_FLP(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &psEnc->sCmn.sNSQ, psEnc->sCmn.pulses, nsq_samples.data(), prepared);
+        silk_NSQ_wrapper_FLP(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working, psEnc->sCmn.pulses, nsq_samples.data(), prepared);
         if (iter == max_iterations && lower.id < 0) {
           sRangeEnc_copy2 = *psRangeEnc;
         }
@@ -15562,8 +15588,8 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
           auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
           silk_gains_dequant(replay_gains.data(), psEnc->sCmn.indices.GainsIndices, &previous_gain_index,
                              condCoding == 2, psEnc->sCmn.nb_subfr);
-          psEnc->sCmn.sNSQ = sNSQ_copy[0];
-          silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &psEnc->sCmn.sNSQ,
+          nsq_working = sNSQ_copy[0];
+          silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working,
                                      psEnc->sCmn.pulses, nsq_samples.data(), prepared, replay_gains.data());
           use_reconstructed_lbrr_target = false;
         }
@@ -15575,7 +15601,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
         if (lower.id >= 0 && (gainsID == lower.id || nBits > maxBits)) {
           *psRangeEnc = sRangeEnc_copy2;
           copy_n_bytes(ec_buf_copy, static_cast<std::size_t>(sRangeEnc_copy2.offs), psRangeEnc->buf);
-          psEnc->sCmn.sNSQ = sNSQ_copy[1];
+          nsq_working = sNSQ_copy[1];
           psEnc->sShape.LastGainIndex = LastGainIndex_copy2;
         }
         break;
@@ -15592,7 +15618,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
         if (gainsID != lower.id) {
           sRangeEnc_copy2 = *psRangeEnc;
           copy_n_bytes(psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs), ec_buf_copy);
-          sNSQ_copy[1] = psEnc->sCmn.sNSQ;
+          sNSQ_copy[1] = nsq_working;
           LastGainIndex_copy2 = psEnc->sShape.LastGainIndex;
         }
         lower = {nBits, gainMult_Q8, gainsID};
@@ -15642,11 +15668,12 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
       const int lbrr_ltp = psEnc->sCmn.ltp_mem_length;
       const int lbrr_fl = psEnc->sCmn.frame_length;
       if (use_reconstructed_lbrr_target && lbrr_ltp >= lbrr_fl && lbrr_ltp <= 2 * silk_max_frame_length) {
-        lbrr_samples = &psEnc->sCmn.sNSQ.xq[lbrr_ltp - lbrr_fl];
+        lbrr_samples = &nsq_working.xq[lbrr_ltp - lbrr_fl];
       }
       silk_generate_lbrr(psEnc, lbrr, &sEncCtrl, lbrr_samples, condCoding, lbrr_gain_reduction, protect_quiet_lbrr, prepared,
                          lbrr_original_indices, lbrr_original_last_gain_index, sNSQ_copy[0]);
     }
+    silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
   }
   move_n_bytes(&psEnc->x_buf[psEnc->sCmn.frame_length],
                static_cast<std::size_t>((psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz) * sizeof(float)), psEnc->x_buf);
