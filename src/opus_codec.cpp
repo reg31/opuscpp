@@ -473,17 +473,17 @@ struct classical_leak_state {
   int E_count;
   int count;
   int analysis_offset;
-  int write_pos;
-  int read_pos;
-  int read_subframe;
+  opus_uint8 write_pos;
+  opus_uint8 read_pos;
+  opus_uint8 read_subframe;
+  bool initialized;
   float hp_ener_accum;
-  int initialized;
   float rnn_state[24];
   opus_val32 downmix_state[3];
   classical_leak_record info[100];
   classical_leak_info out_info;
-  int analysis_read_pos_bak;
-  int analysis_read_subframe_bak;
+  opus_int8 analysis_read_pos_bak;
+  opus_uint8 analysis_read_subframe_bak;
 };
 struct CeltEncoderInternal;
 static void classical_leak_reset(classical_leak_state* s);
@@ -1855,7 +1855,7 @@ struct silk_shape_state_FLP {
 static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 length) noexcept -> void;
 struct silk_sample_history {
   std::array<opus_int16, 720> base{};
-  std::array<opus_uint8, 180> tags{};
+  std::array<opus_uint8, 36> tags{};
 
   void unpack(float* values) const noexcept {
     silk_short2float_array(values, base.data(), static_cast<opus_int32>(base.size()));
@@ -1866,27 +1866,27 @@ struct silk_sample_history {
       for (unsigned lane = 0; lane < 4; ++lane) {
         const auto tag = (bits >> (2 * lane)) & 3;
         if (tag == 1)
-          values[4 * byte + lane] += 1e-6f;
+          values[5 * (4 * byte + lane)] += 1e-6f;
         else if (tag == 2)
-          values[4 * byte + lane] -= 1e-6f;
+          values[5 * (4 * byte + lane)] -= 1e-6f;
       }
     }
   }
   void write(const opus_int16* values, std::size_t offset, std::size_t count) noexcept {
     copy_n_items(values, count, base.data() + offset);
-    zero_n_items(tags.data() + offset / 4, count / 4);
+    zero_n_items(tags.data() + offset / 20, count / 20);
   }
   void dither(std::size_t index, bool positive) noexcept {
-    const auto shift = 2 * (index % 4);
+    const auto shift = 2 * ((index / 5) % 4);
     const unsigned tag = positive ? 1U : 2U;
-    tags[index / 4] = static_cast<opus_uint8>((tags[index / 4] & ~(3U << shift)) | (tag << shift));
+    tags[index / 20] = static_cast<opus_uint8>((tags[index / 20] & ~(3U << shift)) | (tag << shift));
   }
   void advance(std::size_t frame, std::size_t history) noexcept {
     move_n_bytes(base.data() + frame, history * sizeof(opus_int16), base.data());
-    move_n_bytes(tags.data() + frame / 4, history / 4, tags.data());
+    move_n_bytes(tags.data() + frame / 20, history / 20, tags.data());
   }
 };
-static_assert(sizeof(silk_sample_history) == 1620);
+static_assert(sizeof(silk_sample_history) == 1476);
 
 struct silk_encoder_state_FLP {
   silk_encoder_state sCmn;
