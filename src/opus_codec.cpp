@@ -493,9 +493,10 @@ static void classical_leak_export(const classical_leak_state* s, CeltEncoderInte
 struct CeltEncoderInternal {
   bool classical_leak_valid = false;
   opus_uint8 classical_leak_boost[19]{};
-  int channels, stream_channels, complexity, upsample, start, end;
+  opus_uint8 channels, stream_channels, complexity, upsample, start, end;
   opus_int32 bitrate, midrate_quality_boost_bps;
-  int vbr, constrained_vbr, lsb_depth, loss_rate;
+  bool vbr, constrained_vbr;
+  opus_uint8 lsb_depth, loss_rate;
   bool prediction_disabled, audio_application, voip_application, stereo_policy_celt;
   opus_uint8 stereo_coherence_Q8;
   opus_uint32 rng;
@@ -5434,7 +5435,7 @@ struct celt_encoder_views {
 };
 
 [[nodiscard]] static inline auto make_celt_encoder_views(CeltEncoderInternal* st) noexcept -> celt_encoder_views {
-  const auto channels = st->channels, overlap = celt_default_overlap, nbEBands = celt_default_nb_ebands;
+  const int channels = st->channels, overlap = celt_default_overlap, nbEBands = celt_default_nb_ebands;
   auto* const in_mem = celt_encoder_storage(st);
   celt_encoder_views views{};
   views.prefilter_mem = in_mem + channels * overlap;
@@ -6386,7 +6387,7 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   }
   if (st->bitrate > 0) {
     const int missing_bands = clamp_value(celt_default_nb_ebands - st->end, 0, 3);
-    const int spectral_budget = st->bitrate / std::max(1, st->end);
+    const int spectral_budget = st->bitrate / std::max<int>(1, st->end);
     const int lowrate_diff_limit = st->bitrate <= 16000 ? 22 : 56;
     const bool balanced_tonal = st->input_diff_Q10 >= 1 && st->input_diff_Q10 <= 3 && toneishness >= .40f && toneishness <= .55f;
     const bool lowrate_stereo = st->channels == 2 && spectral_budget < 1400 && st->input_diff_Q10 < lowrate_diff_limit && !balanced_tonal;
