@@ -9776,7 +9776,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   if (tonal->count <= 1)
     alphaE2 = 1;
 
-
   const int pending_samples = tonal->mem_fill - 240;
   const int needed = 480 - pending_samples;
   union {
@@ -9784,9 +9783,9 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     std::array<kiss_fft_cpx, 480> spectrum;
   } scratch;
   auto* block = tonal->pending_pcm != nullptr ? tonal->pending_pcm
-                                             : (::new (static_cast<void*>(&scratch.block)) std::array<float, 480>)->data();
+                                              : (::new (static_cast<void*>(&scratch.block)) std::array<float, 480>)->data();
   tonal->hp_ener_accum += classical_leak_downmix_resample(tonal, pcm, block + pending_samples,
-                                                        needed, offset, channels, Fs);
+                                                          needed, offset, channels, Fs);
   hp_ener = tonal->hp_ener_accum;
   info = &tonal->info[tonal->write_pos++];
   if (tonal->write_pos >= 100)
@@ -10289,12 +10288,14 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
   while (pcm_len > 0) {
     const int step = Fs / 50;
     const int chunk = std::min(step, pcm_len);
-    const int analysis_len = Fs == 48000 ? chunk / 2 : Fs == 16000 ? 3 * chunk / 2 : chunk;
-    const int analysis_offset = Fs == 48000 ? offset / 2 : Fs == 16000 ? 3 * offset / 2 : offset;
+    const int analysis_len = Fs == 48000 ? chunk / 2 : Fs == 16000 ? 3 * chunk / 2
+                                                                   : chunk;
+    const int analysis_offset = Fs == 48000 ? offset / 2 : Fs == 16000 ? 3 * offset / 2
+                                                                       : offset;
     const int fill = s->mem_fill;
     if (analysis_len < 720 - fill) {
       s->hp_ener_accum += classical_leak_downmix_resample(s, pcm, s->pending_pcm + fill - 240,
-                                                        analysis_len, analysis_offset, channels, Fs);
+                                                          analysis_len, analysis_offset, channels, Fs);
       s->mem_fill += analysis_len;
     } else {
       classical_leak_analyze(s, pcm, analysis_len, analysis_offset, channels, lsb_depth, Fs);
