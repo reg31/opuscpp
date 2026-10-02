@@ -119,3 +119,7 @@ WER/CER: not measured; no configured ASR engine/transcript manifest. No result i
 ## Encoder retained-storage checkpoint
 
 A subsequent storage change reduces requested encoder allocation by 1,232 bytes per channel, to 22,416 B mono and 33,488 B stereo. Packet, range, decoded PCM and FEC PCM identity passed 77,760 frames; focused timing is small and mixed. These requested-payload figures are separate from the process-private table above, which remains bound to the full `99c2bcb` refresh. [Source bindings, complete timing results and limits](encoder_retained_storage_checkpoint.json).
+
+## Long-packet budget checkpoint
+
+An equal per-subframe ceiling prevents the last SILK frame in a 100 ms packet from changing bandwidth when earlier frames consume the shared budget. The mixed-duration corpus improves from 12 encoding errors to zero; 3,680 focused cases and the integrated duration regression pass. Multiframe bytes may change; the full benchmark tables retain their stated measurement revision. [Before/after evidence and validation](multiframe_budget_checkpoint.json).

@@ -2838,7 +2838,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const opus_int32 frame_target_bits = remaining_target_bits / remaining_frames;
     const auto frame_budget = make_vbr_frame_budget(frame_target_bits, local_credit_bits);
     const opus_int32 frame_max_bytes = params.governed_vbr ? frame_budget.max_bytes : frame_target_bits / 8;
-    opus_int32 curr_max = std::min(max_len_sum - tot_size, frame_max_bytes);
+    opus_int32 curr_max = std::min(max_len_sum - tot_size, std::min(max_len_sum / nb_frames, frame_max_bytes));
     const auto* frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
     if (st->classical_leak.analysis_read_pos_bak != -1) {
       classical_leak_get_info(&st->classical_leak, &st->classical_leak.out_info, st->Fs, enc_frame_size);

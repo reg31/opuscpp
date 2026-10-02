@@ -50,10 +50,58 @@ bool check_cbr_capacity() {
   return true;
 }
 
+bool check_mixed_duration_100ms() {
+  constexpr int sample_rate = 16000;
+  constexpr std::array<int, 9> durations{1, 2, 4, 8, 16, 24, 32, 40, 48};
+  constexpr std::array<int, 5> bitrates{24000, 7600, 6400, 24000, 7600};
+  auto encoder = make_opus_encoder(sample_rate, 1, OPUS_APPLICATION_VOIP, nullptr);
+  auto decoder = make_opus_decoder(sample_rate, 1, nullptr);
+  if (!encoder || !decoder || opus_encoder_ctl(encoder.get(), OPUS_SET_VBR(0)) ||
+      opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(10)) ||
+      opus_encoder_ctl(encoder.get(), OPUS_SET_INBAND_FEC(1)) ||
+      opus_encoder_ctl(encoder.get(), OPUS_SET_PACKET_LOSS_PERC(20))) {
+    std::cout << "FAIL setup\n";
+    return false;
+  }
+  std::array<float, 1920> input{}, output{};
+  std::array<unsigned char, 7656> packet{};
+  std::uint32_t random = 0x79b0e50du;
+  for (int frame = 0; frame <= 322; ++frame) {
+    const int bitrate = bitrates[static_cast<std::size_t>(frame / 80)];
+    if (frame % 80 == 0 && opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate))) {
+      std::cout << "FAIL bitrate frame=" << frame << '\n';
+      return false;
+    }
+    const int samples = sample_rate * durations[static_cast<std::size_t>(frame) % durations.size()] / 400;
+    for (int sample = 0; sample < samples; ++sample) {
+      random = random * 1664525u + 1013904223u;
+      const double phase = 6.283185307179586 * (frame * samples + sample) / sample_rate;
+      input[static_cast<std::size_t>(sample)] = static_cast<float>(
+          .2 * std::sin(173 * phase) + .02 * (static_cast<int>(random >> 17) - 16384) / 16384.0);
+    }
+    const int length = opus_encode_float(encoder.get(), input.data(), samples, packet.data(), packet.size());
+    const int capacity = frame == 322 ? (bitrate * samples / sample_rate + 4) / 8 : static_cast<int>(packet.size());
+    if (length <= 0 || length > capacity) {
+      std::cout << "FAIL encode frame=" << frame << " samples=" << samples << " length=" << length
+                << " capacity=" << capacity << '\n';
+      return false;
+    }
+    const int duration = opus_packet_get_nb_samples(packet.data(), length, sample_rate);
+    const int decoded = opus_decode_float(decoder.get(), packet.data(), length, output.data(), samples, 0);
+    if (duration != samples || decoded != samples) {
+      std::cout << "FAIL packet frame=" << frame << " duration=" << duration << " decoded=" << decoded
+                << " expected=" << samples << '\n';
+      return false;
+    }
+  }
+  return true;
+}
+
 }
 
 int main() {
   auto ok = check_cbr_capacity();
+  ok &= check_mixed_duration_100ms();
 
   constexpr std::array<unsigned char, 4> code0_20ms{0x78, 1, 2, 3};
   constexpr std::array<unsigned char, 7> code1_20ms{0x79, 1, 2, 3, 4, 5, 6};

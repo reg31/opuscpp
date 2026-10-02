@@ -1,0 +1,101 @@
+{
+  "scope": "priority production fix: equal-per-subframe multiframe budget on frozen c2f02393 (blob f5907b4)",
+  "diff": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_fixed.diff",
+    "sha256": "fca3b1c3b4811a49fb790fff750d8cdba83787c403ce7a8f60b507d6fac06ec6",
+    "line_old": "opus_int32 curr_max = std::min(max_len_sum - tot_size, frame_max_bytes);",
+    "line_new": "opus_int32 curr_max = std::min(max_len_sum - tot_size, std::min(max_len_sum / nb_frames, frame_max_bytes));",
+    "official_anchor": "tests/external/official_opus/src/opus_encoder.c:1785 curr_max = IMIN(bitrate_to_bits(...)/8, max_len_sum/nb_frames); then 1795 IMIN(max_len_sum-tot_size, curr_max)"
+  },
+  "sources": {
+    "snapshot_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_snapshot.cpp",
+    "snapshot_sha256": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
+    "fixed_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_fixed.cpp",
+    "fixed_sha256": "a93da9ab1ff6e89b69b8f9ac01454b16d500d65af10072da832d8998161f320b",
+    "observer_fixed_sha256": "54e580852defce6ff666b4faff173ab10641b5e93de62733dda585003ece3065",
+    "production_commit": "c2f02393997d7ae94d7352c991cc760cd540a2a4",
+    "production_blob": "f5907b4176e11b3645a79bdb58137563c5fe139c"
+  },
+  "corpus": {
+    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_corpus_20261002_181225\\corpus_report.json",
+    "report_sha256": "446d781201388f47dfd85d24257a7240d51a628a33d20e72ebb12c312f09b3a3",
+    "before_stdout": "frames=8000 within_instance_internal_rate_changes=48 coded_channel_changes=380 encode_errors=12 decode_errors=0",
+    "after_stdout": "frames=8000 within_instance_internal_rate_changes=48 coded_channel_changes=380 encode_errors=0 decode_errors=0",
+    "before_records_sha": "c4373b149ba6671981e0dbcbccd1bb6875c886ab8adcb40b6e4e8f408393a4b7",
+    "after_records_sha": "91df2df5866af87224ae20abfaa7b1048d3a98302d34bdc167c9cad1dbea66ec",
+    "before_transitions_sha": "fd291fd129c4f7025869780289e0e8548df0f48fb8f3ead45c93c4aa152bc2d1",
+    "after_transitions_sha": "0bf5cacc5989052d25b982bd94d6f76daec39f50d4e59d35e761e2a9ceb064d9",
+    "control_stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\non_silk_35\\ring_error_control.stderr.txt",
+    "control_stderr_sha256": "b055c8e09867266c28b6538d4545ed0f645f97166f392e275de2ce9f35ff32bf",
+    "fixed_stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_corpus_20261002_181225\\obs_fixed.stderr.txt",
+    "fixed_stderr_sha256": "97e193644a0f9310c8f70f0de095522ec9be6e7f043b678cf88122954971ef49"
+  },
+  "focused": {
+    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_focused_20261002_181727\\focused_report.json",
+    "sha256": "961e1750c598fd7ffe407bedf923768b9eaf4e7284300c991457c8bdfea75649",
+    "snapshot_summary": {
+      "cases": "3680",
+      "single_ok": "480",
+      "single_bound": "480",
+      "multi_ok": "3200",
+      "enc_err": "0",
+      "dec_cur_err": "0",
+      "dec_off_err": "0",
+      "range_err": "0",
+      "bound_err": "0",
+      "toc_cfg_err": "0"
+    },
+    "fixed_summary": {
+      "cases": "3680",
+      "single_ok": "480",
+      "single_bound": "480",
+      "multi_ok": "3200",
+      "enc_err": "0",
+      "dec_cur_err": "0",
+      "dec_off_err": "0",
+      "range_err": "0",
+      "bound_err": "0",
+      "toc_cfg_err": "0"
+    },
+    "single_frame_packet_identity": true
+  },
+  "tests": {
+    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_tests_20261002_181837\\tests_report.json",
+    "sha256": "52d12e8ba6cf15f5618cbebfeddd3147b73b3d3098b1460eac21ee72b273e51e",
+    "fec_summary": "fec_summary recovery_error_ratio=0.504119 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993345",
+    "packet_duration": "packet_duration_behavior=PASS",
+    "fec_rows_changed_only_2ch_40_60ms_vbr0": true
+  },
+  "remaining_risks": [
+    "Behavior change is intended for multiframe (>=40ms) packets only; single-frame 10/20ms packets are byte-identical (480/480).",
+    "FEC interop rows for 2ch 40/60ms vbr=0 change packet content at equal packet_bytes; aggregate gate summary unchanged and both tests exit 0.",
+    "No full 498 quality/benchmark refresh performed; no throughput measurement.",
+    "Bounded 3680-case focused sweep uses fresh-state encoders; the mixed-duration corpus is the regression witness for the 12 fixed errors."
+  ],
+  "root_integration": {
+    "parent_commit": "790901478c42d5af2d677482868a4f46f6096ff0",
+    "source_sha256_git_normalized": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+    "source_git_blob_sha1": "8d6d7a1128deb2e203fb479c60a5c51b6c597740",
+    "test": "tests/packet_duration_behavior.cpp",
+    "test_sha256_git_normalized": "71605dbde7bc5e837dceabeed094e142596ce1d1757f2adaac85635ff28965ad",
+    "flags": [
+      "-std=c++23",
+      "-O2",
+      "-DNDEBUG",
+      "-Wall",
+      "-Wextra",
+      "-Wpedantic"
+    ],
+    "compiler": "C:/Qt/Tools/mingw64/bin/g++.exe",
+    "command": "g++ -std=c++23 -O2 -DNDEBUG -Wall -Wextra -Wpedantic -I src tests/packet_duration_behavior.cpp src/opus_codec.cpp -o build/root_packet_duration_budget_fix.exe",
+    "result": "packet_duration_behavior=PASS",
+    "exit_code": 0,
+    "executable_sha256": "d08607e8206e4a4d12b6f5ed114189d9a851b289e7b59b10be415dab293660df",
+    "regression_scope": "One public-API 16kHz mono sequence, 323 packets, with the previously failing 100ms frame322; checks duration, capacity and decoded sample count.",
+    "parent_regression_result": "Private standalone equivalent fails frame322 with OPUS_INTERNAL_ERROR (-3) on parent c2; passes on the isolated fix. The integrated existing test additionally passed on the storage-updated source."
+  },
+  "invalid_preliminary_harness_runs": {
+    "run_focused_20261002_181415": "Compile/API argument mismatch; not validation evidence.",
+    "run_focused_20261002_181430": "PCM16-scale values passed to float API; all3680 attempts rejected. Invalid test input, not a codec result."
+  }
+}

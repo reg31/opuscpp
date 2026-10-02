@@ -95,9 +95,9 @@
       "git_blob_sha1": "85ec4ca55abd90e2c64f3f0aa1d4f52d4e3cfe74"
     },
     "tests/metrics/README.md": {
-      "bytes": 8387,
-      "sha256": "022d25ba19bf09ce14ff6ca93764ae4ecb7f1463ec9292d14366ffcc7c2a3ddd",
-      "git_blob_sha1": "212c13b6229ddc430b4fb24762f300a2c710302e"
+      "bytes": 8876,
+      "sha256": "fb1284fb349d6e852a11d0c47f2d3d537c516ffb131ecb21a9d5aa4e802c6c11",
+      "git_blob_sha1": "40e264eb223098a4ba98cf6e34bd4b908ec553b4"
     },
     "tests/metrics/acceptance.json": {
       "bytes": 672,
@@ -398,6 +398,11 @@
       "bytes": 56111,
       "sha256": "3dba8c012c4fa05383938005fb6aef5a3afa81c0bfab6c5f2ff2cb4d81ce575f",
       "git_blob_sha1": "da302526a27ad5b3e9ea3095933e455021c4e193"
+    },
+    "tests/metrics/multiframe_budget_checkpoint.json": {
+      "bytes": 6957,
+      "sha256": "4e79f294b444f7301fe69a3bc8f6c2e79f5e5b31871a1a018128b3c18c3bb218",
+      "git_blob_sha1": "8cba001cf101e48605e3c4b3e893beaa5c3a05e5"
     }
   },
   "source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
@@ -416,5 +421,10 @@
     "path": "tests/metrics/encoder_retained_storage_checkpoint.json",
     "source_sha256_git_normalized": "90a84abedff022bcd3ae72cec3a4fca24acd7949ca6179964db5256edd88beb5",
     "scope": "Focused storage/identity/timing checkpoint; current full-suite tables retain their original measurement revision."
+  },
+  "subsequent_multiframe_checkpoint": {
+    "path": "tests/metrics/multiframe_budget_checkpoint.json",
+    "source_sha256_git_normalized": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
+    "scope": "Focused multiframe behavior correction; full-suite refresh follows separately."
   }
 }
