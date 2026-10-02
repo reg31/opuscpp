@@ -1,0 +1,70 @@
+{
+  "scope": "focused retained encoder allocation refresh; this is not a full quality or timing refresh",
+  "measurement_commit": "cafa9b08d212a7853c5dc684c81f83f8c72be091",
+  "measurement_source_sha256": "7560668c8524ca0806ff7ce620feeb371d78619f3862c3f3b9b9c6581862cb57",
+  "reviewed_candidate_source_sha256": "fc12ecc432477f12bf83b65cbe10b7bb0d3361be0d5c0a70dd5d1635bacf777e",
+  "reviewed_candidate_patch_sha256": "18238ca210fcfc02a092d00d4f79ea0699f9d0ed100ef3776156665c143dd3d2",
+  "baseline_full_refresh_commit": "32c3f3163501f679e85f1d03d890c6a5e178d8d5",
+  "baseline_full_refresh_source_sha256": "1b59a733584d79d2712ba010e4b43430be292362d04a65414de46ceec8ce5281",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "compiler": "MinGW GCC16.2.0, C++23,O2,NDEBUG; library/layout warnings enabled",
+  "flags": [
+    "-std=c++23",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "measurement_method": "Reused published measure_group/read_memory implementation; 256 instances per group, 3 fresh process runs, --memory-only --bitrate16000, default AUDIO complexity10, denoiser/FEC off. Current and official candidate processes measured together; decoder rows in memory_vs_official.csv remain from the32c3 full refresh.",
+  "harness": {
+    "published_executable_sha256": "094347f2aa20c8f6b50b1926fe8ad30d71c16650a26af0ecb77c8731d3a1a5fd",
+    "ring_candidate_executable_sha256": "a393d863edc98c240a4cfb4e9b8e1a15babf765c1b94769fe56c3820941f8b2b",
+    "harness_source_sha256": "5657389d1159cbbc2263d9a1b4495ef858545efedfb3962773840a0ee802f540",
+    "official_api_state_mono_bytes": 31668,
+    "official_api_state_stereo_bytes": 48684
+  },
+  "rows": [
+    {
+      "label": "current_encoder_ch1",
+      "instances_per_process": 256,
+      "previous_32c3_private_bytes_per_instance": 31088,
+      "previous_32c3_working_set_bytes_per_instance": 30960,
+      "cafa9b08_private_bytes_per_instance": 27952,
+      "cafa9b08_working_set_bytes_per_instance": 27776,
+      "official_api_state_bytes": null
+    },
+    {
+      "label": "official_encoder_ch1",
+      "instances_per_process": 256,
+      "previous_32c3_private_bytes_per_instance": 31696,
+      "previous_32c3_working_set_bytes_per_instance": 31856,
+      "cafa9b08_private_bytes_per_instance": 31824,
+      "cafa9b08_working_set_bytes_per_instance": 31904,
+      "official_api_state_bytes": 31668
+    },
+    {
+      "label": "current_encoder_ch2",
+      "instances_per_process": 256,
+      "previous_32c3_private_bytes_per_instance": 47008,
+      "previous_32c3_working_set_bytes_per_instance": 46688,
+      "cafa9b08_private_bytes_per_instance": 43616,
+      "cafa9b08_working_set_bytes_per_instance": 43440,
+      "official_api_state_bytes": null
+    },
+    {
+      "label": "official_encoder_ch2",
+      "instances_per_process": 256,
+      "previous_32c3_private_bytes_per_instance": 48864,
+      "previous_32c3_working_set_bytes_per_instance": 48704,
+      "cafa9b08_private_bytes_per_instance": 48864,
+      "cafa9b08_working_set_bytes_per_instance": 48704,
+      "official_api_state_bytes": 48684
+    }
+  ],
+  "quality_and_timing_provenance": "The complete quality, timing, and other metrics remain measured on32c3f31. No full refresh was rerun for cafa9b08.",
+  "raw_evidence": {
+    "retained_ring_report_path": "work/encoder_memory_cpp23_20261002/private-validation/retained_ring_report.json",
+    "retained_ring_report_sha256": "debb0eacd3e782efdfc8fb79669a88952f9a01427aad20f1ed127353a2809abd",
+    "retained_ring_memory_report_path": "work/encoder_memory_cpp23_20261002/private-validation/retained_ring_memory_report.json",
+    "retained_ring_memory_report_sha256": "7da32e2d4e0b2bf603f6c6cc058fad7fd84c80aa38fc0c840e06e9859470a9c6"
+  }
+}

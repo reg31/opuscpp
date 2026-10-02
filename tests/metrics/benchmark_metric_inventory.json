@@ -175,9 +175,9 @@
       "git_blob_sha1": "c583af7ee228ddca5dd712aeb9df7cea0a976964"
     },
     "tests/metrics/memory_vs_official.csv": {
-      "bytes": 397,
-      "sha256": "82ab1639d6e91f7a41272393e6898e5ced5337d589af5af0a9964a16cedd3e43",
-      "git_blob_sha1": "fa60e91bd1839b27e8bc7668a7172bc357f1d1c2"
+      "bytes": 381,
+      "sha256": "0957f35bef8ff6cc111483331e8845b31151ed6abd838ca9de6a994a70a7d4f3",
+      "git_blob_sha1": "4f4656cbdff22763d7bff5cd09b4cd1a2ea2a0f3"
     },
     "tests/metrics/mode_balance_metrics.json": {
       "bytes": 283,
@@ -270,9 +270,9 @@
       "git_blob_sha1": "6ab6848cbbffbfb2167a3a9b86fef881061919ab"
     },
     "tests/metrics/README.md": {
-      "bytes": 10000,
-      "sha256": "bb573d095fda9a81fead579564d91ec55611708f1f9ed84c42b1cc6f703163a4",
-      "git_blob_sha1": "4af095a114cad460dbbbedb505c5afe03745a8dd"
+      "bytes": 10228,
+      "sha256": "1a375af98bcdbec0802b5eb5b1f21c57ae56a1c1640cc08722bfddb2b7a6d851",
+      "git_blob_sha1": "8bce5fa157badd931c3a8141b486024e342ec4a4"
     },
     "tests/metrics/run_metadata.json": {
       "bytes": 1372357,
@@ -345,9 +345,9 @@
       "git_blob_sha1": "25afef6662690e1373a1b09b576a00d3979f5eaa"
     },
     "README.md": {
-      "bytes": 13782,
-      "sha256": "07b65f34fc5652f18ccb80c9f5f7a3bc12ba07c237cf5532a80f79b40d146952",
-      "git_blob_sha1": "9d5608c22755b7cc6d786cff9c5c51ede28d4571"
+      "bytes": 14070,
+      "sha256": "13a77a97625d697973803d02ba288521be38528110b41bea16743bd773627b02",
+      "git_blob_sha1": "1e419cbe82d17d0d954b9210f81d873718c648e0"
     },
     "src/README.md": {
       "bytes": 10647,
@@ -355,9 +355,9 @@
       "git_blob_sha1": "0aca8ad707d460a2cd41ebf37943d618943ada8d"
     },
     "tests/README.md": {
-      "bytes": 43218,
-      "sha256": "842ddcb11acf674b96f0f30c869e0ea74d4a38f2a7eefbcc784216eec246b3a0",
-      "git_blob_sha1": "e2e2c1fb79bf31bd2dce7190f501040d4a68be92"
+      "bytes": 43435,
+      "sha256": "7b1256f44535c429a1344aa6895bcc94ed03bdbcc451ba78f0bf6b1c92549cf8",
+      "git_blob_sha1": "389eb9616e34616dfbbec53a86214a3c70beaf97"
     },
     "tests/metrics/working_memory_vs_baseline.csv": {
       "bytes": 14334,
@@ -373,6 +373,11 @@
       "bytes": 13018,
       "sha256": "63e8f5e7ae968d6ee27020f68ca4955767e3b2c3f1bfc343e4a70998e3deff41",
       "git_blob_sha1": "4e561c2243dab3439d1f3dcbdf24969898b733bc"
+    },
+    "tests/metrics/retained_memory_ring_update.json": {
+      "bytes": 3802,
+      "sha256": "8fc62e452b849cb0472c619179633d0c1c4cfe33d114484828826bab1346ddd5",
+      "git_blob_sha1": "6506a340f898823f77edae95661f5bf12cf4c436"
     }
   }
 }

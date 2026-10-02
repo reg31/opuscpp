@@ -36,7 +36,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 - RFC decode, encode interoperability, API/lookahead and focused source-bound regressions were rerun against this source; complete command outputs are in [compatibility validation](tests/metrics/README.md#fresh-compatibility-checks).
 - Optional DTX: zero false DTX packets on the tracked active-content set; aggregate re-entry error is 44.1% lower and aggregate gain error is 12.5% higher at 16/24&nbsp;kbps. [DTX measurements](tests/metrics/dtx_metrics.csv).
 - Optional FEC: FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. The packet-byte acceptance check passes (ratio 0.993345).
-- 2.3% to 23.0% lower measured private allocation footprint across the listed encoder/decoder configurations.
+- 10.7% to 23.0% lower measured private allocation footprint across the listed encoder/decoder configurations.
 - Host object: `356,816 B` (text + data + BSS).
 - No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang C++23 build checks were rerun in the full refresh.
 
@@ -47,7 +47,7 @@ Quality and speed comparisons below use the current complexity-10 encoder direct
 | Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |
 | Encoding is 1.07x to 1.34x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
 | Faster decode in 9/9 measured AUDIO bitrates (1.21x to 1.93x). | Official Opus supports a broader feature surface and ecosystem. |
-| 2.3% to 23.0% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
+| 10.7% to 23.0% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
 | Pure portable C++23, without ASM or SIMD intrinsics. | Requires a C++23-capable compiler. |
 
 ## Quick start
@@ -145,14 +145,12 @@ CELT for every frame. Restricted-lowdelay also remained CELT-only, as required.
 
 In this run, `opuscpp` uses less encoder and decoder state than official Opus
 in every listed mono and stereo configuration. The optional encoder FEC state is allocated lazily
-and is not included in this default-FEC-off, denoiser-off snapshot. These are process-private
-allocation deltas measured with 256 instances per run (median of three fresh runs), not exact `sizeof` values; allocator/page rounding
-can slightly change the measurement.
+and is not included in this default-FEC-off, denoiser-off snapshot. Encoder allocation rows were separately remeasured on retained-ring source `cafa9b08` using 256 instances per group and three fresh process runs. Decoder rows remain from the full refresh on `32c3f31`; the quality and timing suite was not rerun for `cafa9b08`. These are process-private allocation deltas, not exact `sizeof` values; allocator/page rounding can slightly change the measurement. See [retained encoder memory evidence](tests/metrics/retained_memory_ring_update.json).
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 31,088 B | 31,824 B | -2.3% |
-| Encoder stereo | 46,816 B | 48,864 B | -4.2% |
+| Encoder mono | 27,952 B | 31,824 B | -12.2% |
+| Encoder stereo | 43,616 B | 48,864 B | -10.7% |
 | Decoder mono | 14,112 B | 18,336 B | -23.0% |
 | Decoder stereo | 21,296 B | 27,264 B | -21.9% |
 

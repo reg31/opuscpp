@@ -33,15 +33,15 @@ AUDIO encode ratios: 1.07x to 1.34x; decode: 1.21x to 1.93x. [All durations, rat
 
 ## Memory and object size
 
-Median of three fresh processes, 256 instances each. FEC and denoising disabled for state allocation measurements. Private/working-set page deltas are not exact object sizes or peak stack usage.
+The current encoder retained-allocation rows are a focused cafa9b08 remeasurement using the same 256-instance/3-process `--memory-only --bitrate16000` harness. Decoder rows and the full quality/timing measurements remain bound to the32c3f31 refresh; they were not remeasured for cafa9b08. Private/working-set page deltas are not exact object sizes. See [retained encoder memory evidence](retained_memory_ring_update.json).
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 31088 | 30976 | Not exposed |
-| official_encoder_ch1 | 31824 | 31872 | 31668 |
+| current_encoder_ch1 | 27952 | 27776 | Not exposed |
+| official_encoder_ch1 | 31824 | 31904 | 31668 |
 | current_decoder_ch1 | 14112 | 13104 | Not exposed |
 | official_decoder_ch1 | 18336 | 18528 | 18468 |
-| current_encoder_ch2 | 46816 | 46656 | Not exposed |
+| current_encoder_ch2 | 43616 | 43440 | Not exposed |
 | official_encoder_ch2 | 48864 | 48704 | 48684 |
 | current_decoder_ch2 | 21296 | 21360 | Not exposed |
 | official_decoder_ch2 | 27264 | 27248 | 27236 |
