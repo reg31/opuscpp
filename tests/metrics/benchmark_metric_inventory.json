@@ -345,9 +345,9 @@
       "git_blob_sha1": "25afef6662690e1373a1b09b576a00d3979f5eaa"
     },
     "README.md": {
-      "bytes": 15190,
-      "sha256": "03a3bb04b3fe46b343af4a3fc4349973bba3849eae4e0142e6d1c460439db338",
-      "git_blob_sha1": "a6b0b7bfc04e855658419e531e070375a719224f"
+      "bytes": 13782,
+      "sha256": "07b65f34fc5652f18ccb80c9f5f7a3bc12ba07c237cf5532a80f79b40d146952",
+      "git_blob_sha1": "9d5608c22755b7cc6d786cff9c5c51ede28d4571"
     },
     "src/README.md": {
       "bytes": 10647,

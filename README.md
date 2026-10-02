@@ -157,19 +157,6 @@ can slightly change the measurement.
 | Decoder stereo | 21,296 B | 27,264 B | -21.9% |
 
 
-Peak working memory is a separate measure from the retained-state snapshot above. It counts requested-live codec allocation payload plus native-thread stack-touched high-water; it excludes shared ROM, allocator bookkeeping, caller PCM/packet buffers, process working set and the 4 MiB thread-stack reservation. The measurement is bound to production `32c3f3163501f679e85f1d03d890c6a5e178d8d5` (Git-normalized source SHA-256 `1b59a733584d79d2712ba010e4b43430be292362d04a65414de46ceec8ce5281`) against baseline `59799104616acc22d68d076584f333b61117774e`, using MinGW GCC 16.2 and C++23 `-O2 -DNDEBUG -fstack-usage`.
-
-| Physical C | Application | Frame | Reduction across APIs |
-|---:|---|---:|---:|
-| 1 | VOIP | 20 ms | 24.37%–26.05% |
-| 1 | AUDIO | 20 ms | 24.26%–25.92% |
-| 1 | LOWDELAY | 20 ms | 26.68%–28.71% |
-| 2 | VOIP | 20 ms | 17.25%–18.29% |
-| 2 | AUDIO | 20 ms | 17.22%–18.25% |
-| 2 | LOWDELAY | 20 ms | 20.49%–21.97% |
-
-The 20 ms reduction is 24.26%–28.71% for mono and 17.22%–21.97% for stereo; stereo VOIP/AUDIO remain below 20%. At 120 ms, working memory is 48 B higher across these cases. The full 24-configuration values are in [working-memory evidence](tests/metrics/working_memory_vs_baseline.csv). The identity replay matched packets, range state, decoded PCM and FEC PCM across 77,760 frames. Focused timing is mixed, so this measurement does not claim a general speedup.
-
 ## Conformance
 
 The implementation is standard Opus compatible. The measured conformance gates are:
