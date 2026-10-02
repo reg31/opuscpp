@@ -1873,9 +1873,9 @@ struct silk_sample_history {
   std::array<opus_int16, 720> base{};
   std::array<opus_uint8, 36> tags{};
 
-  void unpack(float* values) const noexcept {
-    silk_short2float_array(values, base.data(), static_cast<opus_int32>(base.size()));
-    for (std::size_t byte = 0; byte < tags.size(); ++byte) {
+  void unpack(float* values, std::size_t count = 720) const noexcept {
+    silk_short2float_array(values, base.data(), static_cast<opus_int32>(count));
+    for (std::size_t byte = 0; byte < count / 20; ++byte) {
       const auto bits = tags[byte];
       if (bits == 0)
         continue;
@@ -15585,7 +15585,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
   silk_encoder_control_FLP sEncCtrl;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
   std::array<float, 720> x_buffer;
-  psEnc->x_buf.unpack(x_buffer.data());
+  psEnc->x_buf.unpack(x_buffer.data(), static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz));
   auto* x_frame = x_buffer.data() + psEnc->sCmn.ltp_mem_length;
   auto& low_pass = psEnc->sCmn.sLP;
   if (low_pass.mode != 0) {
