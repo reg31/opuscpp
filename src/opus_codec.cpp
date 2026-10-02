@@ -515,13 +515,17 @@ struct CeltEncoderInternal {
 };
 
 struct alignas(8) CeltDecoderInternal {
-  int channels, stream_channels, downsample, start, end;
-  int last_pitch_index, loss_duration, last_frame_type, skip_plc, postfilter_period, postfilter_period_old, postfilter_tapset,
-      postfilter_tapset_old;
+  opus_int8 channels, stream_channels, downsample, start, end;
+  opus_int16 last_pitch_index;
+  int loss_duration;
+  opus_int16 postfilter_period, postfilter_period_old;
+  opus_uint8 last_frame_type, postfilter_tapset, postfilter_tapset_old;
+  bool skip_plc;
   opus_uint32 rng;
   opus_val16 postfilter_gain, postfilter_gain_old;
   celt_sig preemph_memD[2];
 };
+static_assert(sizeof(CeltDecoderInternal) == 40);
 
 struct OpusDecoder;
 [[nodiscard]] constexpr auto bitrate_to_bits(opus_int32 bitrate, opus_int32 sample_rate, opus_int32 frame_size) noexcept -> opus_int32 {
@@ -1048,13 +1052,14 @@ struct silk_encoder_state {
   opus_uint32 frameCounter;
   int Complexity, nStatesDelayedDecision, shapingLPCOrder, predictLPCOrder, pitchEstimationComplexity, pitchEstimationLPCOrder;
   opus_int32 pitchEstimationThreshold_Q16, sum_log_gain_Q7;
-  int NLSF_MSVQ_Survivors, first_frame_after_reset, warping_Q16, useCBR, prefillFlag;
+  int NLSF_MSVQ_Survivors, warping_Q16;
   const silk_NLSF_CB_struct* psNLSF_CB;
   std::array<int, 4> input_quality_bands_Q15;
   int input_tilt_Q15, SNR_dB_Q7;
   std::array<opus_int8, 3> VAD_flags;
   SideInfoIndices indices;
-  int nFramesPerPacket, nFramesEncoded, nChannelsInternal, ec_prevSignalType;
+  int nFramesPerPacket, nFramesEncoded;
+  opus_int8 first_frame_after_reset, useCBR, prefillFlag, nChannelsInternal, ec_prevSignalType;
   opus_int16 ec_prevLagIndex;
   silk_resampler_state_struct resampler_state;
 };
@@ -1064,8 +1069,8 @@ struct silk_PLC_struct {
   std::array<opus_uint16, 4> pitch_history;
   opus_int16 LTPCoef_Q14, prevLPC_Q12[16];
   opus_int16 randScale_Q14, prevLTP_scale_Q14;
-  opus_uint8 pitch_history_index;
-  int last_frame_lost, conc_energy_shift, nb_subfr, subfr_length;
+  opus_uint8 pitch_history_index, last_frame_lost, nb_subfr, subfr_length;
+  int conc_energy_shift;
 };
 
 struct silk_CNG_struct {
@@ -1077,9 +1082,10 @@ struct silk_decoder_state {
   opus_int32 prev_gain_Q16, exc_Q14[((5 * 4) * 16)], sLPC_Q14_buf[16];
   opus_int16 outBuf[((5 * 4) * 16) + 2 * (5 * 16)], prevNLSF_Q15[16], ec_prevLagIndex;
   SideInfoIndices indices;
-  int lagPrev, fs_kHz, nb_subfr, frame_length, subfr_length, ltp_mem_length, LPC_order, first_frame_after_reset, nFramesDecoded,
-      nFramesPerPacket, ec_prevSignalType, VAD_flags[3], LBRR_flags[3], lossCnt, prevSignalType;
-  opus_int8 LastGainIndex;
+  int nFramesDecoded, nFramesPerPacket, lossCnt;
+  opus_uint16 lagPrev, frame_length, ltp_mem_length;
+  opus_uint8 fs_kHz, nb_subfr, subfr_length, LPC_order, first_frame_after_reset, ec_prevSignalType, prevSignalType;
+  opus_int8 VAD_flags[3], LBRR_flags[3], LastGainIndex;
   const silk_NLSF_CB_struct* psNLSF_CB;
   silk_CNG_struct* sCNG;
   silk_resampler_state_struct resampler_state;
@@ -7076,8 +7082,8 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     return;
   }
   for (int channel = 0; channel < channels; ++channel) {
-    st->postfilter_period = std::max(st->postfilter_period, 15);
-    st->postfilter_period_old = std::max(st->postfilter_period_old, 15);
+    st->postfilter_period = std::max<int>(st->postfilter_period, 15);
+    st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
     comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
                 st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset, celt_mode()->window,
                 celt_default_overlap);
@@ -11700,7 +11706,7 @@ template <bool Encode, typename State>
 static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx* coder, int condCoding) {
   opus_int16 ec_ix[16];
   opus_uint8 pred_Q8[16];
-  const int nb_subfr = std::min(state->nb_subfr, 4);
+  const int nb_subfr = std::min(static_cast<int>(state->nb_subfr), 4);
   if (condCoding == 2) {
     indices.GainsIndices[0] =
         static_cast<opus_int8>(silk_index_symbol<Encode>(coder, indices.GainsIndices[0], silk_delta_gain_iCDF.data()));
@@ -13472,7 +13478,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   const bool fade_collapsed_unvoiced =
       psDec->lossCnt == 0 && psDec->prevSignalType != 2 && (energy2 >> shift1) <= ((energy1 >> shift2) >> 4);
   opus_int32 conceal_gain_Q16 = 1 << 16;
-  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(psDec->frame_length, 1) : 0;
+  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(static_cast<int>(psDec->frame_length), 1) : 0;
   opus_int32* rand_ptr = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
                              ? &psDec->exc_Q14[std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)]
                              : &psDec->exc_Q14[std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128)];
