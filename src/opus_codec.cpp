@@ -456,7 +456,8 @@ struct classical_leak_state {
   float d_angle[240];
   float d2_angle[240];
   float inmem[720];
-  int mem_fill;
+  opus_uint16 mem_fill;
+  opus_uint8 E_count;
   float prev_band_tonality[18];
   float prev_tonality;
   int prev_bandwidth;
@@ -470,9 +471,8 @@ struct classical_leak_state {
   float std[9];
   float Etracker;
   float lowECount;
-  int E_count;
   int count;
-  int analysis_offset;
+  static constexpr int analysis_offset = 0;
   opus_uint8 write_pos;
   opus_uint8 read_pos;
   opus_uint8 read_subframe;
@@ -10267,7 +10267,6 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
     offset += step;
     pcm_len -= step;
   }
-  s->analysis_offset = analysis_frame_size - frame_size;
 }
 
 static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt) {
