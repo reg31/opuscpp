@@ -431,18 +431,25 @@ struct SignalBwTemporal {
 };
 
 struct classical_leak_record {
-  bool valid;
-  opus_uint8 bandwidth;
   float music_prob, activity_probability;
   opus_uint8 leak_boost[19];
+  opus_uint8 valid : 1;
+  opus_uint8 bandwidth : 5;
 };
-static_assert(sizeof(classical_leak_record) == 32);
+static_assert(sizeof(classical_leak_record) == 28);
 struct classical_leak_info {
-  bool valid;
-  opus_uint8 bandwidth;
   float music_prob, music_prob_min, music_prob_max, activity_probability;
   opus_uint8 leak_boost[19];
+  opus_uint8 valid : 1;
+  opus_uint8 bandwidth : 5;
 };
+static_assert(sizeof(classical_leak_info) == 36);
+static_assert([] {
+  classical_leak_record record{};
+  record.valid = 1;
+  record.bandwidth = 20;
+  return record.valid == 1 && record.bandwidth == 20;
+}());
 
 struct classical_leak_state {
   float angle[240];
@@ -459,7 +466,7 @@ struct classical_leak_state {
   float highE[18];
   float meanE[19];
   float mem[32];
-  float cmean[8];
+  float cmean[4];
   float std[9];
   float Etracker;
   float lowECount;
@@ -471,7 +478,7 @@ struct classical_leak_state {
   int read_subframe;
   float hp_ener_accum;
   int initialized;
-  float rnn_state[32];
+  float rnn_state[24];
   opus_val32 downmix_state[3];
   classical_leak_record info[100];
   classical_leak_info out_info;
@@ -966,6 +973,7 @@ static auto silk_nsq_working_state(const silk_nsq_history& history) noexcept -> 
   silk_copy_nsq_history(state, history);
   return state;
 }
+
 
 struct silk_VAD_state {
   std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
@@ -1847,10 +1855,44 @@ struct silk_shape_state_FLP {
   float HarmShapeGain_smth, Tilt_smth;
 };
 
+static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 length) noexcept -> void;
+struct silk_sample_history {
+  std::array<opus_int16, 720> base{};
+  std::array<opus_uint8, 180> tags{};
+
+  void unpack(float* values) const noexcept {
+    silk_short2float_array(values, base.data(), static_cast<opus_int32>(base.size()));
+    for (std::size_t byte = 0; byte < tags.size(); ++byte) {
+      const auto bits = tags[byte];
+      if (bits == 0) continue;
+      for (unsigned lane = 0; lane < 4; ++lane) {
+        const auto tag = (bits >> (2 * lane)) & 3;
+        if (tag == 1) values[4 * byte + lane] += 1e-6f;
+        else if (tag == 2) values[4 * byte + lane] -= 1e-6f;
+      }
+    }
+  }
+  void write(const opus_int16* values, std::size_t offset, std::size_t count) noexcept {
+    copy_n_items(values, count, base.data() + offset);
+    zero_n_items(tags.data() + offset / 4, count / 4);
+  }
+  void dither(std::size_t index, bool positive) noexcept {
+    const auto shift = 2 * (index % 4);
+    const unsigned tag = positive ? 1U : 2U;
+    tags[index / 4] = static_cast<opus_uint8>((tags[index / 4] & ~(3U << shift)) | (tag << shift));
+  }
+  void advance(std::size_t frame, std::size_t history) noexcept {
+    move_n_bytes(base.data() + frame, history * sizeof(opus_int16), base.data());
+    move_n_bytes(tags.data() + frame / 4, history / 4, tags.data());
+  }
+};
+static_assert(sizeof(silk_sample_history) == 1620);
+
 struct silk_encoder_state_FLP {
   silk_encoder_state sCmn;
   silk_shape_state_FLP sShape;
-  float x_buf[2 * ((5 * 4) * 16) + (5 * 16)], LTPCorr;
+  silk_sample_history x_buf;
+  float LTPCorr;
 };
 
 struct silk_encoder_control_FLP {
@@ -6445,9 +6487,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   bool weak_transient = false;
   bool input_release = false;
   ec_enc local_encoder;
-  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
+  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
+  std::array<celt_sig, celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
   auto* freq = frequency_storage.data();
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
@@ -6811,6 +6853,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     return -3;
   return nbCompressedBytes;
 }
+
 
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
   return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
@@ -10087,11 +10130,12 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
   }
   pos0 = pos;
   const auto& record = tonal->info[pos];
-  *info_out = {.valid = record.valid, .bandwidth = record.bandwidth, .music_prob = record.music_prob, .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}};
+  *info_out = {.music_prob = record.music_prob, .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}, .valid = record.valid, .bandwidth = record.bandwidth};
   copy_n_items(record.leak_boost, 19, info_out->leak_boost);
   if (!info_out->valid) {
     return;
   }
+  opus_uint8 max_bandwidth = info_out->bandwidth;
   bandwidth_span = 6;
   for (i = 0; i < 3; ++i) {
     pos++;
@@ -10101,7 +10145,7 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     if (pos == tonal->write_pos) {
       break;
     }
-    info_out->bandwidth = std::max(info_out->bandwidth, tonal->info[pos].bandwidth);
+    max_bandwidth = std::max(max_bandwidth, static_cast<opus_uint8>(tonal->info[pos].bandwidth));
     bandwidth_span--;
   }
   pos = pos0;
@@ -10113,8 +10157,10 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     if (pos == tonal->write_pos) {
       break;
     }
-    info_out->bandwidth = std::max(info_out->bandwidth, tonal->info[pos].bandwidth);
+    max_bandwidth = std::max(max_bandwidth, static_cast<opus_uint8>(tonal->info[pos].bandwidth));
   }
+
+  info_out->bandwidth = max_bandwidth;
 
   mpos = vpos = pos0;
   if (curr_lookahead > 15) {
@@ -14146,7 +14192,9 @@ static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
       const opus_int32 old_buf_samples = buf_length_ms * psEnc->sCmn.fs_kHz;
       const opus_int32 new_buf_samples = buf_length_ms * fs_kHz;
       std::array<opus_int16, silk_max_resampler_reconfig_samples> resampled;
-      silk_float2short_array(resampled.data(), psEnc->x_buf, old_buf_samples);
+      std::array<float, 720> x_buffer;
+      psEnc->x_buf.unpack(x_buffer.data());
+      silk_float2short_array(resampled.data(), x_buffer.data(), old_buf_samples);
       silk_resampler_state_struct temp_resampler_state{};
       silk_resampler_init(&temp_resampler_state, psEnc->sCmn.fs_kHz * 1000, psEnc->sCmn.API_fs_Hz, 0);
       const opus_int32 api_buf_samples = buf_length_ms * (static_cast<opus_int32>((psEnc->sCmn.API_fs_Hz) / (1000)));
@@ -14154,7 +14202,7 @@ static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
       silk_resampler(&temp_resampler_state, api_samples.data(), resampled.data(), old_buf_samples);
       silk_resampler_init(&psEnc->sCmn.resampler_state, psEnc->sCmn.API_fs_Hz, fs_kHz * 1000, 1);
       silk_resampler(&psEnc->sCmn.resampler_state, resampled.data(), api_samples.data(), api_buf_samples);
-      silk_short2float_array(psEnc->x_buf, resampled.data(), new_buf_samples);
+      psEnc->x_buf.write(resampled.data(), 0, static_cast<std::size_t>(new_buf_samples));
     }
   }
 }
@@ -15487,7 +15535,9 @@ struct silk_gain_search_bound {
 void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr) {
   silk_encoder_control_FLP sEncCtrl;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
-  auto* x_frame = psEnc->x_buf + psEnc->sCmn.ltp_mem_length;
+  std::array<float, 720> x_buffer;
+  psEnc->x_buf.unpack(x_buffer.data());
+  auto* x_frame = x_buffer.data() + psEnc->sCmn.ltp_mem_length;
   auto& low_pass = psEnc->sCmn.sLP;
   if (low_pass.mode != 0) {
     constexpr auto transition_frames = 5120 / (5 * 4);
@@ -15502,8 +15552,10 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
                             psEnc->sCmn.frame_length);
   }
   silk_short2float_array(x_frame + 5 * psEnc->sCmn.fs_kHz, psEnc->sCmn.inputBuf + 1, psEnc->sCmn.frame_length);
+  psEnc->x_buf.write(psEnc->sCmn.inputBuf + 1, static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz), static_cast<std::size_t>(psEnc->sCmn.frame_length));
   for (int i = 0; i < 8; i++) {
     x_frame[5 * psEnc->sCmn.fs_kHz + i * (psEnc->sCmn.frame_length >> 3)] += (1 - (i & 2)) * 1e-6f;
+    psEnc->x_buf.dither(static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz + i * (psEnc->sCmn.frame_length >> 3)), (i & 2) == 0);
   }
   if (!psEnc->sCmn.prefillFlag) {
     {
@@ -15674,8 +15726,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     }
     silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
   }
-  move_n_bytes(&psEnc->x_buf[psEnc->sCmn.frame_length],
-               static_cast<std::size_t>((psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz) * sizeof(float)), psEnc->x_buf);
+  psEnc->x_buf.advance(static_cast<std::size_t>(psEnc->sCmn.frame_length), static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz));
   if (psEnc->sCmn.prefillFlag) {
     *pnBytesOut = 0;
     return;
