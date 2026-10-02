@@ -113,7 +113,9 @@ void run_case(const char* name, bool policy, bool saturated, float prime_level, 
     range_match = reader.error == 0 && reader.rng == coder.rng;
     wire_transient = all_equal(views.oldLogE2, kPreLog2, start, end) &&
                      !all_equal(views.oldLogE2, kPreLog, start, end) &&
-                     std::all_of(output.begin(), output.end(), [](float value) { return std::isfinite(value); });
+                     std::all_of(output.begin(), output.end(), [](float value) {
+                       return std::isfinite(value);
+                     });
   }
   const bool ok = (detected != 0) == (loud_level != quiet_level) && flag_space != saturated &&
                   (saturated ? rejected : ret > 0 && decoded == kFrame && range_match && wire_transient);
