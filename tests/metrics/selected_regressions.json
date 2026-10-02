@@ -1,6 +1,6 @@
 {
-  "source_commit": "1a458ab7b94abcbb63f420f05b6ef86efaebf513",
-  "source_sha256": "939659f28ebd314b46e710843de31cd6ca0490b67a55a3141a5d5a05979674c5",
+  "source_commit": "32c3f3163501f679e85f1d03d890c6a5e178d8d5",
+  "source_sha256": "1b59a733584d79d2712ba010e4b43430be292362d04a65414de46ceec8ce5281",
   "results": {
     "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0",
     "voice_denoise_state": "Low-rate and small-packet silence/re-entry: 6 cases passed\nBroadband model exercised in 66 configurations\nDenoiser state, bounds and roundtrip: 90 cases passed; state=68 bytes",
@@ -19,298 +19,298 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\conformance_decode.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe"
       ],
       "exit": 0,
-      "seconds": 12.911872599972412
+      "seconds": 14.772441399982199
     },
     "compat_command_002.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector01.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector01_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector01_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.11963959992863238
+      "seconds": 0.14792659995146096
     },
     "compat_command_003.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector02.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector02_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector02_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03215710003860295
+      "seconds": 0.04554429999552667
     },
     "compat_command_004.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector03.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector03_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector03_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.03363549988716841
+      "seconds": 0.057583400048315525
     },
     "compat_command_005.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector04.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector04_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector04_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.039445700123906136
+      "seconds": 0.04446310014463961
     },
     "compat_command_006.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector05.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector05_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector05_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.052608400117605925
+      "seconds": 0.0940699998755008
     },
     "compat_command_007.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector06.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector06_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector06_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05369110009633005
+      "seconds": 0.10207589995115995
     },
     "compat_command_008.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector07.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector07_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector07_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04533140012063086
+      "seconds": 0.08834909996949136
     },
     "compat_command_009.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector08.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector08_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector08_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.042075200006365776
+      "seconds": 0.05779749993234873
     },
     "compat_command_010.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector09.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector09_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector09_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06285479990765452
+      "seconds": 0.07716190000064671
     },
     "compat_command_011.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector10.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector10_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector10_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06762659992091358
+      "seconds": 0.08950140001252294
     },
     "compat_command_012.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector11.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector11_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector11_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05789950001053512
+      "seconds": 0.07234090007841587
     },
     "compat_command_013.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "1",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector12.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector12_1ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector12_1ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04435830004513264
+      "seconds": 0.045823399908840656
     },
     "compat_command_014.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector01.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector01_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector01_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.07425309997051954
+      "seconds": 0.11561989993788302
     },
     "compat_command_015.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector02.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector02_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector02_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.0388287000823766
+      "seconds": 0.04977889987640083
     },
     "compat_command_016.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector03.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector03_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector03_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.036486800061538815
+      "seconds": 0.04766050004400313
     },
     "compat_command_017.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector04.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector04_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector04_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04614109988324344
+      "seconds": 0.068375299917534
     },
     "compat_command_018.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector05.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector05_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector05_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05934859998524189
+      "seconds": 0.08061770000495017
     },
     "compat_command_019.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector06.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector06_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector06_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.07698999997228384
+      "seconds": 0.07247909996658564
     },
     "compat_command_020.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector07.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector07_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector07_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04844170017167926
+      "seconds": 0.057271899888291955
     },
     "compat_command_021.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector08.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector08_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector08_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.05419779988005757
+      "seconds": 0.047686100006103516
     },
     "compat_command_022.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector09.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector09_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector09_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.0714087001979351
+      "seconds": 0.08856060006655753
     },
     "compat_command_023.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector10.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector10_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector10_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.074049900053069
+      "seconds": 0.10870749992318451
     },
     "compat_command_024.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector11.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector11_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector11_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.06046280008740723
+      "seconds": 0.06585439993068576
     },
     "compat_command_025.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\decode_build\\conformance_decode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\decode_build\\conformance_decode.exe",
         "48000",
         "2",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors\\testvector12.bit",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\rfc_decode\\testvector12_2ch.pcm",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\rfc_decode\\testvector12_2ch.pcm",
         "1"
       ],
       "exit": 0,
-      "seconds": 0.04966060002334416
+      "seconds": 0.04401740012690425
     },
     "compat_command_026.cmd": {
       "argv": [
@@ -337,10 +337,10 @@
         "-c",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\codex_opus_codec.o"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\codex_opus_codec.o"
       ],
       "exit": 0,
-      "seconds": 11.593260700115934
+      "seconds": 11.624226700048894
     },
     "compat_command_027.cmd": {
       "argv": [
@@ -353,10 +353,10 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\official_encode_validation.cpp",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\official_encode_validation.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\official_encode_validation.exe"
       ],
       "exit": 0,
-      "seconds": 2.200018299976364
+      "seconds": 2.2887403999920934
     },
     "compat_command_028.cmd": {
       "argv": [
@@ -369,31 +369,31 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\conformance_encode.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\codex_opus_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\codex_opus_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\conformance_encode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\conformance_encode.exe"
       ],
       "exit": 0,
-      "seconds": 3.1047112999949604
+      "seconds": 3.6968384999781847
     },
     "compat_command_029.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\official_encode_validation.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\official_encode_validation.exe",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\encode_validation.bin"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\encode_validation.bin"
       ],
       "exit": 0,
-      "seconds": 24.95527209993452
+      "seconds": 24.719372999854386
     },
     "compat_command_030.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\conformance_encode.exe",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\conformance_encode.exe",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\external\\testvectors\\rfc8251\\opus_newvectors",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\encode_validation\\encode_validation.bin"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\encode_validation\\encode_validation.bin"
       ],
       "exit": 0,
-      "seconds": 6.289085399825126
+      "seconds": 5.992124100215733
     },
     "compat_command_031.cmd": {
       "argv": [
@@ -406,17 +406,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\decoder_channel_remap.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\decoder_channel_remap.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\decoder_channel_remap.exe"
       ],
       "exit": 0,
-      "seconds": 12.718849099939689
+      "seconds": 11.571844100020826
     },
     "compat_command_032.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\decoder_channel_remap.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\decoder_channel_remap.exe"
       ],
       "exit": 0,
-      "seconds": 0.08018299983814359
+      "seconds": 0.08180180005729198
     },
     "compat_command_033.cmd": {
       "argv": [
@@ -429,17 +429,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\packet_duration_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\packet_duration_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\packet_duration_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 12.865158700151369
+      "seconds": 15.861356399953365
     },
     "compat_command_034.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\packet_duration_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\packet_duration_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.24776339996606112
+      "seconds": 0.5069490000605583
     },
     "compat_command_035.cmd": {
       "argv": [
@@ -452,17 +452,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\vbr_budget_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 12.948426800081506
+      "seconds": 22.464632699964568
     },
     "compat_command_036.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\vbr_budget_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 12.0394269998651
+      "seconds": 10.998862399952486
     },
     "compat_command_037.cmd": {
       "argv": [
@@ -475,17 +475,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\dtx_behavior.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\dtx_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\dtx_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 12.731198800029233
+      "seconds": 12.199381599901244
     },
     "compat_command_038.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\dtx_behavior.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\dtx_behavior.exe"
       ],
       "exit": 0,
-      "seconds": 0.08141009998507798
+      "seconds": 0.0961283000651747
     },
     "compat_command_039.cmd": {
       "argv": [
@@ -498,17 +498,17 @@
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\postfilter_bypass.cpp",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\postfilter_bypass.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\postfilter_bypass.exe"
       ],
       "exit": 0,
-      "seconds": 13.176079000113532
+      "seconds": 12.06958909984678
     },
     "compat_command_040.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\postfilter_bypass.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\postfilter_bypass.exe"
       ],
       "exit": 0,
-      "seconds": 1.1257042000070214
+      "seconds": 1.2256103998515755
     },
     "compat_command_041.cmd": {
       "argv": [
@@ -518,17 +518,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\lpc_analysis_filter.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
       ],
       "exit": 0,
-      "seconds": 12.798858399968594
+      "seconds": 11.591333199990913
     },
     "compat_command_042.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\lpc_analysis_filter.exe"
       ],
       "exit": 0,
-      "seconds": 0.534540600143373
+      "seconds": 0.5573224001564085
     },
     "compat_command_043.cmd": {
       "argv": [
@@ -538,17 +538,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\celt_energy_decode.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\celt_energy_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\celt_energy_decode.exe"
       ],
       "exit": 0,
-      "seconds": 13.055067299865186
+      "seconds": 13.79249699995853
     },
     "compat_command_044.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\celt_energy_decode.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\celt_energy_decode.exe"
       ],
       "exit": 0,
-      "seconds": 0.06818310008384287
+      "seconds": 0.07100400002673268
     },
     "compat_command_045.cmd": {
       "argv": [
@@ -558,17 +558,17 @@
         "-DNDEBUG",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\stereo_policy.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\stereo_policy.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\stereo_policy.exe"
       ],
       "exit": 0,
-      "seconds": 13.446134299971163
+      "seconds": 13.648042899789289
     },
     "compat_command_046.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\stereo_policy.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\stereo_policy.exe"
       ],
       "exit": 0,
-      "seconds": 0.4746938000898808
+      "seconds": 0.38578490004874766
     },
     "compat_command_047.cmd": {
       "argv": [
@@ -595,10 +595,10 @@
         "-c",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\current_codec.o"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\current_codec.o"
       ],
       "exit": 0,
-      "seconds": 11.977708799997345
+      "seconds": 11.638636799994856
     },
     "compat_command_048.cmd": {
       "argv": [
@@ -609,20 +609,20 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\dtx_vs_official.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\current_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\current_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\dtx_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\dtx_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 1.2116978999692947
+      "seconds": 1.2600037998054177
     },
     "compat_command_049.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\dtx_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\dtx_vs_official.exe"
       ],
       "exit": 1,
-      "seconds": 1.2086508001666516
+      "seconds": 1.1432101000100374
     },
     "compat_command_050.cmd": {
       "argv": [
@@ -633,20 +633,20 @@
         "-I",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests",
         "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\tests\\fec_vs_official.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\current_codec.o",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\current_codec.o",
         "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\fec_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\fec_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 1.5899754001293331
+      "seconds": 1.4872795999981463
     },
     "compat_command_051.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\api_behavior\\fec_vs_official.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\api_behavior\\fec_vs_official.exe"
       ],
       "exit": 0,
-      "seconds": 0.9390446001198143
+      "seconds": 1.0558610998559743
     },
     "compat_link_transient_invariant.cmd": {
       "argv": [
@@ -654,14 +654,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests\\transient_invariant.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests\\transient_invariant.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\transient_invariant.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\transient_invariant.exe"
       ],
       "exit": 0,
-      "seconds": 12.325967400101945
+      "seconds": 9.613796400139108
     },
     "compat_link_voice_conditioning_release.cmd": {
       "argv": [
@@ -669,14 +669,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests\\voice_conditioning_release.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests\\voice_conditioning_release.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voice_conditioning_release.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voice_conditioning_release.exe"
       ],
       "exit": 0,
-      "seconds": 12.114312799880281
+      "seconds": 11.908390700118616
     },
     "compat_link_voice_denoise_state.cmd": {
       "argv": [
@@ -684,14 +684,14 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests\\voice_denoise_state.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests\\voice_denoise_state.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voice_denoise_state.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voice_denoise_state.exe"
       ],
       "exit": 0,
-      "seconds": 12.486622700002044
+      "seconds": 9.828691799892113
     },
     "compat_link_voip_quiet_start_latch.cmd": {
       "argv": [
@@ -699,43 +699,43 @@
         "-std=c++23",
         "-O2",
         "-DNDEBUG",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\src",
-        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\tests\\voip_quiet_start_latch.cpp",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\src\\opus_codec.cpp",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\src",
+        "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\tests\\voip_quiet_start_latch.cpp",
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\src\\opus_codec.cpp",
         "-o",
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voip_quiet_start_latch.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voip_quiet_start_latch.exe"
       ],
       "exit": 0,
-      "seconds": 12.53722140006721
+      "seconds": 10.193290200084448
     },
     "compat_run_transient_invariant.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\transient_invariant.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\transient_invariant.exe"
       ],
       "exit": 0,
-      "seconds": 0.07693810015916824
+      "seconds": 0.07744010002352297
     },
     "compat_run_voice_conditioning_release.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voice_conditioning_release.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voice_conditioning_release.exe"
       ],
       "exit": 0,
-      "seconds": 0.07885180017910898
+      "seconds": 0.07136230007745326
     },
     "compat_run_voice_denoise_state.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voice_denoise_state.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voice_denoise_state.exe"
       ],
       "exit": 0,
-      "seconds": 0.3608389999717474
+      "seconds": 0.32141159987077117
     },
     "compat_run_voip_quiet_start_latch.cmd": {
       "argv": [
-        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261001_1a458ab\\compatibility\\voip_quiet_start_latch.exe"
+        "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fec_scope_publication_20260923\\build\\official_compare_report\\codex_native_celt_20261002_32c3f31\\compatibility\\voip_quiet_start_latch.exe"
       ],
       "exit": 0,
-      "seconds": 1.5405705000739545
+      "seconds": 1.605041699949652
     }
   },
   "sanitizers": false

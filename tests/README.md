@@ -207,19 +207,7 @@ Add `--update-baseline` only after listening/ASR review confirms the new result 
 
 ## Fresh compatibility and API checks
 
-These checks were run against source `a247cd1` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
-
-## Fresh compatibility and API checks
-
-These checks were run against source `1379e10` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
-
-## Fresh compatibility and API checks
-
-These checks were run against source `6d931a2` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
-
-## Fresh compatibility and API checks
-
-These checks were run against source `1a458ab` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
+These checks were run against source `32c3f31` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
 
 ## RFC decode conformance
 
@@ -301,7 +289,7 @@ speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The 
 run records zero false DTX packets for both encoders across 1,680 active frames. Against the original
 signal after silence, `opuscpp` has lower aggregate wake-up NRMSE (`0.4261` vs `0.7622`)
 and gain error (`1.8524` vs `1.6463` dB); silence-frame suppression is 406 versus 406.
-Aggregate re-entry NRMSE is 44.1% lower and aggregate gain error is 12.5% higher. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`. DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json). DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json).
+Aggregate re-entry NRMSE is 44.1% lower and aggregate gain error is 12.5% higher. The separate steady-noise-only case suppresses 120 frames with `opuscpp` versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`. DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json).
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -364,7 +352,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The full benchmark tables below were refreshed on 2026-10-01 for source `1a458ab` against official Opus `503d81b`. The 498-case quality matrix has 805 below-official fields; every metric is retained in the linked CSV/JSON inventory. FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. All timing rows are retained in the CSV and run metadata. Default output and optional-processing comparisons remain separate; named checkpoint sections keep their original provenance.
+The full benchmark tables below were refreshed on 2026-10-02 for source `32c3f31` against official Opus `503d81b`. The 498-case quality matrix has 805 below-official fields; every metric is retained in the linked CSV/JSON inventory. FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. All timing rows are retained in the CSV and run metadata. Default output and optional-processing comparisons remain separate; named checkpoint sections keep their original provenance.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
 recorded in [run metadata](metrics/run_metadata.json).
 
@@ -380,18 +368,18 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.257x | 1.820x | 435x | 346x | 2306x | 1267x |
-| 24&nbsp;kbps | 1.257x | 1.375x | 399x | 318x | 1550x | 1128x |
-| 32&nbsp;kbps | 1.231x | 1.372x | 391x | 318x | 1524x | 1111x |
-| 48&nbsp;kbps | 1.240x | 1.321x | 363x | 293x | 1246x | 944x |
-| 64&nbsp;kbps | 1.266x | 1.303x | 327x | 258x | 1058x | 812x |
-| 96&nbsp;kbps | 1.294x | 1.189x | 266x | 205x | 780x | 656x |
-| 128&nbsp;kbps | 1.197x | 1.174x | 230x | 192x | 669x | 570x |
-| 192&nbsp;kbps | 1.114x | 1.198x | 193x | 174x | 591x | 493x |
-| 256&nbsp;kbps | 1.067x | 1.203x | 177x | 166x | 533x | 443x |
+| 16&nbsp;kbps | 1.256x | 1.934x | 283x | 226x | 1535x | 793x |
+| 24&nbsp;kbps | 1.244x | 1.371x | 254x | 204x | 992x | 724x |
+| 32&nbsp;kbps | 1.340x | 1.488x | 261x | 195x | 1035x | 695x |
+| 48&nbsp;kbps | 1.192x | 1.297x | 233x | 196x | 856x | 660x |
+| 64&nbsp;kbps | 1.248x | 1.243x | 221x | 177x | 696x | 560x |
+| 96&nbsp;kbps | 1.295x | 1.216x | 184x | 142x | 537x | 442x |
+| 128&nbsp;kbps | 1.216x | 1.212x | 155x | 127x | 463x | 382x |
+| 192&nbsp;kbps | 1.065x | 1.205x | 123x | 116x | 384x | 319x |
+| 256&nbsp;kbps | 1.103x | 1.334x | 118x | 107x | 352x | 264x |
 
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.07x to 1.29x); decoding at 9/9 (1.17x to 1.82x). The separate real-speech VOIP timings, including slower cases, are in [the complete results](metrics/README.md).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.07x to 1.34x); decoding at 9/9 (1.21x to 1.93x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -472,21 +460,21 @@ The 15.5/20 kbps cases have PESQ-style gains +0.1345/+0.1341 and ViSQOL-style ga
 
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at six rates, 2 have negative PESQ-style deltas, 0 negative ViSQOL-style deltas, and 4 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
-End-to-end encode overhead is **-2.3% to 4.9%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+End-to-end encode overhead is **2.4% to 6.3%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
 
 The optional state is 68 bytes in the fresh state/bounds/reset check, which exercised 90 configurations. The implementation caches eligible low-pass values; no stack high-water measurement is claimed in this refresh. Both configured toolchain checks completed in this refresh; their commands are retained in run metadata.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.1151 | +0.0964 | 4.5% |
-| 24&nbsp;kbps | +0.1820 | +0.1082 | 4.2% |
-| 32&nbsp;kbps | +0.2048 | +0.1174 | 2.9% |
-| 48&nbsp;kbps | +0.2195 | +0.1223 | -2.3% |
-| 64&nbsp;kbps | +0.2140 | +0.1327 | 3.0% |
-| 96&nbsp;kbps | +0.2128 | +0.1558 | 3.7% |
-| 128&nbsp;kbps | +0.2118 | +0.1581 | 4.9% |
-| 192&nbsp;kbps | +0.2148 | +0.1591 | 4.0% |
-| 256&nbsp;kbps | +0.2157 | +0.1594 | 3.8% |
+| 24&nbsp;kbps | +0.1820 | +0.1082 | 5.1% |
+| 32&nbsp;kbps | +0.2048 | +0.1174 | 4.6% |
+| 48&nbsp;kbps | +0.2195 | +0.1223 | 2.4% |
+| 64&nbsp;kbps | +0.2140 | +0.1327 | 3.4% |
+| 96&nbsp;kbps | +0.2128 | +0.1558 | 5.0% |
+| 128&nbsp;kbps | +0.2118 | +0.1581 | 3.8% |
+| 192&nbsp;kbps | +0.2148 | +0.1591 | 2.6% |
+| 256&nbsp;kbps | +0.2157 | +0.1594 | 6.3% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
 
@@ -505,10 +493,10 @@ structure sizes or peak stack usage; allocator/page rounding contributes to smal
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 31,120 B | 31,808 B | -2.2% |
+| Encoder mono | 31,088 B | 31,824 B | -2.3% |
 | Encoder stereo | 46,816 B | 48,864 B | -4.2% |
-| Decoder mono | 14,096 B | 18,352 B | -23.2% |
-| Decoder stereo | 21,312 B | 27,264 B | -21.8% |
+| Decoder mono | 14,112 B | 18,336 B | -23.0% |
+| Decoder stereo | 21,296 B | 27,264 B | -21.9% |
 
 Source CSV:
 
@@ -518,8 +506,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 355,208 B | 0 B | 355,208 B |
-| Android arm64 Clang `-O2` | 355,008 B | 472 B | 355,480 B |
+| Host MinGW GCC `-O2` | 356,816 B | 0 B | 356,816 B |
+| Android arm64 Clang `-O2` | 356,832 B | 472 B | 357,304 B |
 
 ## Toolchains checked
 
