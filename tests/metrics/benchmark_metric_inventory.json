@@ -418,6 +418,11 @@
       "bytes": 2630,
       "sha256": "de124eda9679e8cb0c74cba34d14c218e90f1d7b8b1e70b0bf9bc9c34abdf4cf",
       "git_blob_sha1": "fbc1a3b987eee81e8685397ab6853e33f2eef7b1"
+    },
+    "tests/metrics/resampler_storage_checkpoint.json": {
+      "bytes": 2109,
+      "sha256": "1065816a735f1de75c6c97b6a27f226cf4673411b054e42e6220f68241b230cc",
+      "git_blob_sha1": "164031b60ca7cbbe8a3ee5edd4f174056a17160c"
     }
   },
   "source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",

@@ -874,7 +874,7 @@ struct silk_resampler_state_struct {
     opus_int16 i16[36];
   } sFIR;
   opus_int16 delayBuf[48];
-  int resampler_function, FIR_Order, FIR_Fracs, Fs_in_kHz, Fs_out_kHz, inputDelay;
+  opus_int16 resampler_function, FIR_Order, FIR_Fracs, Fs_in_kHz, Fs_out_kHz, inputDelay;
   const opus_int16* Coefs;
 };
 
