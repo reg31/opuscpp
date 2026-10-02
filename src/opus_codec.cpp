@@ -430,20 +430,20 @@ struct SignalBwTemporal {
   }
 };
 
-struct classical_leak_info {
-  int valid;
-  float tonality;
-  float tonality_slope;
-  float noisiness;
-  float activity;
-  float music_prob;
-  float music_prob_min;
-  float music_prob_max;
-  int bandwidth;
-  float activity_probability;
-  float max_pitch_ratio;
+struct classical_leak_record {
+  bool valid;
+  opus_uint8 bandwidth;
+  float music_prob, activity_probability;
   opus_uint8 leak_boost[19];
 };
+static_assert(sizeof(classical_leak_record) == 32);
+struct classical_leak_info {
+  bool valid;
+  opus_uint8 bandwidth;
+  float music_prob, music_prob_min, music_prob_max, activity_probability;
+  opus_uint8 leak_boost[19];
+};
+
 struct classical_leak_state {
   float angle[240];
   float d_angle[240];
@@ -473,7 +473,7 @@ struct classical_leak_state {
   int initialized;
   float rnn_state[32];
   opus_val32 downmix_state[3];
-  classical_leak_info info[100];
+  classical_leak_record info[100];
   classical_leak_info out_info;
   int analysis_read_pos_bak;
   int analysis_read_subframe_bak;
@@ -9648,7 +9648,8 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float maxE = 0;
   float noise_floor;
   int remaining;
-  classical_leak_info* info;
+  classical_leak_record* info;
+  float activity;
   float hp_ener;
   float tonality2[240];
   float midE[8];
@@ -9657,8 +9658,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float leakage_from[19];
   float leakage_to[19];
   float layer_out[32];
-  float below_max_pitch;
-  float above_max_pitch;
   int is_silence;
 
   if (!tonal->initialized) {
@@ -9770,7 +9769,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   }
   frame_tonality = 0;
   max_frame_tonality = 0;
-  info->activity = 0;
+  activity = 0;
   frame_noisiness = 0;
   frame_stationarity = 0;
   if (!tonal->count) {
@@ -9897,8 +9896,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   maxE = 0;
   noise_floor = 5.7e-4f / (1 << (std::max(0, lsb_depth - 8)));
   noise_floor *= noise_floor;
-  below_max_pitch = 0;
-  above_max_pitch = 0;
   for (b = 0; b < 18; ++b) {
     float E = 0;
     float Em;
@@ -9911,11 +9908,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     }
     E = (1.f / 32768.f / 32768.f) * E;
     maxE = std::max(maxE, E);
-    if (band_start < 64) {
-      below_max_pitch += E;
-    } else {
-      above_max_pitch += E;
-    }
     tonal->meanE[b] = std::max((1 - alphaE2) * tonal->meanE[b], E);
     Em = std::max(E, tonal->meanE[b]);
     if (E * 1e9f > maxE && (Em > 3 * noise_floor * (band_end - band_start) || E > noise_floor * (band_end - band_start))) {
@@ -9929,18 +9921,12 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     float Em;
     float E = hp_ener * (1.f / (60 * 60));
     noise_ratio = tonal->prev_bandwidth == 20 ? 10.f : 30.f;
-    above_max_pitch += E;
     tonal->meanE[b] = std::max((1 - alphaE2) * tonal->meanE[b], E);
     Em = std::max(E, tonal->meanE[b]);
     if (Em > 3 * noise_ratio * noise_floor * 160 || E > noise_ratio * noise_floor * 160) {
       bandwidth = 20;
     }
     is_masked[b] = E < (tonal->prev_bandwidth == 20 ? .01f : .05f) * bandwidth_mask;
-  }
-  if (above_max_pitch > below_max_pitch) {
-    info->max_pitch_ratio = below_max_pitch / above_max_pitch;
-  } else {
-    info->max_pitch_ratio = 1;
   }
   if (bandwidth == 20 && is_masked[18]) {
     bandwidth -= 2;
@@ -9978,17 +9964,15 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     relativeE = .5f;
   }
   frame_noisiness /= 18;
-  info->activity = frame_noisiness + (1 - frame_noisiness) * relativeE;
+  activity = frame_noisiness + (1 - frame_noisiness) * relativeE;
   frame_tonality = max_frame_tonality / (18 - 9);
   frame_tonality = std::max(frame_tonality, tonal->prev_tonality * .8f);
   tonal->prev_tonality = frame_tonality;
 
   slope /= 8 * 8;
-  info->tonality_slope = slope;
 
   tonal->E_count = (tonal->E_count + 1) % 8;
   tonal->count = std::min(tonal->count + 1, 10000);
-  info->tonality = frame_tonality;
 
   for (i = 0; i < 4; ++i) {
     features[i] = -0.12299f * (BFCC[i] + tonal->mem[i + 24]) + 0.49195f * (tonal->mem[i] + tonal->mem[i + 16]) + 0.69693f * tonal->mem[i + 8] - 1.4349f * tonal->cmean[i];
@@ -10022,10 +10006,10 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     features[11 + i] = classifier_sqrt_d(tonal->std[i]) - classifier_std_feature_bias[i];
   }
   features[18] = spec_variability - 0.78f;
-  features[20] = info->tonality - 0.154723f;
-  features[21] = info->activity - 0.724643f;
+  features[20] = frame_tonality - 0.154723f;
+  features[21] = activity - 0.724643f;
   features[22] = frame_stationarity - 0.743717f;
-  features[23] = info->tonality_slope + 0.069216f;
+  features[23] = slope + 0.069216f;
   features[24] = tonal->lowECount - 0.067930f;
 
   classifier_compute_dense(layer_out, features, classifier_layer0_weights, classifier_layer0_bias, 25, 32, false);
@@ -10035,18 +10019,14 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   info->activity_probability = frame_probs[1];
   info->music_prob = frame_probs[0];
 
-  info->bandwidth = bandwidth;
+  info->bandwidth = static_cast<opus_uint8>(bandwidth);
   tonal->prev_bandwidth = bandwidth;
-  info->noisiness = frame_noisiness;
   info->valid = 1;
 }
 
 static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_info* info_out, int Fs, int len) {
   int pos;
   int curr_lookahead;
-  float tonality_max;
-  float tonality_avg;
-  int tonality_count;
   int i;
   int pos0;
   float prob_avg;
@@ -10084,12 +10064,13 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     pos = 99;
   }
   pos0 = pos;
-  *info_out = tonal->info[pos];
+  const auto& record = tonal->info[pos];
+  *info_out = {.valid = record.valid, .bandwidth = record.bandwidth, .music_prob = record.music_prob,
+               .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}};
+  copy_n_items(record.leak_boost, 19, info_out->leak_boost);
   if (!info_out->valid) {
     return;
   }
-  tonality_max = tonality_avg = info_out->tonality;
-  tonality_count = 1;
   bandwidth_span = 6;
   for (i = 0; i < 3; ++i) {
     pos++;
@@ -10099,9 +10080,6 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     if (pos == tonal->write_pos) {
       break;
     }
-    tonality_max = std::max(tonality_max, tonal->info[pos].tonality);
-    tonality_avg += tonal->info[pos].tonality;
-    tonality_count++;
     info_out->bandwidth = std::max(info_out->bandwidth, tonal->info[pos].bandwidth);
     bandwidth_span--;
   }
@@ -10116,7 +10094,6 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     }
     info_out->bandwidth = std::max(info_out->bandwidth, tonal->info[pos].bandwidth);
   }
-  info_out->tonality = std::max(tonality_avg / tonality_count, tonality_max - .2f);
 
   mpos = vpos = pos0;
   if (curr_lookahead > 15) {
