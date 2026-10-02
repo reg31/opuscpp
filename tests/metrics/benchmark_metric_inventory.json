@@ -365,13 +365,13 @@
       "git_blob_sha1": "11384230002aa9c0c5519ba983c8551dc8c07786"
     },
     "tests/metrics/working_memory_report.json": {
-      "bytes": 18056,
-      "sha256": "9635a4eccf66250e570609d6fa956d8c4e8a42e43e1402050b7f25dbe8bdc302",
+      "bytes": 17558,
+      "sha256": "67480a86131141acd0c7cc0be0def5b6d4b19a25783722860b0bbe65990e4020",
       "git_blob_sha1": "7ffd074197734685eb6ccc1ba54da7f681ec1dcb"
     },
     "tests/metrics/working_memory_timing_rounds.json": {
-      "bytes": 13503,
-      "sha256": "e982b2bf019e75943c07f22b61c1c40b29037930c493ac703ff9efee6f2ad8e1",
+      "bytes": 13018,
+      "sha256": "63e8f5e7ae968d6ee27020f68ca4955767e3b2c3f1bfc343e4a70998e3deff41",
       "git_blob_sha1": "4e561c2243dab3439d1f3dcbdf24969898b733bc"
     }
   }
