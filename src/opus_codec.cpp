@@ -10065,8 +10065,7 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
   }
   pos0 = pos;
   const auto& record = tonal->info[pos];
-  *info_out = {.valid = record.valid, .bandwidth = record.bandwidth, .music_prob = record.music_prob,
-               .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}};
+  *info_out = {.valid = record.valid, .bandwidth = record.bandwidth, .music_prob = record.music_prob, .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}};
   copy_n_items(record.leak_boost, 19, info_out->leak_boost);
   if (!info_out->valid) {
     return;
