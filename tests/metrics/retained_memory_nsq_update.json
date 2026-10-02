@@ -1,0 +1,71 @@
+{
+  "scope": "Focused retained encoder-allocation refresh; not a full quality, speed, or timing refresh.",
+  "measurement_commit": "7accd92d3ff5828c10eec512c5d62bda1df52319",
+  "integrated_source_sha256": "27cc5023c5fc4b952a468cce947efad505f497d412ea728b5a09992d3c7c39de",
+  "measured_source_sha256": "6a4335c373acdb6c0160c6a7c208304d77a29b58196aca3effbe71725f47dfd1",
+  "patch_sha256": "914907d4aa93b0f0136b21870c118d67f39dda560143e34f8db914aa1d145804",
+  "basis_ring_source_sha256": "fc12ecc432477f12bf83b65cbe10b7bb0d3361be0d5c0a70dd5d1635bacf777e",
+  "method": "Published memory harness; 256 instances per group, 3 process runs, --memory-only --bitrate16000; default AUDIO, complexity 10, FEC and denoiser off. Process-private and working-set deltas are not sizeof values.",
+  "encoder_rows": [
+    {
+      "official_working_set_bytes": 31872,
+      "channels": 1,
+      "private_reduction_percent": 19.74,
+      "current_working_set_bytes": 25520,
+      "official_api_bytes": 31668,
+      "official_private_bytes": 31856,
+      "current_private_bytes": 25568
+    },
+    {
+      "official_working_set_bytes": 48736,
+      "channels": 2,
+      "private_reduction_percent": 20.35,
+      "current_working_set_bytes": 38928,
+      "official_api_bytes": 48684,
+      "official_private_bytes": 48896,
+      "current_private_bytes": 38944
+    }
+  ],
+  "retained_payload_bytes": {
+    "additional_nsq_saved": {
+      "stereo": 4480,
+      "mono": 2240
+    },
+    "combined_reduction_vs32_percent": {
+      "stereo": 16.523678792038435,
+      "mono": 17.726446924474434
+    },
+    "original32c3": {
+      "stereo": 46624,
+      "mono": 30824
+    },
+    "ring_plus_nsq": {
+      "stereo": 38920,
+      "mono": 25360
+    },
+    "ring_cafa9b08": {
+      "stereo": 43400,
+      "mono": 27600
+    }
+  },
+  "provenance": {
+    "decoder_rows": "Remain as in the existing memory_vs_official.csv; no decoder change is included in this focused encoder update.",
+    "current_encoder_measured_on": "7accd92",
+    "official": "Opus 503d81b138d76621aae4b12786e90de48aa8db3a; archive SHA-256 ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d.",
+    "quality_and_timing": "Full quality/timing/other metrics remain from 32c3f3163501f679e85f1d03d890c6a5e178d8d5; not rerun for 7accd92."
+  },
+  "raw_reports": [
+    {
+      "path": "work/encoder_memory_cpp23_20261002/private-validation/retained_nsq_report.json",
+      "sha256": "03a0357f7d2512836ff8d98ecff59cdd3489b7f0e22b207db35ca651ad15fd10"
+    },
+    {
+      "path": "work/encoder_memory_cpp23_20261002/private-validation/retained_nsq_memory_report.json",
+      "sha256": "f36204857382a866782934137012beb55b969e20dd6b9b6333e41bec2e633829"
+    },
+    {
+      "path": "work/encoder_memory_cpp23_20261002/private-validation/retained_nsq_report.md",
+      "sha256": "bed4e74c3b4f19ac1c3ab2b3eb2c8e99774bd9e8416ca39f5ae202e60151e647"
+    }
+  ]
+}

@@ -176,8 +176,8 @@
     },
     "tests/metrics/memory_vs_official.csv": {
       "bytes": 381,
-      "sha256": "0957f35bef8ff6cc111483331e8845b31151ed6abd838ca9de6a994a70a7d4f3",
-      "git_blob_sha1": "4f4656cbdff22763d7bff5cd09b4cd1a2ea2a0f3"
+      "sha256": "94dfe3930a1fbe7e9a854c5a0216d4c5a6ecace4f56b2b057e587ef38b1c02d2",
+      "git_blob_sha1": "bb4eef52e6b733ed04781a9e9597334873a5b3b4"
     },
     "tests/metrics/mode_balance_metrics.json": {
       "bytes": 283,
@@ -270,9 +270,9 @@
       "git_blob_sha1": "6ab6848cbbffbfb2167a3a9b86fef881061919ab"
     },
     "tests/metrics/README.md": {
-      "bytes": 10228,
-      "sha256": "1a375af98bcdbec0802b5eb5b1f21c57ae56a1c1640cc08722bfddb2b7a6d851",
-      "git_blob_sha1": "8bce5fa157badd931c3a8141b486024e342ec4a4"
+      "bytes": 10352,
+      "sha256": "6f414d9d877bb9403c5d590be35b92e0b86e41a9ab0ec1fe366931e33f1912b0",
+      "git_blob_sha1": "f100b3444819d0a995242a2c9083a3430aa5049b"
     },
     "tests/metrics/run_metadata.json": {
       "bytes": 1372357,
@@ -345,9 +345,9 @@
       "git_blob_sha1": "25afef6662690e1373a1b09b576a00d3979f5eaa"
     },
     "README.md": {
-      "bytes": 14070,
-      "sha256": "13a77a97625d697973803d02ba288521be38528110b41bea16743bd773627b02",
-      "git_blob_sha1": "1e419cbe82d17d0d954b9210f81d873718c648e0"
+      "bytes": 13864,
+      "sha256": "0982584e9b24a2b396088488eb61696dc09d4ee26b030cc845251265588d01e4",
+      "git_blob_sha1": "cf19c0645b79b4ac6f061abf71133dc8afdd3306"
     },
     "src/README.md": {
       "bytes": 10647,
@@ -355,9 +355,9 @@
       "git_blob_sha1": "0aca8ad707d460a2cd41ebf37943d618943ada8d"
     },
     "tests/README.md": {
-      "bytes": 43435,
-      "sha256": "7b1256f44535c429a1344aa6895bcc94ed03bdbcc451ba78f0bf6b1c92549cf8",
-      "git_blob_sha1": "389eb9616e34616dfbbec53a86214a3c70beaf97"
+      "bytes": 43545,
+      "sha256": "f0a0338b1acfcb7c6d90dd5756b452708c3d4b068cdb495286cb0b70b5eb9d62",
+      "git_blob_sha1": "70eee4aa84928102d321ad419f07eb695207e1b3"
     },
     "tests/metrics/working_memory_vs_baseline.csv": {
       "bytes": 14334,
@@ -378,6 +378,21 @@
       "bytes": 3802,
       "sha256": "8fc62e452b849cb0472c619179633d0c1c4cfe33d114484828826bab1346ddd5",
       "git_blob_sha1": "6506a340f898823f77edae95661f5bf12cf4c436"
+    },
+    "tests/metrics/retained_memory_nsq_update.json": {
+      "bytes": 2889,
+      "sha256": "498fab549de9e91ebb9055347afa3d5f1b1591ee84c12e7a2aee34997280eaf9",
+      "git_blob_sha1": "e958862acf4057197f7c2d9253aca3a77e4fb893"
     }
+  },
+  "retained_memory_update": {
+    "measurement_commit": "7accd92d3ff5828c10eec512c5d62bda1df52319",
+    "integrated_source_sha256": "27cc5023c5fc4b952a468cce947efad505f497d412ea728b5a09992d3c7c39de",
+    "raw_source_sha256": "6a4335c373acdb6c0160c6a7c208304d77a29b58196aca3effbe71725f47dfd1",
+    "private_report_sha256": "03a0357f7d2512836ff8d98ecff59cdd3489b7f0e22b207db35ca651ad15fd10",
+    "memory_report_sha256": "f36204857382a866782934137012beb55b969e20dd6b9b6333e41bec2e633829",
+    "full_quality_timing_source": "32c3f3163501f679e85f1d03d890c6a5e178d8d5",
+    "payload_mono_bytes": 25360,
+    "payload_stereo_bytes": 38920
   }
 }

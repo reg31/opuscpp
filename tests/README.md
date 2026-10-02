@@ -488,15 +488,15 @@ build/voice_denoise_state
 ## Memory metrics
 
 The optional encoder FEC state is allocated lazily and is not included in this default-FEC-off
-snapshot. Encoder entries are from the focused retained-ring remeasurement on `cafa9b08`; decoder entries and the full
+snapshot. Encoder entries are from the focused retained-history remeasurement on `7accd92`; decoder entries and the full
 quality/timing refresh remain bound to `32c3f31`. These are median process-private allocation deltas from three fresh
-runs of 256 instances, not exact structure sizes; allocator/page rounding contributes to run-to-run differences. See
-[retained encoder memory evidence](metrics/retained_memory_ring_update.json).
+runs of 256 instances, not exact structure sizes; allocator/page rounding contributes to run-to-run differences. The retained payload is 25,360 B mono and 38,920 B stereo, 17.73% and 16.52% below the original 32c3 layout. See
+[retained encoder memory evidence](metrics/retained_memory_nsq_update.json).
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 27,952 B | 31,824 B | -12.2% |
-| Encoder stereo | 43,616 B | 48,864 B | -10.7% |
+| Encoder mono | 25,568 B | 31,856 B | -19.7% |
+| Encoder stereo | 38,944 B | 48,896 B | -20.4% |
 | Decoder mono | 14,112 B | 18,336 B | -23.0% |
 | Decoder stereo | 21,296 B | 27,264 B | -21.9% |
 
