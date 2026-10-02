@@ -14,6 +14,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <new>
 #include <span>
 #include <type_traits>
 
@@ -455,7 +456,8 @@ struct classical_leak_state {
   float angle[240];
   float d_angle[240];
   float d2_angle[240];
-  float inmem[720];
+  float inmem[240];
+  float* pending_pcm;
   opus_uint16 mem_fill;
   opus_uint8 E_count;
   float prev_band_tonality[18];
@@ -485,6 +487,13 @@ struct classical_leak_state {
   opus_int8 analysis_read_pos_bak;
   opus_uint8 analysis_read_subframe_bak;
 };
+static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept {
+  if (state->pending_pcm == nullptr) {
+    state->pending_pcm = static_cast<float*>(std::malloc(480 * sizeof(float)));
+  }
+  return state->pending_pcm != nullptr;
+}
+
 struct CeltEncoderInternal;
 static void classical_leak_reset(classical_leak_state* s);
 static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth);
@@ -2949,6 +2958,10 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   const auto& frame_metrics = analysis.activity;
   if (float_api && (!std::isfinite(frame_metrics.energy) || frame_metrics.energy >= 1e9f / (frame_size * st->channels))) {
     return OPUS_BAD_ARG;
+  }
+  if (st->silk_mode.complexity >= 7 && st->Fs >= 16000 && st->Fs <= 48000 &&
+      frame_size < st->Fs / 50 && !classical_leak_ensure_pending(&st->classical_leak)) {
+    return OPUS_ALLOC_FAIL;
   }
   if (st->channels == 2) {
     st->width_mem = staged_width_mem;
@@ -9624,10 +9637,16 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
   }
 }
 
-static bool classical_leak_is_digital_silence(const float* pcm, int count, int lsb_depth) {
+static bool classical_leak_is_digital_silence(const float* overlap, const float* block, int lsb_depth) {
   float sample_max = 0;
-  for (int i = 0; i < count; ++i) {
-    const float v = std::fabs(pcm[i]);
+  for (int i = 0; i < 240; ++i) {
+    const float v = std::fabs(overlap[i]);
+    if (v > sample_max) {
+      sample_max = v;
+    }
+  }
+  for (int i = 0; i < 480; ++i) {
+    const float v = std::fabs(block[i]);
     if (v > sample_max) {
       sample_max = v;
     }
@@ -9751,51 +9770,43 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float layer_out[32];
   int is_silence;
 
-  if (!tonal->initialized) {
-    tonal->mem_fill = 240;
-    tonal->initialized = 1;
-  }
   alpha = 1.f / std::min(10, 1 + tonal->count);
   alphaE = 1.f / std::min(25, 1 + tonal->count);
   alphaE2 = 1.f / std::min(100, 1 + tonal->count);
   if (tonal->count <= 1)
     alphaE2 = 1;
 
-  if (Fs == 48000) {
-    len /= 2;
-    offset /= 2;
-  } else if (Fs == 16000) {
-    len = 3 * len / 2;
-    offset = 3 * offset / 2;
-  }
 
-  tonal->hp_ener_accum += classical_leak_downmix_resample(tonal, pcm, &tonal->inmem[tonal->mem_fill],
-                                                          std::min(len, 720 - tonal->mem_fill), offset, channels, Fs);
-  if (tonal->mem_fill + len < 720) {
-    tonal->mem_fill += len;
-    return;
-  }
+  const int pending_samples = tonal->mem_fill - 240;
+  const int needed = 480 - pending_samples;
+  union {
+    std::array<float, 480> block;
+    std::array<kiss_fft_cpx, 480> spectrum;
+  } scratch;
+  auto* block = tonal->pending_pcm != nullptr ? tonal->pending_pcm
+                                             : (::new (static_cast<void*>(&scratch.block)) std::array<float, 480>)->data();
+  tonal->hp_ener_accum += classical_leak_downmix_resample(tonal, pcm, block + pending_samples,
+                                                        needed, offset, channels, Fs);
   hp_ener = tonal->hp_ener_accum;
   info = &tonal->info[tonal->write_pos++];
   if (tonal->write_pos >= 100)
     tonal->write_pos -= 100;
 
-  is_silence = classical_leak_is_digital_silence(tonal->inmem, 720, lsb_depth) ? 1 : 0;
+  is_silence = classical_leak_is_digital_silence(tonal->inmem, block, lsb_depth) ? 1 : 0;
 
   kiss_fft_cpx in[480];
-  kiss_fft_cpx out[480];
   for (i = 0; i < N2; ++i) {
     const float w = classical_analysis_window[i];
     in[i].r = w * tonal->inmem[i];
-    in[i].i = w * tonal->inmem[N2 + i];
-    in[N - i - 1].r = w * tonal->inmem[N - i - 1];
-    in[N - i - 1].i = w * tonal->inmem[N + N2 - i - 1];
+    in[i].i = w * block[i];
+    in[N - i - 1].r = w * block[N2 - i - 1];
+    in[N - i - 1].i = w * block[N - i - 1];
   }
   for (i = 0; i < 240; ++i) {
-    tonal->inmem[i] = tonal->inmem[480 + i];
+    tonal->inmem[i] = block[240 + i];
   }
   remaining = len - (720 - tonal->mem_fill);
-  tonal->hp_ener_accum = classical_leak_downmix_resample(tonal, pcm, &tonal->inmem[240], remaining,
+  tonal->hp_ener_accum = classical_leak_downmix_resample(tonal, pcm, remaining > 0 ? tonal->pending_pcm : block, remaining,
                                                          offset + 720 - tonal->mem_fill, channels, Fs);
   tonal->mem_fill = 240 + remaining;
   if (is_silence) {
@@ -9805,6 +9816,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     *info = tonal->info[prev_pos];
     return;
   }
+  auto* out = (::new (static_cast<void*>(&scratch.spectrum)) std::array<kiss_fft_cpx, 480>)->data();
   {
     const kiss_fft_state* kst = &fft_state48000_960_0;
     for (i = 0; i < N; ++i) {
@@ -10256,6 +10268,7 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
 }
 
 static void classical_leak_reset(classical_leak_state* s) {
+  std::free(s->pending_pcm);
   char* start = reinterpret_cast<char*>(&s->angle);
   zero_n_bytes(start, sizeof(*s) - static_cast<std::size_t>(start - reinterpret_cast<char*>(s)));
   s->analysis_read_pos_bak = -1;
@@ -10266,13 +10279,26 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
   if (analysis_frame_size <= 0) {
     return;
   }
+  if (!s->initialized) {
+    s->mem_fill = 240;
+    s->initialized = 1;
+  }
   analysis_frame_size = std::min((100 - 5) * Fs / 50, analysis_frame_size);
   int pcm_len = analysis_frame_size - s->analysis_offset;
   int offset = s->analysis_offset;
   while (pcm_len > 0) {
     const int step = Fs / 50;
     const int chunk = std::min(step, pcm_len);
-    classical_leak_analyze(s, pcm, chunk, offset, channels, lsb_depth, Fs);
+    const int analysis_len = Fs == 48000 ? chunk / 2 : Fs == 16000 ? 3 * chunk / 2 : chunk;
+    const int analysis_offset = Fs == 48000 ? offset / 2 : Fs == 16000 ? 3 * offset / 2 : offset;
+    const int fill = s->mem_fill;
+    if (analysis_len < 720 - fill) {
+      s->hp_ener_accum += classical_leak_downmix_resample(s, pcm, s->pending_pcm + fill - 240,
+                                                        analysis_len, analysis_offset, channels, Fs);
+      s->mem_fill += analysis_len;
+    } else {
+      classical_leak_analyze(s, pcm, analysis_len, analysis_offset, channels, lsb_depth, Fs);
+    }
     offset += step;
     pcm_len -= step;
   }
@@ -16962,6 +16988,9 @@ OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* err
 }
 
 void opus_encoder_destroy(OpusEncoder* st) noexcept {
+  if (st != nullptr) {
+    std::free(st->classical_leak.pending_pcm);
+  }
   release_encoder_silk_state(st);
   release_voice_denoise_state(st);
   std::free(st);
