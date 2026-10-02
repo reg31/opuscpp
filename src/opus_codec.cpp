@@ -967,7 +967,6 @@ static auto silk_nsq_working_state(const silk_nsq_history& history) noexcept -> 
   return state;
 }
 
-
 struct silk_VAD_state {
   std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
   std::array<opus_int32, 4> XnrgSubfr, NrgRatioSmth_Q8;
