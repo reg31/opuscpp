@@ -11631,7 +11631,9 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         return residual;
       });
     } else {
-      synthesize([&](int i) noexcept { return decode_excitation(subframe_offset + i); });
+      synthesize([&](int i) noexcept {
+        return decode_excitation(subframe_offset + i);
+      });
     }
     copy_n_bytes(&sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)), sLPC_Q14);
     pxq += state.subfr_length;
@@ -13491,8 +13493,8 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   opus_int32 conceal_gain_Q16 = 1 << 16;
   const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(static_cast<int>(psDec->frame_length), 1) : 0;
   const int rand_offset = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
-                             ? std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)
-                             : std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128);
+                              ? std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)
+                              : std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128);
   opus_int16 rand_scale_Q14 = psPLC->randScale_Q14;
   const opus_int32 harm_Gain_Q15 = psDec->lossCnt == 0 ? 31948 : 28672;
   opus_int32 rand_Gain_Q15 = psDec->prevSignalType == 2 ? psDec->lossCnt == 0 ? 31130 : 26214 : psDec->lossCnt == 0 ? 32440
