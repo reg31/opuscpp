@@ -1075,7 +1075,7 @@ struct silk_PLC_struct {
 };
 
 struct silk_CNG_struct {
-  opus_int32 CNG_exc_buf_Q14[((5 * 4) * 16)], CNG_synth_state[16], CNG_smth_Gain_Q16, rand_seed;
+  opus_int32 CNG_exc_buf_Q14[256], CNG_synth_state[16], CNG_smth_Gain_Q16, rand_seed;
   opus_int16 CNG_smth_NLSF_Q15[16];
 };
 
@@ -11450,7 +11450,7 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
         subfr = i;
       }
     }
-    move_n_bytes(psCNG->CNG_exc_buf_Q14, static_cast<std::size_t>((psDec->nb_subfr - 1) * psDec->subfr_length * sizeof(opus_int32)),
+    move_n_bytes(psCNG->CNG_exc_buf_Q14, static_cast<std::size_t>(std::min((psDec->nb_subfr - 1) * psDec->subfr_length, 256 - psDec->subfr_length) * sizeof(opus_int32)),
                  &psCNG->CNG_exc_buf_Q14[psDec->subfr_length]);
     copy_n_bytes(&psDec->exc_Q14[subfr * psDec->subfr_length], static_cast<std::size_t>(psDec->subfr_length * sizeof(opus_int32)),
                  psCNG->CNG_exc_buf_Q14);
