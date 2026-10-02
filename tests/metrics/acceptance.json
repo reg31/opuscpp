@@ -1,0 +1,26 @@
+{
+  "strict_source": {
+    "rows": 18,
+    "counts": [
+      18,
+      18,
+      18,
+      18
+    ],
+    "failed_rows": [],
+    "exit_code": 0,
+    "acceptance": "PASS",
+    "failure_is_non_gating_for_measurement_completion": true,
+    "waiver": false,
+    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 18] out of 18"
+  },
+  "standard_interop": {
+    "exit_code": 0,
+    "summary": "fec_summary recovery_error_ratio=0.504119 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993345",
+    "acceptance": "PASS",
+    "failure_is_non_gating_for_measurement_completion": true,
+    "waiver": false
+  },
+  "acceptance": "PASS",
+  "waiver": false
+}

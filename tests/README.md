@@ -2,8 +2,6 @@
 
 This directory contains portable test harnesses and benchmark documentation for `opuscpp`.
 
-
-
 ## Voice conditioning release regression
 
 [`voice_conditioning_release.cpp`](voice_conditioning_release.cpp) checks that provisional and normal cues use the same falling-score envelope, provisional state expires, rumble/DC protection still attacks promptly, and clean input recovers after contamination. Its 133 explicit checks remain active with `-DNDEBUG`; the previous coefficient selection fails 61 checks specific to the provisional fall. The harness includes the implementation and builds on its own:
@@ -11,7 +9,6 @@ This directory contains portable test harnesses and benchmark documentation for 
 ```sh
 g++ -std=c++23 -O2 -DNDEBUG -Isrc tests/voice_conditioning_release.cpp -o voice_conditioning_release_test
 ```
-
 
 ## NSQ quantization-level regression
 
@@ -21,7 +18,6 @@ g++ -std=c++23 -O2 -DNDEBUG -Isrc tests/voice_conditioning_release.cpp -o voice_
 g++ -std=c++23 -O2 -DNDEBUG -Isrc tests/nsq_quant_levels.cpp -o nsq_quant_levels_test
 ```
 
-
 ## NSQ candidate helper inlining checkpoint (2026-09-15)
 
 The standard `inline` hint on `silk_quantize_candidate_pair` lets the measured GCC 16.2.0/O2
@@ -29,26 +25,6 @@ build eliminate its out-of-line helper. Arithmetic, API and encoder state are un
 All nine real-voice/FEC/AUDIO packet streams are byte-identical, and all 498 quality rows,
 5,976 fields, official references and packet metadata match the FEC allocation checkpoint.
 Expanded strict FEC, source criteria and source-bound public checks pass.
-
-Seven alternating rounds, one inner repetition, verified processor affinity and priority:
-
-| Input | Mode | kbps | Previous encode ms | New encode ms | Encode change | Decode change |
-|---|---|---:|---:|---:|---:|---:|
-| david | voip | 16 | 123.4179 | 120.0324 | -2.74% | -0.24% |
-| david | voip | 32 | 127.0713 | 123.5603 | -2.76% | -0.20% |
-| david | voip | 64 | 27.9689 | 27.9678 | -0.00% | +0.39% |
-| david_60ms | fec60 | 24 | 157.6282 | 152.2068 | -3.44% | +0.15% |
-| hazel | voip | 16 | 140.3955 | 136.9864 | -2.43% | +0.39% |
-| hazel | voip | 32 | 135.0412 | 131.3401 | -2.74% | -0.50% |
-| hazel | voip | 64 | 31.4791 | 31.5561 | +0.24% | -0.81% |
-| hazel_60ms | fec60 | 24 | 182.8446 | 178.0399 | -2.63% | -0.36% |
-| synthetic_music_12s | audio | 32 | 20.8715 | 20.7444 | -0.61% | -0.25% |
-
-VOIP16/32 encoding improves 2.4-2.8%; FEC60 improves 2.6-3.4%. Control variation is shown
-explicitly. This is a compiler-specific measurement, not a universal inlining guarantee.
-**1,154 below-official quality fields remain; full speed/quality parity is unfinished.**
-Exact identities and all raw timing rows are in
-[the checkpoint record](metrics/nsq_candidate_inline_checkpoint.json).
 
 ## FEC rate allocation checkpoint (2026-09-15)
 
@@ -70,17 +46,7 @@ history across consecutive internal frames.
   205 zero fallbacks; corrected accounting reduces them to 915 and 5. Production had 883
   and 1, with nine fewer SILK frames. Counts distinguish normal trials, replays and LBRR.
 
-FEC-on 24 kbps mono, 60 ms packets; median of seven alternating runs with verified processor
-affinity and priority. Inputs contain 13.44 s (Hazel) and 11.76 s (David) of complete frames.
-
-| Input | Previous encode time | New encode time | Time change |
-|---|---:|---:|---:|
-| Hazel | 187.4754 ms | 182.1265 ms | -2.85% |
-| David | 165.1605 ms | 157.1302 ms | -4.86% |
-
-Exact source/object identities, source criteria, extended results, workload counts and all raw
-timing rows are in [the checkpoint record](metrics/fec_rate_allocation_checkpoint.json).
-Earlier benchmark tables retain their original measured revisions.
+Exact source/object identities, source criteria, extended results and workload counts are in [the checkpoint record](metrics/fec_rate_allocation_checkpoint.json). Earlier benchmark tables retain their original measured revisions.
 
 ## Quick start
 
@@ -207,7 +173,7 @@ Add `--update-baseline` only after listening/ASR review confirms the new result 
 
 ## Fresh compatibility and API checks
 
-These checks were run against source `32c3f31` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [compatibility_validation.json](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
+These checks were run against source `99c2bcb` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability result: 96/96. Packet-duration/lookahead, VBR budget, DTX/FEC interoperability, postfilter, CELT/stereo policy, and source-bound voice-conditioning, denoiser-state, transient and quiet-start results are recorded with raw outputs in [fresh compatibility metadata](metrics/compatibility_validation.json). The denoiser state check reports 90 cases and 68 state bytes. No sanitizer was run.
 
 ## RFC decode conformance
 
@@ -352,7 +318,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The full benchmark tables below were refreshed on 2026-10-02 for source `32c3f31` against official Opus `503d81b`. The 498-case quality matrix has 805 below-official fields; every metric is retained in the linked CSV/JSON inventory. FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. All timing rows are retained in the CSV and run metadata. Default output and optional-processing comparisons remain separate; named checkpoint sections keep their original provenance.
+The full benchmark tables below were refreshed on 2026-10-02 for source `99c2bcb` (SHA-256 `65adc6514ec3eadac06f55a7e3ef65b7e9e1747ecfae876b315155e662e3190a`) against official Opus `503d81b`. The 498-case quality matrix has 805 below-official fields; every metric is retained in the linked CSV/JSON inventory. FEC records 18/18 recovery wins and aggregate recovery ratio 0.504119; packet-byte ratio 0.993345 passes the <=1 gate. Source criteria are C1 18/18, C2 18/18, C3 18/18, C4 18/18; all four source criteria pass. Strict source gate: PASS; standard interop gate: PASS. All raw measurement outputs are retained with their source bindings. Default output and optional-processing comparisons remain separate; named checkpoint sections keep their original provenance.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
 recorded in [run metadata](metrics/run_metadata.json).
 
@@ -368,18 +334,17 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.256x | 1.934x | 283x | 226x | 1535x | 793x |
-| 24&nbsp;kbps | 1.244x | 1.371x | 254x | 204x | 992x | 724x |
-| 32&nbsp;kbps | 1.340x | 1.488x | 261x | 195x | 1035x | 695x |
-| 48&nbsp;kbps | 1.192x | 1.297x | 233x | 196x | 856x | 660x |
-| 64&nbsp;kbps | 1.248x | 1.243x | 221x | 177x | 696x | 560x |
-| 96&nbsp;kbps | 1.295x | 1.216x | 184x | 142x | 537x | 442x |
-| 128&nbsp;kbps | 1.216x | 1.212x | 155x | 127x | 463x | 382x |
-| 192&nbsp;kbps | 1.065x | 1.205x | 123x | 116x | 384x | 319x |
-| 256&nbsp;kbps | 1.103x | 1.334x | 118x | 107x | 352x | 264x |
+| 16&nbsp;kbps | 1.241x | 1.829x | 437x | 352x | 2381x | 1302x |
+| 24&nbsp;kbps | 1.247x | 1.381x | 406x | 325x | 1570x | 1137x |
+| 32&nbsp;kbps | 1.213x | 1.385x | 399x | 329x | 1549x | 1118x |
+| 48&nbsp;kbps | 1.238x | 1.372x | 372x | 300x | 1298x | 946x |
+| 64&nbsp;kbps | 1.273x | 1.299x | 337x | 265x | 1085x | 835x |
+| 96&nbsp;kbps | 1.291x | 1.219x | 275x | 213x | 804x | 660x |
+| 128&nbsp;kbps | 1.201x | 1.229x | 234x | 195x | 705x | 574x |
+| 192&nbsp;kbps | 1.111x | 1.227x | 197x | 177x | 606x | 494x |
+| 256&nbsp;kbps | 1.075x | 1.224x | 180x | 168x | 541x | 442x |
 
-
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.07x to 1.34x); decoding at 9/9 (1.21x to 1.93x).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.08x to 1.29x); decoding at 9/9 (1.22x to 1.83x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -410,7 +375,6 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 | 128&nbsp;kbps | +0.1528 | +0.0061 | -0.0364 | 128.827 kbps | 128.759 kbps |
 | 192&nbsp;kbps | +0.0705 | +0.0048 | +0.0033 | 193.028 kbps | 192.900 kbps |
 | 256&nbsp;kbps | +0.0355 | +0.0039 | +0.0064 | 256.576 kbps | 256.737 kbps |
-
 
 ## VOIP quality metrics vs official Opus
 
@@ -460,21 +424,22 @@ The 15.5/20 kbps cases have PESQ-style gains +0.1345/+0.1341 and ViSQOL-style ga
 
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at six rates, 2 have negative PESQ-style deltas, 0 negative ViSQOL-style deltas, and 4 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
-End-to-end encode overhead is **2.4% to 6.3%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+
+End-to-end encode overhead is **3.0% to 4.7%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
 
 The optional state is 68 bytes in the fresh state/bounds/reset check, which exercised 90 configurations. The implementation caches eligible low-pass values; no stack high-water measurement is claimed in this refresh. Both configured toolchain checks completed in this refresh; their commands are retained in run metadata.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1151 | +0.0964 | 4.5% |
-| 24&nbsp;kbps | +0.1820 | +0.1082 | 5.1% |
-| 32&nbsp;kbps | +0.2048 | +0.1174 | 4.6% |
-| 48&nbsp;kbps | +0.2195 | +0.1223 | 2.4% |
-| 64&nbsp;kbps | +0.2140 | +0.1327 | 3.4% |
-| 96&nbsp;kbps | +0.2128 | +0.1558 | 5.0% |
-| 128&nbsp;kbps | +0.2118 | +0.1581 | 3.8% |
-| 192&nbsp;kbps | +0.2148 | +0.1591 | 2.6% |
-| 256&nbsp;kbps | +0.2157 | +0.1594 | 6.3% |
+| 16&nbsp;kbps | +0.1151 | +0.0964 | 3.9% |
+| 24&nbsp;kbps | +0.1820 | +0.1082 | 3.0% |
+| 32&nbsp;kbps | +0.2048 | +0.1174 | 4.2% |
+| 48&nbsp;kbps | +0.2195 | +0.1223 | 3.5% |
+| 64&nbsp;kbps | +0.2140 | +0.1327 | 3.2% |
+| 96&nbsp;kbps | +0.2128 | +0.1558 | 4.6% |
+| 128&nbsp;kbps | +0.2118 | +0.1581 | 3.7% |
+| 192&nbsp;kbps | +0.2148 | +0.1591 | 4.7% |
+| 256&nbsp;kbps | +0.2157 | +0.1594 | 4.2% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
 
@@ -487,18 +452,13 @@ build/voice_denoise_state
 
 ## Memory metrics
 
-The optional encoder FEC state is allocated lazily and is not included in this default-FEC-off
-snapshot. Encoder entries are from the focused retained-history remeasurement on `7accd92`; decoder entries and the full
-quality/timing refresh remain bound to `32c3f31`. These are median process-private allocation deltas from three fresh
-runs of 256 instances, not exact structure sizes; allocator/page rounding contributes to run-to-run differences. The retained payload is 25,360 B mono and 38,920 B stereo, 17.73% and 16.52% below the original 32c3 layout. See
-[retained encoder memory evidence](metrics/retained_memory_nsq_update.json).
-
+This table is from the full refresh for source `99c2bcb`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 25,568 B | 31,856 B | -19.7% |
-| Encoder stereo | 38,944 B | 48,896 B | -20.4% |
-| Decoder mono | 14,112 B | 18,336 B | -23.0% |
-| Decoder stereo | 21,296 B | 27,264 B | -21.9% |
+| Encoder mono | 23,824 B | 31,824 B | -25.1% |
+| Encoder stereo | 36,080 B | 48,880 B | -26.2% |
+| Decoder mono | 14,176 B | 18,400 B | -23.0% |
+| Decoder stereo | 21,344 B | 27,376 B | -22.0% |
 
 Source CSV:
 
@@ -508,8 +468,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 356,816 B | 0 B | 356,816 B |
-| Android arm64 Clang `-O2` | 356,832 B | 472 B | 357,304 B |
+| Host MinGW GCC `-O2` | 358,184 B | 0 B | 358,184 B |
+| Android arm64 Clang `-O2` | 358,716 B | 472 B | 359,188 B |
 
 ## Toolchains checked
 
@@ -570,13 +530,6 @@ negative and 525 worsened existing deficits. This corrects an upstream parity bu
 quality improvement; individual regressions remain open. Strict FEC and all four source criteria
 still pass 18/18, along with the packet-budget and ordinary integration checks.
 
-Sequential nine-repeat VOIP measurements still show a Hazel encoding deficit at 16-48 kbps
-(0.567-0.620x official speed); David encoding is faster at all nine measured rates (1.089-2.673x).
-Decode ratios exceed 1x on both inputs. These use the existing 13.46-second Hazel and 11.8-second
-David PCM, with both codecs at complexity 10 and -O2 -DNDEBUG; no explicit affinity/priority pinning.
-See [transient checkpoint metadata](metrics/celt_transient_checkpoint.json) for exact source
-identities, complete timing rows and quality counts. Full metric parity remains unfinished.
-
 ## SILK concealment-energy checkpoint
 
 PLC now truncates scaled excitation when comparing subframe energies, matching official Opus.
@@ -612,26 +565,6 @@ matrix improves from 1233 to 1158 below-official fields: 191 fixed, 116 newly ne
 172 worsened existing deficits. Every AUDIO quality field is unchanged; remaining VOIP and
 AUDIO deficits remain open.
 
-The corrected VOIP decisions change mode use. David now predominantly uses hybrid at
-16-48 kbps, as official Opus does, and its earlier speed advantage at these rates disappears.
-Both codecs predominantly use hybrid on Hazel at these rates too. The remaining encode
-slowdown must therefore be addressed within that path. The table gives fresh nine-repeat
-ratios (official time/current time); below 1 means slower. Inputs are the existing 11.8-second
-David and 13.46-second Hazel PCM; complexity 10, -O2 -DNDEBUG, with official intrinsics enabled.
-There was no concurrent codec workload or explicit affinity/priority pinning.
-
-| kbps | David encode | David decode | Hazel encode | Hazel decode |
-|---:|---:|---:|---:|---:|
-| 16 | 0.560x | 1.178x | 0.574x | 1.175x |
-| 24 | 0.566x | 1.161x | 0.622x | 1.175x |
-| 32 | 0.546x | 1.176x | 0.565x | 1.180x |
-| 48 | 0.581x | 1.160x | 0.632x | 1.170x |
-| 64 | 2.342x | 1.154x | 2.519x | 1.165x |
-| 96 | 1.045x | 1.194x | 1.090x | 1.247x |
-| 128 | 1.053x | 1.181x | 1.069x | 1.186x |
-| 192 | 1.069x | 1.189x | 1.085x | 1.171x |
-| 256 | 1.100x | 1.148x | 1.134x | 1.171x |
-
 Median process-private bytes per instance (three fresh runs of 256 instances):
 
 | State | Current | Official |
@@ -640,8 +573,6 @@ Median process-private bytes per instance (three fresh runs of 256 instances):
 | Stereo encoder | 32576 | 49072 |
 | Mono decoder | 14160 | 18304 |
 | Stereo decoder | 21232 | 27392 |
-
-Exact source identities, full timing rows and check results are in [startup checkpoint metadata](metrics/voip_startup_checkpoint.json). Full quality/speed parity remains unfinished.
 
 ## Hybrid bitrate allocation checkpoint
 
@@ -665,21 +596,6 @@ Strict FEC remains 18/18, with aggregate recovery-error ratio 0.469410 and packe
 VBR, packet duration/channel remapping, interoperability, LPC/PLC, DTX, denoiser and
 postfilter checks pass. Full quality and speed parity remain unfinished.
 
-Nine alternating runs used logical CPU 0 and AboveNormal priority, verified inside
-each private benchmark. VOIP inputs are the same Hazel/David PCM fixtures; the AUDIO
-control uses 12 seconds of the existing synthetic music fixture. Control timing
-variation is included below. Percentages describe encoding time, so negative is faster.
-
-| Input / application | kbps | Baseline ms | Candidate ms | Change |
-|---|---:|---:|---:|---:|
-| synthetic_music_12s / audio | 32 | 22.15 | 22.18 | +0.1% |
-| david / voip | 16 | 137.35 | 139.77 | +1.8% |
-| david / voip | 32 | 149.22 | 141.20 | -5.4% |
-| david / voip | 64 | 29.31 | 29.25 | -0.2% |
-| hazel / voip | 16 | 155.58 | 155.76 | +0.1% |
-| hazel / voip | 32 | 162.89 | 148.68 | -8.7% |
-| hazel / voip | 64 | 32.80 | 32.84 | +0.1% |
-
 Exact source identities, measurements and remaining quality regressions are recorded in
 [hybrid rate checkpoint metadata](metrics/hybrid_rate_checkpoint.json).
 
@@ -701,22 +617,9 @@ to 10592 bytes (+480). Other NSQ template instantiations retain their previous f
 These are per-function reservations, not total nested stack usage. There are no new heap
 allocations or persistent encoder-state fields.
 
-Nine rounds rotated the baseline, first probe and final candidate. The private benchmark
-verified logical-CPU-0 affinity and AboveNormal priority before timing. The selected
-candidate reduced encoding time by 5.5-6.5% at 16/32 kbps; control timings are included below.
-This is a measured code-layout/data-flow improvement, not a claim that every loop uses SIMD.
 
-| Input | kbps | Baseline encode ms | Candidate encode ms | Time change |
-|---|---:|---:|---:|---:|
-| voip_hazel | 16 | 148.86 | 139.23 | -6.5% |
-| voip_hazel | 32 | 142.02 | 134.23 | -5.5% |
-| voip_hazel | 64 | 31.24 | 31.18 | -0.2% |
-| voip_david | 16 | 130.34 | 123.05 | -5.6% |
-| voip_david | 32 | 134.09 | 126.69 | -5.5% |
-| voip_david | 64 | 27.80 | 27.78 | -0.1% |
-| audio | 32 | 20.97 | 20.86 | -0.5% |
 
-Full quality/speed parity remains unfinished, with 1154 below-official quality fields.
+Full quality parity remains unfinished, with 1154 below-official quality fields.
 Full measurements and identities are in [feedback checkpoint metadata](metrics/nsq_feedback_checkpoint.json).
 
 ## FEC startup mode regression

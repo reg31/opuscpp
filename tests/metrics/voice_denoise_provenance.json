@@ -1,6 +1,6 @@
 {
-  "source_commit": "32c3f3163501f679e85f1d03d890c6a5e178d8d5",
-  "source_sha256": "1b59a733584d79d2712ba010e4b43430be292362d04a65414de46ceec8ce5281",
+  "source_commit": "99c2bcbdecbbdbff94d9e5a2a81803e15c271b2b",
+  "source_sha256": "65adc6514ec3eadac06f55a7e3ef65b7e9e1747ecfae876b315155e662e3190a",
   "quality": {
     "boundary_passed": 25,
     "boundary_total": 25,
@@ -28,6 +28,5 @@
     "priority": "above_normal"
   },
   "optional_state_bytes": 68,
-  "state_check_cases": 90,
-  "stack_peak_measurement": "not measured"
+  "temporary_stack_cache_bytes": 7680
 }
