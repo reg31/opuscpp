@@ -4064,9 +4064,9 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
     if (attenuating && !broadband) {
       const auto position = (i + 1) * gain_step;
       pcm[i] = std::clamp(bands[0] * (start_gain[0] + position * (end_gain[0] - start_gain[0])) +
-                               bands[1] * (start_gain[1] + position * (end_gain[1] - start_gain[1])) +
-                               bands[2] * (start_gain[2] + position * (end_gain[2] - start_gain[2])),
-                           -1.f, 1.f);
+                              bands[1] * (start_gain[1] + position * (end_gain[1] - start_gain[1])) +
+                              bands[2] * (start_gain[2] + position * (end_gain[2] - start_gain[2])),
+                          -1.f, 1.f);
     }
   }
   state->lowpass = analysis_lowpass;
@@ -4107,9 +4107,9 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
       const std::array bands{lowpass[0], lowpass[1] - lowpass[0], sample - lowpass[1]};
       const float position = (i + 1) * gain_step;
       pcm[i] = std::clamp(bands[0] * (gain_base[0] + position * gain_delta[0]) +
-                               bands[1] * (gain_base[1] + position * gain_delta[1]) +
-                               bands[2] * (gain_base[2] + position * gain_delta[2]),
-                           -1.f, 1.f);
+                              bands[1] * (gain_base[1] + position * gain_delta[1]) +
+                              bands[2] * (gain_base[2] + position * gain_delta[2]),
+                          -1.f, 1.f);
     }
     state->gain = state->target_gain;
     state->previous_high_energy = energy[2];
