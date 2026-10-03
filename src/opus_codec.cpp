@@ -8401,7 +8401,7 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
 
 template <std::size_t Channels, typename Index>
 static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels> input, std::array<kiss_fft_cpx*, Channels> work,
-                                              const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
+                                               const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
   const int half = length / 2;
   int index = 0;
   if (known_zero_tail) {
@@ -8485,7 +8485,7 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   const int N4 = N >> 2;
   const auto* fft_state = lookup->kfft[shift];
   clt_mdct_backward_prerotate<1>({input}, {reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1))}, trig, N2, stride,
-                                  fft_state->bitrev, known_zero_tail);
+                                 fft_state->bitrev, known_zero_tail);
   fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1)));
   float* yp0 = output + (overlap >> 1);
   float* yp1 = output + (overlap >> 1) + N2 - 2;
