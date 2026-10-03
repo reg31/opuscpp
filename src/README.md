@@ -132,8 +132,8 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
 The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
-3.2% to 9.5% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
-The optional state is 68 bytes, with a 7.5 KiB temporary stack cache for frames of up to 960 samples.
+1.4% to 4.8% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
+The optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.
 Broader on/off tests still contain quality losses: this is not a universal improvement. See the
 [optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
 

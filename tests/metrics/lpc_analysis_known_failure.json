@@ -1,0 +1,71 @@
+{
+  "status": "FAIL",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "SILK encoder/decoder reconstruction mismatch\n",
+  "test_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\decoder_release_candidate87a_c00e_20261003\\test-repair\\tests\\lpc_analysis_filter.cpp",
+  "test_sha256": "6de60526382ec25dfccb38747d6241fdbad37b5a40ae89729c44a657d349f963",
+  "test_adapter": "Only obsolete analysis_offset assignment deleted; all runtime assertions unchanged",
+  "candidate_source_sha256": "a7d976360e2749b38faaa110f8e855e81fd5b935d1e982daa0bc9e1e61bb5d75",
+  "baseline_source_sha256": "92facf9c6c0ec115c7724eebaf56160165a39ba9712310c1fb8b59a78f017816",
+  "baseline_diagnostic_test_sha256": "32b3f893f64d68de53a436cc107f55fbeea011a48afa3de878f28451ef125666",
+  "baseline_exit_code": 1,
+  "baseline_failure": "complexity9 bitrate24000 frame63 mode1000 fs16 delay12 index286 actual-3925 expected-3926",
+  "attribution": "Legacy test compares the full decoded frame against SILK NSQ-only samples, although frame63 carries an18-byte trailing CELT redundancy tail. Official503d81 and A7 decode it byte-identically.34 NSQ/output tail differences286..319,max640;firstoutput-3925/NSQ-3926. Voice/VAD127 scratch also retains the transition/failure. FAIL retained as test-oracle limitation, not PASS or codec defect.",
+  "mismatch_details": {
+    "frame": 63,
+    "first_index": 286,
+    "first_actual": -3925,
+    "first_nsq_expected": -3926,
+    "mismatched_tail_samples": 34,
+    "last_index": 319,
+    "maximum_absolute_error": 640
+  },
+  "official_attribution": {
+    "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+    "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+    "frame63_pcm_sha256": "abe5fe70de3301d4c118fcb7550f6b6f2ca07735a620ac64c40735014826c5fe",
+    "result": "Pinned official and A7 frame63 outputs are byte-identical; NSQ reconstruction expectation differs in34 tail samples",
+    "evidence_directory": "work/official_lpc_prefix_attribution_20261003",
+    "fixture_sha256": "a5b866f34168cdf06e00d7ad2970784b45e70147a7414b0f11b2e0d06821c2f6",
+    "result_sha256": "d53224a241c53211c8f5807f8ac0aa11ef5afb770db754535c322683b54d2539",
+    "decoded_frames": 64,
+    "decode_fec": 0
+  },
+  "classification": "FAIL: legacy NSQ-only reconstruction test-oracle limitation; no decoder defect shown",
+  "transition": {
+    "frame": 63,
+    "primary_mode": "SILK_ONLY",
+    "trailing_celt_redundancy_bytes": 18,
+    "celt_to_silk": false,
+    "celt_core_N": 240,
+    "encoder_prev_mode_before": 1000,
+    "encoder_mode_after": 1000,
+    "encoder_prev_mode_after": 1002,
+    "to_celt": true
+  },
+  "voice127_control": {
+    "voice_Q7": 127,
+    "vad_Q7": 127,
+    "exit_code": 1,
+    "transition_and_failure_retained": true,
+    "test_sha256": "6060d36ecb6b901b3b8e99843dc529629cab7797f5ae8119b77aefac1d60548e",
+    "configurations": 16,
+    "assertions_preserved": true
+  },
+  "supplemental_independent_assertions": {
+    "status": "PASS",
+    "overall_exit_code": 1,
+    "reconstruction_status": "FAIL",
+    "test_sha256": "82cc71a8a585609d72d1f97bed93bc5b381f29739be4b58c4b3370088c07a294",
+    "diff_sha256": "96f1841fb2419aba936480ea8391fd0f07911197e429a6eae19cf2daff5613b1",
+    "flags": [
+      "-std=c++23",
+      "-O2",
+      "-DNDEBUG"
+    ],
+    "scope": "bit helpers; seed wrap; Schur initialization; SILK LPC orders; CELT IIR including overlap",
+    "assertions_unchanged": true
+  },
+  "quality_review": "The supported VOICE/VAD score127 attempt retained all16 configurations and assertions. Independent bit-helper, seed-wrap, Schur, SILK LPC-order and CELT IIR assertions passed; the aggregate diagnostic still exits1 only for the transition NSQ-only reconstruction comparator. Official and A7 decoded frames are byte-identical."
+}
