@@ -6976,6 +6976,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   static_assert(std::is_standard_layout_v<CeltEncoderInternal>);
+  st->classical_leak_valid = false;
   zero_object_tail(*st, offsetof(CeltEncoderInternal, rng));
   zero_n_items(celt_encoder_storage(st), celt_encoder_storage_count(st->channels));
 
