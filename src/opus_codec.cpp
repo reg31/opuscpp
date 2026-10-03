@@ -10016,20 +10016,9 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
 }
 
 static bool classical_leak_is_digital_silence(const float* overlap, const float* block, int lsb_depth) {
-  float sample_max = 0;
-  for (int i = 0; i < 240; ++i) {
-    const float v = std::fabs(overlap[i]);
-    if (v > sample_max) {
-      sample_max = v;
-    }
-  }
-  for (int i = 0; i < 480; ++i) {
-    const float v = std::fabs(block[i]);
-    if (v > sample_max) {
-      sample_max = v;
-    }
-  }
-  return sample_max <= 1.0f / static_cast<float>(1 << lsb_depth);
+  const auto threshold = 1.0f / static_cast<float>(1 << lsb_depth);
+  const auto audible = [threshold](float value) { return std::fabs(value) > threshold; };
+  return std::none_of(overlap, overlap + 240, audible) && std::none_of(block, block + 480, audible);
 }
 
 static float classical_leak_down2_hp(opus_val32* S, opus_val32* out, const opus_val32* in, int inLen) {
