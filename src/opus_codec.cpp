@@ -2290,14 +2290,16 @@ static void dc_reject(const opus_val16* in, opus_val16* out, opus_val32* hp_mem,
   }
 }
 
+[[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>*;
+
 template <typename Apply>
 static void fade_frames(opus_val16 first_gain, opus_val16 final_gain, int frame_size, opus_int32 Fs, Apply&& apply) {
   const int step = std::max(1, static_cast<int>(48000 / Fs));
   const int overlap = celt_default_overlap / step;
   int frame = 0;
   for (; frame < overlap; ++frame) {
-    const auto weight = celt_mode()->window[frame * step] * celt_mode()->window[frame * step];
-    apply(frame, weight * final_gain + (1.0f - weight) * first_gain);
+    const auto& fade = celt_comb_fade()[frame * step];
+    apply(frame, fade[0] * final_gain + fade[1] * first_gain);
   }
   for (; frame < frame_size; ++frame) {
     apply(frame, final_gain);
@@ -5363,8 +5365,6 @@ static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef*
 static int resampling_factor(opus_int32 rate) {
   return is_supported_sample_rate(rate) ? 48000 / rate : 0;
 }
-
-[[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>*;
 
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
   for (int i = 0; i < N; ++i) {
