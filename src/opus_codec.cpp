@@ -7468,7 +7468,13 @@ static void celt_consume_pending_fold(CeltDecoderInternal* st, celt_sig* scratch
   }
 }
 
-OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum) {
+static bool celt_can_use_retained_plc_history(const CeltDecoderInternal* st, int N) noexcept {
+  return N == 240 || (N == 480 && celt_default_overlap == 120 && celt_decoder_retained_overlap == 60 &&
+                      st->postfilter_period_old <= celt_plc_max_period - 2 && st->postfilter_period <= celt_plc_max_period - 2 &&
+                      (st->last_frame_type != 3 || (st->last_pitch_index >= 100 && st->last_pitch_index <= 720)));
+}
+
+OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum, bool retained_pitch_history = false) {
   const int C = st->channels;
   constexpr int nbEBands = celt_default_nb_ebands;
   const auto* eBands = celt_mode()->eBands;
@@ -7509,7 +7515,7 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
   } else {
     opus_val16 fade = 1.0f;
     auto old_mem = decode_mem;
-    const bool from_retained = N == 240 && decoder.raw_offset == 0;
+    const bool from_retained = retained_pitch_history || (celt_can_use_retained_plc_history(st, N) && decoder.raw_offset == 0);
     const int old_history_size = from_retained ? celt_decoder_inplace_history_size : decoder.history_size;
     const int old_raw_offset = celt_decode_buffer_size - old_history_size;
     if (from_retained) {
@@ -7578,7 +7584,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
     }
     if (st->last_frame_type == 3 && (st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
       celt_consume_pending_fold(st, spectrum.data());
-    if (!inplace && (N != 240 || st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
+    if (!inplace && (!celt_can_use_retained_plc_history(st, N) || st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
       celt_load_decode_history(st, workspace, st->loss_duration >= 40 || st->start != 0 || st->skip_plc);
     const bool retained_committed = celt_decode_lost(st, N, LM, decoder, spectrum.data());
     deemphasis(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD);
@@ -7742,6 +7748,29 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   return ec_tell(dec) > 8 * len ? -3 : frame_size / st->downsample;
 }
 
+OPUSCPP_NOINLINE static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_res* pcm, int frame_size) {
+  constexpr int N = 480, history_size = N + celt_lpc_order;
+  constexpr int stride = history_size + celt_default_overlap;
+  std::array<celt_sig, celt_max_channels * stride> working;
+  celt_decoder_views decoder;
+  decoder.history_size = history_size;
+  decoder.raw_offset = celt_decode_buffer_size - history_size;
+  decoder.cache_backup_start = decoder.cache_backup_count = 0;
+  for (int channel = 0; channel < st->channels; ++channel) {
+    decoder.decode_mem[channel] = working.data() + channel * stride;
+    decoder.out_syn[channel] = decoder.decode_mem[channel] + celt_lpc_order;
+  }
+  auto* storage = celt_decoder_storage(st);
+  decoder.oldBandE = reinterpret_cast<celt_glog*>(storage + celt_decoder_channel_storage * st->channels);
+  decoder.oldLogE = decoder.oldBandE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  decoder.oldLogE2 = decoder.oldLogE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  decoder.backgroundLogE = decoder.oldLogE2 + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  decoder.lpc = reinterpret_cast<opus_val16*>(decoder.backgroundLogE + st->channels * celt_default_nb_ebands);
+  celt_decode_lost(st, N, 2, decoder, nullptr, true);
+  deemphasis(decoder.out_syn.data(), pcm, N, st->channels, st->downsample, st->preemph_memD);
+  return frame_size;
+}
+
 OPUSCPP_NOINLINE static int celt_decode_with_ec_workspace(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
   std::array<celt_sig, celt_max_channels * (celt_decode_buffer_size + celt_default_overlap)> workspace;
   return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, workspace.data(), false, update_pitch_cache);
@@ -7750,6 +7779,10 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_workspace(CeltDecoderInternal* s
 static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
   const int N = frame_size * st->downsample;
   const bool pitch_plc = (data == nullptr || len <= 1) && st->loss_duration < 40 && st->start == 0 && !st->skip_plc;
+  if (pitch_plc && N == 480 && data == nullptr && len == 0 && pcm != nullptr && pcm16 == nullptr &&
+      (st->downsample == 1 || st->downsample == 2 || st->downsample == 3 || st->downsample == 4 || st->downsample == 6) && st->channels >= 1 && st->channels <= celt_max_channels && update_pitch_cache &&
+      celt_can_use_retained_plc_history(st, N))
+    return celt_decode_pitch_480(st, pcm, frame_size);
   if (!pitch_plc && N <= celt_decoder_inplace_frame_limit && N <= celt_max_frame_samples / 2)
     return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, nullptr, true, update_pitch_cache);
   return celt_decode_with_ec_workspace(st, data, len, pcm, frame_size, dec, pcm16, update_pitch_cache);
