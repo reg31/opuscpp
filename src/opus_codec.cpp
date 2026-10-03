@@ -854,7 +854,7 @@ static void silk_InitEncoder(void* encState, int channels);
 [[nodiscard]] constexpr auto silk_decoder_get_size() noexcept -> int;
 static void silk_ResetDecoder(void* decState);
 static int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec, opus_res* samplesOut, opus_int32* nSamplesOut);
-static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag);
+static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag);
 [[nodiscard]] inline auto float2int(float x) noexcept -> opus_int32 {
   return static_cast<opus_int32>(std::lrint(x));
 }
@@ -1878,14 +1878,24 @@ struct silk_shape_state_FLP {
 };
 
 static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 length) noexcept -> void;
+enum class silk_suffix_representation : opus_uint8 {
+  repeated_prefix,
+  stored
+};
+struct silk_sample_suffix {
+  std::array<opus_int16, 320> base{};
+  std::array<opus_uint8, 16> tags{};
+};
 struct silk_sample_history {
-  std::array<opus_int16, 720> base{};
-  std::array<opus_uint8, 36> tags{};
+  std::array<opus_int16, 400> base{};
+  std::array<opus_uint8, 20> tags{};
+  silk_suffix_representation representation{};
+  silk_sample_suffix* suffix{};
 
-  void unpack(float* values, std::size_t count = 720) const noexcept {
-    silk_short2float_array(values, base.data(), static_cast<opus_int32>(count));
+  static void expand(float* values, const opus_int16* samples, const opus_uint8* signs, std::size_t count) noexcept {
+    silk_short2float_array(values, samples, static_cast<opus_int32>(count));
     for (std::size_t byte = 0; byte < count / 20; ++byte) {
-      const auto bits = tags[byte];
+      const auto bits = signs[byte];
       if (bits == 0)
         continue;
       for (unsigned lane = 0; lane < 4; ++lane) {
@@ -1897,27 +1907,92 @@ struct silk_sample_history {
       }
     }
   }
+  void unpack(float* values, std::size_t count) const noexcept {
+    expand(values, base.data(), tags.data(), count);
+  }
+  void unpack(float* values) const noexcept {
+    expand(values, base.data(), tags.data(), base.size());
+    if (representation == silk_suffix_representation::repeated_prefix) {
+      copy_n_items(values + 80, 320, values + 400);
+    } else {
+      expand(values + 400, suffix->base.data(), suffix->tags.data(), suffix->base.size());
+    }
+  }
+  bool store_suffix() noexcept {
+    if (suffix == nullptr) {
+      auto* storage = static_cast<silk_sample_suffix*>(std::malloc(sizeof(silk_sample_suffix)));
+      if (storage == nullptr)
+        return false;
+      suffix = std::construct_at(storage);
+    }
+    if (representation == silk_suffix_representation::repeated_prefix) {
+      copy_n_items(base.data() + 80, 320, suffix->base.data());
+      copy_n_items(tags.data() + 4, 16, suffix->tags.data());
+    }
+    representation = silk_suffix_representation::stored;
+    return true;
+  }
+  void release() noexcept {
+    std::free(suffix);
+    suffix = nullptr;
+    representation = silk_suffix_representation::repeated_prefix;
+  }
   void write(const opus_int16* values, std::size_t offset, std::size_t count) noexcept {
-    copy_n_items(values, count, base.data() + offset);
-    zero_n_items(tags.data() + offset / 20, count / 20);
+    const auto first = offset < base.size() ? std::min(count, base.size() - offset) : 0;
+    if (first != 0) {
+      copy_n_items(values, first, base.data() + offset);
+      zero_n_items(tags.data() + offset / 20, first / 20);
+    }
+    if (first != count) {
+      const auto tail_offset = offset + first - base.size();
+      copy_n_items(values + first, count - first, suffix->base.data() + tail_offset);
+      zero_n_items(suffix->tags.data() + tail_offset / 20, (count - first) / 20);
+    }
   }
   void dither(std::size_t index, bool positive) noexcept {
     const auto shift = 2 * ((index / 5) % 4);
     const unsigned tag = positive ? 1U : 2U;
-    tags[index / 20] = static_cast<opus_uint8>((tags[index / 20] & ~(3U << shift)) | (tag << shift));
+    auto& signs = index < base.size() ? tags[index / 20] : suffix->tags[(index - base.size()) / 20];
+    signs = static_cast<opus_uint8>((signs & ~(3U << shift)) | (tag << shift));
   }
   void advance(std::size_t frame, std::size_t history) noexcept {
-    move_n_bytes(base.data() + frame, history * sizeof(opus_int16), base.data());
-    move_n_bytes(tags.data() + frame / 20, history / 20, tags.data());
+    const auto first = std::min(history, base.size() - frame);
+    move_n_bytes(base.data() + frame, first * sizeof(opus_int16), base.data());
+    move_n_bytes(tags.data() + frame / 20, first / 20, tags.data());
+    if (first != history) {
+      copy_n_items(suffix->base.data(), history - first, base.data() + first);
+      copy_n_items(suffix->tags.data(), (history - first) / 20, tags.data() + first / 20);
+    }
+  }
+  void commit(const opus_int16* values, std::size_t frame, std::size_t history) noexcept {
+    if (frame == 320 && history == 400) {
+      move_n_bytes(base.data() + frame, (history - frame) * sizeof(opus_int16), base.data());
+      move_n_bytes(tags.data() + frame / 20, (history - frame) / 20, tags.data());
+      copy_n_items(values, frame, base.data() + history - frame);
+      static constexpr auto frame_tags = [] {
+        std::array<opus_uint8, 16> result{};
+        for (std::size_t i = 0; i < 8; ++i)
+          result[2 * i] = static_cast<opus_uint8>((i & 2) == 0 ? 1 : 2);
+        return result;
+      }();
+      copy_n_items(frame_tags.data(), frame_tags.size(), tags.data() + 4);
+      representation = silk_suffix_representation::repeated_prefix;
+    } else {
+      write(values, history, frame);
+      for (unsigned i = 0; i < 8; ++i)
+        dither(history + i * (frame >> 3), (i & 2) == 0);
+      advance(frame, history);
+    }
   }
 };
-static_assert(sizeof(silk_sample_history) == 1476);
+static_assert(sizeof(silk_sample_suffix) == 656);
+static_assert(sizeof(silk_sample_history) == 832);
 
 struct silk_encoder_state_FLP {
   silk_encoder_state sCmn;
   silk_shape_state_FLP sShape;
-  silk_sample_history x_buf;
   float LTPCorr;
+  silk_sample_history x_buf;
 };
 
 struct silk_encoder_control_FLP {
@@ -2066,6 +2141,9 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
 static void reset_encoder_silk_state(OpusEncoder* st) {
   auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
   auto* lbrr = silk_enc->lbrr;
+  auto* channels = silk_encoder_channel_states(silk_enc);
+  for (int n = 0; n < st->channels; ++n)
+    channels[n].x_buf.release();
   silk_InitEncoder(silk_enc, st->channels);
   silk_enc->lbrr = lbrr;
   if (lbrr != nullptr) {
@@ -2076,6 +2154,9 @@ static void reset_encoder_silk_state(OpusEncoder* st) {
 static void release_encoder_silk_state(OpusEncoder* st) noexcept {
   if (st != nullptr && encoder_uses_silk(st->application)) {
     auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
+    auto* channels = silk_encoder_channel_states(silk_enc);
+    for (int n = 0; n < st->channels; ++n)
+      channels[n].x_buf.release();
     std::free(silk_enc->lbrr);
     silk_enc->lbrr = nullptr;
   }
@@ -3705,10 +3786,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       } else {
         zero_n_items(stage_storage.active.data(), static_cast<std::size_t>(prefill_offset));
       }
-      silk_Encode(silk_enc, &st->silk_mode, stage_storage.active.data(), st->encoder_buffer, nullptr, &zero, prefill);
+      if (!silk_Encode(silk_enc, &st->silk_mode, stage_storage.active.data(), st->encoder_buffer, nullptr, &zero, prefill))
+        return OPUS_ALLOC_FAIL;
       st->silk_mode.opusCanSwitch = 0;
     }
-    silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0);
+    if (!silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0))
+      return OPUS_ALLOC_FAIL;
     if (st->mode == opus_mode_silk_only) {
       curr_bandwidth = st->silk_mode.internalSampleRate == 8000 ? 1101 : st->silk_mode.internalSampleRate == 12000 ? 1102
                                                                                                                    : 1103;
@@ -12273,7 +12356,7 @@ struct silk_pitch_analysis_result {
 static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_correlation, int prevLag, float search_thres1, float search_thres2, int Fs_kHz, int complexity, int nb_subfr) -> silk_pitch_analysis_result;
 static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer);
 static void silk_init_encoder(silk_encoder_state_FLP* psEnc);
-static void silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch, const int force_fs_kHz);
+static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch, const int force_fs_kHz);
 static void silk_setup_complexity(silk_encoder_state* psEncC, int Complexity);
 static float silk_schur_FLP(float refl_coef[], const float auto_corr[], int order);
 static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr, const int D);
@@ -12323,7 +12406,7 @@ static void silk_InitEncoder(void* encState, int channels) {
   psEnc->nChannelsInternal = 1;
 }
 
-static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag) {
+static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag) {
   int saved_payload_size_ms = 0, saved_complexity = 0;
   auto* psEnc = static_cast<silk_encoder*>(encState);
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
@@ -12369,10 +12452,27 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
     encControl->payloadSize_ms = 10;
     encControl->complexity = 0;
   }
+  const auto restore_prefill = [&]() noexcept {
+    if (prefillFlag) {
+      encControl->payloadSize_ms = saved_payload_size_ms;
+      encControl->complexity = saved_complexity;
+      for (int n = 0; n < encControl->nChannelsInternal; ++n) state_Fxx[n].sCmn.prefillFlag = 0;
+    }
+  };
   for (int n = 0; n < encControl->nChannelsInternal; ++n) {
-    silk_control_encoder(&state_Fxx[n], encControl, psEnc->allowBandwidthSwitch, n == 1 ? state_Fxx[0].sCmn.fs_kHz : 0);
+    if (!silk_control_encoder(&state_Fxx[n], encControl, psEnc->allowBandwidthSwitch, n == 1 ? state_Fxx[0].sCmn.fs_kHz : 0)) {
+      restore_prefill();
+      return false;
+    }
     if (psEnc->lbrr != nullptr && state_Fxx[n].sCmn.first_frame_after_reset) {
       psEnc->lbrr->channels[static_cast<std::size_t>(n)].flags.fill(0);
+    }
+  }
+  for (int n = 0; n < encControl->nChannelsInternal; ++n) {
+    const auto& state = state_Fxx[n].sCmn;
+    if ((state.frame_length != 320 || state.ltp_mem_length + 5 * state.fs_kHz != 400) && !state_Fxx[n].x_buf.store_suffix()) {
+      restore_prefill();
+      return false;
     }
   }
   if (psEnc->lbrr != nullptr) {
@@ -12594,15 +12694,10 @@ static void silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   encControl->inWBmodeWithoutVariableLP = state_Fxx[0].sCmn.fs_kHz == 16 && state_Fxx[0].sCmn.sLP.mode == 0;
   encControl->internalSampleRate = state_Fxx[0].sCmn.fs_kHz * 1000;
   encControl->stereoWidth_Q14 = encControl->toMono ? 0 : psEnc->sStereo.smth_width_Q14;
-  if (prefillFlag) {
-    encControl->payloadSize_ms = saved_payload_size_ms;
-    encControl->complexity = saved_complexity;
-    for (int n = 0; n < encControl->nChannelsInternal; ++n) {
-      state_Fxx[n].sCmn.prefillFlag = 0;
-    }
-  }
+  restore_prefill();
   encControl->signalType = state_Fxx[0].sCmn.indices.signalType;
   encControl->offset = silk_Quantization_Offsets_Q10[state_Fxx[0].sCmn.indices.signalType >> 1][state_Fxx[0].sCmn.indices.quantOffsetType];
+  return true;
 }
 
 static void silk_encode_indices(silk_encoder_state* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
@@ -14223,6 +14318,7 @@ void silk_control_SNR(silk_encoder_state* psEncC, opus_int32 TargetRate_bps) {
 }
 
 void silk_init_encoder(silk_encoder_state_FLP* psEnc) {
+  psEnc->x_buf.release();
   zero_object(*psEnc);
   psEnc->sCmn.variable_HP_smth1_Q15 = silk_log_60_q15;
   psEnc->sCmn.first_frame_after_reset = 1;
@@ -14245,9 +14341,9 @@ constinit const std::array<std::array<opus_int8, 4 * 2>, 3> silk_Lag_range_stage
 constinit const std::array<opus_int8, 2 + 1> silk_nb_cbk_searchs_stage3 = numeric_blob_array<opus_int8>(R"blob(101822)blob");
 }
 
-static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz);
+static bool silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz);
 static void silk_setup_fs(silk_encoder_state_FLP* psEnc, int fs_kHz, int PacketSize_ms);
-void silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch, const int force_fs_kHz) {
+bool silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* encControl, const int allow_bw_switch, const int force_fs_kHz) {
   psEnc->sCmn.useCBR = encControl->useCBR;
   psEnc->sCmn.API_fs_Hz = encControl->API_sampleRate;
   psEnc->sCmn.nChannelsInternal = encControl->nChannelsInternal;
@@ -14255,16 +14351,19 @@ void silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlStruct* 
   if (force_fs_kHz) {
     fs_kHz = force_fs_kHz;
   }
-  silk_setup_resamplers(psEnc, fs_kHz);
+  if (!silk_setup_resamplers(psEnc, fs_kHz))
+    return false;
   silk_setup_fs(psEnc, fs_kHz, encControl->payloadSize_ms);
   silk_setup_complexity(&psEnc->sCmn, encControl->complexity);
+  return true;
 }
 
-static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
+static bool silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
   if (psEnc->sCmn.fs_kHz != fs_kHz) {
     if (psEnc->sCmn.fs_kHz == 0) {
       silk_resampler_init(&psEnc->sCmn.resampler_state, psEnc->sCmn.API_fs_Hz, fs_kHz * 1000, 1);
     } else {
+      if (!psEnc->x_buf.store_suffix()) return false;
       const opus_int32 buf_length_ms = (psEnc->sCmn.nb_subfr * 5 << 1) + 5;
       const opus_int32 old_buf_samples = buf_length_ms * psEnc->sCmn.fs_kHz;
       const opus_int32 new_buf_samples = buf_length_ms * fs_kHz;
@@ -14282,6 +14381,7 @@ static void silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
       psEnc->x_buf.write(resampled.data(), 0, static_cast<std::size_t>(new_buf_samples));
     }
   }
+  return true;
 }
 
 static void silk_setup_fs(silk_encoder_state_FLP* psEnc, int fs_kHz, int PacketSize_ms) {
@@ -15611,8 +15711,10 @@ struct silk_gain_search_bound {
 void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
   silk_encoder_control_FLP sEncCtrl;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
+  const auto history = static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz);
+  const auto frame = static_cast<std::size_t>(psEnc->sCmn.frame_length);
   std::array<float, 720> x_buffer;
-  psEnc->x_buf.unpack(x_buffer.data(), static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz));
+  psEnc->x_buf.unpack(x_buffer.data(), history);
   auto* x_frame = x_buffer.data() + psEnc->sCmn.ltp_mem_length;
   auto& low_pass = psEnc->sCmn.sLP;
   if (low_pass.mode != 0) {
@@ -15628,10 +15730,8 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
                             psEnc->sCmn.frame_length);
   }
   silk_short2float_array(x_frame + 5 * psEnc->sCmn.fs_kHz, input_buffer + 1, psEnc->sCmn.frame_length);
-  psEnc->x_buf.write(input_buffer + 1, static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz), static_cast<std::size_t>(psEnc->sCmn.frame_length));
   for (int i = 0; i < 8; i++) {
     x_frame[5 * psEnc->sCmn.fs_kHz + i * (psEnc->sCmn.frame_length >> 3)] += (1 - (i & 2)) * 1e-6f;
-    psEnc->x_buf.dither(static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz + i * (psEnc->sCmn.frame_length >> 3)), (i & 2) == 0);
   }
   if (!psEnc->sCmn.prefillFlag) {
     {
@@ -15803,7 +15903,7 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     }
     silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
   }
-  psEnc->x_buf.advance(static_cast<std::size_t>(psEnc->sCmn.frame_length), static_cast<std::size_t>(psEnc->sCmn.ltp_mem_length + 5 * psEnc->sCmn.fs_kHz));
+  psEnc->x_buf.commit(input_buffer + 1, frame, history);
   if (psEnc->sCmn.prefillFlag) {
     *pnBytesOut = 0;
     return;
