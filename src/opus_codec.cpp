@@ -5364,6 +5364,8 @@ static int resampling_factor(opus_int32 rate) {
   return is_supported_sample_rate(rate) ? 48000 / rate : 0;
 }
 
+[[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>*;
+
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
   for (int i = 0; i < N; ++i) {
     const opus_val32 delayed_0 = x[i - T];
@@ -5373,7 +5375,7 @@ static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt
   }
 }
 
-static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opus_val16 g0, opus_val16 g1, int tapset0, int tapset1, const celt_coef* window, int overlap) {
+static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opus_val16 g0, opus_val16 g1, int tapset0, int tapset1, int overlap) {
   int i;
   celt_coef g00, g01, g02, g10, g11, g12;
   if (g0 == 0 && g1 == 0) {
@@ -5394,10 +5396,11 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
     overlap = 0;
   }
   for (i = 0; i < overlap; i++) {
-    celt_coef f = ((window[i]) * (window[i]));
+    const celt_coef f = celt_comb_fade()[i][0];
+    const celt_coef complement = celt_comb_fade()[i][1];
     const opus_val32 old_period = g00 * x[i - T0] + g01 * (x[i - T0 + 1] + x[i - T0 - 1]) + g02 * (x[i - T0 + 2] + x[i - T0 - 2]);
     const opus_val32 new_period = g10 * x[i - T1] + g11 * (x[i - T1 + 1] + x[i - T1 - 1]) + g12 * (x[i - T1 + 2] + x[i - T1 - 2]);
-    y[i] = x[i] + (1.0f - f) * old_period + f * new_period;
+    y[i] = x[i] + complement * old_period + f * new_period;
   }
   if (g1 == 0) {
     if (x != y) {
@@ -6191,7 +6194,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
     copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
     comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0,
-                0, celt_mode()->window, overlap);
+                0, overlap);
     for (int i = 0; i < N; ++i) {
       output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
     }
@@ -6213,7 +6216,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     for (int c = 0; c < CC; ++c) {
       copy_n_items(pre[c] + max_period, static_cast<std::size_t>(N), in + c * (N + overlap) + overlap);
       comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, overlap, -st->prefilter_gain, 0,
-                  0, 0, celt_mode()->window, overlap);
+                  0, 0, overlap);
     }
     gain1 = 0;
     pf_on = 0;
@@ -7191,11 +7194,11 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     st->postfilter_period = std::max<int>(st->postfilter_period, 15);
     st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
     comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
-                st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset, celt_mode()->window,
+                st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset,
                 celt_default_overlap);
     if (LM != 0)
       comb_filter(out_syn[channel] + celt_short_mdct_size, out_syn[channel] + celt_short_mdct_size, st->postfilter_period, target_period,
-                  N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset, celt_mode()->window,
+                  N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset,
                   celt_default_overlap);
   }
   st->postfilter_period_old = st->postfilter_period;
@@ -7298,7 +7301,7 @@ static void prefilter_and_fold(CeltDecoderInternal* st, int N) {
   auto* etmp = filter_storage.data();
   for (int channel = 0; channel < channels; ++channel) {
     comb_filter(etmp, decoder.decode_mem[channel] + celt_decode_buffer_size - N, st->postfilter_period_old, st->postfilter_period, overlap,
-                -st->postfilter_gain_old, -st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset, nullptr, 0);
+                -st->postfilter_gain_old, -st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset, 0);
     for (int i = 0; i < overlap / 2; ++i)
       decoder.decode_mem[channel][celt_decode_buffer_size - N + i] =
           (celt_mode()->window[i] * etmp[overlap - 1 - i]) + (celt_mode()->window[overlap - i - 1] * etmp[i]);
@@ -8678,6 +8681,7 @@ struct celt_generated_tables {
   std::array<opus_int16, 120> fft_bitrev_120;
   std::array<opus_int16, 60> fft_bitrev_60;
   std::array<celt_coef, 120> window;
+  std::array<std::array<celt_coef, 2>, 120> comb_fade;
 };
 
 consteval auto celt_sine(double angle) noexcept -> double {
@@ -8757,11 +8761,17 @@ consteval auto make_celt_tables() noexcept -> celt_generated_tables {
   for (std::size_t index = 0; index < tables.window.size(); ++index) {
     const double inner = celt_sine(.5 * pi * (static_cast<double>(index) + .5) / tables.window.size());
     tables.window[index] = static_cast<float>(celt_sine(.5 * pi * inner * inner));
+    const celt_coef f = tables.window[index] * tables.window[index];
+    tables.comb_fade[index] = {f, 1.0f - f};
   }
   return tables;
 }
 
 static constexpr celt_generated_tables celt_tables = make_celt_tables();
+
+[[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>* {
+  return celt_tables.comb_fade.data();
+}
 
 static constexpr kiss_fft_state fft_state48000_960_0{480, 1.f / 480, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_480.data()};
 static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
