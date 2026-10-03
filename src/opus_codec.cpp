@@ -7382,8 +7382,10 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   }
   const auto safe_exc_length = std::max(exc_length, 0);
   std::array<opus_val16, celt_plc_max_period> fir_tmp;
-  celt_fir_c(update_lpc ? exc + celt_plc_max_period - safe_exc_length : old_buf + old_history_size - safe_exc_length, lpc, fir_tmp.data(), safe_exc_length);
-  copy_n_items(fir_tmp.data(), static_cast<std::size_t>(safe_exc_length), exc + celt_plc_max_period - safe_exc_length);
+  celt_fir_c(update_lpc ? exc + celt_plc_max_period - safe_exc_length : old_buf + old_history_size - safe_exc_length, lpc,
+             update_lpc ? fir_tmp.data() : exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
+  if (update_lpc)
+    copy_n_items(fir_tmp.data(), static_cast<std::size_t>(safe_exc_length), exc + celt_plc_max_period - safe_exc_length);
   {
     opus_val32 E1 = 1, E2 = 1;
     const auto decay_length = exc_length >> 1;
