@@ -1140,8 +1140,9 @@ struct silk_decoder_control {
 
 struct OpusDecoder {
   opus_int32 Fs;
-  int channels;
-  int stream_channels, mode, prev_mode, bandwidth, frame_size, prev_redundancy, last_packet_duration;
+  opus_uint8 channels, stream_channels, prev_redundancy;
+  opus_int16 mode, prev_mode, bandwidth;
+  int frame_size, last_packet_duration;
   opus_uint32 rangeFinal;
 };
 static_assert(std::is_standard_layout_v<OpusDecoder>);
