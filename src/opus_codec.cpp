@@ -12456,7 +12456,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
     if (prefillFlag) {
       encControl->payloadSize_ms = saved_payload_size_ms;
       encControl->complexity = saved_complexity;
-      for (int n = 0; n < encControl->nChannelsInternal; ++n) state_Fxx[n].sCmn.prefillFlag = 0;
+      for (int n = 0; n < encControl->nChannelsInternal; ++n)
+        state_Fxx[n].sCmn.prefillFlag = 0;
     }
   };
   for (int n = 0; n < encControl->nChannelsInternal; ++n) {
@@ -14363,7 +14364,8 @@ static bool silk_setup_resamplers(silk_encoder_state_FLP* psEnc, int fs_kHz) {
     if (psEnc->sCmn.fs_kHz == 0) {
       silk_resampler_init(&psEnc->sCmn.resampler_state, psEnc->sCmn.API_fs_Hz, fs_kHz * 1000, 1);
     } else {
-      if (!psEnc->x_buf.store_suffix()) return false;
+      if (!psEnc->x_buf.store_suffix())
+        return false;
       const opus_int32 buf_length_ms = (psEnc->sCmn.nb_subfr * 5 << 1) + 5;
       const opus_int32 old_buf_samples = buf_length_ms * psEnc->sCmn.fs_kHz;
       const opus_int32 new_buf_samples = buf_length_ms * fs_kHz;
