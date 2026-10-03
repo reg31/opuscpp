@@ -17,6 +17,7 @@
 #include <new>
 #include <span>
 #include <type_traits>
+#include <utility>
 
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
@@ -510,6 +511,7 @@ struct CeltEncoderInternal {
 
 struct alignas(8) CeltDecoderInternal {
   opus_int8 channels, stream_channels, downsample, start, end;
+  opus_uint8 prefix_head;
   opus_int16 last_pitch_index;
   int loss_duration;
   opus_int16 postfilter_period, postfilter_period_old;
@@ -561,8 +563,8 @@ static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate,
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false);
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels);
-static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
-                               opus_int16* pcm16 = nullptr);
+static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
+                               opus_int16* pcm16 = nullptr, bool update_pitch_cache = true);
 static void celt_decoder_reset_state(CeltDecoderInternal* st);
 consteval auto numeric_blob_hex_value(char ch) -> unsigned {
   return ch <= '9' ? static_cast<unsigned>(ch - '0') : static_cast<unsigned>((ch | 0x20) - 'a' + 10);
@@ -1161,9 +1163,9 @@ static void smooth_fade(const opus_res* in1, const opus_res* in2, opus_res* out,
   }
 }
 
-static int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, int channels) {
+OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, int channels, bool update_pitch_cache = true) {
   std::array<opus_res, celt_max_frame_samples * celt_max_channels> mix;
-  const int ret = celt_decode_with_ec(celt_dec, data, len, mix.data(), frame_size, dec);
+  const int ret = celt_decode_with_ec(celt_dec, data, len, mix.data(), frame_size, dec, nullptr, update_pitch_cache);
   if (ret >= 0) {
     const auto mix_samples = static_cast<std::size_t>(ret) * static_cast<std::size_t>(channels);
     for (std::size_t i = 0; i < mix_samples; ++i) {
@@ -1340,6 +1342,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
   }
   celt_dec->start = start_band;
   if (mode != opus_mode_silk_only) {
+    const bool update_pitch_cache = !(mode == opus_mode_hybrid && start_band == 17 && !st->prev_redundancy && !redundancy && !decode_fec && data != nullptr && len > 1);
     int celt_frame_size = std::min(F20, frame_size);
     if (mode != st->prev_mode && st->prev_mode > 0 && !st->prev_redundancy) {
       celt_decoder_reset_state(celt_dec);
@@ -1348,7 +1351,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     celt_diag().capture = true;
 #endif
     celt_ret = mode != opus_mode_celt_only
-                   ? celt_decode_then_add(celt_dec, decode_fec ? nullptr : data, len, pcm, celt_frame_size, &dec, st->channels)
+                   ? celt_decode_then_add(celt_dec, decode_fec ? nullptr : data, len, pcm, celt_frame_size, &dec, st->channels, update_pitch_cache)
                    : celt_decode_with_ec(celt_dec, decode_fec ? nullptr : data, len, pcm, celt_frame_size, &dec);
 #if defined(OPUSCPP_ENABLE_ENERGY_DIAGNOSTICS)
     celt_diag().capture = false;
@@ -5512,6 +5515,13 @@ static inline auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int
 
 static constexpr int celt_encoder_history_size = 1024;
 static constexpr int celt_decoder_history_size = 2048;
+static constexpr int celt_decoder_compact_prefix = 600;
+static constexpr int celt_decoder_retained_overlap = celt_default_overlap / 2;
+static constexpr int celt_decoder_raw_start = celt_decoder_compact_prefix - 2;
+static constexpr int celt_decoder_prefix_pairs = celt_decoder_compact_prefix / celt_short_mdct_size;
+static constexpr int celt_decoder_channel_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs +
+    celt_decoder_history_size - celt_decoder_raw_start + celt_decoder_retained_overlap;
+static void pitch_whiten(opus_val16* x_lp, int len);
 
 [[nodiscard]] static inline auto celt_encoder_storage(CeltEncoderInternal* st) noexcept -> celt_sig* {
   static_assert(sizeof(CeltEncoderInternal) % alignof(celt_sig) == 0);
@@ -6972,7 +6982,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
 }
 
-#undef OPUSCPP_NOINLINE
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   static_assert(std::is_standard_layout_v<CeltEncoderInternal>);
@@ -6992,17 +7001,18 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
 
 constexpr int celt_decoder_energy_channel_count = 2;
 [[nodiscard]] static constexpr auto celt_decoder_storage_count(int channels) noexcept -> std::size_t {
-  return static_cast<std::size_t>(channels) * (celt_decoder_history_size + celt_default_overlap) +
-         4 * celt_decoder_energy_channel_count * celt_default_nb_ebands + static_cast<std::size_t>(channels) * 24;
+  return static_cast<std::size_t>(channels) * celt_decoder_channel_storage +
+         3 * celt_decoder_energy_channel_count * celt_default_nb_ebands + static_cast<std::size_t>(channels) * (celt_default_nb_ebands + 24);
 }
 
 static void celt_decoder_reset_state(CeltDecoderInternal* st) {
   constexpr auto energy_channels = celt_decoder_energy_channel_count;
   static_assert(std::is_standard_layout_v<CeltDecoderInternal>);
   zero_object_tail(*st, offsetof(CeltDecoderInternal, last_pitch_index));
+  st->prefix_head = 0;
   zero_n_items(celt_decoder_storage(st), celt_decoder_storage_count(st->channels));
   auto* old_band_energy =
-      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + (celt_decoder_history_size + celt_default_overlap) * st->channels);
+      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + celt_decoder_channel_storage * st->channels);
   auto* old_log_energy = old_band_energy + energy_channels * celt_default_nb_ebands;
   auto* old_log_energy2 = old_log_energy + energy_channels * celt_default_nb_ebands;
   const auto band_count = static_cast<std::size_t>(energy_channels * celt_default_nb_ebands);
@@ -7134,37 +7144,171 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
 }
 
 constexpr int celt_decode_buffer_size = 2048, celt_plc_max_period = 1024, celt_lpc_order = 24;
+constexpr int celt_decoder_prefix_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs;
+constexpr int celt_decoder_inplace_history_size = celt_decoder_channel_storage - celt_decoder_retained_overlap;
+constexpr int celt_decoder_inplace_frame_limit = celt_decoder_inplace_history_size - celt_max_pitch_period;
 struct celt_decoder_views {
-  std::array<celt_sig*, 2> decode_mem, out_syn;
-  celt_glog *oldBandE{}, *oldLogE{}, *oldLogE2{}, *backgroundLogE{};
-  opus_val16* lpc{};
+  int history_size = celt_decode_buffer_size, raw_offset = 0;
+  int cache_backup_start = 0, cache_backup_count = 0;
+  std::array<celt_sig*, 2> cache_backup{};
+  std::array<celt_sig*, 2> decode_mem{}, out_syn{};
+  celt_glog *oldBandE, *oldLogE, *oldLogE2, *backgroundLogE;
+  opus_val16* lpc;
 };
 
-[[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N) noexcept -> celt_decoder_views {
+[[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N, celt_sig* workspace, bool inplace) noexcept -> celt_decoder_views {
   const auto overlap = celt_default_overlap;
   auto* const decode_storage = celt_decoder_storage(st);
-  celt_decoder_views views{};
+  celt_decoder_views views;
+  views.history_size = inplace ? celt_decoder_inplace_history_size : celt_decode_buffer_size;
+  views.raw_offset = celt_decode_buffer_size - views.history_size;
+  views.cache_backup_count = inplace ? std::min(N, celt_decoder_prefix_storage) : 0;
+  views.cache_backup_start = inplace ? celt_decoder_prefix_storage - views.cache_backup_count : 0;
   constexpr auto energy_channels = celt_decoder_energy_channel_count;
   for (int channel = 0; channel < st->channels; ++channel) {
-    views.decode_mem[channel] = decode_storage + channel * (celt_decode_buffer_size + overlap);
-    views.out_syn[channel] = views.decode_mem[channel] + celt_decode_buffer_size - N;
+    views.decode_mem[channel] = inplace ? decode_storage + channel * celt_decoder_channel_storage : workspace + channel * (celt_decode_buffer_size + overlap);
+    views.out_syn[channel] = views.decode_mem[channel] + views.history_size - N;
+    if (inplace) views.cache_backup[channel] = workspace + channel * N;
   }
-  views.oldBandE = reinterpret_cast<celt_glog*>(decode_storage + (celt_decode_buffer_size + overlap) * st->channels);
+  views.oldBandE = reinterpret_cast<celt_glog*>(decode_storage + celt_decoder_channel_storage * st->channels);
   views.oldLogE = views.oldBandE + energy_channels * celt_default_nb_ebands;
   views.oldLogE2 = views.oldLogE + energy_channels * celt_default_nb_ebands;
   views.backgroundLogE = views.oldLogE2 + energy_channels * celt_default_nb_ebands;
-  views.lpc = reinterpret_cast<opus_val16*>(views.backgroundLogE + energy_channels * celt_default_nb_ebands);
+  views.lpc = reinterpret_cast<opus_val16*>(views.backgroundLogE + st->channels * celt_default_nb_ebands);
   return views;
 }
 
-static void celt_slide_decode_history(celt_sig* const* decode_mem, int channels, int N) {
-  const auto count = static_cast<std::size_t>(celt_decode_buffer_size - N + celt_default_overlap);
-  if (channels == 2) {
-    move_n_items(decode_mem[0] + N, count, decode_mem[0]);
-    move_n_items(decode_mem[1] + N, count, decode_mem[1]);
+static void celt_load_decode_history(CeltDecoderInternal* st, celt_sig* history, bool need_old_overlap = true) {
+  for (int channel = 0; channel < st->channels; ++channel) {
+    const auto* stored = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+    copy_n_items(stored + celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs,
+                 static_cast<std::size_t>(celt_decode_buffer_size - celt_decoder_raw_start + (need_old_overlap ? celt_decoder_retained_overlap : 0)),
+                 history + channel * (celt_decode_buffer_size + celt_default_overlap) + celt_decoder_raw_start);
+  }
+}
+
+static void celt_store_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int) {
+  for (int channel = 0; channel < st->channels; ++channel) {
+    auto* stored = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+    if (decoder.raw_offset != 0) {
+      if (decoder.cache_backup[channel] != nullptr) {
+        copy_n_items(decoder.cache_backup[channel], static_cast<std::size_t>(decoder.cache_backup_count), stored + decoder.cache_backup_start);
+      }
+    } else {
+      copy_n_items(decoder.decode_mem[channel] + celt_decoder_raw_start,
+                   static_cast<std::size_t>(celt_decode_buffer_size - celt_decoder_raw_start + celt_decoder_retained_overlap),
+                   stored + celt_decoder_prefix_storage);
+    }
+  }
+}
+
+template <int N, bool Backup>
+static void celt_shift_pitch_history_fixed(CeltDecoderInternal* st, const std::array<celt_sig*, 2>& cache_backup, int backup_start = celt_decoder_prefix_storage - std::min(N, celt_decoder_prefix_storage)) {
+  static_assert(N == 120 || N == 240 || N == 480 || N == 960);
+  static_assert(!Backup || N <= celt_decoder_inplace_frame_limit || N == 960);
+  int head = 0;
+  if constexpr (N != 960) {
+    head = st->prefix_head + N / celt_short_mdct_size;
+    if (head >= celt_decoder_prefix_pairs) head -= celt_decoder_prefix_pairs;
+  }
+  const int base = head * (celt_short_mdct_size / 2);
+  for (int channel = 0; channel < st->channels; ++channel) {
+    auto* lowpass = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+    const auto* raw = lowpass + celt_decoder_prefix_storage;
+    auto* saved = Backup ? cache_backup[channel] : nullptr;
+    const int tail_start = Backup ? backup_start : celt_decoder_prefix_storage;
+    if constexpr (Backup && N != 960) copy_n_items(lowpass + tail_start, celt_decoder_prefix_storage - tail_start, saved);
+    auto location = [&](int physical) {
+      if constexpr (!Backup) return lowpass + physical;
+      else return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
+    };
+    constexpr int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
+    int i = std::max(1, old_count);
+    while (i < celt_decoder_compact_prefix / 2) {
+      int physical = base + i;
+      if (physical >= celt_decoder_compact_prefix / 2) physical -= celt_decoder_compact_prefix / 2;
+      const int limit = std::min(celt_decoder_compact_prefix / 2 - i,
+                                 (physical < tail_start ? std::min(tail_start, celt_decoder_compact_prefix / 2) : celt_decoder_compact_prefix / 2) - physical);
+      auto* destination = location(physical);
+      const int stop = i + limit;
+      for (; i + 3 < stop; i += 4, destination += 4) {
+        const int center = 2 * i + N - celt_decoder_raw_start;
+        const std::array<celt_sig, 4> values{
+          .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center],
+          .25f * raw[center + 1] + .25f * raw[center + 3] + .5f * raw[center + 2],
+          .25f * raw[center + 3] + .25f * raw[center + 5] + .5f * raw[center + 4],
+          .25f * raw[center + 5] + .25f * raw[center + 7] + .5f * raw[center + 6]};
+        destination[0] = values[0]; destination[1] = values[1]; destination[2] = values[2]; destination[3] = values[3];
+      }
+      if constexpr (Backup || N != 240) {
+        for (; i < stop; ++i) {
+          const int center = 2 * i + N - celt_decoder_raw_start;
+          *destination++ = .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center];
+        }
+      }
+    }
+    constexpr int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
+    for (int i = prefix_pairs; i < celt_decoder_prefix_pairs; ++i) {
+      const int source = i * celt_short_mdct_size + N - celt_decoder_raw_start;
+      int pair = head + i;
+      if (pair >= celt_decoder_prefix_pairs) pair -= celt_decoder_prefix_pairs;
+      const int physical = celt_decoder_compact_prefix / 2 + 2 * pair;
+      *location(physical) = raw[source];
+      *location(physical + 1) = raw[source + 1];
+    }
+    const int pair = celt_decoder_compact_prefix / 2 + 2 * head;
+    *location(base) = .25f * *location(pair + 1) + .5f * *location(pair);
+  }
+  st->prefix_head = static_cast<opus_uint8>(head);
+}
+
+static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::array<celt_sig*, 2>& cache_backup, int backup_start) {
+  const bool backup = cache_backup[0] != nullptr;
+  switch (N) {
+  case 120:
+    if (backup) celt_shift_pitch_history_fixed<120, true>(st, cache_backup);
+    else celt_shift_pitch_history_fixed<120, false>(st, cache_backup);
+    return;
+  case 240:
+    if (backup) celt_shift_pitch_history_fixed<240, true>(st, cache_backup);
+    else celt_shift_pitch_history_fixed<240, false>(st, cache_backup);
+    return;
+  case 480:
+    if (backup) celt_shift_pitch_history_fixed<480, true>(st, cache_backup, backup_start);
+    else celt_shift_pitch_history_fixed<480, false>(st, cache_backup);
+    return;
+  case 960:
+    if (backup) celt_shift_pitch_history_fixed<960, true>(st, cache_backup, backup_start);
+    else celt_shift_pitch_history_fixed<960, false>(st, cache_backup);
     return;
   }
-  move_n_items(decode_mem[0] + N, count, decode_mem[0]);
+  std::unreachable();
+}
+
+static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int channels, int N, bool from_stored = false, bool postfilter_history = true, int target_period = celt_max_pitch_period, bool update_pitch_cache = true) {
+  const auto* decode_mem = decoder.decode_mem.data();
+  const int raw_start = celt_decoder_raw_start - decoder.raw_offset;
+  int source = from_stored && (!postfilter_history || (decoder.raw_offset != 0 && N <= 240)) ? N + raw_start : std::max(N, raw_start);
+  if (from_stored && (N == 960 || (N == 480 && decoder.raw_offset != 0 && update_pitch_cache && st->start == 0))) {
+    const int period_span = postfilter_history ? std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2 : 0;
+    source = std::max(N, std::min(N + raw_start, decoder.history_size - period_span));
+  }
+  const auto count = static_cast<std::size_t>(decoder.history_size - source + celt_decoder_retained_overlap);
+  if (from_stored && decoder.raw_offset == 0) {
+    if (update_pitch_cache) celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
+    for (int channel = 0; channel < channels; ++channel) {
+      const auto* raw = celt_decoder_storage(st) + channel * celt_decoder_channel_storage + celt_decoder_prefix_storage;
+      copy_n_items(raw + source - celt_decoder_raw_start, count, decode_mem[channel] + source - N);
+    }
+    return;
+  }
+  if (update_pitch_cache) celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
+  if (channels == 2) {
+    move_n_items(decode_mem[0] + source, count, decode_mem[0] + source - N);
+    move_n_items(decode_mem[1] + source, count, decode_mem[1] + source - N);
+    return;
+  }
+  move_n_items(decode_mem[0] + source, count, decode_mem[0] + source - N);
 }
 
 static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int channels, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
@@ -7200,13 +7344,13 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   }
 }
 
-static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc) {
+static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size, int prior_context) {
   std::array<opus_val16, celt_plc_max_period + celt_lpc_order> exc_storage;
   std::array<opus_val16, celt_lpc_order> lpc_mem;
   auto* exc = exc_storage.data() + celt_lpc_order;
   opus_val16 decay, attenuation;
   opus_val32 S1 = 0;
-  copy_n_items(buf + celt_decode_buffer_size - celt_plc_max_period - celt_lpc_order,
+  copy_n_items(old_buf + old_history_size - celt_plc_max_period - celt_lpc_order,
                static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage.data());
   if (update_lpc) {
     std::array<opus_val32, celt_lpc_order + 1> ac;
@@ -7233,7 +7377,13 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     E1 = std::min(E1, E2);
     decay = static_cast<opus_val16>(std::sqrt(static_cast<float>(E1) / E2));
   }
-  move_n_items(buf + N, static_cast<std::size_t>(celt_decode_buffer_size - N), buf);
+  copy_n_items(old_buf + old_history_size - pitch_index, static_cast<std::size_t>(pitch_index), fir_tmp.data());
+  const int source = N + celt_decoder_raw_start - raw_offset;
+  if (old_buf == buf) {
+    move_n_items(buf + source, static_cast<std::size_t>(history_size - source), buf + source - N);
+  } else {
+    copy_n_items(old_buf + old_history_size - prior_context, static_cast<std::size_t>(prior_context), buf + history_size - N - prior_context);
+  }
   const auto extrapolation_offset = celt_plc_max_period - pitch_index, extrapolation_len = N + celt_default_overlap;
   attenuation = fade * decay;
   for (int i = 0, j = 0; i < extrapolation_len; ++i, ++j) {
@@ -7241,79 +7391,99 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
       j -= pitch_index;
       attenuation *= decay;
     }
-    buf[celt_decode_buffer_size - N + i] = attenuation * exc[extrapolation_offset + j];
-    const auto sample = buf[celt_decode_buffer_size - celt_plc_max_period - N + extrapolation_offset + j];
+    buf[history_size - N + i] = attenuation * exc[extrapolation_offset + j];
+    const auto sample = fir_tmp[j];
     S1 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
   }
   for (int i = 0; i < celt_lpc_order; ++i) {
-    lpc_mem[i] = buf[celt_decode_buffer_size - N - 1 - i];
+    lpc_mem[i] = buf[history_size - N - 1 - i];
   }
-  celt_iir(buf + celt_decode_buffer_size - N, lpc, buf + celt_decode_buffer_size - N, extrapolation_len, lpc_mem.data());
+  celt_iir(buf + history_size - N, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
   {
     opus_val32 S2 = 0;
     for (int i = 0; i < extrapolation_len; ++i) {
-      const auto sample = buf[celt_decode_buffer_size - N + i];
+      const auto sample = buf[history_size - N + i];
       S2 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
     }
     if (!(S1 > 0.2f * S2)) {
-      zero_n_items(buf + celt_decode_buffer_size - N, static_cast<std::size_t>(extrapolation_len));
+      zero_n_items(buf + history_size - N, static_cast<std::size_t>(extrapolation_len));
     } else if (S1 < S2) {
       const auto ratio = static_cast<opus_val16>(std::sqrt(static_cast<float>(S1 + 1) / (S2 + 1)));
       for (int i = 0; i < celt_default_overlap; ++i) {
         const auto gain = 1.0f - celt_mode()->window[i] * (1.0f - ratio);
-        buf[celt_decode_buffer_size - N + i] *= gain;
+        buf[history_size - N + i] *= gain;
       }
       for (int i = celt_default_overlap; i < extrapolation_len; ++i) {
-        buf[celt_decode_buffer_size - N + i] *= ratio;
+        buf[history_size - N + i] *= ratio;
       }
     }
   }
 }
 
-static inline int celt_plc_pitch_search(std::span<celt_sig* const> decode_mem) {
+static inline int celt_plc_pitch_search(CeltDecoderInternal* st, std::span<celt_sig* const> decode_mem, int raw_offset) {
   int pitch_index;
   std::array<opus_val16, (2048 >> 1)> lp_pitch_buf;
-  pitch_downsample(decode_mem.data(), static_cast<int>(decode_mem.size()), lp_pitch_buf.data(), 2048 >> 1);
+  auto fill_channel = [&]<bool Accumulate>(int channel) {
+    const auto* lowpass = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+    const auto* raw = decode_mem[channel];
+    const int base = st->prefix_head * (celt_short_mdct_size / 2);
+    const int first = celt_decoder_compact_prefix / 2 - base;
+    for (int i = 0; i < first; ++i) {
+      if constexpr (!Accumulate) lp_pitch_buf[i] = lowpass[base + i];
+      else lp_pitch_buf[i] += lowpass[base + i];
+    }
+    for (int i = first; i < celt_decoder_compact_prefix / 2; ++i) {
+      if constexpr (!Accumulate) lp_pitch_buf[i] = lowpass[i - first];
+      else lp_pitch_buf[i] += lowpass[i - first];
+    }
+    for (int i = celt_decoder_compact_prefix / 2; i < 2048 / 2; ++i) {
+      const auto value = .25f * raw[2 * i - raw_offset - 1] + .25f * raw[2 * i - raw_offset + 1] + .5f * raw[2 * i - raw_offset];
+      if constexpr (!Accumulate) lp_pitch_buf[i] = value;
+      else lp_pitch_buf[i] += value;
+    }
+  };
+  fill_channel.template operator()<false>(0);
+  if (st->channels == 2) fill_channel.template operator()<true>(1);
+  pitch_whiten(lp_pitch_buf.data(), 2048 >> 1);
   pitch_search(lp_pitch_buf.data() + ((720) >> 1), lp_pitch_buf.data(), 2048 - (720), (720) - (100), &pitch_index);
   pitch_index = (720) - pitch_index;
   return pitch_index;
 }
 
-static void prefilter_and_fold(CeltDecoderInternal* st, int N) {
+static void celt_consume_pending_fold(CeltDecoderInternal* st, celt_sig* scratch) {
   constexpr auto overlap = celt_default_overlap;
-  const auto channels = st->channels;
-  const auto decoder = make_celt_decoder_views(st, N);
+  constexpr auto H = celt_decoder_inplace_history_size;
   std::array<opus_val32, celt_default_overlap> filter_storage;
   auto* etmp = filter_storage.data();
-  for (int channel = 0; channel < channels; ++channel) {
-    comb_filter(etmp, decoder.decode_mem[channel] + celt_decode_buffer_size - N, st->postfilter_period_old, st->postfilter_period, overlap,
+  const int prior_count = st->postfilter_gain == 0 ? 0 : std::max(static_cast<int>(st->postfilter_period), 15) + 2;
+  for (int channel = 0; channel < st->channels; ++channel) {
+    auto* stored = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+    copy_n_items(stored + H - prior_count, static_cast<std::size_t>(prior_count + overlap / 2), scratch + celt_plc_max_period - prior_count);
+    copy_n_items(stored + st->prefix_head * (celt_short_mdct_size / 2), static_cast<std::size_t>(overlap / 2), scratch + celt_plc_max_period + overlap / 2);
+    comb_filter(etmp, scratch + celt_plc_max_period, st->postfilter_period_old, st->postfilter_period, overlap,
                 -st->postfilter_gain_old, -st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset, 0);
     for (int i = 0; i < overlap / 2; ++i)
-      decoder.decode_mem[channel][celt_decode_buffer_size - N + i] =
+      stored[H + i] =
           (celt_mode()->window[i] * etmp[overlap - 1 - i]) + (celt_mode()->window[overlap - i - 1] * etmp[i]);
   }
 }
 
-static void celt_decode_lost(CeltDecoderInternal* st, int N, int LM) {
+OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum) {
   const int C = st->channels;
   constexpr int nbEBands = celt_default_nb_ebands;
   const auto* eBands = celt_mode()->eBands;
-  const auto decoder = make_celt_decoder_views(st, N);
   auto decode_mem = decoder.decode_mem;
   auto out_syn = decoder.out_syn;
   auto *oldBandE = decoder.oldBandE, *backgroundLogE = decoder.backgroundLogE, *lpc = decoder.lpc;
   const int loss_duration = st->loss_duration;
   const int start = st->start;
   const bool use_noise_fill = loss_duration >= 40 || start != 0 || st->skip_plc;
+  bool retained_committed = false;
   if (use_noise_fill) {
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
-    std::array<celt_norm, celt_max_channels * celt_max_frame_samples> spectrum;
-    zero_n_items(spectrum.data(), static_cast<std::size_t>(C * N));
-    celt_slide_decode_history(decode_mem.data(), C, N);
-    if (st->last_frame_type == 3) {
-      prefilter_and_fold(st, N);
-    }
+    zero_n_items(spectrum, static_cast<std::size_t>(C * N));
+    celt_slide_decode_history(st, decoder, C, N);
     const celt_glog decay = loss_duration == 0 ? 1.5f : .5f;
     for (int c = 0; c < C; ++c) {
       for (int i = start; i < end; i++) {
@@ -7329,33 +7499,55 @@ static void celt_decode_lost(CeltDecoderInternal* st, int N, int LM) {
           seed = celt_lcg_rand(seed);
           spectrum[boffs + j] = static_cast<celt_norm>(static_cast<opus_int32>(seed) >> 20);
         }
-        renormalise_vector(spectrum.data() + boffs, blen, 1.0f);
+        renormalise_vector(spectrum + boffs, blen, 1.0f);
       }
     }
     st->rng = seed;
-    celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, effEnd, C, C, 0, LM, st->downsample, 0);
+    celt_synthesis(spectrum, out_syn.data(), oldBandE, start, effEnd, C, C, 0, LM, st->downsample, 0);
     celt_apply_postfilter(st, out_syn.data(), C, N, LM, st->postfilter_period, st->postfilter_gain, st->postfilter_tapset);
     st->skip_plc = 1;
   } else {
     opus_val16 fade = 1.0f;
+    auto old_mem = decode_mem;
+    const bool from_retained = N == 240 && decoder.raw_offset == 0;
+    const int old_history_size = from_retained ? celt_decoder_inplace_history_size : decoder.history_size;
+    const int old_raw_offset = celt_decode_buffer_size - old_history_size;
+    if (from_retained) {
+      for (int c = 0; c < C; ++c) old_mem[c] = celt_decoder_storage(st) + c * celt_decoder_channel_storage;
+    }
     int pitch_index;
     if (st->last_frame_type != 3) {
       st->last_pitch_index = pitch_index =
-          celt_plc_pitch_search(std::span<celt_sig* const>{decode_mem.data(), static_cast<std::size_t>(C)});
+          celt_plc_pitch_search(st, std::span<celt_sig* const>{old_mem.data(), static_cast<std::size_t>(C)}, old_raw_offset);
     } else {
       pitch_index = st->last_pitch_index;
       fade = (.8f);
     }
     const auto exc_length = std::min(2 * pitch_index, celt_plc_max_period);
     const auto update_lpc = st->last_frame_type != 3;
+    constexpr int prior_context = celt_lpc_order;
+    celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
     for (int c = 0; c < C; ++c)
-      celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, N, pitch_index, exc_length, fade, update_lpc);
+      celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, N, pitch_index, exc_length, fade, update_lpc, decoder.history_size, decoder.raw_offset, old_mem[c], old_history_size, prior_context);
+    for (int c = 0; c < C; ++c) {
+      auto* stored = celt_decoder_storage(st) + c * celt_decoder_channel_storage;
+      copy_n_items(decode_mem[c] + decoder.history_size + celt_default_overlap / 2, static_cast<std::size_t>(celt_default_overlap / 2),
+                   stored + st->prefix_head * (celt_short_mdct_size / 2));
+    }
+    if (from_retained) {
+      for (int c = 0; c < C; ++c) {
+        move_n_items(old_mem[c] + celt_decoder_prefix_storage + N, static_cast<std::size_t>(old_history_size - celt_decoder_prefix_storage - N), old_mem[c] + celt_decoder_prefix_storage);
+        copy_n_items(out_syn[c], static_cast<std::size_t>(N + celt_decoder_retained_overlap), old_mem[c] + old_history_size - N);
+      }
+      retained_committed = true;
+    }
   }
   st->loss_duration = std::min(10000, loss_duration + (1 << LM));
   st->last_frame_type = use_noise_fill ? 2 : 3;
+  return retained_committed;
 }
 
-static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16) {
+OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, celt_sig* workspace, bool inplace, bool update_pitch_cache) {
   ec_dec _dec;
   const int CC = st->channels;
   const int C = st->stream_channels;
@@ -7374,18 +7566,26 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
     return -1;
   }
   const int N = M * celt_short_mdct_size;
-  const auto decoder = make_celt_decoder_views(st, N);
-  auto decode_mem = decoder.decode_mem;
+  std::array<celt_norm, celt_max_channels * celt_max_frame_samples> spectrum;
+  auto* view_workspace = inplace ? spectrum.data() + std::max(C, CC) * N : workspace;
+  auto decoder = make_celt_decoder_views(st, N, view_workspace, inplace);
+  if (!update_pitch_cache) decoder.cache_backup.fill(nullptr);
   auto out_syn = decoder.out_syn;
   auto *oldBandE = decoder.oldBandE, *oldLogE = decoder.oldLogE, *oldLogE2 = decoder.oldLogE2, *backgroundLogE = decoder.backgroundLogE;
   if (data == nullptr || len <= 1) {
     if (pcm == nullptr) {
       return -1;
     }
-    celt_decode_lost(st, N, LM);
+    if (st->last_frame_type == 3 && (st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
+      celt_consume_pending_fold(st, spectrum.data());
+    if (!inplace && (N != 240 || st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
+      celt_load_decode_history(st, workspace, st->loss_duration >= 40 || st->start != 0 || st->skip_plc);
+    const bool retained_committed = celt_decode_lost(st, N, LM, decoder, spectrum.data());
     deemphasis(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD);
+    if (!retained_committed) celt_store_decode_history(st, decoder, N);
     return frame_size / st->downsample;
   }
+  if (st->last_frame_type == 3) celt_consume_pending_fold(st, spectrum.data());
   if (st->loss_duration == 0) {
     st->skip_plc = 0;
   }
@@ -7468,8 +7668,34 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   const int codedBands = clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &intensity, &dual_stereo, bits,
                                                 &balance, pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, dec, 0, 0, 0);
   process_fine_energy<false>(start, end, oldBandE, nullptr, nullptr, fine_quant.data(), dec, C);
-  std::array<celt_norm, celt_max_channels * celt_max_frame_samples> spectrum;
-  celt_slide_decode_history(decode_mem.data(), CC, N);
+  const bool postfilter_history = st->postfilter_gain_old != 0 || st->postfilter_gain != 0 || postfilter_gain != 0;
+  if (decoder.raw_offset == 0 && N == 960) {
+    const int period_span = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), postfilter_pitch}) + 2;
+    if (period_span <= celt_decoder_inplace_history_size - N) {
+      decoder.history_size = celt_decoder_inplace_history_size;
+      decoder.raw_offset = celt_decode_buffer_size - decoder.history_size;
+      decoder.cache_backup_start = postfilter_history ? std::max(0, std::min(celt_decoder_prefix_storage, celt_decoder_inplace_history_size - N - period_span)) : celt_decoder_prefix_storage;
+      decoder.cache_backup_count = celt_decoder_prefix_storage - decoder.cache_backup_start;
+      for (int channel = 0; channel < CC; ++channel) {
+        decoder.decode_mem[channel] = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
+        decoder.out_syn[channel] = decoder.decode_mem[channel] + decoder.history_size - N;
+        decoder.cache_backup[channel] = !update_pitch_cache || decoder.cache_backup_count == 0 ? nullptr : workspace + channel * N;
+        out_syn[channel] = decoder.out_syn[channel];
+      }
+    }
+  }
+  if (N == 480 && decoder.raw_offset != 0 && update_pitch_cache && start == 0) {
+    const int period_span = postfilter_history ? std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), postfilter_pitch}) + 2 : 0;
+    const int source = std::max(N, std::min(N + celt_decoder_raw_start - decoder.raw_offset, decoder.history_size - period_span));
+    decoder.cache_backup_start = source - N;
+    decoder.cache_backup_count = celt_decoder_prefix_storage - decoder.cache_backup_start;
+    for (int channel = 0; channel < CC; ++channel)
+      decoder.cache_backup[channel] = decoder.cache_backup_count == 0 ? nullptr : view_workspace + channel * N;
+  }
+  if (decoder.raw_offset != 0 && (!postfilter_history || N <= 240)) {
+    decoder.cache_backup.fill(nullptr);
+  }
+  celt_slide_decode_history(st, decoder, CC, N, true, postfilter_history, postfilter_pitch, update_pitch_cache);
   std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks;
   quant_all_bands(0, start, end, spectrum.data(), C == 2 ? spectrum.data() + N : nullptr, collapse_masks.data(), nullptr, pulses.data(),
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
@@ -7493,9 +7719,6 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   if (silence) {
     std::fill_n(oldBandE, static_cast<std::size_t>(C * nbEBands), -(28.f));
   }
-  if (st->last_frame_type == 3) {
-    prefilter_and_fold(st, N);
-  }
   celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, end, C, CC, isTransient, LM, st->downsample, silence);
   celt_apply_postfilter(st, out_syn.data(), CC, N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
   celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, energy_channels == 2 && C == 1);
@@ -7515,8 +7738,23 @@ static int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* dat
   }
   st->loss_duration = 0;
   st->last_frame_type = 1;
+  celt_store_decode_history(st, decoder, N);
   return ec_tell(dec) > 8 * len ? -3 : frame_size / st->downsample;
 }
+
+OPUSCPP_NOINLINE static int celt_decode_with_ec_workspace(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
+  std::array<celt_sig, celt_max_channels * (celt_decode_buffer_size + celt_default_overlap)> workspace;
+  return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, workspace.data(), false, update_pitch_cache);
+}
+
+static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
+  const int N = frame_size * st->downsample;
+  const bool pitch_plc = (data == nullptr || len <= 1) && st->loss_duration < 40 && st->start == 0 && !st->skip_plc;
+  if (!pitch_plc && N <= celt_decoder_inplace_frame_limit && N <= celt_max_frame_samples / 2)
+    return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, nullptr, true, update_pitch_cache);
+  return celt_decode_with_ec_workspace(st, data, len, pcm, frame_size, dec, pcm16, update_pitch_cache);
+}
+#undef OPUSCPP_NOINLINE
 
 static constexpr auto celt_pvq_table_row_count = 15U;
 static constexpr auto celt_pvq_fast_row_count = celt_pvq_table_row_count;
@@ -8402,7 +8640,7 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
 
 template <std::size_t Channels, typename Index>
 static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels> input, std::array<kiss_fft_cpx*, Channels> work,
-                                               const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
+                                              const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
   const int half = length / 2;
   int index = 0;
   if (known_zero_tail) {
@@ -8486,7 +8724,7 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   const int N4 = N >> 2;
   const auto* fft_state = lookup->kfft[shift];
   clt_mdct_backward_prerotate<1>({input}, {reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1))}, trig, N2, stride,
-                                 fft_state->bitrev, known_zero_tail);
+                                  fft_state->bitrev, known_zero_tail);
   fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1)));
   float* yp0 = output + (overlap >> 1);
   float* yp1 = output + (overlap >> 1) + N2 - 2;
@@ -10465,23 +10703,12 @@ static void celt_fir5(opus_val16* x, const opus_val16* num, int N) {
   }
 }
 
-static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len) {
+static void pitch_whiten(opus_val16* x_lp, int len) {
   std::array<opus_val32, 5> ac{};
   opus_val16 tmp = 1.0f;
   std::array<opus_val16, 4> lpc{};
   std::array<opus_val16, 5> lpc2{};
   opus_val16 c1 = (.8f);
-  constexpr int factor = 2, offset = 1;
-  for (int i = 1; i < len; i++) {
-    x_lp[i] = .25f * x[0][(factor * i - offset)] + .25f * x[0][(factor * i + offset)] + .5f * x[0][factor * i];
-  }
-  x_lp[0] = .25f * x[0][offset] + .5f * x[0][0];
-  if (channels == 2) {
-    for (int i = 1; i < len; i++) {
-      x_lp[i] += .25f * x[1][(factor * i - offset)] + .25f * x[1][(factor * i + offset)] + .5f * x[1][factor * i];
-    }
-    x_lp[0] += .25f * x[1][offset] + .5f * x[1][0];
-  }
   _celt_autocorr(x_lp, ac.data(), nullptr, 0, 4, len);
   ac[0] *= 1.0001f;
   for (int i = 1; i <= 4; i++) {
@@ -10498,6 +10725,22 @@ static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp,
   lpc2[3] = lpc[3] + ((c1) * (lpc[2]));
   lpc2[4] = ((c1) * (lpc[3]));
   celt_fir5(x_lp, lpc2.data(), len);
+}
+
+
+static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len) {
+  constexpr int factor = 2, offset = 1;
+  for (int i = 1; i < len; i++) {
+    x_lp[i] = .25f * x[0][(factor * i - offset)] + .25f * x[0][(factor * i + offset)] + .5f * x[0][factor * i];
+  }
+  x_lp[0] = .25f * x[0][offset] + .5f * x[0][0];
+  if (channels == 2) {
+    for (int i = 1; i < len; i++) {
+      x_lp[i] += .25f * x[1][(factor * i - offset)] + .25f * x[1][(factor * i + offset)] + .5f * x[1][factor * i];
+    }
+    x_lp[0] += .25f * x[1][offset] + .5f * x[1][0];
+  }
+  pitch_whiten(x_lp, len);
 }
 
 static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {

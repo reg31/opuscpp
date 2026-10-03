@@ -62,7 +62,8 @@ int main() {
       return 1;
   std::array<float, celt_max_frame_samples> pcm{};
   const int decoded = celt_decode_with_ec(celt, packet.data(), packet.size(), pcm.data(), 960, &dec);
-  const auto views = make_celt_decoder_views(celt, 960);
+  std::array<celt_sig, celt_max_channels * (celt_decode_buffer_size + celt_default_overlap)> decoder_workspace;
+  const auto views = make_celt_decoder_views(celt, 960, decoder_workspace.data(), false);
   if (decoded != 960 || dec.rng != enc.rng || views.oldBandE[17] != old_energy[17] || views.oldBandE[18] != old_energy[18]) {
     std::cerr << "false transient flag consumed an unavailable intra-energy symbol\n";
     return 1;
