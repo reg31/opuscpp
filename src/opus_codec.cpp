@@ -632,9 +632,9 @@ struct mdct_lookup {
 };
 
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
-static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride);
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail = false);
+static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail = false);
+static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap, bool known_zero_tail = false);
 struct CeltModeInternal {
   const opus_int16* eBands;
   const unsigned char* allocVectors;
@@ -7097,18 +7097,18 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
     auto* freq1 = X + N;
     denormalise_bands<2>({freq0, freq1}, {freq0, freq1}, {oldBandE, oldBandE + nbEBands}, start, effEnd, M, downsample, silence);
     if (B == 1 && shift == 0) {
-      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, freq0, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap);
+      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, freq0, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
     } else
       for (b = 0; b < B; b++) {
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq0[b], out_syn[0] + NB * b, celt_mode()->window, overlap, shift, B);
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + NB * b, celt_mode()->window, overlap, shift, B);
+        clt_mdct_backward_c(&celt_mode()->mdct, &freq0[b], out_syn[0] + NB * b, celt_mode()->window, overlap, shift, B, true);
+        clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + NB * b, celt_mode()->window, overlap, shift, B, true);
       }
   } else if (CC == C) {
     for (c = 0; c < CC; ++c) {
       auto* freq = X + c * N;
       denormalise_bands<1>({freq}, {freq}, {oldBandE + c * nbEBands}, start, effEnd, M, downsample, silence);
       for (b = 0; b < B; b++) {
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq[b], out_syn[c] + NB * b, celt_mode()->window, overlap, shift, B);
+        clt_mdct_backward_c(&celt_mode()->mdct, &freq[b], out_syn[c] + NB * b, celt_mode()->window, overlap, shift, B, true);
       }
     }
   } else if (CC == 2) {
@@ -7116,7 +7116,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
     denormalise_bands<1>({X}, {freq}, {oldBandE}, start, effEnd, M, downsample, silence);
     for (b = 0; b < B; b++) {
       clt_mdct_backward_dual_history_c(&celt_mode()->mdct, &freq[b], out_syn[0] + NB * b, out_syn[1] + NB * b, celt_mode()->window, overlap,
-                                       shift, B);
+                                       shift, B, true);
     }
   } else {
     auto* freq = X;
@@ -7127,7 +7127,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
       freq[i] = (((.5f * (freq[i]))) + ((.5f * (freq2[i]))));
     }
     for (b = 0; b < B; b++) {
-      clt_mdct_backward_c(&celt_mode()->mdct, &freq[b], out_syn[0] + NB * b, celt_mode()->window, overlap, shift, B);
+      clt_mdct_backward_c(&celt_mode()->mdct, &freq[b], out_syn[0] + NB * b, celt_mode()->window, overlap, shift, B, true);
     }
   }
 }
@@ -8399,20 +8399,47 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
   }
 }
 
-static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* input, float* output, int overlap) noexcept {
+template <std::size_t Channels, typename Index>
+static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels> input, std::array<kiss_fft_cpx*, Channels> work,
+                                              const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
+  const int half = length / 2;
+  int index = 0;
+  if (known_zero_tail) {
+    for (; index < length / 12; ++index) {
+      const float t0 = trig[index], t1 = trig[half + index];
+      const int mapped = mapping[index];
+      for (std::size_t channel = 0; channel < Channels; ++channel) {
+        const float x1 = input[channel][2 * index * stride];
+        work[channel][mapped] = {x1 * t0 - (-0.0f), 0.0f + x1 * t1};
+      }
+    }
+  }
+  const int middle_end = known_zero_tail ? 5 * length / 12 : half;
+  for (; index < middle_end; ++index) {
+    const float t0 = trig[index], t1 = trig[half + index];
+    const int mapped = mapping[index];
+    for (std::size_t channel = 0; channel < Channels; ++channel) {
+      const float x1 = input[channel][2 * index * stride];
+      const float x2 = input[channel][(length - 1 - 2 * index) * stride];
+      work[channel][mapped] = {x1 * t0 - x2 * t1, x2 * t0 + x1 * t1};
+    }
+  }
+  for (; index < half; ++index) {
+    const float t0 = trig[index], t1 = trig[half + index];
+    const int mapped = mapping[index];
+    for (std::size_t channel = 0; channel < Channels; ++channel) {
+      const float x2 = input[channel][(length - 1 - 2 * index) * stride];
+      work[channel][mapped] = {0.0f - x2 * t1, x2 * t0 + (-0.0f)};
+    }
+  }
+}
+
+static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* input, float* output, int overlap, bool known_zero_tail) noexcept {
   constexpr int n2 = 960;
   constexpr int n4 = 480;
   const float* trig = lookup->trig;
   auto* work = reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1));
-  const float* front = input;
-  const float* back = input + n2 - 1;
-  for (int index = 0; index < n4; ++index) {
-    const float x1 = *front;
-    const float x2 = *back;
-    work[pfa_input_map_480[index]] = {x1 * trig[index] - x2 * trig[n4 + index], x2 * trig[index] + x1 * trig[n4 + index]};
-    front += 2;
-    back -= 2;
-  }
+  clt_mdct_backward_prerotate<1>({input}, {work}, trig, n2, 1, pfa_input_map_480.data(), known_zero_tail);
 
   auto* transformed = reinterpret_cast<kiss_fft_cpx*>(input);
   for (int index = 0; index < 32; ++index) {
@@ -8447,9 +8474,9 @@ static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* i
 
 template <bool Fixed20ms>
 static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input, float* output, int overlap, int shift = 0,
-                                        int stride = 1) {
+                                        int stride = 1, bool known_zero_tail = false) {
   if constexpr (Fixed20ms) {
-    clt_mdct_backward_transform_20ms(lookup, input, output, overlap);
+    clt_mdct_backward_transform_20ms(lookup, input, output, overlap, known_zero_tail);
     return;
   }
   const int N = lookup->n >> shift;
@@ -8457,20 +8484,8 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   const int N2 = N >> 1;
   const int N4 = N >> 2;
   const auto* fft_state = lookup->kfft[shift];
-  const float* xp1 = input;
-  const float* xp2 = input + stride * (N2 - 1);
-  float* yp = output + (overlap >> 1);
-  for (int i = 0; i < N4; ++i) {
-    const int rev = fft_state->bitrev[i];
-    const opus_val32 x1 = *xp1;
-    const opus_val32 x2 = *xp2;
-    const float yr = x2 * trig[i] + x1 * trig[N4 + i];
-    const float yi = x1 * trig[i] - x2 * trig[N4 + i];
-    yp[2 * rev + 1] = yr;
-    yp[2 * rev] = yi;
-    xp1 += 2 * stride;
-    xp2 -= 2 * stride;
-  }
+  clt_mdct_backward_prerotate<1>({input}, {reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1))}, trig, N2, stride,
+                                  fft_state->bitrev, known_zero_tail);
   fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1)));
   float* yp0 = output + (overlap >> 1);
   float* yp1 = output + (overlap >> 1) + N2 - 2;
@@ -8496,11 +8511,11 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   }
 }
 
-static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride) {
+static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride, bool known_zero_tail) {
   if (shift == 0 && stride == 1 && l->n == 1920) {
-    clt_mdct_backward_transform<true>(l, in, out, overlap);
+    clt_mdct_backward_transform<true>(l, in, out, overlap, 0, 1, known_zero_tail);
   } else {
-    clt_mdct_backward_transform<false>(l, in, out, overlap, shift, stride);
+    clt_mdct_backward_transform<false>(l, in, out, overlap, shift, stride, known_zero_tail);
   }
 }
 
@@ -8513,31 +8528,13 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
   }
 }
 
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap) {
+static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap, bool known_zero_tail) {
   constexpr int n2 = 960;
   constexpr int n4 = 480;
   const float* trig = lookup->trig;
   auto* work0 = reinterpret_cast<kiss_fft_cpx*>(output0 + (overlap >> 1));
   auto* work1 = reinterpret_cast<kiss_fft_cpx*>(output1 + (overlap >> 1));
-  const float* front0 = input0;
-  const float* front1 = input1;
-  const float* back0 = input0 + n2 - 1;
-  const float* back1 = input1 + n2 - 1;
-  for (int index = 0; index < n4; ++index) {
-    const float t0 = trig[index];
-    const float t1 = trig[n4 + index];
-    const int mapped = pfa_input_map_480[index];
-    const float x10 = *front0;
-    const float x20 = *back0;
-    const float x11 = *front1;
-    const float x21 = *back1;
-    work0[mapped] = {x10 * t0 - x20 * t1, x20 * t0 + x10 * t1};
-    work1[mapped] = {x11 * t0 - x21 * t1, x21 * t0 + x11 * t1};
-    front0 += 2;
-    front1 += 2;
-    back0 -= 2;
-    back1 -= 2;
-  }
+  clt_mdct_backward_prerotate<2>({input0, input1}, {work0, work1}, trig, n2, 1, pfa_input_map_480.data(), known_zero_tail);
 
   auto* transformed0 = reinterpret_cast<kiss_fft_cpx*>(input0);
   auto* transformed1 = reinterpret_cast<kiss_fft_cpx*>(input1);
@@ -8584,14 +8581,14 @@ static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* in
   clt_mdct_backward_overlap_c(output1, window, overlap);
 }
 
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
-  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail) {
+  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride, known_zero_tail);
   clt_mdct_backward_overlap_c(out, window, overlap);
 }
 
-static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride) {
+static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail) {
   const int N = l->n >> shift;
-  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride);
+  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride, known_zero_tail);
   copy_n_items(out0 + (overlap >> 1), static_cast<std::size_t>(N >> 1), out1 + (overlap >> 1));
   clt_mdct_backward_overlap_c(out0, window, overlap);
   clt_mdct_backward_overlap_c(out1, window, overlap);
