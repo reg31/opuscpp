@@ -7363,15 +7363,15 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   }
 }
 
-static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size, int prior_context) {
+static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size) {
   std::array<opus_val16, celt_plc_max_period + celt_lpc_order> exc_storage;
   std::array<opus_val16, celt_lpc_order> lpc_mem;
   auto* exc = exc_storage.data() + celt_lpc_order;
   opus_val16 decay, attenuation;
   opus_val32 S1 = 0;
-  copy_n_items(old_buf + old_history_size - celt_plc_max_period - celt_lpc_order,
-               static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage.data());
   if (update_lpc) {
+    copy_n_items(old_buf + old_history_size - celt_plc_max_period - celt_lpc_order,
+                 static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage.data());
     std::array<opus_val32, celt_lpc_order + 1> ac;
     _celt_autocorr(exc, ac.data(), celt_mode()->window, celt_default_overlap, celt_lpc_order, celt_plc_max_period);
     ac[0] *= 1.0001f;
@@ -7382,7 +7382,7 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   }
   const auto safe_exc_length = std::max(exc_length, 0);
   std::array<opus_val16, celt_plc_max_period> fir_tmp;
-  celt_fir_c(exc + celt_plc_max_period - safe_exc_length, lpc, fir_tmp.data(), safe_exc_length);
+  celt_fir_c(update_lpc ? exc + celt_plc_max_period - safe_exc_length : old_buf + old_history_size - safe_exc_length, lpc, fir_tmp.data(), safe_exc_length);
   copy_n_items(fir_tmp.data(), static_cast<std::size_t>(safe_exc_length), exc + celt_plc_max_period - safe_exc_length);
   {
     opus_val32 E1 = 1, E2 = 1;
@@ -7401,7 +7401,7 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   if (old_buf == buf) {
     move_n_items(buf + source, static_cast<std::size_t>(history_size - source), buf + source - N);
   } else {
-    copy_n_items(old_buf + old_history_size - prior_context, static_cast<std::size_t>(prior_context), buf + history_size - N - prior_context);
+    copy_n_items(old_buf + old_history_size - celt_lpc_order, static_cast<std::size_t>(celt_lpc_order), buf + history_size - N - celt_lpc_order);
   }
   const auto extrapolation_offset = celt_plc_max_period - pitch_index, extrapolation_len = N + celt_default_overlap;
   attenuation = fade * decay;
@@ -7558,10 +7558,9 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
     }
     const auto exc_length = std::min(2 * pitch_index, celt_plc_max_period);
     const auto update_lpc = st->last_frame_type != 3;
-    constexpr int prior_context = celt_lpc_order;
     celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
     for (int c = 0; c < C; ++c)
-      celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, N, pitch_index, exc_length, fade, update_lpc, decoder.history_size, decoder.raw_offset, old_mem[c], old_history_size, prior_context);
+      celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, N, pitch_index, exc_length, fade, update_lpc, decoder.history_size, decoder.raw_offset, old_mem[c], old_history_size);
     for (int c = 0; c < C; ++c) {
       auto* stored = celt_decoder_storage(st) + c * celt_decoder_channel_storage;
       copy_n_items(decode_mem[c] + decoder.history_size + celt_default_overlap / 2, static_cast<std::size_t>(celt_default_overlap / 2),
