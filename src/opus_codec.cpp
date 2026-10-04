@@ -8124,7 +8124,6 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
   if (use_noise_fill) {
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
-    zero_n_items(spectrum, static_cast<std::size_t>(C * N));
     celt_slide_decode_history(st, decoder, C, N);
     const celt_glog decay = loss_duration == 0 ? 1.5f : .5f;
     for (int c = 0; c < C; ++c) {
