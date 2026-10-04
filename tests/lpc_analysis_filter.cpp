@@ -75,17 +75,25 @@ static bool check_public_packets(const std::filesystem::path& root) {
           std::cerr << "Public oracle range failed complexity=" << complexity << " bitrate=" << bitrate << " frame=" << frame << '\n';
           return false;
         }
-        if (packet[0] & 0x80) ++celt_frames;
-        else if ((packet[0] & 0x60) == 0x60) ++hybrid_frames;
-        else ++silk_frames;
+        if (packet[0] & 0x80)
+          ++celt_frames;
+        else if ((packet[0] & 0x60) == 0x60)
+          ++hybrid_frames;
+        else
+          ++silk_frames;
         ranges << frame << ',' << native_range << ',' << matching_range << ',' << reference_range << '\n';
         const std::array<unsigned char, 4> length{static_cast<unsigned char>(bytes), static_cast<unsigned char>(bytes >> 8), static_cast<unsigned char>(bytes >> 16), static_cast<unsigned char>(bytes >> 24)};
         packet_file.write(reinterpret_cast<const char*>(length.data()), length.size());
         packet_file.write(reinterpret_cast<const char*>(packet.data()), bytes);
-        if (!write_pcm16(native_file, output) || !write_pcm16(reference_file, official48) || !packet_file || !ranges) return false;
+        if (!write_pcm16(native_file, output) || !write_pcm16(reference_file, official48) || !packet_file || !ranges)
+          return false;
       }
-      native_file.close(); reference_file.close(); packet_file.close(); ranges.close();
-      if (!native_file || !reference_file || !packet_file || !ranges) return false;
+      native_file.close();
+      reference_file.close();
+      packet_file.close();
+      ranges.close();
+      if (!native_file || !reference_file || !packet_file || !ranges)
+        return false;
       silk_layer_frames += silk_frames + hybrid_frames;
       std::cout << "lpc_case complexity=" << complexity << " bitrate=" << bitrate << " frames=200 silk_frames=" << silk_frames << " hybrid_frames=" << hybrid_frames << " celt_frames=" << celt_frames << '\n';
     }
@@ -99,9 +107,11 @@ static bool check_public_packets(const std::filesystem::path& root) {
 }
 
 int main(int argc, char** argv) {
-  if (argc != 2) return 1;
+  if (argc != 2)
+    return 1;
   const bool packets_ok = check_public_packets(argv[1]);
-  if (!packets_ok) std::cerr << "Public oracle packet/range gate failed\n";
+  if (!packets_ok)
+    std::cerr << "Public oracle packet/range gate failed\n";
   const auto check_fraction = [](opus_uint32 bits) {
     opus_int32 leading = 0, fraction = 0;
     silk_CLZ_FRAC(std::bit_cast<opus_int32>(bits), &leading, &fraction);
@@ -204,6 +214,7 @@ int main(int argc, char** argv) {
     }
   }
   std::cout << "lpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\n";
-  if (!packets_ok) return 1;
+  if (!packets_ok)
+    return 1;
   std::cout << "lpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\n";
 }
