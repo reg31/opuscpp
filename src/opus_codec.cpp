@@ -12599,12 +12599,12 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
 static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding);
 static void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, float res[], const float x[]);
 static void silk_encode_do_VAD(silk_encoder_state* psEncC, const opus_int16* input_buffer);
-static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding);
+static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]);
 static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length, const int nb_subfr, const int LPC_order);
 static void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], const float s[], const int length, const int Order);
 static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length);
 static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length, const int order);
-static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr);
+static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr);
 static void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding);
 static void silk_A2NLSF_FLP(opus_int16* NLSF_Q15, const float* pAR, const int LPC_order);
 static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LPC_order);
@@ -16010,12 +16010,13 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     x_frame[5 * psEnc->sCmn.fs_kHz + i * (psEnc->sCmn.frame_length >> 3)] += (1 - (i & 2)) * 1e-6f;
   }
   if (!psEnc->sCmn.prefillFlag) {
+    silk_nsq_preparation prepared;
     {
       std::array<float, silk_max_ltp_buffer_length + silk_max_frame_length / 2> pitch_residual;
       auto* res_pitch_frame = pitch_residual.data() + psEnc->sCmn.ltp_mem_length;
       silk_find_pitch_lags_FLP(psEnc, &sEncCtrl, pitch_residual.data(), x_frame);
       silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame);
-      silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding);
+      silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding);
     }
     std::array<opus_int8, silk_max_frame_length> frame_pulses{};
@@ -16023,7 +16024,6 @@ void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_stat
     for (int index = 0; index < psEnc->sCmn.frame_length; ++index) {
       nsq_samples[index] = static_cast<opus_int16>(float2int(x_frame[index]));
     }
-    silk_nsq_preparation prepared;
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
     const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
     SideInfoIndices lbrr_original_indices{};
@@ -16295,7 +16295,7 @@ void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   }
 }
 
-void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding) {
+void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
   int i;
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
@@ -16311,7 +16311,7 @@ void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_contro
   }
   if (psEnc->sCmn.indices.signalType == 2) {
     silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
-    silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
+    silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, LTPCoef_Q14, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
     silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
@@ -16682,11 +16682,6 @@ static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, const silk_enco
     prepared.tilt[subframe] = float2int(psEncCtrl->Tilt[subframe] * 16384.0f);
     prepared.harmonic[subframe] = float2int(psEncCtrl->HarmShapeGain[subframe] * 16384.0f);
   }
-  if (psIndices->signalType == 2) {
-    for (int index = 0; index < psEnc->sCmn.nb_subfr * 5; ++index) {
-      prepared.ltp[index] = static_cast<opus_int16>(float2int(psEncCtrl->LTPCoef[index] * 16384.0f));
-    }
-  }
   const int first_prediction = psIndices->NLSFInterpCoef_Q2 == 4 ? 1 : 0;
   for (int row = first_prediction; row < 2; ++row) {
     for (int index = 0; index < psEnc->sCmn.predictLPCOrder; ++index) {
@@ -16712,9 +16707,8 @@ void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_cont
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 
-void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr) {
+void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr) {
   int pred_gain_dB_Q7;
-  opus_int16 B_Q14[4 * 5]{};
   opus_int32 XX_Q17[4 * 5 * 5]{}, xX_Q17[4 * 5]{};
   for (int index = 0; index < nb_subfr * 5 * 5; ++index) {
     XX_Q17[index] = float2int(XX[index] * 131072.0f);
