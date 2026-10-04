@@ -321,13 +321,119 @@ static void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft);
 static void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _ftb);
 static void ec_enc_shrink(ec_enc* _this, opus_uint32 _size);
 static void ec_enc_done(ec_enc* _this);
-static void ec_dec_init(ec_dec* _this, unsigned char* _buf, opus_uint32 _storage);
-static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft);
-static unsigned ec_decode(ec_dec* _this, unsigned _ft);
-static int ec_dec_bit_logp(ec_dec* _this, unsigned _logp);
-static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
-static opus_uint32 ec_dec_uint(ec_dec* _this, opus_uint32 _ft);
-static opus_uint32 ec_dec_bits(ec_dec* _this, unsigned _ftb);
+static int ec_read_byte(ec_dec* _this) {
+  return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
+}
+
+static inline void ec_dec_normalize(ec_dec* _this) {
+  do {
+    _this->nbits_total += (8);
+    _this->rng <<= (8);
+    int sym = _this->rem;
+    _this->rem = ec_read_byte(_this);
+    sym = (sym << (8) | _this->rem) >> ((8) - (((32) - 2) % (8) + 1));
+    _this->val = ((_this->val << (8)) + (ec_byte_mask & ~sym)) & ec_code_mask;
+  } while (_this->rng <= ec_code_bot);
+}
+
+static void ec_dec_normalize_if_needed(ec_dec* _this) {
+  if (_this->rng <= ec_code_bot) {
+    ec_dec_normalize(_this);
+  }
+}
+
+static void ec_dec_init(ec_dec* _this, unsigned char* _buf, opus_uint32 _storage) {
+  _this->buf = _buf;
+  _this->storage = _storage;
+  _this->end_offs = 0;
+  _this->end_window = 0;
+  _this->nend_bits = 0;
+  _this->nbits_total = (32) + 1 - (((32) - (((32) - 2) % (8) + 1)) / (8)) * (8);
+  _this->offs = 0;
+  _this->rng = 1U << (((32) - 2) % (8) + 1);
+  _this->rem = ec_read_byte(_this);
+  _this->val = _this->rng - 1 - (_this->rem >> ((8) - (((32) - 2) % (8) + 1)));
+  _this->error = 0;
+  ec_dec_normalize_if_needed(_this);
+}
+
+static unsigned ec_decode(ec_dec* _this, unsigned _ft) {
+  _this->ext = celt_udiv(_this->rng, _ft);
+  const unsigned s = static_cast<unsigned>(_this->val / _this->ext);
+  return _ft - ((s + 1) + (((_ft) - (s + 1)) & -((_ft) < (s + 1))));
+}
+
+static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
+  opus_uint32 s = ((_this->ext) * (_ft - _fh));
+  _this->val -= s;
+  _this->rng = _fl > 0 ? ((_this->ext) * (_fh - _fl)) : _this->rng - s;
+  ec_dec_normalize_if_needed(_this);
+}
+
+static opus_uint32 ec_dec_bits(ec_dec* _this, unsigned _bits) {
+  ec_window window = _this->end_window;
+  int available = _this->nend_bits;
+  if (static_cast<unsigned>(available) < _bits) {
+    for (; available <= (static_cast<int>(sizeof(ec_window)) * 8) - (8); available += (8)) {
+      const int byte = _this->end_offs < _this->storage ? _this->buf[_this->storage - ++(_this->end_offs)] : 0;
+      window |= static_cast<ec_window>(byte) << available;
+    }
+  }
+  const opus_uint32 ret = static_cast<opus_uint32>(window) & low_bits_mask(_bits);
+  window >>= _bits;
+  available -= _bits;
+  _this->end_window = window;
+  _this->nend_bits = available;
+  _this->nbits_total += _bits;
+  return ret;
+}
+
+static int ec_dec_bit_logp(ec_dec* _this, unsigned _logp) {
+  const opus_uint32 r = _this->rng;
+  const opus_uint32 d = _this->val;
+  const opus_uint32 s = r >> _logp;
+  const int ret = d < s;
+  if (!ret) {
+    _this->val = d - s;
+  }
+  _this->rng = ret ? s : r - s;
+  ec_dec_normalize_if_needed(_this);
+  return ret;
+}
+
+static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb) {
+  opus_uint32 s, t;
+  int ret;
+  s = _this->rng;
+  const opus_uint32 d = _this->val;
+  const opus_uint32 r = s >> _ftb;
+  for (ret = 0, t = s, s = ((r) * (_icdf[0])); d < s; t = s, s = ((r) * (_icdf[++ret]))) {}
+  _this->val = d - s;
+  _this->rng = t - s;
+  ec_dec_normalize_if_needed(_this);
+  return ret;
+}
+
+static opus_uint32 ec_dec_uint(ec_dec* _this, opus_uint32 _ft) {
+  _ft--;
+  int ftb = std::bit_width(_ft);
+  if (ftb > (8)) {
+    ftb -= (8);
+    const unsigned ft = static_cast<unsigned>(_ft >> ftb) + 1;
+    const unsigned s = ec_decode(_this, ft);
+    ec_dec_update(_this, s, s + 1, ft);
+    const opus_uint32 t = static_cast<opus_uint32>(s) << ftb | ec_dec_bits(_this, ftb);
+    if (t <= _ft) {
+      return t;
+    }
+    _this->error = 1;
+    return _ft;
+  }
+  _ft++;
+  const unsigned s = ec_decode(_this, static_cast<unsigned>(_ft));
+  ec_dec_update(_this, s, s + 1, static_cast<unsigned>(_ft));
+  return s;
+}
 struct kiss_fft_cpx {
   float r;
   float i;
@@ -1097,7 +1203,20 @@ struct silk_decoder_state {
   return (high * 65536 + low) * 64;
 }
 
-static void silk_CNG_Reset(silk_decoder_state* psDec);
+static void silk_CNG_Reset(silk_decoder_state* psDec) {
+  if (psDec->sCNG == nullptr) {
+    return;
+  }
+  auto* psCNG = psDec->sCNG;
+  const int NLSF_step_Q15 = (static_cast<opus_int32>((0x7FFF) / (psDec->LPC_order + 1)));
+  int NLSF_acc_Q15 = 0;
+  for (int i = 0; i < psDec->LPC_order; i++) {
+    NLSF_acc_Q15 += NLSF_step_Q15;
+    psCNG->CNG_smth_NLSF_Q15[i] = NLSF_acc_Q15;
+  }
+  psCNG->CNG_smth_Gain_Q16 = 0;
+  psCNG->rand_seed = 3176576;
+}
 static void silk_release_cng(silk_decoder_state* psDec) noexcept {
   if (psDec != nullptr && psDec->sCNG != nullptr) {
     std::free(psDec->sCNG);
@@ -1839,15 +1958,23 @@ constinit const std::array<opus_int16, 128 + 1> silk_LSFCosTab_FIX_Q12 = numeric
   return cb->CB1_iCDF + (signalType >> 1) * cb->nVectors;
 }
 
-static void silk_PLC_Reset(silk_decoder_state* psDec);
-static void silk_PLC(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame, int lost);
-static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame);
+static void silk_PLC_Reset(silk_decoder_state* psDec) {
+  psDec->sPLC.pitchL_Q8 = wrap_shift_left(psDec->frame_length, 8 - 1);
+  psDec->sPLC.prevGain_Q16[0] = 1 << 16;
+  psDec->sPLC.prevGain_Q16[1] = 1 << 16;
+  psDec->sPLC.pitch_history.fill(0);
+  psDec->sPLC.pitch_history_index = 0;
+  psDec->sPLC.subfr_length = 20;
+  psDec->sPLC.nb_subfr = 2;
+}
 static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz, int frame_length);
 static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length);
 static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix);
 static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag);
 static void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13);
-static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid);
+static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid) {
+  decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
+}
 template <bool Encode, typename Pulse> static void silk_shell_code_node(ec_ctx* coder, std::span<Pulse> pulses, int total_pulses);
 template <bool Encode, typename Pulse>
 static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length);
@@ -1857,8 +1984,6 @@ static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const 
 static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB, const int CB1_index);
 static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB);
 static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10, std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
-static void silk_decode_indices(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding);
-static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_control& control, int condCoding);
 static opus_int32 silk_lin2log(const opus_int32 inLin);
 static opus_int32 silk_log2lin(const opus_int32 inLog_Q7);
 static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, const opus_int16* B, opus_int32 len, opus_int32 d);
@@ -7917,120 +8042,6 @@ static opus_uint32 ec_tell_frac(const ec_ctx* _this) {
   return nbits - l;
 }
 
-static int ec_read_byte(ec_dec* _this) {
-  return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
-}
-
-static inline void ec_dec_normalize(ec_dec* _this) {
-  do {
-    _this->nbits_total += (8);
-    _this->rng <<= (8);
-    int sym = _this->rem;
-    _this->rem = ec_read_byte(_this);
-    sym = (sym << (8) | _this->rem) >> ((8) - (((32) - 2) % (8) + 1));
-    _this->val = ((_this->val << (8)) + (ec_byte_mask & ~sym)) & ec_code_mask;
-  } while (_this->rng <= ec_code_bot);
-}
-
-static void ec_dec_normalize_if_needed(ec_dec* _this) {
-  if (_this->rng <= ec_code_bot) {
-    ec_dec_normalize(_this);
-  }
-}
-
-void ec_dec_init(ec_dec* _this, unsigned char* _buf, opus_uint32 _storage) {
-  _this->buf = _buf;
-  _this->storage = _storage;
-  _this->end_offs = 0;
-  _this->end_window = 0;
-  _this->nend_bits = 0;
-  _this->nbits_total = (32) + 1 - (((32) - (((32) - 2) % (8) + 1)) / (8)) * (8);
-  _this->offs = 0;
-  _this->rng = 1U << (((32) - 2) % (8) + 1);
-  _this->rem = ec_read_byte(_this);
-  _this->val = _this->rng - 1 - (_this->rem >> ((8) - (((32) - 2) % (8) + 1)));
-  _this->error = 0;
-  ec_dec_normalize_if_needed(_this);
-}
-
-static unsigned ec_decode(ec_dec* _this, unsigned _ft) {
-  _this->ext = celt_udiv(_this->rng, _ft);
-  const unsigned s = static_cast<unsigned>(_this->val / _this->ext);
-  return _ft - ((s + 1) + (((_ft) - (s + 1)) & -((_ft) < (s + 1))));
-}
-
-static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
-  opus_uint32 s = ((_this->ext) * (_ft - _fh));
-  _this->val -= s;
-  _this->rng = _fl > 0 ? ((_this->ext) * (_fh - _fl)) : _this->rng - s;
-  ec_dec_normalize_if_needed(_this);
-}
-
-static int ec_dec_bit_logp(ec_dec* _this, unsigned _logp) {
-  const opus_uint32 r = _this->rng;
-  const opus_uint32 d = _this->val;
-  const opus_uint32 s = r >> _logp;
-  const int ret = d < s;
-  if (!ret) {
-    _this->val = d - s;
-  }
-  _this->rng = ret ? s : r - s;
-  ec_dec_normalize_if_needed(_this);
-  return ret;
-}
-
-static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb) {
-  opus_uint32 s, t;
-  int ret;
-  s = _this->rng;
-  const opus_uint32 d = _this->val;
-  const opus_uint32 r = s >> _ftb;
-  for (ret = 0, t = s, s = ((r) * (_icdf[0])); d < s; t = s, s = ((r) * (_icdf[++ret]))) {}
-  _this->val = d - s;
-  _this->rng = t - s;
-  ec_dec_normalize_if_needed(_this);
-  return ret;
-}
-
-static opus_uint32 ec_dec_uint(ec_dec* _this, opus_uint32 _ft) {
-  _ft--;
-  int ftb = std::bit_width(_ft);
-  if (ftb > (8)) {
-    ftb -= (8);
-    const unsigned ft = static_cast<unsigned>(_ft >> ftb) + 1;
-    const unsigned s = ec_decode(_this, ft);
-    ec_dec_update(_this, s, s + 1, ft);
-    const opus_uint32 t = static_cast<opus_uint32>(s) << ftb | ec_dec_bits(_this, ftb);
-    if (t <= _ft) {
-      return t;
-    }
-    _this->error = 1;
-    return _ft;
-  }
-  _ft++;
-  const unsigned s = ec_decode(_this, static_cast<unsigned>(_ft));
-  ec_dec_update(_this, s, s + 1, static_cast<unsigned>(_ft));
-  return s;
-}
-
-static opus_uint32 ec_dec_bits(ec_dec* _this, unsigned _bits) {
-  ec_window window = _this->end_window;
-  int available = _this->nend_bits;
-  if (static_cast<unsigned>(available) < _bits) {
-    for (; available <= (static_cast<int>(sizeof(ec_window)) * 8) - (8); available += (8)) {
-      const int byte = _this->end_offs < _this->storage ? _this->buf[_this->storage - ++(_this->end_offs)] : 0;
-      window |= static_cast<ec_window>(byte) << available;
-    }
-  }
-  const opus_uint32 ret = static_cast<opus_uint32>(window) & low_bits_mask(_bits);
-  window >>= _bits;
-  available -= _bits;
-  _this->end_window = window;
-  _this->nend_bits = available;
-  _this->nbits_total += _bits;
-  return ret;
-}
-
 static int ec_write_byte(ec_enc* _this, unsigned _value) {
   if (_this->offs + _this->end_offs >= _this->storage) {
     return -1;
@@ -11730,20 +11741,6 @@ constexpr auto silk_max_fs_kHz = 16, silk_max_frame_length = 20 * silk_max_fs_kH
 constexpr auto silk_max_resampler_batch_size = 480, silk_max_resampler_fir_order = 36;
 constexpr auto silk_max_resampler_reconfig_samples = 45 * silk_max_fs_kHz;
 constexpr auto silk_max_resampler_api_reconfig_samples = 45 * 48;
-static void silk_CNG_Reset(silk_decoder_state* psDec) {
-  if (psDec->sCNG == nullptr) {
-    return;
-  }
-  auto* psCNG = psDec->sCNG;
-  const int NLSF_step_Q15 = (static_cast<opus_int32>((0x7FFF) / (psDec->LPC_order + 1)));
-  int NLSF_acc_Q15 = 0;
-  for (int i = 0; i < psDec->LPC_order; i++) {
-    NLSF_acc_Q15 += NLSF_step_Q15;
-    psCNG->CNG_smth_NLSF_Q15[i] = NLSF_acc_Q15;
-  }
-  psCNG->CNG_smth_Gain_Q16 = 0;
-  psCNG->rand_seed = 3176576;
-}
 
 static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, opus_int16 frame[], int length) {
   opus_int16 A_Q12[16];
@@ -11832,6 +11829,219 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
         pulse *= static_cast<opus_int16>((ec_dec_icdf(coder, icdf, 8) << 1) - 1);
       }
     }
+  }
+}
+
+[[nodiscard]] static int stable_pitch_average(const std::array<opus_uint16, 3>& history) noexcept {
+  int sum = 0;
+  int minimum = opus_int32_max;
+  int maximum = 0;
+  for (const int pitch : history) {
+    if (pitch == 0) {
+      return 0;
+    }
+    sum += pitch;
+    minimum = std::min(minimum, pitch);
+    maximum = std::max(maximum, pitch);
+  }
+  const int average = (sum + 1) / 3;
+  return (maximum - minimum) * 32 <= average ? average : 0;
+}
+
+static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl) {
+  opus_int32 LTP_Gain_Q14, temp_LTP_Gain_Q14;
+  int i, j;
+  auto* psPLC = &psDec->sPLC;
+  psDec->prevSignalType = psDec->indices.signalType;
+  LTP_Gain_Q14 = 0;
+  if (psDec->indices.signalType == 2) {
+    for (j = 0; j * psDec->subfr_length < psDecCtrl->pitchL[psDec->nb_subfr - 1]; j++) {
+      if (j == psDec->nb_subfr) {
+        break;
+      }
+      temp_LTP_Gain_Q14 = 0;
+      for (i = 0; i < 5; i++) {
+        temp_LTP_Gain_Q14 += psDecCtrl->LTPCoef_Q14[static_cast<std::size_t>((psDec->nb_subfr - 1 - j) * 5 + i)];
+      }
+      if (temp_LTP_Gain_Q14 > LTP_Gain_Q14) {
+        LTP_Gain_Q14 = temp_LTP_Gain_Q14;
+        psPLC->pitchL_Q8 = wrap_shift_left(psDecCtrl->pitchL[psDec->nb_subfr - 1 - j], 8);
+      }
+    }
+    psPLC->LTPCoef_Q14 = static_cast<opus_int16>(LTP_Gain_Q14);
+    if (LTP_Gain_Q14 < 11469) {
+      const int scale_Q10 = (11469 << 10) / std::max(LTP_Gain_Q14, 1);
+      psPLC->LTPCoef_Q14 = silk_mul_i16_shift<10>(psPLC->LTPCoef_Q14, scale_Q10);
+    } else if (LTP_Gain_Q14 > 15565) {
+      const int scale_Q14 = (15565 << 14) / std::max(LTP_Gain_Q14, 1);
+      psPLC->LTPCoef_Q14 = silk_mul_i16_shift<14>(psPLC->LTPCoef_Q14, scale_Q14);
+    }
+  } else {
+    psPLC->pitchL_Q8 = wrap_shift_left(18 * psDec->fs_kHz, 8);
+    psPLC->LTPCoef_Q14 = 0;
+  }
+  std::memcpy(psPLC->prevLPC_Q12, psDecCtrl->PredCoef_Q12[1], static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)));
+  psPLC->prevLTP_scale_Q14 = psDecCtrl->LTP_scale_Q14;
+  std::memcpy(psPLC->prevGain_Q16, psDecCtrl->Gains_Q16 + psDec->nb_subfr - 2, static_cast<std::size_t>(2 * sizeof(opus_int32)));
+  psPLC->subfr_length = psDec->subfr_length;
+  psPLC->nb_subfr = psDec->nb_subfr;
+  psPLC->pitch_history[static_cast<std::size_t>(psPLC->pitch_history_index)] =
+      psDec->indices.signalType == 2 ? static_cast<opus_uint16>(rounded_rshift<8>(psPLC->pitchL_Q8)) : 0;
+  psPLC->pitch_history_index = (psPLC->pitch_history_index + 1) & 3;
+}
+
+static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_uint16> exc_low, std::span<const opus_int8> exc_high, std::span<const opus_int32> prevGain_Q10, int subfr_length, int nb_subfr) {
+  int i, k;
+  opus_int16 exc_buf[2 * silk_max_subfr_length];
+  auto* exc_buf_ptr = exc_buf;
+  for (k = 0; k < 2; k++) {
+    for (i = 0; i < subfr_length; i++) {
+      exc_buf_ptr[i] = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
+    }
+    exc_buf_ptr += subfr_length;
+  }
+  silk_sum_sqr_shift(energy1, shift1, exc_buf, subfr_length);
+  silk_sum_sqr_shift(energy2, shift2, exc_buf + subfr_length, subfr_length);
+}
+
+static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame) {
+  opus_int16 A_Q12[16];
+  silk_PLC_struct* psPLC = &psDec->sPLC;
+  const opus_int32 prevGain_Q10[2]{((psPLC->prevGain_Q16[0]) >> (6)), ((psPLC->prevGain_Q16[1]) >> (6))};
+  std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14{};
+  std::array<opus_int16, silk_max_ltp_mem_length> sLTP{};
+  if (psDec->first_frame_after_reset) {
+    zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
+  }
+  if (psDec->lossCnt == 0 && psDec->prevSignalType == 2) {
+    const auto next = static_cast<std::size_t>(psPLC->pitch_history_index);
+    const std::array<opus_uint16, 3> previous_pitch{psPLC->pitch_history[next], psPLC->pitch_history[(next + 1) & 3],
+                                                    psPLC->pitch_history[(next + 2) & 3]};
+    const int history_pitch = stable_pitch_average(previous_pitch);
+    const int current_pitch = rounded_rshift<8>(psPLC->pitchL_Q8);
+    const int pitch_delta = std::abs(history_pitch - current_pitch);
+    if (history_pitch > 0 && pitch_delta * 4 >= current_pitch && pitch_delta <= current_pitch) {
+      psPLC->pitchL_Q8 = static_cast<opus_int32>(history_pitch << 8);
+    }
+  }
+  opus_int32 energy1;
+  opus_int32 energy2;
+  int shift1;
+  int shift2;
+  silk_PLC_energy(&energy1, &shift1, &energy2, &shift2, {psDec->exc_low, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)},
+                  {psDec->exc_high, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)}, prevGain_Q10, psDec->subfr_length, psDec->nb_subfr);
+  const bool fade_collapsed_unvoiced =
+      psDec->lossCnt == 0 && psDec->prevSignalType != 2 && (energy2 >> shift1) <= ((energy1 >> shift2) >> 4);
+  opus_int32 conceal_gain_Q16 = 1 << 16;
+  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(static_cast<int>(psDec->frame_length), 1) : 0;
+  const int rand_offset = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
+                              ? std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)
+                              : std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128);
+  opus_int16 rand_scale_Q14 = psPLC->randScale_Q14;
+  const opus_int32 harm_Gain_Q15 = psDec->lossCnt == 0 ? 31948 : 28672;
+  opus_int32 rand_Gain_Q15 = psDec->prevSignalType == 2 ? psDec->lossCnt == 0 ? 31130 : 26214 : psDec->lossCnt == 0 ? 32440
+                                                                                                                    : 29491;
+  silk_bwexpander(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), fixed_q<16>(0.99));
+  copy_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), A_Q12);
+  if (psDec->lossCnt == 0) {
+    rand_scale_Q14 = 1 << 14;
+    if (psDec->prevSignalType == 2) {
+      rand_scale_Q14 -= psPLC->LTPCoef_Q14;
+      rand_scale_Q14 = std::max(static_cast<opus_int16>(3277), rand_scale_Q14);
+      rand_scale_Q14 = static_cast<opus_int16>(silk_mul_i16_shift<14>(rand_scale_Q14, psPLC->prevLTP_scale_Q14));
+    } else {
+      opus_int32 invGain_Q30, down_scale_Q30;
+      invGain_Q30 = silk_LPC_inverse_pred_gain_c(psPLC->prevLPC_Q12, psDec->LPC_order);
+      down_scale_Q30 = std::min(((static_cast<opus_int32>(1) << 30) >> (3)), invGain_Q30);
+      down_scale_Q30 = std::max(((static_cast<opus_int32>(1) << 30) >> (8)), down_scale_Q30);
+      down_scale_Q30 = wrap_shift_left(down_scale_Q30, 3);
+      rand_Gain_Q15 = silk_mul_wb(down_scale_Q30, rand_Gain_Q15) >> 14;
+    }
+  }
+  opus_int32 rand_seed = psPLC->rand_seed;
+  int lag = rounded_rshift<8>(psPLC->pitchL_Q8);
+  int sLTP_buf_idx = psDec->ltp_mem_length;
+  int idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
+  silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
+  opus_int32 inv_gain_Q30 = silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46);
+  inv_gain_Q30 = std::min(inv_gain_Q30, std::numeric_limits<opus_int32>::max() >> 1);
+  for (int i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
+    sLTP_Q14[i] = silk_mul_wb(inv_gain_Q30, sLTP[i]);
+  }
+  for (int k = 0; k < psDec->nb_subfr; k++) {
+    auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
+    for (int i = 0; i < psDec->subfr_length; i++) {
+      const opus_int32 LTP_pred_Q12 = static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
+      ++pred_lag_ptr;
+      rand_seed = silk_next_rand_seed(rand_seed);
+      idx = ((rand_seed) >> (25)) & (128 - 1);
+      sLTP_Q14[sLTP_buf_idx] = wrap_shift_left(silk_mla_wb(LTP_pred_Q12, silk_read_excitation(psDec->exc_low[rand_offset + idx], psDec->exc_high[rand_offset + idx]), rand_scale_Q14), 2);
+      ++sLTP_buf_idx;
+    }
+    psPLC->LTPCoef_Q14 = silk_mul_i16_shift<15>(harm_Gain_Q15, psPLC->LTPCoef_Q14);
+    rand_scale_Q14 = silk_mul_i16_shift<15>(rand_scale_Q14, rand_Gain_Q15);
+    psPLC->pitchL_Q8 = silk_mla_wb(psPLC->pitchL_Q8, psPLC->pitchL_Q8, 655);
+    psPLC->pitchL_Q8 = std::min(psPLC->pitchL_Q8, wrap_shift_left(18 * psDec->fs_kHz, 8));
+    lag = rounded_rshift<8>(psPLC->pitchL_Q8);
+  }
+  auto* sLPC_Q14_ptr = &sLTP_Q14[psDec->ltp_mem_length - 16];
+  std::memcpy(sLPC_Q14_ptr, psDec->sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
+  for (int i = 0; i < psDec->frame_length; i++) {
+    const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
+    sLPC_Q14_ptr[16 + i] = saturating_add_int32(sLPC_Q14_ptr[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
+    conceal_gain_Q16 -= conceal_gain_step_Q16;
+    frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], multiply_q16(prevGain_Q10[1], conceal_gain_Q16));
+  }
+  std::memcpy(psDec->sLPC_Q14_buf, &sLPC_Q14_ptr[psDec->frame_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+  psPLC->rand_seed = rand_seed;
+  psPLC->randScale_Q14 = rand_scale_Q14;
+  std::fill_n(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
+}
+
+static void silk_PLC(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame, int lost) {
+  if (lost) {
+    silk_PLC_conceal(psDec, psDecCtrl, frame);
+    psDec->lossCnt++;
+  } else {
+    silk_PLC_update(psDec, psDecCtrl);
+  }
+}
+
+static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
+  int energy_shift;
+  opus_int32 energy;
+  const auto length = static_cast<int>(frame.size());
+  auto* psPLC = &psDec->sPLC;
+  if (psDec->lossCnt) {
+    silk_sum_sqr_shift(&psPLC->conc_energy, &psPLC->conc_energy_shift, frame.data(), length);
+    psPLC->last_frame_lost = 1;
+  } else {
+    if (psDec->sPLC.last_frame_lost) {
+      silk_sum_sqr_shift(&energy, &energy_shift, frame.data(), length);
+      if (energy_shift > psPLC->conc_energy_shift) {
+        psPLC->conc_energy = ((psPLC->conc_energy) >> (energy_shift - psPLC->conc_energy_shift));
+      } else if (energy_shift < psPLC->conc_energy_shift) {
+        energy = ((energy) >> (psPLC->conc_energy_shift - energy_shift));
+      }
+      if (energy > psPLC->conc_energy) {
+        opus_int32 LZ = silk_CLZ32(psPLC->conc_energy);
+        LZ = LZ - 1;
+        psPLC->conc_energy = wrap_shift_left(psPLC->conc_energy, LZ);
+        energy = ((energy) >> (std::max(24 - LZ, 0)));
+        const opus_int32 frac_Q24 = psPLC->conc_energy / std::max(energy, 1);
+        opus_int32 gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(frac_Q24), 4);
+        opus_int32 slope_Q16 = (static_cast<opus_int32>(((static_cast<opus_int32>(1) << 16) - gain_Q16) / (length)));
+        slope_Q16 = wrap_shift_left(slope_Q16, 2);
+        for (int i = 0; i < length; i++) {
+          frame[i] = (static_cast<opus_int32>(((gain_Q16) * static_cast<opus_int64>(static_cast<opus_int16>(frame[i]))) >> 16));
+          gain_Q16 += slope_Q16;
+          if (gain_Q16 > static_cast<opus_int32>(1) << 16) {
+            break;
+          }
+        }
+      }
+    }
+    psPLC->last_frame_lost = 0;
   }
 }
 
@@ -11953,33 +12163,6 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
     pxq += state.subfr_length;
   }
   std::memcpy(state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
-}
-
-static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
-  const int L = psDec->frame_length;
-  silk_decoder_control psDecCtrl;
-  psDecCtrl.LTP_scale_Q14 = 0;
-  if (lostFlag == 0 || (lostFlag == 2 && psDec->LBRR_flags[psDec->nFramesDecoded] == 1)) {
-    std::array<opus_int16, silk_max_frame_length> pulse_storage;
-    auto pulses = std::span<opus_int16>{pulse_storage.data(), static_cast<std::size_t>((L + 16 - 1) & ~(16 - 1))};
-    silk_decode_indices(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding);
-    silk_process_pulses<false>(psRangeDec, pulses, psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
-    silk_decode_parameters(*psDec, psDecCtrl, condCoding);
-    silk_decode_core(*psDec, psDecCtrl, pOut, pulses.data());
-    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
-    psDec->lossCnt = 0;
-    psDec->prevSignalType = psDec->indices.signalType;
-    psDec->first_frame_after_reset = 0;
-  } else {
-    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
-  }
-  const int move_length = psDec->ltp_mem_length - psDec->frame_length;
-  std::memmove(psDec->outBuf, &psDec->outBuf[psDec->frame_length], static_cast<std::size_t>(move_length * sizeof(opus_int16)));
-  std::memcpy(&psDec->outBuf[move_length], pOut, static_cast<std::size_t>(psDec->frame_length * sizeof(opus_int16)));
-  silk_CNG(psDec, &psDecCtrl, pOut, L);
-  silk_PLC_glue_frames(psDec, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)});
-  psDec->lagPrev = psDecCtrl.pitchL[psDec->nb_subfr - 1];
-  *pN = L;
 }
 
 static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_control& control, int condCoding) {
@@ -12236,6 +12419,33 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
   }
   const auto sums = std::span<const int>{pulse_sums.data(), static_cast<std::size_t>(block_count)};
   silk_process_signs<Encode>(coder, pulses.first(static_cast<std::size_t>(block_count * 16)), signal_type, quant_offset_type, sums);
+}
+
+static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
+  const int L = psDec->frame_length;
+  silk_decoder_control psDecCtrl;
+  psDecCtrl.LTP_scale_Q14 = 0;
+  if (lostFlag == 0 || (lostFlag == 2 && psDec->LBRR_flags[psDec->nFramesDecoded] == 1)) {
+    std::array<opus_int16, silk_max_frame_length> pulse_storage;
+    auto pulses = std::span<opus_int16>{pulse_storage.data(), static_cast<std::size_t>((L + 16 - 1) & ~(16 - 1))};
+    silk_decode_indices(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding);
+    silk_process_pulses<false>(psRangeDec, pulses, psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
+    silk_decode_parameters(*psDec, psDecCtrl, condCoding);
+    silk_decode_core(*psDec, psDecCtrl, pOut, pulses.data());
+    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
+    psDec->lossCnt = 0;
+    psDec->prevSignalType = psDec->indices.signalType;
+    psDec->first_frame_after_reset = 0;
+  } else {
+    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
+  }
+  const int move_length = psDec->ltp_mem_length - psDec->frame_length;
+  std::memmove(psDec->outBuf, &psDec->outBuf[psDec->frame_length], static_cast<std::size_t>(move_length * sizeof(opus_int16)));
+  std::memcpy(&psDec->outBuf[move_length], pOut, static_cast<std::size_t>(psDec->frame_length * sizeof(opus_int16)));
+  silk_CNG(psDec, &psDecCtrl, pOut, L);
+  silk_PLC_glue_frames(psDec, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)});
+  psDec->lagPrev = psDecCtrl.pitchL[psDec->nb_subfr - 1];
+  *pN = L;
 }
 
 static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int32 fs_API_Hz) {
@@ -13312,231 +13522,6 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
   }
   NSQ->lagPrev = pitchL[psEncC->nb_subfr - 1];
   silk_finish_nsq(psEncC, NSQ);
-}
-
-[[nodiscard]] static int stable_pitch_average(const std::array<opus_uint16, 3>& history) noexcept {
-  int sum = 0;
-  int minimum = opus_int32_max;
-  int maximum = 0;
-  for (const int pitch : history) {
-    if (pitch == 0) {
-      return 0;
-    }
-    sum += pitch;
-    minimum = std::min(minimum, pitch);
-    maximum = std::max(maximum, pitch);
-  }
-  const int average = (sum + 1) / 3;
-  return (maximum - minimum) * 32 <= average ? average : 0;
-}
-
-static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl);
-static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame);
-void silk_PLC_Reset(silk_decoder_state* psDec) {
-  psDec->sPLC.pitchL_Q8 = wrap_shift_left(psDec->frame_length, 8 - 1);
-  psDec->sPLC.prevGain_Q16[0] = 1 << 16;
-  psDec->sPLC.prevGain_Q16[1] = 1 << 16;
-  psDec->sPLC.pitch_history.fill(0);
-  psDec->sPLC.pitch_history_index = 0;
-  psDec->sPLC.subfr_length = 20;
-  psDec->sPLC.nb_subfr = 2;
-}
-
-void silk_PLC(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame, int lost) {
-  if (lost) {
-    silk_PLC_conceal(psDec, psDecCtrl, frame);
-    psDec->lossCnt++;
-  } else {
-    silk_PLC_update(psDec, psDecCtrl);
-  }
-}
-
-static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl) {
-  opus_int32 LTP_Gain_Q14, temp_LTP_Gain_Q14;
-  int i, j;
-  auto* psPLC = &psDec->sPLC;
-  psDec->prevSignalType = psDec->indices.signalType;
-  LTP_Gain_Q14 = 0;
-  if (psDec->indices.signalType == 2) {
-    for (j = 0; j * psDec->subfr_length < psDecCtrl->pitchL[psDec->nb_subfr - 1]; j++) {
-      if (j == psDec->nb_subfr) {
-        break;
-      }
-      temp_LTP_Gain_Q14 = 0;
-      for (i = 0; i < 5; i++) {
-        temp_LTP_Gain_Q14 += psDecCtrl->LTPCoef_Q14[static_cast<std::size_t>((psDec->nb_subfr - 1 - j) * 5 + i)];
-      }
-      if (temp_LTP_Gain_Q14 > LTP_Gain_Q14) {
-        LTP_Gain_Q14 = temp_LTP_Gain_Q14;
-        psPLC->pitchL_Q8 = wrap_shift_left(psDecCtrl->pitchL[psDec->nb_subfr - 1 - j], 8);
-      }
-    }
-    psPLC->LTPCoef_Q14 = static_cast<opus_int16>(LTP_Gain_Q14);
-    if (LTP_Gain_Q14 < 11469) {
-      const int scale_Q10 = (11469 << 10) / std::max(LTP_Gain_Q14, 1);
-      psPLC->LTPCoef_Q14 = silk_mul_i16_shift<10>(psPLC->LTPCoef_Q14, scale_Q10);
-    } else if (LTP_Gain_Q14 > 15565) {
-      const int scale_Q14 = (15565 << 14) / std::max(LTP_Gain_Q14, 1);
-      psPLC->LTPCoef_Q14 = silk_mul_i16_shift<14>(psPLC->LTPCoef_Q14, scale_Q14);
-    }
-  } else {
-    psPLC->pitchL_Q8 = wrap_shift_left(18 * psDec->fs_kHz, 8);
-    psPLC->LTPCoef_Q14 = 0;
-  }
-  std::memcpy(psPLC->prevLPC_Q12, psDecCtrl->PredCoef_Q12[1], static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int16)));
-  psPLC->prevLTP_scale_Q14 = psDecCtrl->LTP_scale_Q14;
-  std::memcpy(psPLC->prevGain_Q16, psDecCtrl->Gains_Q16 + psDec->nb_subfr - 2, static_cast<std::size_t>(2 * sizeof(opus_int32)));
-  psPLC->subfr_length = psDec->subfr_length;
-  psPLC->nb_subfr = psDec->nb_subfr;
-  psPLC->pitch_history[static_cast<std::size_t>(psPLC->pitch_history_index)] =
-      psDec->indices.signalType == 2 ? static_cast<opus_uint16>(rounded_rshift<8>(psPLC->pitchL_Q8)) : 0;
-  psPLC->pitch_history_index = (psPLC->pitch_history_index + 1) & 3;
-}
-
-static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_uint16> exc_low, std::span<const opus_int8> exc_high, std::span<const opus_int32> prevGain_Q10, int subfr_length, int nb_subfr) {
-  int i, k;
-  opus_int16 exc_buf[2 * silk_max_subfr_length];
-  auto* exc_buf_ptr = exc_buf;
-  for (k = 0; k < 2; k++) {
-    for (i = 0; i < subfr_length; i++) {
-      exc_buf_ptr[i] = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
-    }
-    exc_buf_ptr += subfr_length;
-  }
-  silk_sum_sqr_shift(energy1, shift1, exc_buf, subfr_length);
-  silk_sum_sqr_shift(energy2, shift2, exc_buf + subfr_length, subfr_length);
-}
-
-static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame) {
-  opus_int16 A_Q12[16];
-  silk_PLC_struct* psPLC = &psDec->sPLC;
-  const opus_int32 prevGain_Q10[2]{((psPLC->prevGain_Q16[0]) >> (6)), ((psPLC->prevGain_Q16[1]) >> (6))};
-  std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14{};
-  std::array<opus_int16, silk_max_ltp_mem_length> sLTP{};
-  if (psDec->first_frame_after_reset) {
-    zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
-  }
-  if (psDec->lossCnt == 0 && psDec->prevSignalType == 2) {
-    const auto next = static_cast<std::size_t>(psPLC->pitch_history_index);
-    const std::array<opus_uint16, 3> previous_pitch{psPLC->pitch_history[next], psPLC->pitch_history[(next + 1) & 3],
-                                                    psPLC->pitch_history[(next + 2) & 3]};
-    const int history_pitch = stable_pitch_average(previous_pitch);
-    const int current_pitch = rounded_rshift<8>(psPLC->pitchL_Q8);
-    const int pitch_delta = std::abs(history_pitch - current_pitch);
-    if (history_pitch > 0 && pitch_delta * 4 >= current_pitch && pitch_delta <= current_pitch) {
-      psPLC->pitchL_Q8 = static_cast<opus_int32>(history_pitch << 8);
-    }
-  }
-  opus_int32 energy1;
-  opus_int32 energy2;
-  int shift1;
-  int shift2;
-  silk_PLC_energy(&energy1, &shift1, &energy2, &shift2, {psDec->exc_low, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)},
-                  {psDec->exc_high, static_cast<std::size_t>(psDec->subfr_length * psDec->nb_subfr)}, prevGain_Q10, psDec->subfr_length, psDec->nb_subfr);
-  const bool fade_collapsed_unvoiced =
-      psDec->lossCnt == 0 && psDec->prevSignalType != 2 && (energy2 >> shift1) <= ((energy1 >> shift2) >> 4);
-  opus_int32 conceal_gain_Q16 = 1 << 16;
-  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(static_cast<int>(psDec->frame_length), 1) : 0;
-  const int rand_offset = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
-                              ? std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)
-                              : std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128);
-  opus_int16 rand_scale_Q14 = psPLC->randScale_Q14;
-  const opus_int32 harm_Gain_Q15 = psDec->lossCnt == 0 ? 31948 : 28672;
-  opus_int32 rand_Gain_Q15 = psDec->prevSignalType == 2 ? psDec->lossCnt == 0 ? 31130 : 26214 : psDec->lossCnt == 0 ? 32440
-                                                                                                                    : 29491;
-  silk_bwexpander(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), fixed_q<16>(0.99));
-  copy_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(psDec->LPC_order), A_Q12);
-  if (psDec->lossCnt == 0) {
-    rand_scale_Q14 = 1 << 14;
-    if (psDec->prevSignalType == 2) {
-      rand_scale_Q14 -= psPLC->LTPCoef_Q14;
-      rand_scale_Q14 = std::max(static_cast<opus_int16>(3277), rand_scale_Q14);
-      rand_scale_Q14 = static_cast<opus_int16>(silk_mul_i16_shift<14>(rand_scale_Q14, psPLC->prevLTP_scale_Q14));
-    } else {
-      opus_int32 invGain_Q30, down_scale_Q30;
-      invGain_Q30 = silk_LPC_inverse_pred_gain_c(psPLC->prevLPC_Q12, psDec->LPC_order);
-      down_scale_Q30 = std::min(((static_cast<opus_int32>(1) << 30) >> (3)), invGain_Q30);
-      down_scale_Q30 = std::max(((static_cast<opus_int32>(1) << 30) >> (8)), down_scale_Q30);
-      down_scale_Q30 = wrap_shift_left(down_scale_Q30, 3);
-      rand_Gain_Q15 = silk_mul_wb(down_scale_Q30, rand_Gain_Q15) >> 14;
-    }
-  }
-  opus_int32 rand_seed = psPLC->rand_seed;
-  int lag = rounded_rshift<8>(psPLC->pitchL_Q8);
-  int sLTP_buf_idx = psDec->ltp_mem_length;
-  int idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
-  silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
-  opus_int32 inv_gain_Q30 = silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46);
-  inv_gain_Q30 = std::min(inv_gain_Q30, std::numeric_limits<opus_int32>::max() >> 1);
-  for (int i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
-    sLTP_Q14[i] = silk_mul_wb(inv_gain_Q30, sLTP[i]);
-  }
-  for (int k = 0; k < psDec->nb_subfr; k++) {
-    auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
-    for (int i = 0; i < psDec->subfr_length; i++) {
-      const opus_int32 LTP_pred_Q12 = static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
-      ++pred_lag_ptr;
-      rand_seed = silk_next_rand_seed(rand_seed);
-      idx = ((rand_seed) >> (25)) & (128 - 1);
-      sLTP_Q14[sLTP_buf_idx] = wrap_shift_left(silk_mla_wb(LTP_pred_Q12, silk_read_excitation(psDec->exc_low[rand_offset + idx], psDec->exc_high[rand_offset + idx]), rand_scale_Q14), 2);
-      ++sLTP_buf_idx;
-    }
-    psPLC->LTPCoef_Q14 = silk_mul_i16_shift<15>(harm_Gain_Q15, psPLC->LTPCoef_Q14);
-    rand_scale_Q14 = silk_mul_i16_shift<15>(rand_scale_Q14, rand_Gain_Q15);
-    psPLC->pitchL_Q8 = silk_mla_wb(psPLC->pitchL_Q8, psPLC->pitchL_Q8, 655);
-    psPLC->pitchL_Q8 = std::min(psPLC->pitchL_Q8, wrap_shift_left(18 * psDec->fs_kHz, 8));
-    lag = rounded_rshift<8>(psPLC->pitchL_Q8);
-  }
-  auto* sLPC_Q14_ptr = &sLTP_Q14[psDec->ltp_mem_length - 16];
-  std::memcpy(sLPC_Q14_ptr, psDec->sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
-  for (int i = 0; i < psDec->frame_length; i++) {
-    const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
-    sLPC_Q14_ptr[16 + i] = saturating_add_int32(sLPC_Q14_ptr[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
-    conceal_gain_Q16 -= conceal_gain_step_Q16;
-    frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], multiply_q16(prevGain_Q10[1], conceal_gain_Q16));
-  }
-  std::memcpy(psDec->sLPC_Q14_buf, &sLPC_Q14_ptr[psDec->frame_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
-  psPLC->rand_seed = rand_seed;
-  psPLC->randScale_Q14 = rand_scale_Q14;
-  std::fill_n(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
-}
-
-void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
-  int energy_shift;
-  opus_int32 energy;
-  const auto length = static_cast<int>(frame.size());
-  auto* psPLC = &psDec->sPLC;
-  if (psDec->lossCnt) {
-    silk_sum_sqr_shift(&psPLC->conc_energy, &psPLC->conc_energy_shift, frame.data(), length);
-    psPLC->last_frame_lost = 1;
-  } else {
-    if (psDec->sPLC.last_frame_lost) {
-      silk_sum_sqr_shift(&energy, &energy_shift, frame.data(), length);
-      if (energy_shift > psPLC->conc_energy_shift) {
-        psPLC->conc_energy = ((psPLC->conc_energy) >> (energy_shift - psPLC->conc_energy_shift));
-      } else if (energy_shift < psPLC->conc_energy_shift) {
-        energy = ((energy) >> (psPLC->conc_energy_shift - energy_shift));
-      }
-      if (energy > psPLC->conc_energy) {
-        opus_int32 LZ = silk_CLZ32(psPLC->conc_energy);
-        LZ = LZ - 1;
-        psPLC->conc_energy = wrap_shift_left(psPLC->conc_energy, LZ);
-        energy = ((energy) >> (std::max(24 - LZ, 0)));
-        const opus_int32 frac_Q24 = psPLC->conc_energy / std::max(energy, 1);
-        opus_int32 gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(frac_Q24), 4);
-        opus_int32 slope_Q16 = (static_cast<opus_int32>(((static_cast<opus_int32>(1) << 16) - gain_Q16) / (length)));
-        slope_Q16 = wrap_shift_left(slope_Q16, 2);
-        for (int i = 0; i < length; i++) {
-          frame[i] = (static_cast<opus_int32>(((gain_Q16) * static_cast<opus_int64>(static_cast<opus_int16>(frame[i]))) >> 16));
-          gain_Q16 += slope_Q16;
-          if (gain_Q16 > static_cast<opus_int32>(1) << 16) {
-            break;
-          }
-        }
-      }
-    }
-    psPLC->last_frame_lost = 0;
-  }
 }
 
 template <bool Encode, typename Pulse> static void silk_shell_code_node(ec_ctx* coder, std::span<Pulse> pulses, const int total_pulses) {
@@ -14982,10 +14967,6 @@ void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q
     pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
   }
   pred_Q13[0] -= pred_Q13[1];
-}
-
-void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid) {
-  decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
 }
 
 void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix) {
