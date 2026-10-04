@@ -7199,12 +7199,12 @@ static void celt_store_decode_history(CeltDecoderInternal* st, const celt_decode
   }
 }
 
-template <int N, bool Backup>
-static void celt_shift_pitch_history_fixed(CeltDecoderInternal* st, const std::array<celt_sig*, 2>& cache_backup, int backup_start = celt_decoder_prefix_storage - std::min(N, celt_decoder_prefix_storage)) {
-  static_assert(N == 120 || N == 240 || N == 480 || N == 960);
-  static_assert(!Backup || N <= celt_decoder_inplace_frame_limit || N == 960);
+static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::array<celt_sig*, 2>& cache_backup, int backup_start) {
+  const bool backup = cache_backup[0] != nullptr;
+  if (N <= 240)
+    backup_start = celt_decoder_prefix_storage - N;
   int head = 0;
-  if constexpr (N != 960) {
+  if (N != 960) {
     head = st->prefix_head + N / celt_short_mdct_size;
     if (head >= celt_decoder_prefix_pairs)
       head -= celt_decoder_prefix_pairs;
@@ -7213,17 +7213,17 @@ static void celt_shift_pitch_history_fixed(CeltDecoderInternal* st, const std::a
   for (int channel = 0; channel < st->channels; ++channel) {
     auto* lowpass = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
     const auto* raw = lowpass + celt_decoder_prefix_storage;
-    auto* saved = Backup ? cache_backup[channel] : nullptr;
-    const int tail_start = Backup ? backup_start : celt_decoder_prefix_storage;
-    if constexpr (Backup && N != 960)
+    auto* saved = backup ? cache_backup[channel] : nullptr;
+    const int tail_start = backup ? backup_start : celt_decoder_prefix_storage;
+    if (backup && N != 960)
       copy_n_items(lowpass + tail_start, celt_decoder_prefix_storage - tail_start, saved);
     auto location = [&](int physical) {
-      if constexpr (!Backup)
+      if (!backup)
         return lowpass + physical;
       else
         return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
     };
-    constexpr int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
+    const int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
     int i = std::max(1, old_count);
     while (i < celt_decoder_compact_prefix / 2) {
       int physical = base + i;
@@ -7245,14 +7245,14 @@ static void celt_shift_pitch_history_fixed(CeltDecoderInternal* st, const std::a
         destination[2] = values[2];
         destination[3] = values[3];
       }
-      if constexpr (Backup || N != 240) {
+      if (backup || N != 240) {
         for (; i < stop; ++i) {
           const int center = 2 * i + N - celt_decoder_raw_start;
           *destination++ = .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center];
         }
       }
     }
-    constexpr int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
+    const int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
     for (int i = prefix_pairs; i < celt_decoder_prefix_pairs; ++i) {
       const int source = i * celt_short_mdct_size + N - celt_decoder_raw_start;
       int pair = head + i;
@@ -7266,37 +7266,6 @@ static void celt_shift_pitch_history_fixed(CeltDecoderInternal* st, const std::a
     *location(base) = .25f * *location(pair + 1) + .5f * *location(pair);
   }
   st->prefix_head = static_cast<opus_uint8>(head);
-}
-
-static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::array<celt_sig*, 2>& cache_backup, int backup_start) {
-  const bool backup = cache_backup[0] != nullptr;
-  switch (N) {
-  case 120:
-    if (backup)
-      celt_shift_pitch_history_fixed<120, true>(st, cache_backup);
-    else
-      celt_shift_pitch_history_fixed<120, false>(st, cache_backup);
-    return;
-  case 240:
-    if (backup)
-      celt_shift_pitch_history_fixed<240, true>(st, cache_backup);
-    else
-      celt_shift_pitch_history_fixed<240, false>(st, cache_backup);
-    return;
-  case 480:
-    if (backup)
-      celt_shift_pitch_history_fixed<480, true>(st, cache_backup, backup_start);
-    else
-      celt_shift_pitch_history_fixed<480, false>(st, cache_backup);
-    return;
-  case 960:
-    if (backup)
-      celt_shift_pitch_history_fixed<960, true>(st, cache_backup, backup_start);
-    else
-      celt_shift_pitch_history_fixed<960, false>(st, cache_backup);
-    return;
-  }
-  std::unreachable();
 }
 
 static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int channels, int N, bool from_stored = false, bool postfilter_history = true, int target_period = celt_max_pitch_period, bool update_pitch_cache = true) {
