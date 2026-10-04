@@ -2594,7 +2594,6 @@ struct OpusEncoder {
   opus_int32 variable_HP_smth2_Q15;
   opus_val16 prev_HB_gain;
   opus_val32 hp_mem[4];
-  opus_val32 audio_speech_hp_mem[4], audio_music_hp_mem[4];
   int mode, prev_mode, prev_channels, prev_framesize, bandwidth, auto_bandwidth, silk_bw_switch, lightweight_voice_score_Q7,
       lightweight_music_score_Q7, lightweight_vad_score_Q7, lightweight_analysis_frames;
   int lightweight_harmonic_music_Q7, lightweight_high_z_tonal_Q7, audio_preprocess_mode, audio_preprocess_hold;
@@ -3270,7 +3269,6 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
   if (next_mode != st->audio_preprocess_mode) {
     st->audio_preprocess_mode = next_mode;
     st->audio_preprocess_hold = audio_preprocess_hold_frames;
-    zero_n_items(next_mode == audio_preprocess_speech ? st->audio_speech_hp_mem : st->audio_music_hp_mem, 4);
   }
   return st->audio_preprocess_mode;
 }
@@ -6885,8 +6883,8 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
 
 struct celt_input_metrics {
   std::array<opus_val32, celt_max_channels> abs_sum{};
-  int silence{};
-  bool release{};
+  int silence;
+  bool release;
 };
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
