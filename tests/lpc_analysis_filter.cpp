@@ -29,12 +29,11 @@ static bool check_silk_reconstruction() {
         encoder->lightweight_music_score_Q7 = 0;
         encoder->lightweight_harmonic_music_Q7 = 0;
         encoder->lightweight_high_z_tonal_Q7 = 0;
-        encoder->classical_leak.analysis_offset = static_cast<int>(input.size());
         const int bytes = opus_encode(encoder.get(), input.data(), 320, packet.data(), packet.size());
         if (bytes <= 0 || opus_decode(decoder.get(), packet.data(), bytes, output.data(), 320, 0) != 320)
           return false;
         const auto& state = silk_encoder_channel_states(static_cast<silk_encoder*>(encoder_silk_state(encoder.get())))[0].sCmn;
-        const auto& decoded_state = static_cast<silk_decoder*>(decoder_silk_state(decoder.get()))->channel_state;
+        const auto& decoded_state = *static_cast<silk_decoder*>(decoder_silk_state(decoder.get()))->channel_state;
         if (state.fs_kHz != 16 || encoder->mode != opus_mode_silk_only || decoded_state.resampler_state.inputDelay + 1 != static_cast<int>(tail.size()))
           return false;
         const auto* samples = state.sNSQ.xq + state.ltp_mem_length - state.frame_length;

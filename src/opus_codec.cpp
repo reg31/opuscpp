@@ -12357,30 +12357,30 @@ static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int3
 }
 
 struct silk_decoder {
-  silk_decoder_state channel_state;
+  silk_decoder_state* channel_state;
   silk_decoder_state* side_channel_state;
   stereo_dec_state sStereo;
   int nChannelsInternal, prev_decode_only_middle;
 };
 
-[[nodiscard]] static auto silk_ensure_side_channel(silk_decoder* decoder) noexcept -> silk_decoder_state* {
-  if (decoder->side_channel_state == nullptr) {
-    auto* side = static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state)));
-    if (side == nullptr) {
+[[nodiscard]] static auto silk_ensure_decoder_channel(silk_decoder_state*& channel) noexcept -> silk_decoder_state* {
+  if (channel == nullptr) {
+    auto* state = static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state)));
+    if (state == nullptr) {
       return nullptr;
     }
-    side->sCNG = nullptr;
-    silk_reset_decoder(side);
-    decoder->side_channel_state = side;
+    state->sCNG = nullptr;
+    silk_reset_decoder(state);
+    channel = state;
   }
-  return decoder->side_channel_state;
+  return channel;
 }
 
-static void silk_release_side_channel(silk_decoder* decoder) noexcept {
-  if (decoder != nullptr && decoder->side_channel_state != nullptr) {
-    silk_release_cng(decoder->side_channel_state);
-    std::free(decoder->side_channel_state);
-    decoder->side_channel_state = nullptr;
+static void silk_release_decoder_channel(silk_decoder_state*& channel) noexcept {
+  if (channel != nullptr) {
+    silk_release_cng(channel);
+    std::free(channel);
+    channel = nullptr;
   }
 }
 
@@ -12389,8 +12389,8 @@ static void silk_destroy_decoder(void* decState) noexcept {
     return;
   }
   auto* decoder = static_cast<silk_decoder*>(decState);
-  silk_release_cng(&decoder->channel_state);
-  silk_release_side_channel(decoder);
+  silk_release_decoder_channel(decoder->channel_state);
+  silk_release_decoder_channel(decoder->side_channel_state);
 }
 
 [[nodiscard]] constexpr auto silk_decoder_get_size() noexcept -> int {
@@ -12399,8 +12399,10 @@ static void silk_destroy_decoder(void* decState) noexcept {
 
 static void silk_ResetDecoder(void* decState) {
   auto* decoder = static_cast<silk_decoder*>(decState);
-  silk_reset_decoder(&decoder->channel_state);
-  silk_release_side_channel(decoder);
+  if (decoder->channel_state != nullptr) {
+    silk_reset_decoder(decoder->channel_state);
+  }
+  silk_release_decoder_channel(decoder->side_channel_state);
   zero_object(decoder->sStereo);
   decoder->prev_decode_only_middle = 0;
 }
@@ -12429,10 +12431,13 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   opus_int32 nSamplesOutDec = 0;
   std::array<opus_int32, 2> MS_pred_Q13{};
   silk_decoder* psDec = static_cast<silk_decoder*>(decState);
-  if ((decControl->nChannelsInternal == 2 || psDec->nChannelsInternal == 2 || decControl->nChannelsAPI == 2) &&
-      silk_ensure_side_channel(psDec) == nullptr)
+  auto* mid_state = silk_ensure_decoder_channel(psDec->channel_state);
+  if (mid_state == nullptr)
     return -1;
-  auto& mid = psDec->channel_state;
+  if ((decControl->nChannelsInternal == 2 || psDec->nChannelsInternal == 2 || decControl->nChannelsAPI == 2) &&
+      silk_ensure_decoder_channel(psDec->side_channel_state) == nullptr)
+    return -1;
+  auto& mid = *mid_state;
   std::array<silk_decoder_state*, 2> channel_state{&mid, psDec->side_channel_state};
   int has_side, stereo_to_mono;
   if (newPacketFlag) {

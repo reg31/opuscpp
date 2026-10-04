@@ -1,0 +1,34 @@
+{
+  "parent_commit": "90a9ba4a4dd3e1e4a3d9049e9c1a38c51aa32b3d",
+  "parent_source_sha256": "dc8dae26cc7220395664f347b223246c09ba36956adf1d913f7d099f65a579be",
+  "candidate_source_sha256": "02e80ab3357d706a0de95a8117fc4eaf25907f4a0e6d3b5e117108a03c1637d5",
+  "method": "Private source-bound codec malloc/calloc/free ledger, requested live payload only. Caller buffers, allocator bookkeeping, process-private memory and stack usage are excluded.",
+  "validation": {
+    "saved_packet_sequences": 8,
+    "sample_rates_hz": [8000, 48000],
+    "channels": [1, 2],
+    "apis": ["PCM16", "float"],
+    "parent_candidate_output_identity": true,
+    "identity_sha256": "d6d605d6f1db7c7204d98d0ea6a811449eebcb2eef8032fb8872958326f27228",
+    "fixture_sha256": "21c841c0e010e716a9cec98e7e7ac730ccc8ff53fbe362de78f552a67a720c25",
+    "results_sha256": "005f6eb1e89bc3c635af3a851d4e02fb62826c1b31706c80565543676dfd4de3",
+    "reset_channel_metadata_and_owner_lifetime": "PASS",
+    "side_cng_cleanup_and_destruction_balance": "PASS",
+    "compile_run_steps": 4,
+    "all_steps_exit_zero": true,
+    "full_benchmark_run": false,
+    "lpc_reconstruction": "Known baseline failure; assertions preserved, not rerun or repaired."
+  },
+  "requested_live_bytes": {
+    "cold_mono": {"parent": 10220, "candidate": 8076, "delta": -2144},
+    "cold_stereo": {"parent": 17680, "candidate": 15536, "delta": -2144},
+    "after_silk_mono": {"parent": 10220, "candidate": 10228, "delta": 8},
+    "after_silk_stereo": {"parent": 19832, "candidate": 19840, "delta": 8}
+  },
+  "lifetime": "The cold saving persists for CELT-only decoding and reset before first SILK/Hybrid use. Once activated, the main SILK allocation is retained and reset in place.",
+  "late_main_allocation_failure": {
+    "ordinary_packet": "Returns -3 with the main owner null and the checked output buffer unchanged.",
+    "fec_loss_path": "The checked existing fallback returns 960 zero samples with the main owner null."
+  },
+  "claim_limits": "The saving is 2144 requested bytes before first SILK/Hybrid use. Afterwards requested payload increases by 8 bytes plus allocator bookkeeping, and first SILK use performs an additional fallible allocation. No steady-state SILK memory saving, process-private memory reduction, CPU gain or quality gain is claimed."
+}
