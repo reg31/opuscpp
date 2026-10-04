@@ -10645,17 +10645,12 @@ static void classical_leak_reset(classical_leak_state* s) {
 }
 
 static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth) {
-  int analysis_frame_size = frame_size - (frame_size & 1);
-  if (analysis_frame_size <= 0) {
-    return;
-  }
   if (!s->initialized) {
     s->mem_fill = 240;
     s->initialized = 1;
   }
-  analysis_frame_size = std::min((100 - 5) * Fs / 50, analysis_frame_size);
-  int pcm_len = analysis_frame_size - s->analysis_offset;
-  int offset = s->analysis_offset;
+  int pcm_len = frame_size;
+  int offset = 0;
   while (pcm_len > 0) {
     const int step = Fs / 50;
     const int chunk = std::min(step, pcm_len);
