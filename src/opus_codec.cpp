@@ -208,7 +208,6 @@ template <typename T> static void copy_n_items(const T* source, const std::size_
   std::memcpy(destination, source, count * sizeof(T));
 }
 
-
 template <typename T> static void move_n_items(const T* source, const std::size_t count, T* destination) noexcept {
   std::memmove(destination, source, count * sizeof(T));
 }
