@@ -12040,10 +12040,11 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         return decode_excitation(subframe_offset + i);
       });
     }
-    std::memcpy(sLPC_Q14, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+    if (k + 1 < state.nb_subfr)
+      std::memcpy(sLPC_Q14, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     pxq += state.subfr_length;
   }
-  std::memcpy(state.sLPC_Q14_buf, sLPC_Q14, static_cast<std::size_t>(16 * sizeof(opus_int32)));
+  std::memcpy(state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
 }
 
 static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
