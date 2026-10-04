@@ -6294,8 +6294,9 @@ static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandL
   const int nbEBands = celt_default_nb_ebands;
   for (c = 0; c < C; ++c) {
     const int band_offset = c * nbEBands;
-    for (i = 0; i < end - 1; i++) {
-      diff += (bandLogE[band_offset + i]) * static_cast<opus_int32>(2 + 2 * i - end);
+    int weight = 2 - end;
+    for (i = 0; i < end - 1; i++, weight += 2) {
+      diff += (bandLogE[band_offset + i]) * static_cast<opus_int32>(weight);
     }
   }
   diff /= C * (end - 1);
