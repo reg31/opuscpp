@@ -7592,7 +7592,6 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   const int start = st->start;
   const int end = st->end;
   int intensity = 0, dual_stereo = 0;
-  frame_size *= st->downsample;
   const int LM = celt_frame_lm(frame_size);
   if (LM < 0) {
     return -1;
@@ -7817,8 +7816,8 @@ static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned ch
       celt_can_use_retained_plc_history(st, N))
     return celt_decode_pitch_480(st, pcm, frame_size);
   if (!pitch_plc && N <= celt_decoder_inplace_frame_limit && N <= celt_max_frame_samples / 2)
-    return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, nullptr, true, update_pitch_cache);
-  return celt_decode_with_ec_workspace(st, data, len, pcm, frame_size, dec, pcm16, update_pitch_cache);
+    return celt_decode_with_ec_body(st, data, len, pcm, N, dec, pcm16, nullptr, true, update_pitch_cache);
+  return celt_decode_with_ec_workspace(st, data, len, pcm, N, dec, pcm16, update_pitch_cache);
 }
 #undef OPUSCPP_NOINLINE
 
