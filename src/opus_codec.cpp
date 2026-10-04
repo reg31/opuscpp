@@ -7980,10 +7980,8 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   opus_val16 decay, attenuation;
   opus_val32 S1 = 0;
   if (update_lpc) {
-    copy_n_items(old_buf + old_history_size - celt_plc_max_period - celt_lpc_order,
-                 static_cast<std::size_t>(celt_plc_max_period + celt_lpc_order), exc_storage.data());
     std::array<opus_val32, celt_lpc_order + 1> ac;
-    _celt_autocorr(exc, ac.data(), celt_mode()->window, celt_default_overlap, celt_lpc_order, celt_plc_max_period);
+    _celt_autocorr(old_buf + old_history_size - celt_plc_max_period, ac.data(), celt_mode()->window, celt_default_overlap, celt_lpc_order, celt_plc_max_period);
     ac[0] *= 1.0001f;
     for (int i = 1; i <= celt_lpc_order; ++i) {
       ac[i] -= ac[i] * (0.008f * 0.008f) * i * i;
@@ -7992,10 +7990,7 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   }
   const auto safe_exc_length = std::max(exc_length, 0);
   std::array<opus_val16, celt_plc_max_period> fir_tmp;
-  celt_fir_c(update_lpc ? exc + celt_plc_max_period - safe_exc_length : old_buf + old_history_size - safe_exc_length, lpc,
-             update_lpc ? fir_tmp.data() : exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
-  if (update_lpc)
-    copy_n_items(fir_tmp.data(), static_cast<std::size_t>(safe_exc_length), exc + celt_plc_max_period - safe_exc_length);
+  celt_fir_c(old_buf + old_history_size - safe_exc_length, lpc, exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
   {
     opus_val32 E1 = 1, E2 = 1;
     const auto decay_length = exc_length >> 1;
