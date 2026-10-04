@@ -4113,23 +4113,14 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         st->preprocess_filter_state = 0;
       }
     }
-    const bool bypass_music_hp =
-        low_z_mono || st->preprocess_filter_state > 0 ||
-        (st->channels == 2 && ((st->mode == opus_mode_celt_only && (st->bitrate_bps < 20000 || st->bitrate_bps >= 128000)) ||
-                               (st->bitrate_bps >= 20000 && st->bitrate_bps < 80000 && st->lightweight_high_z_tonal_Q7 > 64 &&
-                                is_sparse_high_z_tonal_frame(frame_metrics))));
-    if (bypass_music_hp) {
-      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-    } else if (choose_audio_preprocess_mode(st) == audio_preprocess_speech) {
-      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-    } else {
-      copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
-      if (st->channels == 1 && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
-        const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
-        blend_filtered_input(frame_pcm, pcm, frame_size, clean_music ? .94f : .86f);
-        if (clean_music) {
-          apply_previous_sample_tilt(frame_pcm, frame_size, 1, .08f);
-        }
+    const bool apply_mono_preprocess = st->channels == 1 && !low_z_mono && st->preprocess_filter_state <= 0 &&
+                                       choose_audio_preprocess_mode(st) != audio_preprocess_speech;
+    copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
+    if (apply_mono_preprocess && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
+      const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
+      blend_filtered_input(frame_pcm, pcm, frame_size, clean_music ? .94f : .86f);
+      if (clean_music) {
+        apply_previous_sample_tilt(frame_pcm, frame_size, 1, .08f);
       }
     }
   } else {
