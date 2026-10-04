@@ -11697,6 +11697,19 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> c
   return {collapse_mask, index, yy};
 }
 
+static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int B, opus_val32 gain, int position, bool negative, bool resynth) {
+  if (resynth) {
+    zero_n_items(X, static_cast<std::size_t>(N));
+    X[position] = negative ? -gain : gain;
+    exp_rotation(X, N, -1, B, 1, spread);
+  }
+  if (B <= 1) {
+    return 1;
+  }
+  const int block_size = celt_udiv(N, B);
+  return position < B * block_size ? 1U << celt_udiv(position, block_size) : 0;
+}
+
 static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
@@ -11709,16 +11722,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const bool negative = X[best_id] < 0;
     const auto encoded_pulse = static_cast<opus_uint32>(negative ? (N << 1) - 1 - best_id : best_id);
     ec_enc_uint(enc, encoded_pulse, static_cast<opus_uint32>(N << 1));
-    if (resynth) {
-      zero_n_items(X, static_cast<std::size_t>(N));
-      X[best_id] = negative ? -gain : gain;
-      exp_rotation(X, N, -1, B, K, spread);
-    }
-    if (B <= 1) {
-      return 1;
-    }
-    const int N0 = celt_udiv(N, B);
-    return best_id < B * N0 ? 1U << celt_udiv(best_id, N0) : 0;
+    return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth);
   }
   std::array<int, celt_max_band_samples> iy;
   const auto quant = op_pvq_search_c(X, K, N, B, iy.data());
@@ -11739,17 +11743,7 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
     const auto encoded = ec_dec_uint(dec, static_cast<opus_uint32>(N << 1));
     const bool negative = encoded >= static_cast<opus_uint32>(N);
     const int position = negative ? (N << 1) - 1 - static_cast<int>(encoded) : static_cast<int>(encoded);
-    zero_n_items(X, static_cast<std::size_t>(N));
-    X[position] = negative ? -gain : gain;
-    unsigned collapse_mask = B <= 1 ? 1 : 0;
-    if (B > 1) {
-      const int block_size = celt_udiv(N, B);
-      if (position < B * block_size) {
-        collapse_mask = 1U << celt_udiv(position, block_size);
-      }
-    }
-    exp_rotation(X, N, -1, B, K, spread);
-    return collapse_mask;
+    return resynth_single_pulse(X, N, spread, B, gain, position, negative, true);
   }
   if (K <= 4) {
     std::array<int, 4> positions;
