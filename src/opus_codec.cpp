@@ -7018,7 +7018,6 @@ static void celt_decoder_reset_state(CeltDecoderInternal* st) {
   std::fill_n(old_log_energy, band_count, -(28.f));
   std::fill_n(old_log_energy2, band_count, -(28.f));
   st->skip_plc = 1;
-  st->last_frame_type = 0;
 }
 
 static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels) {
