@@ -15305,7 +15305,6 @@ static inline auto limit_coefs(std::span<float> coefs, float limit) noexcept -> 
   }
 }
 
-
 static void silk_prepare_pitch_frames(const float* frame, int frame_length, int Fs_kHz, std::span<float> frame_8kHz, std::span<float> frame_4kHz, std::span<opus_int16> resample_workspace) {
   std::array<opus_int32, 6> filter_state;
   silk_float2short_array(resample_workspace.data(), frame, frame_length);
