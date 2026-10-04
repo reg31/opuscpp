@@ -11946,22 +11946,9 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         if (k == 2) {
           const int current_length = 2 * state.subfr_length;
           const int history_length = std::max(0, length - current_length);
-          if (history_length == 0) {
-            silk_LPC_analysis_filter(filtered, xq + current_length - length, A_Q12, length, state.LPC_order);
-          } else {
-            if (history_length >= state.LPC_order) {
-              silk_LPC_analysis_filter(filtered, state.outBuf + state.ltp_mem_length - history_length, A_Q12, history_length, state.LPC_order);
-            } else {
-              zero_n_items(filtered, static_cast<std::size_t>(state.LPC_order));
-            }
-            silk_LPC_analysis_filter(filtered + history_length, xq, A_Q12, current_length, state.LPC_order);
-            std::array<opus_int16, 32> bridge_input, bridge_output;
-            const int bridge_history = std::min(history_length, static_cast<int>(state.LPC_order));
-            copy_n_items(state.outBuf + state.ltp_mem_length - bridge_history, static_cast<std::size_t>(bridge_history), bridge_input.data());
-            copy_n_items(xq, static_cast<std::size_t>(state.LPC_order), bridge_input.data() + bridge_history);
-            silk_LPC_analysis_filter(bridge_output.data(), bridge_input.data(), A_Q12, bridge_history + state.LPC_order, state.LPC_order);
-            copy_n_items(bridge_output.data() + state.LPC_order, static_cast<std::size_t>(bridge_history), filtered + std::max(history_length, static_cast<int>(state.LPC_order)));
-          }
+          copy_n_items(state.outBuf + state.ltp_mem_length - history_length, static_cast<std::size_t>(history_length), filtered);
+          copy_n_items(xq + std::max(0, current_length - length), static_cast<std::size_t>(length - history_length), filtered + history_length);
+          silk_LPC_analysis_filter(filtered, filtered, A_Q12, length, state.LPC_order);
         } else {
           silk_LPC_analysis_filter(filtered, state.outBuf + start_idx, A_Q12, length, state.LPC_order);
         }
@@ -14992,7 +14979,8 @@ opus_int32 silk_log2lin(const opus_int32 inLog_Q7) {
 template <int Order>
   requires(Order == 10 || Order == 16)
 static inline void silk_LPC_analysis_filter_order(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len) {
-  for (opus_int32 ix = Order; ix < len; ++ix) {
+  for (opus_int32 ix = len; ix > Order;) {
+    --ix;
     const auto* in_ptr = &in[ix - 1];
     auto out32_Q12 = static_cast<opus_int32>(static_cast<opus_int16>(in_ptr[0])) * static_cast<opus_int32>(static_cast<opus_int16>(B[0]));
     for (int j = 1; j < Order; ++j) {
