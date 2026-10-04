@@ -7378,7 +7378,6 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     empty_channel[1] = false;
   }
   auto* error = bandLogE2;
-  zero_n_items(error, static_cast<std::size_t>(C * nbEBands));
   for_each_celt_band(st, [&](int index) {
     if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
       bandLogE[index] -= 0.25f * energyError[index];
