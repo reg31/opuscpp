@@ -10017,7 +10017,9 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
 
 static bool classical_leak_is_digital_silence(const float* overlap, const float* block, int lsb_depth) {
   const auto threshold = 1.0f / static_cast<float>(1 << lsb_depth);
-  const auto audible = [threshold](float value) { return std::fabs(value) > threshold; };
+  const auto audible = [threshold](float value) {
+    return std::fabs(value) > threshold;
+  };
   return std::none_of(overlap, overlap + 240, audible) && std::none_of(block, block + 480, audible);
 }
 
