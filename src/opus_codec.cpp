@@ -6447,7 +6447,7 @@ struct celt_input_metrics {
     const opus_val32 norm = static_cast<opus_val32>(len2) / (1e-15f + mean);
     opus_int32 unmask = 0;
     for (int i = 12; i < len2 - 5; i += 4) {
-      const int id = static_cast<int>(std::max(0.f, std::min(127.f, std::floor(64 * norm * (tmp[i] + 1e-15f)))));
+      const int id = static_cast<int>(std::min(127.f, 64 * norm * (tmp[i] + 1e-15f)));
       unmask += inv_table[id];
     }
     unmask = 64 * unmask * 4 / (6 * (len2 - 17));
