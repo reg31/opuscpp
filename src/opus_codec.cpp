@@ -7610,6 +7610,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
 }
 
 constexpr int celt_decode_buffer_size = 2048, celt_plc_max_period = 1024, celt_lpc_order = 24;
+constexpr int celt_plc_max_pitch_period = 720;
 constexpr int celt_decoder_prefix_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs;
 constexpr int celt_decoder_inplace_history_size = celt_decoder_channel_storage - celt_decoder_retained_overlap;
 constexpr int celt_decoder_inplace_frame_limit = celt_decoder_inplace_history_size - celt_max_pitch_period;
@@ -7989,7 +7990,7 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     _celt_lpc(lpc, ac.data(), celt_lpc_order);
   }
   const auto safe_exc_length = std::max(exc_length, 0);
-  std::array<opus_val16, celt_plc_max_period> fir_tmp;
+  std::array<opus_val16, celt_plc_max_pitch_period> fir_tmp;
   celt_fir_c(old_buf + old_history_size - safe_exc_length, lpc, exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
   {
     opus_val32 E1 = 1, E2 = 1;
@@ -8080,8 +8081,8 @@ static inline int celt_plc_pitch_search(CeltDecoderInternal* st, std::span<celt_
   if (st->channels == 2)
     fill_channel.template operator()<true>(1);
   pitch_whiten(lp_pitch_buf.data(), 2048 >> 1);
-  pitch_search(lp_pitch_buf.data() + ((720) >> 1), lp_pitch_buf.data(), 2048 - (720), (720) - (100), &pitch_index);
-  pitch_index = (720) - pitch_index;
+  pitch_search(lp_pitch_buf.data() + (celt_plc_max_pitch_period >> 1), lp_pitch_buf.data(), 2048 - celt_plc_max_pitch_period, celt_plc_max_pitch_period - 100, &pitch_index);
+  pitch_index = celt_plc_max_pitch_period - pitch_index;
   return pitch_index;
 }
 
@@ -8106,7 +8107,7 @@ static void celt_consume_pending_fold(CeltDecoderInternal* st, celt_sig* scratch
 static bool celt_can_use_retained_plc_history(const CeltDecoderInternal* st, int N) noexcept {
   return N == 240 || (N == 480 && celt_default_overlap == 120 && celt_decoder_retained_overlap == 60 &&
                       st->postfilter_period_old <= celt_plc_max_period - 2 && st->postfilter_period <= celt_plc_max_period - 2 &&
-                      (st->last_frame_type != 3 || (st->last_pitch_index >= 100 && st->last_pitch_index <= 720)));
+                      (st->last_frame_type != 3 || (st->last_pitch_index >= 100 && st->last_pitch_index <= celt_plc_max_pitch_period)));
 }
 
 OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum, bool retained_pitch_history = false) {
