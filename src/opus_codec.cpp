@@ -7552,8 +7552,9 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
       for (int c = 0; c < C; ++c)
         old_mem[c] = celt_decoder_storage(st) + c * celt_decoder_channel_storage;
     }
+    const auto update_lpc = st->last_frame_type != 3;
     int pitch_index;
-    if (st->last_frame_type != 3) {
+    if (update_lpc) {
       st->last_pitch_index = pitch_index =
           celt_plc_pitch_search(st, std::span<celt_sig* const>{old_mem.data(), static_cast<std::size_t>(C)}, old_raw_offset);
     } else {
@@ -7561,7 +7562,6 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
       fade = (.8f);
     }
     const auto exc_length = std::min(2 * pitch_index, celt_plc_max_period);
-    const auto update_lpc = st->last_frame_type != 3;
     celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
     for (int c = 0; c < C; ++c)
       celt_plc_extrapolate_channel(decode_mem[c], lpc + c * celt_lpc_order, N, pitch_index, exc_length, fade, update_lpc, decoder.history_size, decoder.raw_offset, old_mem[c], old_history_size);
