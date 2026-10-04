@@ -1563,7 +1563,10 @@ static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int
     if (fast_ret != opus_decode_fast_unavailable) {
       return fast_ret;
     }
-    if (frame_size <= celt_max_frame_samples) {
+    const int packet_samples = frame_size > celt_max_frame_samples && data != nullptr && len > 1 && decode_fec == 0
+                                   ? opus_packet_get_nb_samples(data, len, st->Fs)
+                                   : 0;
+    if (frame_size <= celt_max_frame_samples || (packet_samples > 0 && packet_samples <= celt_max_frame_samples)) {
       return decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec);
     }
     return decode_pcm16_fallback<opus_max_pcm_samples>(st, data, len, pcm, frame_size, decode_fec);
