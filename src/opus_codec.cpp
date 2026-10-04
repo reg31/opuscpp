@@ -8830,54 +8830,8 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
 }
 
 static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap, bool known_zero_tail) {
-  constexpr int n2 = 960;
-  constexpr int n4 = 480;
-  const float* trig = lookup->trig;
-  auto* work0 = reinterpret_cast<kiss_fft_cpx*>(output0 + (overlap >> 1));
-  auto* work1 = reinterpret_cast<kiss_fft_cpx*>(output1 + (overlap >> 1));
-  clt_mdct_backward_prerotate<2>({input0, input1}, {work0, work1}, trig, n2, 1, pfa_input_map_480.data(), known_zero_tail);
-
-  auto* transformed0 = reinterpret_cast<kiss_fft_cpx*>(input0);
-  auto* transformed1 = reinterpret_cast<kiss_fft_cpx*>(input1);
-  for (int index = 0; index < 32; ++index) {
-    const int offset = 15 * pfa_split_radix_permutation[index];
-    pfa_fft15(work0 + offset, transformed0 + index);
-    pfa_fft15(work1 + offset, transformed1 + index);
-  }
-  for (int row = 0; row < 15; ++row) {
-    pfa_fft32(transformed0 + 32 * row);
-    pfa_fft32(transformed1 + 32 * row);
-  }
-
-  float* output_front0 = output0 + (overlap >> 1);
-  float* output_front1 = output1 + (overlap >> 1);
-  float* output_back0 = output_front0 + n2 - 2;
-  float* output_back1 = output_front1 + n2 - 2;
-  int position = 0;
-  for (int index = 0; index < (n4 + 1) >> 1; ++index) {
-    const int column = index & 31;
-    const float t0 = trig[index];
-    const float t1 = trig[n4 + index];
-    const float mirror_t0 = trig[n4 - index - 1];
-    const float mirror_t1 = trig[n2 - index - 1];
-    const auto write_channel = [&](const kiss_fft_cpx* transformed, float* output_front, float* output_back) {
-      const auto first = transformed[32 * position + column];
-      const auto last = transformed[32 * (14 - position) + ((31 - index) & 31)];
-      output_front[0] = first.i * t0 + first.r * t1;
-      output_back[1] = first.i * t1 - first.r * t0;
-      output_back[0] = last.i * mirror_t0 + last.r * mirror_t1;
-      output_front[1] = last.i * mirror_t1 - last.r * mirror_t0;
-    };
-    write_channel(transformed0, output_front0, output_back0);
-    write_channel(transformed1, output_front1, output_back1);
-    output_front0 += 2;
-    output_front1 += 2;
-    output_back0 -= 2;
-    output_back1 -= 2;
-    if (++position == 15) {
-      position = 0;
-    }
-  }
+  clt_mdct_backward_transform_20ms(lookup, input0, output0, overlap, known_zero_tail);
+  clt_mdct_backward_transform_20ms(lookup, input1, output1, overlap, known_zero_tail);
   clt_mdct_backward_overlap_c(output0, window, overlap);
   clt_mdct_backward_overlap_c(output1, window, overlap);
 }
