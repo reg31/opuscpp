@@ -1300,7 +1300,6 @@ static inline void decoder_apply_packet_state(OpusDecoder* st, int mode, int ban
   st->stream_channels = stream_channels;
 }
 
-
 static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
   ec_dec dec;
   opus_int32 silk_frame_size;
