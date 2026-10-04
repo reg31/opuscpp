@@ -10008,10 +10008,7 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
   classifier_gemm_accum(h, &weights[2 * nb_neurons], nb_neurons, nb_inputs, stride, input);
   classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp);
   for (int i = 0; i < nb_neurons; ++i) {
-    h[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
-  }
-  for (int i = 0; i < nb_neurons; ++i) {
-    state[i] = h[i];
+    state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
   }
 }
 
