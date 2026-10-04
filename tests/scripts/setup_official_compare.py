@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import json
 import os
@@ -12,6 +13,7 @@ import re
 import shutil
 import subprocess
 import sys
+import datetime
 import tarfile
 import urllib.request
 
@@ -708,6 +710,75 @@ def run_detector_mode_balance(cxx: str, repo_root: pathlib.Path, report_dir: pat
     return [line for line in output.splitlines() if line.strip()]
 
 
+def run_lpc_analysis_validation(
+    cxx: str,
+    repo_root: pathlib.Path,
+    official_lib: pathlib.Path,
+    build_dir: pathlib.Path,
+    opus_compare: pathlib.Path | None = None,
+) -> str:
+    build_dir.mkdir(parents=True, exist_ok=True)
+    suffix = ".exe" if os.name == "nt" else ""
+    comparator = opus_compare or official_lib.with_name(f"opus_compare{suffix}")
+    if not comparator.is_file():
+        raise FileNotFoundError(comparator)
+    current_test = compile_object(cxx, repo_root / "tests/lpc_analysis_filter.cpp",
+        build_dir / "lpc_analysis_filter.o", [], current_alias_macros("curr"))
+    exe = link_executable(cxx, [repo_root / "tests/lpc_reconstruction_vs_official.cpp"],
+        [current_test], [repo_root / "tests"], build_dir / f"lpc_analysis_filter{suffix}", [official_lib])
+    matrix = build_dir / "lpc_matrix"
+    matrix.mkdir(parents=True, exist_ok=True)
+    text = capture([str(exe), str(matrix)]).strip()
+    if "lpc_helper_checks=PASS" not in text or "lpc_packet_checks=PASS" not in text:
+        raise RuntimeError("LPC helper/public packet markers missing")
+    expected = [(c, b) for c in (0, 5, 9, 10) for b in (16000, 24000, 32000, 48000)]
+    rows = re.findall(r"^lpc_case complexity=(\d+) bitrate=(\d+) frames=(\d+) silk_frames=(\d+) hybrid_frames=(\d+) celt_frames=(\d+)$", text, re.M)
+    if [(int(x[0]), int(x[1])) for x in rows] != expected or any(int(x[2]) != 200 or sum(map(int, x[3:])) != 200 for x in rows):
+        raise RuntimeError("LPC original16x200 matrix incomplete")
+    def digest(path: pathlib.Path) -> str:
+        with path.open("rb") as file:
+            return hashlib.file_digest(file, "sha256").hexdigest()
+    cases = []
+    failures = []
+    for row in rows:
+        complexity, bitrate, frames, silk, hybrid, celt = map(int, row)
+        case = matrix / f"c{complexity}_b{bitrate}"
+        native = case / "native16_mono.pcm"
+        reference = case / "official48_stereo.pcm"
+        if native.stat().st_size != 200 * 320 * 2 or reference.stat().st_size != 200 * 960 * 2 * 2:
+            raise RuntimeError("LPC complete PCM sizes mismatch")
+        args = [str(comparator), "-r", "16000", str(reference), str(native)]
+        start = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        result = subprocess.run(args, capture_output=True, text=True)
+        end = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        (case / "compare.stdout.txt").write_text(result.stdout, encoding="utf-8")
+        (case / "compare.stderr.txt").write_text(result.stderr, encoding="utf-8")
+        (case / "compare.cmd.json").write_text(json.dumps({"argv": args, "exit": result.returncode, "start": start, "end": end}, indent=2), encoding="utf-8")
+        quality = re.search(r"Opus quality metric:\s*([-+0-9.eE]+)", result.stdout + result.stderr)
+        cases.append({"complexity": complexity, "bitrate": bitrate, "frames": frames,
+            "silk_frames": silk, "hybrid_frames": hybrid, "celt_frames": celt,
+            "compare_argv": args, "compare_exit": result.returncode,
+            "quality_metric": float(quality.group(1)) if quality else None,
+            "native_pcm_path": str(native), "native_pcm_sha256": digest(native),
+            "reference_pcm_path": str(reference), "reference_pcm_sha256": digest(reference),
+            "packet_sha256": digest(case / "packets.bin"), "ranges_sha256": digest(case / "ranges.csv"),
+            "stdout_path": str(case / "compare.stdout.txt"), "stderr_path": str(case / "compare.stderr.txt")})
+        if result.returncode != 0 or silk + hybrid == 0:
+            failures.append(f"c{complexity}_b{bitrate}")
+    coverage = sum(x["silk_frames"] + x["hybrid_frames"] for x in cases)
+    report = {"status": "PASS" if not failures and coverage > 0 else "FAIL", "cases": cases,
+        "failures": failures, "silk_layer_frames": coverage, "total_frames": 3200,
+        "native_rate": 16000, "native_channels": 1, "reference_rate": 48000, "reference_channels": 2,
+        "format": "headerless signed16 little-endian PCM", "comparator_path": str(comparator),
+        "comparator_sha256": digest(comparator), "official_archive_sha256": digest(official_lib),
+        "source_sha256": digest(repo_root / "src/opus_codec.cpp"),
+        "oracle": "RFC6716 section6 opus_compare exit0 for each configuration plus per-packet exact final ranges; no per-frame PCM tolerance"}
+    (matrix / "RESULTS.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+    if report["status"] != "PASS":
+        raise RuntimeError("LPC opus_compare/coverage failure: " + ",".join(failures))
+    return text + "\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"
+
+
 def run_api_behavior_validation(
     cxx: str,
     repo_root: pathlib.Path,
@@ -729,7 +800,8 @@ def run_api_behavior_validation(
         )
         output = capture([str(exe)])
         results.extend(line for line in output.splitlines() if line.strip())
-    for name in ("lpc_analysis_filter", "celt_energy_decode", "stereo_policy"):
+    results.append(run_lpc_analysis_validation(cxx, repo_root, official_lib, build_dir))
+    for name in ("celt_energy_decode", "stereo_policy"):
         exe = link_executable(
             cxx, [repo_root / "tests" / f"{name}.cpp"], [], [],
             build_dir / f"{name}{suffix}", [],

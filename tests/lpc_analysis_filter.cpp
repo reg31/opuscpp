@@ -1,21 +1,54 @@
 #include <array>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <string>
 
 #include "../src/opus_codec.cpp"
 
-static bool check_silk_reconstruction() {
+void* lpc_official_decoder_create(int rate, int channels, int* error);
+void lpc_official_decoder_destroy(void* decoder);
+int lpc_official_decode(void* decoder, const unsigned char* packet, int bytes, opus_int16* output, int capacity);
+int lpc_official_final_range(void* decoder, opus_uint32* range);
+
+static bool write_pcm16(std::ofstream& file, std::span<const opus_int16> pcm) {
+  std::array<unsigned char, 3840> bytes;
+  for (std::size_t i = 0; i < pcm.size(); ++i) {
+    const auto value = static_cast<std::uint16_t>(pcm[i]);
+    bytes[2 * i] = static_cast<unsigned char>(value);
+    bytes[2 * i + 1] = static_cast<unsigned char>(value >> 8);
+  }
+  file.write(reinterpret_cast<const char*>(bytes.data()), 2 * pcm.size());
+  return static_cast<bool>(file);
+}
+
+static bool check_public_packets(const std::filesystem::path& root) {
+  unsigned silk_layer_frames = 0;
   for (const int complexity : {0, 5, 9, 10}) {
     for (const int bitrate : {16000, 24000, 32000, 48000}) {
+      const auto path = root / ("c" + std::to_string(complexity) + "_b" + std::to_string(bitrate));
+      std::filesystem::create_directories(path);
+      std::ofstream native_file(path / "native16_mono.pcm", std::ios::binary);
+      std::ofstream reference_file(path / "official48_stereo.pcm", std::ios::binary);
+      std::ofstream packet_file(path / "packets.bin", std::ios::binary);
+      std::ofstream ranges(path / "ranges.csv");
+      ranges << "frame,native16,official16,official48\n";
       int error = OPUS_OK;
       const auto encoder = std::unique_ptr<OpusEncoder, decltype(&opus_encoder_destroy)>{opus_encoder_create(16000, 1, OPUS_APPLICATION_VOIP, &error), opus_encoder_destroy};
       const auto decoder = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(16000, 1, &error), opus_decoder_destroy};
-      if (!encoder || !decoder || error || opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) || opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(complexity)))
+      const auto matching = std::unique_ptr<void, decltype(&lpc_official_decoder_destroy)>{lpc_official_decoder_create(16000, 1, &error), lpc_official_decoder_destroy};
+      const auto reference = std::unique_ptr<void, decltype(&lpc_official_decoder_destroy)>{lpc_official_decoder_create(48000, 2, &error), lpc_official_decoder_destroy};
+      if (!encoder || !decoder || !matching || !reference || error || !native_file || !reference_file || !packet_file || !ranges ||
+          opus_encoder_ctl(encoder.get(), OPUS_SET_BITRATE(bitrate)) || opus_encoder_ctl(encoder.get(), OPUS_SET_COMPLEXITY(complexity))) {
+        std::cerr << "Public oracle setup failed complexity=" << complexity << " bitrate=" << bitrate << '\n';
         return false;
-      std::array<opus_int16, 320> input, output;
-      std::array<opus_int16, 13> tail{};
+      }
+      std::array<opus_int16, 320> input, output, official16;
+      std::array<opus_int16, 1920> official48;
       std::array<unsigned char, 1500> packet;
       opus_uint32 random = 1;
+      int silk_frames = 0, hybrid_frames = 0, celt_frames = 0;
       for (int frame = 0; frame < 200; ++frame) {
         for (int i = 0; i < 320; ++i) {
           const double t = (frame * 320 + i) / 16000.;
@@ -24,37 +57,51 @@ static bool check_silk_reconstruction() {
           const double phase = 2 * 3.141592653589793 * (140 * t + 3 * std::sin(2 * t));
           input[i] = static_cast<opus_int16>((.6 + .4 * std::sin(11 * t)) * (7000 * std::sin(phase) + 2500 * std::sin(2 * phase) + 1500 * std::sin(3 * phase)) + noise);
         }
-        encoder->lightweight_voice_score_Q7 = 115;
-        encoder->lightweight_vad_score_Q7 = 115;
-        encoder->lightweight_music_score_Q7 = 0;
-        encoder->lightweight_harmonic_music_Q7 = 0;
-        encoder->lightweight_high_z_tonal_Q7 = 0;
         const int bytes = opus_encode(encoder.get(), input.data(), 320, packet.data(), packet.size());
-        if (bytes <= 0 || opus_decode(decoder.get(), packet.data(), bytes, output.data(), 320, 0) != 320)
+        if (bytes <= 0) {
+          std::cerr << "Public oracle encode failed complexity=" << complexity << " bitrate=" << bitrate << " frame=" << frame << '\n';
           return false;
-        const auto& state = silk_encoder_channel_states(static_cast<silk_encoder*>(encoder_silk_state(encoder.get())))[0].sCmn;
-        const auto& decoded_state = *static_cast<silk_decoder*>(decoder_silk_state(decoder.get()))->channel_state;
-        if (state.fs_kHz != 16 || encoder->mode != opus_mode_silk_only || decoded_state.resampler_state.inputDelay + 1 != static_cast<int>(tail.size()))
-          return false;
-        const auto* samples = state.sNSQ.xq + state.ltp_mem_length - state.frame_length;
-        if (frame >= 10) {
-          for (std::size_t i = 0; i < output.size(); ++i) {
-            if (output[i] != (i < tail.size() ? tail[i] : samples[i - tail.size()]))
-              return false;
-          }
         }
-        std::copy_n(samples + state.frame_length - tail.size(), tail.size(), tail.data());
+        const int native_samples = opus_decode(decoder.get(), packet.data(), bytes, output.data(), 320, 0);
+        const int matching_samples = lpc_official_decode(matching.get(), packet.data(), bytes, official16.data(), 320);
+        const int reference_samples = lpc_official_decode(reference.get(), packet.data(), bytes, official48.data(), 960);
+        if (native_samples != 320 || matching_samples != 320 || reference_samples != 960) {
+          std::cerr << "Public oracle return failed complexity=" << complexity << " bitrate=" << bitrate << " frame=" << frame << " native=" << native_samples << " official16=" << matching_samples << " official48=" << reference_samples << '\n';
+          return false;
+        }
+        opus_uint32 native_range = 0, matching_range = 0, reference_range = 0;
+        if (opus_decoder_ctl(decoder.get(), OPUS_GET_FINAL_RANGE(&native_range)) || lpc_official_final_range(matching.get(), &matching_range) ||
+            lpc_official_final_range(reference.get(), &reference_range) || native_range != matching_range || native_range != reference_range) {
+          std::cerr << "Public oracle range failed complexity=" << complexity << " bitrate=" << bitrate << " frame=" << frame << '\n';
+          return false;
+        }
+        if (packet[0] & 0x80) ++celt_frames;
+        else if ((packet[0] & 0x60) == 0x60) ++hybrid_frames;
+        else ++silk_frames;
+        ranges << frame << ',' << native_range << ',' << matching_range << ',' << reference_range << '\n';
+        const std::array<unsigned char, 4> length{static_cast<unsigned char>(bytes), static_cast<unsigned char>(bytes >> 8), static_cast<unsigned char>(bytes >> 16), static_cast<unsigned char>(bytes >> 24)};
+        packet_file.write(reinterpret_cast<const char*>(length.data()), length.size());
+        packet_file.write(reinterpret_cast<const char*>(packet.data()), bytes);
+        if (!write_pcm16(native_file, output) || !write_pcm16(reference_file, official48) || !packet_file || !ranges) return false;
       }
+      native_file.close(); reference_file.close(); packet_file.close(); ranges.close();
+      if (!native_file || !reference_file || !packet_file || !ranges) return false;
+      silk_layer_frames += silk_frames + hybrid_frames;
+      std::cout << "lpc_case complexity=" << complexity << " bitrate=" << bitrate << " frames=200 silk_frames=" << silk_frames << " hybrid_frames=" << hybrid_frames << " celt_frames=" << celt_frames << '\n';
     }
   }
+  if (silk_layer_frames == 0) {
+    std::cerr << "Public oracle has no actual SILK-layer packets\n";
+    return false;
+  }
+  std::cout << "lpc_silk_layer_frames=" << silk_layer_frames << '\n';
   return true;
 }
 
-int main() {
-  if (!check_silk_reconstruction()) {
-    std::cerr << "SILK encoder/decoder reconstruction mismatch\n";
-    return 1;
-  }
+int main(int argc, char** argv) {
+  if (argc != 2) return 1;
+  const bool packets_ok = check_public_packets(argv[1]);
+  if (!packets_ok) std::cerr << "Public oracle packet/range gate failed\n";
   const auto check_fraction = [](opus_uint32 bits) {
     opus_int32 leading = 0, fraction = 0;
     silk_CLZ_FRAC(std::bit_cast<opus_int32>(bits), &leading, &fraction);
@@ -156,5 +203,7 @@ int main() {
       previous = expected;
     }
   }
-  std::cout << "lpc_analysis_filter=PASS (SILK encoder/decoder reconstruction; bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\n";
+  std::cout << "lpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\n";
+  if (!packets_ok) return 1;
+  std::cout << "lpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\n";
 }
