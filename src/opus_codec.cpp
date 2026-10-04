@@ -301,7 +301,17 @@ using ec_dec = ec_ctx;
   return state->nbits_total - std::bit_width(state->rng);
 }
 
-static opus_uint32 ec_tell_frac(const ec_ctx* _this);
+static opus_uint32 ec_tell_frac(const ec_ctx* _this) {
+  constexpr std::array<opus_uint16, 8> corrections{35733, 38967, 42495, 46340, 50535, 55109, 60097, 65535};
+  const opus_uint32 nbits = _this->nbits_total << 3;
+  int l = std::bit_width(_this->rng);
+  const opus_uint32 r = _this->rng >> (l - 16);
+  unsigned b = (r >> 12) - 8;
+  b += r > corrections[b];
+  l = (l << 3) + b;
+  return nbits - l;
+}
+
 [[nodiscard]] constexpr auto celt_udiv(opus_uint32 numerator, opus_uint32 denominator) noexcept -> opus_uint32 {
   return numerator / denominator;
 }
@@ -665,7 +675,6 @@ struct vbr_frame_budget final {
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
 static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false);
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
-static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate, int channels);
 static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
                                       opus_int16* pcm16 = nullptr, bool update_pitch_cache = true);
 static void celt_decoder_reset_state(CeltDecoderInternal* st);
@@ -779,7 +788,6 @@ struct CeltModeInternal {
                                                                                 x_sq * (-4.3554059229791164398193359375e-03f))))))));
 }
 
-static void celt_float2int16_c(const float* in, opus_int16* out, std::size_t count);
 struct packet_frame_set {
   unsigned char toc = 0;
   int nb_frames = 0;
@@ -967,6 +975,12 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
 
 [[nodiscard]] static inline auto FLOAT2INT16(float x) noexcept -> opus_int16 {
   return static_cast<opus_int16>(pcm_float2int(std::clamp(x * 32768.f, -32768.f, 32767.f)));
+}
+
+static void celt_float2int16_c(const float* in, opus_int16* out, std::size_t count) {
+  for (std::size_t i = 0; i < count; ++i) {
+    out[i] = FLOAT2INT16(in[i]);
+  }
 }
 
 struct silk_resampler_state_struct {
@@ -1249,17 +1263,6 @@ static_assert(sizeof(OpusDecoder) <= 80);
 
 [[nodiscard]] static inline auto decoder_celt_state(OpusDecoder* st) noexcept -> CeltDecoderInternal* {
   return offset_ptr<CeltDecoderInternal>(st, align(sizeof(OpusDecoder)) + align(silk_decoder_get_size()));
-}
-
-static void ref_opus_decoder_init(OpusDecoder* st, opus_int32 Fs, int channels) {
-  auto* silk_dec = decoder_silk_state(st);
-  auto* celt_dec = decoder_celt_state(st);
-  std::memset(silk_dec, 0, static_cast<std::size_t>(silk_decoder_get_size()));
-  st->stream_channels = st->channels = channels;
-  st->Fs = Fs;
-  silk_ResetDecoder(silk_dec);
-  celt_decoder_init(celt_dec, Fs, channels);
-  st->frame_size = Fs / 400;
 }
 
 static void smooth_fade(const opus_res* in1, const opus_res* in2, opus_res* out, int overlap, int channels, opus_int32 Fs) {
@@ -1746,7 +1749,6 @@ int opus_packet_get_nb_samples(const unsigned char* packet, int len, int Fs) noe
 }
 
 static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len);
-static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch);
 static opus_val16 remove_doubling(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain);
 static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, std::span<opus_val32, 4> sum, int len) {
   const auto* y0 = y;
@@ -5869,10 +5871,6 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   *seed = ctx.seed;
 }
 
-static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p);
-static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N);
-static void celt_iir(const opus_val32* x, const opus_val16* den, opus_val32* y, int N, opus_val16* mem);
-static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n);
 static int resampling_factor(opus_int32 rate) {
   return is_supported_sample_rate(rate) ? 48000 / rate : 0;
 }
@@ -6044,7 +6042,6 @@ static constexpr int celt_decoder_raw_start = celt_decoder_compact_prefix - 2;
 static constexpr int celt_decoder_prefix_pairs = celt_decoder_compact_prefix / celt_short_mdct_size;
 static constexpr int celt_decoder_channel_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs +
                                                     celt_decoder_history_size - celt_decoder_raw_start + celt_decoder_retained_overlap;
-static void pitch_whiten(opus_val16* x_lp, int len);
 
 [[nodiscard]] static inline auto celt_encoder_storage(CeltEncoderInternal* st) noexcept -> celt_sig* {
   static_assert(sizeof(CeltEncoderInternal) % alignof(celt_sig) == 0);
@@ -6592,6 +6589,98 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
   }
   *toneishness = 0;
   return -1;
+}
+
+static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch) {
+  opus_val32 Syy = 1;
+  opus_val16 best_num0 = -1, best_num1 = -1;
+  opus_val32 best_den0 = 0, best_den1 = 0;
+  int best_pitch0 = 0, best_pitch1 = 1;
+  for (int j = 0; j < len; j++) {
+    Syy = ((Syy) + (((static_cast<opus_val32>(y[j]) * static_cast<opus_val32>(y[j])))));
+  }
+  for (int i = 0; i < max_pitch; i++) {
+    if (xcorr[i] > 0) {
+      opus_val32 xcorr16 = ((xcorr[i]));
+      xcorr16 *= 1e-12f;
+      const opus_val16 num = ((xcorr16) * (xcorr16));
+      if (((num)*best_den1) > (best_num1 * Syy)) {
+        if (((num)*best_den0) > (best_num0 * Syy)) {
+          best_num1 = best_num0;
+          best_den1 = best_den0;
+          best_pitch1 = best_pitch0;
+          best_num0 = num;
+          best_den0 = Syy;
+          best_pitch0 = i;
+        } else {
+          best_num1 = num;
+          best_den1 = Syy;
+          best_pitch1 = i;
+        }
+      }
+    }
+    Syy += ((static_cast<opus_val32>(y[i + len]) * static_cast<opus_val32>(y[i + len]))) -
+           ((static_cast<opus_val32>(y[i]) * static_cast<opus_val32>(y[i])));
+    Syy = std::max(1.f, Syy);
+  }
+  best_pitch[0] = best_pitch0;
+  best_pitch[1] = best_pitch1;
+}
+
+static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
+  int i;
+  for (i = 0; i < max_pitch - 3; i += 4) {
+    std::array<opus_val32, 4> sum{};
+    xcorr_kernel_c(x, y + i, sum, len);
+    xcorr[i] = sum[0];
+    xcorr[i + 1] = sum[1];
+    xcorr[i + 2] = sum[2];
+    xcorr[i + 3] = sum[3];
+  }
+  for (; i < max_pitch; i++) {
+    opus_val32 sum = celt_inner_prod_c(x, y + i, len);
+    xcorr[i] = sum;
+  }
+}
+
+static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
+  std::array<int, 2> best_pitch{};
+  int offset;
+  const int lag = len + max_pitch;
+  std::array<opus_val16, celt_max_pitch_period / 2> x_lp4;
+  std::array<opus_val16, celt_max_pitch_period / 2> y_lp4;
+  std::array<opus_val32, celt_max_pitch_period / 2> xcorr;
+  for (int j = 0; j < len >> 2; j++) {
+    x_lp4[j] = x_lp[2 * j];
+  }
+  for (int j = 0; j < lag >> 2; j++) {
+    y_lp4[j] = y[2 * j];
+  }
+  celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
+  find_best_pitch(xcorr.data(), y_lp4.data(), len >> 2, max_pitch >> 2, best_pitch.data());
+  for (int i = 0; i < max_pitch >> 1; i++) {
+    xcorr[i] = 0;
+    if (std::abs(i - 2 * best_pitch[0]) > 2 && std::abs(i - 2 * best_pitch[1]) > 2) {
+      continue;
+    }
+    const opus_val32 sum = celt_inner_prod_c(x_lp, y + i, len >> 1);
+    xcorr[i] = std::max(-1.f, sum);
+  }
+  find_best_pitch(xcorr.data(), y, len >> 1, max_pitch >> 1, best_pitch.data());
+  if (best_pitch[0] > 0 && best_pitch[0] < (max_pitch >> 1) - 1) {
+    const opus_val32 a = xcorr[best_pitch[0] - 1];
+    const opus_val32 b = xcorr[best_pitch[0]];
+    const opus_val32 c = xcorr[best_pitch[0] + 1];
+    if ((c - a) > (((.7f)) * (b - a))) {
+      offset = 1;
+    } else if ((a - c) > (((.7f)) * (b - c)))
+      offset = -1;
+    else
+      offset = 0;
+  } else {
+    offset = 0;
+  }
+  *pitch = 2 * best_pitch[0] - offset;
 }
 
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
@@ -7551,6 +7640,17 @@ static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate,
   celt_decoder_reset_state(st);
 }
 
+static void ref_opus_decoder_init(OpusDecoder* st, opus_int32 Fs, int channels) {
+  auto* silk_dec = decoder_silk_state(st);
+  auto* celt_dec = decoder_celt_state(st);
+  std::memset(silk_dec, 0, static_cast<std::size_t>(silk_decoder_get_size()));
+  st->stream_channels = st->channels = channels;
+  st->Fs = Fs;
+  silk_ResetDecoder(silk_dec);
+  celt_decoder_init(celt_dec, Fs, channels);
+  st->frame_size = Fs / 400;
+}
+
 template <typename Sample> [[nodiscard]] static inline auto deemphasis_output(celt_sig sample) noexcept -> Sample {
   if constexpr (std::same_as<Sample, opus_int16>) {
     return static_cast<opus_int16>(pcm_float2int(std::clamp(sample, -32768.f, 32767.f)));
@@ -7668,6 +7768,180 @@ constexpr int celt_decode_buffer_size = 2048, celt_plc_max_period = 1024, celt_l
 constexpr int celt_decoder_prefix_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs;
 constexpr int celt_decoder_inplace_history_size = celt_decoder_channel_storage - celt_decoder_retained_overlap;
 constexpr int celt_decoder_inplace_frame_limit = celt_decoder_inplace_history_size - celt_max_pitch_period;
+static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p) {
+  opus_val32 error = ac[0];
+  float* lpc = _lpc;
+  zero_n_items(lpc, static_cast<std::size_t>(p));
+  if (ac[0] > 1e-10f) {
+    for (int i = 0; i < p; i++) {
+      opus_val32 rr = 0;
+      for (int j = 0; j < i; j++) {
+        rr += ((lpc[j]) * (ac[i - j]));
+      }
+      rr += (ac[i + 1]);
+      const opus_val32 r = -(static_cast<float>((rr)) / (error));
+      lpc[i] = r;
+      for (int j = 0; j < (i + 1) >> 1; j++) {
+        const opus_val32 tmp1 = lpc[j];
+        const opus_val32 tmp2 = lpc[i - 1 - j];
+        lpc[j] = tmp1 + r * tmp2;
+        lpc[i - 1 - j] = tmp2 + r * tmp1;
+      }
+      error -= r * r * error;
+      if (error <= .001f * ac[0]) {
+        break;
+      }
+    }
+  }
+}
+
+static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N) {
+  std::array<opus_val16, celt_lpc_order> rnum;
+  std::reverse_copy(num, num + celt_lpc_order, rnum.begin());
+  int i = 0;
+  for (; i < N - 3; i += 4) {
+    std::array<opus_val32, 4> sum;
+    sum[0] = ((x[i]));
+    sum[1] = ((x[i + 1]));
+    sum[2] = ((x[i + 2]));
+    sum[3] = ((x[i + 3]));
+    xcorr_kernel_c(rnum.data(), x + i - celt_lpc_order, sum, celt_lpc_order);
+    y[i] = (sum[0]);
+    y[i + 1] = (sum[1]);
+    y[i + 2] = (sum[2]);
+    y[i + 3] = (sum[3]);
+  }
+  for (; i < N; i++) {
+    opus_val32 sum = ((x[i]));
+    for (int j = 0; j < celt_lpc_order; j++) {
+      sum = ((sum) + static_cast<opus_val32>(rnum[j]) * static_cast<opus_val32>(x[i + j - celt_lpc_order]));
+    }
+    y[i] = (sum);
+  }
+}
+
+static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
+  std::array<opus_val16, celt_lpc_order> rden;
+  std::array<opus_val16, celt_max_frame_samples + celt_default_overlap + celt_lpc_order> y;
+  std::reverse_copy(den, den + celt_lpc_order, rden.begin());
+  for (int index = 0; index < celt_lpc_order; ++index) {
+    y[index] = -mem[celt_lpc_order - 1 - index];
+  }
+  zero_n_items(y.data() + celt_lpc_order, static_cast<std::size_t>(N));
+  int i = 0;
+  for (; i < N - 3; i += 4) {
+    std::array<opus_val32, 4> sum;
+    sum[0] = _x[i];
+    sum[1] = _x[i + 1];
+    sum[2] = _x[i + 2];
+    sum[3] = _x[i + 3];
+    xcorr_kernel_c(rden.data(), y.data() + i, sum, celt_lpc_order);
+    y[i + celt_lpc_order] = -(sum[0]);
+    _y[i] = sum[0];
+    sum[1] = ((sum[1]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[0]));
+    y[i + celt_lpc_order + 1] = -(sum[1]);
+    _y[i + 1] = sum[1];
+    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[0]));
+    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[1]));
+    y[i + celt_lpc_order + 2] = -(sum[2]);
+    _y[i + 2] = sum[2];
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 2]) * static_cast<opus_val32>(den[0]));
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[1]));
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[2]));
+    y[i + celt_lpc_order + 3] = -(sum[3]);
+    _y[i + 3] = sum[3];
+  }
+  for (; i < N; i++) {
+    opus_val32 sum = _x[i];
+    for (int j = 0; j < celt_lpc_order; j++) {
+      sum -= (static_cast<opus_val32>(rden[j]) * static_cast<opus_val32>(y[i + j]));
+    }
+    y[i + celt_lpc_order] = (sum);
+    _y[i] = sum;
+  }
+  for (i = 0; i < celt_lpc_order; i++) {
+    mem[i] = _y[N - i - 1];
+  }
+}
+
+static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n) {
+  const int fastN = n - lag;
+  auto accumulate = [&](const opus_val16* input) {
+    celt_pitch_xcorr_c(input, input, ac, fastN, lag + 1);
+    for (int k = 0; k <= lag; ++k) {
+      opus_val32 tail = 0;
+      for (int i = k + fastN; i < n; ++i) {
+        tail += input[i] * input[i - k];
+      }
+      ac[k] += tail;
+    }
+  };
+  if (overlap == 0) {
+    accumulate(x);
+    return;
+  }
+
+  std::array<opus_val16, celt_plc_max_period> windowed_storage;
+  copy_n_items(x, static_cast<std::size_t>(n), windowed_storage.data());
+  for (int i = 0; i < overlap; ++i) {
+    const opus_val16 weight = window[i];
+    windowed_storage[i] = x[i] * weight;
+    windowed_storage[n - i - 1] = x[n - i - 1] * weight;
+  }
+  accumulate(windowed_storage.data());
+}
+
+static void celt_fir5(opus_val16* x, const opus_val16* num, int N) {
+  const opus_val16 num0 = num[0];
+  const opus_val16 num1 = num[1];
+  const opus_val16 num2 = num[2];
+  const opus_val16 num3 = num[3];
+  const opus_val16 num4 = num[4];
+  opus_val32 mem0 = 0;
+  opus_val32 mem1 = 0;
+  opus_val32 mem2 = 0;
+  opus_val32 mem3 = 0;
+  opus_val32 mem4 = 0;
+  for (int i = 0; i < N; i++) {
+    opus_val32 sum = ((x[i]));
+    sum = ((sum) + static_cast<opus_val32>(num0) * (mem0));
+    sum = ((sum) + static_cast<opus_val32>(num1) * (mem1));
+    sum = ((sum) + static_cast<opus_val32>(num2) * (mem2));
+    sum = ((sum) + static_cast<opus_val32>(num3) * (mem3));
+    sum = ((sum) + static_cast<opus_val32>(num4) * (mem4));
+    mem4 = mem3;
+    mem3 = mem2;
+    mem2 = mem1;
+    mem1 = mem0;
+    mem0 = x[i];
+    x[i] = (sum);
+  }
+}
+
+static void pitch_whiten(opus_val16* x_lp, int len) {
+  std::array<opus_val32, 5> ac{};
+  opus_val16 tmp = 1.0f;
+  std::array<opus_val16, 4> lpc{};
+  std::array<opus_val16, 5> lpc2{};
+  opus_val16 c1 = (.8f);
+  _celt_autocorr(x_lp, ac.data(), nullptr, 0, 4, len);
+  ac[0] *= 1.0001f;
+  for (int i = 1; i <= 4; i++) {
+    ac[i] -= ac[i] * (.008f * i) * (.008f * i);
+  }
+  _celt_lpc(lpc.data(), ac.data(), 4);
+  for (int i = 0; i < 4; i++) {
+    tmp = (((.9f)) * (tmp));
+    lpc[i] = ((lpc[i]) * (tmp));
+  }
+  lpc2[0] = lpc[0] + (.8f);
+  lpc2[1] = lpc[1] + ((c1) * (lpc[0]));
+  lpc2[2] = lpc[2] + ((c1) * (lpc[1]));
+  lpc2[3] = lpc[3] + ((c1) * (lpc[2]));
+  lpc2[4] = ((c1) * (lpc[3]));
+  celt_fir5(x_lp, lpc2.data(), len);
+}
+
 struct celt_decoder_views {
   int history_size = celt_decode_buffer_size, raw_offset = 0;
   int cache_backup_start = 0, cache_backup_count = 0;
@@ -8431,17 +8705,6 @@ template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int 
   return celt_pvq_unrank_impl(n, k, index, writer);
 }
 
-static opus_uint32 ec_tell_frac(const ec_ctx* _this) {
-  constexpr std::array<opus_uint16, 8> corrections{35733, 38967, 42495, 46340, 50535, 55109, 60097, 65535};
-  const opus_uint32 nbits = _this->nbits_total << 3;
-  int l = std::bit_width(_this->rng);
-  const opus_uint32 r = _this->rng >> (l - 16);
-  unsigned b = (r >> 12) - 8;
-  b += r > corrections[b];
-  l = (l << 3) + b;
-  return nbits - l;
-}
-
 static int ec_write_byte(ec_enc* _this, unsigned _value) {
   if (_this->offs + _this->end_offs >= _this->storage) {
     return -1;
@@ -9009,12 +9272,6 @@ static int ec_laplace_decode(ec_dec* dec, unsigned fs, int decay) {
   }
   ec_dec_update(dec, fl, std::min(fl + fs, static_cast<unsigned>(32768)), 32768);
   return val;
-}
-
-static void celt_float2int16_c(const float* in, opus_int16* out, std::size_t count) {
-  for (std::size_t i = 0; i < count; ++i) {
-    out[i] = FLOAT2INT16(in[i]);
-  }
 }
 
 template <bool Fixed20ms>
@@ -11019,93 +11276,6 @@ static constexpr CeltModeInternal mode48000_960_120 = {
   return &mode48000_960_120;
 }
 
-static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch) {
-  opus_val32 Syy = 1;
-  opus_val16 best_num0 = -1, best_num1 = -1;
-  opus_val32 best_den0 = 0, best_den1 = 0;
-  int best_pitch0 = 0, best_pitch1 = 1;
-  for (int j = 0; j < len; j++) {
-    Syy = ((Syy) + (((static_cast<opus_val32>(y[j]) * static_cast<opus_val32>(y[j])))));
-  }
-  for (int i = 0; i < max_pitch; i++) {
-    if (xcorr[i] > 0) {
-      opus_val32 xcorr16 = ((xcorr[i]));
-      xcorr16 *= 1e-12f;
-      const opus_val16 num = ((xcorr16) * (xcorr16));
-      if (((num)*best_den1) > (best_num1 * Syy)) {
-        if (((num)*best_den0) > (best_num0 * Syy)) {
-          best_num1 = best_num0;
-          best_den1 = best_den0;
-          best_pitch1 = best_pitch0;
-          best_num0 = num;
-          best_den0 = Syy;
-          best_pitch0 = i;
-        } else {
-          best_num1 = num;
-          best_den1 = Syy;
-          best_pitch1 = i;
-        }
-      }
-    }
-    Syy += ((static_cast<opus_val32>(y[i + len]) * static_cast<opus_val32>(y[i + len]))) -
-           ((static_cast<opus_val32>(y[i]) * static_cast<opus_val32>(y[i])));
-    Syy = std::max(1.f, Syy);
-  }
-  best_pitch[0] = best_pitch0;
-  best_pitch[1] = best_pitch1;
-}
-
-static void celt_fir5(opus_val16* x, const opus_val16* num, int N) {
-  const opus_val16 num0 = num[0];
-  const opus_val16 num1 = num[1];
-  const opus_val16 num2 = num[2];
-  const opus_val16 num3 = num[3];
-  const opus_val16 num4 = num[4];
-  opus_val32 mem0 = 0;
-  opus_val32 mem1 = 0;
-  opus_val32 mem2 = 0;
-  opus_val32 mem3 = 0;
-  opus_val32 mem4 = 0;
-  for (int i = 0; i < N; i++) {
-    opus_val32 sum = ((x[i]));
-    sum = ((sum) + static_cast<opus_val32>(num0) * (mem0));
-    sum = ((sum) + static_cast<opus_val32>(num1) * (mem1));
-    sum = ((sum) + static_cast<opus_val32>(num2) * (mem2));
-    sum = ((sum) + static_cast<opus_val32>(num3) * (mem3));
-    sum = ((sum) + static_cast<opus_val32>(num4) * (mem4));
-    mem4 = mem3;
-    mem3 = mem2;
-    mem2 = mem1;
-    mem1 = mem0;
-    mem0 = x[i];
-    x[i] = (sum);
-  }
-}
-
-static void pitch_whiten(opus_val16* x_lp, int len) {
-  std::array<opus_val32, 5> ac{};
-  opus_val16 tmp = 1.0f;
-  std::array<opus_val16, 4> lpc{};
-  std::array<opus_val16, 5> lpc2{};
-  opus_val16 c1 = (.8f);
-  _celt_autocorr(x_lp, ac.data(), nullptr, 0, 4, len);
-  ac[0] *= 1.0001f;
-  for (int i = 1; i <= 4; i++) {
-    ac[i] -= ac[i] * (.008f * i) * (.008f * i);
-  }
-  _celt_lpc(lpc.data(), ac.data(), 4);
-  for (int i = 0; i < 4; i++) {
-    tmp = (((.9f)) * (tmp));
-    lpc[i] = ((lpc[i]) * (tmp));
-  }
-  lpc2[0] = lpc[0] + (.8f);
-  lpc2[1] = lpc[1] + ((c1) * (lpc[0]));
-  lpc2[2] = lpc[2] + ((c1) * (lpc[1]));
-  lpc2[3] = lpc[3] + ((c1) * (lpc[2]));
-  lpc2[4] = ((c1) * (lpc[3]));
-  celt_fir5(x_lp, lpc2.data(), len);
-}
-
 static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len) {
   constexpr int factor = 2, offset = 1;
   for (int i = 1; i < len; i++) {
@@ -11119,62 +11289,6 @@ static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp,
     x_lp[0] += .25f * x[1][offset] + .5f * x[1][0];
   }
   pitch_whiten(x_lp, len);
-}
-
-static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
-  int i;
-  for (i = 0; i < max_pitch - 3; i += 4) {
-    std::array<opus_val32, 4> sum{};
-    xcorr_kernel_c(x, y + i, sum, len);
-    xcorr[i] = sum[0];
-    xcorr[i + 1] = sum[1];
-    xcorr[i + 2] = sum[2];
-    xcorr[i + 3] = sum[3];
-  }
-  for (; i < max_pitch; i++) {
-    opus_val32 sum = celt_inner_prod_c(x, y + i, len);
-    xcorr[i] = sum;
-  }
-}
-
-static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
-  std::array<int, 2> best_pitch{};
-  int offset;
-  const int lag = len + max_pitch;
-  std::array<opus_val16, celt_max_pitch_period / 2> x_lp4;
-  std::array<opus_val16, celt_max_pitch_period / 2> y_lp4;
-  std::array<opus_val32, celt_max_pitch_period / 2> xcorr;
-  for (int j = 0; j < len >> 2; j++) {
-    x_lp4[j] = x_lp[2 * j];
-  }
-  for (int j = 0; j < lag >> 2; j++) {
-    y_lp4[j] = y[2 * j];
-  }
-  celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
-  find_best_pitch(xcorr.data(), y_lp4.data(), len >> 2, max_pitch >> 2, best_pitch.data());
-  for (int i = 0; i < max_pitch >> 1; i++) {
-    xcorr[i] = 0;
-    if (std::abs(i - 2 * best_pitch[0]) > 2 && std::abs(i - 2 * best_pitch[1]) > 2) {
-      continue;
-    }
-    const opus_val32 sum = celt_inner_prod_c(x_lp, y + i, len >> 1);
-    xcorr[i] = std::max(-1.f, sum);
-  }
-  find_best_pitch(xcorr.data(), y, len >> 1, max_pitch >> 1, best_pitch.data());
-  if (best_pitch[0] > 0 && best_pitch[0] < (max_pitch >> 1) - 1) {
-    const opus_val32 a = xcorr[best_pitch[0] - 1];
-    const opus_val32 b = xcorr[best_pitch[0]];
-    const opus_val32 c = xcorr[best_pitch[0] + 1];
-    if ((c - a) > (((.7f)) * (b - a))) {
-      offset = 1;
-    } else if ((a - c) > (((.7f)) * (b - c)))
-      offset = -1;
-    else
-      offset = 0;
-  } else {
-    offset = 0;
-  }
-  *pitch = 2 * best_pitch[0] - offset;
 }
 
 static opus_val16 compute_pitch_gain(opus_val32 xy, opus_val32 xx, opus_val32 yy) {
@@ -11274,129 +11388,6 @@ static opus_val16 remove_doubling(opus_val16* x, int N, int* T0_, int prev_perio
     *T0_ = minperiod0;
   }
   return pg;
-}
-
-static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p) {
-  opus_val32 error = ac[0];
-  float* lpc = _lpc;
-  zero_n_items(lpc, static_cast<std::size_t>(p));
-  if (ac[0] > 1e-10f) {
-    for (int i = 0; i < p; i++) {
-      opus_val32 rr = 0;
-      for (int j = 0; j < i; j++) {
-        rr += ((lpc[j]) * (ac[i - j]));
-      }
-      rr += (ac[i + 1]);
-      const opus_val32 r = -(static_cast<float>((rr)) / (error));
-      lpc[i] = r;
-      for (int j = 0; j < (i + 1) >> 1; j++) {
-        const opus_val32 tmp1 = lpc[j];
-        const opus_val32 tmp2 = lpc[i - 1 - j];
-        lpc[j] = tmp1 + r * tmp2;
-        lpc[i - 1 - j] = tmp2 + r * tmp1;
-      }
-      error -= r * r * error;
-      if (error <= .001f * ac[0]) {
-        break;
-      }
-    }
-  }
-}
-
-static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N) {
-  std::array<opus_val16, celt_lpc_order> rnum;
-  std::reverse_copy(num, num + celt_lpc_order, rnum.begin());
-  int i = 0;
-  for (; i < N - 3; i += 4) {
-    std::array<opus_val32, 4> sum;
-    sum[0] = ((x[i]));
-    sum[1] = ((x[i + 1]));
-    sum[2] = ((x[i + 2]));
-    sum[3] = ((x[i + 3]));
-    xcorr_kernel_c(rnum.data(), x + i - celt_lpc_order, sum, celt_lpc_order);
-    y[i] = (sum[0]);
-    y[i + 1] = (sum[1]);
-    y[i + 2] = (sum[2]);
-    y[i + 3] = (sum[3]);
-  }
-  for (; i < N; i++) {
-    opus_val32 sum = ((x[i]));
-    for (int j = 0; j < celt_lpc_order; j++) {
-      sum = ((sum) + static_cast<opus_val32>(rnum[j]) * static_cast<opus_val32>(x[i + j - celt_lpc_order]));
-    }
-    y[i] = (sum);
-  }
-}
-
-static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
-  std::array<opus_val16, celt_lpc_order> rden;
-  std::array<opus_val16, celt_max_frame_samples + celt_default_overlap + celt_lpc_order> y;
-  std::reverse_copy(den, den + celt_lpc_order, rden.begin());
-  for (int index = 0; index < celt_lpc_order; ++index) {
-    y[index] = -mem[celt_lpc_order - 1 - index];
-  }
-  zero_n_items(y.data() + celt_lpc_order, static_cast<std::size_t>(N));
-  int i = 0;
-  for (; i < N - 3; i += 4) {
-    std::array<opus_val32, 4> sum;
-    sum[0] = _x[i];
-    sum[1] = _x[i + 1];
-    sum[2] = _x[i + 2];
-    sum[3] = _x[i + 3];
-    xcorr_kernel_c(rden.data(), y.data() + i, sum, celt_lpc_order);
-    y[i + celt_lpc_order] = -(sum[0]);
-    _y[i] = sum[0];
-    sum[1] = ((sum[1]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[0]));
-    y[i + celt_lpc_order + 1] = -(sum[1]);
-    _y[i + 1] = sum[1];
-    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[0]));
-    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[1]));
-    y[i + celt_lpc_order + 2] = -(sum[2]);
-    _y[i + 2] = sum[2];
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 2]) * static_cast<opus_val32>(den[0]));
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[1]));
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[2]));
-    y[i + celt_lpc_order + 3] = -(sum[3]);
-    _y[i + 3] = sum[3];
-  }
-  for (; i < N; i++) {
-    opus_val32 sum = _x[i];
-    for (int j = 0; j < celt_lpc_order; j++) {
-      sum -= (static_cast<opus_val32>(rden[j]) * static_cast<opus_val32>(y[i + j]));
-    }
-    y[i + celt_lpc_order] = (sum);
-    _y[i] = sum;
-  }
-  for (i = 0; i < celt_lpc_order; i++) {
-    mem[i] = _y[N - i - 1];
-  }
-}
-
-static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n) {
-  const int fastN = n - lag;
-  auto accumulate = [&](const opus_val16* input) {
-    celt_pitch_xcorr_c(input, input, ac, fastN, lag + 1);
-    for (int k = 0; k <= lag; ++k) {
-      opus_val32 tail = 0;
-      for (int i = k + fastN; i < n; ++i) {
-        tail += input[i] * input[i - k];
-      }
-      ac[k] += tail;
-    }
-  };
-  if (overlap == 0) {
-    accumulate(x);
-    return;
-  }
-
-  std::array<opus_val16, celt_plc_max_period> windowed_storage;
-  copy_n_items(x, static_cast<std::size_t>(n), windowed_storage.data());
-  for (int i = 0; i < overlap; ++i) {
-    const opus_val16 weight = window[i];
-    windowed_storage[i] = x[i] * weight;
-    windowed_storage[n - i - 1] = x[n - i - 1] * weight;
-  }
-  accumulate(windowed_storage.data());
 }
 
 namespace {
