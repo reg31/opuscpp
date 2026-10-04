@@ -5730,7 +5730,7 @@ static opus_val32 l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias
 static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
-  std::array<int, celt_default_nb_ebands> metric{};
+  std::array<int, celt_default_nb_ebands> metric;
   std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1;
   int selcost[2];
