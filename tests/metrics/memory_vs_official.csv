@@ -1,9 +1,9 @@
 label,private_per_instance,working_set_per_instance,official_api_state_bytes
-current_encoder_ch1,19792.0,19808.0,
-official_encoder_ch1,31872.0,31872.0,31668
-current_decoder_ch1,11840.0,10752.0,
-official_decoder_ch1,18416.0,18560.0,18468
-current_encoder_ch2,30000.0,29904.0,
-official_encoder_ch2,48912.0,48736.0,48684
-current_decoder_ch2,17552.0,17664.0,
-official_decoder_ch2,27424.0,27280.0,27236
+current_encoder_ch1,19760.0,19792.0,
+official_encoder_ch1,31824.0,31872.0,31668
+current_decoder_ch1,11888.0,10752.0,
+official_decoder_ch1,18336.0,18544.0,18468
+current_encoder_ch2,30000.0,29920.0,
+official_encoder_ch2,48880.0,48720.0,48684
+current_decoder_ch2,17712.0,17696.0,
+official_decoder_ch2,27344.0,27280.0,27236
