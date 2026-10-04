@@ -5146,6 +5146,7 @@ static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
 
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
+  opus_int32 raw_stereo_itheta;
   ec_ctx* ec;
   opus_int32 remaining_bits;
   const celt_ener* bandE;
@@ -5176,7 +5177,13 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
     qn = 1;
   }
   if (encode) {
-    itheta_q30 = stereo_itheta(X, Y, stereo, N);
+    if (stereo && ctx->theta_round == 1) {
+      itheta_q30 = ctx->raw_stereo_itheta;
+    } else {
+      itheta_q30 = stereo_itheta(X, Y, stereo, N);
+      if (stereo && ctx->theta_round == -1)
+        ctx->raw_stereo_itheta = itheta_q30;
+    }
     itheta = itheta_q30 >> 16;
   }
   tell = ec_tell_frac(ec);
@@ -5652,6 +5659,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
+  ctx.raw_stereo_itheta = 0;
   const int process_end = encode ? std::min(end, codedBands) : end;
   for (i = start; i < process_end; i++) {
     opus_int32 tell;
@@ -5759,6 +5767,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(bytes_buf, static_cast<std::size_t>(save_bytes), bytes_save_storage.data());
           *ec = ec_save;
           ctx = ctx_save;
+          ctx.raw_stereo_itheta = ctx_save2.raw_stereo_itheta;
           copy_n_items(X_save_storage.data(), static_cast<std::size_t>(N), X);
           copy_n_items(Y_save_storage.data(), static_cast<std::size_t>(N), Y);
           ctx.theta_round = 1;
