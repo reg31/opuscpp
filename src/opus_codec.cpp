@@ -15839,7 +15839,7 @@ static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LP
 }
 
 static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr,
-                                   const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
+                                    const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
   std::array<double, silk_nlsf_max_order> C_first_row;
   std::array<double, silk_nlsf_max_order> C_last_row;
   std::array<double, silk_nlsf_max_order + 1> CAf;
