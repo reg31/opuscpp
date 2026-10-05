@@ -16403,7 +16403,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     int best_sum[4];
     silk_nsq_state nsq_working;
     silk_restore_nsq_working_state(nsq_working, psEnc->sCmn.sNSQ);
-    silk_nsq_state sNSQ_best;
+    silk_nsq_history sNSQ_best;
     ec_enc sRangeEnc_copy, sRangeEnc_copy2;
     sRangeEnc_copy = *psRangeEnc;
     const opus_int32 seed_copy = psEnc->sCmn.indices.Seed;
@@ -16460,7 +16460,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         if (lower.id >= 0 && (gainsID == lower.id || nBits > maxBits)) {
           *psRangeEnc = sRangeEnc_copy2;
           std::memcpy(psRangeEnc->buf, ec_buf_copy, static_cast<std::size_t>(sRangeEnc_copy2.offs));
-          nsq_working = sNSQ_best;
+          silk_copy_nsq_history(nsq_working, sNSQ_best);
           psEnc->sShape.LastGainIndex = LastGainIndex_copy2;
         }
         break;
@@ -16477,7 +16477,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         if (gainsID != lower.id) {
           sRangeEnc_copy2 = *psRangeEnc;
           std::memcpy(ec_buf_copy, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
-          sNSQ_best = nsq_working;
+          silk_copy_nsq_history(sNSQ_best, nsq_working);
           LastGainIndex_copy2 = psEnc->sShape.LastGainIndex;
         }
         lower = {nBits, gainMult_Q8, gainsID};
