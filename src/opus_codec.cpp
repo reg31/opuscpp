@@ -1086,6 +1086,13 @@ static auto silk_nsq_working_state(const silk_nsq_history& history) noexcept -> 
   return state;
 }
 
+static void silk_restore_nsq_working_state(silk_nsq_state& state, const silk_nsq_history& history) noexcept {
+  silk_copy_nsq_history(state, history);
+  zero_n_items(state.xq + 320, 320);
+  zero_n_items(state.sLTP_shp_Q14 + 320, 320);
+  zero_n_items(state.sLPC_Q14 + 16, 80);
+}
+
 struct silk_VAD_state {
   std::array<opus_int32, 2> AnaState, AnaState1, AnaState2;
   std::array<opus_int32, 4> XnrgSubfr, NrgRatioSmth_Q8;
@@ -15444,7 +15451,7 @@ static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encod
 }
 
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
-                               const silk_nsq_state& pre_frame_nsq) {
+                               const silk_nsq_history& pre_frame_nsq) {
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
     return;
   }
@@ -16394,11 +16401,11 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     int gain_lock[4] = {};
     opus_int16 best_gain_mult[4];
     int best_sum[4];
-    auto nsq_working = silk_nsq_working_state(psEnc->sCmn.sNSQ);
-    silk_nsq_state sNSQ_copy[2];
+    silk_nsq_state nsq_working;
+    silk_restore_nsq_working_state(nsq_working, psEnc->sCmn.sNSQ);
+    silk_nsq_state sNSQ_best;
     ec_enc sRangeEnc_copy, sRangeEnc_copy2;
     sRangeEnc_copy = *psRangeEnc;
-    sNSQ_copy[0] = nsq_working;
     const opus_int32 seed_copy = psEnc->sCmn.indices.Seed;
     const opus_int16 ec_prevLagIndex_copy = psEnc->sCmn.ec_prevLagIndex;
     const int ec_prevSignalType_copy = psEnc->sCmn.ec_prevSignalType;
@@ -16413,7 +16420,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       } else {
         if (iter > 0) {
           *psRangeEnc = sRangeEnc_copy;
-          nsq_working = sNSQ_copy[0];
+          silk_restore_nsq_working_state(nsq_working, psEnc->sCmn.sNSQ);
           psEnc->sCmn.indices.Seed = seed_copy;
           psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
           psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
@@ -16440,7 +16447,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
           auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
           silk_gains_dequant(replay_gains.data(), psEnc->sCmn.indices.GainsIndices, &previous_gain_index,
                              condCoding == 2, psEnc->sCmn.nb_subfr);
-          nsq_working = sNSQ_copy[0];
+          silk_restore_nsq_working_state(nsq_working, psEnc->sCmn.sNSQ);
           silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working,
                                      frame_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
           use_reconstructed_lbrr_target = false;
@@ -16453,7 +16460,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         if (lower.id >= 0 && (gainsID == lower.id || nBits > maxBits)) {
           *psRangeEnc = sRangeEnc_copy2;
           std::memcpy(psRangeEnc->buf, ec_buf_copy, static_cast<std::size_t>(sRangeEnc_copy2.offs));
-          nsq_working = sNSQ_copy[1];
+          nsq_working = sNSQ_best;
           psEnc->sShape.LastGainIndex = LastGainIndex_copy2;
         }
         break;
@@ -16470,7 +16477,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         if (gainsID != lower.id) {
           sRangeEnc_copy2 = *psRangeEnc;
           std::memcpy(ec_buf_copy, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
-          sNSQ_copy[1] = nsq_working;
+          sNSQ_best = nsq_working;
           LastGainIndex_copy2 = psEnc->sShape.LastGainIndex;
         }
         lower = {nBits, gainMult_Q8, gainsID};
@@ -16524,7 +16531,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         lbrr_samples = &nsq_working.xq[lbrr_ltp - lbrr_fl];
       }
       silk_generate_lbrr(psEnc, lbrr, &sEncCtrl, lbrr_samples, condCoding, lbrr_gain_reduction, protect_quiet_lbrr, prepared,
-                         lbrr_original_indices, lbrr_original_last_gain_index, sNSQ_copy[0]);
+                         lbrr_original_indices, lbrr_original_last_gain_index, psEnc->sCmn.sNSQ);
     }
     silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
   }
