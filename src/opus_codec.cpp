@@ -16164,7 +16164,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
 }
 
 static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length,
-                                                  const int order) {
+                                                   const int order) {
   std::array<double, 24 + 1> state{};
   std::array<double, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
@@ -16187,7 +16187,7 @@ static inline void silk_warped_autocorrelation_FLP(float* corr, const float* inp
 }
 
 static inline void silk_warped_autocorrelation_4_FLP(float corr[4][24 + 1], const float input[4][15 * 16], const float warping,
-                                                    const int length, const int order) {
+                                                     const int length, const int order) {
   std::array<std::array<double, 4>, 24 + 1> state{};
   std::array<std::array<double, 4>, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
@@ -16285,7 +16285,7 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   }
   if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
     silk_warped_autocorrelation_4_FLP(auto_corr, x_windowed, warping, psEnc->sCmn.shapeWinLength,
-                                     psEnc->sCmn.shapingLPCOrder);
+                                      psEnc->sCmn.shapingLPCOrder);
   } else {
     for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
       if (psEnc->sCmn.warping_Q16 > 0) {
