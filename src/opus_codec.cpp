@@ -15838,18 +15838,32 @@ static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LP
   }
 }
 
-static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr, const int D) {
+static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr,
+                                   const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
   std::array<double, silk_nlsf_max_order> C_first_row;
   std::array<double, silk_nlsf_max_order> C_last_row;
   std::array<double, silk_nlsf_max_order + 1> CAf;
   std::array<double, silk_nlsf_max_order + 1> CAb;
   std::array<double, silk_nlsf_max_order> Af;
   double C0 = silk_energy_FLP(x, nb_subfr * subfr_length);
-  zero_n_items(C_first_row.data(), static_cast<std::size_t>(D));
-  for (int s = 0; s < nb_subfr; ++s) {
-    const auto* x_ptr = x + s * subfr_length;
-    for (int n = 1; n <= D; ++n) {
-      C_first_row[n - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + n, subfr_length - n);
+  if (reused_C_first_row != nullptr) {
+    std::copy_n(reused_C_first_row, D, C_first_row.begin());
+  } else {
+    zero_n_items(C_first_row.data(), static_cast<std::size_t>(D));
+    for (int s = 0; s < nb_subfr; ++s) {
+      const auto* x_ptr = x + s * subfr_length;
+      const bool capture_row = captured_last_two_C_first_row != nullptr && s >= nb_subfr - 2;
+      if (capture_row) {
+        for (int lag = 1; lag <= D; ++lag) {
+          const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+          C_first_row[lag - 1] += row_dot;
+          captured_last_two_C_first_row[lag - 1] += row_dot;
+        }
+      } else {
+        for (int lag = 1; lag <= D; ++lag) {
+          C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+        }
+      }
     }
   }
   std::copy_n(C_first_row.begin(), D, C_last_row.begin());
@@ -15951,9 +15965,22 @@ static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[],
   float a_tmp[16]{}, LPC_res[((5 * 4) * 16) + 4 * 16]{};
   subfr_length = psEncC->subfr_length + psEncC->predictLPCOrder;
   psEncC->indices.NLSFInterpCoef_Q2 = 4;
-  res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder);
-  if (psEncC->Complexity >= 4 && !psEncC->first_frame_after_reset && psEncC->nb_subfr == 4) {
-    res_nrg -= silk_burg_modified_FLP(a_tmp, x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2, psEncC->predictLPCOrder);
+  const bool calculate_half_fit = psEncC->Complexity >= 4 && !psEncC->first_frame_after_reset && psEncC->nb_subfr == 4;
+  if (calculate_half_fit && psEncC->predictLPCOrder == 16) {
+    double cached_C_first_row[16]{};
+    res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder,
+                                     nullptr, cached_C_first_row);
+    res_nrg -= silk_burg_modified_FLP(a_tmp, x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2,
+                                      psEncC->predictLPCOrder, cached_C_first_row, nullptr);
+  } else {
+    res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder,
+                                     nullptr, nullptr);
+    if (calculate_half_fit) {
+      res_nrg -= silk_burg_modified_FLP(a_tmp, x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2,
+                                        psEncC->predictLPCOrder, nullptr, nullptr);
+    }
+  }
+  if (calculate_half_fit) {
     silk_A2NLSF_FLP(NLSF_Q15, a_tmp, psEncC->predictLPCOrder);
     res_nrg_2nd = 3.40282346638528859811704183484516925e+38F;
     for (k = 3; k >= 0; k--) {
