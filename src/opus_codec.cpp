@@ -15507,6 +15507,45 @@ static double silk_inner_product_FLP_c(const float* data1, const float* data2, i
   return result;
 }
 
+static std::array<double, 4> silk_inner_product_FLP_c_first_four_lags(const float* inputData, int inputDataSize) {
+  std::array<double, 4> results{};
+  const int shortestSize = inputDataSize > 4 ? inputDataSize - 4 : 0;
+  const int commonEnd = shortestSize - shortestSize % 4;
+  for (int i = 0; i < commonEnd; i += 4) {
+    results[0] += inputData[i] * static_cast<double>(inputData[i + 1]) +
+                  inputData[i + 1] * static_cast<double>(inputData[i + 2]) +
+                  inputData[i + 2] * static_cast<double>(inputData[i + 3]) +
+                  inputData[i + 3] * static_cast<double>(inputData[i + 4]);
+    results[1] += inputData[i] * static_cast<double>(inputData[i + 2]) +
+                  inputData[i + 1] * static_cast<double>(inputData[i + 3]) +
+                  inputData[i + 2] * static_cast<double>(inputData[i + 4]) +
+                  inputData[i + 3] * static_cast<double>(inputData[i + 5]);
+    results[2] += inputData[i] * static_cast<double>(inputData[i + 3]) +
+                  inputData[i + 1] * static_cast<double>(inputData[i + 4]) +
+                  inputData[i + 2] * static_cast<double>(inputData[i + 5]) +
+                  inputData[i + 3] * static_cast<double>(inputData[i + 6]);
+    results[3] += inputData[i] * static_cast<double>(inputData[i + 4]) +
+                  inputData[i + 1] * static_cast<double>(inputData[i + 5]) +
+                  inputData[i + 2] * static_cast<double>(inputData[i + 6]) +
+                  inputData[i + 3] * static_cast<double>(inputData[i + 7]);
+  }
+  for (int lag = 1; lag <= 4; ++lag) {
+    int i = commonEnd;
+    const int dataSize = inputDataSize - lag;
+    auto& result = results[static_cast<std::size_t>(lag - 1)];
+    for (; i < dataSize - 3; i += 4) {
+      result += inputData[i] * static_cast<double>(inputData[i + lag]) +
+                inputData[i + 1] * static_cast<double>(inputData[i + 1 + lag]) +
+                inputData[i + 2] * static_cast<double>(inputData[i + 2 + lag]) +
+                inputData[i + 3] * static_cast<double>(inputData[i + 3 + lag]);
+    }
+    for (; i < dataSize; ++i) {
+      result += inputData[i] * static_cast<double>(inputData[i + lag]);
+    }
+  }
+  return results;
+}
+
 static void silk_autocorrelation_FLP(float* results, const float* inputData, int inputDataSize, int correlationCount) {
   if (correlationCount > inputDataSize) {
     correlationCount = inputDataSize;
@@ -15854,14 +15893,36 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
       const auto* x_ptr = x + s * subfr_length;
       const bool capture_row = captured_last_two_C_first_row != nullptr && s >= nb_subfr - 2;
       if (capture_row) {
-        for (int lag = 1; lag <= D; ++lag) {
-          const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
-          C_first_row[lag - 1] += row_dot;
-          captured_last_two_C_first_row[lag - 1] += row_dot;
+        if (D >= 4) {
+          const auto row_dots = silk_inner_product_FLP_c_first_four_lags(x_ptr, subfr_length);
+          for (int lag = 1; lag <= 4; ++lag) {
+            const double row_dot = row_dots[static_cast<std::size_t>(lag - 1)];
+            C_first_row[lag - 1] += row_dot;
+            captured_last_two_C_first_row[lag - 1] += row_dot;
+          }
+          for (int lag = 5; lag <= D; ++lag) {
+            const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+            C_first_row[lag - 1] += row_dot;
+            captured_last_two_C_first_row[lag - 1] += row_dot;
+          }
+        } else {
+          for (int lag = 1; lag <= D; ++lag) {
+            const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+            C_first_row[lag - 1] += row_dot;
+            captured_last_two_C_first_row[lag - 1] += row_dot;
+          }
         }
       } else {
-        for (int lag = 1; lag <= D; ++lag) {
-          C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+        if (D >= 4) {
+          const auto row_dots = silk_inner_product_FLP_c_first_four_lags(x_ptr, subfr_length);
+          for (int lag = 1; lag <= 4; ++lag)
+            C_first_row[lag - 1] += row_dots[static_cast<std::size_t>(lag - 1)];
+          for (int lag = 5; lag <= D; ++lag)
+            C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+        } else {
+          for (int lag = 1; lag <= D; ++lag) {
+            C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+          }
         }
       }
     }
