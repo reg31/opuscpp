@@ -8014,7 +8014,6 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     _celt_lpc(lpc, ac.data(), celt_lpc_order);
   }
   const auto safe_exc_length = std::max(exc_length, 0);
-  std::array<opus_val16, celt_plc_max_pitch_period> fir_tmp;
   celt_fir_c(old_buf + old_history_size - safe_exc_length, lpc, exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
   {
     opus_val32 E1 = 1, E2 = 1;
@@ -8029,10 +8028,15 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     decay = static_cast<opus_val16>(std::sqrt(static_cast<float>(E1) / E2));
   }
   const auto* original_pitch = old_buf + old_history_size - pitch_index;
+  for (int i = 0, j = 0; i < N + celt_default_overlap; ++i, ++j) {
+    if (j >= pitch_index) {
+      j -= pitch_index;
+    }
+    const auto sample = original_pitch[j];
+    S1 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
+  }
   const int source = N + celt_decoder_raw_start - raw_offset;
   if (old_buf == buf) {
-    copy_n_items(original_pitch, static_cast<std::size_t>(pitch_index), fir_tmp.data());
-    original_pitch = fir_tmp.data();
     move_n_items(buf + source, static_cast<std::size_t>(history_size - source), buf + source - N);
   } else {
     copy_n_items(old_buf + old_history_size - celt_lpc_order, static_cast<std::size_t>(celt_lpc_order), buf + history_size - N - celt_lpc_order);
@@ -8045,8 +8049,6 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
       attenuation *= decay;
     }
     buf[history_size - N + i] = attenuation * exc[extrapolation_offset + j];
-    const auto sample = original_pitch[j];
-    S1 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
   }
   for (int i = 0; i < celt_lpc_order; ++i) {
     lpc_mem[i] = buf[history_size - N - 1 - i];
