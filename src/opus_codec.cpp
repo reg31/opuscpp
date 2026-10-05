@@ -7714,7 +7714,8 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
     _y[i + 3] = sum[3];
     copy_n_items(history + celt_lpc_order, 4, history);
     pos += 4;
-    if (pos == celt_lpc_order) pos = 0;
+    if (pos == celt_lpc_order)
+      pos = 0;
   }
   for (; i < N; i++) {
     auto* history = y.data() + pos;
@@ -7725,7 +7726,8 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
     history[celt_lpc_order] = (sum);
     _y[i] = sum;
     history[0] = history[celt_lpc_order];
-    if (++pos == celt_lpc_order) pos = 0;
+    if (++pos == celt_lpc_order)
+      pos = 0;
   }
   for (i = 0; i < celt_lpc_order; i++) {
     mem[i] = _y[N - i - 1];
