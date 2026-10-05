@@ -1,4 +1,5 @@
 #include "opus_codec.h"
+#include <functional>
 
 #include <algorithm>
 #include <array>
@@ -9123,30 +9124,31 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
   const float* trig = Fixed20ms ? l->trig : l->trig + l->n - N;
   const int N2 = N >> 1;
   const int N4 = N >> 2;
-  std::array<float, celt_max_frame_samples> folded_storage;
   std::array<kiss_fft_cpx, celt_max_frame_samples / 2> fft_storage;
-  auto* f = folded_storage.data();
   auto* f2 = Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out) : fft_storage.data();
+  const auto prerotate = [&](int i, float re, float im) {
+    const auto t0 = trig[i], t1 = trig[N4 + i];
+    f2[st->bitrev[i]] = {(re * t0 - im * t1) * scale, (im * t0 + re * t1) * scale};
+  };
   const int overlap_quarters = (overlap + 3) >> 2;
   int i = 0;
   for (; i < overlap_quarters; ++i) {
     const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
-    f[2 * i] = in[left + N2] * window[(overlap >> 1) - 1 - 2 * i] + in[right] * window[left];
-    f[2 * i + 1] = in[left] * window[left] - in[right - N2] * window[(overlap >> 1) - 1 - 2 * i];
+    const float re = in[left + N2] * window[(overlap >> 1) - 1 - 2 * i] + in[right] * window[left];
+    const float im = in[left] * window[left] - in[right - N2] * window[(overlap >> 1) - 1 - 2 * i];
+    prerotate(i, re, im);
   }
   for (; i < N4 - overlap_quarters; ++i) {
-    f[2 * i] = in[N2 - 1 + (overlap >> 1) - 2 * i];
-    f[2 * i + 1] = in[(overlap >> 1) + 2 * i];
+    const float re = in[N2 - 1 + (overlap >> 1) - 2 * i];
+    const float im = in[(overlap >> 1) + 2 * i];
+    prerotate(i, re, im);
   }
   for (; i < N4; ++i) {
     const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
     const int window_left = 2 * (i - (N4 - overlap_quarters)), window_right = overlap - 1 - window_left;
-    f[2 * i] = -in[left - N2] * window[window_left] + in[right] * window[window_right];
-    f[2 * i + 1] = in[left] * window[window_right] + in[right + N2] * window[window_left];
-  }
-  for (int i = 0; i < N4; ++i) {
-    const auto re = f[2 * i], im = f[2 * i + 1], t0 = trig[i], t1 = trig[N4 + i];
-    f2[st->bitrev[i]] = {(re * t0 - im * t1) * scale, (im * t0 + re * t1) * scale};
+    const float re = -in[left - N2] * window[window_left] + in[right] * window[window_right];
+    const float im = in[left] * window[window_right] + in[right + N2] * window[window_left];
+    prerotate(i, re, im);
   }
   fft_impl(st, f2);
   if constexpr (Fixed20ms) {
@@ -9171,7 +9173,9 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
 }
 
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
-  if (shift == 0 && stride == 1 && l->n == 1920) {
+  const auto before = std::less<const float*>{};
+  if (shift == 0 && stride == 1 && l->n == 1920 &&
+      (!before(in, out + 960) || !before(out, in + 960 + overlap))) {
     clt_mdct_forward_transform<true>(l, in, out, window, overlap, 0, 1);
   } else {
     clt_mdct_forward_transform<false>(l, in, out, window, overlap, shift, stride);
