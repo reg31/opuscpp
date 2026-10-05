@@ -16163,7 +16163,8 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
 }
 
-static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length, const int order) {
+static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length,
+                                                  const int order) {
   std::array<double, 24 + 1> state{};
   std::array<double, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
@@ -16185,13 +16186,42 @@ static inline void silk_warped_autocorrelation_FLP(float* corr, const float* inp
   }
 }
 
+static inline void silk_warped_autocorrelation_4_FLP(float corr[4][24 + 1], const float input[4][15 * 16], const float warping,
+                                                    const int length, const int order) {
+  std::array<std::array<double, 4>, 24 + 1> state{};
+  std::array<std::array<double, 4>, 24 + 1> C{};
+  for (int n = 0; n < length; n++) {
+    const double sample[4] = {input[0][n], input[1][n], input[2][n], input[3][n]};
+    double tmp1[4] = {sample[0], sample[1], sample[2], sample[3]};
+    for (int i = 0; i < order; i += 2) {
+      for (int lane = 0; lane < 4; lane++) {
+        const double tmp2 = state[i][lane] + warping * state[i + 1][lane] - warping * tmp1[lane];
+        state[i][lane] = tmp1[lane];
+        C[i][lane] += sample[lane] * tmp1[lane];
+        tmp1[lane] = state[i + 1][lane] + warping * state[i + 2][lane] - warping * tmp2;
+        state[i + 1][lane] = tmp2;
+        C[i + 1][lane] += sample[lane] * tmp2;
+      }
+    }
+    for (int lane = 0; lane < 4; lane++) {
+      state[order][lane] = tmp1[lane];
+      C[order][lane] += sample[lane] * tmp1[lane];
+    }
+  }
+  for (int lane = 0; lane < 4; lane++) {
+    for (int index = 0; index <= order; ++index) {
+      corr[lane][index] = static_cast<float>(C[index][lane]);
+    }
+  }
+}
+
 static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float* pitch_res, const float* x) {
   silk_shape_state_FLP* psShapeSt = &psEnc->sShape;
   int k, nSamples, nSegs;
   float SNR_adj_dB, HarmShapeGain, Tilt;
   float nrg, log_energy, log_energy_prev, energy_variation;
   float BWExp, gain_mult, gain_add, strength, b, warping;
-  float x_windowed[15 * 16], auto_corr[24 + 1], rc[24 + 1];
+  float x_windowed[4][15 * 16], auto_corr[4][24 + 1], rc[24 + 1];
   const float *x_ptr, *pitch_res_ptr;
   x_ptr = x - psEnc->sCmn.la_shape;
   SNR_adj_dB = psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f);
@@ -16244,21 +16274,32 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
     int shift, slope_part, flat_part;
     flat_part = psEnc->sCmn.fs_kHz * 3;
     slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed, static_cast<std::size_t>(slope_part)},
+    silk_apply_sine_window_FLP(std::span<float>{x_windowed[k], static_cast<std::size_t>(slope_part)},
                                std::span<const float>{x_ptr, static_cast<std::size_t>(slope_part)}, 1);
     shift = slope_part;
-    std::memcpy(x_windowed + shift, x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)));
+    std::memcpy(x_windowed[k] + shift, x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)));
     shift += flat_part;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed + shift, static_cast<std::size_t>(slope_part)},
+    silk_apply_sine_window_FLP(std::span<float>{x_windowed[k] + shift, static_cast<std::size_t>(slope_part)},
                                std::span<const float>{x_ptr + shift, static_cast<std::size_t>(slope_part)}, 2);
     x_ptr += psEnc->sCmn.subfr_length;
-    if (psEnc->sCmn.warping_Q16 > 0) {
-      silk_warped_autocorrelation_FLP(auto_corr, x_windowed, warping, psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
-    } else {
-      silk_autocorrelation_FLP(auto_corr, x_windowed, psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder + 1);
+  }
+  if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
+    silk_warped_autocorrelation_4_FLP(auto_corr, x_windowed, warping, psEnc->sCmn.shapeWinLength,
+                                     psEnc->sCmn.shapingLPCOrder);
+  } else {
+    for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
+      if (psEnc->sCmn.warping_Q16 > 0) {
+        silk_warped_autocorrelation_FLP(auto_corr[k], x_windowed[k], warping, psEnc->sCmn.shapeWinLength,
+                                        psEnc->sCmn.shapingLPCOrder);
+      } else {
+        silk_autocorrelation_FLP(auto_corr[k], x_windowed[k], psEnc->sCmn.shapeWinLength,
+                                 psEnc->sCmn.shapingLPCOrder + 1);
+      }
     }
-    auto_corr[0] += auto_corr[0] * 3e-5f + 1.0f;
-    nrg = silk_schur_FLP(rc, auto_corr, psEnc->sCmn.shapingLPCOrder);
+  }
+  for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
+    auto_corr[k][0] += auto_corr[k][0] * 3e-5f + 1.0f;
+    nrg = silk_schur_FLP(rc, auto_corr[k], psEnc->sCmn.shapingLPCOrder);
     silk_k2a_FLP(&psEncCtrl->AR[k * 24], rc, psEnc->sCmn.shapingLPCOrder);
     psEncCtrl->Gains[k] = silk_sqrt_reference(nrg);
     if (psEnc->sCmn.warping_Q16 > 0) {
