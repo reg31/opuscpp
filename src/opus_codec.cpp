@@ -6815,28 +6815,31 @@ struct celt_input_metrics {
                                                                   4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3,
                                                                   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2});
   static_assert(inv_table.size() == 128);
-  std::array<float, celt_max_frame_samples + celt_default_overlap> tmp;
+  std::array<float, (celt_max_frame_samples + celt_default_overlap) / 2> tmp;
   int is_transient = 0;
   opus_int32 mask_metric = 0;
   const int len2 = len / 2;
   const float forward_decay = allow_weak_transients ? .03125f : .0625f;
   *weak_transient = false;
   for (int c = 0; c < C; ++c) {
-    opus_val32 mem0 = 0, mem1 = 0;
-    for (int i = 0; i < len; ++i) {
-      const opus_val32 x = in[i + c * len];
-      const opus_val32 y = mem0 + x;
-      const float mem00 = mem0;
-      mem0 = mem0 - x + .5f * mem1;
-      mem1 = x - mem00;
-      tmp[i] = y;
-    }
-    for (int i = 0; i < 12; ++i)
-      tmp[i] = 0;
-    opus_val32 mean = 0;
-    mem0 = 0;
+    opus_val32 filter_mem0 = 0, filter_mem1 = 0;
+    opus_val32 mean = 0, mem0 = 0;
     for (int i = 0; i < len2; ++i) {
-      const opus_val32 x2 = tmp[2 * i] * tmp[2 * i] + tmp[2 * i + 1] * tmp[2 * i + 1];
+      const opus_val32 x0 = in[2 * i + c * len];
+      opus_val32 y0 = filter_mem0 + x0;
+      const float previous0 = filter_mem0;
+      filter_mem0 = filter_mem0 - x0 + .5f * filter_mem1;
+      filter_mem1 = x0 - previous0;
+      const opus_val32 x1 = in[2 * i + 1 + c * len];
+      opus_val32 y1 = filter_mem0 + x1;
+      const float previous1 = filter_mem0;
+      filter_mem0 = filter_mem0 - x1 + .5f * filter_mem1;
+      filter_mem1 = x1 - previous1;
+      if (i < 6) {
+        y0 = 0;
+        y1 = 0;
+      }
+      const opus_val32 x2 = y0 * y0 + y1 * y1;
       mean += x2;
       mem0 = x2 + (1.f - forward_decay) * mem0;
       tmp[i] = forward_decay * mem0;
