@@ -7681,42 +7681,51 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
 
 static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
   std::array<opus_val16, celt_lpc_order> rden;
-  std::array<opus_val16, celt_max_frame_samples + celt_default_overlap + celt_lpc_order> y;
+  std::array<opus_val16, 2 * celt_lpc_order> y;
   std::reverse_copy(den, den + celt_lpc_order, rden.begin());
   for (int index = 0; index < celt_lpc_order; ++index) {
     y[index] = -mem[celt_lpc_order - 1 - index];
+    y[index + celt_lpc_order] = y[index];
   }
-  zero_n_items(y.data() + celt_lpc_order, static_cast<std::size_t>(N));
+  int pos = 0;
   int i = 0;
   for (; i < N - 3; i += 4) {
+    auto* history = y.data() + pos;
+    zero_n_items(history + celt_lpc_order, 4);
     std::array<opus_val32, 4> sum;
     sum[0] = _x[i];
     sum[1] = _x[i + 1];
     sum[2] = _x[i + 2];
     sum[3] = _x[i + 3];
-    xcorr_kernel_c(rden.data(), y.data() + i, sum, celt_lpc_order);
-    y[i + celt_lpc_order] = -(sum[0]);
+    xcorr_kernel_c(rden.data(), history, sum, celt_lpc_order);
+    history[celt_lpc_order] = -(sum[0]);
     _y[i] = sum[0];
-    sum[1] = ((sum[1]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[0]));
-    y[i + celt_lpc_order + 1] = -(sum[1]);
+    sum[1] = ((sum[1]) + static_cast<opus_val32>(history[celt_lpc_order]) * static_cast<opus_val32>(den[0]));
+    history[celt_lpc_order + 1] = -(sum[1]);
     _y[i + 1] = sum[1];
-    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[0]));
-    sum[2] = ((sum[2]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[1]));
-    y[i + celt_lpc_order + 2] = -(sum[2]);
+    sum[2] = ((sum[2]) + static_cast<opus_val32>(history[celt_lpc_order + 1]) * static_cast<opus_val32>(den[0]));
+    sum[2] = ((sum[2]) + static_cast<opus_val32>(history[celt_lpc_order]) * static_cast<opus_val32>(den[1]));
+    history[celt_lpc_order + 2] = -(sum[2]);
     _y[i + 2] = sum[2];
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 2]) * static_cast<opus_val32>(den[0]));
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order + 1]) * static_cast<opus_val32>(den[1]));
-    sum[3] = ((sum[3]) + static_cast<opus_val32>(y[i + celt_lpc_order]) * static_cast<opus_val32>(den[2]));
-    y[i + celt_lpc_order + 3] = -(sum[3]);
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(history[celt_lpc_order + 2]) * static_cast<opus_val32>(den[0]));
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(history[celt_lpc_order + 1]) * static_cast<opus_val32>(den[1]));
+    sum[3] = ((sum[3]) + static_cast<opus_val32>(history[celt_lpc_order]) * static_cast<opus_val32>(den[2]));
+    history[celt_lpc_order + 3] = -(sum[3]);
     _y[i + 3] = sum[3];
+    copy_n_items(history + celt_lpc_order, 4, history);
+    pos += 4;
+    if (pos == celt_lpc_order) pos = 0;
   }
   for (; i < N; i++) {
+    auto* history = y.data() + pos;
     opus_val32 sum = _x[i];
     for (int j = 0; j < celt_lpc_order; j++) {
-      sum -= (static_cast<opus_val32>(rden[j]) * static_cast<opus_val32>(y[i + j]));
+      sum -= (static_cast<opus_val32>(rden[j]) * static_cast<opus_val32>(history[j]));
     }
-    y[i + celt_lpc_order] = (sum);
+    history[celt_lpc_order] = (sum);
     _y[i] = sum;
+    history[0] = history[celt_lpc_order];
+    if (++pos == celt_lpc_order) pos = 0;
   }
   for (i = 0; i < celt_lpc_order; i++) {
     mem[i] = _y[N - i - 1];
