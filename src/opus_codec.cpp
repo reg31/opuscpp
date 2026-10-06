@@ -3847,7 +3847,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
   opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
   double sample_sum = 0, raw_e = 0;
-  if (state.cond_started == 0) {
+  if (state.cond_init_done == 0) {
     dc = pcm[0];
   }
   for (int index = 0; index < frame_size * 1; ++index) {
@@ -3866,6 +3866,9 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
     mid_lp += mid_lp_coef * (hp2 - mid_lp);
     mid_e += mid_lp * mid_lp;
   }
+  if (state.cond_init_done == 0 && raw_e > 0.0) {
+    state.cond_init_done = 1;
+  }
   state.cond_lf_state = lf;
   state.cond_dc_state = dc;
   state.cond_mid_hp = mid_hp;
@@ -3882,7 +3885,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   const opus_val32 ac_power = static_cast<opus_val32>(ac_power_d);
   const opus_val32 ac_rms = std::sqrt(ac_power);
   const bool low_ac = ac_rms < .01f;
-  if (low_ac) {
+  if (low_ac && (state.cond_init_done || raw_e > 0.0)) {
     if (state.cue_dc_seen == 0) {
       state.cue_dc_idle = frame_mean;
       state.cue_dc_seen = 1;
@@ -4005,12 +4008,12 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   } else if (state.cue_dirty == 0 && state.cue_released != 0 && state.cond_score > 0.f) {
     target = 0.f;
   }
-  if (!state.cond_started) {
+  if (!state.cond_started && (active || dc_evidence)) {
     state.cond_started = 1;
     state.cond_score = dirty_evidence || dc_fast ? 1.f : 0.f;
     state.cond_mix = state.cond_score;
     state.cue_provisional = dirty_evidence ? 1 : 0;
-  } else {
+  } else if (state.cond_started) {
     const opus_val32 dt = static_cast<opus_val32>(frame_size) / static_cast<opus_val32>(sample_rate);
     const opus_val32 attack = 1.f - std::exp(-dt / .10f);
     const opus_val32 release = 1.f - std::exp(-dt / .80f);
@@ -4051,12 +4054,6 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
     const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
-    for (int channel = 0; channel < st->channels; ++channel) {
-      auto& state = st->conditioning[channel];
-      if (state.cond_init_done == 0) {
-        state.cond_init_done = 1;
-      }
-    }
     hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
     opus_val16 restoration = 0.f;
     if (st->channels == 1) {
@@ -4078,7 +4075,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const float dc_feedback = 1.f - dc_coefficient;
     for (int channel = 0; channel < st->channels; ++channel) {
       auto& state = st->conditioning[channel];
-      if (state.cond_init_dc == 0) {
+      if (state.cond_init_dc == 0 && state.cond_init_done) {
         state.cond_init_dc = 1;
         state.raw_dc_memory = initial_value[channel];
         state.hp_dc_memory = 0.f;
