@@ -15507,43 +15507,66 @@ static double silk_inner_product_FLP_c(const float* data1, const float* data2, i
   return result;
 }
 
-static std::array<double, 4> silk_inner_product_FLP_c_first_four_lags(const float* inputData, int inputDataSize) {
+static std::array<double, 4> silk_inner_product_FLP_c_four_lags(const float* inputData, int inputDataSize, int firstLag) {
   std::array<double, 4> results{};
-  const int shortestSize = inputDataSize > 4 ? inputDataSize - 4 : 0;
+  const int shortestSize = inputDataSize > firstLag + 3 ? inputDataSize - (firstLag + 3) : 0;
   const int commonEnd = shortestSize - shortestSize % 4;
+  const auto* lagData = inputData + firstLag;
   for (int i = 0; i < commonEnd; i += 4) {
-    results[0] += inputData[i] * static_cast<double>(inputData[i + 1]) +
-                  inputData[i + 1] * static_cast<double>(inputData[i + 2]) +
-                  inputData[i + 2] * static_cast<double>(inputData[i + 3]) +
-                  inputData[i + 3] * static_cast<double>(inputData[i + 4]);
-    results[1] += inputData[i] * static_cast<double>(inputData[i + 2]) +
-                  inputData[i + 1] * static_cast<double>(inputData[i + 3]) +
-                  inputData[i + 2] * static_cast<double>(inputData[i + 4]) +
-                  inputData[i + 3] * static_cast<double>(inputData[i + 5]);
-    results[2] += inputData[i] * static_cast<double>(inputData[i + 3]) +
-                  inputData[i + 1] * static_cast<double>(inputData[i + 4]) +
-                  inputData[i + 2] * static_cast<double>(inputData[i + 5]) +
-                  inputData[i + 3] * static_cast<double>(inputData[i + 6]);
-    results[3] += inputData[i] * static_cast<double>(inputData[i + 4]) +
-                  inputData[i + 1] * static_cast<double>(inputData[i + 5]) +
-                  inputData[i + 2] * static_cast<double>(inputData[i + 6]) +
-                  inputData[i + 3] * static_cast<double>(inputData[i + 7]);
+    results[0] += inputData[i] * static_cast<double>(lagData[i]) +
+                  inputData[i + 1] * static_cast<double>(lagData[i + 1]) +
+                  inputData[i + 2] * static_cast<double>(lagData[i + 2]) +
+                  inputData[i + 3] * static_cast<double>(lagData[i + 3]);
+    results[1] += inputData[i] * static_cast<double>(lagData[i + 1]) +
+                  inputData[i + 1] * static_cast<double>(lagData[i + 2]) +
+                  inputData[i + 2] * static_cast<double>(lagData[i + 3]) +
+                  inputData[i + 3] * static_cast<double>(lagData[i + 4]);
+    results[2] += inputData[i] * static_cast<double>(lagData[i + 2]) +
+                  inputData[i + 1] * static_cast<double>(lagData[i + 3]) +
+                  inputData[i + 2] * static_cast<double>(lagData[i + 4]) +
+                  inputData[i + 3] * static_cast<double>(lagData[i + 5]);
+    results[3] += inputData[i] * static_cast<double>(lagData[i + 3]) +
+                  inputData[i + 1] * static_cast<double>(lagData[i + 4]) +
+                  inputData[i + 2] * static_cast<double>(lagData[i + 5]) +
+                  inputData[i + 3] * static_cast<double>(lagData[i + 6]);
   }
-  for (int lag = 1; lag <= 4; ++lag) {
+  for (int lane = 0; lane < 4; ++lane) {
     int i = commonEnd;
-    const int dataSize = inputDataSize - lag;
-    auto& result = results[static_cast<std::size_t>(lag - 1)];
+    const int dataSize = inputDataSize - (firstLag + lane);
+    auto& result = results[static_cast<std::size_t>(lane)];
     for (; i < dataSize - 3; i += 4) {
-      result += inputData[i] * static_cast<double>(inputData[i + lag]) +
-                inputData[i + 1] * static_cast<double>(inputData[i + 1 + lag]) +
-                inputData[i + 2] * static_cast<double>(inputData[i + 2 + lag]) +
-                inputData[i + 3] * static_cast<double>(inputData[i + 3 + lag]);
+      result += inputData[i] * static_cast<double>(lagData[i + lane]) +
+                inputData[i + 1] * static_cast<double>(lagData[i + 1 + lane]) +
+                inputData[i + 2] * static_cast<double>(lagData[i + 2 + lane]) +
+                inputData[i + 3] * static_cast<double>(lagData[i + 3 + lane]);
     }
     for (; i < dataSize; ++i) {
-      result += inputData[i] * static_cast<double>(inputData[i + lag]);
+      result += inputData[i] * static_cast<double>(lagData[i + lane]);
     }
   }
   return results;
+}
+
+template <bool Capture>
+static void silk_burg_accumulate_first_row(double* C_first_row, double* captured_row, const float* x_ptr, int subfr_length,
+                                           int D) {
+  int firstLag = 1;
+  for (; firstLag + 3 <= D; firstLag += 4) {
+    const auto row_dots = silk_inner_product_FLP_c_four_lags(x_ptr, subfr_length, firstLag);
+    for (int lane = 0; lane < 4; ++lane) {
+      const auto index = firstLag + lane - 1;
+      C_first_row[index] += row_dots[static_cast<std::size_t>(lane)];
+      if constexpr (Capture)
+        captured_row[index] += row_dots[static_cast<std::size_t>(lane)];
+    }
+  }
+  for (; firstLag <= D; ++firstLag) {
+    const auto index = firstLag - 1;
+    const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + firstLag, subfr_length - firstLag);
+    C_first_row[index] += row_dot;
+    if constexpr (Capture)
+      captured_row[index] += row_dot;
+  }
 }
 
 static void silk_autocorrelation_FLP(float* results, const float* inputData, int inputDataSize, int correlationCount) {
@@ -15893,37 +15916,9 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
       const auto* x_ptr = x + s * subfr_length;
       const bool capture_row = captured_last_two_C_first_row != nullptr && s >= nb_subfr - 2;
       if (capture_row) {
-        if (D >= 4) {
-          const auto row_dots = silk_inner_product_FLP_c_first_four_lags(x_ptr, subfr_length);
-          for (int lag = 1; lag <= 4; ++lag) {
-            const double row_dot = row_dots[static_cast<std::size_t>(lag - 1)];
-            C_first_row[lag - 1] += row_dot;
-            captured_last_two_C_first_row[lag - 1] += row_dot;
-          }
-          for (int lag = 5; lag <= D; ++lag) {
-            const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
-            C_first_row[lag - 1] += row_dot;
-            captured_last_two_C_first_row[lag - 1] += row_dot;
-          }
-        } else {
-          for (int lag = 1; lag <= D; ++lag) {
-            const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
-            C_first_row[lag - 1] += row_dot;
-            captured_last_two_C_first_row[lag - 1] += row_dot;
-          }
-        }
+        silk_burg_accumulate_first_row<true>(C_first_row.data(), captured_last_two_C_first_row, x_ptr, subfr_length, D);
       } else {
-        if (D >= 4) {
-          const auto row_dots = silk_inner_product_FLP_c_first_four_lags(x_ptr, subfr_length);
-          for (int lag = 1; lag <= 4; ++lag)
-            C_first_row[lag - 1] += row_dots[static_cast<std::size_t>(lag - 1)];
-          for (int lag = 5; lag <= D; ++lag)
-            C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
-        } else {
-          for (int lag = 1; lag <= D; ++lag) {
-            C_first_row[lag - 1] += silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
-          }
-        }
+        silk_burg_accumulate_first_row<false>(C_first_row.data(), nullptr, x_ptr, subfr_length, D);
       }
     }
   }
