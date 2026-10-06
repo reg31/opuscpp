@@ -11766,7 +11766,7 @@ struct celt_pvq_quant_result {
   opus_val16 yy;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth) -> celt_pvq_quant_result {
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
     iy_out[j] = X[j] < 0;
@@ -11832,6 +11832,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> c
     y[best_id] += 2;
     iy_out[best_id] += 2;
   }
+  const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
   auto collapse_mask = B <= 1 ? 1U : 0U;
   const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
   const int collapse_limit = B <= 1 ? 0 : B * N0;
@@ -11841,6 +11842,10 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> c
   opus_uint32 index = (k != 0 && (packed_pulse & 1) != 0) ? 1U : 0U;
   if (j < collapse_limit && k != 0) {
     collapse_mask |= 1U << celt_udiv(j, N0);
+  }
+  if (resynth) {
+    const opus_val32 reconstructed = static_cast<opus_val32>(k);
+    X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
   }
   for (; j-- > 0;) {
     packed_pulse = iy_out[j];
@@ -11854,6 +11859,10 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out) -> c
       if ((packed_pulse & 1) != 0) {
         index += celt_pvq_u_entry(N - j, k + 1);
       }
+    }
+    if (resynth) {
+      const opus_val32 reconstructed = static_cast<opus_val32>(pulse);
+      X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
     }
   }
   return {collapse_mask, index, yy};
@@ -11887,14 +11896,9 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth);
   }
   std::array<int, celt_max_band_samples> iy;
-  const auto quant = op_pvq_search_c(X, K, N, B, iy.data());
+  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth);
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   if (resynth) {
-    const opus_val32 g = (1.f / std::sqrt(quant.yy)) * gain;
-    for (int j = 0; j < N; ++j) {
-      const opus_val32 pulse = static_cast<opus_val32>(iy[j] >> 1);
-      X[j] = (iy[j] & 1) ? -pulse * g : pulse * g;
-    }
     exp_rotation(X, N, -1, B, K, spread);
   }
   return quant.collapse_mask;
