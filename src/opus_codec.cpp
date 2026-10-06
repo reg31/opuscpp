@@ -9252,80 +9252,49 @@ static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels
   }
 }
 
-static void clt_mdct_backward_transform_20ms(const mdct_lookup* lookup, float* input, float* output, int overlap, bool known_zero_tail) noexcept {
-  constexpr int n2 = 960;
-  constexpr int n4 = 480;
-  const float* trig = lookup->trig;
-  auto* work = reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1));
-  clt_mdct_backward_prerotate<1>({input}, {work}, trig, n2, 1, pfa_input_map_480.data(), known_zero_tail);
-
-  auto* transformed = reinterpret_cast<kiss_fft_cpx*>(input);
-  for (int index = 0; index < 32; ++index) {
-    pfa_fft15(work + 15 * pfa_split_radix_permutation[index], transformed + index);
-  }
-  for (int row = 0; row < 15; ++row) {
-    pfa_fft32(transformed + 32 * row);
-  }
-
-  float* output_front = output + (overlap >> 1);
-  float* output_back = output_front + n2 - 2;
-  int position = 0;
-  for (int index = 0; index < (n4 + 1) >> 1; ++index) {
-    const int column = index & 31;
-    const auto first = transformed[32 * position + column];
-    const auto last = transformed[32 * (14 - position) + ((31 - index) & 31)];
-    float t0 = trig[index];
-    float t1 = trig[n4 + index];
-    output_front[0] = first.i * t0 + first.r * t1;
-    output_back[1] = first.i * t1 - first.r * t0;
-    t0 = trig[n4 - index - 1];
-    t1 = trig[n2 - index - 1];
-    output_back[0] = last.i * t0 + last.r * t1;
-    output_front[1] = last.i * t1 - last.r * t0;
-    output_front += 2;
-    output_back -= 2;
-    if (++position == 15) {
-      position = 0;
-    }
-  }
-}
-
 template <bool Fixed20ms>
 static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input, float* output, int overlap, int shift = 0,
                                         int stride = 1, bool known_zero_tail = false) {
-  if constexpr (Fixed20ms) {
-    clt_mdct_backward_transform_20ms(lookup, input, output, overlap, known_zero_tail);
-    return;
-  }
-  const int N = lookup->n >> shift;
-  const float* trig = lookup->trig + lookup->n - N;
+  const int N = Fixed20ms ? 1920 : lookup->n >> shift;
+  const float* trig = lookup->trig + (Fixed20ms ? 0 : lookup->n - N);
   const int N2 = N >> 1;
   const int N4 = N >> 2;
-  const auto* fft_state = lookup->kfft[shift];
-  clt_mdct_backward_prerotate<1>({input}, {reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1))}, trig, N2, stride,
-                                 fft_state->bitrev, known_zero_tail);
-  fft_impl(fft_state, reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1)));
+  auto* work = reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1));
+  auto* transformed = reinterpret_cast<kiss_fft_cpx*>(Fixed20ms ? input : output + (overlap >> 1));
+  if constexpr (Fixed20ms) {
+    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, 1, pfa_input_map_480.data(), known_zero_tail);
+    for (int index = 0; index < 32; ++index) {
+      pfa_fft15(work + 15 * pfa_split_radix_permutation[index], transformed + index);
+    }
+    for (int row = 0; row < 15; ++row) {
+      pfa_fft32(transformed + 32 * row);
+    }
+  } else {
+    const auto* fft_state = lookup->kfft[shift];
+    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, stride, fft_state->bitrev, known_zero_tail);
+    fft_impl(fft_state, work);
+  }
   float* yp0 = output + (overlap >> 1);
-  float* yp1 = output + (overlap >> 1) + N2 - 2;
+  float* yp1 = yp0 + N2 - 2;
+  int position = 0;
   for (int i = 0; i < (N4 + 1) >> 1; ++i) {
-    float re = yp0[1];
-    float im = yp0[0];
+    const auto first = transformed[Fixed20ms ? 32 * position + (i & 31) : i];
+    const auto last = transformed[Fixed20ms ? 32 * (14 - position) + ((31 - i) & 31) : N4 - i - 1];
     float t0 = trig[i];
     float t1 = trig[N4 + i];
-    float yr = re * t0 + im * t1;
-    float yi = re * t1 - im * t0;
-    re = yp1[1];
-    im = yp1[0];
-    yp0[0] = yr;
-    yp1[1] = yi;
+    yp0[0] = first.i * t0 + first.r * t1;
+    yp1[1] = first.i * t1 - first.r * t0;
     t0 = trig[N4 - i - 1];
     t1 = trig[N2 - i - 1];
-    yr = re * t0 + im * t1;
-    yi = re * t1 - im * t0;
-    yp1[0] = yr;
-    yp0[1] = yi;
+    yp1[0] = last.i * t0 + last.r * t1;
+    yp0[1] = last.i * t1 - last.r * t0;
     yp0 += 2;
     yp1 -= 2;
+    if constexpr (Fixed20ms) {
+      if (++position == 15) {
+        position = 0;
+      }
+    }
   }
 }
 
@@ -9347,8 +9316,8 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
 }
 
 static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap, bool known_zero_tail) {
-  clt_mdct_backward_transform_20ms(lookup, input0, output0, overlap, known_zero_tail);
-  clt_mdct_backward_transform_20ms(lookup, input1, output1, overlap, known_zero_tail);
+  clt_mdct_backward_transform<true>(lookup, input0, output0, overlap, 0, 1, known_zero_tail);
+  clt_mdct_backward_transform<true>(lookup, input1, output1, overlap, 0, 1, known_zero_tail);
   clt_mdct_backward_overlap_c(output0, window, overlap);
   clt_mdct_backward_overlap_c(output1, window, overlap);
 }
