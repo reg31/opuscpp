@@ -10540,6 +10540,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float tonality[240];
   float noisiness[240];
   float band_tonality[18];
+  std::array<float, 18> raw_band_energy;
   float logE[18];
   float BFCC[8];
   float features[25];
@@ -10698,10 +10699,12 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   }
   for (b = 0; b < 18; ++b) {
     float E = 0, tE = 0, nE = 0;
+    raw_band_energy[b] = 0;
     float L1, L2;
     float stationarity;
     for (i = classical_tbands[b]; i < classical_tbands[b + 1]; ++i) {
       float binE = out[i].r * out[i].r + out[N - i].r * out[N - i].r + out[i].i * out[i].i + out[N - i].i * out[N - i].i;
+      raw_band_energy[b] += binE;
       binE = (1.f / 32768.f / 32768.f) * binE;
       E += binE;
       tE += binE * std::max(0.f, tonality[i]);
@@ -10800,16 +10803,11 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   noise_floor = 5.7e-4f / (1 << (std::max(0, lsb_depth - 8)));
   noise_floor *= noise_floor;
   for (b = 0; b < 18; ++b) {
-    float E = 0;
+    float E = (1.f / 32768.f / 32768.f) * raw_band_energy[b];
     float Em;
     int band_start, band_end;
     band_start = classical_tbands[b];
     band_end = classical_tbands[b + 1];
-    for (i = band_start; i < band_end; ++i) {
-      float binE = out[i].r * out[i].r + out[N - i].r * out[N - i].r + out[i].i * out[i].i + out[N - i].i * out[N - i].i;
-      E += binE;
-    }
-    E = (1.f / 32768.f / 32768.f) * E;
     maxE = std::max(maxE, E);
     tonal->meanE[b] = std::max((1 - alphaE2) * tonal->meanE[b], E);
     Em = std::max(E, tonal->meanE[b]);

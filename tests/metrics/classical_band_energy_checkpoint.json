@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "parent_code_commit": "9e2f1c1e39cf0230a51a8778073210cf714fe108",
+  "source_sha256": "869cb2169563dd006414641e0074c6dadc729c9818101bcc3c51c6f2c63639ed",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "diff_sha256": "af5bc6faa9e3d6950eae118f802c3a7a826f3389f6e78638852ab8f2b0eef852",
+  "change": "Reuse each raw spectral-energy bin calculation in two independent per-band accumulators, preserving both original summation orders and scaling epochs.",
+  "source_cost": {
+    "bins_per_analysis": 236,
+    "squares_removed": 944,
+    "expression_additions_removed": 708,
+    "raw_accumulator_additions_preserved": 236,
+    "local_array_payload_bytes": 72,
+    "persistent_state_change_bytes": 0
+  },
+  "build": {
+    "language": "C++23",
+    "optimization": [
+      "-O2",
+      "-DNDEBUG"
+    ],
+    "compiler_and_architecture_flags_changed": false
+  },
+  "identity": {
+    "status": "PASS_EXACT_CURRENT97F0_PACKET_AND_PCM_GOLDS",
+    "baseline_binding": "Accepted current97f0 AUDIO relevant-path equivalence; existing exact packet and decoded-PCM golds.",
+    "cases": [
+      {
+        "case": "natural_music20ms",
+        "output_sha256": {
+          "packets": "c49194c041f1eea68d3ded3965e75f45c5598cb521369d1745be04ce6da77d59",
+          "f32": "0913a6caccfea8aab7aa963db582eff8f728084440b64751e421d5804d89bde9"
+        }
+      },
+      {
+        "case": "fullband60ms",
+        "output_sha256": {
+          "packets": "5d5a496a3bfe7ace709a3f389fe6867f9ae1be0416cb38bf5bcf2a2220fe4448",
+          "f32": "eb7cc23a812f262bc22fc8adb9e3e2dfac9df8b7440658d4729726d05eea4f36"
+        }
+      }
+    ]
+  },
+  "timing": {
+    "status": "ONE_CURRENT97F0_BAND_FUSION_COST_GATE_COMPLETE_ALL_GOLDS_PASS",
+    "run_order": "PC then CP",
+    "cases": [
+      {
+        "case": "natural_music",
+        "execution_encode_ns_PC_CP": [
+          1101329200,
+          1046354500,
+          1043156400,
+          1119938400
+        ],
+        "paired_execution_cost_change_percent_PC_CP": [
+          -4.991668249602387,
+          -6.855912789489138
+        ],
+        "median_paired_execution_cost_change_percent": -5.923790519545763,
+        "parent_pooled_median_ns": 73158400.0,
+        "candidate_pooled_median_ns": 69253150.0,
+        "pooled_candidate_cost_change_percent": -5.3380746435132576,
+        "guards": "exact packet AND decodedPCM gold PASS"
+      },
+      {
+        "case": "fullband_benchmark",
+        "execution_encode_ns_PC_CP": [
+          1031939300,
+          1082117400,
+          1044261300,
+          1134261600
+        ],
+        "paired_execution_cost_change_percent_PC_CP": [
+          4.862504994237549,
+          -7.934703951892574
+        ],
+        "median_paired_execution_cost_change_percent": -1.5360994788275129,
+        "parent_pooled_median_ns": 26671500.0,
+        "candidate_pooled_median_ns": 25790850.0,
+        "pooled_candidate_cost_change_percent": -3.301839041673693,
+        "guards": "exact packet AND decodedPCM gold PASS"
+      }
+    ]
+  },
+  "review": {
+    "independent_source_review": "PASS",
+    "root_source_review": "PASS",
+    "opencode_code_review": "No code blockers",
+    "prompt_id": "msg_11282e539001L29k2Utx7yUu8n",
+    "reply_id": "msg_11284af5e001aF7CbvUCfDGALH",
+    "reply_sha256": "0aa0268e3f96eef3e1690018ee8fdb1999588a1630bf79edac43f908999c31e0"
+  },
+  "evidence_sha256": {
+    "identity": "46f51228036e4d002a96db4cbcd9a93bd2acf0967f5d487d1245bf86cdc7426f",
+    "cost": "ae223980982f4def1b9874ebd01464079e708465bcd52bc2a3dbc125e6cf0f32"
+  },
+  "scope": "Focused AUDIO natural20ms and fullband60ms cases. Natural timing improves in both run orders; fullband timing is mixed. This is not a full benchmark refresh or a universal speedup claim."
+}
