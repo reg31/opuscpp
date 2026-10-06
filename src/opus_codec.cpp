@@ -1395,10 +1395,10 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     const int internal_channels = use_prior_silk_geometry ? silk_state->nChannelsInternal : st->stream_channels;
     const int internal_sample_rate = use_prior_silk_geometry
                                          ? 1000 * prior_silk_channel->fs_kHz
-                                         : mode == opus_mode_silk_only ? silk_bandwidth == 1101   ? 8000
-                                                                        : silk_bandwidth == 1102 ? 12000
-                                                                                                 : 16000
-                                                                      : 16000;
+                                     : mode == opus_mode_silk_only ? silk_bandwidth == 1101   ? 8000
+                                                                     : silk_bandwidth == 1102 ? 12000
+                                                                                              : 16000
+                                                                   : 16000;
     silk_DecControlStruct dec_control{internal_channels, st->channels, internal_sample_rate,
                                       st->Fs, std::max(10, 1000 * audiosize / st->Fs)};
     const int lost_flag = data == nullptr ? 1 : 2 * !!decode_fec;
