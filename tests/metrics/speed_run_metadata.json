@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005",
-  "source_commit": "9d519cf85a6d3cdc136ac3d9d23f312358ee6ac0",
-  "source_blob": "8c610cc7265d4d1c6148c8e01f55751a8662b609",
-  "source_sha256": "3d860762e5d235839805bda8ecf12caa0a18d3050d184098181ccf2e407e12e3",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\native_celt_refresh_20261006\\checkout_e585d",
+  "source_commit": "e585d935409e61508cc1ffe3a8bc4ff696236335",
+  "source_blob": "9901c0719c5dad1a64e77a226b5437d26fb32076",
+  "source_sha256": "54e8f51a252cc2a78f9ce87fc5d3a6e4027b9708106c2b7e7575485e9005f8bb",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "9d519cf85a6d3cdc136ac3d9d23f312358ee6ac0",
+  "tests_commit": "e585d935409e61508cc1ffe3a8bc4ff696236335",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -62,14 +62,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_20261005_9d519cf_full\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_20261005_9d519cf_full\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\native_celt_refresh_20261006\\checkout_e585d\\build\\official_compare_report\\codex_native_celt_e585d_20261006\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\native_celt_refresh_20261006\\checkout_e585d\\build\\official_compare_report\\codex_native_celt_e585d_20261006\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "67192d2b85480cdf215c1d0673668292b69433567b8940a5dca89e7602b0b2b0",
   "quality_driver_diff_sha256": "ea0ee8742d476a4777421b0094071f6adf2317040a8361e0745615cf95bdc2f3",
   "quality_driver_transformation": "exactly two std::setprecision(8) -> std::setprecision(17) replacements; pinned public test copy remains unchanged",
-  "quality_binary_sha256": "56763ab3b9c43660794dd744711cebf1212d128cc002d7c722744f03355665b6",
+  "quality_binary_sha256": "7645e6dd971a341f0fac490d50024731ca5d84b67bcc8117c034ed9dbc0aae12",
   "quality_baseline_hashes": {
     "quality.json": "ad5c2d463eef79177b61acdcafea3a4b36aa48a681b32b0d3c3d3312da774207",
     "quality_extra.json": "b07c3e2c078df1137202dc688781bbdbe69687a01c05677db093fbe2bd2a18bb"
@@ -82,7 +82,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\native_celt_refresh_20261006\\checkout_e585d\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "3570692152ce2649a7a26f583ab4a011bdfcf9976ae68e69baee2e03ea2ab02d",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -105,16 +105,16 @@
     18
   ],
   "standard_fec_acceptance": "PASS",
-  "measurement_date": "2026-10-05",
-  "completed_utc": "2026-10-05T15:29:03.173478+00:00",
+  "measurement_date": "2026-10-06",
+  "completed_utc": "2026-10-06T03:41:45.013105+00:00",
   "root_runner_sha256": "36ed5dccd5951859694c06e0e7081e83b97beba9de143c4d73b1d59ddf650029",
   "phase_runner_sha256": "c1dfdd5e9fa5a39980e735993b76c230a1d1e99e647a9d6d5500668e5171fb35",
-  "input_manifest_sha256": "055c8871a0e848ff616060fa301da5b824c0e3932ed15e61128b3700748ddab2",
-  "resume_provenance_sha256": "0d20e371bba47f32f742a34f439a519c45b6b99969339696d8f62f8bb71f8d6a",
+  "input_manifest_sha256": "53ea0ff1ca0a52c5e7129fc7fc5fc919480624d789b707b20f05a08022503678",
+  "resume_provenance_sha256": "c01355f3f67f6148eabc46f4a6e8b24dd7ef2dfa5432450845b679cd3abbac12",
   "pre_resume_root_runner_sha256": "36ed5dccd5951859694c06e0e7081e83b97beba9de143c4d73b1d59ddf650029",
   "pre_resume_phase_runner_sha256": "c1dfdd5e9fa5a39980e735993b76c230a1d1e99e647a9d6d5500668e5171fb35",
   "harness_sha256": "b71011a03c8631dfd8debd09a1f96f71607c0a5586c5beb2db3d3395179a6e6f",
-  "binary_sha256": "8ce527567f2f6cba88da5e27384697b664658a64e9613a79b61d99a4756300a0",
+  "binary_sha256": "416d5eaebdff9e2c95f6b7db3bd4504cf976eaad297831902e3add82c95ad6ce",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,

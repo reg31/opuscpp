@@ -5,7 +5,7 @@
   "summary": "dtx_comparison=FAIL false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.426114 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=1.852367 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
   "original_source_sha256": "da4c831bf8665f0cb8006425fc0e58bfec5f88434f81bfbb3ddfc7c27d3cb93f",
   "reporting_source_sha256": "07bff621ef013f6fc6772ba53c9bae6d4ea4637ad112957716940f659e73a210",
-  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_20261005_9d519cf_full\\dtx_reporting.cpp",
+  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\native_celt_refresh_20261006\\checkout_e585d\\build\\official_compare_report\\codex_native_celt_e585d_20261006\\dtx_reporting.cpp",
   "waiver": false,
   "failure_is_non_gating_for_measurement_completion": true
 }
