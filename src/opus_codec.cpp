@@ -1212,6 +1212,13 @@ struct silk_decoder_state {
   silk_PLC_struct sPLC;
 };
 
+struct silk_decoder {
+  silk_decoder_state* channel_state;
+  silk_decoder_state* side_channel_state;
+  stereo_dec_state sStereo;
+  int nChannelsInternal, prev_decode_only_middle;
+};
+
 [[nodiscard]] static inline auto silk_read_excitation(opus_uint16 low, opus_int8 high) noexcept -> opus_int32 {
   return (high * 65536 + low) * 64;
 }
@@ -1379,12 +1386,20 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     if (st->prev_mode == opus_mode_celt_only) {
       silk_ResetDecoder(silk_dec);
     }
+    const auto* const silk_state = static_cast<const silk_decoder*>(silk_dec);
+    const auto* const prior_silk_channel = silk_state->channel_state;
+    const bool use_prior_silk_geometry = data == nullptr && prior_silk_channel != nullptr &&
+                                         (silk_state->nChannelsInternal == 1 || silk_state->nChannelsInternal == 2) &&
+                                         (prior_silk_channel->fs_kHz == 8 || prior_silk_channel->fs_kHz == 12 || prior_silk_channel->fs_kHz == 16);
     const int silk_bandwidth = data != nullptr ? bandwidth : st->bandwidth;
-    silk_DecControlStruct dec_control{st->stream_channels, st->channels,
-                                      mode == opus_mode_silk_only ? silk_bandwidth == 1101   ? 8000
-                                                                    : silk_bandwidth == 1102 ? 12000
-                                                                                             : 16000
-                                                                  : 16000,
+    const int internal_channels = use_prior_silk_geometry ? silk_state->nChannelsInternal : st->stream_channels;
+    const int internal_sample_rate = use_prior_silk_geometry
+                                         ? 1000 * prior_silk_channel->fs_kHz
+                                         : mode == opus_mode_silk_only ? silk_bandwidth == 1101   ? 8000
+                                                                        : silk_bandwidth == 1102 ? 12000
+                                                                                                 : 16000
+                                                                      : 16000;
+    silk_DecControlStruct dec_control{internal_channels, st->channels, internal_sample_rate,
                                       st->Fs, std::max(10, 1000 * audiosize / st->Fs)};
     const int lost_flag = data == nullptr ? 1 : 2 * !!decode_fec;
     int decoded_samples = 0;
@@ -12731,13 +12746,6 @@ static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int3
     }
   }
 }
-
-struct silk_decoder {
-  silk_decoder_state* channel_state;
-  silk_decoder_state* side_channel_state;
-  stereo_dec_state sStereo;
-  int nChannelsInternal, prev_decode_only_middle;
-};
 
 [[nodiscard]] static auto silk_ensure_decoder_channel(silk_decoder_state*& channel) noexcept -> silk_decoder_state* {
   if (channel == nullptr) {
