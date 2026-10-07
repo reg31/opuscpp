@@ -3753,8 +3753,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       st->bandwidth = std::min(st->bandwidth, 1103);
     } else if (st->bandwidth <= 1103)
       st->bandwidth = 1104;
-    const opus_int32 hybrid_fullband_floor_bps = st->stream_channels == 2 ? 32000 : 24000;
-    if (st->bitrate_bps < hybrid_fullband_floor_bps) {
+    if (st->stream_channels == 2 && st->bitrate_bps < 32000) {
       st->bandwidth = std::min(st->bandwidth, 1104);
     }
   }
@@ -3828,7 +3827,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
 static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept;
 
 [[nodiscard]] static opus_val16 voip_noise_smoothing_for(const OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
-  return st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
+  return st->voice_denoise != nullptr && st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps <= 24000 &&
                  metrics.mono_diff_ratio > voip_noisy_voice_diff_ratio_min && metrics.mono_zero_cross_rate > voip_noisy_voice_zero_cross_min
              ? voip_noisy_voice_smoothing
              : 0.f;
@@ -4052,6 +4051,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
     const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
     hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
+    const bool use_highpass_reference = st->channels == 1 && st->voice_denoise == nullptr;
     opus_val16 restoration = 0.f;
     if (st->channels == 1) {
       auto low_band_keep = opus_val16{0};
@@ -4093,7 +4093,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
           protected_sample = base + restoration * (raw_ac - base);
         }
         mix += step;
-        frame_pcm[index] = raw + mix * (protected_sample - raw);
+        const float blend_reference = use_highpass_reference ? hp : raw;
+        frame_pcm[index] = blend_reference + mix * (protected_sample - blend_reference);
       }
       state.cond_mix = state.cond_score;
       state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
@@ -4108,7 +4109,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       if (smoothing != 0) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
       }
-      if (st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
+      if (st->voice_denoise != nullptr && st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
           frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
       }
@@ -7289,6 +7290,8 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   } else if (hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 0);
     tf_select = isTransient;
+  } else if (hybrid) {
+    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), isTransient);
   } else {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
@@ -7318,13 +7321,17 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
   spread_decision = 2;
   if (signal_spread) {
-    spread_decision = 0;
-    const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
-                                 toneishness >= .40f &&
-                                 (hybrid ? 5 * st->bitrate >= st->silk_info.bitrateBps : 16 * effectiveBytes >= C * N);
-    const bool release_high_rate = input_release && st->bitrate >= 48000;
-    if (tonal_high_rate || release_high_rate) {
-      spread_decision = 2;
+    if (hybrid) {
+      spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
+    } else {
+      spread_decision = 0;
+      const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
+                                   toneishness >= .40f &&
+                                   16 * effectiveBytes >= C * N;
+      const bool release_high_rate = input_release && st->bitrate >= 48000;
+      if (tonal_high_rate || release_high_rate) {
+        spread_decision = 2;
+      }
     }
     ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
   }
