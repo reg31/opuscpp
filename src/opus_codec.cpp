@@ -4051,7 +4051,6 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
     const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
     hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
-    const bool use_highpass_reference = st->channels == 1 && st->voice_denoise == nullptr;
     opus_val16 restoration = 0.f;
     if (st->channels == 1) {
       auto low_band_keep = opus_val16{0};
@@ -4093,8 +4092,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
           protected_sample = base + restoration * (raw_ac - base);
         }
         mix += step;
-        const float blend_reference = use_highpass_reference ? hp : raw;
-        frame_pcm[index] = blend_reference + mix * (protected_sample - blend_reference);
+        frame_pcm[index] = raw + mix * (protected_sample - raw);
       }
       state.cond_mix = state.cond_score;
       state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
