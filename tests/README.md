@@ -173,7 +173,7 @@ Add `--update-baseline` only after listening/ASR review confirms the new result 
 
 ## Fresh compatibility and API checks
 
-Fresh checks were run against source `a448931` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.
+Fresh checks were run against source `07845fb` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.
 
 ## RFC decode conformance
 
@@ -253,7 +253,7 @@ c++ -std=c++23 -O2 -DNDEBUG -DOPUSCPP_ENABLE_TEST_HOOKS -I src \
 ```
 
 `dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
-speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic run records 0 false DTX packets for opuscpp versus 0 for official Opus across 1,680 active frames. Against the original signal after silence, wake-up NRMSE is 0.4261 versus 0.7622, and gain error is 1.8524 versus 1.6463 dB; silence-frame suppression is 406 versus 406. Aggregate re-entry NRMSE is 44.1% lower and gain error is 12.5% higher. The steady-noise-only case suppresses 120 frames with opuscpp versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`. DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json).
+speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic run records 0 false DTX packets for opuscpp versus 0 for official Opus across 1,680 active frames. Against the original signal after silence, wake-up NRMSE is 0.4260 versus 0.7622, and gain error is 1.8562 versus 1.6463 dB; silence-frame suppression is 406 versus 406. Aggregate re-entry NRMSE is 44.1% lower and gain error is 12.7% higher. The steady-noise-only case suppresses 120 frames with opuscpp versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`. DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json).
 
 In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
 silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
@@ -324,7 +324,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The full benchmark tables below were refreshed on 2026-10-07 for source `a448931` (SHA-256 `869cb2169563dd006414641e0074c6dadc729c9818101bcc3c51c6f2c63639ed`) against official Opus `503d81b`.
+The full benchmark tables below were refreshed on 2026-10-07 for source `07845fb` (SHA-256 `8148f63053e1f4888ede96099da501f017660158eb3169675c77cedcff4d9d05`) against official Opus `503d81b`.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
 recorded in [run metadata](metrics/run_metadata.json).
 
@@ -340,17 +340,17 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.286x | 1.759x | 458x | 356x | 2301x | 1308x |
-| 24&nbsp;kbps | 1.336x | 1.329x | 424x | 318x | 1508x | 1134x |
-| 32&nbsp;kbps | 1.294x | 1.293x | 418x | 323x | 1463x | 1131x |
-| 48&nbsp;kbps | 1.310x | 1.288x | 387x | 295x | 1228x | 954x |
-| 64&nbsp;kbps | 1.305x | 1.216x | 342x | 262x | 1030x | 847x |
-| 96&nbsp;kbps | 1.327x | 1.168x | 282x | 213x | 780x | 668x |
-| 128&nbsp;kbps | 1.219x | 1.175x | 237x | 195x | 677x | 577x |
-| 192&nbsp;kbps | 1.159x | 1.218x | 201x | 173x | 594x | 487x |
-| 256&nbsp;kbps | 1.101x | 1.141x | 182x | 165x | 511x | 447x |
+| 16&nbsp;kbps | 0.838x | 1.750x | 296x | 353x | 2296x | 1312x |
+| 24&nbsp;kbps | 0.901x | 1.328x | 290x | 322x | 1527x | 1150x |
+| 32&nbsp;kbps | 0.879x | 1.330x | 288x | 328x | 1468x | 1103x |
+| 48&nbsp;kbps | 0.902x | 1.301x | 272x | 302x | 1243x | 955x |
+| 64&nbsp;kbps | 0.952x | 1.270x | 248x | 261x | 1010x | 796x |
+| 96&nbsp;kbps | 1.007x | 1.194x | 213x | 212x | 792x | 664x |
+| 128&nbsp;kbps | 0.973x | 1.188x | 189x | 194x | 689x | 580x |
+| 192&nbsp;kbps | 0.942x | 1.236x | 163x | 174x | 600x | 485x |
+| 256&nbsp;kbps | 0.876x | 1.198x | 148x | 169x | 533x | 445x |
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 9/9 measured AUDIO rates (1.10x to 1.34x); decoding at 9/9 (1.14x to 1.76x).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 1/9 measured AUDIO rates (0.84x to 1.01x); decoding at 9/9 (1.19x to 1.75x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -372,15 +372,15 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0024 | -0.0035 | +1.6979 | 16.432 kbps | 17.065 kbps |
-| 24&nbsp;kbps | +0.0403 | +0.0333 | +0.4578 | 24.480 kbps | 25.229 kbps |
-| 32&nbsp;kbps | +0.0719 | +0.0130 | +0.1952 | 32.507 kbps | 33.613 kbps |
-| 48&nbsp;kbps | +0.1996 | +0.0274 | -0.0294 | 48.560 kbps | 48.560 kbps |
-| 64&nbsp;kbps | +0.2810 | +0.0246 | -0.0094 | 64.613 kbps | 64.613 kbps |
-| 96&nbsp;kbps | +0.2812 | +0.0152 | +0.0091 | 96.720 kbps | 96.697 kbps |
-| 128&nbsp;kbps | +0.1528 | +0.0061 | -0.0364 | 128.827 kbps | 128.759 kbps |
-| 192&nbsp;kbps | +0.0705 | +0.0048 | +0.0033 | 193.028 kbps | 192.900 kbps |
-| 256&nbsp;kbps | +0.0355 | +0.0039 | +0.0064 | 256.576 kbps | 256.737 kbps |
+| 16&nbsp;kbps | +0.0023 | -0.0064 | +1.6973 | 16.437 kbps | 17.065 kbps |
+| 24&nbsp;kbps | +0.0478 | +0.0360 | +0.4578 | 24.480 kbps | 25.229 kbps |
+| 32&nbsp;kbps | +0.0690 | +0.0100 | +0.1952 | 32.507 kbps | 33.613 kbps |
+| 48&nbsp;kbps | +0.1992 | +0.0260 | -0.0366 | 48.560 kbps | 48.560 kbps |
+| 64&nbsp;kbps | +0.2926 | +0.0234 | -0.0090 | 64.613 kbps | 64.613 kbps |
+| 96&nbsp;kbps | +0.2818 | +0.0160 | +0.0246 | 96.720 kbps | 96.697 kbps |
+| 128&nbsp;kbps | +0.1593 | +0.0052 | -0.0363 | 128.827 kbps | 128.759 kbps |
+| 192&nbsp;kbps | +0.0693 | +0.0048 | +0.0051 | 193.033 kbps | 192.900 kbps |
+| 256&nbsp;kbps | +0.0342 | +0.0029 | +0.0072 | 256.528 kbps | 256.737 kbps |
 
 ## VOIP quality metrics vs official Opus
 
@@ -390,14 +390,14 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | +0.1482 | +0.0049 | +0.2362 | 12.367 kbps | 12.072 kbps |
-| 24&nbsp;kbps | +0.2090 | +0.0138 | +0.0641 | 24.011 kbps | 24.020 kbps |
-| 32&nbsp;kbps | +0.2713 | +0.0157 | +0.4659 | 32.113 kbps | 32.088 kbps |
-| 48&nbsp;kbps | +0.1432 | -0.0050 | +0.1056 | 48.352 kbps | 48.409 kbps |
-| 64&nbsp;kbps | +0.2931 | +0.0016 | +0.0031 | 64.481 kbps | 64.515 kbps |
-| 96&nbsp;kbps | +0.7011 | +0.0081 | +0.3507 | 96.400 kbps | 96.499 kbps |
-| 128&nbsp;kbps | +0.7738 | +0.0033 | +0.3840 | 128.400 kbps | 128.489 kbps |
-| 192&nbsp;kbps | +1.0978 | +0.0048 | +0.4258 | 192.400 kbps | 192.472 kbps |
-| 256&nbsp;kbps | +1.1009 | +0.0055 | +0.4504 | 256.400 kbps | 256.464 kbps |
+| 24&nbsp;kbps | +0.2621 | +0.0202 | +0.0572 | 24.012 kbps | 24.020 kbps |
+| 32&nbsp;kbps | +0.3310 | +0.0216 | +0.4981 | 32.111 kbps | 32.088 kbps |
+| 48&nbsp;kbps | +0.1979 | -0.0003 | +0.1062 | 48.343 kbps | 48.409 kbps |
+| 64&nbsp;kbps | +0.3576 | +0.0041 | +0.0031 | 64.469 kbps | 64.515 kbps |
+| 96&nbsp;kbps | +0.7636 | +0.0102 | +0.3973 | 96.400 kbps | 96.499 kbps |
+| 128&nbsp;kbps | +0.8311 | +0.0049 | +0.3870 | 128.400 kbps | 128.489 kbps |
+| 192&nbsp;kbps | +1.0997 | +0.0054 | +0.4274 | 192.400 kbps | 192.472 kbps |
+| 256&nbsp;kbps | +1.1014 | +0.0056 | +0.4505 | 256.400 kbps | 256.464 kbps |
 
 The voiced/formant fixture uses phase-integrated pitch and breath noise at a controlled 30 dB SNR. Its ViSQOL-style delta improves at 8/9 rates; losses remain. The former phase-modulated fixture is retained as a separate tonal-stress case, not relabelled as speech. Do not compare new VOIP scores directly with the former fixture. The complete 12-field comparisons and complexity-9 control are in [quality_official_full_precision.csv](metrics/quality_official_full_precision.csv), with [configuration and fixture hashes](metrics/quality_run_metadata.json). Rounded zero in a table does not imply exact equality.
 
@@ -407,8 +407,8 @@ Fresh comparisons cover the broad ladder, stereo/content holdouts, four mono spe
 
 | Set | Comparisons | Negative PESQ-style | Negative ViSQOL-style | Negative CELT proxy |
 |---:|---:|---:|---:|---:|
-| Broad ladder | 99 | 6 | 14 | 25 |
-| Stereo/content holdouts | 30 | 4 | 8 | 7 |
+| Broad ladder | 99 | 3 | 9 | 26 |
+| Stereo/content holdouts | 30 | 3 | 7 | 6 |
 | Mono speech recordings | 36 | 0 | 0 | 0 |
 | Retained tonal stress | 9 | 0 | 0 | 0 |
 
@@ -431,21 +431,21 @@ The 15.5/20 kbps cases have PESQ-style gains +0.1345/+0.1341 and ViSQOL-style ga
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at 6 rates, 2 have negative PESQ-style deltas, 0 negative ViSQOL-style deltas, and 4 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
 
-End-to-end encode overhead is **3.3% to 7.1%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+End-to-end encode overhead is **3.0% to 6.3%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
 
 The optional denoiser state is 68 bytes; the fresh state/bounds/reset check passed 90 configurations. Temporary stack high-water was not measured in this refresh.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1151 | +0.0964 | 4.2% |
-| 24&nbsp;kbps | +0.1820 | +0.1082 | 4.3% |
-| 32&nbsp;kbps | +0.2048 | +0.1174 | 7.1% |
-| 48&nbsp;kbps | +0.2195 | +0.1223 | 3.3% |
-| 64&nbsp;kbps | +0.2140 | +0.1327 | 4.7% |
-| 96&nbsp;kbps | +0.2128 | +0.1558 | 4.0% |
-| 128&nbsp;kbps | +0.2118 | +0.1581 | 5.5% |
-| 192&nbsp;kbps | +0.2148 | +0.1591 | 4.2% |
-| 256&nbsp;kbps | +0.2157 | +0.1594 | 3.9% |
+| 16&nbsp;kbps | +0.1151 | +0.0964 | 4.7% |
+| 24&nbsp;kbps | +0.1820 | +0.1082 | 3.4% |
+| 32&nbsp;kbps | +0.2048 | +0.1174 | 4.0% |
+| 48&nbsp;kbps | +0.2195 | +0.1223 | 3.6% |
+| 64&nbsp;kbps | +0.2135 | +0.1321 | 4.6% |
+| 96&nbsp;kbps | +0.2122 | +0.1558 | 6.3% |
+| 128&nbsp;kbps | +0.2116 | +0.1584 | 3.0% |
+| 192&nbsp;kbps | +0.2149 | +0.1590 | 3.7% |
+| 256&nbsp;kbps | +0.2157 | +0.1594 | 3.1% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
 
@@ -458,13 +458,13 @@ build/voice_denoise_state
 
 ## Memory metrics
 
-This table is from the full refresh for source `a448931`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
+This table is from the full refresh for source `07845fb`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 19,776 B | 31,856 B | -37.9% |
-| Encoder stereo | 30,000 B | 48,880 B | -38.6% |
-| Decoder mono | 8,432 B | 18,464 B | -54.3% |
-| Decoder stereo | 17,584 B | 27,104 B | -35.1% |
+| Encoder mono | 19,792 B | 31,872 B | -37.9% |
+| Encoder stereo | 29,888 B | 48,944 B | -38.9% |
+| Decoder mono | 8,432 B | 18,448 B | -54.3% |
+| Decoder stereo | 17,600 B | 27,120 B | -35.1% |
 
 Source CSV:
 
@@ -474,8 +474,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 379,432 B | 0 B | 379,432 B |
-| Android arm64 Clang `-O2` | 376,120 B | 472 B | 376,592 B |
+| Host MinGW GCC `-O2` | 378,832 B | 0 B | 378,832 B |
+| Android arm64 Clang `-O2` | 375,668 B | 472 B | 376,140 B |
 
 ## Toolchains checked
 
