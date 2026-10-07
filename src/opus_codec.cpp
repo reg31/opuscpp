@@ -15886,7 +15886,7 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
     }
   }
   std::copy_n(C_first_row.begin(), D, C_last_row.begin());
-  CAb[0] = CAf[0] = C0 + 1e-5f * C0 + 1e-9f;
+  CAb[0] = CAf[0] = C0 + 1e-5f * C0 + 1e-1;
   double invGain = 1.0f;
   double nrg_f = 0;
   bool reached_max_gain = false;
