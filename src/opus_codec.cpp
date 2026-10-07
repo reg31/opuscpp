@@ -6594,13 +6594,25 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
   }
   celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
   find_best_pitch(xcorr.data(), y_lp4.data(), len >> 2, max_pitch >> 2, best_pitch.data());
-  for (int i = 0; i < max_pitch >> 1; i++) {
-    xcorr[i] = 0;
-    if (std::abs(i - 2 * best_pitch[0]) > 2 && std::abs(i - 2 * best_pitch[1]) > 2) {
+  const int fine_count = max_pitch >> 1;
+  std::fill_n(xcorr.begin(), fine_count, 0.0f);
+  std::array<std::pair<int, int>, 2> fine_intervals;
+  for (int candidate = 0; candidate < 2; ++candidate) {
+    const int center = 2 * best_pitch[candidate];
+    fine_intervals[candidate] = {std::max(0, center - 2), std::min(fine_count, center + 3)};
+  }
+  if (fine_intervals[1].first < fine_intervals[0].first)
+    std::swap(fine_intervals[0], fine_intervals[1]);
+  if (fine_intervals[1].first <= fine_intervals[0].second) {
+    fine_intervals[0].second = std::max(fine_intervals[0].second, fine_intervals[1].second);
+    fine_intervals[1] = {0, 0};
+  }
+  for (const auto [begin, end] : fine_intervals) {
+    if (begin >= end)
       continue;
-    }
-    const opus_val32 sum = celt_inner_prod_c(x_lp, y + i, len >> 1);
-    xcorr[i] = std::max(-1.f, sum);
+    celt_pitch_xcorr_c(x_lp, y + begin, xcorr.data() + begin, len >> 1, end - begin);
+    for (int i = begin; i < end; ++i)
+      xcorr[i] = std::max(-1.f, xcorr[i]);
   }
   find_best_pitch(xcorr.data(), y, len >> 1, max_pitch >> 1, best_pitch.data());
   if (best_pitch[0] > 0 && best_pitch[0] < (max_pitch >> 1) - 1) {
