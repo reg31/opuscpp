@@ -7,6 +7,7 @@ import csv
 import hashlib
 from concurrent.futures import ThreadPoolExecutor
 import json
+import math
 import os
 import pathlib
 import re
@@ -16,6 +17,7 @@ import sys
 import datetime
 import tarfile
 import urllib.request
+import wave
 
 OFFICIAL_OPUS_REPO = "https://github.com/xiph/opus.git"
 OFFICIAL_OPUS_TAG = "main"
@@ -954,11 +956,112 @@ def build_conformance_harness(repo_root: pathlib.Path, build_dir: pathlib.Path, 
     return exe
 
 
+PREPROCESSING_FIELDS = (
+    "snr_db", "segmental_snr_db", "rms_error", "mean_abs_error",
+    "pesq_style", "visqol_style", "logband_corr", "logband_error",
+    "celt_quality", "celt_masked_error", "celt_highband_error", "stereo_width_error",
+)
+PREPROCESSING_CASES = {0: ("broad", "mixed", 16000), 1: ("broad", "mixed", 24000),
+                       169: ("denoiser_broad", "babble_0", 16000)}
+
+
+def preprocessing_metric_gate(parent: dict, current: dict, official: dict) -> dict:
+    for metrics in (parent, current, official):
+        if any(field not in metrics or not math.isfinite(metrics[field]) for field in PREPROCESSING_FIELDS):
+            raise ValueError("Preprocessing acceptance requires all12 finite metrics")
+    decision = dict(new_OFF_deficits=[], worsened_existing_OFF_deficits=[],
+                    reduced_positive_OFF_margins=[], comparisons={})
+    for field in PREPROCESSING_FIELDS:
+        direction = -1 if field.endswith("_error") else 1
+        margin = direction * (current[field] - official[field])
+        parent_margin = direction * (parent[field] - official[field])
+        change = margin - parent_margin
+        decision["comparisons"][field] = dict(parent_signed_OFF_margin=parent_margin,
+                                              candidate_signed_OFF_margin=margin, margin_change=change)
+        if margin < -1e-10 and parent_margin >= -1e-10:
+            decision["new_OFF_deficits"].append(field)
+        elif margin < -1e-10 and parent_margin < -1e-10 and change < -1e-10:
+            decision["worsened_existing_OFF_deficits"].append(field)
+        if margin >= -1e-10 and change < -1e-10:
+            decision["reduced_positive_OFF_margins"].append(field)
+    decision["status"] = "NO_GO" if decision["new_OFF_deficits"] or decision["worsened_existing_OFF_deficits"] else "PASS"
+    return decision
+
+
+def check_preprocessing_quality(result_paths: list[pathlib.Path]) -> list[dict]:
+    results = [json.loads(path.read_text()) for path in result_paths]
+    if len(results) != 3 or {row["row_index"] for row in results} != PREPROCESSING_CASES.keys():
+        raise ValueError("Preprocessing acceptance requires row169 target plus row1 VOIP24 and row0 VOIP16 controls")
+    if len({(row["source"]["sha256"], row["object"]["sha256"]) for row in results}) != 1:
+        raise ValueError("Preprocessing results must share one candidate source/object pair")
+    decisions = []
+    for path, row in zip(result_paths, results):
+        files = {}
+        for key in ("source", "object", "input", "reference", "baseline_report", "candidate_report"):
+            binding = row[key]
+            file = (path.parent / binding["path"]).resolve()
+            if hashlib.sha256(file.read_bytes()).hexdigest() != binding["sha256"]:
+                raise ValueError(f"Stale preprocessing binding: {file}")
+            files[key] = file
+        index = row["row_index"]
+        group, sample, bitrate = PREPROCESSING_CASES[index]
+        scope = dict(group=group, sample=sample, application="voip", bitrate=bitrate,
+                     complexity=10, postfilter=0, denoise=False)
+        if row["scope"] != scope:
+            raise ValueError(f"Wrong preprocessing case: row{index}")
+        frames = []
+        for key in ("input", "reference"):
+            with wave.open(str(files[key]), "rb") as wav:
+                if (wav.getnchannels(), wav.getframerate(), wav.getsampwidth()) != (1, 48000, 2):
+                    raise ValueError(f"Wrong preprocessing PCM format: row{index}")
+                frames.append(min(wav.getnframes(), 6 * 48000) // 960)
+        if frames[0] != frames[1] or not frames[0]:
+            raise ValueError(f"Mismatched preprocessing input/reference duration: row{index}")
+        reports = {}
+        for lane in ("baseline", "candidate"):
+            command = row[lane + "_command"]
+            expected = ["--input", str(files["input"]), "--reference", str(files["reference"]),
+                        "--application", "voip", "--bitrate", str(bitrate), "--complexity", "10",
+                        "--max-seconds", "6", "--skip-memory", "--current-postfilter", "0"]
+            if command[1:] != expected:
+                raise ValueError(f"Wrong preprocessing producer command: row{index} {lane}")
+            lines = files[lane + "_report"].read_text().splitlines()
+            headers = [line for line in lines if line.startswith("perceptual validation ")]
+            if len(headers) != 1:
+                raise ValueError(f"Missing preprocessing report header: row{index} {lane}")
+            header = headers[0]
+            settings = dict(re.findall(r"([A-Za-z0-9_]+)=([^\s]+)", header))
+            expected_settings = dict(bitrate=str(bitrate), official_bitrate=str(bitrate), complexity="10",
+                                     channels="1", frames=str(frames[0]), current_postfilter_requested_level="0",
+                                     current_voice_denoise_requested="0", pcm16="0", official_decoder_complexity="0")
+            if (any(settings.get(key) != value for key, value in expected_settings.items())
+                    or f" input={files['input']} reference={files['reference']} " not in header):
+                raise ValueError(f"Wrong preprocessing report input/config: row{index} {lane}")
+            reports[lane] = {}
+            for label in ("current", "official"):
+                matches = [line for line in lines if line.strip().startswith(label + " ")]
+                if len(matches) != 1:
+                    raise ValueError(f"Missing preprocessing {label} metrics: row{index} {lane}")
+                metrics = {key: float(value) for key, value in re.findall(r"([A-Za-z0-9_]+)=([^\s]+)", matches[0])}
+                if metrics.get("packets") != frames[0]:
+                    raise ValueError(f"Wrong preprocessing packet count: row{index} {lane} {label}")
+                reports[lane][label] = {field: metrics[field] for field in PREPROCESSING_FIELDS if field in metrics}
+        if reports["baseline"]["official"] != reports["candidate"]["official"]:
+            raise ValueError(f"Preprocessing reports must share pinned official metrics: row{index}")
+        decision = preprocessing_metric_gate(reports["baseline"]["current"], reports["candidate"]["current"],
+                                             reports["baseline"]["official"])
+        decision.update(row_index=index, role="target" if index == 169 else "control")
+        decisions.append(decision)
+    return decisions
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Set up official Opus comparison assets and the opuscpp RFC decode harness."
     )
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"), help="C++23 compiler to use for our harness.")
+    parser.add_argument("--preprocessing-results", type=pathlib.Path, nargs="+",
+                        help="Check bound public reports for row169 target and row0/row1 controls; see tests/README.md.")
     parser.add_argument(
         "--generator",
         default=None,
@@ -981,6 +1084,10 @@ def main() -> int:
         help="Optimization flag for opuscpp harnesses and benchmarks; official Opus remains at -O2 -DNDEBUG.",
     )
     args = parser.parse_args()
+    if args.preprocessing_results is not None:
+        decisions = check_preprocessing_quality(args.preprocessing_results)
+        print(json.dumps(decisions, indent=2))
+        return int(any(row["status"] != "PASS" for row in decisions))
     global OPUSCPP_OPT_FLAG
     OPUSCPP_OPT_FLAG = args.opuscpp_opt
     prepend_tool_directory_to_path(args.cxx)

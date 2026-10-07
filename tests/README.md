@@ -631,3 +631,61 @@ Full measurements and identities are in [feedback checkpoint metadata](metrics/n
 ## Historical FEC startup mode regression (32f44fc)
 
 The `32f44fc` update removes the fixed startup wait before eligible FEC mode selection. The existing startup/reset harness now has 26 checks; its two new int16/float first-packet checks fail on the previous source and pass with the fix, including reset after populated history. In two aligned packet-1 loss controls, source error falls from 0.347366240 to 0.205424276 (mono 32 kbps) and from 0.782491949 to 0.243185224 (stereo 48 kbps). The later packet-8 self-reference comparison still has one deficit, reported above. [Startup measurements](metrics/fec_startup_checkpoint.json).
+
+## Preprocessing regression gate
+
+Run the saved-value regression check with `python tests/scripts/test_preprocessing_quality.py`.
+It uses only the standard library and temporary fixtures, with no codec invocation or external
+corpus. Qualified37 is accepted; smoothing20e row0 is rejected for a worsened existing HBE
+deficit, smoothing20e row1 retains a positive HBE margin, and bad14e row1 is rejected for a
+new HBE deficit. Row169's recorded material CQ/masked-error gains are checked separately.
+
+The saved-report CLI requires all three cases: row169 noisy mono VOIP16 target, row1 mixed
+mono VOIP24 control, and row0 mixed mono VOIP16 control. It checks a common candidate
+source/object pair, file hashes, mono 48-kHz PCM16 input/reference, exact producer options,
+report settings and packet counts, and all twelve finite metrics. New or worsened negatives
+use a directional tolerance of `1e-10`; reduced positive margins are reported separately.
+Reports use the precision printed by their producer; the existing public harness prints eight
+decimal places. These checks do not replace packet/PCM identity checks for exact refactors.
+
+The public producer is `tests/perceptual_memory_validation.cpp`, built by
+`tests/scripts/setup_official_compare.py` as `build/official_compare_report/perceptual_memory_validation`
+(`.exe` on Windows). Build baseline and candidate executables with the same pinned official
+library and options. The following stdlib recipe shows the producer command and writes portable
+manifests from its ordinary stdout. Set the paths to the selected builds and WAV files;
+`mixed.wav` is the mixed input/reference, `babble0.wav` the noisy input, and `clean.wav` its
+aligned reference. All inputs must be mono 48-kHz PCM16. Existing equivalent saved reports
+can be bound without rerunning the producer.
+
+```python
+import hashlib, json, pathlib, subprocess
+
+out = pathlib.Path("preprocessing-reports").resolve()
+out.mkdir(exist_ok=True)
+baseline = pathlib.Path("baseline/perceptual_memory_validation").resolve()
+candidate = pathlib.Path("candidate/perceptual_memory_validation").resolve()
+source = pathlib.Path("candidate/src/opus_codec.cpp").resolve()
+obj = pathlib.Path("candidate/build/official_compare_report/curr_opus_codec.o").resolve()
+bind = lambda p: {"path": str(p), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()}
+for index, group, sample, rate, input_name, reference_name in (
+    (0, "broad", "mixed", 16000, "mixed.wav", "mixed.wav"),
+    (1, "broad", "mixed", 24000, "mixed.wav", "mixed.wav"),
+    (169, "denoiser_broad", "babble_0", 16000, "babble0.wav", "clean.wav"),
+):
+    input_path, reference = map(lambda p: pathlib.Path(p).resolve(), (input_name, reference_name))
+    row = dict(row_index=index, scope=dict(group=group, sample=sample, application="voip",
+               bitrate=rate, complexity=10, postfilter=0, denoise=False),
+               source=bind(source), object=bind(obj), input=bind(input_path), reference=bind(reference))
+    for lane, exe in (("baseline", baseline), ("candidate", candidate)):
+        argv = [str(exe), "--input", str(input_path), "--reference", str(reference),
+                "--application", "voip", "--bitrate", str(rate), "--complexity", "10",
+                "--max-seconds", "6", "--skip-memory", "--current-postfilter", "0"]
+        report = out / f"{lane}-{index}.txt"
+        report.write_text(subprocess.run(argv, check=True, capture_output=True, text=True).stdout)
+        row[lane + "_command"], row[lane + "_report"] = argv, bind(report)
+    (out / f"row{index}.json").write_text(json.dumps(row, indent=2))
+```
+
+Run `python tests/scripts/setup_official_compare.py --preprocessing-results preprocessing-reports/row0.json preprocessing-reports/row1.json preprocessing-reports/row169.json`.
+This command reads the bound reports only and returns nonzero on a regression or invalid
+evidence. Manifest paths may be absolute or relative to the manifest file.
