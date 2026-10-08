@@ -3648,9 +3648,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     }
   }
   if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
-    st->mode = opus_mode_celt_only;
-  }
-  if (st->application == OPUS_APPLICATION_AUDIO && st->channels == 2) {
     const bool confident_high_z_tonal = st->lightweight_high_z_tonal_Q7 > 64 || sparse_tonal_frame;
     const bool segment_selected_bitrate = st->bitrate_bps >= 48000 && st->bitrate_bps < 112000;
     if (segment_selected_bitrate && st->preprocess_filter_state >= 0) {
