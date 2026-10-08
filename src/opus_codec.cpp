@@ -3750,9 +3750,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       st->bandwidth = std::min(st->bandwidth, 1103);
     } else if (st->bandwidth <= 1103)
       st->bandwidth = 1104;
-    if (st->stream_channels == 2 && st->bitrate_bps < 32000) {
-      st->bandwidth = std::min(st->bandwidth, 1104);
-    }
   }
   celt_enc->lsb_depth = lsb_depth;
   celt_enc->midrate_quality_boost_bps = st->application == OPUS_APPLICATION_AUDIO && st->mode == opus_mode_celt_only &&
