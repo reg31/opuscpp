@@ -2,250 +2,16 @@
   "strict_source": {
     "rows": 18,
     "counts": [
-      13,
-      15,
-      14,
-      17
+      18,
+      18,
+      17,
+      18
     ],
     "failed_rows": [
       {
         "key": [
           1,
-          10,
-          24000,
-          0,
-          1
-        ],
-        "criteria_pass": [
-          true,
-          true,
-          true,
-          false
-        ],
-        "current": {
-          "fidelity_fec": 0.580021673,
-          "next_fec": 0.697638131,
-          "transition_fec": 0.428019638,
-          "fidelity_ref": 0.600980212,
-          "next_ref": 0.715371178,
-          "transition_ref": 0.445835783,
-          "fidelity_plc": 0.545662451,
-          "self_consistency": 0.06560943,
-          "step_fec": 783.0,
-          "step_ref": 790.0
-        },
-        "official": {
-          "fidelity_fec": 0.59928158,
-          "next_fec": 0.701482242,
-          "transition_fec": 0.43400845,
-          "fidelity_ref": 0.652016973,
-          "next_ref": 0.712033028,
-          "transition_ref": 0.483983207,
-          "fidelity_plc": 0.524882059,
-          "self_consistency": 0.13531762,
-          "step_fec": 835.0,
-          "step_ref": 820.0
-        }
-      },
-      {
-        "key": [
-          1,
           20,
-          24000,
-          0,
-          1
-        ],
-        "criteria_pass": [
-          false,
-          false,
-          false,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.663218951,
-          "next_fec": 0.731285202,
-          "transition_fec": 0.317344587,
-          "fidelity_ref": 0.663686756,
-          "next_ref": 0.675695358,
-          "transition_ref": 0.275439653,
-          "fidelity_plc": 0.9882875,
-          "self_consistency": 0.096690728,
-          "step_fec": -301.0,
-          "step_ref": -219.0
-        },
-        "official": {
-          "fidelity_fec": 0.643683622,
-          "next_fec": 0.722510345,
-          "transition_fec": 0.304709106,
-          "fidelity_ref": 0.684492399,
-          "next_ref": 0.665065994,
-          "transition_ref": 0.263676337,
-          "fidelity_plc": 0.962712569,
-          "self_consistency": 0.142381179,
-          "step_fec": -62.0,
-          "step_ref": -217.0
-        }
-      },
-      {
-        "key": [
-          1,
-          20,
-          32000,
-          0,
-          1
-        ],
-        "criteria_pass": [
-          false,
-          true,
-          true,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.663049256,
-          "next_fec": 0.645712686,
-          "transition_fec": 0.269785465,
-          "fidelity_ref": 0.666495524,
-          "next_ref": 0.678636797,
-          "transition_ref": 0.26814371,
-          "fidelity_plc": 0.967300034,
-          "self_consistency": 0.129517544,
-          "step_fec": -214.0,
-          "step_ref": -351.0
-        },
-        "official": {
-          "fidelity_fec": 0.63561068,
-          "next_fec": 0.73277849,
-          "transition_fec": 0.279519207,
-          "fidelity_ref": 0.673763989,
-          "next_ref": 0.674820852,
-          "transition_ref": 0.263568908,
-          "fidelity_plc": 0.986097425,
-          "self_consistency": 0.155653909,
-          "step_fec": -208.0,
-          "step_ref": -143.0
-        }
-      },
-      {
-        "key": [
-          1,
-          10,
-          24000,
-          1,
-          1
-        ],
-        "criteria_pass": [
-          true,
-          true,
-          false,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.613456513,
-          "next_fec": 0.72302187,
-          "transition_fec": 0.475725351,
-          "fidelity_ref": 0.676452259,
-          "next_ref": 0.734210852,
-          "transition_ref": 0.445618458,
-          "fidelity_plc": 1.271286054,
-          "self_consistency": 0.163233414,
-          "step_fec": 396.0,
-          "step_ref": 431.0
-        },
-        "official": {
-          "fidelity_fec": 0.718125669,
-          "next_fec": 0.828987679,
-          "transition_fec": 0.271244925,
-          "fidelity_ref": 0.663621132,
-          "next_ref": 0.746284936,
-          "transition_ref": 0.43631859,
-          "fidelity_plc": 1.432051461,
-          "self_consistency": 0.252028112,
-          "step_fec": 364.0,
-          "step_ref": 453.0
-        }
-      },
-      {
-        "key": [
-          1,
-          20,
-          24000,
-          1,
-          1
-        ],
-        "criteria_pass": [
-          false,
-          true,
-          true,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.692590561,
-          "next_fec": 0.650747342,
-          "transition_fec": 0.252290877,
-          "fidelity_ref": 0.692590561,
-          "next_ref": 0.650747342,
-          "transition_ref": 0.252290877,
-          "fidelity_plc": 1.00178922,
-          "self_consistency": 0.0,
-          "step_fec": -75.0,
-          "step_ref": -75.0
-        },
-        "official": {
-          "fidelity_fec": 0.680104609,
-          "next_fec": 0.692728199,
-          "transition_fec": 0.286478785,
-          "fidelity_ref": 0.662625406,
-          "next_ref": 0.674010356,
-          "transition_ref": 0.304954609,
-          "fidelity_plc": 0.898602395,
-          "self_consistency": 0.205200526,
-          "step_fec": -338.0,
-          "step_ref": -54.0
-        }
-      },
-      {
-        "key": [
-          1,
-          20,
-          32000,
-          1,
-          1
-        ],
-        "criteria_pass": [
-          false,
-          false,
-          false,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.705245378,
-          "next_fec": 0.712155398,
-          "transition_fec": 0.361941373,
-          "fidelity_ref": 0.706827953,
-          "next_ref": 0.680369944,
-          "transition_ref": 0.30890519,
-          "fidelity_plc": 0.900520251,
-          "self_consistency": 0.203516523,
-          "step_fec": 2.0,
-          "step_ref": 184.0
-        },
-        "official": {
-          "fidelity_fec": 0.687278128,
-          "next_fec": 0.667569423,
-          "transition_fec": 0.355132206,
-          "fidelity_ref": 0.699792919,
-          "next_ref": 0.695406526,
-          "transition_ref": 0.344063639,
-          "fidelity_plc": 1.024089821,
-          "self_consistency": 0.253168213,
-          "step_fec": -79.0,
-          "step_ref": -255.0
-        }
-      },
-      {
-        "key": [
-          1,
-          10,
           24000,
           2,
           1
@@ -257,67 +23,28 @@
           true
         ],
         "current": {
-          "fidelity_fec": 0.741431864,
-          "next_fec": 0.747816915,
-          "transition_fec": 0.660933145,
-          "fidelity_ref": 0.741431864,
-          "next_ref": 0.747816915,
-          "transition_ref": 0.660933145,
-          "fidelity_plc": 1.454894142,
-          "self_consistency": 0.0,
-          "step_fec": 2039.0,
-          "step_ref": 2039.0
+          "fidelity_fec": 0.472083595,
+          "next_fec": 0.488684684,
+          "transition_fec": 0.486728536,
+          "fidelity_ref": 0.430764284,
+          "next_ref": 0.481936972,
+          "transition_ref": 0.416766206,
+          "fidelity_plc": 1.059416788,
+          "self_consistency": 0.249060325,
+          "step_fec": -432.0,
+          "step_ref": -596.0
         },
         "official": {
-          "fidelity_fec": 0.775779791,
-          "next_fec": 0.755986329,
-          "transition_fec": 0.658332111,
-          "fidelity_ref": 0.684159635,
-          "next_ref": 0.775056677,
-          "transition_ref": 0.478974903,
-          "fidelity_plc": 1.455379434,
-          "self_consistency": 0.390870655,
-          "step_fec": 2382.0,
-          "step_ref": 2459.0
-        }
-      },
-      {
-        "key": [
-          1,
-          20,
-          32000,
-          2,
-          1
-        ],
-        "criteria_pass": [
-          false,
-          false,
-          true,
-          true
-        ],
-        "current": {
-          "fidelity_fec": 0.801199886,
-          "next_fec": 0.795700277,
-          "transition_fec": 0.469703899,
-          "fidelity_ref": 0.791217685,
-          "next_ref": 0.772570859,
-          "transition_ref": 0.545223616,
-          "fidelity_plc": 0.864154269,
-          "self_consistency": 0.352548666,
-          "step_fec": -674.0,
-          "step_ref": -610.0
-        },
-        "official": {
-          "fidelity_fec": 0.770283448,
-          "next_fec": 0.783660495,
-          "transition_fec": 0.556042528,
-          "fidelity_ref": 0.781625766,
-          "next_ref": 0.805697505,
-          "transition_ref": 0.480377265,
-          "fidelity_plc": 1.044183405,
-          "self_consistency": 0.431638723,
-          "step_fec": -1532.0,
-          "step_ref": -1238.0
+          "fidelity_fec": 0.802790967,
+          "next_fec": 0.684358962,
+          "transition_fec": 0.486687027,
+          "fidelity_ref": 0.749776717,
+          "next_ref": 0.751198817,
+          "transition_ref": 0.47551309,
+          "fidelity_plc": 0.829666861,
+          "self_consistency": 0.384927814,
+          "step_fec": -1298.0,
+          "step_ref": -567.0
         }
       }
     ],
@@ -325,11 +52,11 @@
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false,
-    "stdout": "FEC source criteria C1/C2/C3/C4: [13, 15, 14, 17] out of 18"
+    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 17, 18] out of 18"
   },
   "standard_interop": {
     "exit_code": 0,
-    "summary": "fec_summary recovery_error_ratio=0.470176 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.99416",
+    "summary": "fec_summary recovery_error_ratio=0.498436 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.996333",
     "acceptance": "PASS",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
