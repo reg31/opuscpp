@@ -9101,7 +9101,8 @@ template <int Radix, int M> static void stockham480_stage(const float* input, fl
             t = {(b.i - b.r) * tw, -(b.i + b.r) * tw};
           store.template operator()<1>(K, complex_subtract(a, t));
           store.template operator()<0>(K, complex_add(a, t));
-        }(), ...);
+        }(),
+         ...);
       }(std::make_index_sequence<M>{});
     }
   } else {
@@ -9292,7 +9293,8 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
   const int N4 = N >> 2;
   std::array<kiss_fft_cpx, CallerScratch || Stockham480 ? 0 : celt_max_frame_samples / 2> fft_storage;
   std::array<float, CallerScratch || !Stockham480 ? 0 : celt_max_frame_samples> stockham_storage;
-  auto* f2 = Stockham480 ? nullptr : Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out) : fft_storage.data();
+  auto* f2 = Stockham480 ? nullptr : Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out)
+                                               : fft_storage.data();
   const auto prerotate = [&](int i, float re, float im) {
     const auto t0 = trig[i], t1 = trig[N4 + i];
     if constexpr (Stockham480) {
