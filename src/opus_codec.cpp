@@ -10993,7 +10993,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
 
     frame_loudness += classifier_sqrt_d(E + 1e-10f);
     logE[b] = classifier_log_d(E + 1e-10f);
-    band_log2[b + 1] = .5f * 1.442695f * classifier_log_d(E + 1e-10f);
+    band_log2[b + 1] = .5f * 1.442695f * logE[b];
     tonal->logE[tonal->E_count][b] = logE[b];
     if (tonal->count == 0) {
       tonal->highE[b] = tonal->lowE[b] = logE[b];
