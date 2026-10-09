@@ -6571,8 +6571,8 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
 }
 
 static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
-                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
-                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation);
+                                std::span<const opus_val16, celt_max_pitch_period / 2> y,
+                                std::span<opus_val32, celt_max_pitch_period / 2> correlation);
 
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
   std::array<int, 2> best_pitch{};
@@ -9659,11 +9659,13 @@ static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
 
 static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
-                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
-                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
+                                std::span<const opus_val16, celt_max_pitch_period / 2> y,
+                                std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
   static_assert(sizeof(opus_val16) == sizeof(opus_uint32));
   static_assert(std::numeric_limits<opus_val16>::is_iec559 && std::numeric_limits<opus_val16>::digits == 24);
-  constexpr auto magnitude = [](float value) { return std::bit_cast<opus_uint32>(value) & 0x7fffffffU; };
+  constexpr auto magnitude = [](float value) {
+    return std::bit_cast<opus_uint32>(value) & 0x7fffffffU;
+  };
   constexpr auto bound = std::bit_cast<opus_uint32>(1e12f);
   opus_uint32 peak_x = 0, peak_y = 0;
   int minimum_x = 255, minimum_y = 255;
@@ -9673,7 +9675,8 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
     if (bits > bound || (bits != 0 && exponent == 0))
       return false;
     peak_x = std::max(peak_x, bits);
-    if (bits != 0) minimum_x = std::min(minimum_x, exponent);
+    if (bits != 0)
+      minimum_x = std::min(minimum_x, exponent);
   }
   for (int i = 0; i < 484; ++i) {
     const auto bits = magnitude(y[i]);
@@ -9682,7 +9685,8 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
       return false;
     if (i < 480) {
       peak_y = std::max(peak_y, bits);
-      if (bits != 0) minimum_y = std::min(minimum_y, exponent);
+      if (bits != 0)
+        minimum_y = std::min(minimum_y, exponent);
     }
   }
   if (peak_x == 0 || peak_y == 0 || std::fegetround() != FE_TONEAREST)
@@ -9692,7 +9696,9 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
   const int undo_shift = -shift_x - shift_y;
   if (minimum_x + shift_x < 1 || minimum_y + shift_y < 1 || undo_shift < -126 || undo_shift > 127)
     return false;
-  const auto power_of_two = [](int shift) { return std::bit_cast<float>(static_cast<opus_uint32>(shift + 127) << 23); };
+  const auto power_of_two = [](int shift) {
+    return std::bit_cast<float>(static_cast<opus_uint32>(shift + 127) << 23);
+  };
   const float factor_x = power_of_two(shift_x);
   const float factor_y = power_of_two(shift_y);
   const float restore = power_of_two(undo_shift);
@@ -9728,7 +9734,8 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
 
   std::array<bool, 480> visited{};
   for (int start = 0; start < 480; ++start) {
-    if (visited[start]) continue;
+    if (visited[start])
+      continue;
     auto value = transformed[start];
     int position = start;
     do {
