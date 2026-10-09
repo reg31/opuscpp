@@ -6,6 +6,7 @@
 #include <bit>
 #include <concepts>
 #include <cmath>
+#include <cfenv>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -6569,6 +6570,10 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
   }
 }
 
+static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
+                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
+                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation);
+
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
   std::array<int, 2> best_pitch{};
   int offset;
@@ -6582,7 +6587,8 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
   for (int j = 0; j < lag >> 2; j++) {
     y_lp4[j] = y[2 * j];
   }
-  celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
+  if (len != 960 || max_pitch != 979 || !pitch_coarse_fft480(x_lp4, y_lp4, xcorr))
+    celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
   find_best_pitch(xcorr.data(), y_lp4.data(), len >> 2, max_pitch >> 2, best_pitch.data());
   const int fine_count = max_pitch >> 1;
   std::fill_n(xcorr.begin(), fine_count, 0.0f);
@@ -9651,6 +9657,112 @@ static constexpr kiss_fft_state fft_state48000_960_0{480, 1.f / 480, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
 static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
+
+static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
+                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
+                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
+  static_assert(sizeof(opus_val16) == sizeof(opus_uint32));
+  static_assert(std::numeric_limits<opus_val16>::is_iec559 && std::numeric_limits<opus_val16>::digits == 24);
+  constexpr auto magnitude = [](float value) { return std::bit_cast<opus_uint32>(value) & 0x7fffffffU; };
+  constexpr auto bound = std::bit_cast<opus_uint32>(1e12f);
+  opus_uint32 peak_x = 0, peak_y = 0;
+  int minimum_x = 255, minimum_y = 255;
+  for (int i = 0; i < 240; ++i) {
+    const auto bits = magnitude(x[i]);
+    const int exponent = static_cast<int>(bits >> 23);
+    if (bits > bound || (bits != 0 && exponent == 0))
+      return false;
+    peak_x = std::max(peak_x, bits);
+    if (bits != 0) minimum_x = std::min(minimum_x, exponent);
+  }
+  for (int i = 0; i < 484; ++i) {
+    const auto bits = magnitude(y[i]);
+    const int exponent = static_cast<int>(bits >> 23);
+    if (bits > bound || (bits != 0 && exponent == 0))
+      return false;
+    if (i < 480) {
+      peak_y = std::max(peak_y, bits);
+      if (bits != 0) minimum_y = std::min(minimum_y, exponent);
+    }
+  }
+  if (peak_x == 0 || peak_y == 0 || std::fegetround() != FE_TONEAREST)
+    return false;
+  const int shift_x = 127 - static_cast<int>(peak_x >> 23);
+  const int shift_y = 127 - static_cast<int>(peak_y >> 23);
+  const int undo_shift = -shift_x - shift_y;
+  if (minimum_x + shift_x < 1 || minimum_y + shift_y < 1 || undo_shift < -126 || undo_shift > 127)
+    return false;
+  const auto power_of_two = [](int shift) { return std::bit_cast<float>(static_cast<opus_uint32>(shift + 127) << 23); };
+  const float factor_x = power_of_two(shift_x);
+  const float factor_y = power_of_two(shift_y);
+  const float restore = power_of_two(undo_shift);
+  std::fenv_t original_environment, held_environment;
+  if (std::fegetenv(&original_environment) != 0)
+    return false;
+  if (std::feholdexcept(&held_environment) != 0) {
+    std::fesetenv(&original_environment);
+    return false;
+  }
+
+  std::array<kiss_fft_cpx, 480> transformed;
+  const auto* state = &fft_state48000_960_0;
+  for (int i = 0; i < 480; ++i)
+    transformed[state->bitrev[i]] = {i < 240 ? x[i] * factor_x : 0.f, y[i] * factor_y};
+  fft_impl_480(transformed.data(), state);
+
+  const auto scale = state->scale;
+  transformed[0] = {transformed[0].r * transformed[0].i * scale, 0.f};
+  transformed[240] = {transformed[240].r * transformed[240].i * scale, 0.f};
+  for (int k = 1; k < 240; ++k) {
+    const auto a = transformed[k];
+    const auto b = transformed[480 - k];
+    const float xr = .5f * (a.r + b.r);
+    const float xi = .5f * (a.i - b.i);
+    const float yr = .5f * (a.i + b.i);
+    const float yi = .5f * (b.r - a.r);
+    const float real = (xr * yr + xi * yi) * scale;
+    const float imaginary = (xr * yi - xi * yr) * scale;
+    transformed[k] = {real, -imaginary};
+    transformed[480 - k] = {real, imaginary};
+  }
+
+  std::array<bool, 480> visited{};
+  for (int start = 0; start < 480; ++start) {
+    if (visited[start]) continue;
+    auto value = transformed[start];
+    int position = start;
+    do {
+      visited[position] = true;
+      const int next = state->bitrev[position];
+      std::swap(value, transformed[next]);
+      position = next;
+    } while (position != start);
+  }
+  fft_impl_480(transformed.data(), state);
+
+  for (int lag = 0; lag < 240; ++lag) {
+    const auto bits = magnitude(transformed[lag].r);
+    const int exponent = static_cast<int>(bits >> 23);
+    if (bits != 0 && (exponent == 0 || exponent == 255 || exponent + undo_shift < 1 || exponent + undo_shift > 254)) {
+      std::fesetenv(&original_environment);
+      return false;
+    }
+  }
+  if (std::fetestexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO) != 0) {
+    std::fesetenv(&original_environment);
+    return false;
+  }
+  for (int lag = 0; lag < 240; ++lag)
+    transformed[lag].r *= restore;
+  if (std::feupdateenv(&original_environment) != 0) {
+    std::fesetenv(&original_environment);
+    return false;
+  }
+  celt_pitch_xcorr_c(x.data(), y.data() + 240, correlation.data() + 240, 240, 4);
+  for (int lag = 0; lag < 240; ++lag)
+    correlation[lag] = transformed[lag].r;
+  return true;
+}
 
 static const float classical_analysis_window[240] = {
     0.000043f, 0.000171f, 0.000385f, 0.000685f, 0.001071f, 0.001541f, 0.002098f, 0.002739f,
