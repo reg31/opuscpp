@@ -12153,16 +12153,22 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
   if (event_rank) {
     const auto volume = [](opus_uint32 n, int pulses) -> opus_uint32 {
       const auto square = n * n;
-      if (pulses == 1) return 2 * n;
-      if (pulses == 2) return 2 * square;
-      if (pulses == 3) return (4 * square * n + 2 * n) / 3;
+      if (pulses == 1)
+        return 2 * n;
+      if (pulses == 2)
+        return 2 * square;
+      if (pulses == 3)
+        return (4 * square * n + 2 * n) / 3;
       return (2 * square * square + 4 * square) / 3;
     };
     const auto boundary = [](opus_uint32 n, int pulses) -> opus_uint32 {
       const auto square = n * n;
-      if (pulses == 1) return 2 * n - 1;
-      if (pulses == 2) return 2 * square - 2 * n + 1;
-      if (pulses == 3) return (4 * square * n - 6 * square + 8 * n - 3) / 3;
+      if (pulses == 1)
+        return 2 * n - 1;
+      if (pulses == 2)
+        return 2 * square - 2 * n + 1;
+      if (pulses == 3)
+        return (4 * square * n - 6 * square + 8 * n - 3) / 3;
       return (2 * square * square - 4 * square * n + 10 * square - 8 * n + 3) / 3;
     };
     opus_uint32 index = 0, anchor = 0;
