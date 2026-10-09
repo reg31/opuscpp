@@ -1,11 +1,11 @@
 {
   "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005",
-  "source_commit": "daf43ba454052383da93048588247e19dafd7798",
-  "source_blob": "f8944b348580e8a3250602b7ccc3f9b925dfeef7",
-  "source_sha256": "514d3ffa3a9c72c79b79a67b6cd08672df6c0ae3d90137c2357f138f78b36fb2",
+  "source_commit": "a87db1eb736e738a5683e8479a87bba1bb833102",
+  "source_blob": "116456de083517a10dbe9364bc13b1652e14c5a0",
+  "source_sha256": "dfe954e9916c090e88bf6f390ad6dacb9d38b55571d115bd250457ef71f6878c",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "daf43ba454052383da93048588247e19dafd7798",
+  "tests_commit": "a87db1eb736e738a5683e8479a87bba1bb833102",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -63,14 +63,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_daf43ba45405_20261008\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_daf43ba45405_20261008\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_a87db1eb736e_20261009\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_a87db1eb736e_20261009\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "67192d2b85480cdf215c1d0673668292b69433567b8940a5dca89e7602b0b2b0",
   "quality_driver_diff_sha256": "ea0ee8742d476a4777421b0094071f6adf2317040a8361e0745615cf95bdc2f3",
   "quality_driver_transformation": "exactly two std::setprecision(8) -> std::setprecision(17) replacements; pinned public test copy remains unchanged",
-  "quality_binary_sha256": "8a25123d3d92e91486ed0960ed20d607774d161d3f857dd5ffce0aa867fe1847",
+  "quality_binary_sha256": "aa63e82b8ccb2a22712d8a13fd68c66831f9c6c891887c266651dbe95855238c",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -97,20 +97,6 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 899,
-  "published_quality_negative_fields": 1195,
-  "acceptance_status": "failed_known_fec_criterion",
-  "acceptance_counts": [
-    18,
-    18,
-    17,
-    18
-  ],
-  "measurement_date": "2026-10-08",
-  "completed_utc": "2026-10-08T20:59:09.999777+00:00",
-  "root_runner_sha256": "3a2e67a837db1599840bb6a8e8c53c316aadf2eb615e59afd4b4520d0930e4be",
-  "phase_runner_sha256": "c1dfdd5e9fa5a39980e735993b76c230a1d1e99e647a9d6d5500668e5171fb35",
-  "input_manifest_sha256": "6f1d0f3cf4637fa177af6f75e407c26b5efd44da910f6d03217d1c53eea82e40",
   "complexities": [
     9,
     10
