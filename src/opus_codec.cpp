@@ -11487,8 +11487,12 @@ static opus_val16 remove_doubling(opus_val16* x, int N, int* T0_, int prev_perio
       const int k = group + lane;
       const int T1 = periods[lane];
       const int T1b = second_periods[lane];
-      xy = lane == 0 ? sa0 : lane == 1 ? sa1 : lane == 2 ? sa2 : sa3;
-      const opus_val32 xy2 = lane == 0 ? sb0 : lane == 1 ? sb1 : lane == 2 ? sb2 : sb3;
+      xy = lane == 0 ? sa0 : lane == 1 ? sa1
+                         : lane == 2   ? sa2
+                                       : sa3;
+      const opus_val32 xy2 = lane == 0 ? sb0 : lane == 1 ? sb1
+                                           : lane == 2   ? sb2
+                                                         : sb3;
       xy = (.5f * (xy + xy2));
       yy = (.5f * (yy_lookup[T1] + yy_lookup[T1b]));
       const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);
