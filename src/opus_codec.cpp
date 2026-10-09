@@ -12083,6 +12083,8 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
   opus_val32 xy = 0;
   opus_val16 yy = 0;
   int pulsesLeft = K;
+  const bool event_rank = K <= 4 && K <= (N >> 1);
+  std::array<int, 4> events;
   if (K > (N >> 1)) {
     opus_val32 sum = 0;
     for (int idx = 0; idx < N; ++idx) {
@@ -12139,8 +12141,63 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
     yy += y[best_id];
     y[best_id] += 2;
     iy_out[best_id] += 2;
+    if (event_rank) {
+      int event = i;
+      for (; event > 0 && events[event - 1] < best_id; --event) {
+        events[event] = events[event - 1];
+      }
+      events[event] = best_id;
+    }
   }
   const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
+  if (event_rank) {
+    const auto volume = [](opus_uint32 n, int pulses) -> opus_uint32 {
+      const auto square = n * n;
+      if (pulses == 1) return 2 * n;
+      if (pulses == 2) return 2 * square;
+      if (pulses == 3) return (4 * square * n + 2 * n) / 3;
+      return (2 * square * square + 4 * square) / 3;
+    };
+    const auto boundary = [](opus_uint32 n, int pulses) -> opus_uint32 {
+      const auto square = n * n;
+      if (pulses == 1) return 2 * n - 1;
+      if (pulses == 2) return 2 * square - 2 * n + 1;
+      if (pulses == 3) return (4 * square * n - 6 * square + 8 * n - 3) / 3;
+      return (2 * square * square - 4 * square * n + 10 * square - 8 * n + 3) / 3;
+    };
+    opus_uint32 index = 0, anchor = 0;
+    int accumulated = 0;
+    auto collapse_mask = B <= 1 ? 1U : 0U;
+    const int block_size = B <= 1 ? 0 : celt_udiv(N, B);
+    const int limit = B <= 1 ? 0 : B * block_size;
+    for (int event = 0; event < K;) {
+      const int position = events[event++];
+      int pulse = 1;
+      for (; event < K && events[event] == position; ++event) {
+        ++pulse;
+      }
+      const auto dimension = static_cast<opus_uint32>(N - position);
+      if (accumulated != 0) {
+        index += (volume(dimension, accumulated) - anchor) >> 1;
+      }
+      accumulated += pulse;
+      if ((iy_out[position] & 1) != 0) {
+        index += boundary(dimension, accumulated);
+      }
+      anchor = volume(dimension, accumulated);
+      if (position < limit) {
+        collapse_mask |= 1U << celt_udiv(position, block_size);
+      }
+    }
+    index += (volume(static_cast<opus_uint32>(N), K) - anchor) >> 1;
+    if (resynth) {
+      for (int j = N; j-- > 0;) {
+        const auto reconstructed = static_cast<opus_val32>(iy_out[j] >> 1);
+        X[j] = (iy_out[j] & 1) ? -reconstructed * g : reconstructed * g;
+      }
+    }
+    return {collapse_mask, index, yy};
+  }
   auto collapse_mask = B <= 1 ? 1U : 0U;
   const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
   const int collapse_limit = B <= 1 ? 0 : B * N0;
