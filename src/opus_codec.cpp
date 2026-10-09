@@ -15822,8 +15822,20 @@ static void silk_autocorrelation_FLP(float* results, const float* inputData, int
   if (correlationCount > inputDataSize) {
     correlationCount = inputDataSize;
   }
-  for (int i = 0; i < correlationCount; i++) {
-    results[i] = static_cast<float>(silk_inner_product_FLP_c(inputData, inputData + i, inputDataSize - i));
+  int lag = 0;
+  if (correlationCount > 0) {
+    const auto less = std::less<const float*>{};
+    const auto overlaps = less(results, inputData + inputDataSize) && less(inputData, results + correlationCount);
+    if (!overlaps) {
+      for (; lag + 3 < correlationCount; lag += 4) {
+        const auto dots = silk_inner_product_FLP_c_four_lags(inputData, inputDataSize, lag);
+        for (int lane = 0; lane < 4; ++lane)
+          results[lag + lane] = static_cast<float>(dots[lane]);
+      }
+    }
+  }
+  for (; lag < correlationCount; ++lag) {
+    results[lag] = static_cast<float>(silk_inner_product_FLP_c(inputData, inputData + lag, inputDataSize - lag));
   }
 }
 
