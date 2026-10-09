@@ -11443,40 +11443,73 @@ static opus_val16 remove_doubling(opus_val16* x, int N, int* T0_, int prev_perio
   opus_val32 best_yy = yy;
   opus_val16 g = compute_pitch_gain(xy, xx, yy);
   const opus_val16 g0 = g;
-  for (int k = 2; k <= 15; k++) {
-    const int T1 = celt_udiv(2 * T0 + k, 2 * k);
-    if (T1 < minperiod) {
+  for (int group = 2; group <= 15; group += 4) {
+    std::array<int, 4> periods{}, second_periods{};
+    int count = 0;
+    for (; count < 4 && group + count <= 15; ++count) {
+      const int k = group + count;
+      const int T1 = celt_udiv(2 * T0 + k, 2 * k);
+      if (T1 < minperiod)
+        break;
+      periods[count] = T1;
+      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1)
+                                     : celt_udiv(2 * second_check[k] * T0 + k, 2 * k);
+    }
+    if (count == 0)
       break;
+    const auto* a0 = x - periods[0];
+    const auto* b0 = x - second_periods[0];
+    const auto* a1 = count > 1 ? x - periods[1] : x;
+    const auto* b1 = count > 1 ? x - second_periods[1] : x;
+    const auto* a2 = count > 2 ? x - periods[2] : x;
+    const auto* b2 = count > 2 ? x - second_periods[2] : x;
+    const auto* a3 = count > 3 ? x - periods[3] : x;
+    const auto* b3 = count > 3 ? x - second_periods[3] : x;
+    opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;
+    for (int index = 0; index < N; ++index) {
+      const auto sample = static_cast<opus_val32>(x[index]);
+      sa0 += sample * static_cast<opus_val32>(a0[index]);
+      sb0 += sample * static_cast<opus_val32>(b0[index]);
+      if (count > 1) {
+        sa1 += sample * static_cast<opus_val32>(a1[index]);
+        sb1 += sample * static_cast<opus_val32>(b1[index]);
+      }
+      if (count > 2) {
+        sa2 += sample * static_cast<opus_val32>(a2[index]);
+        sb2 += sample * static_cast<opus_val32>(b2[index]);
+      }
+      if (count > 3) {
+        sa3 += sample * static_cast<opus_val32>(a3[index]);
+        sb3 += sample * static_cast<opus_val32>(b3[index]);
+      }
     }
-    int T1b;
-    if (k == 2) {
-      if (T1 + T0 > maxperiod) {
-        T1b = T0;
-      } else
-        T1b = T0 + T1;
-    } else {
-      T1b = celt_udiv(2 * second_check[k] * T0 + k, 2 * k);
+    for (int lane = 0; lane < count; ++lane) {
+      const int k = group + lane;
+      const int T1 = periods[lane];
+      const int T1b = second_periods[lane];
+      xy = lane == 0 ? sa0 : lane == 1 ? sa1 : lane == 2 ? sa2 : sa3;
+      const opus_val32 xy2 = lane == 0 ? sb0 : lane == 1 ? sb1 : lane == 2 ? sb2 : sb3;
+      xy = (.5f * (xy + xy2));
+      yy = (.5f * (yy_lookup[T1] + yy_lookup[T1b]));
+      const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);
+      const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain
+                              : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain
+                                                                                  : 0;
+      opus_val16 thresh = std::max(.3f, .7f * g0 - cont);
+      if (T1 < 3 * minperiod) {
+        thresh = std::max(.4f, .85f * g0 - cont);
+      } else if (T1 < 2 * minperiod) {
+        thresh = std::max(.5f, .9f * g0 - cont);
+      }
+      if (g1 > thresh) {
+        best_xy = xy;
+        best_yy = yy;
+        T = T1;
+        g = g1;
+      }
     }
-    opus_val32 xy2;
-    dual_inner_prod_c(x, &x[-T1], &x[-T1b], N, xy, xy2);
-    xy = (.5f * (xy + xy2));
-    yy = (.5f * (yy_lookup[T1] + yy_lookup[T1b]));
-    const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);
-    const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain
-                            : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain
-                                                                                : 0;
-    opus_val16 thresh = std::max(.3f, .7f * g0 - cont);
-    if (T1 < 3 * minperiod) {
-      thresh = std::max(.4f, .85f * g0 - cont);
-    } else if (T1 < 2 * minperiod) {
-      thresh = std::max(.5f, .9f * g0 - cont);
-    }
-    if (g1 > thresh) {
-      best_xy = xy;
-      best_yy = yy;
-      T = T1;
-      g = g1;
-    }
+    if (count < 4)
+      break;
   }
   if (T < minperiod * 2) {
     const int T1 = T * 5 / 8;
