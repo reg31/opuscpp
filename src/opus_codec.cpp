@@ -763,7 +763,6 @@ struct CeltModeInternal {
 };
 
 [[nodiscard]] static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data);
-[[nodiscard]] static constexpr int ref_opus_packet_get_nb_channels(const unsigned char* data);
 [[nodiscard]] static auto celt_maxabs16(const opus_val16* x, int len) noexcept -> opus_val32 {
   if (len <= 0) {
     return 0;
@@ -1531,7 +1530,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
   const int packet_mode = opus_packet_get_mode(data);
   const int packet_bandwidth = ref_opus_packet_get_bandwidth(data);
   const int packet_frame_size = ref_opus_packet_get_samples_per_frame(data, st->Fs);
-  const int packet_stream_channels = ref_opus_packet_get_nb_channels(data);
+  const int packet_stream_channels = (data[0] & 0x4) != 0 ? 2 : 1;
   std::array<opus_int16, 48> frame_lengths;
   int payload_offset;
   const int frame_count = ref_opus_packet_parse_impl(data, len, nullptr, frame_lengths.data(), &payload_offset);
@@ -1586,7 +1585,7 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
   }
   const int packet_bandwidth = ref_opus_packet_get_bandwidth(data);
   const int packet_frame_size = ref_opus_packet_get_samples_per_frame(data, st->Fs);
-  const int packet_stream_channels = ref_opus_packet_get_nb_channels(data);
+  const int packet_stream_channels = (data[0] & 0x4) != 0 ? 2 : 1;
   std::array<opus_int16, 48> frame_lengths;
   int payload_offset;
   const int frame_count = ref_opus_packet_parse_impl(data, len, nullptr, frame_lengths.data(), &payload_offset);
@@ -1709,10 +1708,6 @@ static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data) {
     return bw == 1102 ? 1101 : bw;
   }
   return (data[0] & 0x60) == 0x60 ? (data[0] & 0x10) != 0 ? 1105 : 1104 : 1101 + ((data[0] >> 5) & 0x3);
-}
-
-static constexpr int ref_opus_packet_get_nb_channels(const unsigned char* data) {
-  return (data[0] & 0x4) != 0 ? 2 : 1;
 }
 
 int opus_packet_get_nb_samples(const unsigned char* packet, int len, int Fs) noexcept {
