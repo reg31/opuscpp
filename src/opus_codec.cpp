@@ -14257,7 +14257,7 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
 
 struct NSQ_del_dec_struct {
   opus_int32 sLPC_Q14[(5 * 16) + 16];
-  opus_int32 RandState[40]{}, Q_Q10[40]{}, Xq_Q14[40]{}, Pred_Q15[40]{}, Shape_Q14[40]{};
+  opus_int32 RandState[40]{}, Q_Q10[40], Xq_Q14[40], Pred_Q15[40], Shape_Q14[40];
   opus_int32 sAR2_Q14[24], LF_AR_Q14, Diff_Q14, Seed, SeedInit, RD_Q10;
 };
 
