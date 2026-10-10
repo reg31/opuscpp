@@ -2621,17 +2621,6 @@ static void reset_encoder_silk_state(OpusEncoder* st) {
   }
 }
 
-static void release_encoder_silk_state(OpusEncoder* st) noexcept {
-  if (st != nullptr && encoder_uses_silk(st->application)) {
-    auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
-    auto* channels = silk_encoder_channel_states(silk_enc);
-    for (int n = 0; n < st->channels; ++n)
-      channels[n].x_buf.release();
-    std::free(silk_enc->lbrr);
-    silk_enc->lbrr = nullptr;
-  }
-}
-
 constexpr std::array<opus_uint16, 8> voice_bandwidth_thresholds_common{9000, 700, 9000, 700, 13500, 1000, 14000, 2000};
 constexpr std::array<opus_uint16, 8> music_bandwidth_thresholds_common{9000, 700, 9000, 700, 11000, 1000, 12000, 2000};
 constexpr opus_int32 stereo_voice_threshold = 19000;
@@ -18104,8 +18093,15 @@ OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* err
 void opus_encoder_destroy(OpusEncoder* st) noexcept {
   if (st != nullptr) {
     std::free(st->classical_leak.pending_pcm);
+    if (encoder_uses_silk(st->application)) {
+      auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
+      auto* channels = silk_encoder_channel_states(silk_enc);
+      for (int n = 0; n < st->channels; ++n)
+        channels[n].x_buf.release();
+      std::free(silk_enc->lbrr);
+      silk_enc->lbrr = nullptr;
+    }
   }
-  release_encoder_silk_state(st);
   release_voice_denoise_state(st);
   std::free(st);
 }
