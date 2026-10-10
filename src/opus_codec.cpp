@@ -1244,18 +1244,6 @@ static void silk_release_cng(silk_decoder_state* psDec) noexcept {
   }
 }
 
-[[nodiscard]] static auto silk_ensure_cng(silk_decoder_state* psDec) noexcept -> silk_CNG_struct* {
-  if (psDec->sCNG == nullptr) {
-    auto* cng = static_cast<silk_CNG_struct*>(std::calloc(1, sizeof(silk_CNG_struct)));
-    if (cng == nullptr) {
-      return nullptr;
-    }
-    psDec->sCNG = cng;
-    silk_CNG_Reset(psDec);
-  }
-  return psDec->sCNG;
-}
-
 struct silk_decoder_control {
   int pitchL[4];
   int LTP_scale_Q14;
@@ -12890,7 +12878,15 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
   opus_int16 A_Q12[16];
   const bool updates_cng_history = psDec->lossCnt == 0 && psDec->prevSignalType == 0;
   const bool generates_cng = psDec->lossCnt != 0;
-  silk_CNG_struct* psCNG = (updates_cng_history || generates_cng) ? silk_ensure_cng(psDec) : psDec->sCNG;
+  if ((updates_cng_history || generates_cng) && psDec->sCNG == nullptr) {
+    auto* cng = static_cast<silk_CNG_struct*>(std::calloc(1, sizeof(silk_CNG_struct)));
+    if (cng == nullptr) {
+      return;
+    }
+    psDec->sCNG = cng;
+    silk_CNG_Reset(psDec);
+  }
+  silk_CNG_struct* psCNG = psDec->sCNG;
   if (psCNG == nullptr) {
     return;
   }
