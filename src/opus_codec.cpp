@@ -2107,17 +2107,6 @@ static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF, const int d) 
   }
 }
 
-static void silk_insertion_sort_increasing_all_values_int16(opus_int16* a, const int L) {
-  for (int i = 1; i < L; i++) {
-    const int value = a[i];
-    int j = i - 1;
-    for (; (j >= 0) && (value < a[j]); j--) {
-      a[j + 1] = a[j];
-    }
-    a[j + 1] = value;
-  }
-}
-
 static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMin_Q15, const int L) {
   int i, I = 0, k;
   opus_int16 center_freq_Q15;
@@ -2160,7 +2149,7 @@ static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMi
       NLSF_Q15[I] = NLSF_Q15[I - 1] + NDeltaMin_Q15[I];
     }
   }
-  silk_insertion_sort_increasing_all_values_int16(&NLSF_Q15[0], L);
+  std::sort(NLSF_Q15, NLSF_Q15 + L);
   NLSF_Q15[0] = std::max(NLSF_Q15[0], NDeltaMin_Q15[0]);
   for (i = 1; i < L; i++) {
     NLSF_Q15[i] = std::max(NLSF_Q15[i], saturate_int16_from_int32(static_cast<opus_int32>(NLSF_Q15[i - 1]) + NDeltaMin_Q15[i]));
