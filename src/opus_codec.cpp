@@ -13629,7 +13629,6 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
     return -1;
   auto& mid = *mid_state;
   std::array<silk_decoder_state*, 2> channel_state{&mid, psDec->side_channel_state};
-  int has_side, stereo_to_mono;
   if (newPacketFlag) {
     for (int n = 0; n < decControl->nChannelsInternal; ++n) {
       channel_state[n]->nFramesDecoded = 0;
@@ -13638,7 +13637,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   if (decControl->nChannelsInternal > psDec->nChannelsInternal && decControl->nChannelsInternal == 2) {
     silk_reset_decoder(channel_state[1]);
   }
-  stereo_to_mono =
+  const int stereo_to_mono =
       decControl->nChannelsInternal == 1 && psDec->nChannelsInternal == 2 && (decControl->internalSampleRate == 1000 * mid.fs_kHz);
   if (mid.nFramesDecoded == 0) {
     for (int n = 0; n < decControl->nChannelsInternal; ++n) {
@@ -13737,7 +13736,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   std::array<opus_int16, celt_max_channels*(silk_max_frame_length + 2)> decoded_channel_storage;
   auto* samplesOut1_tmp_storage1 = decoded_channel_storage.data();
   std::array<opus_int16*, 2> samplesOut1_tmp{samplesOut1_tmp_storage1, samplesOut1_tmp_storage1 + mid.frame_length + 2};
-  has_side = lostFlag == 0 ? !decode_only_middle
+  const int has_side = lostFlag == 0 ? !decode_only_middle
                            : !psDec->prev_decode_only_middle || (decControl->nChannelsInternal == 2 && lostFlag == 2 &&
                                                                  channel_state[1]->LBRR_flags[channel_state[1]->nFramesDecoded] == 1);
   for (int n = 0; n < decControl->nChannelsInternal; ++n) {
