@@ -13091,8 +13091,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   int sLTP_buf_idx = psDec->ltp_mem_length;
   int idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
   silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
-  opus_int32 inv_gain_Q30 = silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46);
-  inv_gain_Q30 = std::min(inv_gain_Q30, std::numeric_limits<opus_int32>::max() >> 1);
+  const opus_int32 inv_gain_Q30 = std::min(silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46), std::numeric_limits<opus_int32>::max() >> 1);
   for (int i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
     sLTP_Q14[i] = silk_mul_wb(inv_gain_Q30, sLTP[i]);
   }
