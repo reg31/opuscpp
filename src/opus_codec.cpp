@@ -13208,14 +13208,12 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
     int signalType = state.indices.signalType;
     const opus_int32 Gain_Q10 = ((control.Gains_Q16[k]) >> (6));
     auto inv_gain_Q31 = silk_INVERSE32_varQ(control.Gains_Q16[k], 47);
-    opus_int32 gain_adj_Q16;
+    opus_int32 gain_adj_Q16 = opus_int32{1} << 16;
     if (control.Gains_Q16[k] != state.prev_gain_Q16) {
       gain_adj_Q16 = silk_DIV32_varQ(state.prev_gain_Q16, control.Gains_Q16[k], 16);
       for (int state_index = 0; state_index < 16; ++state_index) {
         sLPC_Q14[state_index] = multiply_q16(gain_adj_Q16, sLPC_Q14[state_index]);
       }
-    } else {
-      gain_adj_Q16 = opus_int32{1} << 16;
     }
     state.prev_gain_Q16 = control.Gains_Q16[k];
     if (state.lossCnt && state.prevSignalType == 2 && state.indices.signalType != 2 && k < 4 / 2) {
