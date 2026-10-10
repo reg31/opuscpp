@@ -13737,8 +13737,8 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   auto* samplesOut1_tmp_storage1 = decoded_channel_storage.data();
   std::array<opus_int16*, 2> samplesOut1_tmp{samplesOut1_tmp_storage1, samplesOut1_tmp_storage1 + mid.frame_length + 2};
   const int has_side = lostFlag == 0 ? !decode_only_middle
-                           : !psDec->prev_decode_only_middle || (decControl->nChannelsInternal == 2 && lostFlag == 2 &&
-                                                                 channel_state[1]->LBRR_flags[channel_state[1]->nFramesDecoded] == 1);
+                                     : !psDec->prev_decode_only_middle || (decControl->nChannelsInternal == 2 && lostFlag == 2 &&
+                                                                           channel_state[1]->LBRR_flags[channel_state[1]->nFramesDecoded] == 1);
   for (int n = 0; n < decControl->nChannelsInternal; ++n) {
     if (n == 0 || has_side) {
       const int FrameIndex = mid.nFramesDecoded - n;
