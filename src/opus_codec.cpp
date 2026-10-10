@@ -16394,7 +16394,7 @@ static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlS
 
 template <bool KnownZero = false>
 static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr) {
-  std::array<opus_int32, 4> gains{};
+  std::array<opus_int32, 4> gains;
   if constexpr (KnownZero) {
     std::copy_n(exact_gains, psEnc->sCmn.nb_subfr, gains.begin());
   } else {
@@ -17476,7 +17476,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
     const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
     SideInfoIndices lbrr_original_indices{};
-    std::array<float, 4> lbrr_original_gains{};
+    std::array<float, 4> lbrr_original_gains;
     float lbrr_original_lambda = 0.0f;
     opus_int8 lbrr_original_last_gain_index = 0;
     bool use_reconstructed_lbrr_target = true;
