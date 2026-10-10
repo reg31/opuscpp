@@ -1727,7 +1727,8 @@ int opus_packet_get_nb_samples(const unsigned char* packet, int len, int Fs) noe
   if (code == 3 && packet_len < 2) {
     return -4;
   }
-  const int count = code == 0 ? 1 : code != 3 ? 2 : packet[1] & 0x3F;
+  const int count = code == 0 ? 1 : code != 3 ? 2
+                                              : packet[1] & 0x3F;
   const auto samples = static_cast<opus_int64>(count) * ref_opus_packet_get_samples_per_frame(packet, Fs);
   return samples < opus_int32_min || samples > opus_int32_max || samples * 25 > static_cast<opus_int64>(Fs) * 3 ? -4
                                                                                                                 : static_cast<int>(samples);
