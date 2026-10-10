@@ -14161,6 +14161,7 @@ static inline void scale_q16_buffer(opus_int32* data, const int count, const opu
   }
 }
 
+template <bool ScaleGlobalShortTerm>
 static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type, const int ltp_scale_end) noexcept -> opus_int32 {
   const auto lag = pitchL[subfr];
   auto inv_gain_Q31 = silk_INVERSE32_varQ(std::max(Gains_Q16[subfr], 1), 47);
@@ -14185,10 +14186,12 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
     const auto ltp_start = NSQ->sLTP_buf_idx - lag - 5 / 2;
     scale_q16_buffer(sLTP_Q15.data() + ltp_start, ltp_scale_end - ltp_start, gain_adj_Q16);
   }
-  NSQ->sLF_AR_shp_Q14 = multiply_q16(gain_adj_Q16, NSQ->sLF_AR_shp_Q14);
-  NSQ->sDiff_shp_Q14 = multiply_q16(gain_adj_Q16, NSQ->sDiff_shp_Q14);
-  scale_q16_buffer(NSQ->sLPC_Q14, 16, gain_adj_Q16);
-  scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adj_Q16);
+  if constexpr (ScaleGlobalShortTerm) {
+    NSQ->sLF_AR_shp_Q14 = multiply_q16(gain_adj_Q16, NSQ->sLF_AR_shp_Q14);
+    NSQ->sDiff_shp_Q14 = multiply_q16(gain_adj_Q16, NSQ->sDiff_shp_Q14);
+    scale_q16_buffer(NSQ->sLPC_Q14, 16, gain_adj_Q16);
+    scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adj_Q16);
+  }
   NSQ->prev_gain_Q16 = Gains_Q16[subfr];
   return gain_adj_Q16;
 }
@@ -14465,7 +14468,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
 }
 
 static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type, const int decisionDelay) {
-  const auto gain_adj_Q16 = silk_nsq_scale_common(psEncC, NSQ, x16, x_sc_Q10, sLTP, sLTP_Q15, subfr, LTP_scale_Q14, Gains_Q16, pitchL,
+  const auto gain_adj_Q16 = silk_nsq_scale_common<false>(psEncC, NSQ, x16, x_sc_Q10, sLTP, sLTP_Q15, subfr, LTP_scale_Q14, Gains_Q16, pitchL,
                                                   signal_type, NSQ->sLTP_buf_idx - decisionDelay);
   if (gain_adj_Q16 != (static_cast<opus_int32>(1) << 16)) {
     for (auto& state : psDelDec) {
@@ -14576,7 +14579,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
           {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k], LF_shp_Q14[k],
           Gains_Q16[k], Lambda_Q10, offset_Q10, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay);
     } else {
-      static_cast<void>(silk_nsq_scale_common(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
+      static_cast<void>(silk_nsq_scale_common<true>(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
                                               {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                               {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                               {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
