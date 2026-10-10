@@ -13160,8 +13160,7 @@ static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16
         energy = ((energy) >> (std::max(24 - LZ, 0)));
         const opus_int32 frac_Q24 = psPLC->conc_energy / std::max(energy, 1);
         opus_int32 gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(frac_Q24), 4);
-        opus_int32 slope_Q16 = (static_cast<opus_int32>(((static_cast<opus_int32>(1) << 16) - gain_Q16) / (length)));
-        slope_Q16 = wrap_shift_left(slope_Q16, 2);
+        const opus_int32 slope_Q16 = wrap_shift_left((static_cast<opus_int32>(((static_cast<opus_int32>(1) << 16) - gain_Q16) / (length))), 2);
         for (int i = 0; i < length; i++) {
           frame[i] = (static_cast<opus_int32>(((gain_Q16) * static_cast<opus_int64>(static_cast<opus_int16>(frame[i]))) >> 16));
           gain_Q16 += slope_Q16;
