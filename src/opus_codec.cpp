@@ -18108,6 +18108,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       return OPUS_BAD_ARG;
     }
     st->silk_mode.packetLossPercentage = value;
+    encoder_celt_state(st)->loss_rate = static_cast<opus_uint8>(value);
     return OPUS_OK;
   }
   case OPUS_GET_PACKET_LOSS_PERC_REQUEST:
