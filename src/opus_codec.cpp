@@ -10514,9 +10514,6 @@ static const float classifier_std_feature_bias[9] = {
     5.684947f, 3.475288f, 1.770634f, 1.599784f, 3.773215f,
     2.163313f, 1.260756f, 1.116868f, 1.918795f};
 
-static float classifier_log_d(double x) {
-  return static_cast<float>(std::log(x));
-}
 static float classifier_sqrt_d(double x) {
   return static_cast<float>(std::sqrt(x));
 }
@@ -11508,7 +11505,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
       E += binE;
     }
     E = (1.f / 32768.f / 32768.f) * E;
-    band_log2[0] = .5f * 1.442695f * classifier_log_d(E + 1e-10f);
+    band_log2[0] = .5f * 1.442695f * static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
   }
   for (b = 0; b < 18; ++b) {
     float E = 0, tE = 0, nE = 0;
@@ -11532,7 +11529,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     frame_noisiness += nE / (1e-15f + E);
 
     frame_loudness += classifier_sqrt_d(E + 1e-10f);
-    logE[b] = classifier_log_d(E + 1e-10f);
+    logE[b] = static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
     band_log2[b + 1] = .5f * 1.442695f * logE[b];
     tonal->logE[tonal->E_count][b] = logE[b];
     if (tonal->count == 0) {
