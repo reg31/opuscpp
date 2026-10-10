@@ -17878,12 +17878,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         }
         if (channelRate_bps > 0) {
           silk_control_SNR(&state_Fxx[n].sCmn, channelRate_bps);
-          const int saved_complexity = state_Fxx[n].sCmn.Complexity;
-          const bool side_residual_fast_path =
-              !encControl->LBRR_coded && encControl->nChannelsInternal == 2 && n == 1 && saved_complexity > 0 && channelRate_bps <= 12000;
-          if (side_residual_fast_path) {
-            silk_setup_complexity(&state_Fxx[n].sCmn, 0);
-          }
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
           auto* lbrr = psEnc->lbrr == nullptr ? nullptr : &psEnc->lbrr->channels[static_cast<std::size_t>(n)];
           const bool side_coded = encControl->nChannelsInternal == 2 &&
@@ -17896,9 +17890,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
                          : (side_coded && n == 0 && !encControl->packet_cbr ? 0 : (encControl->packet_cbr ? 2 : 0)));
           silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction,
                                 n == 0 || (n == 1 && side_worth_protecting), input_buffers[n].data());
-          if (side_residual_fast_path) {
-            silk_setup_complexity(&state_Fxx[n].sCmn, saved_complexity);
-          }
         }
         input_positions[n] = 0;
         state_Fxx[n].sCmn.nFramesEncoded++;
