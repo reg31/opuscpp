@@ -17468,7 +17468,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding);
     }
-    std::array<opus_int8, silk_max_frame_length> frame_pulses{};
+    std::array<opus_int8, silk_max_frame_length> frame_pulses;
     std::array<opus_int16, silk_max_frame_length> nsq_samples;
     for (int index = 0; index < psEnc->sCmn.frame_length; ++index) {
       nsq_samples[index] = static_cast<opus_int16>(float2int(x_frame[index]));
