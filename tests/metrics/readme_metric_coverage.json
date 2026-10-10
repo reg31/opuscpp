@@ -1,11 +1,11 @@
 {
   "schema": "opuscpp-readme-metric-coverage-v1",
-  "source_commit": "33e626640c1ff37e685ae9c0397663da2530d265",
-  "source_sha256": "cc46274f82078bfa11e9158ef2cfca1754dba97943d2273619c151d6a3d3480c",
+  "source_commit": "0310bad40ad52c398a6076c9df07a3d6aed2946f",
+  "source_sha256": "5d3bd4f5ee68427a3fc5b082bb3888ef02e1bdfe6d6c34c5ce57d3f2585032de",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
   "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
-  "input_manifest_sha256": "8c251782b93fa23027c35a692db4943cc59daf2b68c166179267a921517208f4",
+  "input_manifest_sha256": "5e3d646edebc6305805334fc1033ee8e5a3460f3708b5aa74e8b7aed2575ef12",
   "completed_phases": [
     "prepare",
     "quality",
@@ -466,7 +466,7 @@
       "start_line": 28,
       "end_line": 41,
       "kind": "paragraph",
-      "text": "- Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.\n- Standard Opus packets and the documented single-stream API/CTL subset.\n- Complexity-10 encoding is faster than official Opus at 2/9 measured AUDIO bitrates (0.94x to 1.06x).\n- Decode is faster than official Opus with x86 intrinsics in 9/9 measured AUDIO bitrates (1.16x to 1.71x).\n- Transient detection runs for every fullband CELT frame (matching official Opus gating), improving percussive content.\n- Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 7/9 tracked bitrates; VOIP improves them in 9/9 and 8/9. The full 498-case matrix has 848 below-official fields out of 5,976; all 12 metrics and signed deltas are retained.\n- Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.\n- Updated RFC decode vectors: 24/24 passed; 96 encode interoperability cases passed in the fresh source-bound compatibility refresh.\n- RFC decode, encode interoperability, API/lookahead and focused source-bound regressions were rerun against this source; complete command outputs are in [compatibility validation](tests/metrics/README.md#fresh-compatibility-and-api-checks).\n- Optional DTX: zero false DTX packets on the tracked active-content set; aggregate re-entry error is 42.1% lower and gain error is 0.6% higher. The unchanged aggregate DTX comparison FAIL at 16/24&nbsp;kbps; see [DTX gate results](tests/metrics/dtx_acceptance.json).\n- Optional FEC: recovery-error ratios are at or below official in 18/18 scored scenarios. Within the expanded 36-configuration/72-direction harness, the scored 18-case 10/20ms subset has combined recovery error that is 50.1% lower and packet bytes are 0.4% lower. Strict source gate: FAIL; standard interop gate: PASS. Source-quality criteria: C1 18/18, C2 18/18, C3 17/18, C4 18/18.\n- 34.6% to 54.3% lower measured private allocation footprint across the listed encoder/decoder configurations.\n- Host object: `397,080 B` (text + data + BSS).\n- No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang C++23 build checks were rerun in the full refresh.",
+      "text": "- Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.\n- Standard Opus packets and the documented single-stream API/CTL subset.\n- Complexity-10 encoding is faster than official Opus at 3/9 measured AUDIO bitrates (0.95x to 1.07x).\n- Decode is faster than official Opus with x86 intrinsics in 9/9 measured AUDIO bitrates (1.15x to 1.76x).\n- Transient detection runs for every fullband CELT frame (matching official Opus gating), improving percussive content.\n- Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 7/9 tracked bitrates; VOIP improves them in 9/9 and 8/9. The full 498-case matrix has 848 below-official fields out of 5,976; all 12 metrics and signed deltas are retained.\n- Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.\n- Updated RFC decode vectors: 24/24 passed; 96 encode interoperability cases passed in the fresh source-bound compatibility refresh.\n- RFC decode, encode interoperability, API/lookahead and focused source-bound regressions were rerun against this source; complete command outputs are in [compatibility validation](tests/metrics/README.md#fresh-compatibility-and-api-checks).\n- Optional DTX: zero false DTX packets on the tracked active-content set; aggregate re-entry error is 42.1% lower and gain error is 0.6% higher. The unchanged aggregate DTX comparison FAIL at 16/24&nbsp;kbps; see [DTX gate results](tests/metrics/dtx_acceptance.json).\n- Optional FEC: recovery-error ratios are at or below official in 18/18 scored scenarios. Within the expanded 36-configuration/72-direction harness, the scored 18-case 10/20ms subset has combined recovery error that is 50.1% lower and packet bytes are 0.4% lower. Strict source gate: FAIL; standard interop gate: PASS. Source-quality criteria: C1 18/18, C2 18/18, C3 17/18, C4 18/18.\n- 34.6% to 54.3% lower measured private allocation footprint across the listed encoder/decoder configurations.\n- Host object: `399,852 B` (text + data + BSS).\n- No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang C++23 build checks were rerun in the full refresh.",
       "source_families": [
         "quality",
         "speed",
@@ -485,7 +485,7 @@
       "start_line": 45,
       "end_line": 51,
       "kind": "table",
-      "text": "| Pros | Cons |\n|---|---|\n| Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |\n| Encoding is 0.94x to 1.06x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |\n| Faster decode in 9/9 measured AUDIO bitrates (1.16x to 1.71x). | Official Opus supports a broader feature surface and ecosystem. |\n| 34.6% to 54.3% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |\n| Pure portable C++23, without ASM or SIMD intrinsics. | Requires a C++23-capable compiler. |",
+      "text": "| Pros | Cons |\n|---|---|\n| Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |\n| Encoding is 0.95x to 1.07x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |\n| Faster decode in 9/9 measured AUDIO bitrates (1.15x to 1.76x). | Official Opus supports a broader feature surface and ecosystem. |\n| 34.6% to 54.3% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |\n| Pure portable C++23, without ASM or SIMD intrinsics. | Requires a C++23-capable compiler. |",
       "source_families": [
         "quality",
         "speed",
@@ -515,7 +515,7 @@
       "start_line": 92,
       "end_line": 92,
       "kind": "paragraph",
-      "text": "The full benchmark tables below were refreshed on 2026-10-10 for source `33e6266` (SHA-256 `cc46274f82078bfa11e9158ef2cfca1754dba97943d2273619c151d6a3d3480c`).",
+      "text": "The full benchmark tables below were refreshed on 2026-10-10 for source `0310bad` (SHA-256 `5d3bd4f5ee68427a3fc5b082bb3888ef02e1bdfe6d6c34c5ce57d3f2585032de`).",
       "source_families": [
         "snapshot"
       ]
@@ -526,7 +526,7 @@
       "start_line": 94,
       "end_line": 94,
       "kind": "paragraph",
-      "text": "Measurements refreshed independently by Codex on 2026-10-10 for production `33e6266`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.",
+      "text": "Measurements refreshed independently by Codex on 2026-10-10 for production `0310bad`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.",
       "source_families": [
         "optional_processing",
         "snapshot"
@@ -567,7 +567,7 @@
       "start_line": 112,
       "end_line": 122,
       "kind": "table",
-      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.942x | 1.712x | +0.0022 | -0.0045 | 17.032 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 0.958x | 1.334x | +0.0233 | +0.0182 | 25.247 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 0.946x | 1.303x | +0.0524 | -0.0039 | 33.464 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 0.996x | 1.278x | +0.1992 | +0.0260 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.028x | 1.178x | +0.2926 | +0.0234 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.061x | 1.206x | +0.2818 | +0.0160 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 0.976x | 1.163x | +0.1593 | +0.0052 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 0.983x | 1.178x | +0.0693 | +0.0048 | 193.033 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 0.949x | 1.193x | +0.0342 | +0.0029 | 256.528 kbps | 256.737 kbps |",
+      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.955x | 1.756x | +0.0022 | -0.0045 | 17.032 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 0.959x | 1.321x | +0.0233 | +0.0182 | 25.247 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 0.954x | 1.296x | +0.0524 | -0.0039 | 33.464 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 0.997x | 1.284x | +0.1992 | +0.0260 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.026x | 1.209x | +0.2926 | +0.0234 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.067x | 1.146x | +0.2818 | +0.0160 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 1.033x | 1.169x | +0.1593 | +0.0052 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 0.973x | 1.185x | +0.0693 | +0.0048 | 193.033 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 0.950x | 1.173x | +0.0342 | +0.0029 | 256.528 kbps | 256.737 kbps |",
       "source_families": [
         "quality",
         "speed",
@@ -618,7 +618,7 @@
       "start_line": 142,
       "end_line": 142,
       "kind": "paragraph",
-      "text": "In this full refresh, encoder and decoder state were measured together at source `33e6266` using 256 instances per group across three fresh processes, with FEC and denoising disabled. These process-private allocation deltas are not exact `sizeof` values; allocator/page rounding can affect results. Method and source bindings are in [memory run metadata](tests/metrics/run_metadata.json).",
+      "text": "In this full refresh, encoder and decoder state were measured together at source `0310bad` using 256 instances per group across three fresh processes, with FEC and denoising disabled. These process-private allocation deltas are not exact `sizeof` values; allocator/page rounding can affect results. Method and source bindings are in [memory run metadata](tests/metrics/run_metadata.json).",
       "source_families": [
         "denoiser",
         "memory",
@@ -632,7 +632,7 @@
       "start_line": 144,
       "end_line": 149,
       "kind": "table",
-      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 19,744 B | 31,856 B | -38.0% |\n| Encoder stereo | 29,888 B | 48,880 B | -38.9% |\n| Decoder mono | 8,432 B | 18,464 B | -54.3% |\n| Decoder stereo | 17,712 B | 27,088 B | -34.6% |",
+      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 19,760 B | 31,856 B | -38.0% |\n| Encoder stereo | 29,888 B | 48,880 B | -38.9% |\n| Decoder mono | 8,432 B | 18,464 B | -54.3% |\n| Decoder stereo | 17,712 B | 27,088 B | -34.6% |",
       "source_families": [
         "memory"
       ],
@@ -687,7 +687,7 @@
       "start_line": 134,
       "end_line": 138,
       "kind": "paragraph",
-      "text": "The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is\n0.4% to 7.6% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.\nThe optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.\nBroader on/off tests still contain quality losses: this is not a universal improvement. See the\n[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).",
+      "text": "The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is\n3.5% to 9.5% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.\nThe optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.\nBroader on/off tests still contain quality losses: this is not a universal improvement. See the\n[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).",
       "source_families": [
         "quality",
         "denoiser",
@@ -784,7 +784,7 @@
       "start_line": 146,
       "end_line": 146,
       "kind": "paragraph",
-      "text": "Fresh checks were run against source `33e6266` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.",
+      "text": "Fresh checks were run against source `0310bad` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.",
       "source_families": [
         "compatibility",
         "snapshot"
@@ -949,7 +949,7 @@
       "start_line": 278,
       "end_line": 280,
       "kind": "paragraph",
-      "text": "The full benchmark tables below were refreshed on 2026-10-10 for source `33e6266` (SHA-256 `cc46274f82078bfa11e9158ef2cfca1754dba97943d2273619c151d6a3d3480c`) against official Opus `503d81b`.\nBoth positive and negative quality deltas are retained. Source hashes, flags and scope are\nrecorded in [run metadata](metrics/run_metadata.json).",
+      "text": "The full benchmark tables below were refreshed on 2026-10-10 for source `0310bad` (SHA-256 `5d3bd4f5ee68427a3fc5b082bb3888ef02e1bdfe6d6c34c5ce57d3f2585032de`) against official Opus `503d81b`.\nBoth positive and negative quality deltas are retained. Source hashes, flags and scope are\nrecorded in [run metadata](metrics/run_metadata.json).",
       "source_families": [
         "quality",
         "memory",
@@ -974,7 +974,7 @@
       "start_line": 292,
       "end_line": 302,
       "kind": "table",
-      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.942x | 1.712x | 334x | 354x | 2238x | 1308x |\n| 24&nbsp;kbps | 0.958x | 1.334x | 308x | 321x | 1503x | 1127x |\n| 32&nbsp;kbps | 0.946x | 1.303x | 310x | 328x | 1483x | 1138x |\n| 48&nbsp;kbps | 0.996x | 1.278x | 296x | 297x | 1242x | 972x |\n| 64&nbsp;kbps | 1.028x | 1.178x | 271x | 263x | 1002x | 850x |\n| 96&nbsp;kbps | 1.061x | 1.206x | 225x | 212x | 787x | 653x |\n| 128&nbsp;kbps | 0.976x | 1.163x | 188x | 193x | 681x | 586x |\n| 192&nbsp;kbps | 0.983x | 1.178x | 173x | 176x | 591x | 502x |\n| 256&nbsp;kbps | 0.949x | 1.193x | 159x | 168x | 524x | 439x |",
+      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.955x | 1.756x | 339x | 355x | 2302x | 1310x |\n| 24&nbsp;kbps | 0.959x | 1.321x | 311x | 325x | 1521x | 1151x |\n| 32&nbsp;kbps | 0.954x | 1.296x | 312x | 327x | 1480x | 1142x |\n| 48&nbsp;kbps | 0.997x | 1.284x | 297x | 298x | 1243x | 968x |\n| 64&nbsp;kbps | 1.026x | 1.209x | 271x | 264x | 1027x | 849x |\n| 96&nbsp;kbps | 1.067x | 1.146x | 230x | 216x | 769x | 672x |\n| 128&nbsp;kbps | 1.033x | 1.169x | 201x | 194x | 688x | 589x |\n| 192&nbsp;kbps | 0.973x | 1.185x | 171x | 176x | 581x | 491x |\n| 256&nbsp;kbps | 0.950x | 1.173x | 161x | 169x | 521x | 444x |",
       "source_families": [
         "speed",
         "snapshot"
@@ -987,7 +987,7 @@
       "start_line": 304,
       "end_line": 304,
       "kind": "paragraph",
-      "text": "The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 2/9 measured AUDIO rates (0.94x to 1.06x); decoding at 9/9 (1.16x to 1.71x).",
+      "text": "The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 3/9 measured AUDIO rates (0.95x to 1.07x); decoding at 9/9 (1.15x to 1.76x).",
       "source_families": [
         "speed",
         "snapshot"
@@ -1109,7 +1109,7 @@
       "start_line": 385,
       "end_line": 385,
       "kind": "paragraph",
-      "text": "End-to-end encode overhead is **0.4% to 7.6%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.",
+      "text": "End-to-end encode overhead is **3.5% to 9.5%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.",
       "source_families": [
         "denoiser"
       ]
@@ -1133,7 +1133,7 @@
       "start_line": 389,
       "end_line": 399,
       "kind": "table",
-      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1883 | +0.1311 | 5.0% |\n| 24&nbsp;kbps | +0.2252 | +0.1349 | 3.9% |\n| 32&nbsp;kbps | +0.2068 | +0.1171 | 3.7% |\n| 48&nbsp;kbps | +0.2194 | +0.1213 | 4.0% |\n| 64&nbsp;kbps | +0.2139 | +0.1332 | 0.4% |\n| 96&nbsp;kbps | +0.2122 | +0.1558 | 5.3% |\n| 128&nbsp;kbps | +0.2116 | +0.1584 | 7.6% |\n| 192&nbsp;kbps | +0.2149 | +0.1590 | 5.4% |\n| 256&nbsp;kbps | +0.2157 | +0.1594 | 4.8% |",
+      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1883 | +0.1311 | 3.7% |\n| 24&nbsp;kbps | +0.2252 | +0.1349 | 4.3% |\n| 32&nbsp;kbps | +0.2068 | +0.1171 | 4.8% |\n| 48&nbsp;kbps | +0.2194 | +0.1213 | 5.2% |\n| 64&nbsp;kbps | +0.2139 | +0.1332 | 3.5% |\n| 96&nbsp;kbps | +0.2122 | +0.1558 | 7.1% |\n| 128&nbsp;kbps | +0.2116 | +0.1584 | 5.7% |\n| 192&nbsp;kbps | +0.2149 | +0.1590 | 9.5% |\n| 256&nbsp;kbps | +0.2157 | +0.1594 | 7.1% |",
       "source_families": [
         "quality",
         "denoiser"
@@ -1158,7 +1158,7 @@
       "start_line": 412,
       "end_line": 418,
       "kind": "paragraph",
-      "text": "This table is from the full refresh for source `33e6266`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).\n| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 19,744 B | 31,856 B | -38.0% |\n| Encoder stereo | 29,888 B | 48,880 B | -38.9% |\n| Decoder mono | 8,432 B | 18,464 B | -54.3% |\n| Decoder stereo | 17,712 B | 27,088 B | -34.6% |",
+      "text": "This table is from the full refresh for source `0310bad`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).\n| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 19,760 B | 31,856 B | -38.0% |\n| Encoder stereo | 29,888 B | 48,880 B | -38.9% |\n| Decoder mono | 8,432 B | 18,464 B | -54.3% |\n| Decoder stereo | 17,712 B | 27,088 B | -34.6% |",
       "source_families": [
         "denoiser",
         "memory",
@@ -1172,7 +1172,7 @@
       "start_line": 426,
       "end_line": 429,
       "kind": "table",
-      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 397,080 B | 0 B | 397,080 B |\n| Android arm64 Clang `-O2` | 396,688 B | 472 B | 397,160 B |",
+      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 399,852 B | 0 B | 399,852 B |\n| Android arm64 Clang `-O2` | 397,440 B | 472 B | 397,912 B |",
       "source_families": [
         "object_size",
         "snapshot"
@@ -1197,7 +1197,7 @@
       "start_line": 3,
       "end_line": 3,
       "kind": "paragraph",
-      "text": "Codex independently refreshed production `33e626640c1ff37e685ae9c0397663da2530d265` on 2026-10-10 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `33e6266` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).",
+      "text": "Codex independently refreshed production `0310bad40ad52c398a6076c9df07a3d6aed2946f` on 2026-10-10 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `0310bad` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).",
       "source_families": [
         "compatibility",
         "snapshot"
@@ -1247,7 +1247,7 @@
       "start_line": 30,
       "end_line": 30,
       "kind": "paragraph",
-      "text": "AUDIO encode ratios: 0.94x to 1.06x; decode: 1.16x to 1.71x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.",
+      "text": "AUDIO encode ratios: 0.95x to 1.07x; decode: 1.15x to 1.76x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.",
       "source_families": [
         "speed",
         "snapshot"
@@ -1272,7 +1272,7 @@
       "start_line": 35,
       "end_line": 35,
       "kind": "paragraph",
-      "text": "[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans +0.409290% to +7.573903%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 0.4% to 7.6%. Raw timing samples are in [run metadata](run_metadata.json).",
+      "text": "[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans -1.037175% to +9.478147%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 3.5% to 9.5%. Raw timing samples are in [run metadata](run_metadata.json).",
       "source_families": [
         "quality",
         "speed",
@@ -1302,7 +1302,7 @@
       "start_line": 41,
       "end_line": 50,
       "kind": "table",
-      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 19744 | 19776 | Not exposed |\n| official_encoder_ch1 | 31856 | 31888 | 31668 |\n| current_decoder_ch1 | 8432 | 8304 | Not exposed |\n| official_decoder_ch1 | 18464 | 18560 | 18468 |\n| current_encoder_ch2 | 29888 | 29856 | Not exposed |\n| official_encoder_ch2 | 48880 | 48736 | 48684 |\n| current_decoder_ch2 | 17712 | 16256 | Not exposed |\n| official_decoder_ch2 | 27088 | 27264 | 27236 |",
+      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 19760 | 19792 | Not exposed |\n| official_encoder_ch1 | 31856 | 31920 | 31668 |\n| current_decoder_ch1 | 8432 | 8304 | Not exposed |\n| official_decoder_ch1 | 18464 | 18560 | 18468 |\n| current_encoder_ch2 | 29888 | 29856 | Not exposed |\n| official_encoder_ch2 | 48880 | 48736 | 48684 |\n| current_decoder_ch2 | 17712 | 16272 | Not exposed |\n| official_decoder_ch2 | 27088 | 27264 | 27236 |",
       "source_families": [
         "memory",
         "object_size"
@@ -1330,7 +1330,7 @@
       "start_line": 54,
       "end_line": 57,
       "kind": "table",
-      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 397080 | 0 | 0 | 397080 |\n| android | 396688 | 472 | 0 | 397160 |",
+      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 399852 | 0 | 0 | 399852 |\n| android | 397440 | 472 | 0 | 397912 |",
       "source_families": [
         "memory",
         "object_size"
@@ -1369,7 +1369,7 @@
       "start_line": 87,
       "end_line": 87,
       "kind": "paragraph",
-      "text": "This full refresh is bound to source `33e626640c1ff37e685ae9c0397663da2530d265` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.",
+      "text": "This full refresh is bound to source `0310bad40ad52c398a6076c9df07a3d6aed2946f` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.",
       "source_families": [
         "compatibility",
         "snapshot"
@@ -1403,7 +1403,7 @@
       "start_line": 100,
       "end_line": 105,
       "kind": "paragraph",
-      "text": "```text\nmono-mid bytes=76 encode_ms=26.8785 decode_ms=25.4873 checksum=340886119\nmono-high bytes=115 encode_ms=26.0993 decode_ms=20.9309 checksum=2633358364\nstereo-mid bytes=102 encode_ms=94.6631 decode_ms=33.8237 checksum=3294895434\nstereo-high bytes=147 encode_ms=104.619 decode_ms=34.1664 checksum=1997488960\n```",
+      "text": "```text\nmono-mid bytes=76 encode_ms=27.2335 decode_ms=26.0703 checksum=340886119\nmono-high bytes=115 encode_ms=29.6365 decode_ms=26.6118 checksum=2633358364\nstereo-mid bytes=102 encode_ms=113.927 decode_ms=38.1732 checksum=3294895434\nstereo-high bytes=147 encode_ms=136.712 decode_ms=50.3958 checksum=1997488960\n```",
       "source_families": [
         "microbenchmark"
       ]
@@ -1698,7 +1698,7 @@
       "start_line": 134,
       "end_line": 138,
       "kind": "paragraph",
-      "text": "The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is\n0.4% to 7.6% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.\nThe optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.\nBroader on/off tests still contain quality losses: this is not a universal improvement. See the\n[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser)."
+      "text": "The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is\n3.5% to 9.5% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.\nThe optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.\nBroader on/off tests still contain quality losses: this is not a universal improvement. See the\n[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser)."
     },
     {
       "readme": "tests/README.md",
@@ -1706,7 +1706,7 @@
       "start_line": 146,
       "end_line": 146,
       "kind": "paragraph",
-      "text": "Fresh checks were run against source `33e6266` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run."
+      "text": "Fresh checks were run against source `0310bad` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run."
     },
     {
       "readme": "tests/README.md",
@@ -1738,7 +1738,7 @@
       "start_line": 87,
       "end_line": 87,
       "kind": "paragraph",
-      "text": "This full refresh is bound to source `33e626640c1ff37e685ae9c0397663da2530d265` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run."
+      "text": "This full refresh is bound to source `0310bad40ad52c398a6076c9df07a3d6aed2946f` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run."
     }
   ],
   "unavailable_measurements": {
@@ -1756,12 +1756,12 @@
   "lpc": {
     "status": "PASS",
     "status_from_current_run": true,
-    "run_id": "codex_native_celt_33e626640c1f_20261010",
-    "source_sha256": "cc46274f82078bfa11e9158ef2cfca1754dba97943d2273619c151d6a3d3480c",
+    "run_id": "codex_native_celt_0310bad40ad5_20261010",
+    "source_sha256": "5d3bd4f5ee68427a3fc5b082bb3888ef02e1bdfe6d6c34c5ce57d3f2585032de",
     "test_sha256": "f0243673f876813e8f7ef7b65b5401907fd195c577dddb0e92e39bc485252fe2",
     "adapter_sha256": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
-    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_33e626640c1f_20261010\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
-    "matrix_results_sha256": "30200367fc7906edb55269e1ddd8325843ba6e9b208901283204d58d4a70789a",
+    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_0310bad40ad5_20261010\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
+    "matrix_results_sha256": "be70938f4513b49bec0a3c04024fc84149cdfb95fa9203138ebbac6385b693bf",
     "stdout": "lpc_case complexity=0 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=9 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=9 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_case complexity=10 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=10 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=10 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=10 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_silk_layer_frames=2276\nlpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\nlpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"
   },
   "checks": {
@@ -1770,22 +1770,22 @@
     "project_intro_unchanged": true,
     "documents": {
       "README.md": {
-        "sha256": "5c9eeb17aa3f932f0ecd3e21525fabdce08ef95db119421d2b0187af8b041fcd",
+        "sha256": "462f74677f94bc60e9fd69f41afa172e725b08644d76769ddefea3641cb221ed",
         "utf8": true,
         "lf_only": true
       },
       "src/README.md": {
-        "sha256": "b6bb3b4bf47a977d65d0e43e45ca1726928c7f04ca871d05ea5f0f198d86eafb",
+        "sha256": "1d9df5d3e9b620475d43b3a465fc23edce395e370827a1f37c637e1cc350bbc7",
         "utf8": true,
         "lf_only": true
       },
       "tests/README.md": {
-        "sha256": "7bbe2d923c38495a6a8b0f9d40355d5145bcf3083e7f3a81b4010f760c4fe7c2",
+        "sha256": "bc5d817231ed5b7734feb412b5b5f30893b5502efec60abdb615f3404e7cbac5",
         "utf8": true,
         "lf_only": true
       },
       "tests/metrics/README.md": {
-        "sha256": "1f03b17e6885014a674f7e18f342b060dfdb7d5faf37a767eb8169d5c6f832e2",
+        "sha256": "15aed0f5a57c1116bff70c7454d76299dca83eac2392f92f9d3c09a6e5a96cb8",
         "utf8": true,
         "lf_only": true
       }
