@@ -13155,8 +13155,7 @@ static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16
         energy = ((energy) >> (psPLC->conc_energy_shift - energy_shift));
       }
       if (energy > psPLC->conc_energy) {
-        opus_int32 LZ = silk_CLZ32(psPLC->conc_energy);
-        LZ = LZ - 1;
+        const opus_int32 LZ = silk_CLZ32(psPLC->conc_energy) - 1;
         psPLC->conc_energy = wrap_shift_left(psPLC->conc_energy, LZ);
         energy = ((energy) >> (std::max(24 - LZ, 0)));
         const opus_int32 frac_Q24 = psPLC->conc_energy / std::max(energy, 1);
