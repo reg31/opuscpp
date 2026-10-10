@@ -17476,10 +17476,10 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     }
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
     const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
-    SideInfoIndices lbrr_original_indices{};
+    SideInfoIndices lbrr_original_indices;
     std::array<float, 4> lbrr_original_gains;
-    float lbrr_original_lambda = 0.0f;
-    opus_int8 lbrr_original_last_gain_index = 0;
+    float lbrr_original_lambda;
+    opus_int8 lbrr_original_last_gain_index;
     bool use_reconstructed_lbrr_target = true;
     if (lbrr_deferred_generate) {
       lbrr_original_indices = psEnc->sCmn.indices;
