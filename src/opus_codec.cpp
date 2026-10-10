@@ -14256,8 +14256,9 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
 }
 
 struct NSQ_del_dec_struct {
-  opus_int32 sLPC_Q14[(5 * 16) + 16], RandState[40], Q_Q10[40], Xq_Q14[40], Pred_Q15[40], Shape_Q14[40], sAR2_Q14[24], LF_AR_Q14, Diff_Q14,
-      Seed, SeedInit, RD_Q10;
+  opus_int32 sLPC_Q14[(5 * 16) + 16];
+  opus_int32 RandState[40]{}, Q_Q10[40]{}, Xq_Q14[40]{}, Pred_Q15[40]{}, Shape_Q14[40]{};
+  opus_int32 sAR2_Q14[24], LF_AR_Q14, Diff_Q14, Seed, SeedInit, RD_Q10;
 };
 
 template <int Shift>
@@ -14488,7 +14489,7 @@ template <bool Delayed, bool KnownZero>
 static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
   int lag = NSQ->lagPrev;
   const int state_count = KnownZero ? 1 : psEncC->nStatesDelayedDecision;
-  std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage{};
+  std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage;
   auto delayed_states = std::span{psDelDec_storage}.first(static_cast<std::size_t>(state_count));
   auto* psDelDec = delayed_states.data();
   if constexpr (Delayed) {
