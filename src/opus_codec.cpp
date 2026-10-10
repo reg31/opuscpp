@@ -334,20 +334,14 @@ static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
 
-static inline void ec_dec_normalize(ec_dec* _this) {
-  do {
+static void ec_dec_normalize_if_needed(ec_dec* _this) {
+  while (_this->rng <= ec_code_bot) {
     _this->nbits_total += (8);
     _this->rng <<= (8);
     int sym = _this->rem;
     _this->rem = ec_read_byte(_this);
     sym = (sym << (8) | _this->rem) >> ((8) - (((32) - 2) % (8) + 1));
     _this->val = ((_this->val << (8)) + (ec_byte_mask & ~sym)) & ec_code_mask;
-  } while (_this->rng <= ec_code_bot);
-}
-
-static void ec_dec_normalize_if_needed(ec_dec* _this) {
-  if (_this->rng <= ec_code_bot) {
-    ec_dec_normalize(_this);
   }
 }
 
