@@ -1715,26 +1715,19 @@ static constexpr int ref_opus_packet_get_nb_channels(const unsigned char* data) 
   return (data[0] & 0x4) != 0 ? 2 : 1;
 }
 
-static constexpr int ref_opus_packet_get_nb_frames(const unsigned char packet[], opus_int32 len) {
-  if (len < 1) {
-    return -1;
-  }
-  const int count = packet[0] & 0x3;
-  if (count == 0) {
-    return 1;
-  }
-  return count != 3 ? 2 : len < 2 ? -4
-                                  : packet[1] & 0x3F;
-}
-
 int opus_packet_get_nb_samples(const unsigned char* packet, int len, int Fs) noexcept {
   if (!has_required_storage(packet, len)) {
     return OPUS_BAD_ARG;
   }
-  const int count = ref_opus_packet_get_nb_frames(packet, len);
-  if (count < 0) {
-    return count;
+  const auto packet_len = static_cast<opus_int32>(len);
+  if (packet_len < 1) {
+    return -1;
   }
+  const int code = packet[0] & 0x3;
+  if (code == 3 && packet_len < 2) {
+    return -4;
+  }
+  const int count = code == 0 ? 1 : code != 3 ? 2 : packet[1] & 0x3F;
   const auto samples = static_cast<opus_int64>(count) * ref_opus_packet_get_samples_per_frame(packet, Fs);
   return samples < opus_int32_min || samples > opus_int32_max || samples * 25 > static_cast<opus_int64>(Fs) * 3 ? -4
                                                                                                                 : static_cast<int>(samples);
