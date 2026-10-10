@@ -14481,6 +14481,15 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
                                                          signal_type, NSQ->sLTP_buf_idx - decisionDelay);
   if (gain_adj_Q16 != (static_cast<opus_int32>(1) << 16)) {
     for (auto& state : psDelDec) {
+      if (subfr == 0 && &state != psDelDec.data()) {
+        const auto& first = psDelDec.front();
+        state.LF_AR_Q14 = first.LF_AR_Q14;
+        state.Diff_Q14 = first.Diff_Q14;
+        std::memcpy(state.sLPC_Q14, first.sLPC_Q14, 16 * sizeof(opus_int32));
+        std::memcpy(state.sAR2_Q14, first.sAR2_Q14, sizeof(state.sAR2_Q14));
+        state.Shape_Q14[0] = first.Shape_Q14[0];
+        continue;
+      }
       state.LF_AR_Q14 = multiply_q16(gain_adj_Q16, state.LF_AR_Q14);
       state.Diff_Q14 = multiply_q16(gain_adj_Q16, state.Diff_Q14);
       scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
