@@ -14405,7 +14405,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     if (RDmin_Q10 < RDmax_Q10) {
       psSampleState[RDmax_ind][0].Q_Q10 = lazy[RDmin_ind].alt_Q10;
       psSampleState[RDmax_ind][0].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
-      lazy[RDmax_ind] = lazy[RDmin_ind];
+      lazy[RDmax_ind].LPC_pred_Q14 = lazy[RDmin_ind].LPC_pred_Q14;
+      lazy[RDmax_ind].n_AR_Q14 = lazy[RDmin_ind].n_AR_Q14;
+      lazy[RDmax_ind].n_LF_Q14 = lazy[RDmin_ind].n_LF_Q14;
       const auto offset = static_cast<std::size_t>(i) * sizeof(opus_int32);
       const auto copy_end = use_four_lane_ar ? offsetof(NSQ_del_dec_struct, sAR2_Q14) : offsetof(NSQ_del_dec_struct, LF_AR_Q14);
       std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + offset, copy_end - offset);
