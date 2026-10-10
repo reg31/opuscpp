@@ -17035,13 +17035,10 @@ static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], floa
   float LPC_res[(((5 * 4) * 16) + 4 * 16) / 2]{};
   auto* LPC_res_ptr = LPC_res + LPC_order;
   const int shift = LPC_order + subfr_length;
-  silk_LPC_analysis_filter_FLP(LPC_res, a[0], x + 0 * shift, 2 * shift, LPC_order, known_finite);
-  nrgs[0] = static_cast<float>(gains[0] * gains[0] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
-  nrgs[1] = static_cast<float>(gains[1] * gains[1] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
-  if (nb_subfr == 4) {
-    silk_LPC_analysis_filter_FLP(LPC_res, a[1], x + 2 * shift, 2 * shift, LPC_order, known_finite);
-    nrgs[2] = static_cast<float>(gains[2] * gains[2] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
-    nrgs[3] = static_cast<float>(gains[3] * gains[3] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
+  for (int offset = 0; offset < (nb_subfr == 4 ? 4 : 2); offset += 2) {
+    silk_LPC_analysis_filter_FLP(LPC_res, a[offset / 2], x + offset * shift, 2 * shift, LPC_order, known_finite);
+    nrgs[offset] = static_cast<float>(gains[offset] * gains[offset] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
+    nrgs[offset + 1] = static_cast<float>(gains[offset + 1] * gains[offset + 1] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
   }
 }
 
