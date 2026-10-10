@@ -12979,13 +12979,12 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
 
 static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl) {
   opus_int32 LTP_Gain_Q14 = 0, temp_LTP_Gain_Q14;
-  int i, j;
   auto* psPLC = &psDec->sPLC;
   psDec->prevSignalType = psDec->indices.signalType;
   if (psDec->indices.signalType == 2) {
-    for (j = 0; j < psDec->nb_subfr && j * psDec->subfr_length < psDecCtrl->pitchL[psDec->nb_subfr - 1]; j++) {
+    for (int j = 0; j < psDec->nb_subfr && j * psDec->subfr_length < psDecCtrl->pitchL[psDec->nb_subfr - 1]; j++) {
       temp_LTP_Gain_Q14 = 0;
-      for (i = 0; i < 5; i++) {
+      for (int i = 0; i < 5; i++) {
         temp_LTP_Gain_Q14 += psDecCtrl->LTPCoef_Q14[static_cast<std::size_t>((psDec->nb_subfr - 1 - j) * 5 + i)];
       }
       if (temp_LTP_Gain_Q14 > LTP_Gain_Q14) {
