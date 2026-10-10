@@ -13124,15 +13124,6 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   std::fill_n(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
 }
 
-static void silk_PLC(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame, int lost) {
-  if (lost) {
-    silk_PLC_conceal(psDec, psDecCtrl, frame);
-    psDec->lossCnt++;
-  } else {
-    silk_PLC_update(psDec, psDecCtrl);
-  }
-}
-
 static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
   int energy_shift;
   opus_int32 energy;
@@ -13556,11 +13547,12 @@ static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opu
     silk_process_pulses<false>(psRangeDec, pulses, psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
     silk_decode_parameters(*psDec, psDecCtrl, condCoding);
     silk_decode_core(*psDec, psDecCtrl, pOut, pulses.data());
-    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
+    silk_PLC_update(psDec, &psDecCtrl);
     psDec->lossCnt = 0;
     psDec->first_frame_after_reset = 0;
   } else {
-    silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
+    silk_PLC_conceal(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)});
+    psDec->lossCnt++;
   }
   const int move_length = psDec->ltp_mem_length - psDec->frame_length;
   std::memmove(psDec->outBuf, &psDec->outBuf[psDec->frame_length], static_cast<std::size_t>(move_length * sizeof(opus_int16)));
