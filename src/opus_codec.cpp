@@ -14485,8 +14485,8 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
       state.Diff_Q14 = multiply_q16(gain_adj_Q16, state.Diff_Q14);
       scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
       scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
-      scale_q16_buffer(state.Pred_Q15, 40, gain_adj_Q16);
-      scale_q16_buffer(state.Shape_Q14, 40, gain_adj_Q16);
+      scale_q16_buffer(state.Pred_Q15, subfr == 0 ? 0 : 40, gain_adj_Q16);
+      scale_q16_buffer(state.Shape_Q14, subfr == 0 ? 1 : 40, gain_adj_Q16);
     }
   }
 }
