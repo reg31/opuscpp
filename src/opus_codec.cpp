@@ -14331,6 +14331,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   pred_lag_ptr = &sLTP_Q15[NSQ->sLTP_buf_idx - lag + 5 / 2];
   Gain_Q10 = ((Gain_Q16) >> (6));
   for (i = 0; i < length; i++) {
+    const auto input_Q10 = x_q10_data[i];
     if (signalType == 2) {
       LTP_pred_Q14 = wrap_shift_left(silk_ltp_prediction_5tap(pred_lag_ptr, b_q14_coefficients), 1);
       ++pred_lag_ptr;
@@ -14371,13 +14372,12 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp2 = wrap_add(n_LTP_Q14, LPC_pred_Q14);
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
-      r_Q10 = silk_signed_clamped_residual(x_q10_data[i] - tmp1, psDD->Seed);
+      r_Q10 = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
       const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10, levels);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
-      psSS[0] = silk_nsq_build_sample(first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10, psDD->Seed, LTP_pred_Q14, LPC_pred_Q14,
-                                      x_q10_data[i], n_AR_Q14, n_LF_Q14);
+      psSS[0].Q_Q10 = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
       psSS[0].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
       lazy[k] = {LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LF_Q14, first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10,
                  psDD->RD_Q10 + (first_is_q0 ? candidate1 : candidate0)};
@@ -14414,11 +14414,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       }
     }
     if (RDmin_Q10 < RDmax_Q10) {
-      auto survivor = silk_nsq_build_sample(lazy[RDmin_ind].alt_Q10, psDelDec[RDmin_ind].Seed, lazy[RDmin_ind].LTP_pred_Q14,
-                                            lazy[RDmin_ind].LPC_pred_Q14, x_q10_data[i], lazy[RDmin_ind].n_AR_Q14,
-                                            lazy[RDmin_ind].n_LF_Q14);
-      survivor.RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
-      psSampleState[RDmax_ind][0] = survivor;
+      psSampleState[RDmax_ind][0].Q_Q10 = lazy[RDmin_ind].alt_Q10;
+      psSampleState[RDmax_ind][0].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
+      lazy[RDmax_ind] = lazy[RDmin_ind];
       const auto offset = static_cast<std::size_t>(i) * sizeof(opus_int32);
       std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + offset, sizeof(NSQ_del_dec_struct) - offset);
       if (use_four_lane_ar) {
@@ -14439,13 +14437,15 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
       psSS = &psSampleState[k][0];
-      psDD->LF_AR_Q14 = psSS->LF_AR_Q14;
-      psDD->Diff_Q14 = psSS->Diff_Q14;
-      psDD->sLPC_Q14[16 + i] = psSS->xq_Q14;
-      psDD->Xq_Q14[*smpl_buf_idx] = psSS->xq_Q14;
+      const auto sample = silk_nsq_build_sample(psSS->Q_Q10, psDD->Seed, lazy[k].LTP_pred_Q14, lazy[k].LPC_pred_Q14,
+                                               input_Q10, lazy[k].n_AR_Q14, lazy[k].n_LF_Q14);
+      psDD->LF_AR_Q14 = sample.LF_AR_Q14;
+      psDD->Diff_Q14 = sample.Diff_Q14;
+      psDD->sLPC_Q14[16 + i] = sample.xq_Q14;
+      psDD->Xq_Q14[*smpl_buf_idx] = sample.xq_Q14;
       psDD->Q_Q10[*smpl_buf_idx] = psSS->Q_Q10;
-      psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(psSS->LPC_exc_Q14, 1);
-      psDD->Shape_Q14[*smpl_buf_idx] = psSS->sLTP_shp_Q14;
+      psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(sample.LPC_exc_Q14, 1);
+      psDD->Shape_Q14[*smpl_buf_idx] = sample.sLTP_shp_Q14;
       psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(psSS->Q_Q10));
       psDD->RandState[*smpl_buf_idx] = psDD->Seed;
       psDD->RD_Q10 = psSS->RD_Q10;
