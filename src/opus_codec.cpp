@@ -13081,11 +13081,8 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
       rand_scale_Q14 = std::max(static_cast<opus_int16>(3277), rand_scale_Q14);
       rand_scale_Q14 = static_cast<opus_int16>(silk_mul_i16_shift<14>(rand_scale_Q14, psPLC->prevLTP_scale_Q14));
     } else {
-      opus_int32 invGain_Q30, down_scale_Q30;
-      invGain_Q30 = silk_LPC_inverse_pred_gain_c(psPLC->prevLPC_Q12, psDec->LPC_order);
-      down_scale_Q30 = std::min(((static_cast<opus_int32>(1) << 30) >> (3)), invGain_Q30);
-      down_scale_Q30 = std::max(((static_cast<opus_int32>(1) << 30) >> (8)), down_scale_Q30);
-      down_scale_Q30 = wrap_shift_left(down_scale_Q30, 3);
+      const opus_int32 invGain_Q30 = silk_LPC_inverse_pred_gain_c(psPLC->prevLPC_Q12, psDec->LPC_order);
+      const opus_int32 down_scale_Q30 = wrap_shift_left(std::clamp(invGain_Q30, ((static_cast<opus_int32>(1) << 30) >> (8)), ((static_cast<opus_int32>(1) << 30) >> (3))), 3);
       rand_Gain_Q15 = silk_mul_wb(down_scale_Q30, rand_Gain_Q15) >> 14;
     }
   }
