@@ -1955,10 +1955,6 @@ template <int Shift>
   return saturate_int32(static_cast<opus_int64>(lhs) - rhs);
 }
 
-[[nodiscard]] static auto clamped_midpoint(opus_int32 lhs, opus_int32 rhs, opus_int32 bound0, opus_int32 bound1) noexcept -> opus_int32 {
-  return std::clamp(rounded_rshift<1>(lhs + rhs), std::min(bound0, bound1), std::max(bound0, bound1));
-}
-
 [[nodiscard]] static auto inverse_prediction_step(opus_int32 lhs, opus_int32 rhs, opus_int32 rc_q31, opus_int32 rc_mult2, int mult2_q) noexcept -> opus_int64 {
   const auto reflected = saturating_subtract_int32(lhs, static_cast<opus_int32>(rounded_rshift<31>(static_cast<opus_int64>(rhs) * rc_q31)));
   return rounded_rshift(static_cast<opus_int64>(reflected) * rc_mult2, mult2_q);
@@ -2144,7 +2140,7 @@ static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMi
         max_center_Q15 -= NDeltaMin_Q15[k];
       }
       max_center_Q15 -= ((NDeltaMin_Q15[I]) >> (1));
-      center_freq_Q15 = static_cast<opus_int16>(clamped_midpoint(NLSF_Q15[I - 1], NLSF_Q15[I], min_center_Q15, max_center_Q15));
+      center_freq_Q15 = static_cast<opus_int16>(std::clamp(rounded_rshift<1>(static_cast<opus_int32>(NLSF_Q15[I - 1]) + NLSF_Q15[I]), min_center_Q15, max_center_Q15));
       NLSF_Q15[I - 1] = center_freq_Q15 - ((NDeltaMin_Q15[I]) >> (1));
       NLSF_Q15[I] = NLSF_Q15[I - 1] + NDeltaMin_Q15[I];
     }
