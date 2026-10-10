@@ -12968,19 +12968,13 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
 }
 
 [[nodiscard]] static int stable_pitch_average(const std::array<opus_uint16, 3>& history) noexcept {
-  int sum = 0;
-  int minimum = opus_int32_max;
-  int maximum = 0;
-  for (const int pitch : history) {
-    if (pitch == 0) {
-      return 0;
-    }
-    sum += pitch;
-    minimum = std::min(minimum, pitch);
-    maximum = std::max(maximum, pitch);
+  const auto [minimum, maximum] = std::minmax({history[0], history[1], history[2]});
+  if (minimum == 0) {
+    return 0;
   }
-  const int average = (sum + 1) / 3;
-  return (maximum - minimum) * 32 <= average ? average : 0;
+  const int low = std::min<int>(opus_int32_max, minimum);
+  const int average = (history[0] + history[1] + history[2] + 1) / 3;
+  return (static_cast<int>(maximum) - low) * 32 <= average ? average : 0;
 }
 
 static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl) {
