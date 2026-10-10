@@ -13026,12 +13026,10 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
 static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_uint16> exc_low, std::span<const opus_int8> exc_high, std::span<const opus_int32> prevGain_Q10, int subfr_length, int nb_subfr) {
   int i, k;
   opus_int16 exc_buf[2 * silk_max_subfr_length];
-  auto* exc_buf_ptr = exc_buf;
   for (k = 0; k < 2; k++) {
     for (i = 0; i < subfr_length; i++) {
-      exc_buf_ptr[i] = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
+      exc_buf[k * subfr_length + i] = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
     }
-    exc_buf_ptr += subfr_length;
   }
   silk_sum_sqr_shift(energy1, shift1, exc_buf, subfr_length);
   silk_sum_sqr_shift(energy2, shift2, exc_buf + subfr_length, subfr_length);
