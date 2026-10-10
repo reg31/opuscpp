@@ -13658,14 +13658,8 @@ static void silk_ResetDecoder(void* decState) {
 
 static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
   silk_resampler(&state.resampler_state, resampled.data(), input, input_samples);
-  if (api_channels == 2) {
-    for (int i = 0; i < output_samples; ++i) {
-      samplesOut[channel + 2 * i] = resampled[i] * (1 / 32768.f);
-    }
-  } else {
-    for (int i = 0; i < output_samples; ++i) {
-      samplesOut[i] = resampled[i] * (1 / 32768.f);
-    }
+  for (int i = 0; i < output_samples; ++i) {
+    samplesOut[api_channels == 2 ? channel + 2 * i : i] = resampled[i] * (1 / 32768.f);
   }
 }
 
