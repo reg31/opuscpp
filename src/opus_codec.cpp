@@ -1559,8 +1559,11 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
 }
 
 constexpr int opus_decode_fast_unavailable = -1000000;
-static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                          int frame_size) {
+static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
+                                     int frame_size, int decode_fec) {
+  if (decode_fec || data == nullptr || len <= 1 || opus_packet_get_mode(data) != opus_mode_celt_only) {
+    return opus_decode_fast_unavailable;
+  }
   if (st->Fs != 48000 || (pcm == nullptr && pcm16 == nullptr) ||
       (st->prev_mode > 0 && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy)) {
     return opus_decode_fast_unavailable;
@@ -1605,18 +1608,6 @@ static int decode_native_celt_direct_fast(OpusDecoder* st, const unsigned char* 
   st->prev_redundancy = 0;
   st->last_packet_duration = nb_samples;
   return nb_samples;
-}
-
-static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                     int frame_size, int decode_fec) {
-  if (decode_fec || data == nullptr || len <= 1) {
-    return opus_decode_fast_unavailable;
-  }
-  const int packet_mode = opus_packet_get_mode(data);
-  if (packet_mode == opus_mode_celt_only) {
-    return decode_native_celt_direct_fast(st, data, len, pcm, pcm16, frame_size);
-  }
-  return opus_decode_fast_unavailable;
 }
 
 template <std::size_t Capacity>
