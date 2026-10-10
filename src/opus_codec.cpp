@@ -14438,7 +14438,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       psDD = &psDelDec[k];
       psSS = &psSampleState[k][0];
       const auto sample = silk_nsq_build_sample(psSS->Q_Q10, psDD->Seed, lazy[k].LTP_pred_Q14, lazy[k].LPC_pred_Q14,
-                                               input_Q10, lazy[k].n_AR_Q14, lazy[k].n_LF_Q14);
+                                                input_Q10, lazy[k].n_AR_Q14, lazy[k].n_LF_Q14);
       psDD->LF_AR_Q14 = sample.LF_AR_Q14;
       psDD->Diff_Q14 = sample.Diff_Q14;
       psDD->sLPC_Q14[16 + i] = sample.xq_Q14;
