@@ -12919,7 +12919,8 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
       gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(wrap_subtract(cng_gain * cng_gain, wrap_shift_left(gain * gain, 5))), 16);
     } else {
       gain_Q16 = wrap_shift_left(silk_SQRT_APPROX(wrap_subtract(multiply_q16(psCNG->CNG_smth_Gain_Q16, psCNG->CNG_smth_Gain_Q16),
-                               wrap_shift_left(multiply_q16(gain_Q16, gain_Q16), 5))), 8);
+                                                                wrap_shift_left(multiply_q16(gain_Q16, gain_Q16), 5))),
+                                 8);
     }
     const opus_int32 gain_Q10 = ((gain_Q16) >> (6));
     const int exc_mask = static_cast<int>(std::min(255u, std::bit_floor(static_cast<unsigned>(length) + 1U) - 1U));
