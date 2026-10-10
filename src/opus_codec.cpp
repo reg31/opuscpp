@@ -2322,10 +2322,10 @@ static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_
   return nb_subfr == 4 ? std::span<const opus_uint8>{silk_pitch_contour_iCDF} : std::span<const opus_uint8>{silk_pitch_contour_10_ms_iCDF};
 }
 
-[[nodiscard]] static constexpr auto silk_pitch_lag_low_bits_icdf(const int fs_kHz) noexcept -> std::span<const opus_uint8> {
-  return fs_kHz == 16   ? silk_uniform8_iCDF
-         : fs_kHz == 12 ? std::span<const opus_uint8>{silk_uniform6_iCDF}
-                        : std::span<const opus_uint8>{silk_uniform4_iCDF};
+[[nodiscard]] static constexpr auto silk_pitch_lag_low_bits_icdf(const int fs_kHz) noexcept -> const opus_uint8* {
+  return fs_kHz == 16   ? silk_uniform8_iCDF.data()
+         : fs_kHz == 12 ? silk_uniform6_iCDF.data()
+                        : silk_uniform4_iCDF.data();
 }
 
 [[nodiscard]] constexpr auto silk_nlsf_codebook_for_fs(const int fs_kHz) noexcept -> const silk_NLSF_CB_struct* {
@@ -13412,7 +13412,7 @@ static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx*
       const int divisor = state->fs_kHz >> 1;
       const auto high = silk_index_symbol<Encode>(coder, indices.lagIndex / divisor, silk_pitch_lag_iCDF.data());
       const auto low =
-          silk_index_symbol<Encode>(coder, indices.lagIndex - high * divisor, silk_pitch_lag_low_bits_icdf(state->fs_kHz).data());
+          silk_index_symbol<Encode>(coder, indices.lagIndex - high * divisor, silk_pitch_lag_low_bits_icdf(state->fs_kHz));
       indices.lagIndex = static_cast<opus_int16>(high * divisor + low);
     }
     state->ec_prevLagIndex = indices.lagIndex;
