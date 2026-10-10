@@ -12911,7 +12911,7 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
     }
   }
   if (generates_cng) {
-    opus_int32 CNG_sig_Q14[silk_max_frame_length + 16]{};
+    opus_int32 CNG_sig_Q14[silk_max_frame_length + 16];
     opus_int32 gain_Q16 = multiply_q16(psDec->sPLC.randScale_Q14, psDec->sPLC.prevGain_Q16[1]);
     if (gain_Q16 >= (1 << 21) || psCNG->CNG_smth_Gain_Q16 > (1 << 23)) {
       const auto gain = gain_Q16 >> 16;
