@@ -54,6 +54,14 @@ int main() {
   constexpr auto sample_rate = 48000;
   constexpr auto frame_samples = 960;
   auto ok = true;
+  for (int channels : {0, 3}) {
+    int invalid_error = OPUS_OK;
+    auto invalid_encoder = make_opus_encoder(sample_rate, channels, OPUS_APPLICATION_AUDIO, &invalid_error);
+    ok &= expect(!invalid_encoder && invalid_error == OPUS_BAD_ARG, "reject invalid encoder channel count");
+    invalid_error = OPUS_OK;
+    auto invalid_decoder = make_opus_decoder(sample_rate, channels, &invalid_error);
+    ok &= expect(!invalid_decoder && invalid_error == OPUS_BAD_ARG, "reject invalid decoder channel count");
+  }
 
   auto err = OPUS_OK;
   auto stereo_encoder = make_opus_encoder(sample_rate, 2, OPUS_APPLICATION_AUDIO, &err);

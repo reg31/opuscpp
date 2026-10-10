@@ -17865,25 +17865,20 @@ template <bool Encoder>
 [[nodiscard]] auto create_codec_state(int Fs, int channels, int application, int* error) noexcept -> std::conditional_t<Encoder, OpusEncoder, OpusDecoder>* {
   const bool supported_application =
       application == OPUS_APPLICATION_VOIP || application == OPUS_APPLICATION_AUDIO || application == OPUS_APPLICATION_RESTRICTED_LOWDELAY;
-  if (!is_supported_sample_rate(Fs) || (Encoder && !supported_application)) {
+  if (!is_supported_sample_rate(Fs) || !is_supported_channel_count(channels) || (Encoder && !supported_application)) {
     assign_error(error, OPUS_BAD_ARG);
     return nullptr;
   }
   const int state_size = [&] {
     if constexpr (Encoder) {
-      if (!is_supported_channel_count(channels)) {
-        return 0;
-      }
       const int silk_size = encoder_uses_silk(application) ? align(silk_encoder_get_size(channels)) : 0;
       const int base_size =
           align(sizeof(OpusEncoder)) + align(static_cast<int>(encoder_delay_buffer_count(channels, application) * sizeof(opus_res)));
       return base_size + silk_size +
              static_cast<int>(sizeof(CeltEncoderInternal) + celt_encoder_storage_count(channels) * sizeof(celt_sig));
     }
-    return !is_supported_channel_count(channels)
-               ? 0
-               : align(sizeof(OpusDecoder)) + align(silk_decoder_get_size()) +
-                     static_cast<int>(sizeof(CeltDecoderInternal) + celt_decoder_storage_count(channels) * sizeof(celt_sig));
+    return align(sizeof(OpusDecoder)) + align(silk_decoder_get_size()) +
+           static_cast<int>(sizeof(CeltDecoderInternal) + celt_decoder_storage_count(channels) * sizeof(celt_sig));
   }();
   if (state_size <= 0) {
     assign_error(error, OPUS_BAD_ARG);
