@@ -8527,11 +8527,8 @@ static void ec_enc_carry_out(ec_enc* _this, int _c) {
     if (_this->rem >= 0) {
       _this->error |= ec_write_byte<false>(_this, _this->rem + carry);
     }
-    if (_this->ext > 0) {
-      const auto sym = (ec_byte_mask + carry) & ec_byte_mask;
-      for (; _this->ext > 0; --(_this->ext)) {
-        _this->error |= ec_write_byte<false>(_this, sym);
-      }
+    for (const auto sym = (ec_byte_mask + carry) & ec_byte_mask; _this->ext > 0; --(_this->ext)) {
+      _this->error |= ec_write_byte<false>(_this, sym);
     }
     _this->rem = _c & ec_byte_mask;
   } else
