@@ -10532,9 +10532,6 @@ static const float classifier_std_feature_bias[9] = {
 static float classifier_log_d(double x) {
   return static_cast<float>(std::log(x));
 }
-static float classifier_log10_d(double x) {
-  return static_cast<float>(std::log10(x));
-}
 static float classifier_sqrt_d(double x) {
   return static_cast<float>(std::sqrt(x));
 }
@@ -11668,7 +11665,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   if (tonal->count <= 2) {
     bandwidth = 20;
   }
-  frame_loudness = 20 * classifier_log10_d(frame_loudness);
+  frame_loudness = 20 * static_cast<float>(std::log10(static_cast<double>(frame_loudness)));
   tonal->Etracker = std::max(tonal->Etracker - .003f, frame_loudness);
   tonal->lowECount *= (1 - alphaE);
   if (frame_loudness < tonal->Etracker - 30) {
