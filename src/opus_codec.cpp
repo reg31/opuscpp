@@ -8509,19 +8509,15 @@ template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int 
   return celt_pvq_unrank_impl(n, k, index, writer);
 }
 
-static int ec_write_byte(ec_enc* _this, unsigned _value) {
+template <bool AtEnd> static int ec_write_byte(ec_enc* _this, unsigned _value) {
   if (_this->offs + _this->end_offs >= _this->storage) {
     return -1;
   }
-  _this->buf[_this->offs++] = static_cast<unsigned char>(_value);
-  return 0;
-}
-
-static int ec_write_byte_at_end(ec_enc* _this, unsigned _value) {
-  if (_this->offs + _this->end_offs >= _this->storage) {
-    return -1;
+  if constexpr (AtEnd) {
+    _this->buf[_this->storage - ++(_this->end_offs)] = static_cast<unsigned char>(_value);
+  } else {
+    _this->buf[_this->offs++] = static_cast<unsigned char>(_value);
   }
-  _this->buf[_this->storage - ++(_this->end_offs)] = static_cast<unsigned char>(_value);
   return 0;
 }
 
@@ -8529,12 +8525,12 @@ static void ec_enc_carry_out(ec_enc* _this, int _c) {
   if (_c != ec_byte_mask) {
     int carry = _c >> (8);
     if (_this->rem >= 0) {
-      _this->error |= ec_write_byte(_this, _this->rem + carry);
+      _this->error |= ec_write_byte<false>(_this, _this->rem + carry);
     }
     if (_this->ext > 0) {
       const auto sym = (ec_byte_mask + carry) & ec_byte_mask;
       for (; _this->ext > 0; --(_this->ext)) {
-        _this->error |= ec_write_byte(_this, sym);
+        _this->error |= ec_write_byte<false>(_this, sym);
       }
     }
     _this->rem = _c & ec_byte_mask;
@@ -8617,7 +8613,7 @@ void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _bits) {
   int used = _this->nend_bits;
   if (used + _bits > (static_cast<int>(sizeof(ec_window)) * 8)) {
     for (; used >= (8); used -= (8)) {
-      _this->error |= ec_write_byte_at_end(_this, static_cast<unsigned>(window) & ec_byte_mask);
+      _this->error |= ec_write_byte<true>(_this, static_cast<unsigned>(window) & ec_byte_mask);
       window >>= (8);
     }
   }
@@ -8670,7 +8666,7 @@ void ec_enc_done(ec_enc* _this) {
   window = _this->end_window;
   used = _this->nend_bits;
   for (; used >= (8); used -= (8)) {
-    _this->error |= ec_write_byte_at_end(_this, static_cast<unsigned>(window) & ec_byte_mask);
+    _this->error |= ec_write_byte<true>(_this, static_cast<unsigned>(window) & ec_byte_mask);
     window >>= (8);
   }
   if (!_this->error) {
