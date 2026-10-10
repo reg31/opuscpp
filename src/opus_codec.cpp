@@ -13271,11 +13271,9 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         return decode_excitation(subframe_offset + i);
       });
     }
-    if (k + 1 < state.nb_subfr)
-      std::memcpy(sLPC_Q14, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+    std::memcpy(k + 1 < state.nb_subfr ? sLPC_Q14 : state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     pxq += state.subfr_length;
   }
-  std::memcpy(state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
 }
 
 static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_control& control, int condCoding) {
