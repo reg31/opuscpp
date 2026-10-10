@@ -14320,7 +14320,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   struct lazy_state_context {
     opus_int32 LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LF_Q14, alt_Q10, alt_RD_Q10;
   };
-  std::array<lazy_state_context, silk_max_delayed_decision_states> lazy{};
+  std::array<lazy_state_context, silk_max_delayed_decision_states> lazy;
   const auto* x_q10_data = x_Q10.data();
   auto* pulses_data = pulses.data();
   auto* xq_data = xq.data();
