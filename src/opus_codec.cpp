@@ -13633,15 +13633,6 @@ static void silk_release_decoder_channel(silk_decoder_state*& channel) noexcept 
   }
 }
 
-static void silk_destroy_decoder(void* decState) noexcept {
-  if (decState == nullptr) {
-    return;
-  }
-  auto* decoder = static_cast<silk_decoder*>(decState);
-  silk_release_decoder_channel(decoder->channel_state);
-  silk_release_decoder_channel(decoder->side_channel_state);
-}
-
 [[nodiscard]] constexpr auto silk_decoder_get_size() noexcept -> int {
   return static_cast<int>(sizeof(silk_decoder));
 }
@@ -18163,7 +18154,9 @@ OpusDecoder* opus_decoder_create(int Fs, int channels, int* error) noexcept {
 
 void opus_decoder_destroy(OpusDecoder* st) noexcept {
   if (st != nullptr) {
-    silk_destroy_decoder(decoder_silk_state(st));
+    auto* decoder = static_cast<silk_decoder*>(decoder_silk_state(st));
+    silk_release_decoder_channel(decoder->channel_state);
+    silk_release_decoder_channel(decoder->side_channel_state);
   }
   std::free(st);
 }
