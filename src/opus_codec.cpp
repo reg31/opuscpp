@@ -14329,8 +14329,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       LTP_pred_Q14 = 0;
     }
     if (lag > 0) {
-      n_LTP_Q14 =
-          saturating_subtract_int32(LTP_pred_Q14, saturating_left_shift<2>(silk_harmonic_shaping(shp_lag_ptr, HarmShapeFIRPacked_Q14)));
+      n_LTP_Q14 = HarmShapeFIRPacked_Q14 == 0
+                      ? LTP_pred_Q14
+                      : saturating_subtract_int32(LTP_pred_Q14, saturating_left_shift<2>(silk_harmonic_shaping(shp_lag_ptr, HarmShapeFIRPacked_Q14)));
       ++shp_lag_ptr;
     } else {
       n_LTP_Q14 = 0;
