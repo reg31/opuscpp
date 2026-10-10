@@ -17441,8 +17441,19 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     }
     std::array<opus_int8, silk_max_frame_length> frame_pulses;
     std::array<opus_int16, silk_max_frame_length> nsq_samples;
-    for (int index = 0; index < psEnc->sCmn.frame_length; ++index) {
-      nsq_samples[index] = static_cast<opus_int16>(float2int(x_frame[index]));
+    const int lookahead = 5 * psEnc->sCmn.fs_kHz;
+    copy_n_items(psEnc->x_buf.base.data() + psEnc->sCmn.ltp_mem_length, static_cast<std::size_t>(lookahead), nsq_samples.data());
+    copy_n_items(input_buffer + 1, static_cast<std::size_t>(psEnc->sCmn.frame_length - lookahead), nsq_samples.data() + lookahead);
+    for (int index = 0; index < lookahead; index += 5) {
+      const int history_index = psEnc->sCmn.ltp_mem_length + index;
+      const auto tag = (psEnc->x_buf.tags[history_index / 20] >> (2 * ((history_index / 5) % 4))) & 3;
+      if (tag == 1 || tag == 2)
+        nsq_samples[index] = static_cast<opus_int16>(float2int(x_frame[index]));
+    }
+    for (int index = 0; index < 8; ++index) {
+      const int sample = lookahead + index * (psEnc->sCmn.frame_length >> 3);
+      if (sample < psEnc->sCmn.frame_length)
+        nsq_samples[sample] = static_cast<opus_int16>(float2int(x_frame[sample]));
     }
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
     const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
