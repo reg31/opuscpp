@@ -13810,8 +13810,7 @@ static void silk_encode_indices(silk_encoder_state* psEncC, SideInfoIndices& ind
 }
 
 static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
-  int k, double_step_size_threshold;
-  for (k = 0; k < nb_subfr; k++) {
+  for (int k = 0; k < nb_subfr; k++) {
     ind[k] = static_cast<opus_int8>((2251LL * static_cast<opus_int16>(silk_lin2log(gain_Q16[k]) - 2090)) >> 16);
     if (ind[k] < *prev_ind) {
       ind[k]++;
@@ -13822,7 +13821,7 @@ static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8
       *prev_ind = ind[k];
     } else {
       ind[k] = ind[k] - *prev_ind;
-      double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
+      int double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
       if (ind[k] > double_step_size_threshold) {
         ind[k] = double_step_size_threshold + ((ind[k] - double_step_size_threshold + 1) >> (1));
       }
@@ -13840,9 +13839,8 @@ static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8
 }
 
 static opus_int32 silk_gains_ID(const opus_int8 ind[4], const int nb_subfr) {
-  int k;
   opus_int32 gainsID = 0;
-  for (k = 0; k < nb_subfr; k++) {
+  for (int k = 0; k < nb_subfr; k++) {
     gainsID = wrap_add(ind[k], wrap_shift_left(gainsID, 8));
   }
   return gainsID;
