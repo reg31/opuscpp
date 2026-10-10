@@ -14279,7 +14279,7 @@ template <int Shift>
 }
 
 template <bool KnownZero>
-static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
+static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool first_subframe) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
   opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
       tmp2, *pred_lag_ptr, *shp_lag_ptr, *psLPC_Q14;
@@ -14331,7 +14331,17 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     }
     std::array<opus_int32, 4> n_AR_lane;
     if (use_four_lane_ar) {
-      if (warping_Q16 == 0) {
+      if (first_subframe && i == 0) {
+        std::array<opus_int32, 24> first_ar;
+        std::copy_n(psDelDec[0].sAR2_Q14, shapingLPCOrder, first_ar.begin());
+        n_AR_lane.fill(warping_Q16 == 0
+                           ? silk_nsq_noise_shape_feedback<false>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder)
+                           : silk_nsq_noise_shape_feedback<true>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
+        for (int index = 0; index < shapingLPCOrder; ++index) {
+          for (int state = 0; state < 4; ++state)
+            lane_ar[index][state] = first_ar[index];
+        }
+      } else if (warping_Q16 == 0) {
         n_AR_lane = silk_nsq_noise_shape_feedback_four<false>(psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14, lane_ar, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
       } else {
         n_AR_lane = silk_nsq_noise_shape_feedback_four<true>(psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14, lane_ar, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
@@ -14581,7 +14591,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
           {pxq - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
           {sLTP_Q15_storage, ltp_frame_storage}, delayedGain_Q10, {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
           {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k], LF_shp_Q14[k],
-          Gains_Q16[k], Lambda_Q10, offset_Q10, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay);
+          Gains_Q16[k], Lambda_Q10, offset_Q10, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay, k == 0);
     } else {
       static_cast<void>(silk_nsq_scale_common<true>(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
                                                     {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
