@@ -13558,7 +13558,6 @@ static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opu
     silk_decode_core(*psDec, psDecCtrl, pOut, pulses.data());
     silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 0);
     psDec->lossCnt = 0;
-    psDec->prevSignalType = psDec->indices.signalType;
     psDec->first_frame_after_reset = 0;
   } else {
     silk_PLC(psDec, &psDecCtrl, std::span<opus_int16>{pOut, static_cast<std::size_t>(L)}, 1);
