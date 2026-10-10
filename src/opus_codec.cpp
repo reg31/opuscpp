@@ -14424,10 +14424,14 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       psSampleState[RDmax_ind][0].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
       lazy[RDmax_ind] = lazy[RDmin_ind];
       const auto offset = static_cast<std::size_t>(i) * sizeof(opus_int32);
-      std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + offset, offsetof(NSQ_del_dec_struct, LF_AR_Q14) - offset);
+      const auto copy_end = use_four_lane_ar ? offsetof(NSQ_del_dec_struct, sAR2_Q14) : offsetof(NSQ_del_dec_struct, LF_AR_Q14);
+      std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + offset, copy_end - offset);
       psDelDec[RDmax_ind].Seed = psDelDec[RDmin_ind].Seed;
       psDelDec[RDmax_ind].SeedInit = psDelDec[RDmin_ind].SeedInit;
       if (use_four_lane_ar) {
+        if (shapingLPCOrder < 24) {
+          std::memcpy(psDelDec[RDmax_ind].sAR2_Q14 + shapingLPCOrder, psDelDec[RDmin_ind].sAR2_Q14 + shapingLPCOrder, static_cast<std::size_t>(24 - shapingLPCOrder) * sizeof(opus_int32));
+        }
         for (int index = 0; index < shapingLPCOrder; ++index)
           lane_ar[index][RDmax_ind] = lane_ar[index][RDmin_ind];
       }
