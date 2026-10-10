@@ -13590,25 +13590,21 @@ static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int3
   const int frame_length = psDec->nb_subfr * psDec->subfr_length;
   if (rate_changed) {
     silk_resampler_init(&psDec->resampler_state, fs_kHz * 1000, fs_API_Hz, 0);
+    psDec->ltp_mem_length = 20 * fs_kHz;
+    psDec->psNLSF_CB = silk_nlsf_codebook_for_fs(fs_kHz);
+    psDec->LPC_order = psDec->psNLSF_CB->order;
+    psDec->first_frame_after_reset = 1;
+    psDec->lagPrev = 100;
+    psDec->LastGainIndex = 10;
+    psDec->prevSignalType = 0;
+    zero_object(psDec->outBuf);
+    zero_object(psDec->sLPC_Q14_buf);
   }
-  if (rate_changed || frame_length != psDec->frame_length) {
-    if (rate_changed) {
-      psDec->ltp_mem_length = 20 * fs_kHz;
-      psDec->psNLSF_CB = silk_nlsf_codebook_for_fs(fs_kHz);
-      psDec->LPC_order = psDec->psNLSF_CB->order;
-      psDec->first_frame_after_reset = 1;
-      psDec->lagPrev = 100;
-      psDec->LastGainIndex = 10;
-      psDec->prevSignalType = 0;
-      zero_object(psDec->outBuf);
-      zero_object(psDec->sLPC_Q14_buf);
-    }
-    psDec->fs_kHz = fs_kHz;
-    psDec->frame_length = frame_length;
-    if (rate_changed) {
-      silk_CNG_Reset(psDec);
-      silk_PLC_Reset(psDec);
-    }
+  psDec->fs_kHz = fs_kHz;
+  psDec->frame_length = frame_length;
+  if (rate_changed) {
+    silk_CNG_Reset(psDec);
+    silk_PLC_Reset(psDec);
   }
 }
 
