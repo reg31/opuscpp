@@ -14469,7 +14469,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
 
 static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, std::span<const opus_int16> x16, std::span<opus_int32> x_sc_Q10, std::span<const opus_int16> sLTP, std::span<opus_int32> sLTP_Q15, int subfr, const int LTP_scale_Q14, std::span<const opus_int32> Gains_Q16, std::span<const int> pitchL, const int signal_type, const int decisionDelay) {
   const auto gain_adj_Q16 = silk_nsq_scale_common<false>(psEncC, NSQ, x16, x_sc_Q10, sLTP, sLTP_Q15, subfr, LTP_scale_Q14, Gains_Q16, pitchL,
-                                                  signal_type, NSQ->sLTP_buf_idx - decisionDelay);
+                                                         signal_type, NSQ->sLTP_buf_idx - decisionDelay);
   if (gain_adj_Q16 != (static_cast<opus_int32>(1) << 16)) {
     for (auto& state : psDelDec) {
       state.LF_AR_Q14 = multiply_q16(gain_adj_Q16, state.LF_AR_Q14);
@@ -14580,9 +14580,9 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
           Gains_Q16[k], Lambda_Q10, offset_Q10, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay);
     } else {
       static_cast<void>(silk_nsq_scale_common<true>(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
-                                              {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
-                                              {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
-                                              {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
+                                                    {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+                                                    {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
+                                                    {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
       silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
