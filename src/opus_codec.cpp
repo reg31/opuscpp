@@ -17181,12 +17181,9 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   }
   if (voiced) {
     SNR_adj_dB += 2.0f * psEnc->LTPCorr;
-  } else {
-    SNR_adj_dB += (-0.4f * psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f) + 6.0f) * (1.0f - psEncCtrl->input_quality);
-  }
-  if (voiced) {
     psEnc->sCmn.indices.quantOffsetType = 0;
   } else {
+    SNR_adj_dB += (-0.4f * psEnc->sCmn.SNR_dB_Q7 * (1 / 128.0f) + 6.0f) * (1.0f - psEncCtrl->input_quality);
     nSamples = 2 * psEnc->sCmn.fs_kHz;
     energy_variation = 0.0f;
     log_energy_prev = 0.0f;
