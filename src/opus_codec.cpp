@@ -13654,12 +13654,6 @@ static inline void silk_resample_and_store_channel(silk_decoder_state& state, st
   }
 }
 
-static inline void silk_duplicate_mono_to_right(opus_res* samplesOut, int output_samples) {
-  for (int i = 0; i < output_samples; ++i) {
-    samplesOut[1 + 2 * i] = samplesOut[2 * i];
-  }
-}
-
 int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec, opus_res* samplesOut, opus_int32* nSamplesOut) {
   int decode_only_middle = 0;
   opus_int32 nSamplesOutDec = 0;
@@ -13814,7 +13808,10 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
       silk_resample_and_store_channel(*channel_state[1], samplesOut2_tmp, &samplesOut1_tmp[0][1], nSamplesOutDec, samplesOut,
                                       *nSamplesOut, decControl->nChannelsAPI, 1);
     } else {
-      silk_duplicate_mono_to_right(samplesOut, *nSamplesOut);
+      const int output_samples = *nSamplesOut;
+      for (int i = 0; i < output_samples; ++i) {
+        samplesOut[1 + 2 * i] = samplesOut[2 * i];
+      }
     }
   }
   if (lostFlag == 1) {
