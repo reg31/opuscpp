@@ -17072,17 +17072,14 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
 }
 
 static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
-  int i;
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
-  const float* x_ptr;
-  float* x_pre_ptr;
   std::array<float, 4 * (silk_max_subfr_length + silk_nlsf_max_order)> lpc_input_storage;
   auto* LPC_in_pre = lpc_input_storage.data();
   auto* XXLTP = LPC_in_pre;
   auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * 5 * 5;
   float minInvGain;
-  for (i = 0; i < psEnc->sCmn.nb_subfr; i++) {
+  for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
   }
   if (psEnc->sCmn.indices.signalType == 2) {
@@ -17093,9 +17090,9 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
                                  psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
-    x_ptr = x - psEnc->sCmn.predictLPCOrder;
-    x_pre_ptr = LPC_in_pre;
-    for (i = 0; i < psEnc->sCmn.nb_subfr; i++) {
+    auto* x_ptr = x - psEnc->sCmn.predictLPCOrder;
+    auto* x_pre_ptr = LPC_in_pre;
+    for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
       silk_scale_copy_vector_FLP(x_pre_ptr, x_ptr, invGains[i], psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder);
       x_pre_ptr += psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder;
       x_ptr += psEnc->sCmn.subfr_length;
