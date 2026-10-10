@@ -6660,6 +6660,12 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
       pitch_index = max_period - (2);
     }
     gain1 = (((.7f)) * (gain1));
+    if (st->loss_rate > 2)
+      gain1 *= .5f;
+    if (st->loss_rate > 4)
+      gain1 *= .5f;
+    if (st->loss_rate > 8)
+      gain1 = 0;
   } else {
     gain1 = 0;
     pitch_index = 15;
