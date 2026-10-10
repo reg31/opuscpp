@@ -5041,10 +5041,6 @@ static void remap_hadamard(celt_norm* X, int N0, int stride, int hadamard, const
   copy_n_items(tmp.data(), count, X);
 }
 
-static void deinterleave_hadamard(celt_norm* X, int N0, int stride, int hadamard) {
-  remap_hadamard(X, N0, stride, hadamard, false);
-}
-
 static void haar1(celt_norm* X, int N0, int stride) {
   int i, j;
   N0 >>= 1;
@@ -5421,10 +5417,10 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
   N_B0 = N_B;
   if (B0 > 1) {
     if (encode) {
-      deinterleave_hadamard(X, N_B >> recombine, B0 << recombine, longBlocks);
+      remap_hadamard(X, N_B >> recombine, B0 << recombine, longBlocks, false);
     }
     if (lowband) {
-      deinterleave_hadamard(lowband, N_B >> recombine, B0 << recombine, longBlocks);
+      remap_hadamard(lowband, N_B >> recombine, B0 << recombine, longBlocks, false);
     }
   }
   const auto* cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + ctx->i];
