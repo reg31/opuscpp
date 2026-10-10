@@ -13038,7 +13038,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   silk_PLC_struct* psPLC = &psDec->sPLC;
   const opus_int32 prevGain_Q10[2]{((psPLC->prevGain_Q16[0]) >> (6)), ((psPLC->prevGain_Q16[1]) >> (6))};
   std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14{};
-  std::array<opus_int16, silk_max_ltp_mem_length> sLTP{};
+  std::array<opus_int16, silk_max_ltp_mem_length> sLTP;
   if (psDec->first_frame_after_reset) {
     zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
   }
