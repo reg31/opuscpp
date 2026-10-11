@@ -7118,6 +7118,24 @@ constexpr std::array<std::array<double, celt_default_nb_ebands>, 4> celt_gaussia
     {{5.5086466530802216, 5.2396468335267086, 4.7735954202564645, 4.2119546398549215, 3.6412007083330189, 3.1142377441613971, 2.6539196761749531, 2.2640703582525576, 0.89724432199489734, 0.67428637777591582, 0.52000708838651777, 0.41096088896089816, 0.14989465120306295, 0.10507348228749784, 0.077744875308287761, 0.03763917163708027, 0.027390582173178045, 0.015135870766079289, 0.0071461465964155627, 0.0032823254938965755, 0.0019751755097445769}},
 }};
 
+static bool celt_noise_gaussian_source_supported(const opus_res* pcm, int N, int CC, int C, int channel) {
+  double sum = 0, squares = 0;
+  double low = std::numeric_limits<double>::infinity();
+  double high = -std::numeric_limits<double>::infinity();
+  for (int i = 0; i < N; ++i) {
+    const double sample = CC == 2 && C == 1 ? .5 * (static_cast<double>(pcm[2 * i]) + pcm[2 * i + 1])
+                                            : static_cast<double>(pcm[CC * i + channel]);
+    sum += sample;
+    squares += sample * sample;
+    low = std::min(low, sample);
+    high = std::max(high, sample);
+  }
+  const double mean = sum / N;
+  const double variance = squares / N - mean * mean;
+  const double span = high - low;
+  return variance > 0 && span * span >= 17.079468445347132 * variance;
+}
+
 static std::array<double, 2> celt_estimate_noise_covariance_parameter(const CeltEncoderInternal* st, const celt_ener* bandE, const celt_glog* bandLogE, int LM, int shortBlocks) {
   std::array<double, 2> parameter;
   parameter.fill(-std::numeric_limits<double>::infinity());
@@ -7476,7 +7494,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
   if (spread_decision == 3 && shortBlocks == 0) {
     for (int channel = 0; channel < C; ++channel) {
-      if (!std::isfinite(noise_covariance[channel]))
+      if (!std::isfinite(noise_covariance[channel]) || !celt_noise_gaussian_source_supported(pcm, N, CC, C, channel))
         continue;
       for (int band = codedBands; band < end; ++band) {
         if (tf_res[band] < 0)
