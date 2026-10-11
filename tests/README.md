@@ -143,7 +143,7 @@ Add `--update-baseline` only after listening/ASR review confirms the new result 
 
 ## Fresh compatibility and API checks
 
-Fresh checks were run against source `8020e6e` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.
+Fresh checks were run against source `8e83205` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.
 
 ## RFC decode conformance
 
@@ -275,7 +275,7 @@ Spectral scores now compare each channel independently, with negative controls f
 and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
 same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
 
-The full benchmark tables below were refreshed on 2026-10-11 for source `8020e6e` (SHA-256 `86cb594053bf5987541c3e6da393439e5424741fb38999e872a5ffd549e6e17c`) against official Opus `503d81b`.
+The full benchmark tables below were refreshed on 2026-10-11 for source `8e83205` (SHA-256 `6f6433a30a7cd938099a309111a5182061e89d8912892360f6900efbb2c34fd5`) against official Opus `503d81b`.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
 recorded in [run metadata](metrics/run_metadata.json).
 
@@ -291,17 +291,17 @@ comparing against the optimized official desktop path most users would actually 
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.924x | 1.642x | 328x | 355x | 2139x | 1302x |
-| 24&nbsp;kbps | 0.987x | 1.284x | 314x | 318x | 1447x | 1127x |
-| 32&nbsp;kbps | 0.948x | 1.346x | 311x | 328x | 1457x | 1082x |
-| 48&nbsp;kbps | 1.016x | 1.308x | 296x | 291x | 1238x | 946x |
-| 64&nbsp;kbps | 1.021x | 1.173x | 269x | 264x | 974x | 830x |
-| 96&nbsp;kbps | 1.016x | 1.217x | 212x | 208x | 783x | 643x |
-| 128&nbsp;kbps | 1.000x | 1.158x | 195x | 195x | 665x | 574x |
-| 192&nbsp;kbps | 1.029x | 1.246x | 172x | 167x | 593x | 476x |
-| 256&nbsp;kbps | 0.934x | 1.169x | 159x | 170x | 521x | 446x |
+| 16&nbsp;kbps | 0.909x | 1.755x | 319x | 350x | 2284x | 1301x |
+| 24&nbsp;kbps | 0.952x | 1.324x | 306x | 322x | 1486x | 1122x |
+| 32&nbsp;kbps | 0.955x | 1.304x | 308x | 322x | 1471x | 1128x |
+| 48&nbsp;kbps | 0.994x | 1.266x | 296x | 298x | 1211x | 956x |
+| 64&nbsp;kbps | 1.026x | 1.202x | 269x | 263x | 1017x | 846x |
+| 96&nbsp;kbps | 1.066x | 1.155x | 227x | 213x | 778x | 674x |
+| 128&nbsp;kbps | 1.025x | 1.162x | 199x | 194x | 677x | 582x |
+| 192&nbsp;kbps | 0.970x | 1.200x | 171x | 177x | 595x | 496x |
+| 256&nbsp;kbps | 0.932x | 1.178x | 158x | 169x | 524x | 445x |
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 4/9 measured AUDIO rates (0.92x to 1.03x); decoding at 9/9 (1.16x to 1.64x).
+The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 3/9 measured AUDIO rates (0.91x to 1.07x); decoding at 9/9 (1.16x to 1.75x).
 
 The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
 generated Markdown report under `build/` or the requested working-directory path.
@@ -382,21 +382,21 @@ The 15.5/20 kbps cases have PESQ-style gains +0.1742/+0.2060 and ViSQOL-style ga
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at 6 rates, 13 have negative PESQ-style deltas, 28 negative ViSQOL-style deltas, and 30 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
 
-End-to-end encode overhead is **2.1% to 14.0%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+End-to-end encode overhead is **4.3% to 6.4%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
 
 The optional denoiser state is 68 bytes; the fresh state/bounds/reset check passed 90 configurations. Temporary stack high-water was not measured in this refresh.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1883 | +0.1311 | 4.3% |
-| 24&nbsp;kbps | +0.2252 | +0.1349 | 3.3% |
-| 32&nbsp;kbps | +0.2068 | +0.1171 | 14.0% |
-| 48&nbsp;kbps | +0.2194 | +0.1213 | 10.7% |
-| 64&nbsp;kbps | +0.2139 | +0.1332 | 4.1% |
-| 96&nbsp;kbps | +0.2122 | +0.1558 | 4.2% |
-| 128&nbsp;kbps | +0.2116 | +0.1584 | 2.1% |
-| 192&nbsp;kbps | +0.2149 | +0.1590 | 5.3% |
-| 256&nbsp;kbps | +0.2157 | +0.1594 | 5.7% |
+| 16&nbsp;kbps | +0.1883 | +0.1311 | 4.7% |
+| 24&nbsp;kbps | +0.2252 | +0.1349 | 4.4% |
+| 32&nbsp;kbps | +0.2068 | +0.1171 | 4.4% |
+| 48&nbsp;kbps | +0.2194 | +0.1213 | 4.7% |
+| 64&nbsp;kbps | +0.2139 | +0.1332 | 4.3% |
+| 96&nbsp;kbps | +0.2122 | +0.1558 | 5.2% |
+| 128&nbsp;kbps | +0.2116 | +0.1584 | 6.4% |
+| 192&nbsp;kbps | +0.2149 | +0.1590 | 4.8% |
+| 256&nbsp;kbps | +0.2157 | +0.1594 | 5.1% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
 
@@ -409,13 +409,13 @@ build/voice_denoise_state
 
 ## Memory metrics
 
-This table is from the full refresh for source `8020e6e`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
+This table is from the full refresh for source `8e83205`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 19,776 B | 31,856 B | -37.9% |
-| Encoder stereo | 30,016 B | 48,880 B | -38.6% |
+| Encoder mono | 19,760 B | 31,856 B | -38.0% |
+| Encoder stereo | 30,000 B | 48,880 B | -38.6% |
 | Decoder mono | 8,432 B | 18,464 B | -54.3% |
-| Decoder stereo | 17,584 B | 27,088 B | -35.1% |
+| Decoder stereo | 17,584 B | 27,104 B | -35.1% |
 
 Source CSV:
 
@@ -425,8 +425,8 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 399,532 B | 0 B | 399,532 B |
-| Android arm64 Clang `-O2` | 397,288 B | 472 B | 397,760 B |
+| Host MinGW GCC `-O2` | 399,212 B | 0 B | 399,212 B |
+| Android arm64 Clang `-O2` | 396,260 B | 472 B | 396,732 B |
 
 ## Toolchains checked
 
