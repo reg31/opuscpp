@@ -1552,8 +1552,8 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
     return -2;
   }
   direct = direct && std::all_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
-    return length > 1;
-  });
+             return length > 1;
+           });
   if (pcm16 != nullptr && !direct) {
     return opus_decode_fast_unavailable;
   }
