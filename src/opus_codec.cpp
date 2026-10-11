@@ -3319,7 +3319,8 @@ struct encoder_stage_storage {
     std::fill_n(frames.frames.data(), frames.nb_frames, data + ret);
     std::fill_n(frames.len.data(), frames.nb_frames, opus_int16{0});
     ret = write_packet_frames(&frames, data, max_data_bytes, true);
-    if (ret < 0) ret = -3;
+    if (ret < 0)
+      ret = -3;
   }
   return ret;
 }
@@ -4370,13 +4371,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   ret += 1 + redundancy_bytes;
   if (!st->use_vbr && ret != orig_max_data_bytes) {
-    if (ret > orig_max_data_bytes || ret > 1276) return -3;
+    if (ret > orig_max_data_bytes || ret > 1276)
+      return -3;
     packet_frame_set frames;
     frames.toc = data[0];
     frames.nb_frames = 1;
     frames.frames[0] = data + 1;
     frames.len[0] = static_cast<opus_int16>(ret - 1);
-    if (write_packet_frames(&frames, data, orig_max_data_bytes, true) < 0) return -3;
+    if (write_packet_frames(&frames, data, orig_max_data_bytes, true) < 0)
+      return -3;
     ret = orig_max_data_bytes;
   }
   return ret;
@@ -4731,7 +4734,8 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     }
   }
   for (std::size_t index = 0; index < frame_count; ++index) {
-    if (!inplace) move_n_items(frame_data[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
+    if (!inplace)
+      move_n_items(frame_data[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
     ptr += frame_lengths[index];
   }
   if (pad) {
@@ -4739,7 +4743,6 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   }
   return total_size;
 }
-
 
 namespace {
 constexpr auto eMeans = numeric_blob_array<opus_val16>(
