@@ -16615,8 +16615,6 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
         if (cross_corr > 0.0f) {
           const double basis_energy = silk_energy_FLP(basis, sf_length_8kHz);
           lag_correlations[k * pitch_stage2_cols + d] = static_cast<float>(2 * cross_corr / (basis_energy + target_energy));
-        } else {
-          lag_correlations[k * pitch_stage2_cols + d] = 0.0f;
         }
       }
       target_8k += sf_length_8kHz;
