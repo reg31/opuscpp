@@ -15376,10 +15376,6 @@ static void silk_resampler_down2_3(opus_int32* S, opus_int16* out, const opus_in
   std::memcpy(S, buf.data() + nSamplesIn, static_cast<std::size_t>(4 * sizeof(opus_int32)));
 }
 
-static void silk_resampler_down2(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 inLen) {
-  silk_downsample_by2<false>(in, S, out, nullptr, inLen);
-}
-
 static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], const opus_int16 in[], const opus_int16 A_Q14[], opus_int32 len) {
   for (opus_int32 k = 0; k < len; ++k) {
     auto out32 = wrap_add(S[0], wrap_shift_left(in[k], 8));
@@ -15989,14 +15985,14 @@ static void silk_prepare_pitch_frames(const float* frame, int frame_length, int 
   if (Fs_kHz != 8) {
     zero_n_items(filter_state.data(), Fs_kHz == 16 ? 2 : 6);
     if (Fs_kHz == 16) {
-      silk_resampler_down2(filter_state.data(), resample_workspace.data(), resample_workspace.data(), frame_length);
+      silk_downsample_by2<false>(resample_workspace.data(), filter_state.data(), resample_workspace.data(), nullptr, frame_length);
     } else {
       silk_resampler_down2_3(filter_state.data(), resample_workspace.data(), resample_workspace.data(), frame_length);
     }
     silk_short2float_array(frame_8kHz.data(), resample_workspace.data(), static_cast<int>(frame_8kHz.size()));
   }
   zero_n_items(filter_state.data(), 2);
-  silk_resampler_down2(filter_state.data(), resample_workspace.data(), resample_workspace.data(), static_cast<int>(frame_8kHz.size()));
+  silk_downsample_by2<false>(resample_workspace.data(), filter_state.data(), resample_workspace.data(), nullptr, static_cast<int>(frame_8kHz.size()));
   silk_short2float_array(frame_4kHz.data(), resample_workspace.data(), static_cast<int>(frame_4kHz.size()));
 }
 
