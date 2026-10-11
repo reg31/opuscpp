@@ -6040,18 +6040,29 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     if (N <= 0)
       continue;
     const bool coupled = i < coupled_end;
+    std::array<int, 4> state_level{};
+    unsigned legal_levels = 0;
+    int last_legal_level = 0;
+    const int legal_states = isTransient ? 4 : 2;
+    if (legal_entropy) {
+      for (int state = 0; state < legal_states; ++state) {
+        const int tf = tf_select_table[LM][4 * isTransient + state];
+        int level = isTransient ? tf : -tf;
+        if (level < 0 && ((N >> LM) & 1) != 0)
+          level = 0;
+        if (!isTransient)
+          level = std::min(level, static_cast<int>(std::countr_zero(static_cast<unsigned>(N))));
+        state_level[state] = level;
+        legal_levels |= 1u << (level + 1);
+        last_legal_level = std::max(last_legal_level, level);
+      }
+    }
     const auto record_legal_cost = [&](int level, double value) {
-      if (!legal_entropy)
+      if (!legal_entropy || (legal_levels & (1u << (level + 1))) == 0)
         return;
       const double cost = value > 0 ? N * std::log2(value) : 0;
-      for (int state = 0; state < 4; ++state) {
-        const int tf = tf_select_table[LM][4 * isTransient + state];
-        int actual_level = isTransient ? tf : -tf;
-        if (actual_level < 0 && ((N >> LM) & 1) != 0)
-          actual_level = 0;
-        if (!isTransient)
-          actual_level = std::min(actual_level, static_cast<int>(std::countr_zero(static_cast<unsigned>(N))));
-        if (actual_level == level)
+      for (int state = 0; state < legal_states; ++state) {
+        if (state_level[state] == level)
           legal_cost[i][state] = cost;
       }
     };
@@ -6074,7 +6085,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias, coupled ? tmp_side.data() : nullptr);
     best_L1 = L1;
     record_legal_cost(0, L1);
-    if (isTransient && !narrow) {
+    if (isTransient && !narrow && (!legal_entropy || (legal_levels & 1u) != 0)) {
       copy_n_items(tmp.data(), static_cast<std::size_t>(N), tmp_1.data());
       haar1(tmp_1.data(), N >> LM, 1 << LM);
       if (coupled) {
@@ -6088,16 +6099,19 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
         best_level = -1;
       }
     }
-    for (k = 0; k < LM + !(isTransient || narrow); k++) {
+    const int haar_levels = legal_entropy ? last_legal_level : LM + !(isTransient || narrow);
+    for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
       haar1(tmp.data(), N >> k, 1 << k);
       if (coupled)
         haar1(tmp_side.data(), N >> k, 1 << k);
-      L1 = l1_metric(tmp.data(), N, B, bias, coupled ? tmp_side.data() : nullptr);
-      record_legal_cost(k + 1, L1);
-      if (L1 < best_L1) {
-        best_L1 = L1;
-        best_level = k + 1;
+      if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
+        L1 = l1_metric(tmp.data(), N, B, bias, coupled ? tmp_side.data() : nullptr);
+        record_legal_cost(k + 1, L1);
+        if (L1 < best_L1) {
+          best_L1 = L1;
+          best_level = k + 1;
+        }
       }
     }
     if (isTransient)
@@ -6110,11 +6124,11 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   if (legal_entropy) {
     std::array<int, celt_default_nb_ebands> best_path;
     double best_cost = std::numeric_limits<double>::max();
+    const int first_logp = isTransient ? 2 : 4;
+    const int later_logp = isTransient ? 4 : 5;
+    const double first_stay = -std::log2(isTransient ? .75 : .9375);
+    const double later_stay = -std::log2(isTransient ? .9375 : .96875);
     for (int sel = 0; sel < (isTransient ? 2 : 1); ++sel) {
-      const int first_logp = isTransient ? 2 : 4;
-      const int later_logp = isTransient ? 4 : 5;
-      const double first_stay = -std::log2(1.0 - std::ldexp(1.0, -first_logp));
-      const double later_stay = -std::log2(1.0 - std::ldexp(1.0, -later_logp));
       double cost0 = legal_cost[0][2 * sel] + first_stay;
       double cost1 = legal_cost[0][2 * sel + 1] + first_logp;
       for (int i = 1; i < len; ++i) {
