@@ -15937,14 +15937,17 @@ struct max_abs_result {
 }
 
 static inline auto warped_true2monic_coefs(std::span<float> coefs, float lambda, float limit) noexcept -> void {
-  for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
-    coefs[index - 1] -= lambda * coefs[index];
-  }
-  auto gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
-  for (auto index = std::size_t{}; index < coefs.size(); ++index) {
-    coefs[index] *= gain;
-  }
-  for (auto iter = 0; iter < 10; ++iter) {
+  for (auto iter = 0;; ++iter) {
+    for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
+      coefs[index - 1] -= lambda * coefs[index];
+    }
+    auto gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
+    for (auto index = std::size_t{}; index < coefs.size(); ++index) {
+      coefs[index] *= gain;
+    }
+    if (iter == 10) {
+      return;
+    }
     const auto [max_abs, max_index] = max_abs_index(coefs);
     if (max_abs <= limit) {
       return;
@@ -15958,13 +15961,6 @@ static inline auto warped_true2monic_coefs(std::span<float> coefs, float lambda,
     }
     const auto chirp = 0.99f - (0.8f + 0.1f * iter) * (max_abs - limit) / (max_abs * (max_index + 1));
     silk_bwexpander_FLP(coefs, chirp);
-    for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
-      coefs[index - 1] -= lambda * coefs[index];
-    }
-    gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
-    for (auto index = std::size_t{}; index < coefs.size(); ++index) {
-      coefs[index] *= gain;
-    }
   }
 }
 
