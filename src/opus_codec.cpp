@@ -7292,7 +7292,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   }
   const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N) : 0;
   const int analyzed_intensity = C == 2 ? std::clamp(hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds,
-      stereo_intensity_table.hysteresis, st->intensity), start, end) : 0;
+                                                                         stereo_intensity_table.hysteresis, st->intensity),
+                                                     start, end)
+                                        : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
   const bool enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
   int tf_select = 0;
