@@ -16669,14 +16669,13 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
       result.lags[k] = std::clamp(lag_new + stage3_codebook.at(k, best_contour), min_lag, 18 * Fs_kHz);
     }
     result.lag_index = static_cast<opus_int16>(lag_new - min_lag);
-    result.contour_index = static_cast<opus_uint8>(best_contour);
   } else {
     for (int k = 0; k < nb_subfr; ++k) {
       result.lags[k] = std::clamp(lag + stage2_codebook.at(k, best_contour), min_lag_8kHz, 18 * 8);
     }
     result.lag_index = static_cast<opus_int16>(lag - min_lag_8kHz);
-    result.contour_index = static_cast<opus_uint8>(best_contour);
   }
+  result.contour_index = static_cast<opus_uint8>(best_contour);
   result.voiced = true;
   return result;
 }
