@@ -6011,7 +6011,7 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
   return L1;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end) {
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> metric;
@@ -6032,6 +6032,15 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     if (coupled) {
       copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
       copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
+      if (bandE != nullptr) {
+        std::array<opus_val16, 2> weights;
+        compute_channel_weights(bandE[i], bandE[celt_default_nb_ebands + i], weights.data());
+        const auto left_gain = std::sqrt(weights[0]), right_gain = std::sqrt(weights[1]);
+        for (int j = 0; j < N; ++j) {
+          tmp[j] *= left_gain;
+          tmp_side[j] *= right_gain;
+        }
+      }
       stereo_split(tmp.data(), tmp_side.data(), N);
     } else {
       copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
@@ -7357,7 +7366,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   int tf_select = 0;
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end);
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr);
   } else if (hybrid && weak_transient) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
