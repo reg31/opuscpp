@@ -1,0 +1,1811 @@
+{
+  "status": "READY_STRICT_FEC_18_PASS_WITH_FULLY_DISCLOSED_REGRESSIONS_NOT_GOAL_COMPLETE",
+  "owner": "/root/speed_main_pipeline_recovered",
+  "original_clock": "2026-10-11T20:58:33Z through2026-10-12T04:58:33Z",
+  "method_first_tool_utc": "2026-10-11T22:12:05Z",
+  "discovery_due_utc": "2026-10-11T22:32:05Z",
+  "causal_CF_outcome_utc": "2026-10-11T22:29:29Z",
+  "generic_first_outcome_utc": "2026-10-11T22:32:53Z",
+  "discovery_and_first60min_bounds_met": true,
+  "completed_utc": "2026-10-11T22:39:56.706642Z",
+  "base_commit": "874fba11786acb3a57c1671a5fcca701d7d53625",
+  "base_source_sha256": "842250aa0cdbdb1158a71bc45d655220295b67c6aa29a90fc335d3710900d908",
+  "candidate_source_sha256": "cf3a645457f7addf0a87518c371d8714dab00e686d05ed47dad5cc50025481ab",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "candidate": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\candidate.cpp",
+    "sha256": "cf3a645457f7addf0a87518c371d8714dab00e686d05ed47dad5cc50025481ab"
+  },
+  "patch": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\publication.diff",
+    "sha256": "eaa4712680b43dd6277b42a71044332a8b78e7950c6d0f8f4aa217cd1f9b38e0"
+  },
+  "rebase_proof": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\REBASE_PROOF.json",
+    "sha256": "116b8b901eb885663a9bb750e1ceb4a06e107aa47e59899c2ab552719ddeaa7b"
+  },
+  "functions": [
+    "silk_Encode: known serializedFEC reservation floor one line"
+  ],
+  "mechanism": "Keep the moving-average FEC reservation when conservative; when already serialized LBRR costs more, reserve that known cost before primary TargetRate/SNR/NSQ controls. No manualgain/Lambda/model/quantizer change, no fixture gate. Local material p113 current263actual versus222reserved caused overestimated primary capacity and high-Lambda retry; same-contextCF alone reduced dominant error, then generic all-frame FEC accounting produces strictPASS. No RFC/official-optimality/denoiser flaw asserted.",
+  "causal_fact": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\FACT.json",
+    "sha256": "35e37a4e7d40740a2c0576ef7914306550c180526581734824ba381119186ef3"
+  },
+  "strict": {
+    "counts": [
+      18,
+      18,
+      18,
+      18
+    ],
+    "all18_fresh_current_rows": true,
+    "official503_cached_by_exact_input_test_archive": true,
+    "closed_case": {
+      "key": [
+        2,
+        20,
+        32000,
+        1,
+        0
+      ],
+      "current": {
+        "fidelity_fec": 0.333735111,
+        "next_fec": 0.332196234,
+        "transition_fec": 0.450311093,
+        "fidelity_ref": 0.301044654,
+        "next_ref": 0.287487944,
+        "transition_ref": 0.24292839,
+        "fidelity_plc": 0.8578497,
+        "self_consistency": 0.301040413,
+        "step_fec": 134.0,
+        "step_ref": 587.0
+      },
+      "OFF": {
+        "fidelity_fec": 0.655200225,
+        "next_fec": 0.699512813,
+        "transition_fec": 0.328470094,
+        "fidelity_ref": 0.740837026,
+        "next_ref": 0.606513713,
+        "transition_ref": 0.422564016,
+        "fidelity_plc": 0.892767677,
+        "self_consistency": 0.351359484,
+        "step_fec": -212.0,
+        "step_ref": -84.0
+      },
+      "candidate": {
+        "fidelity_fec": 0.463114984,
+        "next_fec": 0.345824186,
+        "transition_fec": 0.240265426,
+        "fidelity_ref": 0.29581058,
+        "next_ref": 0.296523694,
+        "transition_ref": 0.279879035,
+        "fidelity_plc": 0.875049681,
+        "self_consistency": 0.385670764,
+        "step_fec": -170.0,
+        "step_ref": 406.0
+      },
+      "pass": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "current_pass": [
+        true,
+        true,
+        false,
+        true
+      ]
+    },
+    "raw_all_fields": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\STRICT_RESULT.json",
+      "sha256": "ffb1ddcc6e4f35f0635928fa2ae4bb725087de363f6373bd69e7784776ec1541"
+    },
+    "raw_losses_retained": "C2CBR32/profile1 fidelity.333735111\u2192.463114984, next.332196234\u2192.345824186,self.301040413\u2192.385670764,PLC.8578497\u2192.875049681; transition.450311093\u2192.240265426<=OFF.328470094. Every other rawfield/value remains in report."
+  },
+  "standard": {
+    "current_wins": 17,
+    "candidate_wins": 16,
+    "coverage": 18,
+    "OFF_coverage": 15,
+    "current_recovery_ratio": 0.510824,
+    "candidate_recovery_ratio": 0.503074,
+    "current_packet_byte_ratio": 0.98961,
+    "candidate_packet_byte_ratio": 0.987301,
+    "new_loss_cases": [
+      [
+        2,
+        20,
+        32000,
+        1,
+        0
+      ],
+      [
+        2,
+        20,
+        48000,
+        1,
+        1
+      ]
+    ],
+    "closure_cases": [
+      [
+        2,
+        20,
+        48000,
+        0,
+        1
+      ]
+    ],
+    "all72interop_rows_and_quiet_startup_range_validation": true,
+    "gate_FAIL_exit1_preserved": true,
+    "raw": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\STANDARD_RESULT.json",
+      "sha256": "bf68034f3632a3cf324a434da51cd45f47165e4dc9ac1a42226d89848bc23307"
+    }
+  },
+  "primary_quality": {
+    "counts": {
+      "improved": 9,
+      "worse": 35,
+      "current_OFF_negative": 15,
+      "candidate_OFF_negative": 16,
+      "closures": 0,
+      "new_negative": 1,
+      "worsened_negative": 10,
+      "positive_margin_losses": 24
+    },
+    "all48fields": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\PRIMARY_RESULT.json",
+      "sha256": "baee64d0031aee6374e0025f962a7960c323db2e51d9a662312b6d1702ab9219"
+    },
+    "new_negative_case": "David32_DN0 highband.012112134\u2192.018941004 versusOFF.014613876",
+    "speech_music": "Four prior worsened fields:visqol/logbanderror now better than pre-increment; CQ/masked and highband partly remedied, remaining loss retained. Genericwhole speech CQ98.08249873\u219298.11989437,masked1.548899014\u21921.518403455; SNR/RMS/other positive margins worsen. No netnegative-count improvement claimed.",
+    "all_losses": [
+      {
+        "case": "selected_p0_DN0",
+        "metric": "snr_db",
+        "current": 14.446201446899305,
+        "candidate": 14.257366250873387,
+        "OFF": 3.410923041595802,
+        "before_increment": 14.328707087987201,
+        "current_OFF_delta": 11.035278405303504,
+        "candidate_OFF_delta": 10.846443209277584,
+        "improvement": -0.18883519602591825,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "segmental_snr_db",
+        "current": 14.267901793528614,
+        "candidate": 14.09615098934045,
+        "OFF": 3.30232833071088,
+        "before_increment": 14.149368806504727,
+        "current_OFF_delta": 10.965573462817733,
+        "candidate_OFF_delta": 10.79382265862957,
+        "improvement": -0.17175080418816435,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "rms_error",
+        "current": 0.01853948877880411,
+        "candidate": 0.01894695895172183,
+        "OFF": 0.0660483046823895,
+        "before_increment": 0.01879197700629647,
+        "current_OFF_delta": 0.04750881590358538,
+        "candidate_OFF_delta": 0.04710134573066767,
+        "improvement": -0.0004074701729177184,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "mean_abs_error",
+        "current": 0.015088775422838,
+        "candidate": 0.01538485685984294,
+        "OFF": 0.05803361468844943,
+        "before_increment": 0.01529185242123074,
+        "current_OFF_delta": 0.04294483926561143,
+        "candidate_OFF_delta": 0.042648757828606484,
+        "improvement": -0.00029608143700494104,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "pesq_style",
+        "current": 2.7983198316663525,
+        "candidate": 2.7851663345245674,
+        "OFF": 1.9745106981176834,
+        "before_increment": 2.7903204766726337,
+        "current_OFF_delta": 0.823809133548669,
+        "candidate_OFF_delta": 0.810655636406884,
+        "improvement": -0.013153497141785042,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "visqol_style",
+        "current": 4.899368391614978,
+        "candidate": 4.894488775658742,
+        "OFF": 4.921559726086814,
+        "before_increment": 4.897400782159762,
+        "current_OFF_delta": -0.0221913344718363,
+        "candidate_OFF_delta": -0.027070950428072393,
+        "improvement": -0.004879615956236094,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "logband_corr",
+        "current": 0.9980749198132587,
+        "candidate": 0.9979581995389478,
+        "OFF": 0.9991326041183471,
+        "before_increment": 0.9980748443281996,
+        "current_OFF_delta": -0.0010576843050884577,
+        "candidate_OFF_delta": -0.001174404579399324,
+        "improvement": -0.0001167202743108664,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "logband_error",
+        "current": 0.08886647255725408,
+        "candidate": 0.09354623102595816,
+        "OFF": 0.06878135239529569,
+        "before_increment": 0.09081389250629945,
+        "current_OFF_delta": -0.02008512016195839,
+        "candidate_OFF_delta": -0.02476487863066247,
+        "improvement": -0.004679758468704082,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "celt_quality",
+        "current": 99.19025321031548,
+        "candidate": 99.18598852941699,
+        "OFF": 99.19841024916913,
+        "before_increment": 99.18997609554997,
+        "current_OFF_delta": -0.008157038853653376,
+        "candidate_OFF_delta": -0.012421719752140348,
+        "improvement": -0.004264680898486972,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "celt_masked_error",
+        "current": 0.6504344362215255,
+        "candidate": 0.6538741069093026,
+        "OFF": 0.6438558031758667,
+        "before_increment": 0.6506579381432432,
+        "current_OFF_delta": -0.006578633045658866,
+        "candidate_OFF_delta": -0.01001830373343593,
+        "improvement": -0.0034396706877770633,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN0",
+        "metric": "celt_highband_error",
+        "current": 0.8432142495786183,
+        "candidate": 0.8481756823486569,
+        "OFF": 0.8574083045091736,
+        "before_increment": 0.8421531119465725,
+        "current_OFF_delta": 0.014194054930555255,
+        "candidate_OFF_delta": 0.00923262216051668,
+        "improvement": -0.004961432770038576,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "snr_db",
+        "current": 14.446201446899305,
+        "candidate": 14.257366250873387,
+        "OFF": 3.410923041595802,
+        "before_increment": 14.328707087987201,
+        "current_OFF_delta": 11.035278405303504,
+        "candidate_OFF_delta": 10.846443209277584,
+        "improvement": -0.18883519602591825,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "segmental_snr_db",
+        "current": 14.267901793528614,
+        "candidate": 14.09615098934045,
+        "OFF": 3.30232833071088,
+        "before_increment": 14.149368806504727,
+        "current_OFF_delta": 10.965573462817733,
+        "candidate_OFF_delta": 10.79382265862957,
+        "improvement": -0.17175080418816435,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "rms_error",
+        "current": 0.01853948877880411,
+        "candidate": 0.01894695895172183,
+        "OFF": 0.0660483046823895,
+        "before_increment": 0.01879197700629647,
+        "current_OFF_delta": 0.04750881590358538,
+        "candidate_OFF_delta": 0.04710134573066767,
+        "improvement": -0.0004074701729177184,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "mean_abs_error",
+        "current": 0.015088775422838,
+        "candidate": 0.01538485685984294,
+        "OFF": 0.05803361468844943,
+        "before_increment": 0.01529185242123074,
+        "current_OFF_delta": 0.04294483926561143,
+        "candidate_OFF_delta": 0.042648757828606484,
+        "improvement": -0.00029608143700494104,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "pesq_style",
+        "current": 2.7983198316663525,
+        "candidate": 2.7851663345245674,
+        "OFF": 1.9745106981176834,
+        "before_increment": 2.7903204766726337,
+        "current_OFF_delta": 0.823809133548669,
+        "candidate_OFF_delta": 0.810655636406884,
+        "improvement": -0.013153497141785042,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "visqol_style",
+        "current": 4.899368391614978,
+        "candidate": 4.894488775658742,
+        "OFF": 4.921559726086814,
+        "before_increment": 4.897400782159762,
+        "current_OFF_delta": -0.0221913344718363,
+        "candidate_OFF_delta": -0.027070950428072393,
+        "improvement": -0.004879615956236094,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "logband_corr",
+        "current": 0.9980749198132587,
+        "candidate": 0.9979581995389478,
+        "OFF": 0.9991326041183471,
+        "before_increment": 0.9980748443281996,
+        "current_OFF_delta": -0.0010576843050884577,
+        "candidate_OFF_delta": -0.001174404579399324,
+        "improvement": -0.0001167202743108664,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "logband_error",
+        "current": 0.08886647255725408,
+        "candidate": 0.09354623102595816,
+        "OFF": 0.06878135239529569,
+        "before_increment": 0.09081389250629945,
+        "current_OFF_delta": -0.02008512016195839,
+        "candidate_OFF_delta": -0.02476487863066247,
+        "improvement": -0.004679758468704082,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "celt_quality",
+        "current": 99.19025321031548,
+        "candidate": 99.18598852941699,
+        "OFF": 99.19841024916913,
+        "before_increment": 99.18997609554997,
+        "current_OFF_delta": -0.008157038853653376,
+        "candidate_OFF_delta": -0.012421719752140348,
+        "improvement": -0.004264680898486972,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "celt_masked_error",
+        "current": 0.6504344362215255,
+        "candidate": 0.6538741069093026,
+        "OFF": 0.6438558031758667,
+        "before_increment": 0.6506579381432432,
+        "current_OFF_delta": -0.006578633045658866,
+        "candidate_OFF_delta": -0.01001830373343593,
+        "improvement": -0.0034396706877770633,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": true,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "selected_p0_DN1",
+        "metric": "celt_highband_error",
+        "current": 0.8432142495786183,
+        "candidate": 0.8481756823486569,
+        "OFF": 0.8574083045091736,
+        "before_increment": 0.8421531119465725,
+        "current_OFF_delta": 0.014194054930555255,
+        "candidate_OFF_delta": 0.00923262216051668,
+        "improvement": -0.004961432770038576,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "snr_db",
+        "current": 9.129837903377712,
+        "candidate": 8.980640865987525,
+        "OFF": 4.516927702146857,
+        "before_increment": 9.129837903377712,
+        "current_OFF_delta": 4.612910201230855,
+        "candidate_OFF_delta": 4.4637131638406675,
+        "improvement": -0.14919703739018786,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "segmental_snr_db",
+        "current": 10.362626120888315,
+        "candidate": 10.338368571675362,
+        "OFF": 3.3914423384925785,
+        "before_increment": 10.362626120888315,
+        "current_OFF_delta": 6.9711837823957366,
+        "candidate_OFF_delta": 6.946926233182784,
+        "improvement": -0.024257549212952867,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "rms_error",
+        "current": 0.02986143586797263,
+        "candidate": 0.03037879467214073,
+        "OFF": 0.05078742531932182,
+        "before_increment": 0.02986143586797263,
+        "current_OFF_delta": 0.020925989451349193,
+        "candidate_OFF_delta": 0.020408630647181094,
+        "improvement": -0.0005173588041680992,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "mean_abs_error",
+        "current": 0.0149230840851009,
+        "candidate": 0.01508089596912971,
+        "OFF": 0.02684660203411947,
+        "before_increment": 0.0149230840851009,
+        "current_OFF_delta": 0.011923517949018568,
+        "candidate_OFF_delta": 0.01176570606498976,
+        "improvement": -0.00015781188402880925,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "pesq_style",
+        "current": 2.5085649689927414,
+        "candidate": 2.5064032018835274,
+        "OFF": 1.9837727358947865,
+        "before_increment": 2.5085649689927414,
+        "current_OFF_delta": 0.5247922330979549,
+        "candidate_OFF_delta": 0.5226304659887409,
+        "improvement": -0.002161767109214008,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "visqol_style",
+        "current": 4.924125033703476,
+        "candidate": 4.923668722938091,
+        "OFF": 4.905007976640578,
+        "before_increment": 4.924125033703476,
+        "current_OFF_delta": 0.019117057062898013,
+        "candidate_OFF_delta": 0.018660746297513242,
+        "improvement": -0.0004563107653847709,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "logband_error",
+        "current": 0.06067877357823474,
+        "candidate": 0.06143062557240481,
+        "OFF": 0.07581467989616923,
+        "before_increment": 0.06067877357823474,
+        "current_OFF_delta": 0.015135906317934489,
+        "candidate_OFF_delta": 0.014384054323764425,
+        "improvement": -0.0007518519941700635,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "David32_DN0",
+        "metric": "celt_highband_error",
+        "current": 0.01211213405674304,
+        "candidate": 0.01894100436380952,
+        "OFF": 0.01461387573060435,
+        "before_increment": 0.01211213405674304,
+        "current_OFF_delta": 0.0025017416738613105,
+        "candidate_OFF_delta": -0.004327128633205172,
+        "improvement": -0.006828870307066482,
+        "closure": false,
+        "new_negative": true,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "case": "speech_music24_DN1",
+        "metric": "snr_db",
+        "current": 9.934116157460377,
+        "candidate": 9.8729123684912,
+        "OFF": 3.678311426824271,
+        "before_increment": 10.112808068007602,
+        "current_OFF_delta": 6.255804730636106,
+        "candidate_OFF_delta": 6.194600941666929,
+        "improvement": -0.061203788969177,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "speech_music24_DN1",
+        "metric": "segmental_snr_db",
+        "current": 10.293759917784625,
+        "candidate": 10.202848680060882,
+        "OFF": 4.093105196041122,
+        "before_increment": 10.305932076664952,
+        "current_OFF_delta": 6.200654721743502,
+        "candidate_OFF_delta": 6.109743484019759,
+        "improvement": -0.0909112377237431,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "speech_music24_DN1",
+        "metric": "rms_error",
+        "current": 0.02748259974924471,
+        "candidate": 0.02767693554732092,
+        "OFF": 0.05647393497836837,
+        "before_increment": 0.02692298550657377,
+        "current_OFF_delta": 0.028991335229123658,
+        "candidate_OFF_delta": 0.028796999431047448,
+        "improvement": -0.00019433579807620963,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "speech_music24_DN1",
+        "metric": "mean_abs_error",
+        "current": 0.01814977120662081,
+        "candidate": 0.01829963594243146,
+        "OFF": 0.03922215233678403,
+        "before_increment": 0.01815687469814135,
+        "current_OFF_delta": 0.021072381130163218,
+        "candidate_OFF_delta": 0.020922516394352567,
+        "improvement": -0.00014986473581065154,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      },
+      {
+        "case": "speech_music24_DN1",
+        "metric": "pesq_style",
+        "current": 2.4992057456068117,
+        "candidate": 2.4936624177621787,
+        "OFF": 2.0340289849044186,
+        "before_increment": 2.500156655221781,
+        "current_OFF_delta": 0.4651767607023931,
+        "candidate_OFF_delta": 0.45963343285776004,
+        "improvement": -0.0055433278446330725,
+        "closure": false,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": true
+      }
+    ],
+    "prior4worsened_OFF_7margin_losses": "Remain historical/incomplete except source-proven improvements explicitly shown; no waiver or deletion."
+  },
+  "cost": {
+    "measurement_epoch": "PublishedF27 normalizedb41 cachedobject versus7aa at source722. Latest874/cf3 costs not newly priced; TF inactive proof qualifies behavior only. Prior7c/f25 losses+.361\u20133.924 remain historical/incomplete, not silently replaced.",
+    "groups": [
+      {
+        "channels": 1,
+        "FEC": true,
+        "phase": "first",
+        "median_wall_delta_percent": 0.6959528754846622,
+        "median_cycle_delta_percent": 0.760903136059643,
+        "slower_wall_pairs": 62,
+        "slower_cycle_pairs": 66,
+        "orders": {
+          "0": 1.1852856589515737,
+          "1": 0.5246602935369604,
+          "2": 0.3899134819344785
+        },
+        "worst_wall_pair": {
+          "chunk": 0,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            0.3665,
+            1209557.0
+          ],
+          "base1": [
+            0.1954,
+            644965.0
+          ],
+          "candidate": [
+            0.3242,
+            1068903.0
+          ],
+          "wall_delta_percent": 15.394198255917434,
+          "cycle_delta_percent": 15.275310834813505
+        }
+      },
+      {
+        "channels": 1,
+        "FEC": true,
+        "phase": "steady",
+        "median_wall_delta_percent": -1.1783284966600527,
+        "median_cycle_delta_percent": -1.199088292331696,
+        "slower_wall_pairs": 9,
+        "slower_cycle_pairs": 9,
+        "orders": {
+          "0": -0.48931207676009003,
+          "1": -2.4722771729333513,
+          "2": -0.18033466373719165
+        },
+        "worst_wall_pair": {
+          "chunk": 0,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            14.5939,
+            48021577.0
+          ],
+          "base1": [
+            14.5931,
+            48017956.0
+          ],
+          "candidate": [
+            15.9341,
+            52405233.0
+          ],
+          "wall_delta_percent": 9.186281563709887,
+          "cycle_delta_percent": 9.13262770655081
+        }
+      },
+      {
+        "channels": 1,
+        "FEC": false,
+        "phase": "first",
+        "median_wall_delta_percent": 0.5535056104227443,
+        "median_cycle_delta_percent": 0.5440608755359899,
+        "slower_wall_pairs": 54,
+        "slower_cycle_pairs": 57,
+        "orders": {
+          "0": 1.4130440054385018,
+          "1": 0.12604826181301654,
+          "2": 0.4667950218673722
+        },
+        "worst_wall_pair": {
+          "chunk": 54,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            0.1392,
+            459513.0
+          ],
+          "base1": [
+            0.1382,
+            455889.0
+          ],
+          "candidate": [
+            0.168,
+            468736.0
+          ],
+          "wall_delta_percent": 21.124729632299942,
+          "cycle_delta_percent": 2.4109626153318464
+        }
+      },
+      {
+        "channels": 1,
+        "FEC": false,
+        "phase": "steady",
+        "median_wall_delta_percent": 0.3715076934179051,
+        "median_cycle_delta_percent": 0.4212416644821859,
+        "slower_wall_pairs": 17,
+        "slower_cycle_pairs": 17,
+        "orders": {
+          "0": 0.5540034466586019,
+          "1": 0.20148335296281683,
+          "2": 0.7483849136692422
+        },
+        "worst_wall_pair": {
+          "chunk": 8,
+          "order": [
+            2,
+            0,
+            1
+          ],
+          "base0": [
+            9.9389,
+            32723583.0
+          ],
+          "base1": [
+            9.4809,
+            31215591.0
+          ],
+          "candidate": [
+            10.2453,
+            33715078.0
+          ],
+          "wall_delta_percent": 5.5139599789905125,
+          "cycle_delta_percent": 5.459848449090066
+        }
+      },
+      {
+        "channels": 2,
+        "FEC": true,
+        "phase": "first",
+        "median_wall_delta_percent": 3.2845808158228795,
+        "median_cycle_delta_percent": 3.093232749191366,
+        "slower_wall_pairs": 70,
+        "slower_cycle_pairs": 72,
+        "orders": {
+          "0": 6.050439848378641,
+          "1": 2.428466035658383,
+          "2": 2.0808576449332983
+        },
+        "worst_wall_pair": {
+          "chunk": 3,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            0.4567,
+            1505358.0
+          ],
+          "base1": [
+            0.4478,
+            1476370.0
+          ],
+          "candidate": [
+            0.4957,
+            1628883.0
+          ],
+          "wall_delta_percent": 9.60751796572692,
+          "cycle_delta_percent": 9.257651938741551
+        }
+      },
+      {
+        "channels": 2,
+        "FEC": true,
+        "phase": "steady",
+        "median_wall_delta_percent": -2.184153999346483,
+        "median_cycle_delta_percent": -2.1767594909106682,
+        "slower_wall_pairs": 6,
+        "slower_cycle_pairs": 6,
+        "orders": {
+          "0": -2.9218394018649283,
+          "1": -2.628251538158194,
+          "2": -0.003911235741238528
+        },
+        "worst_wall_pair": {
+          "chunk": 12,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            16.9605,
+            55809585.0
+          ],
+          "base1": [
+            16.9755,
+            55861628.0
+          ],
+          "candidate": [
+            23.0392,
+            75474430.0
+          ],
+          "wall_delta_percent": 35.7802923149458,
+          "cycle_delta_percent": 35.17258024232262
+        }
+      },
+      {
+        "channels": 2,
+        "FEC": false,
+        "phase": "first",
+        "median_wall_delta_percent": 1.3729462075174448,
+        "median_cycle_delta_percent": 1.4522233335539148,
+        "slower_wall_pairs": 57,
+        "slower_cycle_pairs": 67,
+        "orders": {
+          "0": 2.2854209913999557,
+          "1": 0.4147555259438773,
+          "2": 0.40395176511329733
+        },
+        "worst_wall_pair": {
+          "chunk": 67,
+          "order": [
+            1,
+            2,
+            0
+          ],
+          "base0": [
+            0.2262,
+            746420.0
+          ],
+          "base1": [
+            0.2243,
+            740161.0
+          ],
+          "candidate": [
+            0.2529,
+            817242.0
+          ],
+          "wall_delta_percent": 12.275249722530535,
+          "cycle_delta_percent": 9.94920559323711
+        }
+      },
+      {
+        "channels": 2,
+        "FEC": false,
+        "phase": "steady",
+        "median_wall_delta_percent": -0.18441488648447968,
+        "median_cycle_delta_percent": -0.1947176693263164,
+        "slower_wall_pairs": 10,
+        "slower_cycle_pairs": 11,
+        "orders": {
+          "0": -0.2560085512443855,
+          "1": -0.515999433065073,
+          "2": 0.4422850194615857
+        },
+        "worst_wall_pair": {
+          "chunk": 18,
+          "order": [
+            0,
+            1,
+            2
+          ],
+          "base0": [
+            16.6124,
+            54489015.0
+          ],
+          "base1": [
+            21.4594,
+            69873973.0
+          ],
+          "candidate": [
+            22.1507,
+            72669266.0
+          ],
+          "wall_delta_percent": 16.362767192515214,
+          "cycle_delta_percent": 16.86638793207509
+        }
+      }
+    ],
+    "raw": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\RESULT.json",
+      "sha256": "89a3057912b3294c49d277e65599838156ee78ec0f3f3848345cca377fe11a4b"
+    },
+    "summary": "FEC steady C1 -1.1783%/C2 -2.1842% measured whole-encode wall; first-call lossesC1+.696%/C2+3.285%, FEC-off first+.554%/+1.373%; all8groups/orders/calibration/outliers retained. No global1.5x or harmless-noise claim.",
+    "concurrent_Native": [
+      {
+        "tag": "transient-cap-audio192",
+        "guard_pid": 35364,
+        "child_pid": 38340,
+        "started_utc": "2026-10-05T12:46:53.588370Z",
+        "ended_utc": null,
+        "mode": "shared"
+      },
+      {
+        "tag": "policy-drums-repair-positive_options_FEC_PLC_state",
+        "guard_pid": 35404,
+        "child_pid": 31256,
+        "started_utc": "2026-10-11T19:50:40.143492Z",
+        "ended_utc": null,
+        "mode": "shared"
+      }
+    ]
+  },
+  "options": {
+    "720": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\postfilter_bypass.stdout",
+      "sha256": "91b97e7651b3c2dfae60ffb6d5690f0ad3bafef9eff70685726bf5d85ad521ed"
+    },
+    "packet_duration": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\packet_duration_behavior.stdout",
+      "sha256": "c4e86176fafa61b15ed653779c2c5591b79a91b166853457ec24c7966b024461"
+    },
+    "DTX": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\dtx_behavior.stdout",
+      "sha256": "e0b02945ae3c74c26a42fbc04cbb28ece5a16cbf338ed419c349621efba50d77"
+    },
+    "LBRR_duration": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\silk_lbrr_duration_transition.stdout",
+      "sha256": "da8f432438785389f18af4cb2bb682f7c4db8486fe8dc4fb99a354f3f588f38f"
+    },
+    "all_PASS": true,
+    "contract": "CABI/caller-storage/header/license/RAWblend/startup/denoiser/options/DTX/NSQbody/predictor/FFT/TF/energy/noise unchanged by this one-line correction; noheap/intrinsics/sanitizers/flags/comments/deps added."
+  },
+  "correction_to_accepted_metadata": "Accepted9e67/63524 raw rows and counts were right, but static status wrongly labeled the remaining current7c/f25 C3 failure C1/profile1/24k. Actual failed row was C2/20ms/32000/profile1/CBR0; old full788/2241 C1 failures retain their original epochs. Correct this metadata label prospectively with exact raw row binding; no test/algorithm replay or historicalretag.",
+  "Native": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\NATIVE_EXECUTION.json",
+    "sha256": "b0b7ba59ab126886cdf19bedb677cb072f4743dda879af88efdf1f1401a0c60a"
+  },
+  "preserved_failures": [
+    "Metadata regexname collision and incorrect aggregation exponent stopped withassertions before Native; corrected scorer-defined interpretation.",
+    "Passive baseline independent normal floorFAIL threshold2e-4/2e-5 preserved:max.011505126953/RMS.00049813152. All185 observer packets/ranges and savedCq outputs exact. Current/CF normal floorPASS0. Guard onlymoved saves beforefailure, no tolerance raised.",
+    "Standard remainsFAIL16/18; no altered gate.",
+    "All earlier accepted root-publication normalization assertion and278 Native history retained."
+  ],
+  "IMMEDIATE_NEXT_ITEM": {
+    "owner": "/root/speed_main_pipeline_recovered",
+    "priority": "Before unrelatedwork, remediate every old and new quality/standard/cost loss while preserving strict18PASS.",
+    "first_missing_fact": "Use saved C2/20/32000/profile1/CBR lost8 recovered/normal caller/packet/scorer context to localize newly worse self-consistency .385670764>OFF.351359484 despite corrected transition .240265426. Do not revive history-order/excitation reuse variants or assume tail-head tradeoff cause. Also retain C2VBR48/profile1 loststandardmargin, DavidHBE newnegative, all10worsened_OFF/24positive-margin reductions andcoldtiming losses.",
+    "scope": "One candidate/one indispensable aligned fact; original20:58\u219204:58clock unchanged; Rootaloneintegration."
+  },
+  "goal_complete": false,
+  "execution_consumed_artifacts": [
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\FACT.json",
+      "sha256": "35e37a4e7d40740a2c0576ef7914306550c180526581734824ba381119186ef3"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\LOCALIZATION.json",
+      "sha256": "14b46b7900d54a54d3399da9661ece89efa825ccf68f8211334d629495122d41"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\material_arrays.npz",
+      "sha256": "bd0f1128bef3d901d5a89835d29ad93b5fd019b39a3f63f1d197c11d82fd2d38"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\NATIVE_EXECUTION.json",
+      "sha256": "b0b7ba59ab126886cdf19bedb677cb072f4743dda879af88efdf1f1401a0c60a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\base.cpp",
+      "sha256": "842250aa0cdbdb1158a71bc45d655220295b67c6aa29a90fc335d3710900d908"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\candidate.cpp",
+      "sha256": "cf3a645457f7addf0a87518c371d8714dab00e686d05ed47dad5cc50025481ab"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\opus_codec.h",
+      "sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\publication.diff",
+      "sha256": "eaa4712680b43dd6277b42a71044332a8b78e7950c6d0f8f4aa217cd1f9b38e0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\REBASE_PROOF.json",
+      "sha256": "116b8b901eb885663a9bb750e1ceb4a06e107aa47e59899c2ab552719ddeaa7b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\PLAN.json",
+      "sha256": "8d19ed4a40741535b2f6cce0cf442fe9310a3b816366633bf8f6eb6941f7785f"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\PLAN.initial_floor.json",
+      "sha256": "0612d74edf8e61df67d412a04afcbcc28270e1bbdbc161255d55c454833167c6"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\PLAN.json",
+      "sha256": "c9a0e6ced0e2da85dbb432e2a048d79d0e874260fb986e53612f7fe528be60be"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\PLAN.json",
+      "sha256": "3347c7b24ff1b3110612e5bb9a963515d7c162f42b21e66da95e88c4f9ad5a1a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\PLAN.json",
+      "sha256": "85e85cf16c02239601b5d7d46b8d913d80c803d879adc0dc504c449f794680fc"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\PLAN.json",
+      "sha256": "b2c5bc58ce5eecb5f28c5d34fb298f6316845d5cfa44671d3ad4cf78bc46c4d5"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\PLAN.json",
+      "sha256": "c3cc18fa3590c4a9c4a860fa7b80bc395025f057ed58a7a46153546f849b5b3a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\PLAN.json",
+      "sha256": "96a3508a5530f6d66e23f7836749b8f141aa18e718555f48321f04c63b81b109"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\EXECUTION.json",
+      "sha256": "3de1d3a6b80ff9272721942f14d63092195a6c64aab7a603d5791ea81499e05e"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\EXECUTION.initial_floor.json",
+      "sha256": "2cb3e4b0bdf1ab7a145da732eb37a7e45ac7ebbf6dafea6b50a5319ecb3c2923"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\EXECUTION.json",
+      "sha256": "a34f56ffdc4ad6821cbb6cffe55c7614be1971517cefbdb1685032f0b3b85d50"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\EXECUTION.json",
+      "sha256": "fee25d68a65b6425e87e42fe4bf364a85cb13e7c4bcb242a89a8ec8db3012761"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\EXECUTION.json",
+      "sha256": "dc3b7725b2831c82218fd7e24238daf79f9407b5e17d5e8f6d902352ecf63510"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\EXECUTION.json",
+      "sha256": "cfde7fb4c36a278608dd7ed0e75c33d5dded53d65a6bb5966028b4ff8b67bc66"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\EXECUTION.json",
+      "sha256": "cf3e9de2eee876397742ad60c9f7b187ec96172ec02add2afa1357af82c0ef89"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\EXECUTION.json",
+      "sha256": "7987826a1b8dff465dc43413bb55d0135f5eca44d002cf6d15f5ddbf3e28a789"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\run.py",
+      "sha256": "07e029fb0c023f9120949adf1b6f6a8988e8225c6f812706ad152d19a3b90174"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\run.py",
+      "sha256": "37c6e2a48a55e2ca8b7d2a471c92d37183271a934aa3c6a3fee2bbf4d377fb0f"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\run.py",
+      "sha256": "9b0f3c0e80cca159b0f971bbeb6ddf4d109a3b90fd2c7bf9791e90d702a2b1bb"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\run.py",
+      "sha256": "1fa785c3d79a8c8fbe2c706b0e8f198476ee5804698df5b4d5dd53421c5ba2d4"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\run.py",
+      "sha256": "8df01629e2e385e70b13b9fcedf43f0eedd48e26150281f56fb3fc6f404cfb33"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\run.py",
+      "sha256": "76bdca326192f8cc7f6d9db812517a199b8e596265339c2ca2c2698414a157c8"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\run.py",
+      "sha256": "7698ed4589fd3946ed1b03c6823af2df17ef656b69fab5da95e5703264af311f"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\candidate.o",
+      "sha256": "4b2e8481d1f1bb35b52c49104684c8e607a64bad1689971125f5917f64532bf0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\compile.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\compile.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\current_aligned.f32",
+      "sha256": "06724d3e31870ab865d22ad52a2d8956b581663b3362e4c21b7228ebcc405562"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\current_raw.f32",
+      "sha256": "9ae75e27f74377c7b63ffca82054a151a50f745dce25d5c076a529c09e7b4300"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\first.exe",
+      "sha256": "d0364fa5ff5120224eea7b7b54f1a5f9d4809d1b8ce067cdabeb210e6ae21659"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\first.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\first.stdout",
+      "sha256": "e83729fadd087cd97de08d5f94bc7a0c8c72c7ebe6d273ee98c58fa2ecd1073a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\link_first.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\candidate\\link_first.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base.exe",
+      "sha256": "be69738f86a5ec8eeee21d087f36dd06f0f5805ae5a1431a9f7061e0835c7bca"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base.o",
+      "sha256": "592d3f904acfb2854ca3d38c4cfd09e057b3713656591c4c286520f3e425e561"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_base.resume.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_base.resume.stdout",
+      "sha256": "047808cc31c604d5b18fec3e1a75cf5af0b8a4b1ea7eb37ca23801d56ca364b3"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_base.stderr",
+      "sha256": "64865ddf70e47ea0ecfdaac1c65ca42cfe9e6e12fa0689b7935d0e4c16dc73b4"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_base.stdout",
+      "sha256": "eac7379668c3fc169eae1e6e304452ea4bcb52ccd35744c40b5ca894fe403f2c"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_current.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\capture_current.stdout",
+      "sha256": "0bb9863535c91479a8b572efeebf024d543c7d9d0cd7bb8d159eae9ee2f2edf2"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\compile_base.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\compile_base.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\compile_current.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\compile_current.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current.exe",
+      "sha256": "6759dd12e00c7cdbe154af3ec148915ab8d4d793ba1e27c52e04b83272c808d1"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current.o",
+      "sha256": "9bf2ca394d8281bdebbf1825b9af8f89599ba91d8a8ec387a1d49598e96aa6d4"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\decode_parameters.o",
+      "sha256": "4d774f6c5a6e1b584a90e8a9434c9a6759c1b3845e7d449190b37bf7c94047aa"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_base.resume.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_base.resume.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_base.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_base.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_current.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\link_current.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\official_decoder.o",
+      "sha256": "a988535ead63a71bafb1c3be69439b5910eb89fd73cfc181b4b454723e60ece7"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\capture.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\capture.stdout",
+      "sha256": "166db82da92ccbc27e9dcaee7a9854f310da06dbd385a9206b250e49af213956"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\cf.exe",
+      "sha256": "f459ad5b5eb322e474c65bd6cec603f4657c176ddac52430533a94972fcff66b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\compile_observer.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\compile_observer.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\compile_plain.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\compile_plain.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\decode_parameters.o",
+      "sha256": "4d774f6c5a6e1b584a90e8a9434c9a6759c1b3845e7d449190b37bf7c94047aa"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\link.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\link.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\mirror.f32",
+      "sha256": "4c2e96d4aa3d45c36a02f33eda3b5728c56d7024e28a05df494325b8f2cc7f3d"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\observer.o",
+      "sha256": "18bf83d5825c269127e7c8f8154ed200bf9fd891e5b9604d31f64f7c1b76597f"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\official_decoder.o",
+      "sha256": "a988535ead63a71bafb1c3be69439b5910eb89fd73cfc181b4b454723e60ece7"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\packets.bin",
+      "sha256": "74de085f808b5190a120985aa18c51b4a85640f9fff74261bb83dc28bf532218"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\plain.o",
+      "sha256": "f84631898de07a45497f298886f1bcbbb56ac88a96aec464f21350fb0c70ef8b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\ranges.bin",
+      "sha256": "327731b982e889fcced4003ec809ea8ed253731e220105a1fbab1de890e652bf"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cf113\\raw.f32",
+      "sha256": "4c2e96d4aa3d45c36a02f33eda3b5728c56d7024e28a05df494325b8f2cc7f3d"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\link_standard.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\link_standard.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\link_strict.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\link_strict.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_David32_DN0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_David32_DN0.stdout",
+      "sha256": "69fd80436ba17c0b90bd369ab18b1c2ee134db8c3ae3659ce8b0d2ac6b38f8c0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN0.stdout",
+      "sha256": "8f2e863fb7463f17b2d52c734760fccb9e884f0443de1a178ba7bb307b958365"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN1.stdout",
+      "sha256": "122e4385eeaf21b9be417912ba5c32153564b57779685c3cb1431624029c3ea1"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\standard.exe",
+      "sha256": "e4e3ff09cf31664b667778fe126c2767cc5fe1b47d682335af05867c4cfefc0c"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\standard.stderr",
+      "sha256": "3333bbd38cfa69734a68fb158285435ca72d45142a566ca0937d0d5646391938"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\standard.stdout",
+      "sha256": "837a9af2a54ca9a2557ea458e7927e43a77ef581e11b5e8306e35a4f99baba4b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict.exe",
+      "sha256": "0a1bcb478cb1db380878b455603f62c8fa0088c370015bc88a3c2ec34fbc854e"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_0_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_0_1.stdout",
+      "sha256": "64faa03866b5e011fea4280f489cf329d81bfd3f9f1d0847f8b69e1aedd7e7a0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_1_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_1_1.stdout",
+      "sha256": "8fc8891af4ff0984ad167bd6750183ec81022d73e5ebaa33f0defcdd03e591ce"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_2_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_10_24000_2_1.stdout",
+      "sha256": "20c6e6c5cfc19dbbe09fbdef5ccb3f14e95fc44ab2020b9b3bcef668fcd8e6bb"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_0_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_0_1.stdout",
+      "sha256": "1f36e4c492d18bf4f167a6caa9d14e006e3ac83a42d978956fa8b4f2475379d0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_1_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_1_1.stdout",
+      "sha256": "5bd897262cadf2a85abaf6323000d3b8b48674a1a05febb3e0902f92fae1c208"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_2_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_16000_2_1.stdout",
+      "sha256": "7afab8cba87eb931a817a71347aa4dfde16adc4b63c3d032460d0a2e574a0c25"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_0_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_0_1.stdout",
+      "sha256": "eef17c26c1c30a0998ad0dc1e050143ca4ca565caf40f7d256711f7bcd396a64"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_1_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_1_1.stdout",
+      "sha256": "d0e43dfdfe5a23d837fbc039602fc5495fbb50e2cdae9e49ea36b8d17f39a94a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_2_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_24000_2_1.stdout",
+      "sha256": "88f3169a0d62f247af40127f50f39f693af347786f1fb5450162de3a6017d9e6"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_0_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_0_1.stdout",
+      "sha256": "b03bbed64851c57417cfd1f2dd865724036c3411bef6fd6865e1476454de2b67"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_1_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_1_1.stdout",
+      "sha256": "6e489cae695364b34fc3f253e8576559069ffaaafdacd9a9cc0192c990501c31"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_2_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_1_20_32000_2_1.stdout",
+      "sha256": "33e55ee44d498420490f67d7538d845067e1664e4799b812c7826fd71894e561"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_0_0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_0_0.stdout",
+      "sha256": "7c90caf348296f40328682b98751bf1f016b235b8059c63ccb745ac0aab71d4d"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_1_0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_1_0.stdout",
+      "sha256": "5d2efeb0612a5b2f1ce47fffaa624847b76168a168bbb037999aaab915d4b60d"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_2_0.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_32000_2_0.stdout",
+      "sha256": "3cb5b83e91fb4df4ad3148e8d72404ac787d7a6f5f4fc354e2bbbd0960ee6be6"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_0_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_0_1.stdout",
+      "sha256": "24365cf998e6ba52c1039a6d2da5a2b890392e86a0f5f8dd23b83ff66904c70a"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_1_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_1_1.stdout",
+      "sha256": "40c877d9fd7938ff4dbf97df1c03f7e460062109b3483a32038eb3d2d16b8211"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_2_1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\strict_2_20_48000_2_1.stdout",
+      "sha256": "91866e0725ad036deb7473215ea33a87b1e94516e3814ad1f04ae0f13add2438"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\baseline_timing.dll",
+      "sha256": "adebb385615a975f6f6ae5ed8bc2ffde281c9b8993a023a64a9c43f0bf5be971"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\build_paired.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\build_paired.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\candidate_timing.dll",
+      "sha256": "89a9a7eabd6a1c3d8e07af76c097cb3c780efd644bc6f17cc11d48c4bc7e9e80"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\link_baseline.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\link_baseline.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\link_candidate.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\link_candidate.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\paired.exe",
+      "sha256": "3867f63c118ca83134073075821ebf5c35881c05872d84387cd0688d34f7e480"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\paired.stderr",
+      "sha256": "fe6ae6fdbd87399ec28f30e1008b3c92ff1622514ae59a945744c9e8ff5caecd"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\cost\\paired.stdout",
+      "sha256": "c42dcaaacbfd52cdf6fff44721cde5b0c8fda3201610043805e5cd6e346d28c6"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_dtx_behavior.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_dtx_behavior.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_packet_duration_behavior.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_packet_duration_behavior.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_postfilter_bypass.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_postfilter_bypass.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_silk_lbrr_duration_transition.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\build_silk_lbrr_duration_transition.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\dtx_behavior.exe",
+      "sha256": "e1609198e65fc261374d7edbb2d99c50d5adacd7f8ca74cdcdf91a1f8ba3e202"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\dtx_behavior.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\dtx_behavior.stdout",
+      "sha256": "e0b02945ae3c74c26a42fbc04cbb28ece5a16cbf338ed419c349621efba50d77"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\packet_duration_behavior.exe",
+      "sha256": "76ec26845b31bc147efd0a466bf9f1dc1dbdc09ed70b600c7b8783bf2a113cb4"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\packet_duration_behavior.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\packet_duration_behavior.stdout",
+      "sha256": "c4e86176fafa61b15ed653779c2c5591b79a91b166853457ec24c7966b024461"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\postfilter_bypass.exe",
+      "sha256": "4f897f1f69549c9e0741f50e454bdd64befa926be5a6ba167a4f69bc19c6de80"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\postfilter_bypass.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\postfilter_bypass.stdout",
+      "sha256": "91b97e7651b3c2dfae60ffb6d5690f0ad3bafef9eff70685726bf5d85ad521ed"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\silk_lbrr_duration_transition.exe",
+      "sha256": "eca4c7adfb3ba570f84dc93418a7ffe249783e198ad2a89743b9d0ad440d9398"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\silk_lbrr_duration_transition.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\options\\silk_lbrr_duration_transition.stdout",
+      "sha256": "da8f432438785389f18af4cb2bb682f7c4db8486fe8dc4fb99a354f3f588f38f"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\candidate.o",
+      "sha256": "97763719f4f5007855cd11aab9f716f82778511ff3a9f7f32f3ec34c83720f88"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\compile.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\rebased_874fba11\\compile.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_David32_DN0\\current_aligned.f32",
+      "sha256": "b76b696bc24e203914a483b8ecd9543d478344605988a19f60aee0dacdb8ae56"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_David32_DN0\\current_raw.f32",
+      "sha256": "8d8c8df9b3c192f443679b9f8abcd9cab3092b9e2b07f558ae24605ee25eb9fb"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN0\\current_aligned.f32",
+      "sha256": "9c465d8dcfe951c0e99d4cac65a5d3a6b4150252c2bd8181aac268df1d909c76"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN0\\current_raw.f32",
+      "sha256": "6ede04736f7da8c3f267fef46f23c3b5cae053d33c31dd36558703de0363c4d1"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN1\\current_aligned.f32",
+      "sha256": "9c465d8dcfe951c0e99d4cac65a5d3a6b4150252c2bd8181aac268df1d909c76"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\checks\\quality_selected_p0_DN1\\current_raw.f32",
+      "sha256": "6ede04736f7da8c3f267fef46f23c3b5cae053d33c31dd36558703de0363c4d1"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base\\mirror.f32",
+      "sha256": "f8d46b053f7f359c1ba59ab877bd842aa8164f17dee83fb4994033923f8ee13b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base\\packets.bin",
+      "sha256": "73425cc8436c9e4878d08629bf5e337d7d4ce24b1084ab95fb7ffcaae541fbe5"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base\\ranges.bin",
+      "sha256": "fc33af90004aff75dca2647de66930deb7fb0b96805478f5b18aa711b588ce7b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\base\\raw.f32",
+      "sha256": "cb02240a5253c38f6ea5743d2e151e9410599b0ccc727c0ef8aa0c8842d181fc"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current\\mirror.f32",
+      "sha256": "7b381916fe6de9e5f17b19ca2f8a6d7ade3bfb23abcaa9079860d73764ed23d0"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current\\packets.bin",
+      "sha256": "203504a75a1ecbe90a003e54315d6d9d82fdd6965c4a7478713a793c3e98b111"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current\\ranges.bin",
+      "sha256": "a07d509310d66b4dc257dd2e66f007ce3a58def8f80ddebc260e5bac9fd3549b"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\capture\\current\\raw.f32",
+      "sha256": "7b381916fe6de9e5f17b19ca2f8a6d7ade3bfb23abcaa9079860d73764ed23d0"
+    }
+  ],
+  "final_author_publication_binding": {
+    "status": "FINAL_AUTHOR_BINDING_VERIFIED_NO_NATIVE_REPLAY",
+    "CI_base": "1e781af3740a42b859ba5e9960278efbc975b1be",
+    "unpublished_HEAD": "e5790b2b00219fb89e6a64af04466c64a4a36a71",
+    "source_RAW_Git_sha256": "3bf33264058fd0417c301a2efe7ef0d4edac293f4c91faaa18760519477acfd8",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "author_candidate_cf3_sha256": "cf3a645457f7addf0a87518c371d8714dab00e686d05ed47dad5cc50025481ab",
+    "ordered_token_sha256": "7a49fb786459b60dffadbddf4d01525c9fa50ac9507e65d3e943417497c4173c",
+    "ordered_token_count": 202074,
+    "proof": {
+      "CIbase_equals_oldbase_plus_only_prescribed_lambda_whitespace": true,
+      "inverse_FEC_delta_equals_CIbase_byte_for_byte": true,
+      "current_source_equals_CRLF_normalized_author_candidate_plus_same_whitespace": true,
+      "ordered_tokens_both_base_and_candidate_equal": true,
+      "header_dependencies_identical6265": true,
+      "no_line_sensitive_runtime_macro": true,
+      "runtime_test_gold_inputs_unchanged_not_replayed": true,
+      "working_source_equals_exact_current_commit": true
+    },
+    "functions": [
+      "silk_Encode FEC reservation one line"
+    ],
+    "Native_new": 0,
+    "retained_result": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\fec_failure_fix\\remediation_01\\RESULT.json",
+      "sha256": "326c3f7c657ff47334d95ef343c60deaf777e722684bf753210b3607de509db9"
+    },
+    "outcomes_retained_at_executed_epochs": {
+      "strict": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "standard": 16,
+      "new_primary_negative": 1,
+      "worsened_primary_negative": 10,
+      "positive_margin_losses": 24,
+      "all_cold_and_old_cost_losses": "unchanged Source722/7aa measured; no e579 timing retag"
+    },
+    "original_clock": "20:58:33Z through04:58:33Z unchanged",
+    "Root_only_push": true,
+    "immediate_NEXT": "Every old/new standard/primary/cost loss preserving strict18PASS; actualC2CBR32profile1 self-consistency aligned error first, no closed history/excitation variants.",
+    "preserved_metadata_error": "Inline prescribed-formatting assertion and subsequent raw-author transport assertion failed before result/Source/Native writes. Exact multiline formatting and authorCRLF-toLF normalization are now explicit; no runtime replay."
+  }
+}
