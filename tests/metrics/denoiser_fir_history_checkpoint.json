@@ -1,0 +1,264 @@
+{
+  "status": "ACCEPTED_FIR_CONTINUITY_WITH_HUMAN_APPROVED_TRADEOFFS",
+  "publication_parent": "691cd4df0782a17c316073b4cd377859bd6dd617",
+  "execution_source_sha256": "e96d2cb36cece5dbbd8839fdd6d28da9a0dd5c18433c079755f7f1c1971017db",
+  "source_git_normalized_sha256": "e96d2cb36cece5dbbd8839fdd6d28da9a0dd5c18433c079755f7f1c1971017db",
+  "composition_result_sha256": "721b8be64e163762ff20f6a6a3911e87edc191161fa06c71cba33871b84e6620",
+  "benefit_and_loss_scope": "Latest7cases84fields:1OFFclosure4existingnegativeworse0new;36better30worse18same;old6closuresretainoldepoch. Six timinglossrows and+8Boptionalstate retained.",
+  "immediate_next_work_item": {
+    "owner": "/root/quality_policy_continuation",
+    "task": "Remediateall30latestlossesandold25obligations, six timingrowsand+8B, retaining all causal continuity/contract benefits before unrelated work."
+  },
+  "latest_composition_proof": {
+    "status": "COMPLETE_READY_FIR_COMPOSED_CURRENT393_NO_NEW_NATIVE",
+    "recorded_utc": "2026-10-11T20:03:16.581007+00:00",
+    "owner": "/root/quality_policy_continuation",
+    "publication_base_commit": "393050b95e9e1c48ca50cb4007f3f165d90eff8d",
+    "publication_base_source_sha256": "9301bacf90519a1362c22b0f77aed3dbbdd6ef245acb226f4526d409ac76658f",
+    "publication_candidate_source_sha256": "e96d2cb36cece5dbbd8839fdd6d28da9a0dd5c18433c079755f7f1c1971017db",
+    "publication_patch_sha256": "9d619add0f8fc5bb068b657ef0f5ac2a1ca887f4ec7ba120975ee7f1b6c22af7",
+    "BASE": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_393050b\\BASE.cpp",
+      "sha256": "9301bacf90519a1362c22b0f77aed3dbbdd6ef245acb226f4526d409ac76658f"
+    },
+    "DIFF": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_393050b\\candidate.diff",
+      "sha256": "9d619add0f8fc5bb068b657ef0f5ac2a1ca887f4ec7ba120975ee7f1b6c22af7"
+    },
+    "SOURCE": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_393050b\\candidate.cpp",
+      "sha256": "e96d2cb36cece5dbbd8839fdd6d28da9a0dd5c18433c079755f7f1c1971017db"
+    },
+    "HEADER": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_393050b\\opus_codec.h",
+      "sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a"
+    },
+    "entire_inverse_latest_exact": true,
+    "same_three_fixed_FIR_edits": true,
+    "TF_domain_and_fallback_proof": {
+      "actual_intervening_functions_only": [
+        "l1_metric",
+        "tf_analysis",
+        "celt_encode_candidate"
+      ],
+      "whole_source_function_substitution_to_prior_cefe_exact": true,
+      "optional_denoiser_scope": "VoiceDenoiseState enabled only physical C1/VOIP; all seven affected streams and176 new-consumer grammar frames createC1. Initialization/reset stream_channels=channels=1. C1 ordinary else branch assignsstream_channels1. toMono transition to2 requiresprevious2, excluded inductively. Celt stream_channels inheritsouterstream_channels, so C=1 in all primary/prefill/redundancy calls.",
+      "new_joint_scope": "tf_coupled_end requiresC==2. C1 yieldscoupled_end0; everybandi>=0 hascoupledfalse, noSIDEread/stereo_split/SIDEhaar. HoistedemptychannelC2predicatesfalse, stereo_analysis/intensity ternariesfalse; C2 state-update branch neverexecutes.",
+      "fallback_arithmetic": "side-null l1_metric preservesfloat accumulator, identicalfabs order andfloat LM*bias update. Returningfloat asdouble isexact; comparison operands are exact promotions ofthe samefinitefloattotals, retainingbest_level and integer metric/Viterbi/TFsyntax. HYBRID skipsTFanalysis; pureCELT C1 uses unchangedfallback. No dtype edit inFIRhunks.",
+      "contract_reuse": "TFactual512packets/448inactive fallback wire guards acrossC1/C2,120/240/480/960,C0/C1/C2/C10+healthyOFF decoder. Reuseactualcounts andoriginalepochs, notoldPLAN1024prose. C2 unsupportedDNignored, soFIRcannotactivatejointTF; inactive Sourceidentityrelative latest parent remains.",
+      "peer_evidence": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\tf_spread_quality\\RESULT.json",
+        "sha256": "e02cf0568c2a757aaf8499c5441cb319ef86a83ef8591360a1d33bffda0f046d"
+      }
+    },
+    "accepted_composed_previous_result": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\RESULT.json",
+      "sha256": "4578146120a4c7613624137b6be69b21312a88b7a4b1f7522e47b36f37d7e9e9"
+    },
+    "quality_epoch_not_retagged": "Reuse45781461 seven-existing-case84fields and18terminalNative bound5265/086/faf78. Qualified exactNLSFVQcefe bridge retained; newjointTF C2domain nonoverlap+C1floatfallback promotion preserves those outcomes. OneOFFcorrdeficitcloses/four existingOFFnegativeworse/30latestlosses/no new; original sixclosures remainold7b/DDD only. Not a393fullmeasurement.",
+    "all_values_and_raws": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\QUALITY_ACCOUNTING.json",
+      "sha256": "6195d1a6d21e2a1fe4221acded8baa761e119fc6bf0f48427d8748ac58c8c5aa"
+    },
+    "no_new_native_or_repeat": true,
+    "existing_contracts_and_cost_reused": {
+      "seven_case_finalranges_OFF_samepacket_exact_extent_finite_normalrounding": true,
+      "additional176_DN1_FEC_DTX_combined_SILK_noise_consumer_canary_range_extent_finite_frames": true,
+      "options_execution": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\EXECUTION_options.json",
+        "sha256": "65235e4c95d946dda8f0b7a456cfa9c0d1028985c324b8c2f941b856d73b6b6f"
+      },
+      "original90state_6reentry_112inactive_16getters_fixedFIRproperty_and_cost_reused_no_repeat": true,
+      "storage76_vs68_existinglogicalbytes_noadditionalheapcall_publiclayout_header_unchanged": true
+    },
+    "old_cost_binding": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\cost\\RESULT.json",
+      "sha256": "32fb59c14a5da6c575665164015b1392a6fb6d802f19f615db878bc821db6dab"
+    },
+    "immediate_NEXT_mandatory_remediation": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\NEXT_REMEDIATION.json",
+      "sha256": "22478731168d9aa35a1944a5457f36b8beea8fab4a28c9dc7df7b87d6c5ea6c3"
+    },
+    "next_scope": "ALL30latest matched5265 fieldlosses; old25losses/targets preserved; six observedtimingrows and+8logicalstatebytes. Remediate each before unrelatedwork while retainingclosures, options/RAW/startup/contracts.",
+    "clocks": "Same17:59:05Z-01:59:05Z, oldmisses/nativehandles unchanged; TF/formatcomposition is not a newmethod orclock.",
+    "limitations": "AuthorSourcecomposition/fallback proof only, no newNative/quality/cost/fullsuite/globalgoalclaim/README edit/helper/provider/Git mutation. RootaloneappliesDIFF andpublishes, no replacementSourceoverwrite."
+  },
+  "original_composed_quality_and_contracts": {
+    "status": "COMPLETE_RECOMPOSED_READY_ACCEPTED_FIR_WITH_LATEST_CONSUMER_TRADEOFFS",
+    "recorded_utc": "2026-10-11T19:55:30.043809+00:00",
+    "owner": "/root/quality_policy_continuation",
+    "publication_base_commit": "9ac2afaed964814970163abad91a1c033687a391",
+    "publication_base_source_sha256": "cefe8b191911942bfd973368480ca81c139eafb557998a0acbe538477f5d4747",
+    "publication_candidate_source_sha256": "070df56bd33183c9aa7178c736a01ec28ce95d09b5a16f92ba4f1ea093b45ee4",
+    "publication_patch_sha256": "9d619add0f8fc5bb068b657ef0f5ac2a1ca887f4ec7ba120975ee7f1b6c22af7",
+    "BASE": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\publication\\BASE.cpp",
+      "sha256": "cefe8b191911942bfd973368480ca81c139eafb557998a0acbe538477f5d4747"
+    },
+    "DIFF": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\publication\\candidate.diff",
+      "sha256": "9d619add0f8fc5bb068b657ef0f5ac2a1ca887f4ec7ba120975ee7f1b6c22af7"
+    },
+    "SOURCE": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\publication\\candidate.cpp",
+      "sha256": "070df56bd33183c9aa7178c736a01ec28ce95d09b5a16f92ba4f1ea093b45ee4"
+    },
+    "HEADER": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\publication\\opus_codec.h",
+      "sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a"
+    },
+    "inverse_entire_latest_source_exact": true,
+    "Root_requested_base": "5265c76d68371e26734aa3c0172348e94dc5277f",
+    "Root_requested_source": "08694d2196e26d6b0175474b0a502f621e782a39ec9ad04964bbf81399993d57",
+    "measured_candidate_sha256": "faf78de1bc64e73a04e91ce2738b1946d2fe19b54eb140a0114dd4c6a2bc8e74",
+    "measurement_to_final_transfer": "Only newly published exact NLSF_VQ refactor and one selector indentation change since measured5265 Source086/faf78. Published VQ body matches qualified exact speed candidate; all-legal term/order proof+original132 NLSF and8640wire/21600state/4860capacity guards transfer affected quality/contracts without a new Native run. Replacing VQ restores measured base after leading whitespace normalization. Fixed denoiser3edits unchanged; commonstereo/DTX/noise covariance+sourcefeedback/SILKdecodedselector retained. Apply DIFF only; no fullSource replacement authority.",
+    "cohort": {
+      "seven_existing_affected_cases": 7,
+      "84_fields": true,
+      "classification_counts": {
+        "shrunk_positive_margin": 26,
+        "resolved_OFF_negative": 1,
+        "positive_margin_gain": 32,
+        "unchanged": 18,
+        "worsened_OFF_negative": 4,
+        "improved_remaining_OFF_negative": 3
+      },
+      "current_negatives": 13,
+      "candidate_negatives": 12,
+      "one_newly_closed_deficit": [
+        {
+          "published_index": 184,
+          "case": "denoiser_broad_babble_12_voip_20000_c10_p0_d1",
+          "field": "logband_corr",
+          "current_5265": 0.9728547678370363,
+          "candidate_5265": 0.9742232533086757,
+          "OFF503d_published788": 0.9733943709710996,
+          "current_margin": -0.0005396031340633156,
+          "candidate_margin": 0.0008288823375760535,
+          "quality_change": 0.001368485471639369,
+          "classification": "resolved_OFF_negative"
+        }
+      ],
+      "zero_new_negatives": true,
+      "four_worsened_existing_negatives": [
+        {
+          "published_index": 218,
+          "case": "denoiser_broad_colored_0_voip_16000_c10_p0_d1",
+          "field": "celt_masked_error",
+          "current_5265": 60.01223615935412,
+          "candidate_5265": 60.01348577953702,
+          "OFF503d_published788": 40.94978009224395,
+          "current_margin": -19.06245606711017,
+          "candidate_margin": -19.063705687293073,
+          "quality_change": -0.0012496201829037545,
+          "classification": "worsened_OFF_negative"
+        },
+        {
+          "published_index": 218,
+          "case": "denoiser_broad_colored_0_voip_16000_c10_p0_d1",
+          "field": "celt_quality",
+          "current_5265": 47.229430886091706,
+          "candidate_5265": 47.228693156227706,
+          "OFF503d_published788": 59.937235208181036,
+          "current_margin": -12.70780432208933,
+          "candidate_margin": -12.70854205195333,
+          "quality_change": -0.0007377298639994478,
+          "classification": "worsened_OFF_negative"
+        },
+        {
+          "published_index": 172,
+          "case": "denoiser_broad_babble_0_voip_20000_c10_p0_d1",
+          "field": "celt_masked_error",
+          "current_5265": 66.17262339855968,
+          "candidate_5265": 70.31446120146633,
+          "OFF503d_published788": 64.58461545119589,
+          "current_margin": -1.588007947363792,
+          "candidate_margin": -5.729845750270442,
+          "quality_change": -4.14183780290665,
+          "classification": "worsened_OFF_negative"
+        },
+        {
+          "published_index": 172,
+          "case": "denoiser_broad_babble_0_voip_20000_c10_p0_d1",
+          "field": "celt_quality",
+          "current_5265": 43.72903917854936,
+          "candidate_5265": 41.522664926815,
+          "OFF503d_published788": 44.605737437473095,
+          "current_margin": -0.8766982589237386,
+          "candidate_margin": -3.0830725106580985,
+          "quality_change": -2.20637425173436,
+          "classification": "worsened_OFF_negative"
+        }
+      ],
+      "26_positive_margin_losses": 26,
+      "total_quality_losses": 30,
+      "all_values_and_raws": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\QUALITY_ACCOUNTING.json",
+        "sha256": "6195d1a6d21e2a1fe4221acded8baa761e119fc6bf0f48427d8748ac58c8c5aa"
+      },
+      "three15500cases_unaffected_byexact_source": true
+    },
+    "contracts": {
+      "seven_case_finalranges_OFF_samepacket_exact_extent_finite_normalrounding": true,
+      "additional176_DN1_FEC_DTX_combined_SILK_noise_consumer_canary_range_extent_finite_frames": true,
+      "options_execution": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\EXECUTION_options.json",
+        "sha256": "65235e4c95d946dda8f0b7a456cfa9c0d1028985c324b8c2f941b856d73b6b6f"
+      },
+      "original90state_6reentry_112inactive_16getters_fixedFIRproperty_and_cost_reused_no_repeat": true,
+      "storage76_vs68_existinglogicalbytes_noadditionalheapcall_publiclayout_header_unchanged": true
+    },
+    "original_accepted_READY": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\continuity_candidate\\RESULT.json",
+      "sha256": "69866a82f42388ec6ce48c3ebc1f6df997a88e8cfca37c299ce17688f750d62e"
+    },
+    "old_current_candidate_OFF_cost_raw_epochs_retained": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\cost\\RESULT.json",
+      "sha256": "32fb59c14a5da6c575665164015b1392a6fb6d802f19f615db878bc821db6dab"
+    },
+    "immediate_NEXT_mandatory_remediation": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\NEXT_REMEDIATION.json",
+      "sha256": "22478731168d9aa35a1944a5457f36b8beea8fab4a28c9dc7df7b87d6c5ea6c3"
+    },
+    "all_actual_newNative": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\EXECUTION.json",
+      "sha256": "29c0636df6f8283b48a3227fd65ccb810ebcc3518728119592f1f18ff8d9308a"
+    },
+    "Source_and_object_bindings": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\PLAN.json",
+      "sha256": "96c40753ffd4fc348232f586f9b18eb605cb935a1117e4fb27ace4a00378ab28"
+    },
+    "compiled_candidate_object": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\candidate.o",
+      "sha256": "bffeb1cdd02912e8dc8f4b21174d47f8c1b26435945c43496b9fa33a7230119a"
+    },
+    "actual_candidate_binary": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\candidate.exe",
+      "sha256": "ab08b7cb0eea90c897e015e3e82b4f977dff9c69c38483bb773753e08479f51c"
+    },
+    "actual_parent_binary": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\denoiser_quality_research\\composition_5265\\parent.exe",
+      "sha256": "79c5c380f970169a0f5f1e07a238fd7ad5455e47da54a25abfa37842eb80a65e"
+    },
+    "exact_latest_VQ_source_bridge": {
+      "changed_function": "silk_NLSF_VQ",
+      "published_body_matches_qualified_speed_candidate_exact": true,
+      "exact_candidate_source": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\candidate.cpp",
+        "sha256": "92e390cd0f460e567a7ac89c10744bd87df560c5404965ebf11d9d76e374a676"
+      },
+      "qualified_result": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\RESULT.json",
+        "sha256": "33a46babb568a0f57c29efc85f02d0318d1478692c67f84a9bf0cbbbf334b5c5"
+      },
+      "minimum": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\MINIMUM_RESULT.json",
+        "sha256": "2a78f616ef9bb142dbfd49e8efc5ae672ea7fe78f554e206934079e2df4f182d"
+      },
+      "proof": "For legal order10/16 every weighted[m] exactly equals the original diffw_Q24 product. Original reverse first term abs(weighted[last]-0) equals new abs(weighted[last]); each subsequent pred_Q24 equals weighted[m+1] and the reverse sum/store order remains identical. No floating arithmetic, changed rank/state/output/options or revised inputs assumption. Published helper132 full NLSF/four FENV rounds plus8640codecwire/21600decoderstate/4860capacity equality retained. New decoded-selector inputs stay lawful stabilized NLSF order10/16, so same all-legal term identity applies. No quality/contracts replay."
+    },
+    "clock": "Same17:59:05Z->01:59:05Z/newfirstreal18:28/originalmisses retained. Rootactivation firstobserved19:45:19Z, no clock renewal.",
+    "limits": "No fullSource replacement/README edit/qualitystatusREADME/helper/provider/Git mutation/fullsuite/newcost. NewSILK/noise interactions change the old quantitative tradeoff: latestbabble12CQ82.9236->81.2296 andmasked14.9801->16.6312 remainbetterOFF whilecorrelation.9728548->.9742233 closesOFF.9733944; oldsixclosuresnotadvertisedaslatest. Proxyfieldsnotcertifiedlistening. The human rule permits disclosedmeasuredtradeoffs onlywithimmediateNEXTalllossremediation; finalgoalNOTMET."
+  },
+  "measurement_limit": "Full691tablesmeasured8ad;notthisnewFIRSource."
+}

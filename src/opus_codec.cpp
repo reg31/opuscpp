@@ -2474,6 +2474,8 @@ struct VoiceDenoiseState {
   bool initialized;
   VoiceDenoiseModel model;
   opus_val32 noise_variance;
+  opus_res companion_input;
+  bool companion_initialized;
 };
 
 static void reset_voice_denoise_state(VoiceDenoiseState& state) noexcept {
@@ -3209,6 +3211,18 @@ static inline void apply_previous_sample_tilt(opus_res* pcm, int frame_size, int
       previous = current;
     }
   }
+}
+
+static inline void apply_voice_denoise_companion(VoiceDenoiseState& state, opus_res* pcm, int samples, opus_val16 smoothing, bool silence) noexcept {
+  const opus_res first = pcm[0];
+  const opus_res last = pcm[samples - 1];
+  if (smoothing != 0) {
+    apply_previous_sample_tilt(pcm, samples, 1, smoothing);
+    if (state.companion_initialized)
+      pcm[0] = first + smoothing * (state.companion_input - first);
+  }
+  state.companion_input = last;
+  state.companion_initialized = !silence;
 }
 
 static void blend_filtered_input(opus_res* filtered, const opus_res* input, int samples, opus_val16 keep) noexcept {
@@ -4031,9 +4045,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         apply_voice_denoise(st, frame_pcm, frame_size, frame_metrics);
       denoise_handled = broadband;
       const auto smoothing = voip_noise_smoothing_for(st, frame_metrics);
-      if (smoothing != 0) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
-      }
+      if (st->voice_denoise != nullptr)
+        apply_voice_denoise_companion(*st->voice_denoise, frame_pcm, frame_size, smoothing, frame_metrics.is_silence);
       if (st->voice_denoise != nullptr && st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
           frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
