@@ -1456,7 +1456,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
       celt_dec->start = 0;
       celt_decode_then_add(celt_dec, silence, 2, pcm, F2_5, nullptr, st->channels);
     }
-    st->rangeFinal = dec.rng;
+    st->rangeFinal = data != nullptr ? dec.rng : 0;
   }
   if (redundancy && !celt_to_silk) {
     celt_decoder_reset_state(celt_dec);
