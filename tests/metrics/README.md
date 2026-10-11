@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `d712d6c451a6de736f6cb5eeb8c39ab61db04245` on 2026-10-11 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `d712d6c` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).
+Codex independently refreshed production `43a7bc98f4f0f04b782884adda325aa3abd26196` on 2026-10-11 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `43a7bc9` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).
 
 ## Quality: every metric
 
@@ -27,12 +27,12 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 0.94x to 1.06x; decode: 1.17x to 1.78x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 0.93x to 1.06x; decode: 1.13x to 1.76x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the CSV.
 
-[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans +4.127671% to +6.406395%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 4.1% to 6.4%. Raw timing samples are in [run metadata](run_metadata.json).
+[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans +3.309294% to +6.548572%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 3.3% to 6.5%. Raw timing samples are in [run metadata](run_metadata.json).
 
 ## Memory and object size
 
@@ -40,13 +40,13 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 19760 | 19776 | Not exposed |
-| official_encoder_ch1 | 31840 | 31904 | 31668 |
+| current_encoder_ch1 | 19760 | 19792 | Not exposed |
+| official_encoder_ch1 | 31856 | 31904 | 31668 |
 | current_decoder_ch1 | 8432 | 8304 | Not exposed |
-| official_decoder_ch1 | 18464 | 18576 | 18468 |
-| current_encoder_ch2 | 29888 | 29856 | Not exposed |
+| official_decoder_ch1 | 18480 | 18576 | 18468 |
+| current_encoder_ch2 | 30000 | 29872 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17712 | 16240 | Not exposed |
+| current_decoder_ch2 | 17584 | 16224 | Not exposed |
 | official_decoder_ch2 | 27104 | 27264 | 27236 |
 
 [Memory CSV](memory_vs_official.csv). Denoiser optional state: 68 bytes from the fresh state/bounds test. Temporary denoiser stack usage was not measured in this refresh. Compiler-reported stack reservations in named historical checkpoints are not current peak-memory measurements.
@@ -84,7 +84,7 @@ DTX aggregate fields (individual material losses remain in the CSV):
 
 ## Fresh compatibility and API checks
 
-This full refresh is bound to source `d712d6c451a6de736f6cb5eeb8c39ab61db04245` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.
+This full refresh is bound to source `43a7bc98f4f0f04b782884adda325aa3abd26196` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.
 
 ## Mode selection
 
@@ -98,10 +98,10 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=20.8899 decode_ms=22.981 checksum=340886119
-mono-high bytes=115 encode_ms=23.3409 decode_ms=19.2105 checksum=2633358364
-stereo-mid bytes=102 encode_ms=86.0253 decode_ms=29.9397 checksum=3294895434
-stereo-high bytes=147 encode_ms=94.1744 decode_ms=31.8658 checksum=1997488960
+mono-mid bytes=76 encode_ms=20.7809 decode_ms=20.6911 checksum=340886119
+mono-high bytes=115 encode_ms=22.1722 decode_ms=19.1477 checksum=2633358364
+stereo-mid bytes=102 encode_ms=89.1942 decode_ms=29.8135 checksum=3294895434
+stereo-high bytes=147 encode_ms=91.6112 decode_ms=31.937 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
