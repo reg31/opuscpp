@@ -18306,7 +18306,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       }
       silk_HP_variable_cutoff(state_Fxx);
       auto& state0 = state_Fxx[0].sCmn;
-      const opus_int32 lbrr_bits = psEnc->lbrr == nullptr ? 0 : std::max(psEnc->lbrr->average_bits, coded_prefix_bits);
+      const opus_int32 lbrr_bits = coded_prefix_bits;
       const opus_int32 frameBits =
           std::max<opus_int32>(0, encControl->bitRate * encControl->payloadSize_ms / 1000 - lbrr_bits) / state0.nFramesPerPacket;
       opus_int32 TargetRate_bps = frameBits * (encControl->payloadSize_ms == 10 ? 100 : 50) - 2 * psEnc->nBitsExceeded;
