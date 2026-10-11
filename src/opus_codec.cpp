@@ -14913,14 +14913,15 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
 void silk_NLSF_VQ(opus_int32 err_Q24[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[], const int K, const int LPC_order) {
   auto* cb_Q8_ptr = pCB_Q8;
   auto* w_Q9_ptr = pWght_Q9;
+  std::array<opus_int32, 16> weighted;
   for (int i = 0; i < K; ++i) {
-    opus_int32 sum_error_Q24 = 0;
-    opus_int32 pred_Q24 = 0;
-    for (int m = LPC_order - 1; m >= 0; --m) {
+    for (int m = 0; m < LPC_order; ++m) {
       const auto diff_Q15 = wrap_subtract(in_Q15[m], wrap_shift_left(cb_Q8_ptr[m], 7));
-      const auto diffw_Q24 = static_cast<opus_int16>(diff_Q15) * static_cast<opus_int16>(w_Q9_ptr[m]);
-      sum_error_Q24 += std::abs(diffw_Q24 - (pred_Q24 >> 1));
-      pred_Q24 = diffw_Q24;
+      weighted[m] = static_cast<opus_int16>(diff_Q15) * static_cast<opus_int16>(w_Q9_ptr[m]);
+    }
+    opus_int32 sum_error_Q24 = std::abs(weighted[LPC_order - 1]);
+    for (int m = LPC_order - 2; m >= 0; --m) {
+      sum_error_Q24 += std::abs(weighted[m] - (weighted[m + 1] >> 1));
     }
     err_Q24[i] = sum_error_Q24;
     cb_Q8_ptr += LPC_order;

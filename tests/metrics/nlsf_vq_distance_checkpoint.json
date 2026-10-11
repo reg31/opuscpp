@@ -1,0 +1,1576 @@
+{
+  "status": "ACCEPTED_EXACT_NLSF_VQ_REFACTOR",
+  "source_sha256": "cefe8b191911942bfd973368480ca81c139eafb557998a0acbe538477f5d4747",
+  "result_sha256": "33a46babb568a0f57c29efc85f02d0318d1478692c67f84a9bf0cbbbf334b5c5",
+  "preceding_composition_proof_sha256": "063a8b8f28518e03b9e493ad1b2c1aaf63e305881eff6e8b5178e4fcc5943ea4",
+  "latest_author_composition": "Author FINAL confirms1d3clang-format-only advance, unchangedVQ/callerlegal-input proof, inverseequality andsamepatch4c5e457a. No new proof file or Native job was produced.",
+  "local_scope": "132exactNLSFcomparisons;64Bstackscratch;onlysilk_NLSF_VQchanged",
+  "codec_scope": "8640packet/21600decoderstate/4860capacitypairs;wholeworkloadpacket/range/PCM/FECexact;all35Native0terminal",
+  "whole_cost_limit": "Measuredoriginalepochs: Davidbothordersfavored-0.06%/-22.86%,Hazel-1.49%/-1.55%;all17of60slowerpairs and9of36localpairs retained. SharedactivitylimitslargeDavidattribution;notcurrent1d3orwholegoalclaim.",
+  "immediate_next_work_item": {
+    "owner": "/root/nlsf_speed_recovered_2",
+    "task": "Remediate recorded cost losses from actual causal evidence before unrelated work; preserve exact outputs and all raw timing."
+  },
+  "original_result": {
+    "status": "READY_EXACT_NLSF_DISTANCE_WITH_AFFECTED_WHOLE_COST_DIRECTION",
+    "owner": "/root/nlsf_speed_recovered_2",
+    "recorded_utc": "2026-10-11T19:31:42.281815+00:00",
+    "clock": {
+      "role_actual_start_utc": "2026-10-11T18:16:47.7898476Z",
+      "role_deadline_utc": "2026-10-12T02:16:47.7898476Z",
+      "method03_intake_utc": "2026-10-11T19:08:07.079909Z",
+      "method03_discovery_actual_utc": "2026-10-11T19:11:48.085023+00:00",
+      "method03_first_real_outcome_utc": "2026-10-11T19:13:42.945035+00:00",
+      "reset": false
+    },
+    "binding": {
+      "base_commit": "baa14e1442e4d646d09fdf4b513ee64448e85a89",
+      "checked_latest_head": "baa14e1442e4d646d09fdf4b513ee64448e85a89",
+      "base_source_sha256": "bf4ea2267e59905a736c933a083f8fe74054e68f9a400ddaab598141b0bb096a",
+      "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\candidate.cpp",
+      "candidate_source_sha256": "92e390cd0f460e567a7ac89c10744bd87df560c5404965ebf11d9d76e374a676",
+      "patch": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\candidate.patch",
+      "patch_sha256": "4c5e457a997b6abc2e1b8f122e4a164ca893eddf80af4fc1eafefd466f2cdbd8",
+      "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+      "original_candidate_source_sha256": "25da5af36060b2535b7cbb2bcb4bdfec6090abdc735168c5468afc6e4b4cd157",
+      "original_patch_sha256": "59d138f97e18ee87ed14435a43969a752b046957f4bb17b61d95b38ed1145464",
+      "functions_changed": [
+        "silk_NLSF_VQ"
+      ],
+      "source_composition": "baa14e1 includes current common-stereo7069109 and DTX8ad3426. Replaced only token-identical VQ body; every other byte retained. All8 NLSF/dependency/caller bodies plus canonical CB tables/struct exact across old/current. No stale source overwrite; apply patch only."
+    },
+    "mechanism": "Split independent full weighted-coefficient products from unchanged reverse adjacent-score sum; standard std::array16 adds64 logical stackbytes. Same full terms, rounding, ranks, shortlist, survivors, trellis, storage, options, outputs and state; no pruning, tuning, heap, intrinsics, flags, new dependency or comments.",
+    "qualified_whole_scope": "Actual whole encoder VOIP16kbps/C10/C1/20ms, David590 and Hazel673 frames,15 separate fresh-state passes in each P,C,C,P process. Existing8 separate warmup+untimed flush/calibrated cost driver/runtime reused. This is affected direction against current, not a full official >=1.5x certification or a general speed magnitude.",
+    "source_whole_reached_evidence": "Qualified David source670 profile97.5753ms whole/prediction14.5263ms/nestedNLSF7.2439ms identifies reached inspection family only; old/current function/caller source bridge is in plan, no profiling/magnitude retag.",
+    "identity": {
+      "minimum_result": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\MINIMUM_RESULT.json",
+      "minimum_result_sha256": "2a78f616ef9bb142dbfd49e8efc5ae672ea7fe78f554e206934079e2df4f182d",
+      "completed_full_NLSF_encodes": 132,
+      "actual_p29_inputs_indices": "Exact saved top-level call; legal order10/16/survivor2/4/8/16/four FENV rounds; output17indices/reconstructed16/input/redzones/errno/FENV exact.",
+      "codec_stdout": "PASS paired_calls=26460 success=26430 errors=30 generated_packet_pairs=8640",
+      "codec_encoder_packet_pairs": 8640,
+      "codec_decoder_output_state_pairs": 21600,
+      "codec_capacity_pairs": 4860,
+      "codec_options": "8/12/16/24/48kHz,C1/C2,VOIP/AUDIO/RLD,VBR/CBR,DTX,FEC,loss,rate switches,multiframe and capacity boundaries; exact return/packet/range/decoderPCM/state/FENV/errno.",
+      "actual_whole_packet_ranges_PCM_FEC": "All four role packet,range,F32,FECF32 hashes exact for both workloads."
+    },
+    "whole_results": [
+      {
+        "case": {
+          "label": "David_C10_VBR20",
+          "input": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\team1_silk_b1_coarse_attribution_20261006\\input\\david_voice.wav",
+          "options": [
+            "--application",
+            "voip",
+            "--bitrate",
+            "16000",
+            "--complexity",
+            "10",
+            "--frame-ms",
+            "20",
+            "--repeats",
+            "15"
+          ]
+        },
+        "four_role_outputs_exact": true,
+        "processes": [
+          {
+            "slot": 0,
+            "role": "parent",
+            "times_ns": [
+              89909000,
+              87876000,
+              89947400,
+              89189400,
+              89813000,
+              92294500,
+              92284200,
+              91142900,
+              89667800,
+              90428500,
+              88820700,
+              88525300,
+              89381300,
+              95521100,
+              88480100
+            ],
+            "median_ns": 89813000,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\team1_silk_b1_coarse_attribution_20261006\\input\\david_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=590 repeats=15 lookahead_flush_packets=1 encode_calls=8850 packet_dump_packets=591 measured_encode_ns=1353281200",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot0_parent.packets",
+                "sha256": "a5a4f02fb27a30cd877a4111d264a01c889e04d13872e43c566094bb56d3c6e7",
+                "bytes": 23063
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot0_parent.ranges",
+                "sha256": "e23f5d0afa47d5c223454494ecc33c18b3ebdca4b0cfbbe296a24031a5b60b61",
+                "bytes": 4728
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot0_parent.f32",
+                "sha256": "aac669a4f133a19db1ab3c3d96b9abd476c46526220b8a94e1d521241453a4c1",
+                "bytes": 2269440
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot0_parent.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 33900,
+            "native_pid": 10896,
+            "started_utc": "2026-10-11T19:27:43.041095+00:00",
+            "ended_utc": "2026-10-11T19:27:44.737790+00:00"
+          },
+          {
+            "slot": 1,
+            "role": "candidate",
+            "times_ns": [
+              86149900,
+              87569100,
+              89381900,
+              90396200,
+              90491100,
+              92936900,
+              96043700,
+              89058000,
+              89252900,
+              93708800,
+              88507900,
+              91647300,
+              89173600,
+              88764700,
+              89380700
+            ],
+            "median_ns": 89380700,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\team1_silk_b1_coarse_attribution_20261006\\input\\david_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=590 repeats=15 lookahead_flush_packets=1 encode_calls=8850 packet_dump_packets=591 measured_encode_ns=1352462700",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot1_candidate.packets",
+                "sha256": "a5a4f02fb27a30cd877a4111d264a01c889e04d13872e43c566094bb56d3c6e7",
+                "bytes": 23063
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot1_candidate.ranges",
+                "sha256": "e23f5d0afa47d5c223454494ecc33c18b3ebdca4b0cfbbe296a24031a5b60b61",
+                "bytes": 4728
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot1_candidate.f32",
+                "sha256": "aac669a4f133a19db1ab3c3d96b9abd476c46526220b8a94e1d521241453a4c1",
+                "bytes": 2269440
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot1_candidate.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 36524,
+            "native_pid": 8660,
+            "started_utc": "2026-10-11T19:27:45.129981+00:00",
+            "ended_utc": "2026-10-11T19:27:46.833260+00:00"
+          },
+          {
+            "slot": 2,
+            "role": "candidate",
+            "times_ns": [
+              86253200,
+              86724400,
+              88454100,
+              88757200,
+              89264200,
+              89917300,
+              97781100,
+              89163300,
+              88497200,
+              89016200,
+              88879600,
+              88478300,
+              89161900,
+              88849300,
+              90782300
+            ],
+            "median_ns": 88879600,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\team1_silk_b1_coarse_attribution_20261006\\input\\david_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=590 repeats=15 lookahead_flush_packets=1 encode_calls=8850 packet_dump_packets=591 measured_encode_ns=1339979600",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot2_candidate.packets",
+                "sha256": "a5a4f02fb27a30cd877a4111d264a01c889e04d13872e43c566094bb56d3c6e7",
+                "bytes": 23063
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot2_candidate.ranges",
+                "sha256": "e23f5d0afa47d5c223454494ecc33c18b3ebdca4b0cfbbe296a24031a5b60b61",
+                "bytes": 4728
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot2_candidate.f32",
+                "sha256": "aac669a4f133a19db1ab3c3d96b9abd476c46526220b8a94e1d521241453a4c1",
+                "bytes": 2269440
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot2_candidate.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 36992,
+            "native_pid": 36332,
+            "started_utc": "2026-10-11T19:27:47.218554+00:00",
+            "ended_utc": "2026-10-11T19:27:48.870870+00:00"
+          },
+          {
+            "slot": 3,
+            "role": "parent",
+            "times_ns": [
+              103384000,
+              116210900,
+              117792600,
+              103261400,
+              102478200,
+              93142700,
+              111817000,
+              122176800,
+              177541300,
+              123048900,
+              113677200,
+              126007900,
+              128576800,
+              100174300,
+              97808500
+            ],
+            "median_ns": 113677200,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\team1_silk_b1_coarse_attribution_20261006\\input\\david_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=590 repeats=15 lookahead_flush_packets=1 encode_calls=8850 packet_dump_packets=591 measured_encode_ns=1737098500",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot3_parent.packets",
+                "sha256": "a5a4f02fb27a30cd877a4111d264a01c889e04d13872e43c566094bb56d3c6e7",
+                "bytes": 23063
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot3_parent.ranges",
+                "sha256": "e23f5d0afa47d5c223454494ecc33c18b3ebdca4b0cfbbe296a24031a5b60b61",
+                "bytes": 4728
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot3_parent.f32",
+                "sha256": "aac669a4f133a19db1ab3c3d96b9abd476c46526220b8a94e1d521241453a4c1",
+                "bytes": 2269440
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\David_C10_VBR20_slot3_parent.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 35444,
+            "native_pid": 752,
+            "started_utc": "2026-10-11T19:27:49.331159+00:00",
+            "ended_utc": "2026-10-11T19:27:51.440462+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "order": "PC",
+            "aggregate_percent": -0.06048262548833394,
+            "median_pair_percent": -0.23237522837551428,
+            "slower_pairs": 7,
+            "raw_pairs": [
+              {
+                "pass": 0,
+                "parent_ns": 89909000,
+                "candidate_ns": 86149900,
+                "delta_percent": -4.181005238630176
+              },
+              {
+                "pass": 1,
+                "parent_ns": 87876000,
+                "candidate_ns": 87569100,
+                "delta_percent": -0.34924211388774884
+              },
+              {
+                "pass": 2,
+                "parent_ns": 89947400,
+                "candidate_ns": 89381900,
+                "delta_percent": -0.6287007740079176
+              },
+              {
+                "pass": 3,
+                "parent_ns": 89189400,
+                "candidate_ns": 90396200,
+                "delta_percent": 1.3530755897001256
+              },
+              {
+                "pass": 4,
+                "parent_ns": 89813000,
+                "candidate_ns": 90491100,
+                "delta_percent": 0.7550131940810445
+              },
+              {
+                "pass": 5,
+                "parent_ns": 92294500,
+                "candidate_ns": 92936900,
+                "delta_percent": 0.6960328080221512
+              },
+              {
+                "pass": 6,
+                "parent_ns": 92284200,
+                "candidate_ns": 96043700,
+                "delta_percent": 4.073828456008721
+              },
+              {
+                "pass": 7,
+                "parent_ns": 91142900,
+                "candidate_ns": 89058000,
+                "delta_percent": -2.2875067613604583
+              },
+              {
+                "pass": 8,
+                "parent_ns": 89667800,
+                "candidate_ns": 89252900,
+                "delta_percent": -0.46270790629412417
+              },
+              {
+                "pass": 9,
+                "parent_ns": 90428500,
+                "candidate_ns": 93708800,
+                "delta_percent": 3.6275068147763045
+              },
+              {
+                "pass": 10,
+                "parent_ns": 88820700,
+                "candidate_ns": 88507900,
+                "delta_percent": -0.3521701585328607
+              },
+              {
+                "pass": 11,
+                "parent_ns": 88525300,
+                "candidate_ns": 91647300,
+                "delta_percent": 3.526675424991499
+              },
+              {
+                "pass": 12,
+                "parent_ns": 89381300,
+                "candidate_ns": 89173600,
+                "delta_percent": -0.23237522837551428
+              },
+              {
+                "pass": 13,
+                "parent_ns": 95521100,
+                "candidate_ns": 88764700,
+                "delta_percent": -7.073201627703196
+              },
+              {
+                "pass": 14,
+                "parent_ns": 88480100,
+                "candidate_ns": 89380700,
+                "delta_percent": 1.0178559924774122
+              }
+            ]
+          },
+          {
+            "order": "CP",
+            "aggregate_percent": -22.861046739721434,
+            "median_pair_percent": -21.814048903386073,
+            "slower_pairs": 0,
+            "raw_pairs": [
+              {
+                "pass": 0,
+                "parent_ns": 103384000,
+                "candidate_ns": 86253200,
+                "delta_percent": -16.570068869457554
+              },
+              {
+                "pass": 1,
+                "parent_ns": 116210900,
+                "candidate_ns": 86724400,
+                "delta_percent": -25.37326533053268
+              },
+              {
+                "pass": 2,
+                "parent_ns": 117792600,
+                "candidate_ns": 88454100,
+                "delta_percent": -24.906912658350354
+              },
+              {
+                "pass": 3,
+                "parent_ns": 103261400,
+                "candidate_ns": 88757200,
+                "delta_percent": -14.046100478978596
+              },
+              {
+                "pass": 4,
+                "parent_ns": 102478200,
+                "candidate_ns": 89264200,
+                "delta_percent": -12.894449746385083
+              },
+              {
+                "pass": 5,
+                "parent_ns": 93142700,
+                "candidate_ns": 89917300,
+                "delta_percent": -3.4628586029823105
+              },
+              {
+                "pass": 6,
+                "parent_ns": 111817000,
+                "candidate_ns": 97781100,
+                "delta_percent": -12.552563563679941
+              },
+              {
+                "pass": 7,
+                "parent_ns": 122176800,
+                "candidate_ns": 89163300,
+                "delta_percent": -27.021087473235504
+              },
+              {
+                "pass": 8,
+                "parent_ns": 177541300,
+                "candidate_ns": 88497200,
+                "delta_percent": -50.15402050114537
+              },
+              {
+                "pass": 9,
+                "parent_ns": 123048900,
+                "candidate_ns": 89016200,
+                "delta_percent": -27.65786610038773
+              },
+              {
+                "pass": 10,
+                "parent_ns": 113677200,
+                "candidate_ns": 88879600,
+                "delta_percent": -21.814048903386073
+              },
+              {
+                "pass": 11,
+                "parent_ns": 126007900,
+                "candidate_ns": 88478300,
+                "delta_percent": -29.783529445376043
+              },
+              {
+                "pass": 12,
+                "parent_ns": 128576800,
+                "candidate_ns": 89161900,
+                "delta_percent": -30.65475264588946
+              },
+              {
+                "pass": 13,
+                "parent_ns": 100174300,
+                "candidate_ns": 88849300,
+                "delta_percent": -11.305294871039774
+              },
+              {
+                "pass": 14,
+                "parent_ns": 97808500,
+                "candidate_ns": 90782300,
+                "delta_percent": -7.183629234677968
+              }
+            ]
+          }
+        ],
+        "balanced_total_percent": -12.876650723534066,
+        "balanced_median_percent": -5.47990658515306
+      },
+      {
+        "case": {
+          "label": "Hazel_C10_VBR20",
+          "input": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method01_immutable_weight_divisor\\hazel_voice.wav",
+          "options": [
+            "--application",
+            "voip",
+            "--bitrate",
+            "16000",
+            "--complexity",
+            "10",
+            "--frame-ms",
+            "20",
+            "--repeats",
+            "15"
+          ]
+        },
+        "four_role_outputs_exact": true,
+        "processes": [
+          {
+            "slot": 0,
+            "role": "parent",
+            "times_ns": [
+              105562900,
+              101987700,
+              104421100,
+              102161600,
+              104570000,
+              106032900,
+              102374800,
+              103068100,
+              117684600,
+              106450500,
+              102460500,
+              102473600,
+              109062800,
+              104688200,
+              102630900
+            ],
+            "median_ns": 104421100,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method01_immutable_weight_divisor\\hazel_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=673 repeats=15 lookahead_flush_packets=1 encode_calls=10095 packet_dump_packets=674 measured_encode_ns=1575630200",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot0_parent.packets",
+                "sha256": "bdc62dfc97a734f95bb30ade581dc3f0a0f560e8cbd5a75d281bc73798511dc9",
+                "bytes": 26993
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot0_parent.ranges",
+                "sha256": "fdb9e608542554913d520f8e85d37b759f79f9a7307fc68eb5f599a10f0c5e7c",
+                "bytes": 5392
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot0_parent.f32",
+                "sha256": "1befa473c06faa8a5278a41430365970db6face416b473859b28fceb50d38e15",
+                "bytes": 2588160
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot0_parent.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 32684,
+            "native_pid": 25636,
+            "started_utc": "2026-10-11T19:27:51.859583+00:00",
+            "ended_utc": "2026-10-11T19:27:53.761452+00:00"
+          },
+          {
+            "slot": 1,
+            "role": "candidate",
+            "times_ns": [
+              100233000,
+              101322600,
+              104494900,
+              102477500,
+              102502400,
+              104284500,
+              106820200,
+              102632300,
+              102389500,
+              103806600,
+              102443200,
+              104388100,
+              104596200,
+              102417900,
+              107300200
+            ],
+            "median_ns": 102632300,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method01_immutable_weight_divisor\\hazel_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=673 repeats=15 lookahead_flush_packets=1 encode_calls=10095 packet_dump_packets=674 measured_encode_ns=1552109100",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot1_candidate.packets",
+                "sha256": "bdc62dfc97a734f95bb30ade581dc3f0a0f560e8cbd5a75d281bc73798511dc9",
+                "bytes": 26993
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot1_candidate.ranges",
+                "sha256": "fdb9e608542554913d520f8e85d37b759f79f9a7307fc68eb5f599a10f0c5e7c",
+                "bytes": 5392
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot1_candidate.f32",
+                "sha256": "1befa473c06faa8a5278a41430365970db6face416b473859b28fceb50d38e15",
+                "bytes": 2588160
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot1_candidate.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 25096,
+            "native_pid": 26872,
+            "started_utc": "2026-10-11T19:27:54.167784+00:00",
+            "ended_utc": "2026-10-11T19:27:56.051132+00:00"
+          },
+          {
+            "slot": 2,
+            "role": "candidate",
+            "times_ns": [
+              101152200,
+              100384700,
+              101723400,
+              102874700,
+              107190300,
+              106988200,
+              102600100,
+              102494500,
+              102165300,
+              103614700,
+              102225800,
+              103382800,
+              117995800,
+              107720700,
+              103596500
+            ],
+            "median_ns": 102874700,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method01_immutable_weight_divisor\\hazel_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=673 repeats=15 lookahead_flush_packets=1 encode_calls=10095 packet_dump_packets=674 measured_encode_ns=1566109700",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot2_candidate.packets",
+                "sha256": "bdc62dfc97a734f95bb30ade581dc3f0a0f560e8cbd5a75d281bc73798511dc9",
+                "bytes": 26993
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot2_candidate.ranges",
+                "sha256": "fdb9e608542554913d520f8e85d37b759f79f9a7307fc68eb5f599a10f0c5e7c",
+                "bytes": 5392
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot2_candidate.f32",
+                "sha256": "1befa473c06faa8a5278a41430365970db6face416b473859b28fceb50d38e15",
+                "bytes": 2588160
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot2_candidate.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 2544,
+            "native_pid": 37772,
+            "started_utc": "2026-10-11T19:27:56.409771+00:00",
+            "ended_utc": "2026-10-11T19:27:58.303510+00:00"
+          },
+          {
+            "slot": 3,
+            "role": "parent",
+            "times_ns": [
+              106139000,
+              105053800,
+              120588900,
+              109874400,
+              104659600,
+              102819900,
+              103729000,
+              104247500,
+              103853300,
+              106124200,
+              104373000,
+              104613500,
+              106202800,
+              105933800,
+              102570200
+            ],
+            "median_ns": 104659600,
+            "summary": "PROFILE_DRIVER input=C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method01_immutable_weight_divisor\\hazel_voice.wav app=voip bitrate=16000 complexity=10 channels=1 input_rate=48000 frame_samples=960 frames_per_pass=673 repeats=15 lookahead_flush_packets=1 encode_calls=10095 packet_dump_packets=674 measured_encode_ns=1590782900",
+            "outputs": {
+              ".packets": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot3_parent.packets",
+                "sha256": "bdc62dfc97a734f95bb30ade581dc3f0a0f560e8cbd5a75d281bc73798511dc9",
+                "bytes": 26993
+              },
+              ".ranges": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot3_parent.ranges",
+                "sha256": "fdb9e608542554913d520f8e85d37b759f79f9a7307fc68eb5f599a10f0c5e7c",
+                "bytes": 5392
+              },
+              ".f32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot3_parent.f32",
+                "sha256": "1befa473c06faa8a5278a41430365970db6face416b473859b28fceb50d38e15",
+                "bytes": 2588160
+              },
+              ".fecf32": {
+                "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\Hazel_C10_VBR20_slot3_parent.fecf32",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "bytes": 0
+              }
+            },
+            "guard_pid": 11848,
+            "native_pid": 268,
+            "started_utc": "2026-10-11T19:27:58.708962+00:00",
+            "ended_utc": "2026-10-11T19:28:00.641355+00:00"
+          }
+        ],
+        "orders": [
+          {
+            "order": "PC",
+            "aggregate_percent": -1.4928058626954455,
+            "median_pair_percent": -0.6521374636353161,
+            "slower_pairs": 5,
+            "raw_pairs": [
+              {
+                "pass": 0,
+                "parent_ns": 105562900,
+                "candidate_ns": 100233000,
+                "delta_percent": -5.049027641339898
+              },
+              {
+                "pass": 1,
+                "parent_ns": 101987700,
+                "candidate_ns": 101322600,
+                "delta_percent": -0.6521374636353161
+              },
+              {
+                "pass": 2,
+                "parent_ns": 104421100,
+                "candidate_ns": 104494900,
+                "delta_percent": 0.07067537116540734
+              },
+              {
+                "pass": 3,
+                "parent_ns": 102161600,
+                "candidate_ns": 102477500,
+                "delta_percent": 0.309215987220246
+              },
+              {
+                "pass": 4,
+                "parent_ns": 104570000,
+                "candidate_ns": 102502400,
+                "delta_percent": -1.9772401262312278
+              },
+              {
+                "pass": 5,
+                "parent_ns": 106032900,
+                "candidate_ns": 104284500,
+                "delta_percent": -1.6489221741553761
+              },
+              {
+                "pass": 6,
+                "parent_ns": 102374800,
+                "candidate_ns": 106820200,
+                "delta_percent": 4.342279545356864
+              },
+              {
+                "pass": 7,
+                "parent_ns": 103068100,
+                "candidate_ns": 102632300,
+                "delta_percent": -0.42282723752548046
+              },
+              {
+                "pass": 8,
+                "parent_ns": 117684600,
+                "candidate_ns": 102389500,
+                "delta_percent": -12.996687756936765
+              },
+              {
+                "pass": 9,
+                "parent_ns": 106450500,
+                "candidate_ns": 103806600,
+                "delta_percent": -2.4836896022094823
+              },
+              {
+                "pass": 10,
+                "parent_ns": 102460500,
+                "candidate_ns": 102443200,
+                "delta_percent": -0.016884555511631483
+              },
+              {
+                "pass": 11,
+                "parent_ns": 102473600,
+                "candidate_ns": 104388100,
+                "delta_percent": 1.868286075633141
+              },
+              {
+                "pass": 12,
+                "parent_ns": 109062800,
+                "candidate_ns": 104596200,
+                "delta_percent": -4.095438591343703
+              },
+              {
+                "pass": 13,
+                "parent_ns": 104688200,
+                "candidate_ns": 102417900,
+                "delta_percent": -2.168630275427408
+              },
+              {
+                "pass": 14,
+                "parent_ns": 102630900,
+                "candidate_ns": 107300200,
+                "delta_percent": 4.549604456357681
+              }
+            ]
+          },
+          {
+            "order": "CP",
+            "aggregate_percent": -1.5510098832468011,
+            "median_pair_percent": -1.6253696319712518,
+            "slower_pairs": 5,
+            "raw_pairs": [
+              {
+                "pass": 0,
+                "parent_ns": 106139000,
+                "candidate_ns": 101152200,
+                "delta_percent": -4.698367235417711
+              },
+              {
+                "pass": 1,
+                "parent_ns": 105053800,
+                "candidate_ns": 100384700,
+                "delta_percent": -4.444484635491531
+              },
+              {
+                "pass": 2,
+                "parent_ns": 120588900,
+                "candidate_ns": 101723400,
+                "delta_percent": -15.644474740212411
+              },
+              {
+                "pass": 3,
+                "parent_ns": 109874400,
+                "candidate_ns": 102874700,
+                "delta_percent": -6.370637746372221
+              },
+              {
+                "pass": 4,
+                "parent_ns": 104659600,
+                "candidate_ns": 107190300,
+                "delta_percent": 2.4180294975329586
+              },
+              {
+                "pass": 5,
+                "parent_ns": 102819900,
+                "candidate_ns": 106988200,
+                "delta_percent": 4.0539817681207735
+              },
+              {
+                "pass": 6,
+                "parent_ns": 103729000,
+                "candidate_ns": 102600100,
+                "delta_percent": -1.0883166713262393
+              },
+              {
+                "pass": 7,
+                "parent_ns": 104247500,
+                "candidate_ns": 102494500,
+                "delta_percent": -1.681575097724164
+              },
+              {
+                "pass": 8,
+                "parent_ns": 103853300,
+                "candidate_ns": 102165300,
+                "delta_percent": -1.6253696319712518
+              },
+              {
+                "pass": 9,
+                "parent_ns": 106124200,
+                "candidate_ns": 103614700,
+                "delta_percent": -2.364682136590901
+              },
+              {
+                "pass": 10,
+                "parent_ns": 104373000,
+                "candidate_ns": 102225800,
+                "delta_percent": -2.0572370249010707
+              },
+              {
+                "pass": 11,
+                "parent_ns": 104613500,
+                "candidate_ns": 103382800,
+                "delta_percent": -1.1764256047259725
+              },
+              {
+                "pass": 12,
+                "parent_ns": 106202800,
+                "candidate_ns": 117995800,
+                "delta_percent": 11.104227007197554
+              },
+              {
+                "pass": 13,
+                "parent_ns": 105933800,
+                "candidate_ns": 107720700,
+                "delta_percent": 1.686808176427168
+              },
+              {
+                "pass": 14,
+                "parent_ns": 102570200,
+                "candidate_ns": 103596500,
+                "delta_percent": 1.00058301533974
+              }
+            ]
+          }
+        ],
+        "balanced_total_percent": -1.5220471390798629,
+        "balanced_median_percent": -1.7575477989420718
+      }
+    ],
+    "all_raw_whole_slower_pairs": [
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 3,
+        "parent_ns": 89189400,
+        "candidate_ns": 90396200,
+        "delta_percent": 1.3530755897001256
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 4,
+        "parent_ns": 89813000,
+        "candidate_ns": 90491100,
+        "delta_percent": 0.7550131940810445
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 5,
+        "parent_ns": 92294500,
+        "candidate_ns": 92936900,
+        "delta_percent": 0.6960328080221512
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 6,
+        "parent_ns": 92284200,
+        "candidate_ns": 96043700,
+        "delta_percent": 4.073828456008721
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 9,
+        "parent_ns": 90428500,
+        "candidate_ns": 93708800,
+        "delta_percent": 3.6275068147763045
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 11,
+        "parent_ns": 88525300,
+        "candidate_ns": 91647300,
+        "delta_percent": 3.526675424991499
+      },
+      {
+        "case": "David_C10_VBR20",
+        "order": "PC",
+        "pass": 14,
+        "parent_ns": 88480100,
+        "candidate_ns": 89380700,
+        "delta_percent": 1.0178559924774122
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "PC",
+        "pass": 2,
+        "parent_ns": 104421100,
+        "candidate_ns": 104494900,
+        "delta_percent": 0.07067537116540734
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "PC",
+        "pass": 3,
+        "parent_ns": 102161600,
+        "candidate_ns": 102477500,
+        "delta_percent": 0.309215987220246
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "PC",
+        "pass": 6,
+        "parent_ns": 102374800,
+        "candidate_ns": 106820200,
+        "delta_percent": 4.342279545356864
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "PC",
+        "pass": 11,
+        "parent_ns": 102473600,
+        "candidate_ns": 104388100,
+        "delta_percent": 1.868286075633141
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "PC",
+        "pass": 14,
+        "parent_ns": 102630900,
+        "candidate_ns": 107300200,
+        "delta_percent": 4.549604456357681
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "CP",
+        "pass": 4,
+        "parent_ns": 104659600,
+        "candidate_ns": 107190300,
+        "delta_percent": 2.4180294975329586
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "CP",
+        "pass": 5,
+        "parent_ns": 102819900,
+        "candidate_ns": 106988200,
+        "delta_percent": 4.0539817681207735
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "CP",
+        "pass": 12,
+        "parent_ns": 106202800,
+        "candidate_ns": 117995800,
+        "delta_percent": 11.104227007197554
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "CP",
+        "pass": 13,
+        "parent_ns": 105933800,
+        "candidate_ns": 107720700,
+        "delta_percent": 1.686808176427168
+      },
+      {
+        "case": "Hazel_C10_VBR20",
+        "order": "CP",
+        "pass": 14,
+        "parent_ns": 102570200,
+        "candidate_ns": 103596500,
+        "delta_percent": 1.00058301533974
+      }
+    ],
+    "local_price": [
+      {
+        "bank": "actual_p29",
+        "order": "PC",
+        "aggregate_percent": -5.418697181692833,
+        "median_pair_percent": -5.4252423573318715,
+        "slower_pairs": 0,
+        "raw_pairs": [
+          {
+            "cycle": 0,
+            "parent_ns": 76062400,
+            "candidate_ns": 64765500,
+            "delta_percent": -14.852147710301011
+          },
+          {
+            "cycle": 1,
+            "parent_ns": 59935200,
+            "candidate_ns": 58966100,
+            "delta_percent": -1.6169129326339071
+          },
+          {
+            "cycle": 2,
+            "parent_ns": 66561000,
+            "candidate_ns": 61425600,
+            "delta_percent": -7.715328796141884
+          },
+          {
+            "cycle": 3,
+            "parent_ns": 64502600,
+            "candidate_ns": 64032600,
+            "delta_percent": -0.7286527984918467
+          },
+          {
+            "cycle": 4,
+            "parent_ns": 61903600,
+            "candidate_ns": 61076800,
+            "delta_percent": -1.335625068655133
+          },
+          {
+            "cycle": 5,
+            "parent_ns": 63390500,
+            "candidate_ns": 59438400,
+            "delta_percent": -6.234530410708228
+          },
+          {
+            "cycle": 6,
+            "parent_ns": 65191800,
+            "candidate_ns": 60675300,
+            "delta_percent": -6.928018554480775
+          },
+          {
+            "cycle": 7,
+            "parent_ns": 63449700,
+            "candidate_ns": 60007400,
+            "delta_percent": -5.4252423573318715
+          },
+          {
+            "cycle": 8,
+            "parent_ns": 62619500,
+            "candidate_ns": 61604200,
+            "delta_percent": -1.621379921589916
+          }
+        ]
+      },
+      {
+        "bank": "actual_p29",
+        "order": "CP",
+        "aggregate_percent": -3.8316506096790603,
+        "median_pair_percent": -1.5890317607867965,
+        "slower_pairs": 3,
+        "raw_pairs": [
+          {
+            "cycle": 0,
+            "parent_ns": 59985500,
+            "candidate_ns": 61519200,
+            "delta_percent": 2.556784556267755
+          },
+          {
+            "cycle": 1,
+            "parent_ns": 80551400,
+            "candidate_ns": 67244700,
+            "delta_percent": -16.519514248045354
+          },
+          {
+            "cycle": 2,
+            "parent_ns": 60458200,
+            "candidate_ns": 59497500,
+            "delta_percent": -1.5890317607867965
+          },
+          {
+            "cycle": 3,
+            "parent_ns": 69974900,
+            "candidate_ns": 71473700,
+            "delta_percent": 2.1419108851888247
+          },
+          {
+            "cycle": 4,
+            "parent_ns": 61871500,
+            "candidate_ns": 63552300,
+            "delta_percent": 2.716598110600188
+          },
+          {
+            "cycle": 5,
+            "parent_ns": 62603100,
+            "candidate_ns": 57641100,
+            "delta_percent": -7.926125064094269
+          },
+          {
+            "cycle": 6,
+            "parent_ns": 62664200,
+            "candidate_ns": 57822400,
+            "delta_percent": -7.7265807271137295
+          },
+          {
+            "cycle": 7,
+            "parent_ns": 62989400,
+            "candidate_ns": 59970600,
+            "delta_percent": -4.792552397705007
+          },
+          {
+            "cycle": 8,
+            "parent_ns": 70918200,
+            "candidate_ns": 70610900,
+            "delta_percent": -0.43331613041504013
+          }
+        ]
+      },
+      {
+        "bank": "legal",
+        "order": "PC",
+        "aggregate_percent": -2.997392113620534,
+        "median_pair_percent": -1.985311852819105,
+        "slower_pairs": 2,
+        "raw_pairs": [
+          {
+            "cycle": 0,
+            "parent_ns": 27561400,
+            "candidate_ns": 24834700,
+            "delta_percent": -9.893183945663143
+          },
+          {
+            "cycle": 1,
+            "parent_ns": 26138200,
+            "candidate_ns": 27549200,
+            "delta_percent": 5.398229411359612
+          },
+          {
+            "cycle": 2,
+            "parent_ns": 25599500,
+            "candidate_ns": 24469900,
+            "delta_percent": -4.412586183323897
+          },
+          {
+            "cycle": 3,
+            "parent_ns": 27136700,
+            "candidate_ns": 24787800,
+            "delta_percent": -8.655805606429666
+          },
+          {
+            "cycle": 4,
+            "parent_ns": 25646000,
+            "candidate_ns": 23328100,
+            "delta_percent": -9.038056617016299
+          },
+          {
+            "cycle": 5,
+            "parent_ns": 26058500,
+            "candidate_ns": 25680100,
+            "delta_percent": -1.4521173513440955
+          },
+          {
+            "cycle": 6,
+            "parent_ns": 24046600,
+            "candidate_ns": 23569200,
+            "delta_percent": -1.985311852819105
+          },
+          {
+            "cycle": 7,
+            "parent_ns": 40591900,
+            "candidate_ns": 41258500,
+            "delta_percent": 1.642199552127388
+          },
+          {
+            "cycle": 8,
+            "parent_ns": 33597400,
+            "candidate_ns": 33214100,
+            "delta_percent": -1.1408620905189126
+          }
+        ]
+      },
+      {
+        "bank": "legal",
+        "order": "CP",
+        "aggregate_percent": -9.30884665225189,
+        "median_pair_percent": -2.5781984479818942,
+        "slower_pairs": 4,
+        "raw_pairs": [
+          {
+            "cycle": 0,
+            "parent_ns": 25102800,
+            "candidate_ns": 24455600,
+            "delta_percent": -2.5781984479818942
+          },
+          {
+            "cycle": 1,
+            "parent_ns": 27144400,
+            "candidate_ns": 27621100,
+            "delta_percent": 1.7561633338736504
+          },
+          {
+            "cycle": 2,
+            "parent_ns": 26532300,
+            "candidate_ns": 24171300,
+            "delta_percent": -8.89858775907102
+          },
+          {
+            "cycle": 3,
+            "parent_ns": 24224900,
+            "candidate_ns": 24318500,
+            "delta_percent": 0.3863793039393437
+          },
+          {
+            "cycle": 4,
+            "parent_ns": 24892200,
+            "candidate_ns": 23995800,
+            "delta_percent": -3.6011280642128884
+          },
+          {
+            "cycle": 5,
+            "parent_ns": 24581100,
+            "candidate_ns": 25075700,
+            "delta_percent": 2.0121149989219322
+          },
+          {
+            "cycle": 6,
+            "parent_ns": 40220800,
+            "candidate_ns": 23770200,
+            "delta_percent": -40.900727981541884
+          },
+          {
+            "cycle": 7,
+            "parent_ns": 36480700,
+            "candidate_ns": 37051300,
+            "delta_percent": 1.5641147236758135
+          },
+          {
+            "cycle": 8,
+            "parent_ns": 42070300,
+            "candidate_ns": 35539800,
+            "delta_percent": -15.522827267692406
+          }
+        ]
+      }
+    ],
+    "loss_accounting": {
+      "whole_balanced_workload_losses": 0,
+      "whole_order_aggregate_or_median_losses": 0,
+      "raw_whole_slower_pairs": 17,
+      "raw_whole_pair_total": 60,
+      "raw_local_slower_pairs": 9,
+      "raw_local_pair_total": 36,
+      "quality_or_positive_margin_losses": "None: exact outputs/state. No proxy/listening quality gain claimed.",
+      "retained": "No raw sample/order/outlier or concurrency case removed. DavidCP large22.86% decrease is not attributed to this VQ mechanism; DavidPC nearflat. Magnitude is uncertain under shared concurrent activity.",
+      "prospective_human_approval": "Any measured quality/cost tradeoff may be published with immediate next item remediating every disclosed loss; ultimate zero-negative/betterOFF/everyencoding>=1.5 goals unchanged.",
+      "next_item_if_published": "Owning NLSF speed worker first resolves/remediates all retained raw cost losses (17 whole and9 local slower pairs), preserving their source/order/concurrency epochs; no unrelated work before disposition. No blanket speed or measured global goal completion."
+    },
+    "execution": {
+      "plan": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\PLAN.whole.json",
+      "plan_sha256": "cb58692cbd05ae732fb8721b7636d48d29be6b3324ec1afa8c65682bcdcc93e0",
+      "result": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\EXECUTION.whole.json",
+      "execution_sha256": "961ca0f98aeac54d155cad98ebed26bf1b7f3fd721cca787e61fc0deaa280ecb",
+      "runner_pid": 26636,
+      "tool_session_id": 91656,
+      "new_jobs": 14,
+      "role_new_job_total": 35,
+      "all_terminal_zero_released": true,
+      "own_live_native": false,
+      "cached_parent_compile": {
+        "object": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o",
+        "object_sha256": "3e4682788ae5f187468ef56cadcf3b02f1f01e831df7257392e132720b251b92",
+        "compiled_source_sha256": "bf4ea2267e59905a736c933a083f8fe74054e68f9a400ddaab598141b0bb096a",
+        "current_source_sha256": "bf4ea2267e59905a736c933a083f8fe74054e68f9a400ddaab598141b0bb096a",
+        "all_source_bytes_equal": true,
+        "compiler_argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\src",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\tests",
+          "-DNDEBUG",
+          "-DOpusEncoder=cand_OpusEncoder",
+          "-DOpusDecoder=cand_OpusDecoder",
+          "-Dopus_encoder_create=cand_opus_encoder_create",
+          "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+          "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+          "-Dopus_encode=cand_opus_encode",
+          "-Dopus_encode_float=cand_opus_encode_float",
+          "-Dopus_decoder_create=cand_opus_decoder_create",
+          "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+          "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+          "-Dopus_decode=cand_opus_decode",
+          "-Dopus_decode_float=cand_opus_decode_float",
+          "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+          "-Dopus_strerror=cand_opus_strerror",
+          "-c",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o"
+        ],
+        "compile_lease_receipt": [
+          {
+            "at_utc": "2026-10-11T19:04:42.004202Z",
+            "command": [
+              "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+              "-std=c++23",
+              "-O2",
+              "-DNDEBUG",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\src",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\tests",
+              "-DNDEBUG",
+              "-DOpusEncoder=cand_OpusEncoder",
+              "-DOpusDecoder=cand_OpusDecoder",
+              "-Dopus_encoder_create=cand_opus_encoder_create",
+              "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+              "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+              "-Dopus_encode=cand_opus_encode",
+              "-Dopus_encode_float=cand_opus_encode_float",
+              "-Dopus_decoder_create=cand_opus_decoder_create",
+              "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+              "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+              "-Dopus_decode=cand_opus_decode",
+              "-Dopus_decode_float=cand_opus_decode_float",
+              "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+              "-Dopus_strerror=cand_opus_strerror",
+              "-c",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.cpp",
+              "-o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o"
+            ],
+            "event": "acquired",
+            "guard_pid": 30676,
+            "lock_file": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.lock",
+            "mode": "shared",
+            "tag": "continuous-noise-method13-finalrebase-compile_candidate-20261011T190441900198Z"
+          },
+          {
+            "at_utc": "2026-10-11T19:04:42.012299Z",
+            "child_pid": 29892,
+            "command": [
+              "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+              "-std=c++23",
+              "-O2",
+              "-DNDEBUG",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\src",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\tests",
+              "-DNDEBUG",
+              "-DOpusEncoder=cand_OpusEncoder",
+              "-DOpusDecoder=cand_OpusDecoder",
+              "-Dopus_encoder_create=cand_opus_encoder_create",
+              "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+              "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+              "-Dopus_encode=cand_opus_encode",
+              "-Dopus_encode_float=cand_opus_encode_float",
+              "-Dopus_decoder_create=cand_opus_decoder_create",
+              "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+              "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+              "-Dopus_decode=cand_opus_decode",
+              "-Dopus_decode_float=cand_opus_decode_float",
+              "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+              "-Dopus_strerror=cand_opus_strerror",
+              "-c",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.cpp",
+              "-o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o"
+            ],
+            "event": "child_started",
+            "guard_pid": 30676,
+            "lock_file": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.lock",
+            "mode": "shared",
+            "tag": "continuous-noise-method13-finalrebase-compile_candidate-20261011T190441900198Z"
+          },
+          {
+            "at_utc": "2026-10-11T19:05:02.194161Z",
+            "child_pid": 29892,
+            "command": [
+              "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+              "-std=c++23",
+              "-O2",
+              "-DNDEBUG",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\src",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\tests",
+              "-DNDEBUG",
+              "-DOpusEncoder=cand_OpusEncoder",
+              "-DOpusDecoder=cand_OpusDecoder",
+              "-Dopus_encoder_create=cand_opus_encoder_create",
+              "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+              "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+              "-Dopus_encode=cand_opus_encode",
+              "-Dopus_encode_float=cand_opus_encode_float",
+              "-Dopus_decoder_create=cand_opus_decoder_create",
+              "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+              "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+              "-Dopus_decode=cand_opus_decode",
+              "-Dopus_decode_float=cand_opus_decode_float",
+              "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+              "-Dopus_strerror=cand_opus_strerror",
+              "-c",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.cpp",
+              "-o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o"
+            ],
+            "event": "child_exited",
+            "exit_code": 0,
+            "guard_pid": 30676,
+            "lock_file": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.lock",
+            "mode": "shared",
+            "tag": "continuous-noise-method13-finalrebase-compile_candidate-20261011T190441900198Z"
+          },
+          {
+            "at_utc": "2026-10-11T19:05:02.19487Z",
+            "child_ended_utc": "2026-10-11T19:05:02.194161Z",
+            "child_pid": 29892,
+            "child_started_utc": "2026-10-11T19:04:42.012299Z",
+            "command": [
+              "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+              "-std=c++23",
+              "-O2",
+              "-DNDEBUG",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\src",
+              "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_183c571846bf_20261010\\tests",
+              "-DNDEBUG",
+              "-DOpusEncoder=cand_OpusEncoder",
+              "-DOpusDecoder=cand_OpusDecoder",
+              "-Dopus_encoder_create=cand_opus_encoder_create",
+              "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+              "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+              "-Dopus_encode=cand_opus_encode",
+              "-Dopus_encode_float=cand_opus_encode_float",
+              "-Dopus_decoder_create=cand_opus_decoder_create",
+              "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+              "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+              "-Dopus_decode=cand_opus_decode",
+              "-Dopus_decode_float=cand_opus_decode_float",
+              "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+              "-Dopus_strerror=cand_opus_strerror",
+              "-c",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.cpp",
+              "-o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\noise_quality_continuous\\method13\\rebase8ad\\candidate.o"
+            ],
+            "event": "released",
+            "exit_code": 0,
+            "guard_pid": 30676,
+            "lock_file": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.lock",
+            "mode": "shared",
+            "tag": "continuous-noise-method13-finalrebase-compile_candidate-20261011T190441900198Z",
+            "unlock_error": null,
+            "unlock_ok": true
+          }
+        ],
+        "symbol_aliases": "14 existing ABI exports; cand class/function names mapped to parent class/function names only. Candidate passive decoder-layout helper hashes both byte-equivalent layout contexts; parent helper absent and unused."
+      },
+      "lease_window": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_baa14e1\\LEASE_WINDOW.json",
+      "lease_window_sha256": "ab281b3729921f6611b79330763e6871984c07d422575ab0c5c9da9cdc819ab8",
+      "lease_window_events": 66
+    },
+    "skills_applied": "C++23/cpp-pro/Ponytail: fixed caller geometry, const input/lifetime discipline, ordinary scalar independent products for actual compiler realization; no additional abstraction or runtime constexpr.",
+    "closed_history": [
+      "Method01 RESULT560919: exact/local favorable, DavidCP/HazelCP whole losses, CLOSED not reopened.",
+      "Method02 RESULT54841fa: actual9/512 terms elided with503 tests, CLOSED source-only.",
+      "CONTEXT_RESULT8291c2ed reliability failure preserved; not exhaustion and original clock unchanged."
+    ],
+    "not_checked": "No full OFF benchmark, broad quality suite or new profile; completed qualified minimum not replayed. Root alone decides acceptance/commits/pushes; canonical source/global metadata/peer work untouched.",
+    "goal_met": false
+  },
+  "preceding_proof": {
+    "status": "READY_ACCEPTED_EXACT_NLSF_VQ_COMPOSED_ON_5265c76",
+    "owner": "/root/nlsf_speed_recovered_2",
+    "recorded_utc": "2026-10-11T19:47:23.067004+00:00",
+    "root_accepted_result": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\RESULT.json",
+      "sha256": "33a46babb568a0f57c29efc85f02d0318d1478692c67f84a9bf0cbbbf334b5c5"
+    },
+    "binding": {
+      "base_commit": "5265c76d68371e26734aa3c0172348e94dc5277f",
+      "checked_latest_head": "5265c76d68371e26734aa3c0172348e94dc5277f",
+      "base": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_5265c76\\base.cpp",
+      "base_raw_sha256": "08694d2196e26d6b0175474b0a502f621e782a39ec9ad04964bbf81399993d57",
+      "base_git_normalized_sha256": "08694d2196e26d6b0175474b0a502f621e782a39ec9ad04964bbf81399993d57",
+      "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_5265c76\\candidate.cpp",
+      "candidate_raw_sha256": "8836e5deeed2bf3dc8c0ef12a738c48bde6f55a1faf47bedba78ca7fe8a08c29",
+      "candidate_git_normalized_sha256": "8836e5deeed2bf3dc8c0ef12a738c48bde6f55a1faf47bedba78ca7fe8a08c29",
+      "patch": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\composition_5265c76\\candidate.patch",
+      "patch_sha256": "4c5e457a997b6abc2e1b8f122e4a164ca893eddf80af4fc1eafefd466f2cdbd8",
+      "header": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\src\\opus_codec.h",
+      "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+      "functions_changed": [
+        "silk_NLSF_VQ"
+      ],
+      "net_source_lines": 1
+    },
+    "composition_proof": {
+      "complete_inverse_equals_latest_source_bytes": true,
+      "commutes_with_new_selector_and_equals_prior_baa_candidate": true,
+      "all_latest_source_outside_VQ_bytes_unchanged": true,
+      "selector_only_intervening_codec_change": true,
+      "new_selector_body_bytes_unchanged": true,
+      "common_stereo_DTX_noise_all_retained": true,
+      "original_and_composed_helper_body_sha256": "7acfea6549e6488fb8fb1976b5eba63349e4635594e798a83a1892b15c8ac534",
+      "original_and_latest_base_helper_body_sha256": "3a816417b2d8224b3d5fb13051b19ea68afa8170bc1823dbbdde801f0e3d2b59",
+      "meaning": "Complete inverse replacement returns entire5265 Source, including every landed change. Undoing only5265 selector yields entire exact previousbaa92e390 candidate. No full stale Source replacement is authorized; Root applies this one-function patch."
+    },
+    "math_and_caller_proof": {
+      "full_distance": "Let w[m]=int16(in[m]-(CB[m]<<7))*int16(weight[m]). Original reverse recurrence adds abs(w[m]-(w[m+1]>>1)), with neighbor0 at lasttap. Candidate stores every identical w[m] then sums identical terms in the same reverse order. Initial abs(w[last]) is identical to original0+abs(w[last]-0). Fixed signed right-shift, casts, products, std::abs, every score and tie are unchanged. Integer operations do not alter FENV or errno; no float operations or external mutable state introduced.",
+      "bounds_certificate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method02_bounded_shortlist\\SOURCE_RESULT.json",
+      "bounds_certificate_sha256": "4ea0d9b95ef42da2a4c1aa92ad42fd1a06ecf307ee202d81375befe0650486b0",
+      "legal_domain": "One internal VQ call, inside silk_NLSF_encode, immediately after unchanged stabilizer. Setup assigns only canonicalNB_MB10 orWB16 codebooks and predictLPCOrder=codebook.order;32rows and allweights/codebook/delta tables unchanged. Thus order10/16 fits array16, every readweighted[0..order-1] follows its write, and unused cells are never read.",
+      "overflow_and_alias": "Stabilizer enforces sorted canonical minimum gaps/endpoints for any legal supplied int16 NLSF. Reused convex-domain certificate bounds full nonnegative distance<=602438190 (NB_MB323256644) below INT32_MAX, so terms/prefixes and integer reduction are safe. in_Q15 from caller storage is distinct from local err_Q24 output; immutable CB/weights never alias scratch.",
+      "new_selector": "Selected path runs fullburg->A2NLSF_FLP into same int16 NLSF_Q15[16], setsInterpCoef4, then calls unchanged process_NLSFs_FLP->process_NLSFs->NLSF_encode. Its post-encode interpolation loop reads codedNLSF/updatesprediction but does not call VQ or alter codebook/order/storage. Changed values and Laroiaweights stay inside the all-stabilized-input proof; VQ uses canonicalCB weights, not pW_Q2/survivor/mu. Old branch retains prior finder. The selector introduces no new VQ geometry, alias or domain premise.",
+      "downstream_identity": "Exact complete err_Q24 vector for every proved legal input leaves unchanged shortlist/order/ties/residual preparation/trellis/indices/reconstructedNLSF and caller state/output. Therefore selector remains independent of this refactor for its changed legal inputs; no actual invariant gap requiring Native exists."
+    },
+    "reuse_without_retag": {
+      "minimum_result": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nlsf_speed_continuous\\method03_independent_distance_terms\\MINIMUM_RESULT.json",
+      "minimum_sha256": "2a78f616ef9bb142dbfd49e8efc5ae672ea7fe78f554e206934079e2df4f182d",
+      "132_NLSF_and_8640_packet_21600_decoder_state_4860_capacity": "Remain original25da/92e390 and0ffc/baa epochs, not measured5265 outcomes. Exactness extends by complete legal-domain source proof; completed checks unchanged and not replayed.",
+      "codegen": "Candidate VQ body, primitives, types, tables, caller geometry and compileflags unchanged from existing consumed minimal/monolithic objects; their emitted-code realization and local/whole directional evidence remain historical. No current5265 monolithic codegen-identity or new timing claim is inferred from unchanged source.",
+      "whole_cost": "Historicalbaa DavidPC-.06048%,CP-22.86105%;HazelPC-1.49281%,CP-1.55101%, raw17/60slowpairs and9/36localslowpairs retained in acceptedRESULT. No22.86general magnitude claim or current5265 speed retag.",
+      "all35_native_terminal_zero_released_preserved": true,
+      "new_native_commands": 0,
+      "goal_met": false
+    },
+    "next_item_after_publication": "This same NLSF speed owner first resolves/remediates every actual cost loss from retained17/60whole and9/36local pairs using causal source/order/concurrency evidence, before unrelated work; do not treat noisy individual samples as causal regression or retime unchanged candidate.",
+    "constraints": "PortableC++23/cpp-pro/Ponytail,64logical stackbytes/net+1line,no ABI/callerstorage/search/options/RAWblend/startup/denoiser/license changes. Rootalonecommit/push/globalmetadata; privatefilesonly. No providers,peerpause,profile/audit,sealing or duplicatechecks.",
+    "clock": {
+      "role_start_utc": "2026-10-11T18:16:47.7898476Z",
+      "hard_deadline_utc": "2026-10-12T02:16:47.7898476Z",
+      "reset": false
+    }
+  }
+}
