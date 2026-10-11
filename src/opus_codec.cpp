@@ -16351,8 +16351,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
         model_input[block * (subframe + order) + j] = inverse_gain * static_cast<float>(sample);
       }
     }
-    const float minimum_inverse_gain = model_state.first_frame_after_reset ? 1.f / 1e2f :
-        (1.f / 1e4f) / (0.25f + 0.75f * control->coding_quality);
+    const float minimum_inverse_gain = model_state.first_frame_after_reset ? 1.f / 1e2f : (1.f / 1e4f) / (0.25f + 0.75f * control->coding_quality);
     opus_int16 fitted_nlsf[16]{};
     float fitted_prediction[2][16]{};
     silk_find_LPC_FLP(&model_state, fitted_nlsf, model_input.data(), minimum_inverse_gain, false);
