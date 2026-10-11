@@ -797,7 +797,6 @@ struct packet_frame_set {
 }
 
 static opus_int32 write_packet_frames(packet_frame_set* frames, unsigned char* data, opus_int32 maxlen, int pad);
-static int append_packet_frames(packet_frame_set* frames, const unsigned char* data, opus_int32 len);
 static int encode_size(int size, unsigned char* data) {
   if (size < 252) {
     data[0] = static_cast<unsigned char>(size);
@@ -3332,7 +3331,7 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes, target_bits;
 };
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage);
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr);
 [[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params) -> opus_int32 {
   const int enc_frame_size = st->mode != opus_mode_silk_only ? st->Fs / 50
                              : frame_size == 2 * st->Fs / 25 ? st->Fs / 25
@@ -3386,7 +3385,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     int tmp_len =
         opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits, frame_metrics,
                                  frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
-                                 frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+                                 frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage, &packet_frames);
     if (tmp_len < 0) {
       result = -3;
       break;
@@ -3395,10 +3394,21 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (tmp_len == 1) {
       ++dtx_count;
     }
-    if (append_packet_frames(&packet_frames, curr_data, tmp_len) < 0) {
+    if (packet_frames.nb_frames == 0) {
+      packet_frames.toc = curr_data[0];
+      packet_frames.framesize = ref_opus_packet_get_samples_per_frame(curr_data, 8000);
+    }
+    if (tmp_len < 1 || (packet_frames.toc & 0xFC) != (curr_data[0] & 0xFC) ||
+        (packet_frames.nb_frames + 1) * packet_frames.framesize > 960) {
       result = -3;
       break;
     }
+    if (tmp_len == 1) packet_frames.len[packet_frames.nb_frames] = 0;
+    if (packet_frames.len[packet_frames.nb_frames] < 0 || packet_frames.len[packet_frames.nb_frames] > 1275) {
+      result = -3;
+      break;
+    }
+    ++packet_frames.nb_frames;
     tot_size += tmp_len;
     curr_data += tmp_len;
     local_credit_bits = update_vbr_credit(local_credit_bits, tmp_len, frame_target_bits);
@@ -4069,7 +4079,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   return denoise_handled;
 }
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage) {
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames) {
   if (st->classical_leak.initialized) {
     classical_leak_export(&st->classical_leak, encoder_celt_state(st));
   }
@@ -4204,6 +4214,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       stage_storage.finish_frame(st);
       st->rangeFinal = 0;
       data[-1] = gen_toc(st->mode, frame_rate, curr_bandwidth, st->stream_channels);
+      if (packet_frames != nullptr) {
+        packet_frames->frames[packet_frames->nb_frames] = data;
+        packet_frames->len[packet_frames->nb_frames] = 0;
+      }
       return 1;
     }
     if (st->silk_mode.opusCanSwitch) {
@@ -4370,16 +4384,24 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     for (; ret > 2 && data[ret] == 0; --ret) {}
   }
   ret += 1 + redundancy_bytes;
-  if (!st->use_vbr && ret != orig_max_data_bytes) {
-    if (ret > orig_max_data_bytes || ret > 1276)
-      return -3;
-    packet_frame_set frames;
-    frames.toc = data[0];
-    frames.nb_frames = 1;
-    frames.frames[0] = data + 1;
-    frames.len[0] = static_cast<opus_int16>(ret - 1);
-    if (write_packet_frames(&frames, data, orig_max_data_bytes, true) < 0)
-      return -3;
+  if (packet_frames != nullptr) {
+    packet_frames->frames[packet_frames->nb_frames] = data + 1;
+    packet_frames->len[packet_frames->nb_frames] = static_cast<opus_int16>(ret - 1);
+  }
+  if (!st->use_vbr) {
+    if (ret != orig_max_data_bytes) {
+      if (ret > orig_max_data_bytes || ret > 1276)
+        return -3;
+      if (packet_frames == nullptr) {
+        packet_frame_set frames;
+        frames.toc = data[0];
+        frames.nb_frames = 1;
+        frames.frames[0] = data + 1;
+        frames.len[0] = static_cast<opus_int16>(ret - 1);
+        if (write_packet_frames(&frames, data, orig_max_data_bytes, true) < 0)
+          return -3;
+      }
+    }
     ret = orig_max_data_bytes;
   }
   return ret;
@@ -4657,25 +4679,6 @@ static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_e
   st->variable_HP_smth2_Q15 = silk_log_60_q15;
   st->audio_preprocess_mode = audio_preprocess_music;
   st->audio_preprocess_hold = audio_preprocess_warmup_frames;
-}
-
-static int append_packet_frames(packet_frame_set* packet_frames, const unsigned char* data, opus_int32 len) {
-  if (len < 1) {
-    return -4;
-  }
-  if (packet_frames->nb_frames == 0) {
-    packet_frames->toc = data[0];
-    packet_frames->framesize = ref_opus_packet_get_samples_per_frame(data, 8000);
-  } else if ((packet_frames->toc & 0xFC) != (data[0] & 0xFC)) {
-    return -4;
-  }
-  const int ret = ref_opus_packet_parse_impl(data, len, packet_frames->frames.data() + packet_frames->nb_frames,
-                                             packet_frames->len.data() + packet_frames->nb_frames, nullptr);
-  if (ret < 1 || (ret + packet_frames->nb_frames) * packet_frames->framesize > 960) {
-    return -4;
-  }
-  packet_frames->nb_frames += ret;
-  return 0;
 }
 
 static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned char* data, opus_int32 maxlen, int pad) {

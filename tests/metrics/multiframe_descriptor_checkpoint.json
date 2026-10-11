@@ -1,0 +1,32 @@
+{
+  "status": "EXACT_MULTIFRAME_NATIVE_DESCRIPTOR_CONSOLIDATION_WITH_PREEXISTING_VBR_FAILURE",
+  "qualified_base_commit": "8b9c35408a89bc3000d871fcfc64b74ca282b703",
+  "qualified_base_source_sha256": "d4ee61257664dcf3121530d69668cc0ab8833f9327c695dbe86ca30b77d0fd30",
+  "integration_base": "df85b251b2a7af556069a5ce7a6c7e399583e370",
+  "candidate_source_sha256": "423fe0a68381d01e5c0e50ef4c515d91a23623445fec71438555adabc60c15dd",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "rebased_patch_sha256": "3cf3cc34981ed2b9fef8b54f576371c9c818352461e8bfab51763d1221630290",
+  "ready_result_sha256": "eacc5eae5e27aabb9f2756b61e18cc02ab9e2aed9bb8066e7f3917b7a20dae13",
+  "rebase_proof_sha256": "46e2c75eccd364484629d7ba83b1bc63f9c68f6f917b6798f294c79174217db5",
+  "implementation": "Native fills raw single-frame payload pointer/length in the existing caller-owned packet_frame_set. Multiframe consumes this instead of reparsing each emitted fragment; intermediate CBR header/padding writer is omitted and only the final public packet is framed. Original logical padded CBR size remains returned to every budget/credit/cursor calculation. Single-frame caller uses null descriptor and preserves published8b9 padding. Remove complete append_packet_frames helper.",
+  "qualified_checks": {
+    "sequential_encoder_pairs": 8640,
+    "decoder_output_state_pairs": 21600,
+    "capacity_encoder_pairs": 4860,
+    "counted_paired_calls": 26460,
+    "counted_success": 26430,
+    "counted_errors": 30,
+    "coverage": "All5 rates,C1/C2,VOIP/AUDIO/LOWDELAY;20/40/60/80/100/120ms across CBR/VBR and bothDTX+FEC profiles, sequential mode/bitrate/silence/loss/FEC continuation. Full encoded buffer/length/final range and decoded output/redzones/defined Opus/SILK/CELT/CNG/PLC/resampler state/errno/FENV flags exact. Plus9 duration geometries\u00d718tiny/255/510/large capacity/errors/ranges/redzones perrate/channel/app.",
+    "existing_packet_fixture": "Unchanged packet_duration_behavior=PASS",
+    "parent": "Exactpublished d4 cachedobject from prior qualified padding candidate, link-symbol aliases only, original source/objects/map/runtime bound; no parent rebuild or staleSource18 baseline.",
+    "rounding_limit": "Default rounding execution only; byte/integer framing changed, all DSP arithmetic/calls retained.",
+    "VBR_budget_fixture": "FAIL_PRESERVED_PREEXISTING_CRITERION; not labeled pass, not waived, no budget correction attempted."
+  },
+  "limitations": [
+    "Exact intermediate packet dataflow elimination; no wholeencoder speed, binary/memory saving, quality improvement or1.5x claim.",
+    "Existing VBR criterion failure disclosed and preserved; qualified same first output/range proves no new change, not that the global criterion is satisfied.",
+    "No extra fullbenchmark/OFF replay/parserqualification/provider/helper/global metadata or Git/Source publication edit. Root alone accepts/publishes latestBASE+DIFF."
+  ],
+  "full_measurement_remains": "7888cb5/source18a79,published5958f9a; no whole-speed or quality gain claim",
+  "default_rounding_scope": "Integer/byte framing changes; DSP arithmetic and calls preserved; no all-four-rounding execution claim"
+}
