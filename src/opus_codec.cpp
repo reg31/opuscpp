@@ -1166,7 +1166,7 @@ struct silk_encoder_state {
   std::array<opus_int8, 3> VAD_flags;
   SideInfoIndices indices;
   int nFramesPerPacket, nFramesEncoded;
-  opus_int8 first_frame_after_reset, useCBR, prefillFlag, nChannelsInternal, ec_prevSignalType;
+  opus_int8 first_frame_after_reset, useCBR, prefillFlag, nChannelsInternal, ec_prevSignalType, dtx_omitted;
   opus_int16 ec_prevLagIndex;
   silk_resampler_state_struct resampler_state;
 };
@@ -3331,7 +3331,7 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes, target_bits;
 };
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr);
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr);
 [[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params) -> opus_int32 {
   const int enc_frame_size = st->mode != opus_mode_silk_only ? st->Fs / 50
                              : frame_size == 2 * st->Fs / 25 ? st->Fs / 25
@@ -3385,7 +3385,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     int tmp_len =
         opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits, frame_metrics,
                                  frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
-                                 frame_index < nb_frames - 1, emit_dtx && st->mode == opus_mode_hybrid, stage_storage, &packet_frames);
+                                 frame_index < nb_frames - 1, emit_dtx, stage_storage, &packet_frames);
     if (tmp_len < 0) {
       result = -3;
       break;
@@ -3443,7 +3443,7 @@ template <std::size_t Capacity>
   const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
   auto ret =
       opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, frame_metrics, params.redundancy,
-                               params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx && st->mode == opus_mode_hybrid, stage_storage);
+                               params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx, stage_storage);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
@@ -4080,10 +4080,11 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   return denoise_handled;
 }
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool skip_celt_for_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames) {
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames) {
   if (st->classical_leak.initialized) {
     classical_leak_export(&st->classical_leak, encoder_celt_state(st));
   }
+  const bool skip_celt_for_dtx = emit_dtx && st->mode == opus_mode_hybrid;
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
   ec_enc enc;
@@ -4201,6 +4202,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       if (!silk_Encode(silk_enc, &st->silk_mode, stage_storage.active.data(), st->encoder_buffer, nullptr, &zero, prefill))
         return OPUS_ALLOC_FAIL;
       st->silk_mode.opusCanSwitch = 0;
+    }
+    const auto channels = silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc));
+    for (int channel = 0; channel < st->channels; ++channel) {
+      auto& omission = channels[channel].sCmn.dtx_omitted;
+      if (emit_dtx || omission)
+        omission = static_cast<opus_int8>((omission & 1) | (emit_dtx ? 2 : 0));
     }
     if (!silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0))
       return OPUS_ALLOC_FAIL;
@@ -17491,6 +17498,12 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         nsq_samples[sample] = static_cast<opus_int16>(float2int(x_frame[sample]));
     }
     silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
+    const bool receiver_expands_prediction = psEnc->sCmn.dtx_omitted == 1;
+    if (receiver_expands_prediction) {
+      const int first_prediction = psEnc->sCmn.indices.NLSFInterpCoef_Q2 == 4 ? 1 : 0;
+      for (int row = first_prediction; row < 2; ++row)
+        silk_bwexpander(prepared.prediction.data() + row * 16, static_cast<std::size_t>(psEnc->sCmn.predictLPCOrder), 63570);
+    }
     const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
     SideInfoIndices lbrr_original_indices;
     std::array<float, 4> lbrr_original_gains;
@@ -17633,6 +17646,8 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       }
     }
     if (lbrr_deferred_generate) {
+      if (receiver_expands_prediction)
+        silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
       std::copy_n(lbrr_original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), sEncCtrl.Gains);
       sEncCtrl.Lambda = lbrr_original_lambda;
       const opus_int16* lbrr_samples = nsq_samples.data();
@@ -17646,6 +17661,8 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
                          use_reconstructed_lbrr_target && lbrr_samples != nsq_samples.data());
     }
     silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
+    if (psEnc->sCmn.dtx_omitted)
+      psEnc->sCmn.dtx_omitted = static_cast<opus_int8>((psEnc->sCmn.dtx_omitted & 2) | (psEnc->sCmn.dtx_omitted >> 1));
   }
   psEnc->x_buf.commit(input_buffer + 1, frame, history);
   if (psEnc->sCmn.prefillFlag) {
