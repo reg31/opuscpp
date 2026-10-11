@@ -6119,7 +6119,9 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       tf_res[len - 1] = cost0 < cost1 ? 0 : 1;
       for (int i = len - 2; i >= 0; --i)
         tf_res[i] = tf_res[i + 1] == 1 ? path1[i + 1] : path0[i + 1];
-      const int changed = std::any_of(tf_res, tf_res + len, [](int value) { return value != 0; });
+      const int changed = std::any_of(tf_res, tf_res + len, [](int value) {
+        return value != 0;
+      });
       const int selector_cost = tf_select_table[LM][4 * isTransient + changed] != tf_select_table[LM][4 * isTransient + 2 + changed];
       const double cost = std::min(cost0, cost1) + selector_cost;
       if (cost < best_cost) {
