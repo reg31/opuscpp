@@ -5982,38 +5982,56 @@ static void compute_mdcts(int shortBlocks, celt_sig* in, celt_sig* out, int C, i
   }
 }
 
-static opus_val32 l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias) {
-  opus_val32 L1 = 0;
-  for (int i = 0; i < N; i++)
+static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, const celt_norm* side = nullptr) {
+  opus_val32 L1 = 0, side_L1 = 0;
+  for (int i = 0; i < N; i++) {
     L1 += std::fabs(tmp[i]);
+    if (side != nullptr)
+      side_L1 += std::fabs(side[i]);
+  }
   L1 += LM * bias * L1;
+  if (side != nullptr) {
+    side_L1 += LM * bias * side_L1;
+    return L1 == 0 || side_L1 == 0 ? static_cast<double>(L1) + side_L1 : static_cast<double>(L1) * side_L1;
+  }
   return L1;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance) {
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> metric;
   std::array<int, celt_default_nb_ebands> path0, path1;
-  std::array<celt_norm, celt_max_band_samples> tmp, tmp_1;
+  std::array<celt_norm, celt_max_band_samples> tmp, tmp_1, tmp_side, tmp_side_1;
   int selcost[2];
   int tf_select = 0;
   for (int i = 0; i < len; i++) {
     int k, N;
     int narrow;
-    opus_val32 L1, best_L1;
+    double L1, best_L1;
     int best_level = 0;
     N = (eBands[i + 1] - eBands[i]) << LM;
     narrow = (eBands[i + 1] - eBands[i]) == 1;
     if (N <= 0)
       continue;
-    copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
-    L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias);
+    const bool coupled = i < coupled_end;
+    if (coupled) {
+      copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
+      copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
+      stereo_split(tmp.data(), tmp_side.data(), N);
+    } else {
+      copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
+    }
+    L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias, coupled ? tmp_side.data() : nullptr);
     best_L1 = L1;
     if (isTransient && !narrow) {
       copy_n_items(tmp.data(), static_cast<std::size_t>(N), tmp_1.data());
       haar1(tmp_1.data(), N >> LM, 1 << LM);
-      L1 = l1_metric(tmp_1.data(), N, LM + 1, bias);
+      if (coupled) {
+        copy_n_items(tmp_side.data(), static_cast<std::size_t>(N), tmp_side_1.data());
+        haar1(tmp_side_1.data(), N >> LM, 1 << LM);
+      }
+      L1 = l1_metric(tmp_1.data(), N, LM + 1, bias, coupled ? tmp_side_1.data() : nullptr);
       if (L1 < best_L1) {
         best_L1 = L1;
         best_level = -1;
@@ -6022,7 +6040,9 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     for (k = 0; k < LM + !(isTransient || narrow); k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
       haar1(tmp.data(), N >> k, 1 << k);
-      L1 = l1_metric(tmp.data(), N, B, bias);
+      if (coupled)
+        haar1(tmp_side.data(), N >> k, 1 << k);
+      L1 = l1_metric(tmp.data(), N, B, bias, coupled ? tmp_side.data() : nullptr);
       if (L1 < best_L1) {
         best_L1 = L1;
         best_level = k + 1;
@@ -7259,11 +7279,26 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   }
   auto* X = freq;
 
+  bool empty_channel[2] = {
+      C == 2 && std::all_of(bandE + start, bandE + end, [](float v) {
+        return v < 1e-10f;
+      }),
+      C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end, [](float v) {
+        return v < 1e-10f;
+      })};
+  if (empty_channel[0] == empty_channel[1]) {
+    empty_channel[0] = false;
+    empty_channel[1] = false;
+  }
+  const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N) : 0;
+  const int analyzed_intensity = C == 2 ? std::clamp(hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds,
+      stereo_intensity_table.hysteresis, st->intensity), start, end) : 0;
+  const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
   const bool enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
   int tf_select = 0;
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data());
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end);
   } else if (hybrid && weak_transient) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
@@ -7276,17 +7311,6 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
   const auto noise_covariance = celt_estimate_noise_covariance_parameter(st, bandE, bandLogE, LM, shortBlocks);
-  bool empty_channel[2] = {
-      C == 2 && std::all_of(bandE + start, bandE + end, [](float v) {
-        return v < 1e-10f;
-      }),
-      C == 2 && std::all_of(bandE + celt_default_nb_ebands + start, bandE + celt_default_nb_ebands + end, [](float v) {
-        return v < 1e-10f;
-      })};
-  if (empty_channel[0] == empty_channel[1]) {
-    empty_channel[0] = false;
-    empty_channel[1] = false;
-  }
   auto* error = bandLogE2;
   for_each_celt_band(st, [&](int index) {
     if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
@@ -7322,11 +7346,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   dual_stereo = 0;
   if (C == 2) {
     if (LM != 0) {
-      dual_stereo = stereo_analysis(X, LM, N);
+      dual_stereo = analyzed_dual_stereo;
     }
-    st->intensity =
-        hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds, stereo_intensity_table.hysteresis, st->intensity);
-    st->intensity = std::clamp(st->intensity, start, end);
+    st->intensity = analyzed_intensity;
     if (empty_channel[0] != empty_channel[1] || common_source) {
       st->intensity = start;
       dual_stereo = 0;
