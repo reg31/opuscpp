@@ -1488,12 +1488,19 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
   return celt_ret < 0 ? celt_ret : audiosize;
 }
 
-static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
+constexpr int opus_decode_fast_unavailable = -1000000;
+static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec, opus_int16* pcm16 = nullptr) {
   if (decode_fec < 0 || decode_fec > 1) {
     return -1;
   }
   if ((decode_fec || len == 0 || data == nullptr) && frame_size % (st->Fs / 400) != 0) {
     return -1;
+  }
+  bool direct = !decode_fec && data != nullptr && len > 1 && opus_packet_get_mode(data) == opus_mode_celt_only &&
+                st->Fs == 48000 && (pcm != nullptr || pcm16 != nullptr) &&
+                !(st->prev_mode > 0 && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy);
+  if (pcm16 != nullptr && !direct) {
+    return opus_decode_fast_unavailable;
   }
   if (len == 0 || data == nullptr) {
     int pcm_count = 0;
@@ -1544,68 +1551,46 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
   if (frame_count * packet_frame_size > frame_size) {
     return -2;
   }
+  direct = direct && std::all_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
+    return length > 1;
+  });
+  if (pcm16 != nullptr && !direct) {
+    return opus_decode_fast_unavailable;
+  }
   decoder_apply_packet_state(st, packet_mode, packet_bandwidth, packet_frame_size, packet_stream_channels);
+  auto* celt_dec = decoder_celt_state(st);
+  if (direct) {
+    if (packet_bandwidth) {
+      celt_dec->end = bandwidth_to_endband(packet_bandwidth);
+    }
+    celt_dec->stream_channels = packet_stream_channels;
+    celt_dec->start = 0;
+  }
   int nb_samples = 0;
   for (int i = 0; i < frame_count; i++) {
-    int ret = opus_decode_frame(st, data, frame_lengths[i], pcm + nb_samples * st->channels, frame_size - nb_samples, 0);
+    int ret;
+    if (direct) {
+      ec_dec dec;
+      ec_dec_init(&dec, const_cast<unsigned char*>(data), static_cast<opus_uint32>(frame_lengths[i]));
+      const int sample_offset = nb_samples * st->channels;
+      ret = celt_decode_with_ec(celt_dec, data, frame_lengths[i], pcm != nullptr ? pcm + sample_offset : nullptr,
+                                packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr);
+    } else {
+      ret = opus_decode_frame(st, data, frame_lengths[i], pcm + nb_samples * st->channels, frame_size - nb_samples, 0);
+    }
     if (ret < 0) {
       return ret;
+    }
+    if (direct) {
+      st->rangeFinal = celt_dec->rng;
     }
     data += frame_lengths[i];
     nb_samples += ret;
   }
-  st->last_packet_duration = nb_samples;
-  return nb_samples;
-}
-
-constexpr int opus_decode_fast_unavailable = -1000000;
-static int decode_native_direct_fast(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, opus_int16* pcm16,
-                                     int frame_size, int decode_fec) {
-  if (decode_fec || data == nullptr || len <= 1 || opus_packet_get_mode(data) != opus_mode_celt_only) {
-    return opus_decode_fast_unavailable;
+  if (direct) {
+    st->prev_mode = opus_mode_celt_only;
+    st->prev_redundancy = 0;
   }
-  if (st->Fs != 48000 || (pcm == nullptr && pcm16 == nullptr) ||
-      (st->prev_mode > 0 && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy)) {
-    return opus_decode_fast_unavailable;
-  }
-  const int packet_bandwidth = ref_opus_packet_get_bandwidth(data);
-  const int packet_frame_size = ref_opus_packet_get_samples_per_frame(data, st->Fs);
-  const int packet_stream_channels = (data[0] & 0x4) != 0 ? 2 : 1;
-  std::array<opus_int16, 48> frame_lengths;
-  int payload_offset;
-  const int frame_count = ref_opus_packet_parse_impl(data, len, nullptr, frame_lengths.data(), &payload_offset);
-  if (frame_count < 0 || frame_count * packet_frame_size > frame_size) {
-    return opus_decode_fast_unavailable;
-  }
-  if (std::any_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
-        return length <= 1;
-      })) {
-    return opus_decode_fast_unavailable;
-  }
-  decoder_apply_packet_state(st, opus_mode_celt_only, packet_bandwidth, packet_frame_size, packet_stream_channels);
-  auto* celt_dec = decoder_celt_state(st);
-  if (packet_bandwidth) {
-    celt_dec->end = bandwidth_to_endband(packet_bandwidth);
-  }
-  celt_dec->stream_channels = packet_stream_channels;
-  celt_dec->start = 0;
-  data += payload_offset;
-  int nb_samples = 0;
-  for (int index = 0; index < frame_count; ++index) {
-    ec_dec dec;
-    ec_dec_init(&dec, const_cast<unsigned char*>(data), static_cast<opus_uint32>(frame_lengths[index]));
-    const int sample_offset = nb_samples * st->channels;
-    const int decoded_samples = celt_decode_with_ec(celt_dec, data, frame_lengths[index], pcm != nullptr ? pcm + sample_offset : nullptr,
-                                                    packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr);
-    if (decoded_samples < 0) {
-      return decoded_samples;
-    }
-    st->rangeFinal = celt_dec->rng;
-    data += frame_lengths[index];
-    nb_samples += decoded_samples;
-  }
-  st->prev_mode = opus_mode_celt_only;
-  st->prev_redundancy = 0;
   st->last_packet_duration = nb_samples;
   return nb_samples;
 }
@@ -1629,10 +1614,9 @@ static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int
     return -1;
   }
   if constexpr (std::same_as<Sample, float>) {
-    const int fast_ret = decode_native_direct_fast(st, data, len, pcm, nullptr, frame_size, decode_fec);
-    return fast_ret != opus_decode_fast_unavailable ? fast_ret : decode_native(st, data, len, pcm, frame_size, decode_fec);
+    return decode_native(st, data, len, pcm, frame_size, decode_fec);
   } else {
-    const int fast_ret = decode_native_direct_fast(st, data, len, nullptr, pcm, frame_size, decode_fec);
+    const int fast_ret = decode_native(st, data, len, nullptr, frame_size, decode_fec, pcm);
     if (fast_ret != opus_decode_fast_unavailable) {
       return fast_ret;
     }

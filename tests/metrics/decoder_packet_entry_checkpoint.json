@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "status": "READY_EXACT_DECODER_PACKET_ENTRY_CONSOLIDATION_NO_SPEED_CLAIM",
+  "validated_parent_commit": "8676dd84d98c696419987f9b90b175930526c20b",
+  "integration_parent_commit": "5b8a6f629b345fd22bc885b8d5fe3c0d67a3eb89",
+  "validated_parent_source_sha256": "d7ca76c8ca14cfdb7c091d1027b07b63d901d2faee3d181b3f94c4e4757a9304",
+  "integration_parent_source_sha256": "e8b1a6d2c1184b213a30ce836c14d19ad067478fc6bfaf8f4b6a9a1a69ded14c",
+  "candidate_source_sha256": "18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "ready_sha256": "734dcb1a3ec81252823243dc2b000ebecc7bb07ae08567ab061668d814fbbece",
+  "rebase_proof_sha256": "f74545084b687150fd62156ba9221e0d0bec3910514f009713df75685d10ee43",
+  "formatter_equivalence": "Whole-source tokens equivalent; parser and consumer byte-identical; no tests repeated.",
+  "implementation": "Merge the complete standalone direct-CELT packet parse/setup/frame-control path into decode_native. One shared parser and normal packet frame loop preserve direct float/PCM16 versus generic frame operations and their distinct state commit points. Remove the old private entry; existing PCM16 fallback storage remains the only conversion fallback.",
+  "structural_change": {
+    "runtime_work_scope": "Ordinary successful direct packets still need one parse and every original frame decode. Malformed/capacity/short-frame float/direct probes no longer need a second common parse before returning the same error or entering generic dispatch; source-level control elimination only, not a measured instruction/speed result.",
+    "added_lines": 41,
+    "removed_lines": 57,
+    "whole_encoder_gain_claim": false,
+    "net_lines": -16,
+    "removed_complete_algorithm": "One standalone decoder packet-dispatch entry including repeated packet metadata/parser/capacity validation and frame traversal source."
+  },
+  "checks": {
+    "malformed": "12 concrete code0/1/2/3 packet/capacity/FEC/negative-length cases across Fs8/48,C1/C2,float/int16 outputs and state continuation.",
+    "paired_observable_identity": "16274 parent/candidate decoder calls exact: return, complete output/redzones, all defined Opus/SILK/CELT/CNG/PLC/resampler persistent state, errno and FENV flags. Pointer addresses, padding and uninitialized temporary storage excluded.",
+    "generated": "5400 packets from unchanged exactd7ca cached encoder. Existing decoder-history input pattern: Fs8/12/16/24/48k,C1/C2,VOIP/AUDIO/LOWDELAY,2.5/10/20/60/120ms,CBR/VBR/DTX+FEC/loss options, sequential mode/bitrate/silence/loss/continuation.",
+    "rounding_limit": "Native guard used default rounding with FENV/errno comparison. No all-four-rounding execution claim; unchanged DSP expression/calls and integer control proof preserve the rounding contract.",
+    "existing_affected_fixture": "Unchanged packet_duration_behavior.cpp: packet_duration_behavior=PASS.",
+    "speed_quality_limit": "No new timing, scorer, independent OFF or full-suite certification. Covered quality/margins preserve exact decoded values; global goal remains NOT_MET.",
+    "real_saved": "Actual qualified currentd7ca C1 600 records and C2 601 records including inactive continuation; both output formats, every decoded sample/state comparison exact. Gold/runtime/input hashes in PLAN.initial.",
+    "reuse": "Cached exactd7ca source/object candidate_contiguous.o e71b4176fbc0031f3fa27269a35219a1e845579a23be6bcf0eb3841537621a91 reused; no parent rebuild or OFF replay."
+  },
+  "terminal_failure_and_resume": {
+    "resume_status": "complete",
+    "actual_cause": "Private real() footer incorrectly expected600 C2 records; actual qualified whole C2 input has601 including inactive continuation. stderr empty; both EOF markers printed only after all preceding comparisons returned true.",
+    "failed_job_preserved": true,
+    "repair": "Only expected C2 fixture count repaired. Footer/input/source-control qualification ran under SHARED and returned0; completed codec comparisons and compile/link were not repeated. Remaining existing fixture link/run resumed once using passed candidate object.",
+    "initial_exit": 1,
+    "initial_status": "failed at guard footer after all paired comparisons completed",
+    "all_native_exit0": false,
+    "resume_runner_pid": 36100,
+    "initial_session": 68322,
+    "initial_runner_pid": 31780
+  },
+  "acceptance_limit": "Root alone decides if this complete packet-control consolidation meets requested structural scope and integrates BASE+DIFF after latest source comparison. Net16 lines is reported honestly; no1.5x, runtime, quality improvement, binary/memory gain or full-goal completion claim.",
+  "checks_skipped": [
+    "repeat of completed identity calls",
+    "baseline rebuild",
+    "new OFF/quality/full suite",
+    "whole timing/codegen profiling"
+  ],
+  "goal_complete": false
+}
