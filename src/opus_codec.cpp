@@ -7069,6 +7069,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   int tf_chan = 0;
   bool weak_transient = false;
   bool input_release = false;
+  bool common_source = false;
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
@@ -7141,6 +7142,8 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     }
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
                                       toneishness, tf_estimate, input_metrics.abs_sum, freq);
+    common_source = C == 2 && CC == 2 &&
+                    std::memcmp(in, in + N + overlap, static_cast<std::size_t>(N + overlap) * sizeof(celt_sig)) == 0;
     constexpr int forward_scratch_offset = celt_max_channels * (celt_max_frame_samples + 2 * celt_default_nb_ebands);
     static_assert(forward_scratch_offset + celt_max_frame_samples <= celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period));
     auto* forward_scratch = freq + forward_scratch_offset;
@@ -7154,7 +7157,10 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     auto* second_mdct_bandE = freq + N * CC;
     auto* second_mdct_bandLogE = second_mdct_bandE + nbEBands * CC;
     if (second_mdct) {
-      compute_mdcts(0, in, freq, C, CC, LM, st->upsample, forward_scratch);
+      compute_mdcts(0, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
+      if (common_source) {
+        copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
+      }
       compute_band_energies_and_normalise<false>(freq, second_mdct_bandE, second_mdct_bandLogE, start, end, C, LM);
       for (int c = 0; c < C; ++c) {
         for (int i = 0; i < end; ++i) {
@@ -7162,7 +7168,10 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
         }
       }
     }
-    compute_mdcts(shortBlocks, in, freq, C, CC, LM, st->upsample, forward_scratch);
+    compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
+    if (common_source) {
+      copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
+    }
     if (CC == 2 && C == 1) {
       tf_chan = 0;
     }
@@ -7269,7 +7278,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     st->intensity =
         hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds, stereo_intensity_table.hysteresis, st->intensity);
     st->intensity = std::clamp(st->intensity, start, end);
-    if (empty_channel[0] != empty_channel[1]) {
+    if (empty_channel[0] != empty_channel[1] || common_source) {
       st->intensity = start;
       dual_stereo = 0;
     }
