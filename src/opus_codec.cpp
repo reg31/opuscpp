@@ -9047,13 +9047,17 @@ template <int N, int Radix, int M, bool ScaleInput = false> static void stockham
       };
       for (int k = 0; k < M; ++k) {
         const kiss_fft_cpx zero = [&] {
-          if constexpr (ScaleInput) return kiss_fft_cpx{source[(k)] * st->scale, source[(N + k)] * st->scale};
-          else return kiss_fft_cpx{source[(k)], source[(N + k)]};
+          if constexpr (ScaleInput)
+            return kiss_fft_cpx{source[(k)] * st->scale, source[(N + k)] * st->scale};
+          else
+            return kiss_fft_cpx{source[(k)], source[(N + k)]};
         }();
         const auto load = [&]<int Lane>() {
           const kiss_fft_cpx value = [&] {
-            if constexpr (ScaleInput) return kiss_fft_cpx{source[(k + layout.input[Lane])] * st->scale, source[(N + k + layout.input[Lane])] * st->scale};
-            else return kiss_fft_cpx{source[(k + layout.input[Lane])], source[(N + k + layout.input[Lane])]};
+            if constexpr (ScaleInput)
+              return kiss_fft_cpx{source[(k + layout.input[Lane])] * st->scale, source[(N + k + layout.input[Lane])] * st->scale};
+            else
+              return kiss_fft_cpx{source[(k + layout.input[Lane])], source[(N + k + layout.input[Lane])]};
           }();
           if constexpr (M == 1)
             return value;
@@ -9133,11 +9137,16 @@ template <int N, bool ScaleInput = true> static float* stockham_scaled_soa(const
 
 static float* stockham_forward_soa(float* data, float* scratch, const kiss_fft_state* st) {
   switch (st->nfft) {
-  case 60: return stockham_scaled_soa<60, false>(data, data, scratch, st);
-  case 120: return stockham_scaled_soa<120, false>(data, data, scratch, st);
-  case 240: return stockham_scaled_soa<240, false>(data, data, scratch, st);
-  case 480: return stockham_scaled_soa<480, false>(data, data, scratch, st);
-  default: return nullptr;
+  case 60:
+    return stockham_scaled_soa<60, false>(data, data, scratch, st);
+  case 120:
+    return stockham_scaled_soa<120, false>(data, data, scratch, st);
+  case 240:
+    return stockham_scaled_soa<240, false>(data, data, scratch, st);
+  case 480:
+    return stockham_scaled_soa<480, false>(data, data, scratch, st);
+  default:
+    return nullptr;
   }
 }
 
@@ -9256,10 +9265,13 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
   const int N2 = N >> 1;
   const int N4 = N >> 2;
   std::array<kiss_fft_cpx, CallerScratch || Stockham480 ? 0 : celt_max_frame_samples / 2> fft_storage;
-  std::array<float, !Stockham480 || (CallerScratch && Fixed20ms) ? 0 : CallerScratch ? celt_max_frame_samples / 2 : celt_max_frame_samples> stockham_storage;
+  std::array<float, !Stockham480 || (CallerScratch && Fixed20ms) ? 0 : CallerScratch ? celt_max_frame_samples / 2
+                                                                                     : celt_max_frame_samples>
+      stockham_storage;
   auto* f2 = Stockham480 ? nullptr : Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out)
                                                : fft_storage.data();
-  auto* stockham_input = Fixed20ms ? out : CallerScratch ? forward_scratch : stockham_storage.data();
+  auto* stockham_input = Fixed20ms ? out : CallerScratch ? forward_scratch
+                                                         : stockham_storage.data();
   const auto prerotate = [&](int i, float re, float im) {
     const auto t0 = trig[i], t1 = trig[N4 + i];
     if constexpr (Stockham480) {
@@ -9291,9 +9303,12 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
   }
   auto* transformed = out;
   if constexpr (Stockham480) {
-    auto* scratch = CallerScratch ? (Fixed20ms ? forward_scratch : stockham_storage.data()) : Fixed20ms ? stockham_storage.data() : stockham_input + N2;
-    if constexpr (Fixed20ms) transformed = stockham_scaled_soa<480, false>(stockham_input, stockham_input, scratch, st);
-    else transformed = stockham_forward_soa(stockham_input, scratch, st);
+    auto* scratch = CallerScratch ? (Fixed20ms ? forward_scratch : stockham_storage.data()) : Fixed20ms ? stockham_storage.data()
+                                                                                                        : stockham_input + N2;
+    if constexpr (Fixed20ms)
+      transformed = stockham_scaled_soa<480, false>(stockham_input, stockham_input, scratch, st);
+    else
+      transformed = stockham_forward_soa(stockham_input, scratch, st);
   } else {
     fft_impl(st, f2);
   }
@@ -9371,11 +9386,11 @@ static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels
       const float x1 = input[channel][2 * index * stride];
       const float x2 = input[channel][(length - 1 - 2 * index) * stride];
       if constexpr (NaturalFloat) {
-          work[channel][mapped] = x1 * t0 - x2 * t1;
-          work[channel][half + mapped] = x2 * t0 + x1 * t1;
-        } else {
-          work[channel][mapped] = {x1 * t0 - x2 * t1, x2 * t0 + x1 * t1};
-        }
+        work[channel][mapped] = x1 * t0 - x2 * t1;
+        work[channel][half + mapped] = x2 * t0 + x1 * t1;
+      } else {
+        work[channel][mapped] = {x1 * t0 - x2 * t1, x2 * t0 + x1 * t1};
+      }
     }
   }
   for (; index < half; ++index) {
@@ -9384,11 +9399,11 @@ static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels
     for (std::size_t channel = 0; channel < Channels; ++channel) {
       const float x2 = input[channel][(length - 1 - 2 * index) * stride];
       if constexpr (NaturalFloat) {
-          work[channel][mapped] = 0.0f - x2 * t1;
-          work[channel][half + mapped] = x2 * t0 + (-0.0f);
-        } else {
-          work[channel][mapped] = {0.0f - x2 * t1, x2 * t0 + (-0.0f)};
-        }
+        work[channel][mapped] = 0.0f - x2 * t1;
+        work[channel][half + mapped] = x2 * t0 + (-0.0f);
+      } else {
+        work[channel][mapped] = {0.0f - x2 * t1, x2 * t0 + (-0.0f)};
+      }
     }
   }
 }
@@ -9430,10 +9445,10 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   int position = 0;
   for (int i = 0; i < (N4 + 1) >> 1; ++i) {
     const auto first = StockhamShort ? kiss_fft_cpx{stockham_result[i], stockham_result[N4 + i]}
-                                   : transformed[Fixed20ms ? 32 * position + (i & 31) : i];
+                                     : transformed[Fixed20ms ? 32 * position + (i & 31) : i];
     const int mirror = N4 - i - 1;
     const auto last = StockhamShort ? kiss_fft_cpx{stockham_result[mirror], stockham_result[N4 + mirror]}
-                                  : transformed[Fixed20ms ? 32 * (14 - position) + ((31 - i) & 31) : mirror];
+                                    : transformed[Fixed20ms ? 32 * (14 - position) + ((31 - i) & 31) : mirror];
     float t0 = trig[i];
     float t1 = trig[N4 + i];
     yp0[0] = first.i * t0 + first.r * t1;
