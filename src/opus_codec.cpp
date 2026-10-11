@@ -17288,7 +17288,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   if (select_coded_interpolation) {
     float prediction[16]{};
     silk_burg_modified_FLP(prediction, LPC_in_pre, minInvGain, psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder,
-                            psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, nullptr, nullptr);
+                           psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, nullptr, nullptr);
     silk_A2NLSF_FLP(NLSF_Q15, prediction, psEnc->sCmn.predictLPCOrder);
     psEnc->sCmn.indices.NLSFInterpCoef_Q2 = 4;
   } else {
