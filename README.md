@@ -59,19 +59,19 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Full tables use production source `7888cb5` (SHA-256 `18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4`) and pinned official Opus `503d81b`. Both use `-O2 -DNDEBUG`; official Opus uses x86 intrinsics. Measurements were made on Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS. AUDIO speed ratios are medians of nine 60-second stereo runs; values above `1.00x` mean faster. Quality and effective-bitrate rows use the six-second complexity-10 validation. See [complete metrics and raw results](tests/metrics/README.md) and the [run metadata](tests/metrics/run_metadata.json).
+Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.941x | 1.878x | +0.0022 | -0.0045 | 17.032 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.003x | 1.361x | +0.0233 | +0.0182 | 25.247 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 0.989x | 1.388x | +0.0524 | -0.0039 | 33.464 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.040x | 1.297x | +0.1992 | +0.0260 | 48.560 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.054x | 1.295x | +0.2926 | +0.0234 | 64.613 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.126x | 1.149x | +0.2818 | +0.0160 | 96.720 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 1.068x | 1.254x | +0.1593 | +0.0052 | 128.827 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.026x | 1.332x | +0.0693 | +0.0048 | 193.033 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 0.981x | 1.156x | +0.0342 | +0.0029 | 256.528 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 0.991x | 1.778x | +0.0022 | -0.0045 | 17.032 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.000x | 1.352x | +0.0233 | +0.0182 | 25.247 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 1.017x | 1.280x | +0.0524 | -0.0039 | 33.464 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.054x | 1.181x | +0.1992 | +0.0260 | 48.560 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.065x | 1.236x | +0.2926 | +0.0234 | 64.613 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.107x | 1.124x | +0.2818 | +0.0160 | 96.720 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.029x | 1.181x | +0.1593 | +0.0052 | 128.827 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.007x | 1.217x | +0.0693 | +0.0048 | 193.033 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 0.970x | 1.175x | +0.0342 | +0.0029 | 256.528 kbps | 256.737 kbps |
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
@@ -87,7 +87,6 @@ VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixtur
 | 192&nbsp;kbps | +1.0997 | +0.0054 | 192.400 kbps | 192.472 kbps |
 | 256&nbsp;kbps | +1.1014 | +0.0056 | 256.400 kbps | 256.464 kbps |
 
-Mode-selection check at 32&nbsp;kbps mono: the separate detector speech-like signal selected CELT for 12.0% of frames, hybrid for 88.0% and SILK for 0.0%. The harmonic/music signal selected CELT for 94.3%, hybrid for 5.7% and SILK for 0.0%. These fresh distributions are in [mode metadata](tests/metrics/mode_balance_metrics.json). Restricted-lowdelay is a CELT-only API contract; this detector run does not measure its mode distribution. Fresh restricted-lowdelay duration/lookahead behavior is covered by [API validation](tests/metrics/compatibility_validation.json).
 
 ## Memory snapshot
 
@@ -96,13 +95,13 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
 | Encoder mono | 19,776 B | 31,856 B | -37.9% |
-| Encoder stereo | 30,000 B | 48,880 B | -38.6% |
-| Decoder mono | 8,432 B | 18,480 B | -54.4% |
-| Decoder stereo | 17,584 B | 27,104 B | -35.1% |
+| Encoder stereo | 30,016 B | 48,880 B | -38.6% |
+| Decoder mono | 8,432 B | 18,464 B | -54.3% |
+| Decoder stereo | 17,600 B | 27,088 B | -35.0% |
 
 ## Compatibility coverage
 
-The pinned official Opus reference is `503d81b138d76621aae4b12786e90de48aa8db3a`. Coverage includes 24 RFC 8251 decode vectors and 96 encode-interoperability cases. Build and run instructions are in [`tests/README.md`](tests/README.md); detailed results are in [`tests/metrics/README.md`](tests/metrics/README.md).
+[Build and run instructions](tests/README.md) · [Detailed metrics](tests/metrics/README.md).
 
 ## License
 

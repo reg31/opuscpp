@@ -1,12 +1,15 @@
 # Complete production metrics
 
-Measured production source: `7888cb5defb589d1af1564dbbbe6ffb09a4caab7`; official Opus: `503d81b138d76621aae4b12786e90de48aa8db3a`. Both use `-O2 -DNDEBUG`; official enables x86 intrinsics. The complete metric tables below retain all measured fields.
+Measured: `8ad34261f364ddd440ab2b2c5d0718fd5ffadaa3`; pinned official Opus: `503d81b138d76621aae4b12786e90de48aa8db3a`.
 
-## Quality: every metric
+## Quality
 
-Coverage: 498 parity cases (5,976 comparisons; 848 fields below official) and a separate 806-run publication suite with complexity-9/10 controls, broader content, postfilter and denoiser cases.
+| Suite | Cases | Fields | Below official |
+|---|---:|---:|---:|
+| Matrix | 498 | 12 | 849 |
+| Publication | 806 | 12 | 1158 |
 
-| Metric | Better direction | Below official / 498 parity cases | Below official / 806 publication cases |
+| Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
 |---|---|---:|---:|
 | snr_db | Higher | 19 | 12 |
 | segmental_snr_db | Higher | 16 | 6 |
@@ -14,96 +17,113 @@ Coverage: 498 parity cases (5,976 comparisons; 848 fields below official) and a 
 | mean_abs_error | Lower | 17 | 5 |
 | pesq_style | Higher | 18 | 7 |
 | visqol_style | Higher | 69 | 106 |
-| logband_corr | Higher | 68 | 121 |
+| logband_corr | Higher | 69 | 121 |
 | logband_error | Lower | 75 | 110 |
 | celt_quality | Higher | 136 | 229 |
 | celt_masked_error | Lower | 136 | 229 |
-| celt_highband_error | Lower | 244 | 301 |
-| stereo_width_error | Lower | 31 | 20 |
+| celt_highband_error | Lower | 245 | 301 |
+| stereo_width_error | Lower | 30 | 20 |
 
-Full current/official values and both raw and direction-adjusted deltas: [498-case matrix](production_quality_matrix.csv), [806-run suite](production_quality_published.csv), [headline controls](quality_official_full_precision.csv). The tables retain packet counts, average packet bytes and effective payload rates. Denoiser values are in [broader denoising](voice_denoise_broad.csv) and [boundary rates](voice_denoise_boundary.csv).
+[Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
 
-## Speed, payload rate and processing costs
+## Speed and processing costs
 
-Speed uses nine repetitions on one logical CPU; decode timings use identical official packets.
+| Workload | Encode ratios | Decode ratios |
+|---|---:|---:|
+| AUDIO | 0.97x to 1.11x | 1.12x to 1.78x |
 
-AUDIO encode ratios: 0.94x to 1.13x; decode: 1.15x to 1.88x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+[Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
-
-[Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the CSV.
-
-[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans -3.603228% to +7.640371%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans -3.6% to 7.6%. Raw timing samples are in [run metadata](run_metadata.json).
+[PCM16 processing](postfilter_pcm16_path.csv) · [Postfilter quality](postfilter_quality_voip.csv) · [Denoiser timing](voice_denoise_timing.csv) · [Raw timing samples](run_metadata.json).
 
 ## Memory and object size
-
-Median of three fresh processes, 256 instances each; FEC and denoising disabled. Private and working-set columns are bytes per instance.
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 19776 | 19808 | Not exposed |
 | official_encoder_ch1 | 31856 | 31904 | 31668 |
 | current_decoder_ch1 | 8432 | 8304 | Not exposed |
-| official_decoder_ch1 | 18480 | 18576 | 18468 |
-| current_encoder_ch2 | 30000 | 29872 | Not exposed |
+| official_decoder_ch1 | 18464 | 18592 | 18468 |
+| current_encoder_ch2 | 30016 | 29872 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17584 | 16240 | Not exposed |
-| official_decoder_ch2 | 27104 | 27264 | 27236 |
+| current_decoder_ch2 | 17600 | 16224 | Not exposed |
+| official_decoder_ch2 | 27088 | 27264 | 27236 |
 
-[Memory CSV](memory_vs_official.csv). Optional denoiser state: 68 bytes.
+[Memory data](memory_vs_official.csv).
+
+| State | Bytes |
+|---|---:|
+| Optional denoiser | 68 |
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 407612 | 0 | 0 | 407612 |
-| android | 405072 | 472 | 0 | 405544 |
+| host | 409328 | 0 | 0 | 409328 |
+| android | 405348 | 472 | 0 | 405820 |
 
-[Binary-size CSV](binary_size.csv).
+[Object-size data](binary_size.csv).
 
 ## FEC and DTX
 
-FEC strict source gate: FAIL ; separate scored recovery comparison: 17/18 ratios at or below official, maximum 1.043700. Standard interop gate: FAIL; source-quality counts are C1 18/18, C2 18/18, C3 17/18, C4 18/18. For the scored18-case 10/20ms subset, recovery-error ratio is0.525017 and packet-byte ratio0.993345; backup coverage is18/18 for opuscpp versus15/18 for official. Expanded coverage is36 configurations/72 direction rows; strict and standard scopes are separate.
-
-[Every FEC direction field](fec_interop_metrics.csv) includes decoder/continuation errors, recovered-to-PLC difference, recovery/PLC error, packet bytes and hashes. [Every source comparison](fec_source_metrics.json) includes fidelity_fec, next_fec, transition_fec, fidelity_ref, next_ref, transition_ref, fidelity_plc, self_consistency, step_fec and step_ref, for both codecs. [Strict ratios and complete output](fec_run_metadata.json).
-
-DTX aggregate fields (individual material losses remain in the CSV):
-
-| Field | Value |
+| FEC metric | Value |
 |---|---:|
-| dtx_comparison | FAIL |
+| Strict source comparison | FAIL |
+| Standard interoperability comparison | FAIL |
+| Scored recovery wins | 17/18 |
+| Maximum recovery-error ratio | 1.043700 |
+| Recovery-error ratio | 0.525017 |
+| Packet-byte ratio | 0.993345 |
+| Backup coverage: opuscpp | 18/18 |
+| Backup coverage: official | 15/18 |
+| Configurations | 36 |
+| Direction rows | 72 |
+| C1 | 18/18 |
+| C2 | 18/18 |
+| C3 | 17/18 |
+| C4 | 18/18 |
+
+[FEC direction fields](fec_interop_metrics.csv) · [Source comparisons](fec_source_metrics.json) · [Ratios and raw output](fec_run_metadata.json).
+
+| DTX field | Value |
+|---|---:|
+| dtx_comparison | PASS |
 | false_positive_opuscpp | 0 |
 | false_positive_official | 0 |
-| reentry_nrmse_opuscpp | 0.441649 |
+| reentry_nrmse_opuscpp | 0.319632 |
 | reentry_nrmse_official | 0.762239 |
-| reentry_gain_db_opuscpp | 1.655960 |
+| reentry_gain_db_opuscpp | 0.381246 |
 | reentry_gain_db_official | 1.646307 |
 | silence_dtx_opuscpp | 406 |
 | silence_dtx_official | 406 |
 | steady_noise_dtx_opuscpp | 120 |
 | steady_noise_dtx_official | 0 |
 
-[All DTX false-positive and re-entry measurements](dtx_metrics.csv) and the [acceptance record](dtx_acceptance.json).
+[DTX fields](dtx_metrics.csv).
 
-## Fresh compatibility and API checks
+## Compatibility
 
-Source `7888cb5defb589d1af1564dbbbe6ffb09a4caab7` against official `503d81b138d76621aae4b12786e90de48aa8db3a`: RFC 8251 decode24/24, encode interoperability96/96. API checks are in [compatibility validation](compatibility_validation.json).
+| Measurement | Result |
+|---|---:|
+| RFC 8251 decode configurations | 24/24 |
+| Encode interoperability cases | 96/96 |
+
+[API and compatibility data](compatibility_validation.json).
 
 ## Mode selection
 
-```text
-speech_like,silk_pct=0.0,hybrid_pct=88.0,celt_pct=12.0
-harmonic_music,silk_pct=0.0,hybrid_pct=5.7,celt_pct=94.3
-```
+| Signal | silk_pct | hybrid_pct | celt_pct |
+|---|---:|---:|---:|
+| speech_like | 0.0 | 88.0 | 12.0 |
+| harmonic_music | 0.0 | 5.7 | 94.3 |
 
-Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentages are retained in [mode metadata](mode_balance_metrics.json).
+[Mode data](mode_balance_metrics.json).
 
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=20.9733 decode_ms=21.0013 checksum=340886119
-mono-high bytes=115 encode_ms=23.7052 decode_ms=19.4503 checksum=2633358364
-stereo-mid bytes=102 encode_ms=85.4287 decode_ms=29.8384 checksum=3294895434
-stereo-high bytes=147 encode_ms=94.0953 decode_ms=34.4784 checksum=1997488960
+mono-mid bytes=76 encode_ms=20.673 decode_ms=20.6688 checksum=340886119
+mono-high bytes=115 encode_ms=22.1245 decode_ms=20.5134 checksum=2633358364
+stereo-mid bytes=102 encode_ms=86.1837 decode_ms=29.5203 checksum=3294895434
+stereo-high bytes=147 encode_ms=89.6993 decode_ms=30.9324 checksum=1997488960
 ```
 
-
-WER/CER: not measured; no configured ASR engine/transcript manifest. No result is inferred from the quality proxies. No sanitizer run was made. Per-commit optimization timings, NSQ work counters, `quality_history_*.csv`, observer/reference-reuse experiments and `voice_denoise_vs_previous.csv` remain historical. Current measurements do not overwrite their provenance.
-
+[Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
