@@ -6649,7 +6649,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
         for (int i = 0; i < N; ++i) {
           const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
           const double target = x[i] - (1 - fade) * st->prefilter_gain *
-              (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+                                           (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
           const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
           cross += target * predictor;
           power += predictor * predictor;
