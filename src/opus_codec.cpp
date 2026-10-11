@@ -3403,7 +3403,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       result = -3;
       break;
     }
-    if (tmp_len == 1) packet_frames.len[packet_frames.nb_frames] = 0;
+    if (tmp_len == 1)
+      packet_frames.len[packet_frames.nb_frames] = 0;
     if (packet_frames.len[packet_frames.nb_frames] < 0 || packet_frames.len[packet_frames.nb_frames] > 1275) {
       result = -3;
       break;
