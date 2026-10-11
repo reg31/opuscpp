@@ -1,0 +1,508 @@
+{
+  "schema_version": 1,
+  "status": "READY_SCOPED_UNIFIED_STOCKHAM_FFT_STEP",
+  "base_commit": "700bfbc99c761951761dc44d3dcee88ff0cdc875",
+  "base_source_sha256": "2b634bdd0aa61430cb301d7dbcf684f9d7284f8cdc9d926bfe8198bbee2ad0d2",
+  "candidate_source_sha256": "d7ca76c8ca14cfdb7c091d1027b07b63d901d2faee3d181b3f94c4e4757a9304",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
+  "result_sha256": "b24e91b789e55c6a7091fde6819632ed09c72f01cf6622e2ec73787384c11cc9",
+  "patch_sha256": "9e60d9beb44e2fd098abb5d459f9d7f7c8e710aff30c746de36e0f4fa6439316",
+  "implementation": "Oneportable planarfloat Stockham60/120/240/480 fixedmixedradixfamily withconstevalindex/permutation/layout checks andexisting480twiddlegrid. Radix3/5sameproductionmath; no newtable/runtimeplan/heap/intrinsics/flags/reassociation/quality/options. FirstR4 appliesoldfloatnormalizationperoperand withoutseparatecopy; classicalreusesoriginaltwo3840Bbanks andpreservesallphase/BFCC/24NNstates/consumers. MDCT480replacementqualifiedall4rounds/float4bytealignment beforeoldinterleaved480retirement. Shortforwardusesexistingreservedfreq+2004callerScratch +ONE1920Blocalbank; allstagescontiguous/nooutputscatter/duplicateStrideprograms. Shortinverse1920Bscratchnecessarybecausefrequencyinputcontainsfuturestridedblocks. KISSrounding/alias/unsupportedfallbacks+480inversePFA/pitchretained; no liveoutput/statepruning.",
+  "whole_results": [
+    {
+      "case": "audio32",
+      "parent_encode_ms": 197.5945,
+      "candidate_encode_ms": 188.9539,
+      "encode_time_change_pct": -4.372894994546916,
+      "orders": {
+        "PC": {
+          "pairs": 4,
+          "median_encode_change_pct": -7.107054073698359,
+          "slower_pairs": 0
+        },
+        "CP": {
+          "pairs": 5,
+          "median_encode_change_pct": -3.7596819593042285,
+          "slower_pairs": 2
+        }
+      },
+      "all_raw_rows": [
+        {
+          "run": 0,
+          "order": "CP",
+          "candidate_ms": 235.6916,
+          "parent_ms": 259.7235,
+          "candidate_decode_ms": 45.3054,
+          "parent_decode_ms": 50.9433,
+          "encode_change_pct": -9.25287854198793,
+          "decode_change_pct": -11.067009793240723
+        },
+        {
+          "run": 1,
+          "order": "PC",
+          "candidate_ms": 190.5421,
+          "parent_ms": 220.9252,
+          "candidate_decode_ms": 38.848,
+          "parent_decode_ms": 40.9877,
+          "encode_change_pct": -13.752663797520604,
+          "decode_change_pct": -5.22034659178241
+        },
+        {
+          "run": 2,
+          "order": "CP",
+          "candidate_ms": 200.9217,
+          "parent_ms": 193.6902,
+          "candidate_decode_ms": 39.639,
+          "parent_decode_ms": 40.9586,
+          "encode_change_pct": 3.7335394356554863,
+          "decode_change_pct": -3.2217898072687934
+        },
+        {
+          "run": 3,
+          "order": "PC",
+          "candidate_ms": 185.1089,
+          "parent_ms": 196.38,
+          "candidate_decode_ms": 39.0385,
+          "parent_decode_ms": 39.156,
+          "encode_change_pct": -5.739433750891121,
+          "decode_change_pct": -0.3000817243845155
+        },
+        {
+          "run": 4,
+          "order": "CP",
+          "candidate_ms": 186.7224,
+          "parent_ms": 197.5945,
+          "candidate_decode_ms": 38.9131,
+          "parent_decode_ms": 44.3343,
+          "encode_change_pct": -5.50222804784547,
+          "decode_change_pct": -12.228004051039488
+        },
+        {
+          "run": 5,
+          "order": "PC",
+          "candidate_ms": 183.386,
+          "parent_ms": 200.3664,
+          "candidate_decode_ms": 39.1136,
+          "parent_decode_ms": 39.088,
+          "encode_change_pct": -8.474674396505598,
+          "decode_change_pct": 0.06549324600899631
+        },
+        {
+          "run": 6,
+          "order": "CP",
+          "candidate_ms": 184.5641,
+          "parent_ms": 191.7742,
+          "candidate_decode_ms": 38.9498,
+          "parent_decode_ms": 39.0544,
+          "encode_change_pct": -3.7596819593042285,
+          "decode_change_pct": -0.2678315375476248
+        },
+        {
+          "run": 7,
+          "order": "PC",
+          "candidate_ms": 188.9539,
+          "parent_ms": 197.571,
+          "candidate_decode_ms": 41.6309,
+          "parent_decode_ms": 38.9331,
+          "encode_change_pct": -4.361520668519159,
+          "decode_change_pct": 6.9293223503907875
+        },
+        {
+          "run": 8,
+          "order": "CP",
+          "candidate_ms": 200.9128,
+          "parent_ms": 200.7155,
+          "candidate_decode_ms": 41.2512,
+          "parent_decode_ms": 39.251,
+          "encode_change_pct": 0.09829833769690044,
+          "decode_change_pct": 5.095921123028702
+        }
+      ],
+      "slower_pairs": 2
+    },
+    {
+      "case": "natural20",
+      "parent_encode_ms": 75.6385,
+      "candidate_encode_ms": 72.8814,
+      "encode_time_change_pct": -3.645101370333881,
+      "orders": {
+        "PC": {
+          "pairs": 4,
+          "median_encode_change_pct": -4.858771532189577,
+          "slower_pairs": 0
+        },
+        "CP": {
+          "pairs": 5,
+          "median_encode_change_pct": -1.8469364870734473,
+          "slower_pairs": 2
+        }
+      },
+      "all_raw_rows": [
+        {
+          "run": 0,
+          "order": "CP",
+          "candidate_ms": 71.4342,
+          "parent_ms": 73.2943,
+          "candidate_decode_ms": 15.186,
+          "parent_decode_ms": 15.9315,
+          "encode_change_pct": -2.537850828782051,
+          "decode_change_pct": -4.679408718576406
+        },
+        {
+          "run": 1,
+          "order": "PC",
+          "candidate_ms": 81.1541,
+          "parent_ms": 82.543,
+          "candidate_decode_ms": 18.1125,
+          "parent_decode_ms": 16.9665,
+          "encode_change_pct": -1.6826381401209178,
+          "decode_change_pct": 6.754486782777835
+        },
+        {
+          "run": 2,
+          "order": "CP",
+          "candidate_ms": 84.0598,
+          "parent_ms": 77.8871,
+          "candidate_decode_ms": 16.1996,
+          "parent_decode_ms": 15.6318,
+          "encode_change_pct": 7.925189151990497,
+          "decode_change_pct": 3.632339205977564
+        },
+        {
+          "run": 3,
+          "order": "PC",
+          "candidate_ms": 72.8814,
+          "parent_ms": 75.6385,
+          "candidate_decode_ms": 15.2427,
+          "parent_decode_ms": 15.2197,
+          "encode_change_pct": -3.645101370333881,
+          "decode_change_pct": 0.1511199300906041
+        },
+        {
+          "run": 4,
+          "order": "CP",
+          "candidate_ms": 71.9845,
+          "parent_ms": 81.2374,
+          "candidate_decode_ms": 16.4761,
+          "parent_decode_ms": 16.4408,
+          "encode_change_pct": -11.389950933929438,
+          "decode_change_pct": 0.21470974648434282
+        },
+        {
+          "run": 5,
+          "order": "PC",
+          "candidate_ms": 75.6305,
+          "parent_ms": 88.1578,
+          "candidate_decode_ms": 17.3424,
+          "parent_decode_ms": 16.7494,
+          "encode_change_pct": -14.210086912332198,
+          "decode_change_pct": 3.540425328668495
+        },
+        {
+          "run": 6,
+          "order": "CP",
+          "candidate_ms": 82.3495,
+          "parent_ms": 72.8695,
+          "candidate_decode_ms": 16.5671,
+          "parent_decode_ms": 14.5195,
+          "encode_change_pct": 13.009558182778802,
+          "decode_change_pct": 14.102413994972274
+        },
+        {
+          "run": 7,
+          "order": "PC",
+          "candidate_ms": 69.5001,
+          "parent_ms": 73.9933,
+          "candidate_decode_ms": 14.5965,
+          "parent_decode_ms": 15.051,
+          "encode_change_pct": -6.072441694045272,
+          "decode_change_pct": -3.019732908112416
+        },
+        {
+          "run": 8,
+          "order": "CP",
+          "candidate_ms": 69.1506,
+          "parent_ms": 70.4518,
+          "candidate_decode_ms": 15.8387,
+          "parent_decode_ms": 14.4782,
+          "encode_change_pct": -1.8469364870734473,
+          "decode_change_pct": 9.396886353275956
+        }
+      ],
+      "slower_pairs": 2
+    },
+    {
+      "case": "natural10",
+      "parent_encode_ms": 72.7959,
+      "candidate_encode_ms": 70.8226,
+      "encode_time_change_pct": -2.710729587792726,
+      "orders": {
+        "PC": {
+          "pairs": 4,
+          "median_encode_change_pct": -1.673898570506266,
+          "slower_pairs": 0
+        },
+        "CP": {
+          "pairs": 5,
+          "median_encode_change_pct": -1.3340419134459935,
+          "slower_pairs": 1
+        }
+      },
+      "all_raw_rows": [
+        {
+          "run": 0,
+          "order": "CP",
+          "candidate_ms": 71.4591,
+          "parent_ms": 78.8661,
+          "candidate_decode_ms": 16.1846,
+          "parent_decode_ms": 16.3821,
+          "encode_change_pct": -9.391867988907777,
+          "decode_change_pct": -1.205584143669014
+        },
+        {
+          "run": 1,
+          "order": "PC",
+          "candidate_ms": 73.0437,
+          "parent_ms": 73.7776,
+          "candidate_decode_ms": 15.5875,
+          "parent_decode_ms": 16.2113,
+          "encode_change_pct": -0.9947463728828376,
+          "decode_change_pct": -3.847933231758105
+        },
+        {
+          "run": 2,
+          "order": "CP",
+          "candidate_ms": 70.6021,
+          "parent_ms": 73.2712,
+          "candidate_decode_ms": 15.5829,
+          "parent_decode_ms": 15.5716,
+          "encode_change_pct": -3.642768236360261,
+          "decode_change_pct": 0.07256800842558864
+        },
+        {
+          "run": 3,
+          "order": "PC",
+          "candidate_ms": 70.8226,
+          "parent_ms": 71.907,
+          "candidate_decode_ms": 15.6399,
+          "parent_decode_ms": 15.5228,
+          "encode_change_pct": -1.5080590206794975,
+          "decode_change_pct": 0.7543742108382601
+        },
+        {
+          "run": 4,
+          "order": "CP",
+          "candidate_ms": 70.5506,
+          "parent_ms": 71.5045,
+          "candidate_decode_ms": 15.6506,
+          "parent_decode_ms": 15.4425,
+          "encode_change_pct": -1.3340419134459935,
+          "decode_change_pct": 1.3475797312611393
+        },
+        {
+          "run": 5,
+          "order": "PC",
+          "candidate_ms": 70.408,
+          "parent_ms": 71.7276,
+          "candidate_decode_ms": 15.6147,
+          "parent_decode_ms": 15.576,
+          "encode_change_pct": -1.8397381203330343,
+          "decode_change_pct": 0.24845916795068756
+        },
+        {
+          "run": 6,
+          "order": "CP",
+          "candidate_ms": 77.6532,
+          "parent_ms": 72.7959,
+          "candidate_decode_ms": 17.5677,
+          "parent_decode_ms": 15.4775,
+          "encode_change_pct": 6.672491170519201,
+          "decode_change_pct": 13.504764981424655
+        },
+        {
+          "run": 7,
+          "order": "PC",
+          "candidate_ms": 71.1932,
+          "parent_ms": 75.4964,
+          "candidate_decode_ms": 15.555,
+          "parent_decode_ms": 18.131,
+          "encode_change_pct": -5.699874431098683,
+          "decode_change_pct": -14.207710550990015
+        },
+        {
+          "run": 8,
+          "order": "CP",
+          "candidate_ms": 70.7042,
+          "parent_ms": 71.1808,
+          "candidate_decode_ms": 15.5266,
+          "parent_decode_ms": 15.4643,
+          "encode_change_pct": -0.6695625786729109,
+          "decode_change_pct": 0.4028633691793404
+        }
+      ],
+      "slower_pairs": 1
+    },
+    {
+      "case": "natural5",
+      "parent_encode_ms": 84.0755,
+      "candidate_encode_ms": 83.3273,
+      "encode_time_change_pct": -0.8899144221562905,
+      "orders": {
+        "PC": {
+          "pairs": 4,
+          "median_encode_change_pct": -0.4836411174046762,
+          "slower_pairs": 1
+        },
+        "CP": {
+          "pairs": 5,
+          "median_encode_change_pct": 1.8198303446593345,
+          "slower_pairs": 3
+        }
+      },
+      "all_raw_rows": [
+        {
+          "run": 0,
+          "order": "CP",
+          "candidate_ms": 83.2626,
+          "parent_ms": 83.7855,
+          "candidate_decode_ms": 17.0912,
+          "parent_decode_ms": 17.3483,
+          "encode_change_pct": -0.6240936677587294,
+          "decode_change_pct": -1.4819895897580593
+        },
+        {
+          "run": 1,
+          "order": "PC",
+          "candidate_ms": 83.3273,
+          "parent_ms": 83.4186,
+          "candidate_decode_ms": 18.9973,
+          "parent_decode_ms": 17.3254,
+          "encode_change_pct": -0.10944801279331173,
+          "decode_change_pct": 9.649993650940235
+        },
+        {
+          "run": 2,
+          "order": "CP",
+          "candidate_ms": 89.5482,
+          "parent_ms": 86.0383,
+          "candidate_decode_ms": 18.3075,
+          "parent_decode_ms": 18.0553,
+          "encode_change_pct": 4.079462285981927,
+          "decode_change_pct": 1.3968197703721374
+        },
+        {
+          "run": 3,
+          "order": "PC",
+          "candidate_ms": 83.1314,
+          "parent_ms": 83.8507,
+          "candidate_decode_ms": 17.1254,
+          "parent_decode_ms": 17.3861,
+          "encode_change_pct": -0.8578342220160406,
+          "decode_change_pct": -1.4994737175099693
+        },
+        {
+          "run": 4,
+          "order": "CP",
+          "candidate_ms": 99.9805,
+          "parent_ms": 83.4627,
+          "candidate_decode_ms": 17.6391,
+          "parent_decode_ms": 17.9808,
+          "encode_change_pct": 19.79063701509778,
+          "decode_change_pct": -1.900360384410038
+        },
+        {
+          "run": 5,
+          "order": "PC",
+          "candidate_ms": 83.0876,
+          "parent_ms": 87.6966,
+          "candidate_decode_ms": 17.0954,
+          "parent_decode_ms": 17.5927,
+          "encode_change_pct": -5.255619944216772,
+          "decode_change_pct": -2.826740636741376
+        },
+        {
+          "run": 6,
+          "order": "CP",
+          "candidate_ms": 86.8067,
+          "parent_ms": 85.2552,
+          "candidate_decode_ms": 18.2923,
+          "parent_decode_ms": 17.4538,
+          "encode_change_pct": 1.8198303446593345,
+          "decode_change_pct": 4.804111425592139
+        },
+        {
+          "run": 7,
+          "order": "PC",
+          "candidate_ms": 84.4905,
+          "parent_ms": 84.0755,
+          "candidate_decode_ms": 17.6931,
+          "parent_decode_ms": 17.3523,
+          "encode_change_pct": 0.493603963104583,
+          "decode_change_pct": 1.9640047717017328
+        },
+        {
+          "run": 8,
+          "order": "CP",
+          "candidate_ms": 82.6829,
+          "parent_ms": 85.3317,
+          "candidate_decode_ms": 17.2259,
+          "parent_decode_ms": 20.1716,
+          "encode_change_pct": -3.104121914833524,
+          "decode_change_pct": -14.60320450534416
+        }
+      ],
+      "slower_pairs": 4
+    }
+  ],
+  "coverage_limit": "5msorder-mixed: PCpairedmedian-0.4836%, CP+1.8198%,4/9slower; ratioofmedians-0.8899%. No robust5msgainclaim. Codecstep4.37%primary32/3.65%natural20/2.71%natural10 byratioofmedians; global>=1.5eachcase/qualitygoalNOTMET.",
+  "qualified_checks": {
+    "real_dependency": "8064MDCT+2520actualcompute_mdctsproducer comparisons/all4rounds/strides1,2,3,4,7,8,16/physical-codedchannels/up1,2,3,4,6/transient/livefreq+metadataholes/input-output/redzones/FENV/errnoexact.",
+    "FFT": "Qualified288scaled/unscaledall4/72independentDFT with64epsilonL1+healthydenormfloor, and320rawexceptionalkernel cases. OriginalSoAmath/addressingunchanged afterremovingconstantstride1/deadwrappers; artifactsreused, notretimed.",
+    "classical": "59840framepairs/3733definedstatewords/24recurrentstates/coldwarmringwrap/all4FENV/errno/inputredzones exact; no padding/uninitializedhashes. OriginalSoAanalyzermath/consumerbodyretained, samefixed480program directcall; passedartifacts+actualwholepacketidentity reused.",
+    "actual_local_direction": "All72PC/CPpairsactualCallerScratchfullMDCTfaster:480~21.8%,240~13.4–15.2%,120~10.9–11.4%,60~13.1–13.9%. Directiononly, notwholeprojection.",
+    "public_float_contract": "240nonfiniteinputs rejectedbeforeDSP plus360posterrorcontinuations/legallargefinite/subnormalcases C1/C2/5,10,20ms/all4rounds exactpacket/buffer/range/FENV/errno. Source2809sumofsquares and3485reject guard unchanged.",
+    "C1": {
+      ".packets": {
+        "parent": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_parent.packets",
+        "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_candidate_contiguous.packets",
+        "sha256": "cc89c64b620e9c2cd66c42477dfd88126d1d14356054adf013512ebd6ec8cff1",
+        "bytes": 195079
+      },
+      ".f32": {
+        "parent": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_parent.f32",
+        "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_candidate_contiguous.f32",
+        "sha256": "6d735b6e9ed99d101184f77b899802b5322c1d98d40c443b6d8d69c27a37593f",
+        "bytes": 2304000
+      },
+      ".ranges": {
+        "parent": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_parent.ranges",
+        "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_candidate_contiguous.ranges",
+        "sha256": "8962cc008bdbccc8fc03189c20ce6dbf2b6bec302cfa3fa43cef4d7c04aeb45e",
+        "bytes": 4800
+      },
+      ".plc.f32": {
+        "parent": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_parent.plc.f32",
+        "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\c1_candidate_contiguous.plc.f32",
+        "sha256": "c31d8745b2e2d05c6a069567b02efe4708c705007b4999469105285bdc9fae49",
+        "bytes": 3840
+      }
+    },
+    "C2_OFF": "All4saved700C2wire/goldreplays counts/ranges/PCM/PLC finite; newparent/candidate/goldPCMbitexact, OFFranges0differences. CurrentOFFmax<=3.57628e-7/RMS<=2.13587e-8; PLCbaselineOFFerrors unchanged incl5msmax1.56727e-4/RMS4.51834e-5. No new tolerance orOFFparitywaiver.",
+    "affected_quality": "Matchedcompletepacket/decodedPCM/stateidentity preservesdeterministiccoveredqualityvalues/positive margins. No806x12fullrefresh/newqualityimprovementclaim."
+  },
+  "nonfinite_private_probe": {
+    "failed_execution": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\EXECUTION.final_guard.json",
+    "failed_sha256": "556574f87a6bedf4b02cd8cc6d30102269d9f72cef017e877d3704f5fea7a4e3",
+    "terminal_exit": 3,
+    "at_utc": "2026-10-11T13:31:38.096354+01:00",
+    "context": "PrivateMDCT480Infinity/nearest/aligned probe mismatch afterall8064+2520legalprefix; no privateinfiniteprimitivebitidentityclaim.",
+    "diagnostic": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\unified_fft_stockham_313_20261011\\EXECUTION.nonfinite_diagnostic.json",
+    "diagnostic_sha256": "fde4ab4307d63275f5d4a14db689426b6c02b57598e92f6b5257dce2bfb8cc2f",
+    "direct_call_result": "0differences/flags16vs16; differingcompiledcallcontextdidnotreproducefirstfailure, notassumedNaNpayloadonly.",
+    "admission": "Actualforwardcallerfinite/bounded: floatAPIrejectsnonfinite/largeenergy BEFOREclassical/DSP, int16finite, boundedfinitepreemphasis/window/filter. Currentpublicerror+followingstate/APIboundcases exact. No new sourceinputgate/relaxation/threshold; unsupportedprivateinputfailurehonestly retained."
+  },
+  "all_native_lease_mode": "SHARED; nonnested; everyfinallease0/unlocktrue; historicalfailures/releasesretained",
+  "goal_complete": false,
+  "full_refresh": false
+}
