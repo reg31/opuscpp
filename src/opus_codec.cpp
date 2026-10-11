@@ -9239,7 +9239,8 @@ template <int Radix, int M> consteval bool stockham_tensor_indices_valid() {
       for (int lane = 0; lane < Radix; ++lane) {
         const int input = k * Radix * groups + group + lane * groups;
         const int output = (k + lane * M) * groups + group;
-        if (input < 0 || input >= 480 || output < 0 || output >= 480 || read[input] || written[output]) return false;
+        if (input < 0 || input >= 480 || output < 0 || output >= 480 || read[input] || written[output])
+          return false;
         read[input] = written[output] = true;
       }
   return true;
@@ -9263,10 +9264,14 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
           const kiss_fft_cpx a{input[index], input[480 + index]};
           const kiss_fft_cpx b{input[index + groups], input[480 + index + groups]};
           const auto t = [&] {
-            if constexpr (K == 0) return b;
-            else if constexpr (K == 1) return kiss_fft_cpx{(b.r + b.i) * tw, (b.i - b.r) * tw};
-            else if constexpr (K == 2) return kiss_fft_cpx{b.i, -b.r};
-            else return kiss_fft_cpx{(b.i - b.r) * tw, -(b.i + b.r) * tw};
+            if constexpr (K == 0)
+              return b;
+            else if constexpr (K == 1)
+              return kiss_fft_cpx{(b.r + b.i) * tw, (b.i - b.r) * tw};
+            else if constexpr (K == 2)
+              return kiss_fft_cpx{b.i, -b.r};
+            else
+              return kiss_fft_cpx{(b.i - b.r) * tw, -(b.i + b.r) * tw};
           }();
           const auto store = [&]<int Lane>(const kiss_fft_cpx& value) {
             const int target = (K + Lane * M) * groups + group;
@@ -9276,7 +9281,8 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
           store.template operator()<1>(complex_subtract(a, t));
           store.template operator()<0>(complex_add(a, t));
         }
-      }(), ...);
+      }(),
+       ...);
     }(std::make_index_sequence<4>{});
   } else {
     for (int k = 0; k < M; ++k) {
@@ -9355,10 +9361,10 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
 
 template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st);
 
-
 template <int N, bool ScaleInput = true> static float* stockham_scaled_soa(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
   if constexpr (N == 480)
-    if (auto* result = stockham_tensor480<ScaleInput>(input, data, scratch, st)) return result;
+    if (auto* result = stockham_tensor480<ScaleInput>(input, data, scratch, st))
+      return result;
 
   stockham_stage_soa<N, 4, 1, ScaleInput>(input, scratch, st);
   if constexpr (N == 60) {
