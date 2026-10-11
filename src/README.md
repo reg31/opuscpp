@@ -112,15 +112,9 @@ std::unique_ptr<OpusDecoder> make_opus_decoder(int Fs, int channels, int* error)
 | `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |
 | `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state while preserving encoder configuration CTLs. |
 
-DTX reuses the existing speech/music analysis, protects quiet or tonal content, and emits standard
-one-byte Opus DTX packets after sustained inactivity. It periodically sends a refresh packet and
-suppresses tiny digital-silence residue before encoding so it cannot excite decoder comfort noise.
+DTX reuses speech/music analysis, protects quiet or tonal content, and emits standard one-byte Opus DTX packets after sustained inactivity.
 
-The voice denoiser is an optional encoder-side preprocessor for sustained broadband capture noise.
-It uses the existing three-region filter bank. Once near-flat noise is confirmed, its noise
-estimate persists through speech; current-frame energy controls suppression and gain recovers
-immediately at speech onsets. Uncertain material keeps the conservative path. Resetting the
-encoder resets this calibration. There is no extra look-ahead or change to Opus packet syntax.
+The optional voice denoiser targets sustained broadband capture noise in mono VOIP. It uses the existing three-region filter bank, preserves the noise estimate through speech, and recovers gain immediately at speech onsets. It is disabled by default; reset clears its calibration.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
@@ -131,11 +125,7 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 | `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |
 | `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |
 
-The denoiser passes 25/25 tracked boundary rates. End-to-end encode overhead is
--3.6% to 7.6% versus denoising off on the tracked noisy recording; this includes changed downstream coding work.
-The optional state is 68 bytes in the fresh state/bounds test. Temporary stack usage was not measured in this refresh.
-Broader on/off tests still contain quality losses: this is not a universal improvement. See the
-[optional speech denoiser measurements](https://github.com/reg31/opuscpp/tree/main/tests#optional-speech-denoiser).
+Denoiser comparisons and boundary coverage are listed in [`tests/metrics/README.md`](../tests/metrics/README.md).
 
 ## In-band FEC
 
@@ -148,9 +138,7 @@ detail than official Opus and keeps a mono VOIP stream in a FEC-capable mode thr
 Mode `2` keeps confidently music-like input in CELT-only mode rather than forcing SILK solely for FEC; those
 CELT-only packets cannot carry redundancy.
 
-Quiet-frame protection uses the standard unvoiced signal type in the redundant copy; the main frame's
-activity classification is unchanged. The test suite checks quiet and silent FEC packets against the
-official decoder's entropy-coder state as well as testing recovery after packet loss.
+Quiet-frame protection uses the standard unvoiced signal type in the redundant copy; the main frame's activity classification is unchanged.
 
 ```cpp
 opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));
@@ -159,11 +147,7 @@ opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(10));
 
 Recovery requires one packet of delay. If packet `N` is missing and packet `N+1` arrives, decode
 `N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with
-`decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss
-concealment output instead. The interoperability test covers mono 10/20/40/60 ms and stereo 20 ms packets in both directions against official Opus, including VBR and CBR. Within the expanded 36-configuration/72-direction harness, the scored 18-case 10/20ms subset has 47.5% lower combined reconstruction error and packet bytes are 0.7% lower. The separate scored recovery comparison has 17/18 ratios at or below official; the standard FEC summary reports backup coverage 18/18 for opuscpp versus 15/18 for official Opus. Strict source gate: FAIL; standard interop gate: FAIL. Source-quality criteria: C1 18/18, C2 18/18, C3 17/18, C4 18/18. See the [complete current metrics](../tests/metrics/README.md).
-
-This recovery error compares each recovered frame with normal, loss-free decoding of the same
-encoded stream; it measures damage from packet loss, not total error against the original recording.
+`decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss concealment output. Recovery metrics and the full packet/configuration coverage are in [`tests/metrics/README.md`](../tests/metrics/README.md).
 
 ## Supported decoder CTLs
 

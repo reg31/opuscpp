@@ -5,15 +5,7 @@ derived from [Xiph's official Opus project](https://github.com/xiph/opus) versio
 designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`,
 and ship no separate DLL or static library.
 
-For C++ users who want a source-embeddable Opus implementation, `opuscpp` is positioned as an
-alternative to official Opus rather than an outright replacement. It aims at a practical tradeoff:
-standard Opus compatibility, portable source embedding, and content-dependent quality trade-offs. The headline benchmark comparison
-uses the current `opuscpp` source and official Opus from upstream `main`, both built with `-O2 -DNDEBUG`, with x86 intrinsics enabled for official Opus, because that is the practical upstream baseline for many desktop builds. The
-project targets standard Opus packets. Existing code using the supported Opus API can use this
-implementation without packet-format changes as long as it stays within the supported CTL subset
-described in `src/README.md`. Custom Opus is intentionally unsupported.
-
-`opuscpp` is a portable C++23 alternative to official Opus for C++ users: it is source-embeddable, follows the standard Opus packet format, and exposes a focused single-stream API.
+`opuscpp` is a portable C++23 implementation of the standard Opus single-stream API, derived from Xiph Opus 1.6.1. It is source-embeddable, uses standard Opus packets, and supports the documented single-stream API/CTL subset in `src/README.md`. Custom Opus is unsupported.
 
 Minimal integration looks like:
 
@@ -23,32 +15,10 @@ Minimal integration looks like:
 
 ## Highlights
 
-Quality and speed comparisons below use the current complexity-10 encoder directly against official Opus. Some spectral and speech-proxy losses remain.
-
-- Portable C++23 source embedding: `src/opus_codec.cpp` + `src/opus_codec.h`; no separate DLL or static library.
-- Standard Opus packets and the documented single-stream API/CTL subset.
-- Complexity-10 encoding is faster than official Opus at 6/9 measured AUDIO bitrates (0.94x to 1.13x).
-- Decode is faster than official Opus with x86 intrinsics in 9/9 measured AUDIO bitrates (1.15x to 1.88x).
-- Transient detection runs for every fullband CELT frame (matching official Opus gating), improving percussive content.
-- Quality is mixed: AUDIO improves the PESQ-style proxy in 9/9 and the ViSQOL-style proxy in 7/9 tracked bitrates; VOIP improves them in 9/9 and 8/9. The full 498-case matrix has 848 below-official fields out of 5,976; all 12 metrics and signed deltas are retained.
-- Effective bitrate, optional processing, FEC/DTX, memory and speed have dedicated benchmark coverage.
-- Updated RFC decode vectors: 24/24 passed; 96 encode interoperability cases passed in the fresh source-bound compatibility refresh.
-- RFC decode, encode interoperability, API/lookahead and focused source-bound regressions were rerun against this source; complete command outputs are in [compatibility validation](tests/metrics/README.md#fresh-compatibility-and-api-checks).
-- Optional DTX: zero false DTX packets on the tracked active-content set; aggregate re-entry error is 42.1% lower and gain error is 0.6% higher. The unchanged aggregate DTX comparison FAIL at 16/24&nbsp;kbps; see [DTX gate results](tests/metrics/dtx_acceptance.json).
-- Optional FEC: recovery-error ratios are at or below official in 17/18 scored scenarios. Within the expanded 36-configuration/72-direction harness, the scored 18-case 10/20ms subset has combined recovery error that is 47.5% lower and packet bytes are 0.7% lower. Strict source gate: FAIL; standard interop gate: FAIL. Source-quality criteria: C1 18/18, C2 18/18, C3 17/18, C4 18/18.
-- 35.1% to 54.4% lower measured private allocation footprint across the listed encoder/decoder configurations.
-- Host object: `407,612 B` (text + data + BSS).
-- No assembly, SIMD intrinsics, PGO or LTO requirement; MinGW GCC and Android arm64 Clang C++23 build checks were rerun in the full refresh.
-
-## Pros and cons
-
-| Pros | Cons |
-|---|---|
-| Source embedding: include the header and compile one implementation file. | An alternative, not a replacement for every official Opus use case. |
-| Encoding is 0.94x to 1.13x of official Opus speed in the measured workload. | Results describe this machine and workload, not every platform or packet mix. |
-| Faster decode in 9/9 measured AUDIO bitrates (1.15x to 1.88x). | Official Opus supports a broader feature surface and ecosystem. |
-| 35.1% to 54.4% lower measured private allocation footprint. | Aligned quality proxies show both gains and losses; optional filtering is not a universal improvement. |
-| Pure portable C++23, without ASM or SIMD intrinsics. | Requires a C++23-capable compiler. |
+- Portable C++23 source embedding: `src/opus_codec.cpp` and `src/opus_codec.h`; no separate library is required.
+- Standard Opus packet format and a focused single-stream API/CTL subset.
+- Optional in-band FEC, guarded DTX and a mono-VOIP denoiser, each disabled by default.
+- No assembly or SIMD-intrinsic dependency.
 
 ## Quick start
 
@@ -89,25 +59,7 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-The full benchmark tables below were refreshed on 2026-10-11 for source `7888cb5` (SHA-256 `18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4`).
-
-Measurements refreshed independently by Codex on 2026-10-11 for production `7888cb5`, against official Opus `503d81b` with intrinsics. [Complete metric inventory and results](tests/metrics/README.md) includes every measured field, signed loss, optional-processing cost and raw timing sample. Historical commit comparisons retain their original dates.
-
-Quality and effective-bitrate columns use the current encoder at complexity 10; [quality metadata](tests/metrics/quality_run_metadata.json) records the source and matched settings. Speed uses the same production source at complexity 10; [speed metadata](tests/metrics/speed_run_metadata.json) records the isolated run. Memory is the tracked snapshot identified by [run metadata](tests/metrics/run_metadata.json).
-Quality scoring removes each encoder's delay, flushes the tail, and scores stereo channels
-independently. Both quality gains and losses are retained.
-
-Measurements below use `opuscpp` compiled globally with `-O2 -DNDEBUG`. The official Opus
-baseline (upstream `main`) is also built with `-O2 -DNDEBUG`, with x86 runtime-dispatched intrinsics enabled (`SSE`,
-`SSE2`, `SSE4.1`, `AVX2`), on Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS. Encode and decode speed
-are multiplicative ratios versus official Opus; values above `1.00x` mean `opuscpp` is faster. The
-published AUDIO speed ratios are medians of nine repository 60-second stereo synthetic benchmark runs.
-Both implementations alternate within one process pinned to one logical CPU at above-normal priority;
-no other test workloads run concurrently.
-AUDIO speed columns use the 60-second benchmark; quality and both effective-bitrate columns use the
-six-second AUDIO validation. Payload rates in the speed CSV can therefore differ. Quality uses the default unfiltered
-decoder output; the quality values are synthetic objective proxy scores, not a replacement for
-official PESQ/ViSQOL tooling or listening tests.
+Full tables use production source `7888cb5` (SHA-256 `18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4`) and pinned official Opus `503d81b`. Both use `-O2 -DNDEBUG`; official Opus uses x86 intrinsics. Measurements were made on Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS. AUDIO speed ratios are medians of nine 60-second stereo runs; values above `1.00x` mean faster. Quality and effective-bitrate rows use the six-second complexity-10 validation. See [complete metrics and raw results](tests/metrics/README.md) and the [run metadata](tests/metrics/run_metadata.json).
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -139,7 +91,7 @@ Mode-selection check at 32&nbsp;kbps mono: the separate detector speech-like sig
 
 ## Memory snapshot
 
-In this full refresh, encoder and decoder state were measured together at source `7888cb5` using 256 instances per group across three fresh processes, with FEC and denoising disabled. These process-private allocation deltas are not exact `sizeof` values; allocator/page rounding can affect results. Method and source bindings are in [memory run metadata](tests/metrics/run_metadata.json).
+Memory uses 256 instances per group across three fresh processes with FEC and denoising disabled; values are process-private allocation deltas.
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
@@ -148,28 +100,9 @@ In this full refresh, encoder and decoder state were measured together at source
 | Decoder mono | 8,432 B | 18,480 B | -54.4% |
 | Decoder stereo | 17,584 B | 27,104 B | -35.1% |
 
-## Conformance
+## Compatibility coverage
 
-The implementation is standard Opus compatible. The measured conformance gates are:
-
-- RFC decode conformance: 24/24 mono+stereo RFC 8251 updated vector checks passed against the pinned official reference.
-- Encode interoperability validation: 96/96 generated cases passed in the fresh source-bound compatibility run; see [compatibility results](tests/metrics/compatibility_validation.json).
-- API behavior validation: decoder channel-remap, packet/frame-duration rejection, encoder-lookahead, VBR-budget, and guarded-DTX checks passed
-  in the source-bound compatibility refresh.
-- Android arm64 Clang build: C++23 build check passed in the measured configuration.
-- MinGW GCC build: C++23 build check passed in the measured configuration.
-
-Terminology used here:
-
-- **RFC decode conformance** means decoding the official IETF Opus test-vector bitstreams from RFC
-  6716 and the RFC 8251 update set, then passing the official `opus_compare` acceptance test against
-  the reference PCM.
-- **Encode interoperability validation** is the encoder regression gate. Opus encoders are allowed
-  to produce different valid packets, so byte-for-byte packet identity is not the right public
-  claim. The test encodes generated cases with `opuscpp`, decodes the packets with official Opus,
-  and checks that the official decoder accepts the output for the supported scenarios.
-
-The test harnesses and detailed metrics are in `tests/`.
+The pinned official Opus reference is `503d81b138d76621aae4b12786e90de48aa8db3a`. Coverage includes 24 RFC 8251 decode vectors and 96 encode-interoperability cases. Build and run instructions are in [`tests/README.md`](tests/README.md); detailed results are in [`tests/metrics/README.md`](tests/metrics/README.md).
 
 ## License
 

@@ -112,8 +112,6 @@ historical comparison.
 
 ## Optional WER validation for speech-to-text
 
-No WER/CER or external ASR endpoint was run for the published benchmark refresh.
-
 `run_wer_validation.py` is a speech-to-text oriented gate for VOIP tuning. It encodes and decodes
 48 kHz PCM16 speech samples, optionally attenuates quiet-talker cases, adds deterministic noise at
 several SNR levels, runs an ASR command on the decoded WAVs, then reports WER/CER against the
@@ -141,19 +139,11 @@ voice robustness without needing separate low-volume source files.
 For regression gating, pass `--baseline tests/metrics/wer_results.json --max-wer-regression 0.02`.
 Add `--update-baseline` only after listening/ASR review confirms the new result is better.
 
-## Fresh compatibility and API checks
-
-Fresh checks were run against source `7888cb5` and official Opus `503d81b`. RFC decode result: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regression outputs are recorded in [fresh compatibility metadata](metrics/compatibility_validation.json). No sanitizer was run.
-
 ## RFC decode conformance
 
-`RFC decode conformance` means the standard Opus decoder-vector check: decode the official RFC 6716
-test vectors as updated by RFC 8251, then compare the output against the reference PCM with
-the official `opus_compare` acceptance criteria.
+Decode official RFC 6716 vectors updated by RFC 8251 and compare output with reference PCM using `opus_compare`. Vector files are downloaded by `tests/scripts/setup_official_compare.py`.
 
-The RFC vector files are not committed to this repository. If you used
-`tests/scripts/setup_official_compare.py`, you already have the recommended directory layout and
-build outputs. To run full decode conformance manually, build the decoder harness with:
+To build the decoder harness:
 
 ```bash
 c++ -std=c++23 -O2 -DNDEBUG -I src \
@@ -161,91 +151,24 @@ c++ -std=c++23 -O2 -DNDEBUG -I src \
     -o build/conformance_decode
 ```
 
-Then run each vector through `conformance_decode` and compare the generated PCM with the reference
-decoded PCM using the official `opus_compare` tool from the Opus source tree.
-
-Measured result for this repository snapshot:
-
-| Suite | Result |
-|---|---:|
-| RFC 8251 updated decode vectors | 24/24 passed |
-| Mono/stereo coverage | Passed |
-| Final range check mode | Supported by harness |
+Coverage: 24 RFC 8251 updated decode vectors, mono/stereo; final-range checks are supported by the harness.
 
 ## Encode interoperability validation
 
-`Encode interoperability validation` is the project's encoder regression gate, not a separate IETF
-RFC test. Opus encoders are not required to emit identical packets, so byte-for-byte packet
-comparison would be the wrong test. Instead, the harness encodes generated validation cases with
-`opuscpp` and verifies that official Opus accepts and decodes those packets for the supported
-scenarios. The relevant files are:
+The encoder may emit any valid Opus packet; validation checks that the official decoder accepts generated packets. Harness files: `conformance_encode.cpp`, `official_encode_validation.cpp`, and `encode_conformance_shared.h`.
 
-- `conformance_encode.cpp`
-- `official_encode_validation.cpp`
-- `encode_conformance_shared.h`
+Coverage: 96 generated encode-interoperability cases.
 
-Measured result for this repository snapshot:
+## Focused test commands
 
-| Suite | Result |
-|---|---:|
-| RFC 8251 encode interoperability cases | 96/96 passed |
-| Total encode interoperability cases | 96/96 passed |
-
-## API behavior validation
-
-Additional API-level validation checks exercise supported behavior that is not covered directly by
-the RFC decode vectors:
-
-| Check | Result |
-|---|---:|
-| Decoder channel remap | Passed in fresh source-bound check |
-| Packet-duration helper behavior | Passed in fresh source-bound check |
-| Overflow-safe encoder frame and packet-duration validation | Passed in fresh source-bound check |
-| Encoder lookahead and restricted-low-delay behavior | Passed in fresh source-bound check |
-| VBR budget behavior (CELT-run budgets; all-mode packet bounds and decoded duration) | Passed in fresh source-bound check |
-| Hybrid transient bit budget | Not run by the full-refresh API harness |
-| Guarded DTX behavior, refresh, and quiet-tonal protection | Passed in fresh source-bound check |
-| DTX active-content and re-entry comparison vs official Opus | FAIL (unchanged criteria) |
-| In-band FEC encode/decode interoperability vs official Opus | Passed in fresh source-bound check |
-| Public packet decoder acceptance/comparison | PASS in fresh source-bound check; 16 configurations/3,200 frames; exact public returns/final ranges and RFC 6716 opus_compare; details in `metrics/lpc_analysis_known_failure.json` |
-| Independent bit helpers, seed wrap, Schur, SILK LPC orders and CELT PLC | Passed in fresh source-bound check; details in `metrics/compatibility_validation.json` |
-| Separate CELT energy boundaries and guarded stereo-policy tests | Passed in fresh source-bound check |
-| Trapping UBSan: API, long frames and malformed packets | Not run in this refresh; sanitizer run excluded by scope |
-
-`hybrid_transient_budget.cpp` pins the hybrid CELT bit target's transient response: the
-`tf_estimate` term must move the target around the 0.25 pivot, and a strong transient
-(`tf_estimate > 0.7`) must clear the 50-bit floor while a weak one stays below it. The function under
-test is internal, so build with the test hook enabled:
+Focused internal transient-budget command:
 
 ```sh
 c++ -std=c++23 -O2 -DNDEBUG -DOPUSCPP_ENABLE_TEST_HOOKS -I src \
     tests/hybrid_transient_budget.cpp src/opus_codec.cpp -o build/hybrid_transient_budget
 ```
 
-`dtx_vs_official.cpp` exercises voice, 20-LSB quiet voice, far-field and noisy speech, two
-speakers, speech mixed with music, and fricative speech at 16/24&nbsp;kbps. The current deterministic run records 0 false DTX packets for opuscpp versus 0 for official Opus across 1,680 active frames. Against the original signal after silence, wake-up NRMSE is 0.4416 versus 0.7622, and gain error is 1.6560 versus 1.6463 dB; silence-frame suppression is 406 versus 406. Aggregate re-entry NRMSE is 42.1% lower and gain error is 0.6% higher. The steady-noise-only case suppresses 120 frames with opuscpp versus 0 with official Opus. Individual per-material gain errors remain mixed; all current values are in `metrics/dtx_metrics.csv`. DTX comparison: FAIL. The original acceptance criteria are unchanged; all measurements are retained. Per-case rows and both exit records are in [DTX acceptance metadata](metrics/dtx_acceptance.json).
-
-In everyday terms, re-entry is the moment speech or music returns after DTX stopped sending during
-silence; lower error means a cleaner restart. Gain error measures whether that returning sound is
-temporarily too loud or too quiet. This comparison is run automatically by the full-report scripts
-above, with detailed output saved under `build/official_compare_report/api_behavior/`.
-
-`fec_vs_official.cpp` enables FEC and a 15% expected-loss setting, drops one packet, recovers it
-from the following packet, and then decodes that following packet normally. It checks nominal,
-quiet, and noisy speech at mono 10/20/40/60 ms and stereo 20 ms, including VBR and CBR, in both
-directions: `opuscpp` encoder to official decoder and official encoder to `opuscpp` decoder. In this
-tracked recovery matrix, each carried `opuscpp` FEC frame must improve on ordinary packet-loss concealment.
-
-Every normally decoded packet also checks that the encoder and official decoder finish with the same
-entropy-coder state. This catches malformed payloads even when both decoders produce the same wrong
-audio. Additional packet checks cover silent startup, speech-to-silence changes, and bitrate changes
-while FEC is enabled.
-
-Fresh FEC results for the scored 18-case 10/20ms subset: 17/18 recovery wins; aggregate recovery ratio 0.525017; packet-byte ratio 0.993345. Source-quality criteria: C1 18/18, C2 18/18, C3 17/18, C4 18/18. Strict source gate: FAIL; standard interop gate: FAIL. Standard-summary backup coverage is 18/18 for opuscpp versus 15/18 for official Opus. The expanded run covers 36 configurations and 72 direction rows; current values are in [FEC metadata](metrics/fec_run_metadata.json).
-
-`fec_source_quality.cpp` separately compares recovered-frame fidelity, the following frame and boundary transition against the original source. Current source-quality counts are C1 18/18, C2 18/18, C3 17/18, C4 18/18; all recorded cases are retained. Full current/official case values are in [the source-quality JSON](metrics/fec_source_metrics.json).
-To reproduce the current source-quality check, use the same `curr_`-renamed codec object as `fec_vs_official.cpp`; build the reference binary with
-`-DUSE_OFFICIAL_ENCODER` and the official library. Then run:
+FEC source-quality command (using current and official gate executables):
 
 ```text
 python tests/scripts/check_fec_source_quality.py current_gate.exe official_gate.exe --output fec_source_results.json
@@ -253,27 +176,7 @@ python tests/scripts/check_fec_source_quality.py current_gate.exe official_gate.
 
 ## Perceptual and memory harness
 
-`perceptual_memory_validation.cpp` compares this implementation with official Opus on generated or
-user-provided 16-bit PCM WAV input. It reports:
-
-- SNR, segmental SNR, RMS error, and mean absolute error.
-- PESQ-style proxy score.
-- ViSQOL-style proxy score.
-- CELT-style masked spectral proxy score, with a roughly -60 dBFS audibility floor so spectral nulls do not dominate.
-- Average payload bytes, reported publicly as effective bitrate.
-- Encode time.
-- Optional process memory measurements.
-
-These proxy scores are useful for regression tracking, but they are not substitutes for official
-PESQ/ViSQOL tooling or listening tests.
-
-The harness now queries each encoder's `OPUS_GET_LOOKAHEAD`, flushes its delayed tail with silence,
-and removes the delay before scoring or exporting listening WAVs. Flush packets are excluded from
-the payload-bitrate and encode-time statistics. `perceptual_alignment.cpp` checks alignment and tail
-recovery across both codecs, three applications, mono/stereo, and float/PCM16; the full-report script runs it automatically.
-Spectral scores now compare each channel independently, with negative controls for stereo collapse
-and channel swapping. The earlier mono downmix hid these errors. `--complexity 0..10` selects the
-same encoder complexity for both codecs; the default is `10`. Raw quality output retains eight decimal places.
+`perceptual_memory_validation.cpp` accepts generated or user-provided 16-bit PCM WAV input and reports quality proxies, effective bitrate, encode time and optional process memory. Quality is delay-aligned and uses per-channel scoring.
 
 The full benchmark tables below were refreshed on 2026-10-11 for source `7888cb5` (SHA-256 `18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4`) against official Opus `503d81b`.
 Both positive and negative quality deltas are retained. Source hashes, flags and scope are
@@ -281,13 +184,7 @@ recorded in [run metadata](metrics/run_metadata.json).
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-This is the public benchmark comparison: official Opus (upstream `main`) is built with `-O2 -DNDEBUG` and x86
-runtime-dispatched intrinsics enabled (`SSE`, `SSE2`, `SSE4.1`, `AVX2`). `opuscpp` uses the same pure C++23 `-O2 -DNDEBUG` profile, with no assembly and no SIMD intrinsics. Measurements
-are from Windows MinGW GCC 16.2 on an AMD Ryzen 7 8840HS, using medians of nine repository
-60-second stereo synthetic music-like benchmark runs. A value above `1.00x` means `opuscpp` is faster than the optimized
-official build. Each repetition changes the bitrate sweep order and alternates which implementation
-runs first to reduce CPU boost and thermal-order bias. This keeps the optimization level matched while
-comparing against the optimized official desktop path most users would actually get.
+Production source is `7888cb5` (SHA-256 `18a79c53907383d3f03b58349fac8bbedf702b7df0ca016c231f74a93c2db3a4`) against official Opus `503d81b`. Both use `-O2 -DNDEBUG`; official enables x86 runtime-dispatched intrinsics. Measurements are Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo runs; encode and decode are ratios versus official, and values above `1.00x` are faster.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -301,25 +198,9 @@ comparing against the optimized official desktop path most users would actually 
 | 192&nbsp;kbps | 1.026x | 1.332x | 117x | 114x | 402x | 302x |
 | 256&nbsp;kbps | 0.981x | 1.156x | 106x | 108x | 336x | 291x |
 
-The isolated production speed run is recorded in [speed_run_metadata.json](metrics/speed_run_metadata.json). Encoding is faster at 6/9 measured AUDIO rates (0.94x to 1.13x); decoding at 9/9 (1.15x to 1.88x).
-
-The full-report script refreshes the tracked source CSVs under `tests/metrics/` and writes the
-generated Markdown report under `build/` or the requested working-directory path.
-
-Source CSV:
-
-- `metrics/encode_speed_vs_official.csv`
-- `metrics/decode_speed_vs_official.csv`
-
-The same speed run, including raw encode/decode durations used for real-time factors, is tracked in
-`metrics/speed_vs_official_intrinsics_60s.csv`.
-
 ## Quality metrics vs official Opus
 
-AUDIO quality proxy metrics use the current encoder and official Opus, both at complexity 10, on the same six-second synthetic music-like input. Deltas are `opuscpp - official`; positive is better for the proxy quality columns.
-Effective bitrate columns show measured payload bitrate for the same validation run.
-The harness uses the public decoder default: unfiltered output. The CELT proxy excludes the first
-unprimed 10 ms of codec startup and scores the remaining steady-state windows.
+AUDIO quality proxies compare both encoders at complexity10 on the same six-second synthetic music-like input. Deltas are `opuscpp - official`; positive is better. Effective bitrates are measured payload rates from the same validation run; decoding uses the default unfiltered output.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
@@ -335,8 +216,7 @@ unprimed 10 ms of codec startup and scores the remaining steady-state windows.
 
 ## VOIP quality metrics vs official Opus
 
-VOIP quality proxy metrics are measured separately on the synthetic mono speech-like validation
-sample because VOIP deliberately uses different mode-selection semantics than AUDIO.
+VOIP uses a separate synthetic mono speech-like validation sample because its mode-selection semantics differ from AUDIO.
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
@@ -350,11 +230,11 @@ sample because VOIP deliberately uses different mode-selection semantics than AU
 | 192&nbsp;kbps | +1.0997 | +0.0054 | +0.4274 | 192.400 kbps | 192.472 kbps |
 | 256&nbsp;kbps | +1.1014 | +0.0056 | +0.4505 | 256.400 kbps | 256.464 kbps |
 
-The voiced/formant fixture uses phase-integrated pitch and breath noise at a controlled 30 dB SNR. Its ViSQOL-style delta improves at 8/9 rates; losses remain. The former phase-modulated fixture is retained as a separate tonal-stress case, not relabelled as speech. Do not compare new VOIP scores directly with the former fixture. The complete 12-field comparisons and complexity-9 control are in [quality_official_full_precision.csv](metrics/quality_official_full_precision.csv), with [configuration and fixture hashes](metrics/quality_run_metadata.json). Rounded zero in a table does not imply exact equality.
+The voiced/formant fixture uses phase-integrated pitch and breath noise at 30 dB SNR; its complete fields and fixture metadata are in [quality_official_full_precision.csv](metrics/quality_official_full_precision.csv) and [quality_run_metadata.json](metrics/quality_run_metadata.json).
 
 ### Broader content check
 
-Fresh comparisons cover the broad ladder, stereo/content holdouts, four mono speech recordings, and the retained tonal-stress fixture. These are short-clip diagnostics, not a representative listening survey.
+Coverage includes the broad ladder, stereo/content holdouts, four mono speech recordings, and the retained tonal-stress fixture.
 
 | Set | Comparisons | Negative PESQ-style | Negative ViSQOL-style | Negative CELT proxy |
 |---:|---:|---:|---:|---:|
@@ -363,28 +243,22 @@ Fresh comparisons cover the broad ladder, stereo/content holdouts, four mono spe
 | Mono speech recordings | 36 | 0 | 0 | 0 |
 | Retained tonal stress | 9 | 0 | 0 | 0 |
 
-All signed deltas and effective bitrates are in `metrics/quality_broad.csv`. These results do not establish a universal quality advantage.
+All signed deltas and effective bitrates are in [quality_broad.csv](metrics/quality_broad.csv).
 
 ### Optional speech denoiser
 
-The optional encoder denoiser targets sustained broadband noise in mono VOIP capture.
-After confirming a near-flat noise spectrum, it keeps the background-noise estimate separate
-from speech activity. Current-frame band energy sets the attenuation: suppression ramps in,
-but gain recovers immediately at speech onsets so consonants are not faded in late.
-Capture-noise reduction runs before the codec's existing signal shaping. Uncertain material
-retains the conservative path. No FFT, extra look-ahead, or per-frame heap allocation is added.
-It remains disabled by default and has no effect on stereo or non-VOIP applications.
+The optional encoder denoiser targets sustained broadband noise in mono VOIP capture and is disabled by default.
 
-These measurements compare denoising on versus off on the same mono recording mixed with sustained 6 dB white noise, scored against clean speech after codec-delay alignment. They are internal proxies, not certified PESQ or official ViSQOL.
+The on/off comparison uses mono speech mixed with sustained 6 dB white noise and is scored against clean speech after codec-delay alignment.
 
 The 15.5/20 kbps cases have PESQ-style gains +0.1742/+0.2060 and ViSQOL-style gains +0.1235/+0.1231. The boundary benchmark passes 25/25 rates.
 
 Across 246 on/off comparisons covering 41 clean/noisy/content conditions at 6 rates, 13 have negative PESQ-style deltas, 28 negative ViSQOL-style deltas, and 30 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.
 
 
-End-to-end encode overhead is **-3.6% to 7.6%** on the tracked noisy recording. This includes changed downstream coding work, not just filter arithmetic. Timing runs in isolation, pinned to one logical CPU at above-normal priority; enabled/bypass order rotates. Values are medians of nine 60-second runs after one warm-up.
+Encode overhead includes downstream coding work; timings are medians of nine 60-second runs after one warm-up.
 
-The optional denoiser state is 68 bytes; the fresh state/bounds/reset check passed 90 configurations. Temporary stack high-water was not measured in this refresh.
+Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configurations.
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
@@ -400,7 +274,7 @@ The optional denoiser state is 68 bytes; the fresh state/bounds/reset check pass
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`. The previous-version CSV is historical, not a current acceptance result.
 
-The focused state/bounds/reset test covers five sample rates, six frame durations, and complexities 0, 5 and 10:
+The state/bounds/reset command covers five sample rates, six frame durations and complexities0,5,10:
 
 ```bash
 c++ -std=c++23 -O2 -DNDEBUG tests/voice_denoise_state.cpp -o build/voice_denoise_state
@@ -409,7 +283,8 @@ build/voice_denoise_state
 
 ## Memory metrics
 
-This table is from the full refresh for source `7888cb5`: all encoder and decoder rows used the same 256-instance, three-process memory-only run with FEC and denoising disabled. Process-private deltas are not exact structure sizes; allocator/page rounding can affect results. See [run metadata](metrics/run_metadata.json).
+Memory measurements are from source `7888cb5`; each row uses 256 instances across three processes with FEC and denoising disabled. Values are private allocation deltas. See [run metadata](metrics/run_metadata.json).
+
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
 | Encoder mono | 19,776 B | 31,856 B | -37.9% |
@@ -427,11 +302,3 @@ Source CSV:
 |---:|---:|---:|---:|
 | Host MinGW GCC `-O2` | 407,612 B | 0 B | 407,612 B |
 | Android arm64 Clang `-O2` | 405,072 B | 472 B | 405,544 B |
-
-## Toolchains checked
-
-| Toolchain | Status |
-|---|---|
-| MinGW GCC 16.2 C++23 | Fresh `-std=c++23 -O2 -DNDEBUG` compile passed; command and compiler output are retained in run metadata. |
-| Android arm64 Clang C++23 | Fresh `-std=c++23 -O2 -DNDEBUG` compile passed; command and compiler output are retained in run metadata. |
-| Linux C++23 compiler | Intended to build with a standard C++23 toolchain; use the full report script for local validation. |
