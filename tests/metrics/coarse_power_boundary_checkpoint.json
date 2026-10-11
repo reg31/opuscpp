@@ -1,0 +1,578 @@
+{
+  "status": "ACCEPTED_COARSE_BOUNDARY_WITH_HUMAN_APPROVED_TRADEOFFS",
+  "source_sha256": "ddb711c1483b4ffbbaedbb3643f1b8cb443c54f071a0b951efccf9fef76b6c6f",
+  "result_sha256": "0b748aeebbe38eeb25fb6acaf4814cf48718201dfecd316fb99d8554dd0733b2",
+  "latest_format_rebase": "a89singlelineformatonly;authorinverse/tokenidentityconfirmed,noNative/replay",
+  "focused_new_tradeoffs": "CurrentC2check3OFFclosures9new;SNR33.68→28.13;fine4q15clipping atcoarseresidual.652668 proved;DN1eleven-fieldimprovement retainsqualificationepoch.",
+  "original_full_scope": "806published/498retained and18costs stay8ad-bound:262removed453new454worsened;1158→1349/849→1130. Not combined-currentmeasurement.",
+  "immediate_next_work_item": {
+    "owner": "/root/shape_aware_energy_quality",
+    "task": "Fix the actual coarse-residual/fine4q15 clipping and every quality/cost loss before unrelated work, retaining validated benefit and contracts."
+  },
+  "latest_source_composition_and_qualification": {
+    "status": "READY_LATEST9E_AUTHOR_ENERGY_COMPOSED_ALL_LANDED_POLICIES",
+    "owner": "/root/shape_aware_energy_quality",
+    "completed_utc": "2026-10-11T20:35:11.210603+00:00",
+    "base_commit": "9e6421aa0a96e6d507643e0d51d4c52f280ddb0a",
+    "latest_verified_public_HEAD": "9e6421aa0a96e6d507643e0d51d4c52f280ddb0a",
+    "base_source_RAW_sha256": "50146b62aa37f89bd1b09df415352caba8cd483bad81fc7de8b81a292c2a2775",
+    "base_source_Git_sha256": "50146b62aa37f89bd1b09df415352caba8cd483bad81fc7de8b81a292c2a2775",
+    "base_source_normalized_sha256": "50146b62aa37f89bd1b09df415352caba8cd483bad81fc7de8b81a292c2a2775",
+    "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\candidate.cpp",
+    "candidate_source_RAW_sha256": "5f509d7c738cb64762b5886c2420c05c81ea5a36a79935fe5c3afa94f49471aa",
+    "candidate_source_normalized_sha256": "5f509d7c738cb64762b5886c2420c05c81ea5a36a79935fe5c3afa94f49471aa",
+    "patch": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\candidate.patch",
+    "patch_sha256": "93240f6aad8ee67f90ea8ed88ba6534ed24c7c73a0a3ba23b698ea38320e2530",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "functions": [
+      "process_coarse_energy<true> onefloatconstant only"
+    ],
+    "composition": "Exactlyonecoarsefloorconstant onlatest9e, everyotherSourcebytepreserved: C2prefilter,TF,FIR8Boptionalstate/noiseinputhistory,Gaussian/sourcefeedback,SILK/VQ/CI,RAW/startup/DN/options/CABI/header/storage/licenses. No stale bodyreplacement.",
+    "source_proof": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\SOURCE_PROOF.json",
+      "sha256": "528ef8a6432f1f6c7f04f904204a62b664417aafdee33ef21d5884b6c6cf0c26"
+    },
+    "affected_reconfirmation": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\QUALITY_ACCOUNTING.json",
+      "sha256": "c542a653da2add38729610db58b5b8a3259e8e86189a55cdbd6fcae27f06b30c",
+      "fresh_cases": 18,
+      "fresh_fields": 216,
+      "old_baa_cases_reused": 4,
+      "fresh_counts": {
+        "positive_OFF_margin_gain": 122,
+        "closed_OFF_negative": 17,
+        "unchanged": 14,
+        "positive_OFF_margin_loss": 35,
+        "improved_existing_OFF_negative": 12,
+        "worsened_existing_OFF_negative": 16
+      },
+      "white0_HBE": {
+        "BASE": 1250.7725113548447,
+        "candidate": 1029.325381535518,
+        "OFF": 1253.7065295575353
+      },
+      "white0_counts": {
+        "positive_OFF_margin_gain": 7,
+        "closed_OFF_negative": 4,
+        "unchanged": 1
+      }
+    },
+    "reached_interaction": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\INTERACTION_FACT.json",
+      "sha256": "e5bbbceb3bdd88eb7651627e25cd02351ee85c6fa8007b7bb5d314f5107b288d"
+    },
+    "contracts": "CONTRACTS_PASS cases=27 healthy=702 pureCELT=442 resetfresh=702 PLC=27 FECfallback=27 nonfinite=27 ranges_exact=1 decoder_parent_exact=1 pure_max=1.7881393432617188e-07 pure_rms=1.1070060794230144e-08",
+    "reused_original_evidence": {
+      "original_RESULT_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\RESULT.json",
+      "original_RESULT_sha256": "23fcbe2cb946cba085a42cab4c1556e26ac537479f88358427ac82744cf8f1ac",
+      "old_full_quality_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\QUALITY_ACCOUNTING.json",
+      "old_full_quality_sha256": "7c05d1383ddcec4842e73bcfb8c504321352bc42897f2ff35c103a165392960a",
+      "old18cost_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\COST_ACCOUNTING.json",
+      "old18cost_sha256": "5aff8d329f468e9df25d0b26311b8aefd58e8c8afdea8ac7ac10f4745bf63df9",
+      "epoch": "8ad/47e28/e602 original806262closures453new454worse1158->1349/498849->1130/8of18slower retained. No currentcomposedfullcount1349, combinedcost claim orduplicatefullsuite/costrun."
+    },
+    "native": [
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\EXECUTION.json",
+        "sha256": "030b888d6af514e553e117c41c9dfbfb1b2c75c281db774c6eaddf8fc85a9fee",
+        "jobs": 4,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\cohort\\EXECUTION.json",
+        "sha256": "1d8e70381a09fe14bdac1081b868198cc2a6ba8f43b1ab2b737636489d6339a2",
+        "jobs": 18,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\interaction\\EXECUTION.json",
+        "sha256": "edcc3cf3d5381418fa000bbb82af7c784ef18374e2098ebc08f2ef2940387203",
+        "jobs": 3,
+        "all_terminal": true
+      }
+    ],
+    "latest_BASE_object_reuse": {
+      "source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.cpp",
+      "source_sha256": "08694d2196e26d6b0175474b0a502f621e782a39ec9ad04964bbf81399993d57",
+      "object": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.o",
+      "object_sha256": "c1e94a915785a45511f544f4e557d46859ba7de56d79645e2b88db02af53b764",
+      "original_command": [
+        "compile_candidate",
+        [
+          "C:/Qt/Tools/mingw64/bin/g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-DOpusEncoder=cand_OpusEncoder",
+          "-DOpusDecoder=cand_OpusDecoder",
+          "-Dopus_encoder_create=cand_opus_encoder_create",
+          "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+          "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+          "-Dopus_encode=cand_opus_encode",
+          "-Dopus_encode_float=cand_opus_encode_float",
+          "-Dopus_decoder_create=cand_opus_decoder_create",
+          "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+          "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+          "-Dopus_decode=cand_opus_decode",
+          "-Dopus_decode_float=cand_opus_decode_float",
+          "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+          "-Dopus_strerror=cand_opus_strerror",
+          "-c",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.o"
+        ]
+      ],
+      "compile_receipt": {
+        "name": "compile_candidate",
+        "guard_pid": 2504,
+        "argv": [
+          "C:\\Program Files\\Python314\\python.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.py",
+          "--mode",
+          "shared",
+          "--tag",
+          "silk-policy-decoded-composition-baa-compile_candidate",
+          "--cwd",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1",
+          "--",
+          "C:/Qt/Tools/mingw64/bin/g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-DOpusEncoder=cand_OpusEncoder",
+          "-DOpusDecoder=cand_OpusDecoder",
+          "-Dopus_encoder_create=cand_opus_encoder_create",
+          "-Dopus_encoder_destroy=cand_opus_encoder_destroy",
+          "-Dopus_encoder_ctl=cand_opus_encoder_ctl",
+          "-Dopus_encode=cand_opus_encode",
+          "-Dopus_encode_float=cand_opus_encode_float",
+          "-Dopus_decoder_create=cand_opus_decoder_create",
+          "-Dopus_decoder_destroy=cand_opus_decoder_destroy",
+          "-Dopus_decoder_ctl=cand_opus_decoder_ctl",
+          "-Dopus_decode=cand_opus_decode",
+          "-Dopus_decode_float=cand_opus_decode_float",
+          "-Dopus_packet_get_nb_samples=cand_opus_packet_get_nb_samples",
+          "-Dopus_strerror=cand_opus_strerror",
+          "-c",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\candidate.o"
+        ],
+        "started_utc": "2026-10-11T19:22:01.083757+00:00",
+        "stdout": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\compile_candidate.stdout",
+        "stderr": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\silk_predictor_policy_research\\decoded_interpolation_composition_baa14e1\\compile_candidate.stderr",
+        "exit": 0,
+        "ended_utc": "2026-10-11T19:22:19.065801+00:00"
+      },
+      "aliases": "cand_ latestBASEobject; freshenergycandidate curr_. Testadapters swapcompletealiasnames only, actualBASE/CANDIDATE labels remaincorrect.",
+      "source_command_flags_aliases_exact": true
+    },
+    "prior_baa_actual": {
+      "quality_accounting_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_baa14e1\\QUALITY_ACCOUNTING.json",
+      "sha256": "0581f0aa38d3c514e261ae6ed64801a6dc973b9903f97c27a7d8e9f29873919a",
+      "interaction_fact_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_baa14e1\\INTERACTION_FACT.json",
+      "interaction_sha256": "88bed2bb9cb31728da79b2a56d693ae24b9eda60475f7aa46caf8e69d513fa6e",
+      "scope": "22baaactualcases27contractsoneprefixfact preservedoldbaa. Finalbindingnoticednew5265beforeREADY; only18newlyaffectedcasesreconfirmed4unaffectedreused."
+    },
+    "limitations": "Actualqualifiedaffected18cases/count151better51worse14same17closures0newOFFnegative remain5265epoch,4unaffectedbaa cases originalepoch. Exact9acNLSFVQ/formatting compositionreuseviaRootqualifiedinvariants andsourceproof, notnewmeasurement. Original806/498/count1349 and18costremain8adbound, no combinedfullquality/costclaim. Rootacceptedfulltradeoffs; everyloss isownedimmediateNEXT afterpublication.",
+    "human_acceptance": "Root explicitprospectiveacceptancewithfulloldtradeoffs andimmediateownremediation; RootalonepublisheslatestBASE+DIFF.No technicalcoverage/RFC/optionswaiver.",
+    "immediate_next": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\NEXT_REMEDIATION.json",
+      "sha256": "2b21cd99eb733262e48e87a64286c56ca0553301abf6ac69591dcbc0dab9c7d6",
+      "owner": "/root/shape_aware_energy_quality",
+      "every_original_and_new_loss_owned": true
+    },
+    "original_role_start_utc": "2026-10-11T14:01:26Z",
+    "original_role_hard_deadline_utc": "2026-10-11T22:01:26Z",
+    "ultimate_goal": "NOT_MET",
+    "new_Native_execution": "NONE perRootexplicitinstruction; qualified5265fresh18cases/216fields plusbaa4unaffectedcases/contracts/prefix141 remainoriginalactualepochs. Sourcecomponent/calleridentitypasses10relevantfunctions; no field/costretag ornewall806/498combinedclaims.",
+    "prior_authoritative_RESULT": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_5265c76\\RESULT.json",
+      "sha256": "3bcd073308d0c8e24a2a299c589184e0e6dba51b12659cbad33695de48df2f1f"
+    },
+    "root_latest_receipt": "Root explicitexactSPEEDHEAD9ac/cefe8b19; diffsincequalified5265 is one clang-formatindent plus EXACTsilk_NLSF_VQ termrefactor; everyVQoutput/invariants preserved. Root requestedsourceinverse/function/callerproof and no unchangedNative/quality/costcohortreplay.",
+    "additional_affected_qualification": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\QUALITY_ACCOUNTING.json",
+      "sha256": "f22e0c199d332031245d0910e1a6802fb82038ee718e6f02ccf43498473996b7",
+      "fresh_C2_prefilter_TF_counts": {
+        "new_OFF_negative": 9,
+        "closed_OFF_negative": 3
+      },
+      "reused_2241_DN1_counts": {
+        "positive_OFF_margin_gain": 11,
+        "unchanged": 1
+      },
+      "latest_plucked256_SNR": {
+        "BASE": 33.67802154152096,
+        "candidate": 28.126348944306482,
+        "OFF": 30.398093639734327
+      },
+      "FIR_DN1white0_HBE": {
+        "BASE": 349.12689533204747,
+        "candidate": 279.8912484308502,
+        "OFF": 1253.7065295575353
+      }
+    },
+    "latest_actual_TF_coarse_fine_fact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\TF_COARSE_FINE_FACT.json",
+      "sha256": "26ee18133e08c0827318f3b7254b09a464cba01f2a193861197d49c84b9da70b"
+    },
+    "additional_native": [
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_393050b\\EXECUTION.json",
+        "sha256": "546083c9ed4b0bb16ba32b935e05b372b6a48d9dae0baf9659652ae6ae9ef455",
+        "jobs": 3,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_393050b\\TF_probe\\EXECUTION.json",
+        "sha256": "a4fb57213bc73b77801a91a15effa670de7c2429a62d1bc5ecaaf98ab820b9a0",
+        "jobs": 3,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_2241ab6\\EXECUTION.json",
+        "sha256": "4345723ffa47cd853213734f1528b8484e7fa53aa949df825e68565d2888ec98",
+        "jobs": 4,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\EXECUTION.json",
+        "sha256": "3fef742dc71f8d8b545d941a21cbd4d1da3480cda8658baa44d1b4ccffc72417",
+        "jobs": 4,
+        "all_terminal": true
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\rebase_9e6421a\\TF_probe\\EXECUTION.json",
+        "sha256": "e6e5428b18656988ac5f8bc580376e98cec1df447eee4e372e0389a0dae4abb4",
+        "jobs": 3,
+        "all_terminal": true
+      }
+    ],
+    "latest_limits": "AllaffectedSourceinteractionchecks areboundtoactual393TF/2241DN1/9eC2prefilter epochs, notcurrentfullsuite. Original8ad806/4981349candidatecounts and18cost stayoldsource. 5265SILK/Gauss151better51worse14same remainsoldobservations. Current9eC2−5.55167dBSNR/newOFFnegatives fullydisclosed, technicalcrossdecoder/ranges/finites/flushpass, no waiver. Otherunmeasuredcombinationoutcomes/currentcombinedcost unknown. OwningimmediateNEXT remediationrequiredbeforeunrelatedwork."
+  },
+  "original_source_bound_full_result": {
+    "status": "READY_INCREMENTAL_LINEAR_ENERGY_COARSE_DISTANCE_WITH_MEASURED_TRADEOFFS",
+    "owner": "/root/shape_aware_energy_quality",
+    "completed_utc": "2026-10-11T19:22:19.042867+00:00",
+    "role_start_utc": "2026-10-11T14:01:26Z",
+    "hard_role_deadline_utc": "2026-10-11T22:01:26Z",
+    "method_start_utc": "2026-10-11T18:42:52.790471+00:00",
+    "decision_utc": "2026-10-11T18:58:03.932181+00:00",
+    "first_actual_candidate_utc": "2026-10-11T19:03:31.866390+00:00",
+    "base_commit": "8ad34261f364ddd440ab2b2c5d0718fd5ffadaa3",
+    "base_source_sha256": "47e28fb0ca87d77d089efff22e5e0ba5806c1b9cf82f92667bccc92023851aba",
+    "latest_public_at_completion": "8ad34261f364ddd440ab2b2c5d0718fd5ffadaa3",
+    "candidate": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\candidate.cpp",
+    "candidate_sha256": "e602c6900f1bbe26d99d05101c9202c26a283f51c0de2083ad4e7eb687cbdc56",
+    "patch": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\candidate.patch",
+    "patch_sha256": "79cac314893c790b075a67bc1af958c40082dfe2027572b0697fbdd78404fb09",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "source_functions": [
+      "process_coarse_energy<true> scalar qi midpoint only"
+    ],
+    "one_candidate": "Replace one encoder-only coarse floor offset0.5 with derived0.3390359525563189. Coarse adjacent decoded amplitude ratio2/energyratio4 yields squared-energy midpoint2.5 and logboundary0.660964. Existing targetconditioning/feedback/predictors/twointraintertrials/fine/final/allocation/PVQ/mode/decoder remain. No fittedweights/oracles/sweeps/fixturegate or second productionquantizer pass.",
+    "one_fact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\FACT.json",
+      "sha256": "90f06dc8995f0c33fe4dcfc536738cc2c6a956eeef7ac5730a76a9be0a8d332b",
+      "accepted_actual_symbols": [
+        [
+          3,
+          0,
+          1,
+          0
+        ],
+        [
+          2,
+          1,
+          0,
+          1
+        ]
+      ],
+      "stock_stage_price_delta_bits": -2.125,
+      "limits": "Actualpacketcapacity1275 initialbudget10200 is before later VBR shrink, not realfinal26byteprice. Heldfine/directionpowergeometry was admissiononly; actual material/wholedecoded result below qualifies benefit, not global physical-waveform/masking optimality."
+    },
+    "meaningful_material": {
+      "reference": [
+        134400,
+        134880
+      ],
+      "decoded": [
+        134712,
+        135192
+      ],
+      "packet": "p140[312:792)",
+      "band": 19,
+      "baseline": {
+        "lane": 0.0,
+        "start": 134400.0,
+        "band": 19.0,
+        "channel": 0.0,
+        "ref": 5.991911325593232e-06,
+        "deg": 77.35786664181767,
+        "mask": 0.0023599895519412282,
+        "ratio": 5559.219920312831,
+        "d2": 30798023.61298165
+      },
+      "candidate": {
+        "lane": 0.0,
+        "start": 134400.0,
+        "band": 19.0,
+        "channel": 0.0,
+        "ref": 5.991911325593232e-06,
+        "deg": 34.85431187056416,
+        "mask": 0.0023599895519412282,
+        "ratio": 2505.307844294546,
+        "d2": 6232420.765577162
+      },
+      "OFF": {
+        "lane": 1.0,
+        "start": 134400.0,
+        "band": 19.0,
+        "channel": 0.0,
+        "ref": 5.991911325593232e-06,
+        "deg": 40.16148284905345,
+        "mask": 0.0023599895519412282,
+        "ratio": 2886.6320330107324,
+        "d2": 8280951.174844327
+      },
+      "disturbance_error_change_pct": -79.7635691046417,
+      "candidate_vs_OFF_pct": -24.7378636344354,
+      "source": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\affected_white0_all12.stdout",
+        "sha256": "dcb5e89117d6a44e380faac92eb700a216a487e6083061fd82fddb1c40f8f9ae"
+      }
+    },
+    "quality": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\QUALITY_ACCOUNTING.json",
+      "sha256": "7c05d1383ddcec4842e73bcfb8c504321352bc42897f2ff35c103a165392960a",
+      "cohorts": {
+        "published": {
+          "rows": 806,
+          "classes": {
+            "positive_OFF_margin_gain": 4952,
+            "closed_OFF_negative": 262,
+            "unchanged": 712,
+            "positive_OFF_margin_loss": 2397,
+            "new_OFF_negative": 453,
+            "worsened_existing_OFF_negative": 454,
+            "improved_existing_OFF_negative": 442
+          },
+          "baseline_raw_OFF_negatives": 1158,
+          "candidate_raw_OFF_negatives": 1349,
+          "raw_worse_fields": 3304
+        },
+        "retained_matrix": {
+          "rows": 498,
+          "classes": {
+            "positive_OFF_margin_gain": 2192,
+            "positive_OFF_margin_loss": 2152,
+            "new_OFF_negative": 396,
+            "unchanged": 387,
+            "improved_existing_OFF_negative": 328,
+            "worsened_existing_OFF_negative": 406,
+            "closed_OFF_negative": 115
+          },
+          "baseline_raw_OFF_negatives": 849,
+          "candidate_raw_OFF_negatives": 1130,
+          "raw_worse_fields": 2954
+        }
+      },
+      "aggregate_raw_class_counts": {
+        "positive_OFF_margin_gain": 7144,
+        "closed_OFF_negative": 377,
+        "unchanged": 1099,
+        "positive_OFF_margin_loss": 4549,
+        "new_OFF_negative": 849,
+        "worsened_existing_OFF_negative": 860,
+        "improved_existing_OFF_negative": 770
+      },
+      "raw_worse_fields": 6258
+    },
+    "cost": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\COST_ACCOUNTING.json",
+      "sha256": "5aff8d329f468e9df25d0b26311b8aefd58e8c8afdea8ac7ac10f4745bf63df9",
+      "slower_median_cases": [
+        "audio16000",
+        "audio24000",
+        "audio32000",
+        "audio48000",
+        "audio64000",
+        "david64000",
+        "hazel32000",
+        "natural128_240"
+      ],
+      "cases_below_1_5x": [
+        "audio16000",
+        "audio24000",
+        "audio32000",
+        "audio48000",
+        "audio64000",
+        "audio96000",
+        "audio128000",
+        "audio192000",
+        "audio256000",
+        "david16000",
+        "david32000",
+        "david64000",
+        "hazel16000",
+        "hazel32000",
+        "hazel64000",
+        "natural128_960",
+        "natural128_480",
+        "natural128_240"
+      ],
+      "cases_below_1x": [
+        "audio16000",
+        "audio24000",
+        "audio32000",
+        "david16000",
+        "david32000",
+        "david64000",
+        "hazel16000",
+        "hazel32000",
+        "hazel64000"
+      ],
+      "scope": "15published+3retained natural20/10/5ms cases; every case and all9orders/rawslowerpairs recorded; owncohort concurrent SHARED/nopeerpause, no global1.5xclaim."
+    },
+    "options": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\OPTIONS_ACCOUNTING.json",
+      "sha256": "5f829640ab7b1cd6c8815654c8329879926b92d90a1ca6507aa0a97cc036c640",
+      "worse_measured_option_field_records": 23,
+      "technical": "27contractsPASS/90optionsPASS/6300healthy/1556DTXomissionsequal; BASE/candidate decoder exact for allnormalcohort andtechnicalPLC/FEC; independentpinnedOFFranges/healthyfloor; FEC goal remainsFAIL17/18both, DTXPASSboth."
+    },
+    "human_rule": "Explicit human any-measured-tradeoff acceptance prospectively with owning immediateNEXT remediation. No oldrejection retiming/reopening, no technical/coverage/options/contractswaiver. Root alone makes publication acceptance.",
+    "immediate_next_remediation": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\NEXT_REMEDIATION.json",
+      "sha256": "4b16da0cd2b2fa42e6c444de2a133a40e4dbe0e7d5e8c66f4c764099df850538",
+      "owner": "/root/shape_aware_energy_quality",
+      "every_loss_owned": true,
+      "status": "INCOMPLETE_REQUIRED_NEXT"
+    },
+    "native": [
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\EXECUTION.json",
+        "sha256": "b5ad0d0542aaa893e76c16d1117e7f915c20cbb72dec8b1fecf7b2d53723d465",
+        "jobs": 3,
+        "all_native_terminal": true,
+        "failures": []
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\EXECUTION.json",
+        "sha256": "a2d103cff84d6731fbfbe61df26f69809793511492d28521c18529b50b08be7b",
+        "jobs": 4,
+        "all_native_terminal": true,
+        "failures": []
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cohort\\EXECUTION.json",
+        "sha256": "024939e257b014e871903e3bad962e175151d9ce7b9fecd83841919c19398783",
+        "jobs": 1125,
+        "all_native_terminal": true,
+        "failures": [
+          {
+            "name": "broad_mixed_voip_128000_c10_p0_d0",
+            "tag": "energy-method12-cohort-broad_mixed_voip_128000_c10_p0_d0-190725930528",
+            "guard_pid": 33688,
+            "started_utc": "2026-10-11T19:07:25.940098+00:00",
+            "argv": [
+              "C:\\Program Files\\Python314\\python.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.py",
+              "--mode",
+              "shared",
+              "--tag",
+              "energy-method12-cohort-broad_mixed_voip_128000_c10_p0_d0-190725930528",
+              "--cwd",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cohort\\broad_mixed_voip_128000_c10_p0_d0",
+              "--",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cohort.exe",
+              "--input",
+              "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\speech_music_mix.wav",
+              "--application",
+              "voip",
+              "--bitrate",
+              "128000",
+              "--complexity",
+              "10",
+              "--max-seconds",
+              "6",
+              "--skip-memory",
+              "--current-postfilter",
+              "0"
+            ],
+            "stdout": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cohort\\broad_mixed_voip_128000_c10_p0_d0\\native.stdout",
+            "stderr": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cohort\\broad_mixed_voip_128000_c10_p0_d0\\native.stderr",
+            "exit": 3221226356,
+            "ended_utc": "2026-10-11T19:07:27.970164+00:00",
+            "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\TECHNICAL_COST_EXECUTION.json",
+        "sha256": "3fb67953670c329ac4cf86bba99a70965c93fefd38fc86188f3049c54155c2ab",
+        "jobs": 22,
+        "all_native_terminal": true,
+        "failures": [
+          {
+            "name": "link_cost",
+            "guard_pid": 36712,
+            "argv": [
+              "C:\\Program Files\\Python314\\python.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\process_lease.py",
+              "--mode",
+              "shared",
+              "--tag",
+              "energy-continuous-method12-technical-cost-link_cost",
+              "--cwd",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate",
+              "--",
+              "C:/Qt/Tools/mingw64/bin/g++.exe",
+              "-std=c++23",
+              "-O2",
+              "-DNDEBUG",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cost.cpp",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\baseline.o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\candidate.o",
+              "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+              "-lpsapi",
+              "-o",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\cost.exe"
+            ],
+            "started_utc": "2026-10-11T19:11:57.286169+00:00",
+            "stdout": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\link_cost.stdout",
+            "stderr": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\link_cost.stderr",
+            "exit": 1,
+            "ended_utc": "2026-10-11T19:12:00.184479+00:00"
+          }
+        ]
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\OPTIONS_EXECUTION.json",
+        "sha256": "c58d32df5457ac19f65f0a274a91d7a343c620433eeda3593297f251571d7129",
+        "jobs": 10,
+        "all_native_terminal": true,
+        "failures": []
+      }
+    ],
+    "source_proof": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method12_coarse_power_metric\\candidate\\REUSED_FACT_SOURCE_PROOF.json",
+      "sha256": "7e8d3a46ceaa45835d35dc31af9101cf852440acca20cf9cabbbf325eec6d472",
+      "functions_exact_actual": 3,
+      "plan_prose_correction": "EarlierMASTERPLANsevenfunctionwording was inaccurate; actual proof has3coarse encoder/decoder functions. CurrentBASE compiledfresh, allaffectedchecks bind8ad currentstereo/DTX."
+    },
+    "skills": "C++23/cpp-pro/Ponytail leastcode guidance applied as one scalarliteral encoderbranch change; no newruntimeDSPwrapper/heap/storage/dependencies/intrinsics/flags/comments/licenses/header/ABI/RAW/startup/denoiser/options changes.",
+    "research": [
+      "https://www.rfc-editor.org/rfc/rfc6716.html",
+      "https://doi.org/10.1109/TASSP.1984.1164346",
+      "https://arxiv.org/abs/1602.05209",
+      "https://arxiv.org/abs/1602.05526"
+    ],
+    "ultimate_goal": "NOT_MET; candidate has new/worsenedOFFnegative andmargin/costlosses requiringnextremediation; proxyfields notcertifiedPESQ/ViSQOL/listening.",
+    "publication": "Rootalone latestBASE+DIFF; no canonicalGitwrite. Ifpublicadvances/overlaps authorrebase undernewhash/epoch; neverreplace latestfullsource withstale snapshot.",
+    "control_source_proof": "Candidate explicit DN0 setter releases an already-null create-time denoiser pointer; baseline make_current_encoder leaves the same null pointer. Neither path changes startup/blend controls. Productiondiff is only encoder constexpr branch flooroffset."
+  },
+  "full_measurement_limit": "Activefull2241doesnotmeasurethisoneconstant orlaterprefilterSource."
+}

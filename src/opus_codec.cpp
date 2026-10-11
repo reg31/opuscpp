@@ -12287,7 +12287,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
       if constexpr (Encode) {
         const celt_glog input_energy = eBands[index];
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
-        qi = floor_to_int_reference(.5f + residual);
+        qi = floor_to_int_reference(.3390359525563189f + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
         if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
