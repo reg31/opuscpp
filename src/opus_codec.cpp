@@ -6,6 +6,7 @@
 #include <bit>
 #include <concepts>
 #include <cmath>
+#include <cfloat>
 #include <cfenv>
 #include <cstdarg>
 #include <cstddef>
@@ -9230,7 +9231,135 @@ template <int N, int Radix, int M, bool ScaleInput = false> static void stockham
   }
 }
 
+template <int Radix, int M> consteval bool stockham_tensor_indices_valid() {
+  constexpr int groups = 480 / (Radix * M);
+  std::array<bool, 480> read{}, written{};
+  for (int k = 0; k < M; ++k)
+    for (int group = 0; group < groups; ++group)
+      for (int lane = 0; lane < Radix; ++lane) {
+        const int input = k * Radix * groups + group + lane * groups;
+        const int output = (k + lane * M) * groups + group;
+        if (input < 0 || input >= 480 || output < 0 || output >= 480 || read[input] || written[output]) return false;
+        read[input] = written[output] = true;
+      }
+  return true;
+}
+
+template <int Radix, int M, bool ScaleInput = false>
+static void stockham_stage_tensor480(const float* input, float* output, const kiss_fft_state* st) {
+  static_assert(stockham_tensor_indices_valid<Radix, M>());
+  constexpr int groups = 480 / (Radix * M);
+  constexpr auto layout = stockham_make_layout<480, Radix, M>();
+  if constexpr (Radix == 2) {
+    static_assert(M == 4);
+    constexpr celt_coef tw = 0.7071067812f;
+    [&]<std::size_t... K>(std::index_sequence<K...>) {
+      ([&] {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC ivdep
+#endif
+        for (int group = 0; group < groups; ++group) {
+          const int index = K * 2 * groups + group;
+          const kiss_fft_cpx a{input[index], input[480 + index]};
+          const kiss_fft_cpx b{input[index + groups], input[480 + index + groups]};
+          const auto t = [&] {
+            if constexpr (K == 0) return b;
+            else if constexpr (K == 1) return kiss_fft_cpx{(b.r + b.i) * tw, (b.i - b.r) * tw};
+            else if constexpr (K == 2) return kiss_fft_cpx{b.i, -b.r};
+            else return kiss_fft_cpx{(b.i - b.r) * tw, -(b.i + b.r) * tw};
+          }();
+          const auto store = [&]<int Lane>(const kiss_fft_cpx& value) {
+            const int target = (K + Lane * M) * groups + group;
+            output[target] = value.r;
+            output[480 + target] = value.i;
+          };
+          store.template operator()<1>(complex_subtract(a, t));
+          store.template operator()<0>(complex_add(a, t));
+        }
+      }(), ...);
+    }(std::make_index_sequence<4>{});
+  } else {
+    for (int k = 0; k < M; ++k) {
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC ivdep
+#endif
+      for (int group = 0; group < groups; ++group) {
+        const int source_index = k * Radix * groups + group;
+        const auto store = [&]<int Lane>(int, const kiss_fft_cpx& value) {
+          const int target = (k + Lane * M) * groups + group;
+          output[target] = value.r;
+          output[480 + target] = value.i;
+        };
+        const kiss_fft_cpx zero = [&] {
+          if constexpr (ScaleInput)
+            return kiss_fft_cpx{input[source_index] * st->scale, input[480 + source_index] * st->scale};
+          else
+            return kiss_fft_cpx{input[source_index], input[480 + source_index]};
+        }();
+        const auto load = [&]<int Lane>() {
+          const kiss_fft_cpx value = [&] {
+            if constexpr (ScaleInput)
+              return kiss_fft_cpx{input[source_index + Lane * groups] * st->scale, input[480 + source_index + Lane * groups] * st->scale};
+            else
+              return kiss_fft_cpx{input[source_index + Lane * groups], input[480 + source_index + Lane * groups]};
+          }();
+          if constexpr (M == 1)
+            return value;
+          else
+            return complex_multiply(value, st->twiddles[k * layout.twiddle[Lane]]);
+        };
+        const auto one = load.template operator()<1>();
+        const auto two = load.template operator()<2>();
+        if constexpr (Radix == 4) {
+          const auto three = load.template operator()<3>();
+          const auto difference02 = complex_subtract(zero, two);
+          const auto sum02 = complex_add(zero, two);
+          const auto sum13 = complex_add(one, three);
+          const auto difference13 = complex_subtract(one, three);
+          store.template operator()<2>(k, complex_subtract(sum02, sum13));
+          store.template operator()<0>(k, complex_add(sum02, sum13));
+          store.template operator()<1>(k, {difference02.r + difference13.i, difference02.i - difference13.r});
+          store.template operator()<3>(k, {difference02.r - difference13.i, difference02.i + difference13.r});
+        } else if constexpr (Radix == 3) {
+          const auto sum = complex_add(one, two);
+          auto difference = complex_subtract(one, two);
+          const kiss_fft_cpx base{zero.r - sum.r * .5f, zero.i - sum.i * .5f};
+          difference.r *= st->twiddles[160].i;
+          difference.i *= st->twiddles[160].i;
+          store.template operator()<0>(k, complex_add(zero, sum));
+          store.template operator()<1>(k, {base.r - difference.i, base.i + difference.r});
+          store.template operator()<2>(k, {base.r + difference.i, base.i - difference.r});
+        } else {
+          static_assert(Radix == 5);
+          const auto three = load.template operator()<3>();
+          const auto four = load.template operator()<4>();
+          const auto sum14 = complex_add(one, four);
+          const auto difference14 = complex_subtract(one, four);
+          const auto sum23 = complex_add(two, three);
+          const auto difference23 = complex_subtract(two, three);
+          const auto ya = st->twiddles[96], yb = st->twiddles[192];
+          const kiss_fft_cpx base1{zero.r + (sum14.r * ya.r + sum23.r * yb.r), zero.i + (sum14.i * ya.r + sum23.i * yb.r)};
+          const kiss_fft_cpx cross1{difference14.i * ya.i + difference23.i * yb.i, -(difference14.r * ya.i + difference23.r * yb.i)};
+          const kiss_fft_cpx base2{zero.r + (sum14.r * yb.r + sum23.r * ya.r), zero.i + (sum14.i * yb.r + sum23.i * ya.r)};
+          const kiss_fft_cpx cross2{difference23.i * ya.i - difference14.i * yb.i, difference14.r * yb.i - difference23.r * ya.i};
+          store.template operator()<0>(k, complex_add(zero, complex_add(sum14, sum23)));
+          store.template operator()<1>(k, complex_subtract(base1, cross1));
+          store.template operator()<4>(k, complex_add(base1, cross1));
+          store.template operator()<2>(k, complex_add(base2, cross2));
+          store.template operator()<3>(k, complex_subtract(base2, cross2));
+        }
+      }
+    }
+  }
+}
+
+template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st);
+
+
 template <int N, bool ScaleInput = true> static float* stockham_scaled_soa(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
+  if constexpr (N == 480)
+    if (auto* result = stockham_tensor480<ScaleInput>(input, data, scratch, st)) return result;
+
   stockham_stage_soa<N, 4, 1, ScaleInput>(input, scratch, st);
   if constexpr (N == 60) {
     stockham_stage_soa<N, 3, 4>(scratch, data, st);
@@ -9788,6 +9917,20 @@ consteval auto make_celt_tables() noexcept -> celt_generated_tables {
 }
 
 static constexpr celt_generated_tables celt_tables = make_celt_tables();
+
+template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
+  const auto before = std::less<const float*>{};
+  if (FLT_EVAL_METHOD != 0 || std::fegetround() != FE_TONEAREST || st->twiddles != celt_tables.fft_twiddles.data() ||
+      (before(data, scratch + 960) && before(scratch, data + 960)) ||
+      (before(input, scratch + 960) && before(scratch, input + 960)))
+    return nullptr;
+  stockham_stage_tensor480<4, 1, ScaleInput>(input, scratch, st);
+  stockham_stage_tensor480<2, 4>(scratch, data, st);
+  stockham_stage_tensor480<4, 8>(data, scratch, st);
+  stockham_stage_tensor480<3, 32>(scratch, data, st);
+  stockham_stage_tensor480<5, 96>(data, scratch, st);
+  return scratch;
+}
 
 [[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>* {
   return celt_tables.comb_fade.data();
