@@ -1,0 +1,48 @@
+{
+  "status": "EXACT_PACKET_PADDING_PIPELINE_CONSOLIDATION",
+  "base_commit": "5958f9a89657a050d2b2a8f26d06deac7df918f0",
+  "base_source_sha256": "f96c39ec2bc4d31149ee5e90db4869c629b4236b3ffe646e398f215ee15d6a68",
+  "candidate_source_sha256": "d4ee61257664dcf3121530d69668cc0ab8833f9327c695dbe86ca30b77d0fd30",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "patch_sha256": "569ece41ea2aa01193fc2b592c363a3da8eaec9b7b0fad674031b1c8da6ddd54",
+  "ready_result_sha256": "d6cfa9a24d4e1a7e6fb1f85496fb1bd4028ea0e4455a41754449ffe726c21dc4",
+  "implementation": "Remove entire internal pad_packet copy\u2192genericparse\u2192frame reconstruction stage. Native code0 producer forwards its known single payload; low-rate code0/1/3 producer forwards known zero-length frame geometry into existing write_packet_frames. Writer moves an overlapping single payload to its final position before writing the header, then avoids the second payload copy. Preserve equal-length fast return and existing error/state behavior. No new wrapper/template/heap/option or DSP change.",
+  "structural_delta": {
+    "removed_lines": 29,
+    "added_lines": 23,
+    "net_lines": -6,
+    "whole_algorithm_removed": "Generic packet-padding reparse/reconstruction helper and both caller uses, including its full raw packet copy.",
+    "source_work_removed_per_changed_size_internal_padding": "One whole generic packet parse and one len-byte full packet copy, plus no second post-header payload move for in-place native output. Runtime reach counts and speed not measured.",
+    "speed_gain_claim": false,
+    "memory_gain_claim": false
+  },
+  "source_proof": {
+    "all_callers": "pad_packet has exactly two production callers: native final CBR tail and low-rate CBR packet. Repository tests/full runners do not call the private helper directly; all exports/header/config unchanged.",
+    "native_geometry": "gen_toc returns lower two bits0, native return paths are single Opus frames with payload\u22641275 and legal frame duration\u226460ms. End ret=1+payload including redundancy. Equal-length case bypasses writer, matching old pad_packet earlyreturn before validation. Changed-size oversize ret maps to same public-3 before any writer mutation. Early SILK nBytes0 return remains unchanged and unpadded.",
+    "lowrate_geometry": "Existing packet_code choices0/1/3 describe known empty payloads; framecount is1/2/num_multiframes, producer input geometry assures\u2264120ms/48frames. Original code0/1/3 raw packet remains unchanged for VBR/equalcap; CBR changedcap uses same canonical writer descriptor the old parser would produce. Empty payload pointers are valid even though lengths0; only used entries initialized.",
+    "inplace": "Existing writer computes code0 or3 for one frame, with vbr false. When source=data+1, final payload offset is1 for code0 or2+ceil(padding/255) for code3. Exact same header padding loop consumes ceil(padding/255) bytes. memmove payload before any header stores, preserve overlap-safe lifetime, skip later payloadmove, zero identical remaining padding. Multiframe writer uses separate packet_storage so unchanged external-source path.",
+    "errors_and_states": "Pad helper/packet writer error differences are mapped to identical public-3 in both callers. All codec state writes, arithmetic/budgets/range/state commits and temporal/option decisions occur unchanged before this framing tail. Writer only mutates output and private temporary descriptors; no persistent codec field changes.",
+    "active_ownership": "No transform, NSQ, predictor/PVQ, analysis/policy/allocation/energy/noise/FEC-DTX decisions or decoder SRC operation changed. Only framing tails plus shared packet writer. All landed FFT/RFC/parser changes retained from latestf96 base.",
+    "skills": "Previously read C++23/cpp-pro/modern-cpp/memory-performance/Ponytail guidance applied as existing writer reuse, std::fill_n on fixed caller-owned descriptors, const spans and overlap-safe lifetime; runtime DSP left unchanged."
+  },
+  "qualified_checks": {
+    "sequential_encoder_pairs": 3600,
+    "decoder_output_state_pairs": 9000,
+    "capacity_encoder_pairs": 4860,
+    "counter_paired_calls": 13860,
+    "counter_success": 13830,
+    "counter_errors": 30,
+    "coverage": "5 legal rates\u00d7C1/C2\u00d7VOIP/AUDIO/LOWDELAY; CBR and CBR-DTX/FEC across2.5/10/20/60/120ms; sequential bitrate/mode/silence/loss/FEC continuation. Encoder full buffer bytes/length/final range exact, decoder full output/redzones/defined Opus/SILK/CELT/CNG/PLC/resampler state/errno/FENV flags exact. Additional9 duration geometries\u00d718 tiny/header255/510/big capacities perrate/channel/app, including errors/output redzones, exact.",
+    "existing_fixture": "Unchanged packet_duration_behavior=PASS",
+    "default_rounding_only": "No all-four-rounding execution claim; framing only integer/byte arithmetic, unchanged DSP calls/order.",
+    "parent_reuse": "Qualified measured788/source18 curr.o3a2d295fadee618d7cd502feadc6f5f5ffe9ac32c2ca63d3064e7a4fcb14410f reused without parent rebuild, separately labeled from currentf96. Root verified whole source two-line indentation-only token/control equivalence; claimed framing functions byte-identical to parent."
+  },
+  "all_native_terminal": true,
+  "limitations": [
+    "Complete internal-framing algorithm removal with net6 code lines is reported honestly; no compiler/binary/memory or wholeencoder speed claim.",
+    "Covered packet/output/state identity preserves covered deterministic quality values; no fresh full quality, OFF replay, listening or all-case1.5x certification.",
+    "Source/publication/Git/globalregistry/timeouts/checkpoint/canonical untouched; Root alone decides acceptance and publishes latestBASE+DIFF.",
+    "One new method/checkset; no fullbenchmark rerun, parser qualification repeat, provider/helper or closed-method replay."
+  ],
+  "full_measurement_remains": "7888cb5/source18a79, published5958f9a; this focused exact framing change has no fresh full measurement or speed/quality gain claim"
+}

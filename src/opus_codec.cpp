@@ -798,7 +798,6 @@ struct packet_frame_set {
 
 static opus_int32 write_packet_frames(packet_frame_set* frames, unsigned char* data, opus_int32 maxlen, int pad);
 static int append_packet_frames(packet_frame_set* frames, const unsigned char* data, opus_int32 len);
-static int pad_packet(unsigned char* data, opus_int32 len, opus_int32 new_len);
 static int encode_size(int size, unsigned char* data) {
   if (size < 252) {
     data[0] = static_cast<unsigned char>(size);
@@ -3313,12 +3312,14 @@ struct encoder_stage_storage {
   if (packet_code == 3) {
     data[1] = num_multiframes;
   }
-  if (!st->use_vbr) {
-    ret = pad_packet(data, ret, max_data_bytes);
-    if (ret == 0) {
-      ret = max_data_bytes;
-    } else
-      ret = -3;
+  if (!st->use_vbr && ret != max_data_bytes) {
+    packet_frame_set frames;
+    frames.toc = data[0];
+    frames.nb_frames = packet_code == 3 ? num_multiframes : packet_code + 1;
+    std::fill_n(frames.frames.data(), frames.nb_frames, data + ret);
+    std::fill_n(frames.len.data(), frames.nb_frames, opus_int16{0});
+    ret = write_packet_frames(&frames, data, max_data_bytes, true);
+    if (ret < 0) ret = -3;
   }
   return ret;
 }
@@ -4368,10 +4369,14 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     for (; ret > 2 && data[ret] == 0; --ret) {}
   }
   ret += 1 + redundancy_bytes;
-  if (!st->use_vbr) {
-    if (pad_packet(data, ret, orig_max_data_bytes) != 0) {
-      return -3;
-    }
+  if (!st->use_vbr && ret != orig_max_data_bytes) {
+    if (ret > orig_max_data_bytes || ret > 1276) return -3;
+    packet_frame_set frames;
+    frames.toc = data[0];
+    frames.nb_frames = 1;
+    frames.frames[0] = data + 1;
+    frames.len[0] = static_cast<opus_int16>(ret - 1);
+    if (write_packet_frames(&frames, data, orig_max_data_bytes, true) < 0) return -3;
     ret = orig_max_data_bytes;
   }
   return ret;
@@ -4698,6 +4703,12 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   if (total_size > maxlen) {
     return -2;
   }
+  const bool inplace = count == 1 && frame_data.front() == data + 1;
+  if (inplace) {
+    const int padding = pad ? maxlen - total_size : 0;
+    const int payload_offset = code == 3 ? 2 + (padding > 0 ? (padding + 254) / 255 : 0) : 1;
+    move_n_items(data + 1, static_cast<std::size_t>(frame_lengths.front()), data + payload_offset);
+  }
   auto* ptr = data;
   *ptr++ = static_cast<unsigned char>((packet_frames->toc & 0xFC) | code);
   if (code == 2) {
@@ -4720,7 +4731,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     }
   }
   for (std::size_t index = 0; index < frame_count; ++index) {
-    move_n_items(frame_data[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
+    if (!inplace) move_n_items(frame_data[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
     ptr += frame_lengths[index];
   }
   if (pad) {
@@ -4729,23 +4740,6 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   return total_size;
 }
 
-static int pad_packet(unsigned char* data, opus_int32 len, opus_int32 new_len) {
-  if (len < 1 || len > new_len) {
-    return -1;
-  }
-  if (len == new_len) {
-    return 0;
-  }
-  std::array<unsigned char, opus_max_multiframe_packet_bytes> copy;
-  copy_n_items(data, static_cast<std::size_t>(len), copy.data());
-  packet_frame_set packet_frames;
-  const int ret = append_packet_frames(&packet_frames, copy.data(), len);
-  if (ret != 0) {
-    return ret;
-  }
-  const auto length = write_packet_frames(&packet_frames, data, new_len, true);
-  return length > 0 ? 0 : static_cast<int>(length);
-}
 
 namespace {
 constexpr auto eMeans = numeric_blob_array<opus_val16>(
