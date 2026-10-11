@@ -6018,6 +6018,8 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1, tmp_side, tmp_side_1;
   int selcost[2];
+  const bool legal_entropy = bandE != nullptr && coupled_end >= len && LM >= 2;
+  std::array<std::array<double, 4>, celt_default_nb_ebands> legal_cost{};
   int tf_select = 0;
   for (int i = 0; i < len; i++) {
     int k, N;
@@ -6029,6 +6031,21 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     if (N <= 0)
       continue;
     const bool coupled = i < coupled_end;
+    const auto record_legal_cost = [&](int level, double value) {
+      if (!legal_entropy)
+        return;
+      const double cost = value > 0 ? N * std::log2(value) : 0;
+      for (int state = 0; state < 4; ++state) {
+        const int tf = tf_select_table[LM][4 * isTransient + state];
+        int actual_level = isTransient ? tf : -tf;
+        if (actual_level < 0 && ((N >> LM) & 1) != 0)
+          actual_level = 0;
+        if (!isTransient)
+          actual_level = std::min(actual_level, static_cast<int>(std::countr_zero(static_cast<unsigned>(N))));
+        if (actual_level == level)
+          legal_cost[i][state] = cost;
+      }
+    };
     if (coupled) {
       copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
       copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
@@ -6047,6 +6064,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     }
     L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias, coupled ? tmp_side.data() : nullptr);
     best_L1 = L1;
+    record_legal_cost(0, L1);
     if (isTransient && !narrow) {
       copy_n_items(tmp.data(), static_cast<std::size_t>(N), tmp_1.data());
       haar1(tmp_1.data(), N >> LM, 1 << LM);
@@ -6055,6 +6073,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
         haar1(tmp_side_1.data(), N >> LM, 1 << LM);
       }
       L1 = l1_metric(tmp_1.data(), N, LM + 1, bias, coupled ? tmp_side_1.data() : nullptr);
+      record_legal_cost(-1, L1);
       if (L1 < best_L1) {
         best_L1 = L1;
         best_level = -1;
@@ -6066,6 +6085,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       if (coupled)
         haar1(tmp_side.data(), N >> k, 1 << k);
       L1 = l1_metric(tmp.data(), N, B, bias, coupled ? tmp_side.data() : nullptr);
+      record_legal_cost(k + 1, L1);
       if (L1 < best_L1) {
         best_L1 = L1;
         best_level = k + 1;
@@ -6077,6 +6097,39 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       metric[i] = -2 * best_level;
     if (narrow && (metric[i] == 0 || metric[i] == -2 * LM))
       metric[i] -= 1;
+  }
+  if (legal_entropy) {
+    std::array<int, celt_default_nb_ebands> best_path;
+    double best_cost = std::numeric_limits<double>::max();
+    for (int sel = 0; sel < (isTransient ? 2 : 1); ++sel) {
+      const int first_logp = isTransient ? 2 : 4;
+      const int later_logp = isTransient ? 4 : 5;
+      const double first_stay = -std::log2(1.0 - std::ldexp(1.0, -first_logp));
+      const double later_stay = -std::log2(1.0 - std::ldexp(1.0, -later_logp));
+      double cost0 = legal_cost[0][2 * sel] + first_stay;
+      double cost1 = legal_cost[0][2 * sel + 1] + first_logp;
+      for (int i = 1; i < len; ++i) {
+        const double from00 = cost0 + later_stay, from10 = cost1 + later_logp;
+        const double from01 = cost0 + later_logp, from11 = cost1 + later_stay;
+        path0[i] = from00 < from10 ? 0 : 1;
+        path1[i] = from01 < from11 ? 0 : 1;
+        cost0 = std::min(from00, from10) + legal_cost[i][2 * sel];
+        cost1 = std::min(from01, from11) + legal_cost[i][2 * sel + 1];
+      }
+      tf_res[len - 1] = cost0 < cost1 ? 0 : 1;
+      for (int i = len - 2; i >= 0; --i)
+        tf_res[i] = tf_res[i + 1] == 1 ? path1[i + 1] : path0[i + 1];
+      const int changed = std::any_of(tf_res, tf_res + len, [](int value) { return value != 0; });
+      const int selector_cost = tf_select_table[LM][4 * isTransient + changed] != tf_select_table[LM][4 * isTransient + 2 + changed];
+      const double cost = std::min(cost0, cost1) + selector_cost;
+      if (cost < best_cost) {
+        best_cost = cost;
+        tf_select = sel;
+        std::copy_n(tf_res, len, best_path.begin());
+      }
+    }
+    std::copy_n(best_path.begin(), len, tf_res);
+    return tf_select;
   }
   int cost0, cost1;
   if (isTransient)
