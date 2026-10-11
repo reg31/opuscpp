@@ -1,219 +1,21 @@
 {
-  "source_commit": "7c728d84704955b4d374f9fca294a5b84532057d",
-  "source_sha256": "9110711bfc82e9d910ba210518298bb733ad707d784e178c2af5c09356dc8de4",
-  "source_root": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011",
+  "source_commit": "874fba11786acb3a57c1671a5fcca701d7d53625",
+  "source_sha256": "842250aa0cdbdb1158a71bc45d655220295b67c6aa29a90fc335d3710900d908",
+  "source_root": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "setup_helper_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\tests\\scripts\\setup_official_compare.py",
+  "setup_helper_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\tests\\scripts\\setup_official_compare.py",
   "setup_helper_sha256": "c59659640b6345edb82f0a3836b085747635ca7146331923420c9020aa837e12",
   "phase_runner_sha256": "92267952694b7290598bb88ba617598759d3750b1b55fc104d7dc8964e8f5cf1",
-  "continuation_driver_sha256": "572e0cdb0edd596e185dcc252a8df8b477622783f49a9f6cc70ab1b6141e0d03",
   "auxiliary_fec_acceptance": {
     "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.53004 wins=16/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.990153",
+    "summary": "fec_summary recovery_error_ratio=0.510824 wins=17/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.98961",
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },
-  "command_prefix": "compat_unfinished_command",
-  "qualified_prior_compatibility_directory": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\compatibility",
-  "reused_scope": "Six phases/other-metric prefix/RFC24/encode96/five API groups/LPC16x200 actual current-source checks retained. Only uncompleted energy signature adapter and following tail executed.",
-  "reused_command_bindings": {
-    "1": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_001.cmd.json",
-      "sha256": "de1898ab0110667267a3caca0b19f090996881fccb42e5db155769cac57ca805"
-    },
-    "2": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_002.cmd.json",
-      "sha256": "ae84892ca4761ac8e35b46078fb6bd6e73b5bce916f64316b4e8dfa6d6dba77e"
-    },
-    "3": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_003.cmd.json",
-      "sha256": "6c4c5d1ba7990a7cfc97c12be4e2d2fa7e5eeb25faf7b1ece785a6d9bbd816bd"
-    },
-    "4": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_004.cmd.json",
-      "sha256": "2772014fed1bfe7a2681efa299272476d172596665c81a6dc5445cc449a2cf58"
-    },
-    "5": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_005.cmd.json",
-      "sha256": "b876e1f44f44ba7cecb850215f135e10cb83d7c83e4a51906fbdc72b8e931f15"
-    },
-    "6": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_006.cmd.json",
-      "sha256": "0b1fa6380def7d51a579a2926a5ae26dab1728dee4aeb748af55d9c12b3379c1"
-    },
-    "7": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_007.cmd.json",
-      "sha256": "c8937d51126e3383c894fe6733c36c1cc5e89f599e55975cdc8e2face97a6c48"
-    },
-    "8": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_008.cmd.json",
-      "sha256": "7db8639a8f5b14e2b601c19937a6eeaaf8b94c9b96b2a1240a7ba99ebe3db599"
-    },
-    "9": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_009.cmd.json",
-      "sha256": "739ed12f832d0d1726e2ebe1b830f1ce765c6d9f41c2dccd5e87c271695447b7"
-    },
-    "10": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_010.cmd.json",
-      "sha256": "7c7d26149d3a6072abee259f39acdc68b75903df84bdccacbf03c3fc583192fb"
-    },
-    "11": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_011.cmd.json",
-      "sha256": "0bd7d098fd4f8a052ed23658eeb4649c653b7159c21d63d271704224bb084335"
-    },
-    "12": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_012.cmd.json",
-      "sha256": "34f4a6310584612675219dacc1b8e82f547c6bf6a5f618196ff755f67cd60fb8"
-    },
-    "13": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_013.cmd.json",
-      "sha256": "af9dc0df02b5c2290d05938ab04960cf2e336de7f1ea88f73bb994890bef5462"
-    },
-    "14": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_014.cmd.json",
-      "sha256": "0dbcb329b1ec0bb34a7301bdd6e7862389b7d4c4cf0e1071cd9f282091873757"
-    },
-    "15": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_015.cmd.json",
-      "sha256": "2a8edb456370bb9f18e7144d46ca85cd7a990e17c3569f2f3e342a6e716afd06"
-    },
-    "16": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_016.cmd.json",
-      "sha256": "d3e06bd94431adcd895a7c9b06ddc8e4d583458ed14565de6e12e92ccdd0834d"
-    },
-    "17": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_017.cmd.json",
-      "sha256": "36d9bc5c0f53a42ef7f5f92605b495a9574ee086e9726aa06e4cb2c8a2db91fc"
-    },
-    "18": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_018.cmd.json",
-      "sha256": "2e5bb7e0cba4ca07b0cb6caadae453bbb488e4c03cece9c43fd276c5a750d387"
-    },
-    "19": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_019.cmd.json",
-      "sha256": "1cddc49fc49a155df16a165fdcfc07f0ab449141e32d134a10f62747e976b591"
-    },
-    "20": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_020.cmd.json",
-      "sha256": "ea2c0b882941542a6f601d93cca3fa4e3accf7ea0dff8ca124a3d1ebc72f5791"
-    },
-    "21": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_021.cmd.json",
-      "sha256": "f20e8b66e26ab90600e08f8e1b47c7b8a0308a043680eea60a7f34e3847eba81"
-    },
-    "22": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_022.cmd.json",
-      "sha256": "8bf28c44dbb9c1baf6d3fc5198cb64f7de5d2edcc2aac3da92a45447773b5282"
-    },
-    "23": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_023.cmd.json",
-      "sha256": "d5e294affd4aa67c2c3db768df84d11312ea8f293331c58c3b8c9fc1c60c9cb0"
-    },
-    "24": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_024.cmd.json",
-      "sha256": "15f490f52c33071102740d8a1d3c2a02920a8a1b66d281e788713eb6dd959ecf"
-    },
-    "25": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_025.cmd.json",
-      "sha256": "c05be4f7c0a10eac018dcfa98b4b5a4887acfdb88fc0d3d7701ac6136e3e189f"
-    },
-    "26": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_026.cmd.json",
-      "sha256": "f063a03d790bb5ca7b073972368a9746afbc38f874715efbb25f683b7a0fd262"
-    },
-    "27": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_027.cmd.json",
-      "sha256": "29622c5975f48084bae3a8642aff2945e9b94b6de259ca8ea25ef93398aa0993"
-    },
-    "28": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_028.cmd.json",
-      "sha256": "d1d45b68eb5d641cc99ce92d5c7620667def4b2a1a73d4fcc57cbfdb25932c87"
-    },
-    "29": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_029.cmd.json",
-      "sha256": "1ea44430b66e88e867a3698b366184e1140c96d0f89d0f76381e97495e0ce521"
-    },
-    "30": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_030.cmd.json",
-      "sha256": "c96d00360706a649329d2ea52cd7171fc250321985b04a538b4f6cee41b5d7a2"
-    },
-    "31": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_031.cmd.json",
-      "sha256": "0899acb27ff88223da425ffcc3f582ec0e503128f938e068d65556208c2c1807"
-    },
-    "32": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_032.cmd.json",
-      "sha256": "2fb47df148ee802f201c0956200f51db888a92a2104b981fb491bfb04fe60aab"
-    },
-    "33": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_033.cmd.json",
-      "sha256": "aee8d68831eb4c2560c3e67fa6f0abc56b0bab365797ddea98d50e6588c1e39a"
-    },
-    "34": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_034.cmd.json",
-      "sha256": "9383a74d2bae4bda08d05ea6f94319c002473b42b6a179dc62fc12f8ac3212d7"
-    },
-    "35": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_035.cmd.json",
-      "sha256": "fd394acc5c946238bdd67e91a5edc39ccfd8fe04ec146d30af0ddc6ba452545c"
-    },
-    "36": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_036.cmd.json",
-      "sha256": "2cf7710c8ef5b6d3114326396bc578ae7870f79406beea166c2dafedb699f30c"
-    },
-    "37": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_037.cmd.json",
-      "sha256": "55898a3acbbbddd368a30d9251d53c6c4d7d2cc2e52ccdbd053203c54dc1af7d"
-    },
-    "38": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_038.cmd.json",
-      "sha256": "67c7071f825ccfe5bfefec8293a32eeb438aaff5d32cabab16dbd152110f788c"
-    },
-    "39": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_039.cmd.json",
-      "sha256": "51aa30684384ef1e3fea439877674bde586782961835725a3fa12b660d045760"
-    },
-    "40": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_040.cmd.json",
-      "sha256": "f2e7ea42dfeffd72cfbbe563d19f6a1f08d2588befb6bbffe4d5d361ce681ffe"
-    },
-    "41": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_041.cmd.json",
-      "sha256": "366101f6a9146cfd44a4c81439571165e651f5d37cf4efa30b5d70f023ac1722"
-    },
-    "42": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_042.cmd.json",
-      "sha256": "888a01d9d28f2b1cdc1d508639336811dd5ed11cc04b410afcfcd734bc982204"
-    },
-    "43": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\logs\\compat_command_043.cmd.json",
-      "sha256": "b483483d300f3e93a5e8165ec203b542aa37688bef918bde7ab09c085d0b735b"
-    }
-  },
-  "signature_adapter": {
-    "status": "PRESERVED_SIGNATURE_MISMATCH_PRIVATE_ADAPTER_UNFINISHED_TAIL_ONLY",
-    "prepared_utc": "2026-10-11T22:01:35.485741+00:00",
-    "source_commit": "7c728d84704955b4d374f9fca294a5b84532057d",
-    "source_sha256": "9110711bfc82e9d910ba210518298bb733ad707d784e178c2af5c09356dc8de4",
-    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-    "initial_failed_execution_sha256": "23c6b2c28edea4e1249b8aadf07f72034a905908589688132b3f9f3d3f0928a2",
-    "initial_state_sha256": "ccefb4c0b327873cce883f02d67a963367388a6cf02985ad76aee1566ba52a23",
-    "original_frozen_test": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\tests\\celt_energy_decode.cpp",
-      "sha256": "6ebb45d1334420d1121ee97f52d6cadf79b5f9b1d8391b0946dd151e88d6d983"
-    },
-    "private_adapter": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_7c728d847049_20261011\\tests\\celt_energy_decode_signature_adapter.cpp",
-      "sha256": "a6bc7cb6dd8778c529b93a03be954f92407e2d51d7d1522a5d1ad557399cfe2e"
-    },
-    "test_diff": "--- original_frozen_test\n+++ private_signature_adapter\n@@ -45,7 +45,7 @@\n   for (int bit = 0; bit < 12; ++bit)\n     ec_enc_bit_logp(&enc, 0, 1);\n   ec_enc_bit_logp(&enc, 0, 3);\n-  process_coarse_energy<true>(17, 19, energy.data(), old_energy.data(), 16, ec_tell(&enc), e_prob_model[6].data(), error.data(), &enc, 1, 3, 0, 16, nullptr);\n+  process_coarse_energy<true>(17, 19, energy.data(), old_energy.data(), 16, ec_tell(&enc), e_prob_model[6].data(), error.data(), &enc, 1, 3, 0, 16, nullptr, nullptr);\n   ec_enc_done(&enc);\n   int status = OPUS_OK;\n   auto decoder = std::unique_ptr<OpusDecoder, decltype(&opus_decoder_destroy)>{opus_decoder_create(48000, 1, &status), opus_decoder_destroy};\n",
-    "source_producer_consumer_proof": "Private process_coarse_energy now requires fifteen parameters; added const celt_glog* rounding_bias. At measuredsource12499 nullptr explicitlyselects the existing .3390359525563189f rounding offset. Originaltest supplies no rounding-bias array; appendingnullptr preserves allinputs/assertions/predicates/loopcoverage and intendeddefault branch. Source/header andeveryoriginalfrozentrackedtest remain byteidentical. Rootconfirmed sole directrepotestcaller mismatch; alllibrarycallers already15.",
-    "completed_reuse": "Sixcompletephases andallothermetricprefix includingRFC24/encode96/fiveAPIgroups/LPC16cases3200frames/commands001..043 are source-bound retained; no rerun. Only failedcompile044 plusfollowingunexecutedtail runs.",
-    "old_failures_retained": "StandardFEC16/18FAIL,strict[18,18,17,18]FAIL, DTXPASS unchanged. Original14argumentcompilefailure isnotwaived/rewritten andwillremainpublishedmetadatahistory.",
-    "new_source_or_default_param_change": false,
-    "root_fixture_patch_required": "Returnone-linerepositorytestpatchadding finalnullptr withreusedtailoutcome andprimitive/decoder dependencyproof againstlaterTFpublication; Rootalonepublishes."
-  },
+  "command_prefix": "compat_command",
+  "qualified_prior_compatibility_directory": null,
+  "reused_scope": null,
   "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
   "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
   "official_source_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
@@ -259,26 +61,26 @@
     "opus_newvectors/testvector12m.dec": "bd7f89a4cb02fb8dcb8fca4425bbcfdbdb3487beed9cd9d49883beb0960e617b"
   },
   "compatibility_binary_hashes": {
-    "transient_invariant.exe": "4f1f3abf5c0b5d49fb0fdfcad2119a076fb17a0bed943e331a055ef76816b6a2",
-    "voice_conditioning_release.exe": "534ea6ae67e40ccc723bcfb5aee2f1bbc9059fe433b652908959f5751709ab68",
-    "voice_denoise_state.exe": "2b2d68f0bc3873f81419013a480289f38a3061baa5a40b17f4a442bda3b63615",
-    "voip_quiet_start_latch.exe": "3dc518757a502764a683f0fd189b74049c2af02a4621825c005c755be95d4b9c",
-    "api_behavior/celt_energy_decode.exe": "c4ebc3fb6926b01ed82ace0a14e7b201364430671a2dd8d887707635e457d1e9",
-    "api_behavior/current_codec.o": "65acbb22722b0898ff79f9ea03451dcc71d82068041fa8dc101ada3e56c8d445",
-    "api_behavior/decoder_channel_remap.exe": "f2ca960b8349379fa62c3f96ffc215390d8b765ffd36ea0dc37e86b129047a72",
-    "api_behavior/dtx_behavior.exe": "2a1824870c2fdcdcf3ef45d695bb8e83e1ed01e40af52ddc7b84a808f1508925",
-    "api_behavior/dtx_vs_official.exe": "eb288d23948669302f863547388c740ee10774caa78da2b1a540b25b9f23f4ca",
-    "api_behavior/fec_vs_official.exe": "9a54ccc92c0c24fbcaba54f560bc9d31e357041c0a80a44fcc1c23ad17198f0f",
-    "api_behavior/lpc_analysis_filter.exe": "e23fa93cc72ba0f7da6229e9f5cb32d7d4ec39bebfb61831098ce77d39cac492",
-    "api_behavior/lpc_analysis_filter.o": "6d87a4ac6ee6602fb51f628b2fbb2220a3073254e02fbe71dc126783cc471db8",
-    "api_behavior/packet_duration_behavior.exe": "f8180768af4decca1a43f6f0f57f99f90a48424343aad72121e252975efb6689",
-    "api_behavior/postfilter_bypass.exe": "0e8e61462fbfbeaf5001cd3fa9ec6dc5a73d1df25e82027f3add47cf1230512c",
-    "api_behavior/stereo_policy.exe": "6893a6006e872d2badbade34e25b1ad7f91cf54fb8b029be3cd4242b2054921d",
-    "api_behavior/vbr_budget_behavior.exe": "421978ba0696cc717ac5a8331a71cc516ca1e1050ddf8b87b80320ae97f88cfe",
-    "decode_build/conformance_decode.exe": "84aafb8032a21c6f8e731812a5104c6d5d58e40f94d95576b1699e835e14c56d",
-    "encode_validation/codex_opus_codec.o": "8a3378f8109e299a3b99731834be18c13b38a8fc2b036ea26142ed2c7b176c2c",
-    "encode_validation/conformance_encode.exe": "d4b19cff42f46f435c19f5d0d633c68fdd995a8b6868ab627330794dc2ba2207",
-    "encode_validation/official_encode_validation.exe": "f411ef66881979f96d5f352d950b41ec155275462a657a0b4457c700040a5959"
+    "transient_invariant.exe": "cabb32342163d8c64b74a9fef1adf5f89e379e726aaaf129b7b8b5ecf4b91ab7",
+    "voice_conditioning_release.exe": "31d3c059de148299bbaa6ab16aaf0943d412e3a6188947326c038baf09427133",
+    "voice_denoise_state.exe": "ccc56e9ded2c6e16a20f939534535b707d67011ca517a7251cb6c5b98efe54d5",
+    "voip_quiet_start_latch.exe": "207935fb6053f1ee5912f7e35977a10809dc54f5cff68c649df97263cdb76d40",
+    "api_behavior/celt_energy_decode.exe": "83d3f9a198ca3e65cfc4a5e06cded2a1b2028813da66e358f989fa8849c6f9cb",
+    "api_behavior/current_codec.o": "84a7189bff1d4cc680bf6e17be59bdf824a9a9ed6246a4950def8cb5702909ae",
+    "api_behavior/decoder_channel_remap.exe": "a05920b8424e568f163f9caf74da93dd965e3b6e87c91ccba00730529cfae6cc",
+    "api_behavior/dtx_behavior.exe": "d72f87f5647661779c656dfc386bed4c6534755817152d9d8c894df1f7ba4512",
+    "api_behavior/dtx_vs_official.exe": "ed9800a476ac9e89c0e84263a370c142a137d18f6ece44a55bfb11fdb3fa097e",
+    "api_behavior/fec_vs_official.exe": "afde286c7c844784d7ec81f174eca7dedc218fb475c1468ada0579ce69a32bc6",
+    "api_behavior/lpc_analysis_filter.exe": "c2e1f284b1155e1d5492b1ded118a5bd9048897ae54a8cf483e5752f1f90deaf",
+    "api_behavior/lpc_analysis_filter.o": "1e11057a51e6d904455c1d6b5a5b9bdaffd9bc0b823ef577bd46e5214038e3a6",
+    "api_behavior/packet_duration_behavior.exe": "bb8a93f5f6e8a5c37f00364a5a4631294a7bb366e122f7c51784009d39d0ad84",
+    "api_behavior/postfilter_bypass.exe": "a2c65cd55fde9c88e2ce9d81dc266ab53426915ecbbfcd69c97364980c2ed2aa",
+    "api_behavior/stereo_policy.exe": "10f82bad3230bde03655f490ef75201e70942a1f5f4e59d47a6e42eb079c8f03",
+    "api_behavior/vbr_budget_behavior.exe": "bb8fbaa8fee0d91a1a5dbc0c9d053f1674582c9e20918ac6d382b10e363d4754",
+    "decode_build/conformance_decode.exe": "ce7c388cd1c334ec395d94652a1f2575edd570e2d1f38c988df95b6b89c76541",
+    "encode_validation/codex_opus_codec.o": "52ac831173c3b8def237284a8113bab89e8845bca733eb218b96bba290302b28",
+    "encode_validation/conformance_encode.exe": "89dd1b354c0597ad0c42e60b5ae363907286fc2bbba7a20314ebda1c6179252a",
+    "encode_validation/official_encode_validation.exe": "1425a4215857988a041d44ca8361dc463686b069527225c5d9ec9a0f8cd2a2cf"
   },
   "rfc_decode": {
     "passed": "24",
@@ -301,9 +103,9 @@
     "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)",
     "fec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.296119 recovery_error=0.116448 plc_error=0.283397 packet_bytes=360 packet_hash=1296455951",
     "fec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596",
-    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.292648 recovery_error=0.0741212 plc_error=0.311826 packet_bytes=476 packet_hash=243891018",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.292648 recovery_error=0.0741212 plc_error=0.311826 packet_bytes=476 packet_hash=4119066008",
     "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441",
-    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.637755 recovery_error=0.146097 plc_error=0.615929 packet_bytes=716 packet_hash=2516669930",
+    "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.753989 recovery_error=0 plc_error=0.580606 packet_bytes=708 packet_hash=3111263853",
     "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600",
     "fec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.683057 recovery_error=0.147955 plc_error=0.5632 packet_bytes=1036 packet_hash=1385292926",
     "fec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417",
@@ -311,13 +113,13 @@
     "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166",
     "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=3.10882 recovery_error=0.141788 plc_error=1.00757 packet_bytes=2123 packet_hash=168736649",
     "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422",
-    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.895789 recovery_error=0.10075 plc_error=0.637424 packet_bytes=960 packet_hash=1449911182",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.895814 recovery_error=0.100891 plc_error=0.637531 packet_bytes=960 packet_hash=2943707930",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673",
     "fec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.875554 recovery_error=0.187346 plc_error=0.635734 packet_bytes=1463 packet_hash=1631176044",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190",
-    "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.526461 recovery_error=0.833451 plc_error=0.92899 packet_bytes=1920 packet_hash=1108201774",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.530179 recovery_error=0.82215 plc_error=0.919667 packet_bytes=1920 packet_hash=3996685581",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892",
-    "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.57829 recovery_error=0.908099 plc_error=0.981899 packet_bytes=2880 packet_hash=3148227119",
+    "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.57844 recovery_error=0.908072 plc_error=0.981893 packet_bytes=2880 packet_hash=24712180",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590",
     "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.707375 recovery_error=0.781394 plc_error=0.857238 packet_bytes=2522 packet_hash=2299334185",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708",
@@ -371,7 +173,7 @@
     "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921",
     "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=4.922e-06 fec_plc_difference=0.796374 recovery_error=0.925079 plc_error=0.987711 packet_bytes=3813 packet_hash=3008292805",
     "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914",
-    "fec_summary recovery_error_ratio=0.53004 wins=16/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.990153"
+    "fec_summary recovery_error_ratio=0.510824 wins=17/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.98961"
   ],
   "focused_source_bound_regressions": {
     "voice_conditioning_release": "A: normal_f20=0.485 provisional_f20=0.485\nrumble f6=0.704 f20=0.982\nC2: dc_f1=0.706\nD: score_f240=0.004\nvoice_conditioning_release checks=133 failures=0",
@@ -379,5 +181,5 @@
     "transient_invariant": "focused policy=0 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\nnormal_attack policy=0 saturated=0 detected=1 flag_space=1 overflow=0 rejected=0 ret=80 range_match=1 wire_transient=1 decoded=960 PASS\nsaturated_steady policy=0 saturated=1 detected=0 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\npolicy_true policy=1 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\ncelt_unsignaled_transient_invariant checks=4 failures=0",
     "voip_quiet_start_latch": "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
   },
-  "scope": "Fresh source-bound RFC/API/conformance/contracts retained; frozen14arg test/failure retained with explicit private15arg nullable adapter. No sanitizer/Source/header/original-test mutation or completed check replay."
+  "scope": "Fresh source-bound RFC 8251 decode, encode interoperability, API behavior and lookahead checks; no sanitizer run."
 }
