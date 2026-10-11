@@ -3585,7 +3585,16 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (st->application == OPUS_APPLICATION_RESTRICTED_LOWDELAY) {
     st->mode = opus_mode_celt_only;
   } else {
-    const auto threshold = quality_mode_threshold(voice_weight, analysis.stereo_width, voip_style, st->prev_mode);
+    int mode_voice_est = voice_est;
+    const auto& mode_info = st->classical_leak.out_info;
+    if (mode_info.valid) {
+      const int mode_voice_ratio = static_cast<int>(std::floor(.5f + 100.f * (1.f - mode_info.music_prob)));
+      mode_voice_est = mode_voice_ratio * 327 >> 8;
+      if (st->application == OPUS_APPLICATION_AUDIO) {
+        mode_voice_est = std::min(mode_voice_est, 115);
+      }
+    }
+    const auto threshold = quality_mode_threshold(mode_voice_est * mode_voice_est, analysis.stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
     if (!voip_style && mature && voice_est <= 16) {
