@@ -7047,6 +7047,47 @@ static void celt_update_signal_bw_retained(CeltEncoderInternal* st, const celt_g
   }
 }
 
+constexpr std::array<std::array<double, celt_default_nb_ebands>, 4> celt_gaussian_noise_log_shape{{
+    {{-5.4647392654800502, -5.3923602643167508, -5.2577060213163547, -5.0768051925420306, -4.8664100973421593, -4.6405800276884754, -4.4095681039704484, -4.180144107316063, -2.8445354679401489, -2.4321466716469784, -2.0571439854840827, -1.7174918669117176, -0.26231537612906336, 0.25033512573600603, 0.68497535898958695, 1.731535651458501, 2.1901249671670957, 3.045857397588438, 4.1286114058699841, 5.2510735103929793, 5.9838197025857198}},
+    {{-4.4624214619428191, -4.3901572977085772, -4.2557019784992161, -4.0750408145696095, -3.8648892067812346, -3.6392838837804788, -3.4084682365296204, -3.1792104350340775, -1.8438019399436156, -1.4316031593837462, -1.0567319338263146, -0.71717272123287779, 0.73790906277404233, 1.2504832059286575, 1.6850768845563708, 2.7316009175467624, 3.1901640474958839, 4.0458780578774176, 5.1286170204107453, 6.2510677675517421, 6.983807305125306}},
+    {{-3.4618426032714695, -3.3896070915724272, -3.255201411842906, -3.0746000652837977, -2.8645092416486015, -2.6389600357404257, -2.4081934057862799, -2.1789771157189928, -0.84361861963968265, -0.43146731585137565, -0.056628941228013666, 0.28290705266179977, 1.7379651659932178, 2.2505202229083321, 2.6851022643561171, 3.7316172333017192, 4.1901738172295753, 5.0458832228066353, 6.1286184240162154, 7.2510663318647683, 7.9838042058016416}},
+    {{-2.4616979255644766, -2.3894695734630171, -2.2550762978977632, -2.0744898995144521, -1.8644142664446233, -1.6388790854670845, -1.4081247066019633, -1.1789187920588595, 0.15642720658211789, 0.56856664287411729, 0.9433968056521379, 1.2829269953528168, 2.7379791913914104, 3.2505294769614901, 3.6851086092065644, 4.7316213121925168, 5.1901762596412171, 6.0458845140300008, 7.1286187749157257, 8.2510659729444829, 8.9838034309733157}},
+}};
+
+constexpr std::array<std::array<double, celt_default_nb_ebands>, 4> celt_gaussian_noise_inverse_shape{{
+    {{44.162173272789431, 42.001247229151744, 38.258436761866484, 33.749756600739701, 29.169931583056862, 24.943292848612661, 21.252609732143465, 18.127952831635277, 7.1827458449080188, 5.3969587914925548, 4.1616163877134635, 3.2886417749778918, 1.1994020769177522, 0.84070110488385263, 0.62201645050424736, 0.30113125238339311, 0.21913244811409635, 0.12108924206249803, 0.057169464782673506, 0.026258466761848294, 0.015801225860893848}},
+    {{22.045640108044289, 20.968580551155178, 19.10266449540223, 16.85425338385302, 14.569598407523143, 12.460446698264134, 10.61820677712754, 9.0581123589966825, 3.5895473786561261, 2.6974629783003925, 2.0802139740036001, 1.6439571793933865, 0.5996077507088825, 0.4203074093003436, 0.31098633970149531, 0.15055881490663978, 0.10956325612138286, 0.06054375400088248, 0.028584621148261588, 0.013129285643703741, 0.0079006808227970876}},
+    {{11.018398208176208, 10.480292603971524, 9.5480188315110901, 8.4245525631854576, 7.2828808460028664, 6.2288249807135001, 5.3080921104905556, 4.5283237788094102, 1.7945456456002282, 1.3486044991634054, 1.04003273742414, 0.82193313960592473, 0.29979221687152513, 0.21014831255039115, 0.15549043444881669, 0.075278556106787672, 0.054781257088247493, 0.030271768625616563, 0.014292296669074649, 0.0065646493546093893, 0.0039503488978744269}},
+    {{5.5086466530802216, 5.2396468335267086, 4.7735954202564645, 4.2119546398549215, 3.6412007083330189, 3.1142377441613971, 2.6539196761749531, 2.2640703582525576, 0.89724432199489734, 0.67428637777591582, 0.52000708838651777, 0.41096088896089816, 0.14989465120306295, 0.10507348228749784, 0.077744875308287761, 0.03763917163708027, 0.027390582173178045, 0.015135870766079289, 0.0071461465964155627, 0.0032823254938965755, 0.0019751755097445769}},
+}};
+
+static std::array<double, 2> celt_estimate_noise_covariance_parameter(const CeltEncoderInternal* st, const celt_ener* bandE, const celt_glog* bandLogE, int LM, int shortBlocks) {
+  std::array<double, 2> parameter;
+  parameter.fill(-std::numeric_limits<double>::infinity());
+  if (st->start == 0 || shortBlocks != 0 || st->upsample != 1)
+    return parameter;
+  const auto* edges = celt_mode()->eBands;
+  const auto& shape = celt_gaussian_noise_log_shape[LM];
+  const int dimensions = edges[st->end] << LM;
+  const double penalty = (st->end - 1) * std::log2(dimensions);
+  for (int channel = 0; channel < st->stream_channels; ++channel) {
+    double variance_sum = 0, log_sum = 0;
+    for (int band = 0; band < st->end; ++band) {
+      const int index = channel * celt_default_nb_ebands + band;
+      const int width = (edges[band + 1] - edges[band]) << LM;
+      variance_sum += static_cast<double>(bandE[index]) * bandE[index] * celt_gaussian_noise_inverse_shape[LM][band] * width;
+      log_sum += width * (2 * (bandLogE[index] + eMeans[band]) - shape[band]);
+    }
+    if (!(variance_sum > 0))
+      continue;
+    const double log_variance = std::log2(variance_sum / dimensions);
+    const double deviance = dimensions * log_variance - log_sum;
+    if (deviance < penalty)
+      parameter[channel] = log_variance;
+  }
+  return parameter;
+}
+
 OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
   const bool signal_bw_main = enc != nullptr;
   frame_size *= st->upsample;
@@ -7234,6 +7275,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   } else {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
+  const auto noise_covariance = celt_estimate_noise_covariance_parameter(st, bandE, bandLogE, LM, shortBlocks);
   bool empty_channel[2] = {
       C == 2 && std::all_of(bandE + start, bandE + end, [](float v) {
         return v < 1e-10f;
@@ -7370,6 +7412,22 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   st->lastCodedBands =
       static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
+  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
+  if (spread_decision == 3 && shortBlocks == 0) {
+    for (int channel = 0; channel < C; ++channel) {
+      if (!std::isfinite(noise_covariance[channel]))
+        continue;
+      for (int band = codedBands; band < end; ++band) {
+        if (tf_res[band] < 0)
+          continue;
+        const int index = channel * nbEBands + band;
+        const auto target = static_cast<float>(.5 * (noise_covariance[channel] + celt_gaussian_noise_log_shape[LM][band]) - eMeans[band]);
+        source_error_offset[index] = error[index] - (target - oldBandE[index]);
+        error[index] = target - oldBandE[index];
+      }
+    }
+  }
+
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
@@ -7384,6 +7442,8 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
+    if (source_error_offset[index] != 0)
+      error[index] += source_error_offset[index];
     energyError[index] = std::clamp(error[index], -0.5f, 0.5f);
   });
   if (silence) {
