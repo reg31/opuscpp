@@ -4775,7 +4775,7 @@ constexpr auto eMeans = numeric_blob_array<opus_val16>(
 extern constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise_floor_base;
 }
 
-static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel);
+static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias = nullptr);
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
 template <bool Encode>
@@ -7163,6 +7163,8 @@ static std::array<double, 2> celt_estimate_noise_covariance_parameter(const Celt
   return parameter;
 }
 
+constexpr std::array<celt_glog, 9> celt_coarse_fine_power_rounding{0.3390359525563188f, 0.45751874963942196f, 0.48922334841819398f, 0.497295774761502f, 0.49932331008195074f, 0.49983078784567636f, 0.49995769448057997f, 0.49998942346507441f, 0.49999735585657634f};
+
 OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
   const bool signal_bw_main = enc != nullptr;
   frame_size *= st->upsample;
@@ -7374,122 +7376,164 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       bandLogE[index] -= 0.25f * energyError[index];
     }
   });
-  quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                      &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel);
-  process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
-
+  const auto energy_stage_state = *st;
+  const ec_enc energy_stage_coder = *enc;
+  const int energy_stage_bytes = nbCompressedBytes;
+  const int energy_stage_available = nbAvailableBytes;
+  const int energy_stage_total_bits = total_bits;
+  const auto energy_stage_tell = tell;
+  std::array<unsigned char, 1275> energy_stage_buffer;
+  std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
+  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> energy_stage_old{}, energy_rounding{};
+  std::copy_n(oldBandE, C * nbEBands, energy_stage_old.data());
+  std::array<int, celt_default_nb_ebands> energy_stage_tf{}, energy_stage_offsets{};
+  std::copy_n(tf_res.data(), end, energy_stage_tf.data());
+  std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
-  const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
-  spread_decision = 2;
-  if (signal_spread) {
-    if (hybrid) {
-      spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
-    } else {
-      spread_decision = 0;
-      const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
-                                   toneishness >= .40f &&
-                                   16 * effectiveBytes >= C * N;
-      const bool release_high_rate = input_release && st->bitrate >= 48000;
-      if (tonal_high_rate || release_high_rate) {
-        spread_decision = 2;
-      }
-    }
-    ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
-  }
-  opus_int32 total_boost;
-  tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                     total_boost);
-  dual_stereo = 0;
-  if (C == 2) {
-    if (LM != 0) {
-      dual_stereo = analyzed_dual_stereo;
-    }
-    st->intensity = analyzed_intensity;
-    if (empty_channel[0] != empty_channel[1] || common_source) {
-      st->intensity = start;
-      dual_stereo = 0;
-    }
-  }
-  int alloc_trim = 5;
-  if (tell + (6 << 3) <= total_bits - total_boost) {
-    if (start > 0) {
-      st->stereo_saving = 0;
-      alloc_trim = 5;
-    } else {
-      alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
-    }
-    alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
-    if (!hybrid && C == 2) {
-      alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
-    }
-    ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
-    tell = ec_tell_frac(enc);
-  }
-  int min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
-  if (hybrid) {
-    min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
-  }
-  if (vbr_rate > 0) {
-    const int lm_diff = celt_max_lm - LM;
-    nbCompressedBytes = std::min(nbCompressedBytes, 1275 >> (3 - LM));
-    opus_int32 base_target = !hybrid ? vbr_rate - ((40 * C + 20) << 3) : std::max(0, vbr_rate - ((9 * C + 4) << 3));
-    if (st->constrained_vbr) {
-      base_target += (st->vbr_offset >> lm_diff);
-    }
-    opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset, tf_estimate)
-                               : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
-                                             st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
-    if (!hybrid) {
-      if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
-        target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
-      }
-      if (C == 1 && st->midrate_quality_boost_bps > 0) {
-        target += bitrate_to_bits(st->midrate_quality_boost_bps, celt_sample_rate, frame_size) << 3;
-      }
-    } else {
-      if (st->high_z_tonal_Q7 > 64 && st->silk_info.bitrateBps >= 56000 && st->silk_info.bitrateBps < 80000) {
-        target += bitrate_to_bits(5000, celt_sample_rate, frame_size) << 3;
-      }
-      const opus_val32 tone_gate = st->silk_info.bitrateBps >= 48000 ? .99f : .80f;
-      if (C == 2 && st->silk_info.bitrateBps >= 32000 && st->silk_info.offset < 100 && toneishness > tone_gate) {
-        const opus_int32 residual_celt_bps = st->silk_info.bitrateBps - st->silk_info.actualSilkBps;
-        if (residual_celt_bps > st->bitrate) {
-          target += bitrate_to_bits(residual_celt_bps - st->bitrate, celt_sample_rate, frame_size) << 3;
+  for (int energy_round = 0; energy_round < 2; ++energy_round) {
+    quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
+                        &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
+    process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
+
+    const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
+    spread_decision = 2;
+    if (signal_spread) {
+      if (hybrid) {
+        spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
+      } else {
+        spread_decision = 0;
+        const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
+                                     toneishness >= .40f &&
+                                     16 * effectiveBytes >= C * N;
+        const bool release_high_rate = input_release && st->bitrate >= 48000;
+        if (tonal_high_rate || release_high_rate) {
+          spread_decision = 2;
         }
       }
+      ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
     }
-    target += tell;
-    nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
-    opus_int32 delta = target - vbr_rate;
-    target = nbAvailableBytes << (3 + 3);
-    if (silence) {
-      nbAvailableBytes = 2;
-      target = 2 * 8 << 3;
-      delta = 0;
-    }
-    const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
-    if (st->constrained_vbr) {
-      st->vbr_reservoir += target - vbr_rate;
-      st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
-      st->vbr_offset = -st->vbr_drift;
-      if (st->vbr_reservoir < 0) {
-        const int adjust = (-st->vbr_reservoir) / (8 << 3);
-        nbAvailableBytes += silence ? 0 : adjust;
-        st->vbr_reservoir = 0;
+    opus_int32 total_boost;
+    tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
+                                       total_boost);
+    dual_stereo = 0;
+    if (C == 2) {
+      if (LM != 0) {
+        dual_stereo = analyzed_dual_stereo;
+      }
+      st->intensity = analyzed_intensity;
+      if (empty_channel[0] != empty_channel[1] || common_source) {
+        st->intensity = start;
+        dual_stereo = 0;
       }
     }
-    nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
-    ec_enc_shrink(enc, nbCompressedBytes);
+    int alloc_trim = 5;
+    if (tell + (6 << 3) <= total_bits - total_boost) {
+      if (start > 0) {
+        st->stereo_saving = 0;
+        alloc_trim = 5;
+      } else {
+        alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
+      }
+      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
+      if (!hybrid && C == 2) {
+        alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
+      }
+      ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
+      tell = ec_tell_frac(enc);
+    }
+    int min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
+    if (hybrid) {
+      min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
+    }
+    if (vbr_rate > 0) {
+      const int lm_diff = celt_max_lm - LM;
+      nbCompressedBytes = std::min(nbCompressedBytes, 1275 >> (3 - LM));
+      opus_int32 base_target = !hybrid ? vbr_rate - ((40 * C + 20) << 3) : std::max(0, vbr_rate - ((9 * C + 4) << 3));
+      if (st->constrained_vbr) {
+        base_target += (st->vbr_offset >> lm_diff);
+      }
+      opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset, tf_estimate)
+                                 : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
+                                               st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
+      if (!hybrid) {
+        if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
+          target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
+        }
+        if (C == 1 && st->midrate_quality_boost_bps > 0) {
+          target += bitrate_to_bits(st->midrate_quality_boost_bps, celt_sample_rate, frame_size) << 3;
+        }
+      } else {
+        if (st->high_z_tonal_Q7 > 64 && st->silk_info.bitrateBps >= 56000 && st->silk_info.bitrateBps < 80000) {
+          target += bitrate_to_bits(5000, celt_sample_rate, frame_size) << 3;
+        }
+        const opus_val32 tone_gate = st->silk_info.bitrateBps >= 48000 ? .99f : .80f;
+        if (C == 2 && st->silk_info.bitrateBps >= 32000 && st->silk_info.offset < 100 && toneishness > tone_gate) {
+          const opus_int32 residual_celt_bps = st->silk_info.bitrateBps - st->silk_info.actualSilkBps;
+          if (residual_celt_bps > st->bitrate) {
+            target += bitrate_to_bits(residual_celt_bps - st->bitrate, celt_sample_rate, frame_size) << 3;
+          }
+        }
+      }
+      target += tell;
+      nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
+      opus_int32 delta = target - vbr_rate;
+      target = nbAvailableBytes << (3 + 3);
+      if (silence) {
+        nbAvailableBytes = 2;
+        target = 2 * 8 << 3;
+        delta = 0;
+      }
+      const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
+      if (st->constrained_vbr) {
+        st->vbr_reservoir += target - vbr_rate;
+        st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
+        st->vbr_offset = -st->vbr_drift;
+        if (st->vbr_reservoir < 0) {
+          const int adjust = (-st->vbr_reservoir) / (8 << 3);
+          nbAvailableBytes += silence ? 0 : adjust;
+          st->vbr_reservoir = 0;
+        }
+      }
+      nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
+      ec_enc_shrink(enc, nbCompressedBytes);
+    }
+    opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
+    anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
+    bits -= anti_collapse_rsv;
+    codedBands =
+        clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
+                               pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
+    st->lastCodedBands =
+        static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
+
+    if (energy_round != 0)
+      break;
+    bool energy_needs_refinement = false;
+    for (int channel = 0; channel < C; ++channel) {
+      const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) && celt_noise_gaussian_source_supported(pcm, N, CC, C, channel);
+      for (int band = start; band < end; ++band) {
+        const int index = channel * nbEBands + band;
+        const bool model_fine = energy_model_channel && band >= codedBands && tf_res[band] >= 0;
+        const int width = model_fine ? 0 : fine_quant[band];
+        const auto rounding = celt_coarse_fine_power_rounding[width];
+        energy_rounding[index] = rounding;
+        energy_needs_refinement |= width > 0 && error[index] + rounding >= 1.f;
+      }
+    }
+    if (!energy_needs_refinement)
+      break;
+    *st = energy_stage_state;
+    *enc = energy_stage_coder;
+    std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+    std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
+    std::copy_n(energy_stage_tf.data(), end, tf_res.data());
+    std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+    nbCompressedBytes = energy_stage_bytes;
+    nbAvailableBytes = energy_stage_available;
+    total_bits = energy_stage_total_bits;
+    tell = energy_stage_tell;
   }
-  opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
-  anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
-  bits -= anti_collapse_rsv;
-  codedBands =
-      clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
-                             pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
-  st->lastCodedBands =
-      static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
   std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
   if (spread_decision == 3 && shortBlocks == 0) {
@@ -12433,7 +12477,7 @@ static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* old
 }
 
 template <bool Encode>
-static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel) {
+static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel, const celt_glog* rounding_bias) {
   std::array<opus_val32, 2> prev{};
   int badness = 0;
   if constexpr (Encode) {
@@ -12452,7 +12496,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
       if constexpr (Encode) {
         const celt_glog input_energy = eBands[index];
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
-        qi = floor_to_int_reference(.3390359525563189f + residual);
+        qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
         if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
@@ -12502,7 +12546,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
   return badness;
 }
 
-static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel) {
+static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias) {
   int intra = force_intra || (!two_pass && *delayedIntra > 2 * C * (end - start) && nbAvailableBytes > (end - start) * C);
   const opus_int32 intra_bias = two_pass ? static_cast<opus_int32>((budget * *delayedIntra * loss_rate) / (C * 512)) : 0;
   const opus_val32 new_distortion = loss_distortion(eBands, oldEBands, start, end, C);
@@ -12524,7 +12568,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
     badness1 = process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
-                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel);
+                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
     std::copy_n(enc->buf + nstart_bytes, enc->offs - nstart_bytes, intra_bytes.data());
   }
   if (!intra) {
@@ -12532,7 +12576,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
     const int tell_intra = static_cast<int>(ec_tell_frac(enc));
     *enc = enc_start;
     const int badness2 = process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
-                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel);
+                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias);
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
       *enc = enc_intra;
@@ -12611,7 +12655,7 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
 
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM) {
   process_coarse_energy<false>(start, end, nullptr, oldEBands, dec->storage * 8, 0,
-                               e_prob_model[static_cast<std::size_t>(LM * 2 + intra)].data(), nullptr, dec, C, LM, intra, 0, nullptr);
+                               e_prob_model[static_cast<std::size_t>(LM * 2 + intra)].data(), nullptr, dec, C, LM, intra, 0, nullptr, nullptr);
 }
 
 constexpr std::array<unsigned char, 24> LOG2_FRAC_TABLE =

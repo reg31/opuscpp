@@ -1,0 +1,294 @@
+{
+  "status": "READY_INCREMENTAL_FINE_GRID_COARSE_REMEDIATION_WITH_MEASURED_TRADEOFFS",
+  "owner": "/root/shape_aware_energy_quality",
+  "completed_utc": "2026-10-11T21:33:20.184673+00:00",
+  "role_start_utc": "2026-10-11T14:01:26Z",
+  "role_deadline_utc": "2026-10-11T22:01:26Z",
+  "method_start_utc": "2026-10-11T20:48:33Z",
+  "admission_fact": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\FACT.json",
+    "sha256": "6dd3908f6037fa47397205e9ea55f6586a51eb7b709295d701a275bd03b002d6"
+  },
+  "first_actual_candidate_utc": "2026-10-11T20:59:35.759361+00:00",
+  "base_commit": "a0b208ca4bd96c8009c631920c2cb37f8d5ae7e0",
+  "base_source_sha256": "f8e3e33adc9fb2eb35e47832406e7ed90fd369fdbaddd156d4c6d765193e59de",
+  "candidate_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\latest_candidate.cpp",
+  "candidate_source_sha256": "9110711bfc82e9d910ba210518298bb733ad707d784e178c2af5c09356dc8de4",
+  "patch_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\latest.patch",
+  "patch_sha256": "2990b9e1003ef65c436c7b7bb0f94b4540fb0d4318167dbdf07637b09aa0c011",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "claimed_functions": [
+    "process_coarse_energy<true> encoder rounding-grid input",
+    "quant_coarse_energy argument forwarding",
+    "celt_encode_candidate bounded energy/header realization"
+  ],
+  "one_candidate": "Derived main-fine group squared linear band-power midpoint: biasB=.5-.5log2(cosh(ln2*2^-B)). Actual source-directed main-fine coarse-group carry admits at most one restored coarse/header/allocation realization. Fine/PVQ/MDCT/analysis/prefilter commit once; existing allocator/TF/noise/shape/predictor/decoder policies unchanged. Model-directed fine uses published B0, including exact actual M14 source-model eligibility. No fit/weights/fixture/sweep/unbounded quantization pass.",
+  "source_proof": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\SOURCE_PROOF.json",
+    "sha256": "7eb2102aae4792267aba575cfcc2f9f7cfee03c3225a9248832fecd5cefdfa8a"
+  },
+  "reached_fact": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\REACHED_FACT.json",
+    "sha256": "0d393f3eb21204dad6aeb35c315ef64cfe649a9261a4290326d76f4970d6b374"
+  },
+  "material": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\MATERIAL_RECONFIRM.json",
+    "sha256": "86a42e56fe06ff595f0a7cefeed7d0ab56e61e0745b79ff94f17f081cd0e03af"
+  },
+  "material_outcome": {
+    "reference": [
+      105600,
+      106080
+    ],
+    "raw": [
+      105912,
+      106392
+    ],
+    "packet": "p110[312:792)",
+    "leading": "physicalL200..400Hz/band1",
+    "BASE_stereo_SSE": [
+      0.5407922526796775,
+      0.01579445772802834
+    ],
+    "candidate_stereo_SSE": [
+      0.01813018673130455,
+      0.013687750232880585
+    ],
+    "left_error_reduction_pct": 96.64747661574889,
+    "both_error_reduction_pct": 94.2833818398434,
+    "bound_source": "actualf3compilednormalcaptures, sameinput/controls/fullnormalstateflush; reference/RFC/Pythonlocalizationnotlisteningcertification."
+  },
+  "full_affected_quality": {
+    "artifact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\QUALITY_ACCOUNTING.json",
+      "sha256": "dad4df3de1f0fc0a7fac927d1fbb9bf928b6913152a2dae7075e6c689b4d4564"
+    },
+    "actual_base_commit": "f3c5c217d6695a8cf76ab1191887358f19a30328",
+    "actual_source_sha256": "dde79ed2b78caf1926f118bae035048a077144004583bf0a0e617ef2f785f4da",
+    "actual_candidate_sha256": "433cc9287264d9a09456ccf453b388a5c33db9b4afb211a655889abd3138791f",
+    "cohorts": {
+      "published": {
+        "rows": 806,
+        "counts": {
+          "closed_OFF_negative": 412,
+          "new_OFF_negative": 61,
+          "improved_existing_OFF_negative": 449,
+          "positive_OFF_margin_loss": 4932,
+          "positive_OFF_margin_gain": 2677,
+          "unchanged": 721,
+          "worsened_existing_OFF_negative": 420
+        },
+        "BASE_OFF_negatives": 1289,
+        "candidate_OFF_negatives": 938,
+        "worse_fields": 5413
+      },
+      "retained": {
+        "rows": 498,
+        "counts": {
+          "positive_OFF_margin_loss": 2143,
+          "positive_OFF_margin_gain": 2311,
+          "unchanged": 401,
+          "closed_OFF_negative": 337,
+          "worsened_existing_OFF_negative": 311,
+          "improved_existing_OFF_negative": 429,
+          "new_OFF_negative": 44
+        },
+        "BASE_OFF_negatives": 1084,
+        "candidate_OFF_negatives": 791,
+        "worse_fields": 2498
+      }
+    },
+    "raw_worse": 7911,
+    "coverage": "806 published +498 retained,1120 new unique cases+3 already actual+181 exact-command aliases, all12/rawfields/fullnormalflush/OFF healthyfloor. These counts remain f3 Source epoch; do not claim latesta0b combined aggregate938/791."
+  },
+  "latest_affected_noise_model": {
+    "artifact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\NOISE_RECONFIRM_ACCOUNTING.json",
+      "sha256": "76968c930ee4ee5ebbf084260cc09217b247546d6fde20e8a1d4f6cc2834d9ec"
+    },
+    "cases": 20,
+    "counts": {
+      "positive_OFF_margin_loss": 138,
+      "unchanged": 18,
+      "positive_OFF_margin_gain": 53,
+      "new_OFF_negative": 3,
+      "worsened_existing_OFF_negative": 13,
+      "improved_existing_OFF_negative": 15
+    },
+    "BASE_OFF_negatives": 30,
+    "candidate_OFF_negatives": 33,
+    "raw_worse": 154
+  },
+  "whole_cost": {
+    "artifact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\ALL_COST_ACCOUNTING.json",
+      "sha256": "c6181a31a65de643ef33489b0f380e3288b4043636ee86ce320417635993141c"
+    },
+    "actual_base_commit": "f3c5c217d6695a8cf76ab1191887358f19a30328",
+    "cases": 23,
+    "slower": [
+      "audio16000",
+      "audio24000",
+      "audio32000",
+      "audio48000",
+      "audio64000",
+      "audio96000",
+      "david16000",
+      "david64000",
+      "hazel32000",
+      "hazel64000",
+      "natural128_960",
+      "natural128_480",
+      "natural128_240",
+      "plucked256",
+      "transient96",
+      "tonal96",
+      "music96",
+      "mono_audio128"
+    ],
+    "below_1_5x": [
+      "audio16000",
+      "audio24000",
+      "audio32000",
+      "audio48000",
+      "audio64000",
+      "audio96000",
+      "audio128000",
+      "audio192000",
+      "audio256000",
+      "david16000",
+      "david32000",
+      "david64000",
+      "hazel16000",
+      "hazel32000",
+      "hazel64000",
+      "natural128_960",
+      "natural128_480",
+      "natural128_240",
+      "plucked256",
+      "transient96",
+      "tonal96",
+      "music96",
+      "mono_audio128"
+    ],
+    "below_1x": [
+      "audio16000",
+      "audio24000",
+      "audio32000",
+      "audio48000",
+      "audio192000",
+      "audio256000",
+      "david16000",
+      "david32000",
+      "david64000",
+      "hazel16000",
+      "hazel32000",
+      "hazel64000",
+      "natural128_480",
+      "natural128_240",
+      "plucked256",
+      "mono_audio128"
+    ],
+    "scope": "All measured raw orders/outliers/concurrent SHARED activity preserved,19/23 slower medians. Source epoch f3 before exact tensor480/M14 changes; no latestcombinedspeed claim or wholecost replay."
+  },
+  "options": {
+    "artifact": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\OPTIONS_ACCOUNTING.json",
+      "sha256": "d3ee914a7f5bfe6f82c75b590c5df28c2055afa0dba1aea71e460fc3b64dee65"
+    },
+    "contracts": "CONTRACTS_PASS cases=27 healthy=702 pureCELT=442 resetfresh=702 PLC=27 FECfallback=27 nonfinite=27 ranges_exact=1 decoder_parent_exact=1 pure_max=1.7881393432617188e-07 pure_rms=1.1230989762446753e-08",
+    "context_summary": "OPTIONS_SUMMARY contexts=90 frames=6300 nonDTX_exact_frames=1748 changed_packets=1194 omissions=1556,1556",
+    "worse_records": 23,
+    "scope": "Actual f3 options/contracts epoch; existing Root exactFFT/source-model qualification reused, all new model contexts normalcrossdecode once. FEC16/18 both known quality FAIL, no conformance waiver; DTX PASS both."
+  },
+  "native": [
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\EXECUTION.json",
+      "sha256": "6dd504bfe1bd293c74f8d22732b90e421e232aaf48e32ceed8531b612614a6b8",
+      "jobs": 4,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\CHECKS_EXECUTION.json",
+      "sha256": "7ad100770ab52d67b5a890015f8da0872e81fead63fc7754b61a92d067e68982",
+      "jobs": 4,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\cohort\\EXECUTION.json",
+      "sha256": "8a0ef9d897fd4ed5c7d97e17075cd59dad8f2b6d0d90567be743242f5a60750c",
+      "jobs": 1120,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\COST_EXECUTION.json",
+      "sha256": "c7dccfcad57718e37721c07fcbdccd79e20779ea3be818f7055fbbe93c1a1de3",
+      "jobs": 19,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\RETAINED_COST_EXECUTION.json",
+      "sha256": "687b8d25b6a4654838f555bd0adcb1c3132bce29183aa320fedd8c8ec7bcdacd",
+      "jobs": 5,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\OPTIONS_EXECUTION.json",
+      "sha256": "b578f26745647351256d79b7e9d77c1d18f435d9b24e8a310a412d04bbe50c32",
+      "jobs": 10,
+      "all_terminal": true,
+      "metric_nonzero": [
+        {
+          "name": "metric_fec_vs_official_baseline",
+          "exit": 1
+        },
+        {
+          "name": "metric_fec_vs_official_candidate",
+          "exit": 1
+        }
+      ]
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_f3c5c217\\trace\\EXECUTION.json",
+      "sha256": "87f94b85a469c1b04569b53fda971fbd17f1c7d0abe6b3d4d2f74af5b45612d1",
+      "jobs": 3,
+      "all_terminal": true,
+      "metric_nonzero": []
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\EXECUTION.json",
+      "sha256": "97540368778c81ce757479f9a9cb662871cf2705ea70d4250ff1ef138914204e",
+      "jobs": 4,
+      "all_terminal": true
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\rebase_b1e34ba\\noise_reconfirm\\EXECUTION.json",
+      "sha256": "83e60ebe6660690f7c0f97a4722378ca5a1404188e900f665bb48dfabd08b426",
+      "jobs": 20,
+      "all_terminal": true
+    }
+  ],
+  "next_required": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\energy_quality_continuous\\method13_fine_grid_coarse\\NEXT_REMEDIATION.json",
+    "sha256": "eb89574b90d6f30f3343e738f27c89c5b84cf853d572c027f5f064c8f9898b28"
+  },
+  "publication": "Root alone publishes latestBASE+DIFF. Publica0b exactSource b1e compiled object bytes; no commit-ID replay. All later FFT/noise/prefilter/FIR/DTX/common source preserved. READY is incremental partial remediation under explicit human measured-tradeoff rule.",
+  "limitations": [
+    "Main-fine preview can differ from committed main/final/extra grid; no global optimum claim.",
+    "Full latesta0b aggregate and speed unknown; reuse qualified unaffected Source-bound old fields without retagging.",
+    "Remaining original/new quality/margin/options/cost losses require immediate same-owner next remediation before unrelated work.",
+    "Final zero negative/better OFF/1.5x every case goal NOT_MET."
+  ],
+  "skills": "Previously read C++23/cpp-pro/modern-cpp/memory-performance/Ponytail applied: known9cell constexpr table, bounded std::array/memcpy/std::copy_n runtime state, lifetime/caller-storage discipline; no heap/abstractions/intrinsics/flags/comments added.",
+  "research": [
+    "https://www.rfc-editor.org/rfc/rfc6716.html",
+    "https://doi.org/10.1109/TASSP.1984.1164346",
+    "https://arxiv.org/abs/1602.05209"
+  ],
+  "ultimate_goal": "NOT_MET"
+}
