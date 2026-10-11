@@ -17284,8 +17284,40 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     minInvGain /= 0.25f + 0.75f * psEncCtrl->coding_quality;
   }
   const bool known_finite = psEnc->sCmn.nb_subfr >= 2 && silk_lpc_values_finite({LPC_in_pre, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * (psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder))});
-  silk_find_LPC_FLP(&psEnc->sCmn, NLSF_Q15, LPC_in_pre, minInvGain, known_finite);
+  const bool select_coded_interpolation = known_finite && psEnc->sCmn.Complexity >= 4 && !psEnc->sCmn.first_frame_after_reset && psEnc->sCmn.nb_subfr == 4;
+  if (select_coded_interpolation) {
+    float prediction[16]{};
+    silk_burg_modified_FLP(prediction, LPC_in_pre, minInvGain, psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder,
+                            psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, nullptr, nullptr);
+    silk_A2NLSF_FLP(NLSF_Q15, prediction, psEnc->sCmn.predictLPCOrder);
+    psEnc->sCmn.indices.NLSFInterpCoef_Q2 = 4;
+  } else {
+    silk_find_LPC_FLP(&psEnc->sCmn, NLSF_Q15, LPC_in_pre, minInvGain, known_finite);
+  }
   silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
+  if (select_coded_interpolation) {
+    opus_int16 interpolated[16]{};
+    float prediction[16]{}, residual[(((5 * 4) * 16) + 4 * 16) / 2]{};
+    const int order = psEnc->sCmn.predictLPCOrder;
+    const int shift = order + psEnc->sCmn.subfr_length;
+    silk_LPC_analysis_filter_FLP(residual, psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
+    double best_energy = silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length) +
+                         silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length);
+    for (int k = 3; k >= 0; --k) {
+      silk_interpolate(std::span<opus_int16>{interpolated, static_cast<std::size_t>(order)},
+                       std::span<const opus_int16>{psEnc->sCmn.prev_NLSFq_Q15.data(), static_cast<std::size_t>(order)},
+                       std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k);
+      silk_NLSF2A_FLP(prediction, interpolated, order);
+      silk_LPC_analysis_filter_FLP(residual, prediction, LPC_in_pre, 2 * shift, order, true);
+      const double energy = silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length) +
+                            silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length);
+      if (energy < best_energy) {
+        best_energy = energy;
+        psEnc->sCmn.indices.NLSFInterpCoef_Q2 = static_cast<opus_uint8>(k);
+        std::copy_n(prediction, order, psEncCtrl->PredCoef[0]);
+      }
+    }
+  }
   silk_residual_energy_FLP(psEncCtrl->ResNrg, LPC_in_pre, psEncCtrl->PredCoef, psEncCtrl->Gains, psEnc->sCmn.subfr_length,
                            psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, known_finite);
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
