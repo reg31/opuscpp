@@ -23,16 +23,16 @@
           true
         ],
         "current": {
-          "fidelity_fec": 0.333793241,
-          "next_fec": 0.332190975,
-          "transition_fec": 0.450249802,
-          "fidelity_ref": 0.301192721,
-          "next_ref": 0.287532062,
-          "transition_ref": 0.243168997,
-          "fidelity_plc": 0.857863052,
-          "self_consistency": 0.301195182,
-          "step_fec": 135.5,
-          "step_ref": 589.5
+          "fidelity_fec": 0.333735111,
+          "next_fec": 0.332196234,
+          "transition_fec": 0.450311093,
+          "fidelity_ref": 0.301044654,
+          "next_ref": 0.287487944,
+          "transition_ref": 0.24292839,
+          "fidelity_plc": 0.8578497,
+          "self_consistency": 0.301040413,
+          "step_fec": 134.0,
+          "step_ref": 587.0
         },
         "official": {
           "fidelity_fec": 0.655200225,
@@ -56,7 +56,7 @@
   },
   "standard_interop": {
     "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.532432 wins=15/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.990153",
+    "summary": "fec_summary recovery_error_ratio=0.53004 wins=16/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.990153",
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
