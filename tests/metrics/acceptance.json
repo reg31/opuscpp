@@ -13,7 +13,7 @@
           1,
           20,
           24000,
-          2,
+          1,
           1
         ],
         "criteria_pass": [
@@ -23,28 +23,28 @@
           true
         ],
         "current": {
-          "fidelity_fec": 0.472083595,
-          "next_fec": 0.488684684,
-          "transition_fec": 0.486728536,
-          "fidelity_ref": 0.430764284,
-          "next_ref": 0.481936972,
-          "transition_ref": 0.416766206,
-          "fidelity_plc": 1.059416788,
-          "self_consistency": 0.249060325,
-          "step_fec": -432.0,
-          "step_ref": -596.0
+          "fidelity_fec": 0.320461536,
+          "next_fec": 0.314579474,
+          "transition_fec": 0.297658109,
+          "fidelity_ref": 0.250583047,
+          "next_ref": 0.252463971,
+          "transition_ref": 0.195467188,
+          "fidelity_plc": 0.927445512,
+          "self_consistency": 0.214167259,
+          "step_fec": 62.0,
+          "step_ref": -55.0
         },
         "official": {
-          "fidelity_fec": 0.802790967,
-          "next_fec": 0.684358962,
-          "transition_fec": 0.486687027,
-          "fidelity_ref": 0.749776717,
-          "next_ref": 0.751198817,
-          "transition_ref": 0.47551309,
-          "fidelity_plc": 0.829666861,
-          "self_consistency": 0.384927814,
-          "step_fec": -1298.0,
-          "step_ref": -567.0
+          "fidelity_fec": 0.680104609,
+          "next_fec": 0.692728199,
+          "transition_fec": 0.286478785,
+          "fidelity_ref": 0.662625406,
+          "next_ref": 0.674010356,
+          "transition_ref": 0.304954609,
+          "fidelity_plc": 0.898602395,
+          "self_consistency": 0.205200526,
+          "step_fec": -338.0,
+          "step_ref": -54.0
         }
       }
     ],
@@ -55,9 +55,9 @@
     "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 17, 18] out of 18"
   },
   "standard_interop": {
-    "exit_code": 0,
-    "summary": "fec_summary recovery_error_ratio=0.499237 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.996333",
-    "acceptance": "PASS",
+    "exit_code": 1,
+    "summary": "fec_summary recovery_error_ratio=0.525017 wins=17/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993345",
+    "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },

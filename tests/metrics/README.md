@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Codex independently refreshed production `8e832056c1cf10177c99ee2a53acf5221f837059` on 2026-10-11 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `8e83205` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).
+Codex independently refreshed production `819ec388db4eb0a56cf375458a188a8778d2fab4` on 2026-10-11 against official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. Both builds use `-O2 -DNDEBUG`; official enables x86 intrinsics. Every measured field is retained below or in the linked full tables. Named per-commit comparisons in the parent README remain historical. Fresh checks on source `819ec38` include 24/24 RFC 8251 decode vectors and 96/96 encode-interoperability cases; API and selected regression results are in [compatibility validation](compatibility_validation.json).
 
 ## Quality: every metric
 
@@ -27,12 +27,12 @@ Full current/official values and both raw and direction-adjusted deltas: [498-ca
 
 Both codecs alternate within each run; nine repetitions, one logical CPU, above-normal priority. Decode timings use identical official packets.
 
-AUDIO encode ratios: 0.91x to 1.07x; decode: 1.16x to 1.75x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
+AUDIO encode ratios: 0.94x to 1.07x; decode: 1.17x to 1.74x. [All durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv), [encode](encode_speed_vs_official.csv), [decode](decode_speed_vs_official.csv). Real-time factor is audio duration divided by processing time.
 
 
 [Full speech durations, frame counts and payload rates](voice_speed_vs_official.csv). `fec60` uses 60 ms packets with FEC; `voice` uses 20 ms packets without FEC. Values below 1 are slower and remain in the CSV.
 
-[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans -2.204575% to +6.359547%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 4.3% to 6.4%. Raw timing samples are in [run metadata](run_metadata.json).
+[Optional PCM16 processing](postfilter_pcm16_path.csv) retains every requested/applied level, duration and overhead; [postfilter quality](postfilter_quality_voip.csv). [Denoiser timing](voice_denoise_timing.csv) includes all 11 rates, bypass/enabled durations and overhead, with nine measured runs after warm-up. The dedicated 11-rate denoiser overhead spans +2.860860% to +6.952345%; any small negative overhead remains explicit. The nine-rate feature summary selects only the tracked headline BITRATES and spans 2.9% to 7.0%. Raw timing samples are in [run metadata](run_metadata.json).
 
 ## Memory and object size
 
@@ -40,27 +40,27 @@ Median of three fresh processes, 256 instances each. FEC and denoising disabled 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 19760 | 19792 | Not exposed |
+| current_encoder_ch1 | 19776 | 19808 | Not exposed |
 | official_encoder_ch1 | 31856 | 31904 | 31668 |
 | current_decoder_ch1 | 8432 | 8304 | Not exposed |
-| official_decoder_ch1 | 18464 | 18592 | 18468 |
-| current_encoder_ch2 | 30000 | 29872 | Not exposed |
+| official_decoder_ch1 | 18464 | 18576 | 18468 |
+| current_encoder_ch2 | 29888 | 29856 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17584 | 16224 | Not exposed |
-| official_decoder_ch2 | 27104 | 27264 | 27236 |
+| current_decoder_ch2 | 17616 | 16256 | Not exposed |
+| official_decoder_ch2 | 27088 | 27264 | 27236 |
 
 [Memory CSV](memory_vs_official.csv). Denoiser optional state: 68 bytes from the fresh state/bounds test. Temporary denoiser stack usage was not measured in this refresh. Compiler-reported stack reservations in named historical checkpoints are not current peak-memory measurements.
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 399212 | 0 | 0 | 399212 |
-| android | 396260 | 472 | 0 | 396732 |
+| host | 400824 | 0 | 0 | 400824 |
+| android | 397112 | 472 | 0 | 397584 |
 
 [Binary-size CSV](binary_size.csv).
 
 ## FEC and DTX
 
-FEC strict source gate: FAIL ; separate scored recovery comparison: 18/18 ratios at or below official, maximum 0.979311. Standard interop gate: PASS; source-quality counts are C1 18/18, C2 18/18, C3 17/18, C4 18/18. For the scored 18-case 10/20ms subset, the FEC summary reports recovery-error ratio 0.499237, packet-byte ratio 0.996333 and backup coverage 18/18 for opuscpp versus 15/18 for official Opus. The expanded run has 36 configurations and 72 direction rows; strict and standard scopes are separate. FEC is retained as regression coverage, with no further optimization in this round.
+FEC strict source gate: FAIL ; separate scored recovery comparison: 17/18 ratios at or below official, maximum 1.043700. Standard interop gate: FAIL; source-quality counts are C1 18/18, C2 18/18, C3 17/18, C4 18/18. For the scored 18-case 10/20ms subset, the FEC summary reports recovery-error ratio 0.525017, packet-byte ratio 0.993345 and backup coverage 18/18 for opuscpp versus 15/18 for official Opus. The expanded run has 36 configurations and 72 direction rows; strict and standard scopes are separate. FEC is retained as regression coverage, with no further optimization in this round.
 
 [Every FEC direction field](fec_interop_metrics.csv) includes decoder/continuation errors, recovered-to-PLC difference, recovery/PLC error, packet bytes and hashes. [Every source comparison](fec_source_metrics.json) includes fidelity_fec, next_fec, transition_fec, fidelity_ref, next_ref, transition_ref, fidelity_plc, self_consistency, step_fec and step_ref, for both codecs. [Strict ratios and complete output](fec_run_metadata.json).
 
@@ -84,7 +84,7 @@ DTX aggregate fields (individual material losses remain in the CSV):
 
 ## Fresh compatibility and API checks
 
-This full refresh is bound to source `8e832056c1cf10177c99ee2a53acf5221f837059` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.
+This full refresh is bound to source `819ec388db4eb0a56cf375458a188a8778d2fab4` and official Opus `503d81b138d76621aae4b12786e90de48aa8db3a`. RFC 8251 decode: 24/24; encode interoperability: 96/96. API behavior and selected source-bound regressions are recorded in [compatibility validation](compatibility_validation.json). No sanitizer was run.
 
 ## Mode selection
 
@@ -98,10 +98,10 @@ Measured at 32 kbps with AUDIO application; all SILK, hybrid and CELT percentage
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=20.8203 decode_ms=23.2235 checksum=340886119
-mono-high bytes=115 encode_ms=23.0191 decode_ms=19.1729 checksum=2633358364
-stereo-mid bytes=102 encode_ms=85.7139 decode_ms=29.9006 checksum=3294895434
-stereo-high bytes=147 encode_ms=94.4826 decode_ms=31.5513 checksum=1997488960
+mono-mid bytes=76 encode_ms=20.6774 decode_ms=22.8481 checksum=340886119
+mono-high bytes=115 encode_ms=24.5351 decode_ms=19.5016 checksum=2633358364
+stereo-mid bytes=102 encode_ms=86.7392 decode_ms=30.1657 checksum=3294895434
+stereo-high bytes=147 encode_ms=95.6595 decode_ms=33.6109 checksum=1997488960
 ```
 
 ## Unavailable and historical measurements
