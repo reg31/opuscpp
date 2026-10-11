@@ -6639,29 +6639,27 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
       pitch_index = max_period - (2);
     }
     if (CC == 2) {
-      double shared_gain = 1;
+      double cross = 0, power = 0;
       const auto& taps = comb_filter_tapset_gains[0];
       const auto* window = celt_mode()->window;
       const int previous_period = std::max<int>(st->prefilter_period, 15);
       for (int c = 0; c < CC; ++c) {
         const auto* x = pre[c] + max_period;
-        double cross = 0, power = 0;
         for (int i = 0; i < N; ++i) {
           const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
-          const double target = x[i] - (1 - fade) * st->prefilter_gain *
-                                           (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+          double target = x[i];
+          if (i < overlap && st->prefilter_gain != 0) {
+            target -= (1 - fade) * st->prefilter_gain *
+                (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+          }
           const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
           cross += target * predictor;
           power += predictor * predictor;
         }
-        if (power > 0 && std::isfinite(cross / power)) {
-          shared_gain = std::min(shared_gain, cross / power);
-        } else {
-          shared_gain = gain1;
-          break;
-        }
       }
-      gain1 = static_cast<float>(std::clamp(shared_gain, 0., 1.));
+      if (power > 0 && std::isfinite(cross / power)) {
+        gain1 = static_cast<float>(std::clamp(cross / power, 0., 1.));
+      }
     }
     gain1 = (((.7f)) * (gain1));
     if (st->loss_rate > 2)
