@@ -4841,7 +4841,7 @@ struct celt_pulse_budget {
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth);
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -5107,6 +5107,7 @@ struct band_ctx {
   const celt_ener* bandE;
   opus_uint32 seed;
   opus_int16* decode_pulse_scratch;
+  bool refine_mono;
 };
 
 struct split_ctx {
@@ -5353,7 +5354,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     }
     if (q != 0) {
       int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
+      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
     } else {
       int j;
       if (ctx->resynth) {
@@ -5611,6 +5612,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.spread = spread;
   ctx.disable_inv = disable_inv;
   ctx.resynth = resynth;
+  ctx.refine_mono = encode && Y_ == nullptr;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
@@ -13090,7 +13092,7 @@ struct celt_pvq_quant_result {
   opus_val16 yy;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth, bool refine_mono = false) -> celt_pvq_quant_result {
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
     iy_out[j] = X[j] < 0;
@@ -13163,6 +13165,49 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
         events[event] = events[event - 1];
       }
       events[event] = best_id;
+    }
+  }
+  if (refine_mono) {
+    double dot = 0, norm = 0;
+    for (int index = 0; index < N; ++index) {
+      dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
+      const double count = iy_out[index] >> 1;
+      norm += count * count;
+    }
+    double best_dot = dot, best_norm = norm;
+    int donor = -1, receiver = -1;
+    for (int from = 0; from < N; ++from) {
+      const int count = iy_out[from] >> 1;
+      if (count == 0)
+        continue;
+      const double reduced_dot = dot - X[from];
+      const double reduced_norm = norm - 2 * count + 1;
+      for (int to = 0; to < N; ++to) {
+        if (to == from)
+          continue;
+        const double next_dot = reduced_dot + X[to];
+        const double next_norm = reduced_norm + 2 * (iy_out[to] >> 1) + 1;
+        if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
+          best_dot = next_dot;
+          best_norm = next_norm;
+          donor = from;
+          receiver = to;
+        }
+      }
+    }
+    if (donor >= 0) {
+      iy_out[donor] -= 2;
+      iy_out[receiver] += 2;
+      y[donor] -= 2;
+      y[receiver] += 2;
+      xy = static_cast<opus_val32>(best_dot);
+      yy = static_cast<opus_val16>(best_norm);
+      if (event_rank) {
+        int event = 0;
+        for (int index = N; index-- > 0;)
+          for (int count = iy_out[index] >> 1; count-- > 0;)
+            events[event++] = index;
+      }
     }
   }
   const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
@@ -13268,7 +13313,7 @@ static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int
   return position < B * block_size ? 1U << celt_udiv(position, block_size) : 0;
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth) {
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
     int best_id = 0;
@@ -13283,7 +13328,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth);
   }
   std::array<int, celt_max_band_samples> iy;
-  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth);
+  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth, refine_mono);
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   if (resynth) {
     exp_rotation(X, N, -1, B, K, spread);
