@@ -14530,11 +14530,13 @@ inline constexpr auto silk_nsq_quant_levels = make_silk_nsq_quant_levels();
 static_assert(sizeof(silk_nsq_quant_level_pair) == 8);
 static_assert(sizeof(silk_nsq_quant_levels) == 1984);
 
-template <bool KnownZero>
+template <bool FixedPulses>
 [[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
-                                                              const silk_nsq_quant_level_pair* levels) noexcept -> silk_nsq_candidate_pair {
-  if constexpr (KnownZero)
-    return {offset_Q10, offset_Q10, 0, 0, 0, 0};
+                                                              const silk_nsq_quant_level_pair* levels, int fixed_pulse = 0) noexcept -> silk_nsq_candidate_pair {
+  if constexpr (FixedPulses) {
+    const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80 : 0) + offset_Q10;
+    return {q_Q10, q_Q10, 0, 0, 0, 0};
+  }
   const opus_int32 q1_Q10 = residual_q10 - offset_Q10;
   opus_int32 q1_Q0 = q1_Q10 >> 10;
   if (Lambda_Q10 > 2048) {
@@ -14598,7 +14600,7 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
   return gain_adj_Q16;
 }
 
-template <bool KnownZero>
+template <bool FixedPulses>
 static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_sc_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10) {
   int i;
   opus_int32 LTP_pred_Q13, LPC_pred_Q10, n_AR_Q12, n_LTP_Q13;
@@ -14637,7 +14639,7 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
       tmp1 = rounded_rshift<2>(tmp1);
     }
     r_Q10 = silk_signed_clamped_residual(x_sc_Q10[i] - tmp1, NSQ->rand_seed);
-    const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10, levels);
+    const auto candidates = silk_quantize_candidate_pair<FixedPulses>(r_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i] : 0);
     const auto best_index = candidates.dist2_Q20 + candidates.rate2_Q20 < candidates.dist1_Q20 + candidates.rate1_Q20;
     const auto sample = silk_nsq_build_sample(best_index == 0 ? candidates.q1_Q10 : candidates.q2_Q10, NSQ->rand_seed,
                                               saturating_left_shift<1>(LTP_pred_Q13), saturating_left_shift<4>(LPC_pred_Q10), x_sc_Q10[i],
@@ -14701,7 +14703,7 @@ template <int Shift>
   return wrapped >= 40 ? wrapped - 40 : wrapped;
 }
 
-template <bool KnownZero>
+template <bool FixedPulses>
 static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool first_subframe) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
   opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
@@ -14712,7 +14714,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
   const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
   opus_int32 lane_ar[24][4];
-  const bool use_four_lane_ar = (!KnownZero) && nStatesDelayedDecision == 4;
+  const bool use_four_lane_ar = (!FixedPulses) && nStatesDelayedDecision == 4;
   if (use_four_lane_ar) {
     for (int index = 0; index < shapingLPCOrder; ++index) {
       for (int state = 0; state < 4; ++state)
@@ -14790,7 +14792,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
       r_Q10 = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
-      const auto candidates = silk_quantize_candidate_pair<KnownZero>(r_Q10, Lambda_Q10, offset_Q10, levels);
+      const auto candidates = silk_quantize_candidate_pair<FixedPulses>(r_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
@@ -14917,10 +14919,10 @@ static void silk_nsq_del_dec_scale_states(const silk_encoder_state* psEncC, silk
   }
 }
 
-template <bool Delayed, bool KnownZero>
+template <bool Delayed, bool FixedPulses>
 static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const opus_int16* PredCoef_Q12, const opus_int16 LTPCoef_Q14[5 * 4], const opus_int16 AR_Q13[4 * 24], const int HarmShapeGain_Q14[4], const int Tilt_Q14[4], const opus_int32 LF_shp_Q14[4], const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, const int LTP_scale_Q14) {
   int lag = NSQ->lagPrev;
-  const int state_count = KnownZero ? 1 : psEncC->nStatesDelayedDecision;
+  const int state_count = FixedPulses ? 1 : psEncC->nStatesDelayedDecision;
   std::array<NSQ_del_dec_struct, silk_max_delayed_decision_states> psDelDec_storage;
   auto delayed_states = std::span{psDelDec_storage}.first(static_cast<std::size_t>(state_count));
   auto* psDelDec = delayed_states.data();
@@ -15008,7 +15010,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                     {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14, {Gains_Q16, 4}, {pitchL, 4},
                                     psIndices->signalType, decisionDelay);
       const auto delayed_output_prefix = subfr > 0 ? decisionDelay : 0;
-      silk_noise_shape_quantizer_del_dec<KnownZero>(
+      silk_noise_shape_quantizer_del_dec<FixedPulses>(
           NSQ, delayed_states, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
           {pulses - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
           {pxq - delayed_output_prefix, static_cast<std::size_t>(psEncC->subfr_length + delayed_output_prefix)},
@@ -15020,7 +15022,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                                     {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                                     {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                                     {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
-      silk_noise_shape_quantizer<KnownZero>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
+      silk_noise_shape_quantizer<FixedPulses>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
                                             {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
                                             {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
@@ -16819,10 +16821,10 @@ static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlS
   return true;
 }
 
-template <bool KnownZero = false>
+template <bool FixedPulses = false>
 static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr) {
   std::array<opus_int32, 4> gains;
-  if constexpr (KnownZero) {
+  if constexpr (FixedPulses) {
     std::copy_n(exact_gains, psEnc->sCmn.nb_subfr, gains.begin());
   } else {
     for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe) {
@@ -16830,8 +16832,8 @@ static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encod
     }
   }
   const auto nsq = psEnc->sCmn.nStatesDelayedDecision > 1 || psEnc->sCmn.warping_Q16 > 0
-                       ? &silk_NSQ<true, KnownZero>
-                       : &silk_NSQ<false, KnownZero>;
+                       ? &silk_NSQ<true, FixedPulses>
+                       : &silk_NSQ<false, FixedPulses>;
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 
@@ -18063,6 +18065,78 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
           silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working,
                                      frame_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
           use_reconstructed_lbrr_target = false;
+          if (lbrr_deferred_generate) {
+            auto innovation_control = sEncCtrl;
+            for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe)
+              innovation_control.Gains[subframe] = replay_gains[subframe] / 65536.f;
+            auto innovation_indices = psEnc->sCmn.indices;
+            auto innovation_nsq = silk_nsq_working_state(psEnc->sCmn.sNSQ);
+            std::array<opus_int8, silk_max_frame_length> innovation_pulses{};
+            silk_NSQ_wrapper_FLP(psEnc, &innovation_control, &innovation_indices, &innovation_nsq, innovation_pulses.data(), nsq_samples.data(), prepared);
+            const auto quantized_pulses = innovation_pulses;
+            const auto coded_indices = innovation_indices;
+            auto best_pulses = frame_pulses;
+            auto best_indices = psEnc->sCmn.indices;
+            auto best_range = *psRangeEnc;
+            auto best_lag = psEnc->sCmn.ec_prevLagIndex;
+            auto best_signal = psEnc->sCmn.ec_prevSignalType;
+            std::memcpy(ec_buf_copy, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
+            silk_copy_nsq_history(sNSQ_best, nsq_working);
+            const auto reconstruction_error = [&](const auto& state) {
+              opus_int64 error = 0;
+              for (int sample = 0; sample < psEnc->sCmn.frame_length; ++sample) {
+                const opus_int64 delta = nsq_samples[sample] - state.xq[psEnc->sCmn.ltp_mem_length - psEnc->sCmn.frame_length + sample];
+                error += delta * delta;
+              }
+              return error;
+            };
+            const auto fallback_error = reconstruction_error(nsq_working);
+            auto best_error = fallback_error;
+            unsigned char innovation_buffer[1276 * 6];
+            std::memcpy(innovation_buffer, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->storage));
+            auto innovation_common = psEnc->sCmn;
+            for (int peak = 0; peak < psEnc->sCmn.frame_length; ++peak) {
+              if (quantized_pulses[peak] == 0)
+                continue;
+              std::fill(innovation_pulses.begin(), innovation_pulses.end(), opus_int8{0});
+              innovation_pulses[peak] = quantized_pulses[peak];
+              auto innovation_range = sRangeEnc_copy2;
+              innovation_range.buf = innovation_buffer;
+              innovation_common.indices = coded_indices;
+              innovation_common.ec_prevLagIndex = ec_prevLagIndex_copy;
+              innovation_common.ec_prevSignalType = ec_prevSignalType_copy;
+              silk_encode_indices_and_pulses(&innovation_common, &innovation_range, condCoding, innovation_pulses.data());
+              if (ec_tell(&innovation_range) > maxBits)
+                continue;
+              innovation_indices = coded_indices;
+              silk_restore_nsq_working_state(innovation_nsq, psEnc->sCmn.sNSQ);
+              silk_NSQ_wrapper_FLP<true>(psEnc, &innovation_control, &innovation_indices, &innovation_nsq, innovation_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
+              const auto error = reconstruction_error(innovation_nsq);
+              if (error < best_error) {
+                best_error = error;
+                best_pulses = innovation_pulses;
+                best_indices = innovation_indices;
+                best_range = innovation_range;
+                best_lag = innovation_common.ec_prevLagIndex;
+                best_signal = innovation_common.ec_prevSignalType;
+                std::memcpy(ec_buf_copy, innovation_buffer, static_cast<std::size_t>(innovation_range.offs));
+                silk_copy_nsq_history(sNSQ_best, innovation_nsq);
+              }
+            }
+            if (best_error < fallback_error) {
+              auto* output = psRangeEnc->buf;
+              *psRangeEnc = best_range;
+              psRangeEnc->buf = output;
+              std::memcpy(output, ec_buf_copy, static_cast<std::size_t>(psRangeEnc->offs));
+              psEnc->sCmn.indices = best_indices;
+              psEnc->sCmn.ec_prevLagIndex = best_lag;
+              psEnc->sCmn.ec_prevSignalType = best_signal;
+              frame_pulses = best_pulses;
+              silk_copy_nsq_history(nsq_working, sNSQ_best);
+              use_reconstructed_lbrr_target = true;
+              nBits = ec_tell(psRangeEnc);
+            }
+          }
         }
         if (!useCBR && iter == 0 && nBits <= maxBits) {
           break;
