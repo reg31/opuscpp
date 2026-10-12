@@ -13182,6 +13182,19 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
     }
   }
   if (refine_mono) {
+    const int blocks = B <= 1 ? 1 : B;
+    const int block_size = B <= 1 ? N : celt_udiv(N, B);
+    std::array<int, 1 << (celt_max_lm + 1)> block_pulses;
+    if (B > 1) {
+      for (int block = 0; block < B; ++block) {
+        int count = 0;
+        const int begin = block * block_size;
+        const int end = std::min(N, begin + block_size);
+        for (int index = begin; index < end; ++index)
+          count += iy_out[index] >> 1;
+        block_pulses[block] = count;
+      }
+    }
     double dot = 0, norm = 0;
     for (int index = 0; index < N; ++index) {
       dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
@@ -13196,16 +13209,24 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
         continue;
       const double reduced_dot = dot - X[from];
       const double reduced_norm = norm - 2 * count + 1;
-      for (int to = 0; to < N; ++to) {
-        if (to == from)
+      const int from_block = B <= 1 ? 0 : celt_udiv(from, block_size);
+      for (int block = 0; block < blocks; ++block) {
+        if (B > 1 && block != from_block &&
+            (block_pulses[from_block] == 1 || block_pulses[block] == 0))
           continue;
-        const double next_dot = reduced_dot + X[to];
-        const double next_norm = reduced_norm + 2 * (iy_out[to] >> 1) + 1;
-        if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
-          best_dot = next_dot;
-          best_norm = next_norm;
-          donor = from;
-          receiver = to;
+        const int begin = block * block_size;
+        const int end = std::min(N, begin + block_size);
+        for (int to = begin; to < end; ++to) {
+          if (to == from)
+            continue;
+          const double next_dot = reduced_dot + X[to];
+          const double next_norm = reduced_norm + 2 * (iy_out[to] >> 1) + 1;
+          if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
+            best_dot = next_dot;
+            best_norm = next_norm;
+            donor = from;
+            receiver = to;
+          }
         }
       }
     }
