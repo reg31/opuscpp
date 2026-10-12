@@ -13302,20 +13302,18 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
     pulsesLeft = 0;
   }
   std::array<opus_val32, celt_max_band_samples> candidate_num_storage;
-  std::array<opus_val32, celt_max_band_samples> candidate_den_storage;
   for (int i = 0; i < pulsesLeft; ++i) {
     int best_id = 0;
     yy += 1;
     for (int candidate = 0; candidate < N; ++candidate) {
       const opus_val32 rxy = xy + X[candidate];
       candidate_num_storage[candidate] = rxy * rxy;
-      candidate_den_storage[candidate] = yy + y[candidate];
     }
     opus_val32 best_num = candidate_num_storage[0];
-    opus_val32 best_den = candidate_den_storage[0];
+    opus_val32 best_den = yy + y[0];
     for (int candidate = 1; candidate < N; ++candidate) {
       const opus_val32 num = candidate_num_storage[candidate];
-      const opus_val32 den = candidate_den_storage[candidate];
+      const opus_val32 den = yy + y[candidate];
       if (best_den * num > den * best_num) {
         best_den = den;
         best_num = num;
