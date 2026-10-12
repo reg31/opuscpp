@@ -2,7 +2,7 @@
   "counts": [
     18,
     18,
-    17,
+    18,
     18
   ],
   "rows": [
@@ -16,7 +16,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -24,24 +24,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,36,29,29,25,33,34,28,30,31,29,33,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.152845041 next_ref=0.170859397 fidelity_fec=0.202570313 fidelity_ref=0.161343033 fidelity_plc=0.290316195 transition_fec=0.154397236 transition_ref=0.133666283 step_fec=900.000 step_ref=808.000 self_consistency=0.116448027\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,36,29,28,25,33,34,27,34,29,27,29,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.344880124 next_ref=0.345574459 fidelity_fec=0.148713082 fidelity_ref=0.136257384 fidelity_plc=0.312256125 transition_fec=0.158638889 transition_ref=0.142312360 step_fec=814.000 step_ref=827.000 self_consistency=0.053805705\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.202570313,
-          "next_fec": 0.152845041,
-          "transition_fec": 0.154397236,
-          "fidelity_ref": 0.161343033,
-          "next_ref": 0.170859397,
-          "transition_ref": 0.133666283,
-          "fidelity_plc": 0.290316195,
-          "self_consistency": 0.116448027,
-          "step_fec": 900.0,
-          "step_ref": 808.0
+          "fidelity_fec": 0.148713082,
+          "next_fec": 0.344880124,
+          "transition_fec": 0.158638889,
+          "fidelity_ref": 0.136257384,
+          "next_ref": 0.345574459,
+          "transition_ref": 0.14231236,
+          "fidelity_plc": 0.312256125,
+          "self_consistency": 0.053805705,
+          "step_fec": 814.0,
+          "step_ref": 827.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -81,7 +81,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -89,24 +89,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,41,40,41,40,39,39,40,38,42,42,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.241010483 next_ref=0.202563880 fidelity_fec=0.196249642 fidelity_ref=0.180971482 fidelity_plc=0.285246268 transition_fec=0.270504946 transition_ref=0.188168154 step_fec=-290.000 step_ref=-298.000 self_consistency=0.074121164\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,38,41,44,41,39,36,42,39,38,41,41,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.252765887 next_ref=0.183794046 fidelity_fec=0.225158700 fidelity_ref=0.179832026 fidelity_plc=0.298684608 transition_fec=0.365598855 transition_ref=0.168586758 step_fec=-348.000 step_ref=-328.000 self_consistency=0.177208138\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.196249642,
-          "next_fec": 0.241010483,
-          "transition_fec": 0.270504946,
-          "fidelity_ref": 0.180971482,
-          "next_ref": 0.20256388,
-          "transition_ref": 0.188168154,
-          "fidelity_plc": 0.285246268,
-          "self_consistency": 0.074121164,
-          "step_fec": -290.0,
-          "step_ref": -298.0
+          "fidelity_fec": 0.2251587,
+          "next_fec": 0.252765887,
+          "transition_fec": 0.365598855,
+          "fidelity_ref": 0.179832026,
+          "next_ref": 0.183794046,
+          "transition_ref": 0.168586758,
+          "fidelity_plc": 0.298684608,
+          "self_consistency": 0.177208138,
+          "step_fec": -348.0,
+          "step_ref": -328.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -146,7 +146,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -154,24 +154,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,50,68,60,54,63,57,61,59,68,57,52,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.165797078 next_ref=0.165797078 fidelity_fec=0.194163308 fidelity_ref=0.194163308 fidelity_plc=0.615659245 transition_fec=0.170974438 transition_ref=0.170974438 step_fec=-579.000 step_ref=-579.000 self_consistency=0.000000000\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,50,67,56,65,54,68,60,48,60,67,62,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.178628609 next_ref=0.178628609 fidelity_fec=0.195123043 fidelity_ref=0.195123043 fidelity_plc=0.695086490 transition_fec=0.163958650 transition_ref=0.163958650 step_fec=-386.000 step_ref=-386.000 self_consistency=0.000000000\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.194163308,
-          "next_fec": 0.165797078,
-          "transition_fec": 0.170974438,
-          "fidelity_ref": 0.194163308,
-          "next_ref": 0.165797078,
-          "transition_ref": 0.170974438,
-          "fidelity_plc": 0.615659245,
+          "fidelity_fec": 0.195123043,
+          "next_fec": 0.178628609,
+          "transition_fec": 0.16395865,
+          "fidelity_ref": 0.195123043,
+          "next_ref": 0.178628609,
+          "transition_ref": 0.16395865,
+          "fidelity_plc": 0.69508649,
           "self_consistency": 0.0,
-          "step_fec": -579.0,
-          "step_ref": -579.0
+          "step_fec": -386.0,
+          "step_ref": -386.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -211,7 +211,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -219,24 +219,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,89,93,88,80,85,90,93,89,83,84,76,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.182719447 next_ref=0.185238584 fidelity_fec=0.204802251 fidelity_ref=0.183827770 fidelity_plc=0.592239768 transition_fec=0.159678698 transition_ref=0.147776915 step_fec=-278.000 step_ref=194.000 self_consistency=0.147955129\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,89,90,85,79,86,89,91,82,78,82,77,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.180052453 next_ref=0.180707180 fidelity_fec=0.196283612 fidelity_ref=0.186135620 fidelity_plc=0.649982250 transition_fec=0.159946598 transition_ref=0.169035124 step_fec=-266.000 step_ref=108.000 self_consistency=0.144716091\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.204802251,
-          "next_fec": 0.182719447,
-          "transition_fec": 0.159678698,
-          "fidelity_ref": 0.18382777,
-          "next_ref": 0.185238584,
-          "transition_ref": 0.147776915,
-          "fidelity_plc": 0.592239768,
-          "self_consistency": 0.147955129,
-          "step_fec": -278.0,
-          "step_ref": 194.0
+          "fidelity_fec": 0.196283612,
+          "next_fec": 0.180052453,
+          "transition_fec": 0.159946598,
+          "fidelity_ref": 0.18613562,
+          "next_ref": 0.18070718,
+          "transition_ref": 0.169035124,
+          "fidelity_plc": 0.64998225,
+          "self_consistency": 0.144716091,
+          "step_fec": -266.0,
+          "step_ref": 108.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -276,7 +276,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -284,24 +284,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=374787972.500000 ms_lf_side=4319054.500000 ms_fec_mid=348651725.500000 ms_fec_side=28379512.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.181961817 next_ref=0.192003834 fidelity_fec=0.200181225 fidelity_ref=0.200731529 fidelity_plc=0.652054526 transition_fec=0.160866287 transition_ref=0.170146396 step_fec=-410.000 step_ref=-704.500 self_consistency=0.100891258\n",
+        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=369873156.500000 ms_lf_side=6135339.500000 ms_fec_mid=322061278.000000 ms_fec_side=20778805.000000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.184538697 next_ref=0.197548165 fidelity_fec=0.190888810 fidelity_ref=0.199909533 fidelity_plc=0.661256352 transition_fec=0.144627849 transition_ref=0.165217080 step_fec=-227.000 step_ref=-432.000 self_consistency=0.102482729\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.200181225,
-          "next_fec": 0.181961817,
-          "transition_fec": 0.160866287,
-          "fidelity_ref": 0.200731529,
-          "next_ref": 0.192003834,
-          "transition_ref": 0.170146396,
-          "fidelity_plc": 0.652054526,
-          "self_consistency": 0.100891258,
-          "step_fec": -410.0,
-          "step_ref": -704.5
+          "fidelity_fec": 0.19088881,
+          "next_fec": 0.184538697,
+          "transition_fec": 0.144627849,
+          "fidelity_ref": 0.199909533,
+          "next_ref": 0.197548165,
+          "transition_ref": 0.16521708,
+          "fidelity_plc": 0.661256352,
+          "self_consistency": 0.102482729,
+          "step_fec": -227.0,
+          "step_ref": -432.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -341,7 +341,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -349,24 +349,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,117,125,126,127,122,124,129,118,117,109,103,\nms_src=9408722302.500000 ms_lf_mid=335901139.500000 ms_lf_side=6493324.500000 ms_fec_mid=382930161.750000 ms_fec_side=40470604.750000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.214423463 next_ref=0.182679594 fidelity_fec=0.212134104 fidelity_ref=0.190764712 fidelity_plc=0.660650684 transition_fec=0.159942640 transition_ref=0.153651383 step_fec=-259.500 step_ref=-595.000 self_consistency=0.187346138\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,117,121,117,121,123,126,128,122,112,111,106,\nms_src=9408722302.500000 ms_lf_mid=315891074.500000 ms_lf_side=6466956.500000 ms_fec_mid=395904646.750000 ms_fec_side=32468523.750000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.171309750 next_ref=0.186744539 fidelity_fec=0.213376116 fidelity_ref=0.185098936 fidelity_plc=0.597612759 transition_fec=0.148820833 transition_ref=0.144260348 step_fec=-148.500 step_ref=-179.500 self_consistency=0.170023788\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.212134104,
-          "next_fec": 0.214423463,
-          "transition_fec": 0.15994264,
-          "fidelity_ref": 0.190764712,
-          "next_ref": 0.182679594,
-          "transition_ref": 0.153651383,
-          "fidelity_plc": 0.660650684,
-          "self_consistency": 0.187346138,
-          "step_fec": -259.5,
-          "step_ref": -595.0
+          "fidelity_fec": 0.213376116,
+          "next_fec": 0.17130975,
+          "transition_fec": 0.148820833,
+          "fidelity_ref": 0.185098936,
+          "next_ref": 0.186744539,
+          "transition_ref": 0.144260348,
+          "fidelity_plc": 0.597612759,
+          "self_consistency": 0.170023788,
+          "step_fec": -148.5,
+          "step_ref": -179.5
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -406,7 +406,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -414,24 +414,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,29,33,31,32,30,30,28,33,26,32,27,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.327578986 next_ref=0.286662768 fidelity_fec=0.222856560 fidelity_ref=0.193196549 fidelity_plc=1.055840775 transition_fec=0.189075740 transition_ref=0.174301004 step_fec=484.000 step_ref=454.000 self_consistency=0.109588498\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,29,30,31,30,32,34,28,28,34,25,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.249510312 next_ref=0.234199473 fidelity_fec=0.231689963 fidelity_ref=0.238436357 fidelity_plc=0.982810525 transition_fec=0.179888631 transition_ref=0.195038410 step_fec=451.000 step_ref=453.000 self_consistency=0.149171472\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.22285656,
-          "next_fec": 0.327578986,
-          "transition_fec": 0.18907574,
-          "fidelity_ref": 0.193196549,
-          "next_ref": 0.286662768,
-          "transition_ref": 0.174301004,
-          "fidelity_plc": 1.055840775,
-          "self_consistency": 0.109588498,
-          "step_fec": 484.0,
-          "step_ref": 454.0
+          "fidelity_fec": 0.231689963,
+          "next_fec": 0.249510312,
+          "transition_fec": 0.179888631,
+          "fidelity_ref": 0.238436357,
+          "next_ref": 0.234199473,
+          "transition_ref": 0.19503841,
+          "fidelity_plc": 0.982810525,
+          "self_consistency": 0.149171472,
+          "step_fec": 451.0,
+          "step_ref": 453.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -471,7 +471,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -479,24 +479,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,39,43,36,44,41,38,45,38,33,43,43,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.316909002 next_ref=0.305785037 fidelity_fec=0.396596751 fidelity_ref=0.282270762 fidelity_plc=0.915320071 transition_fec=0.351603042 transition_ref=0.266181311 step_fec=-174.000 step_ref=-178.000 self_consistency=0.241511330\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,39,45,35,43,36,45,40,35,40,46,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.318828595 next_ref=0.268266709 fidelity_fec=0.349088368 fidelity_ref=0.284269009 fidelity_plc=0.810759807 transition_fec=0.286342900 transition_ref=0.219428160 step_fec=-130.000 step_ref=-149.000 self_consistency=0.167906888\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.396596751,
-          "next_fec": 0.316909002,
-          "transition_fec": 0.351603042,
-          "fidelity_ref": 0.282270762,
-          "next_ref": 0.305785037,
-          "transition_ref": 0.266181311,
-          "fidelity_plc": 0.915320071,
-          "self_consistency": 0.24151133,
-          "step_fec": -174.0,
-          "step_ref": -178.0
+          "fidelity_fec": 0.349088368,
+          "next_fec": 0.318828595,
+          "transition_fec": 0.2863429,
+          "fidelity_ref": 0.284269009,
+          "next_ref": 0.268266709,
+          "transition_ref": 0.21942816,
+          "fidelity_plc": 0.810759807,
+          "self_consistency": 0.167906888,
+          "step_fec": -130.0,
+          "step_ref": -149.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -536,7 +536,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -544,24 +544,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,65,50,62,66,60,62,47,64,65,60,50,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.251136791 next_ref=0.249588375 fidelity_fec=0.260171990 fidelity_ref=0.231067531 fidelity_plc=0.789383384 transition_fec=0.214118335 transition_ref=0.210709733 step_fec=-79.000 step_ref=-72.000 self_consistency=0.145901078\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,65,50,55,56,70,57,71,53,59,64,62,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.286480737 next_ref=0.248741272 fidelity_fec=0.280772159 fidelity_ref=0.252118205 fidelity_plc=0.937196144 transition_fec=0.275786131 transition_ref=0.190876663 step_fec=-182.000 step_ref=-172.000 self_consistency=0.155451549\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.26017199,
-          "next_fec": 0.251136791,
-          "transition_fec": 0.214118335,
-          "fidelity_ref": 0.231067531,
-          "next_ref": 0.249588375,
-          "transition_ref": 0.210709733,
-          "fidelity_plc": 0.789383384,
-          "self_consistency": 0.145901078,
-          "step_fec": -79.0,
-          "step_ref": -72.0
+          "fidelity_fec": 0.280772159,
+          "next_fec": 0.286480737,
+          "transition_fec": 0.275786131,
+          "fidelity_ref": 0.252118205,
+          "next_ref": 0.248741272,
+          "transition_ref": 0.190876663,
+          "fidelity_plc": 0.937196144,
+          "self_consistency": 0.155451549,
+          "step_fec": -182.0,
+          "step_ref": -172.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -601,7 +601,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -626,7 +626,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -666,7 +666,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -674,24 +674,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=101678224.250000 ms_lf_side=2425809.250000 ms_fec_mid=100681411.250000 ms_fec_side=27259523.250000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.332196234 next_ref=0.287487944 fidelity_fec=0.333735111 fidelity_ref=0.301044654 fidelity_plc=0.857849700 transition_fec=0.450311093 transition_ref=0.242928390 step_fec=134.000 step_ref=587.000 self_consistency=0.301040413\n",
+        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=98587941.500000 ms_lf_side=1927578.500000 ms_fec_mid=224861060.000000 ms_fec_side=21506422.000000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.345824186 next_ref=0.296523694 fidelity_fec=0.463114984 fidelity_ref=0.295810580 fidelity_plc=0.875049681 transition_fec=0.240265426 transition_ref=0.279879035 step_fec=-170.000 step_ref=406.000 self_consistency=0.385670764\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.333735111,
-          "next_fec": 0.332196234,
-          "transition_fec": 0.450311093,
-          "fidelity_ref": 0.301044654,
-          "next_ref": 0.287487944,
-          "transition_ref": 0.24292839,
-          "fidelity_plc": 0.8578497,
-          "self_consistency": 0.301040413,
-          "step_fec": 134.0,
-          "step_ref": 587.0
+          "fidelity_fec": 0.463114984,
+          "next_fec": 0.345824186,
+          "transition_fec": 0.240265426,
+          "fidelity_ref": 0.29581058,
+          "next_ref": 0.296523694,
+          "transition_ref": 0.279879035,
+          "fidelity_plc": 0.875049681,
+          "self_consistency": 0.385670764,
+          "step_fec": -170.0,
+          "step_ref": 406.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -717,7 +717,7 @@
       "criteria_pass": [
         true,
         true,
-        false,
+        true,
         true
       ]
     },
@@ -731,7 +731,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -739,24 +739,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,115,111,104,110,116,112,115,121,101,115,101,\nms_src=1148697612.000000 ms_lf_mid=64609793.500000 ms_lf_side=2021504.500000 ms_fec_mid=105958055.000000 ms_fec_side=21450490.000000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.272212647 next_ref=0.264446220 fidelity_fec=0.333040016 fidelity_ref=0.240844247 fidelity_plc=0.783288401 transition_fec=0.233756483 transition_ref=0.217426169 step_fec=-144.500 step_ref=338.000 self_consistency=0.305084049\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=148,115,110,108,109,114,115,113,124,100,116,103,\nms_src=1148697612.000000 ms_lf_mid=63515252.750000 ms_lf_side=2406506.750000 ms_fec_mid=105651319.000000 ms_fec_side=24885913.000000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.271770039 next_ref=0.257031086 fidelity_fec=0.337104337 fidelity_ref=0.239558473 fidelity_plc=0.784909335 transition_fec=0.235796542 transition_ref=0.201913115 step_fec=-110.500 step_ref=334.500 self_consistency=0.311336910\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.333040016,
-          "next_fec": 0.272212647,
-          "transition_fec": 0.233756483,
-          "fidelity_ref": 0.240844247,
-          "next_ref": 0.26444622,
-          "transition_ref": 0.217426169,
-          "fidelity_plc": 0.783288401,
-          "self_consistency": 0.305084049,
-          "step_fec": -144.5,
-          "step_ref": 338.0
+          "fidelity_fec": 0.337104337,
+          "next_fec": 0.271770039,
+          "transition_fec": 0.235796542,
+          "fidelity_ref": 0.239558473,
+          "next_ref": 0.257031086,
+          "transition_ref": 0.201913115,
+          "fidelity_plc": 0.784909335,
+          "self_consistency": 0.31133691,
+          "step_fec": -110.5,
+          "step_ref": 334.5
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -796,7 +796,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -804,24 +804,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,35,25,34,30,31,29,32,30,28,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.470894465 next_ref=0.456800366 fidelity_fec=0.429405579 fidelity_ref=0.396349777 fidelity_plc=1.411104772 transition_fec=0.440621532 transition_ref=0.399986265 step_fec=1972.000 step_ref=2199.000 self_consistency=0.256186978\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,32,28,35,27,30,27,30,34,27,34,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.453124608 next_ref=0.455952299 fidelity_fec=0.415460828 fidelity_ref=0.396550341 fidelity_plc=1.191148602 transition_fec=0.366694230 transition_ref=0.364651065 step_fec=2328.000 step_ref=2165.000 self_consistency=0.167649288\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.429405579,
-          "next_fec": 0.470894465,
-          "transition_fec": 0.440621532,
-          "fidelity_ref": 0.396349777,
-          "next_ref": 0.456800366,
-          "transition_ref": 0.399986265,
-          "fidelity_plc": 1.411104772,
-          "self_consistency": 0.256186978,
-          "step_fec": 1972.0,
-          "step_ref": 2199.0
+          "fidelity_fec": 0.415460828,
+          "next_fec": 0.453124608,
+          "transition_fec": 0.36669423,
+          "fidelity_ref": 0.396550341,
+          "next_ref": 0.455952299,
+          "transition_ref": 0.364651065,
+          "fidelity_plc": 1.191148602,
+          "self_consistency": 0.167649288,
+          "step_fec": 2328.0,
+          "step_ref": 2165.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -861,7 +861,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -869,24 +869,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,39,43,37,43,41,37,38,36,42,41,43,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.490457590 next_ref=0.491295776 fidelity_fec=0.460999104 fidelity_ref=0.455744758 fidelity_plc=0.994038047 transition_fec=0.444623692 transition_ref=0.428442158 step_fec=-836.000 step_ref=-821.000 self_consistency=0.131980788\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,39,43,37,43,37,42,39,38,45,39,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.519574264 next_ref=0.491639224 fidelity_fec=0.473881498 fidelity_ref=0.449561252 fidelity_plc=0.805999777 transition_fec=0.549843480 transition_ref=0.431983098 step_fec=-751.000 step_ref=-757.000 self_consistency=0.188472796\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.460999104,
-          "next_fec": 0.49045759,
-          "transition_fec": 0.444623692,
-          "fidelity_ref": 0.455744758,
-          "next_ref": 0.491295776,
-          "transition_ref": 0.428442158,
-          "fidelity_plc": 0.994038047,
-          "self_consistency": 0.131980788,
-          "step_fec": -836.0,
-          "step_ref": -821.0
+          "fidelity_fec": 0.473881498,
+          "next_fec": 0.519574264,
+          "transition_fec": 0.54984348,
+          "fidelity_ref": 0.449561252,
+          "next_ref": 0.491639224,
+          "transition_ref": 0.431983098,
+          "fidelity_plc": 0.805999777,
+          "self_consistency": 0.188472796,
+          "step_fec": -751.0,
+          "step_ref": -757.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -926,7 +926,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -934,24 +934,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,53,56,58,67,58,70,60,59,56,66,52,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.512506089 next_ref=0.481126909 fidelity_fec=0.491494690 fidelity_ref=0.455606488 fidelity_plc=0.990232531 transition_fec=0.439275019 transition_ref=0.411290464 step_fec=-1173.000 step_ref=-626.000 self_consistency=0.297814075\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,53,56,71,64,55,62,55,64,54,69,56,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.513338390 next_ref=0.512096696 fidelity_fec=0.476957274 fidelity_ref=0.424526382 fidelity_plc=0.942268956 transition_fec=0.430235784 transition_ref=0.370450970 step_fec=-384.000 step_ref=-473.000 self_consistency=0.247795839\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.49149469,
-          "next_fec": 0.512506089,
-          "transition_fec": 0.439275019,
-          "fidelity_ref": 0.455606488,
-          "next_ref": 0.481126909,
-          "transition_ref": 0.411290464,
-          "fidelity_plc": 0.990232531,
-          "self_consistency": 0.297814075,
-          "step_fec": -1173.0,
-          "step_ref": -626.0
+          "fidelity_fec": 0.476957274,
+          "next_fec": 0.51333839,
+          "transition_fec": 0.430235784,
+          "fidelity_ref": 0.424526382,
+          "next_ref": 0.512096696,
+          "transition_ref": 0.37045097,
+          "fidelity_plc": 0.942268956,
+          "self_consistency": 0.247795839,
+          "step_fec": -384.0,
+          "step_ref": -473.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -991,7 +991,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -999,24 +999,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,84,81,79,78,76,75,70,71,75,77,73,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.519662078 next_ref=0.544234662 fidelity_fec=0.490818630 fidelity_ref=0.513122096 fidelity_plc=1.136885910 transition_fec=0.502558406 transition_ref=0.484714304 step_fec=-1318.000 step_ref=-2410.000 self_consistency=0.390636951\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,84,81,78,73,71,75,75,74,76,81,73,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.529712169 next_ref=0.548779977 fidelity_fec=0.496750605 fidelity_ref=0.506080024 fidelity_plc=1.030331605 transition_fec=0.493426228 transition_ref=0.485288076 step_fec=99.000 step_ref=291.000 self_consistency=0.376585280\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.49081863,
-          "next_fec": 0.519662078,
-          "transition_fec": 0.502558406,
-          "fidelity_ref": 0.513122096,
-          "next_ref": 0.544234662,
-          "transition_ref": 0.484714304,
-          "fidelity_plc": 1.13688591,
-          "self_consistency": 0.390636951,
-          "step_fec": -1318.0,
-          "step_ref": -2410.0
+          "fidelity_fec": 0.496750605,
+          "next_fec": 0.529712169,
+          "transition_fec": 0.493426228,
+          "fidelity_ref": 0.506080024,
+          "next_ref": 0.548779977,
+          "transition_ref": 0.485288076,
+          "fidelity_plc": 1.030331605,
+          "self_consistency": 0.37658528,
+          "step_fec": 99.0,
+          "step_ref": 291.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -1056,7 +1056,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -1064,24 +1064,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=1743289907.000000 ms_lf_side=9809238.000000 ms_fec_mid=1875688123.250000 ms_fec_side=52772452.250000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.507159163 next_ref=0.537085757 fidelity_fec=0.541103643 fidelity_ref=0.515915189 fidelity_plc=1.260186161 transition_fec=0.474725240 transition_ref=0.539042840 step_fec=-479.000 step_ref=-290.000 self_consistency=0.443282926\n",
+        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=1773534016.000000 ms_lf_side=9663308.000000 ms_fec_mid=1920545864.000000 ms_fec_side=46377990.000000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.506059016 next_ref=0.523905765 fidelity_fec=0.546473176 fidelity_ref=0.520325101 fidelity_plc=0.996555067 transition_fec=0.519816863 transition_ref=0.476889778 step_fec=-1166.000 step_ref=-322.000 self_consistency=0.385279575\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.541103643,
-          "next_fec": 0.507159163,
-          "transition_fec": 0.47472524,
-          "fidelity_ref": 0.515915189,
-          "next_ref": 0.537085757,
-          "transition_ref": 0.53904284,
-          "fidelity_plc": 1.260186161,
-          "self_consistency": 0.443282926,
-          "step_fec": -479.0,
-          "step_ref": -290.0
+          "fidelity_fec": 0.546473176,
+          "next_fec": 0.506059016,
+          "transition_fec": 0.519816863,
+          "fidelity_ref": 0.520325101,
+          "next_ref": 0.523905765,
+          "transition_ref": 0.476889778,
+          "fidelity_plc": 0.996555067,
+          "self_consistency": 0.385279575,
+          "step_fec": -1166.0,
+          "step_ref": -322.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -1121,7 +1121,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -1129,24 +1129,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,128,125,111,113,108,108,104,111,106,113,107,\nms_src=6586426492.500000 ms_lf_mid=1558636661.500000 ms_lf_side=7737078.500000 ms_fec_mid=1750181280.750000 ms_fec_side=63004934.750000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.460671098 next_ref=0.516216214 fidelity_fec=0.524682138 fidelity_ref=0.487666331 fidelity_plc=1.005312138 transition_fec=0.449460035 transition_ref=0.405311000 step_fec=-1793.000 step_ref=-1591.000 self_consistency=0.426094669\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=119,128,119,106,114,107,107,105,98,108,118,108,\nms_src=6586426492.500000 ms_lf_mid=1650097057.750000 ms_lf_side=8492320.750000 ms_fec_mid=1653587263.500000 ms_fec_side=63206314.500000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.478333376 next_ref=0.519952140 fidelity_fec=0.510545104 fidelity_ref=0.501816013 fidelity_plc=1.056654481 transition_fec=0.448132684 transition_ref=0.470277279 step_fec=-257.500 step_ref=656.500 self_consistency=0.433467578\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.524682138,
-          "next_fec": 0.460671098,
-          "transition_fec": 0.449460035,
-          "fidelity_ref": 0.487666331,
-          "next_ref": 0.516216214,
-          "transition_ref": 0.405311,
-          "fidelity_plc": 1.005312138,
-          "self_consistency": 0.426094669,
-          "step_fec": -1793.0,
-          "step_ref": -1591.0
+          "fidelity_fec": 0.510545104,
+          "next_fec": 0.478333376,
+          "transition_fec": 0.448132684,
+          "fidelity_ref": 0.501816013,
+          "next_ref": 0.51995214,
+          "transition_ref": 0.470277279,
+          "fidelity_plc": 1.056654481,
+          "self_consistency": 0.433467578,
+          "step_fec": -257.5,
+          "step_ref": 656.5
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_874fba11786a_20261011\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\build\\official_compare_report\\codex_native_celt_68d5d372649b_20261011\\fec_source_official.exe",
           "2",
           "20",
           "48000",

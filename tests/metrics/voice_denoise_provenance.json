@@ -1,6 +1,6 @@
 {
-  "source_commit": "874fba11786acb3a57c1671a5fcca701d7d53625",
-  "source_sha256": "842250aa0cdbdb1158a71bc45d655220295b67c6aa29a90fc335d3710900d908",
+  "source_commit": "68d5d372649bad70438f791996e9bf90cc802cc3",
+  "source_sha256": "b298878a09dcfc094396e94a6374b03db9508eaeec41e402d542097fb9bac384",
   "quality": {
     "boundary_passed": 25,
     "boundary_total": 25,
@@ -11,12 +11,12 @@
       "rms_error": 16,
       "mean_abs_error": 18,
       "pesq_style": 17,
-      "visqol_style": 31,
+      "visqol_style": 32,
       "logband_corr": 36,
-      "logband_error": 32,
+      "logband_error": 33,
       "celt_quality": 30,
       "celt_masked_error": 30,
-      "celt_highband_error": 24,
+      "celt_highband_error": 23,
       "stereo_width_error": 0
     }
   },
