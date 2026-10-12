@@ -14079,8 +14079,38 @@ static void silk_ResetDecoder(void* decState) {
   decoder->prev_decode_only_middle = 0;
 }
 
+namespace {
+extern const std::array<std::array<opus_int16, 4>, 12> silk_resampler_frac_FIR_12;
+[[nodiscard]] constexpr auto resampler_round_shift_saturate_int16(opus_int32 value, int shift) noexcept -> opus_int16;
+[[nodiscard]] constexpr auto resampler_frac_fir_12_q15(std::span<const opus_int16, 8> buffer, std::span<const opus_int16, 4> leading, std::span<const opus_int16, 4> trailing) noexcept -> opus_int32;
+}
+static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len);
+
 static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
-  silk_resampler(&state.resampler_state, resampled.data(), input, input_samples);
+  auto& resampler = state.resampler_state;
+  if (resampler.resampler_function == 2 && resampler.invRatio_Q16 == 43691) {
+    std::array<opus_int16, 2 * silk_max_frame_length + 8> upsampled;
+    auto* delayed = resampled.data() + resampled.size() - input_samples;
+    const int head = resampler.Fs_in_kHz - resampler.inputDelay;
+    copy_n_items(input, static_cast<std::size_t>(head), resampler.delayBuf + resampler.inputDelay);
+    copy_n_items(resampler.delayBuf, static_cast<std::size_t>(resampler.Fs_in_kHz), delayed);
+    copy_n_items(input + head, static_cast<std::size_t>(input_samples - resampler.Fs_in_kHz), delayed + resampler.Fs_in_kHz);
+    copy_n_items(resampler.sFIR.i16, 8, upsampled.data());
+    silk_resampler_private_up2_HQ(resampler.sIIR, upsampled.data() + 8, delayed, input_samples);
+    for (int i = 0; i < input_samples; ++i) {
+      const auto* window = upsampled.data() + 2 * i;
+      resampled[3 * i] = resampler_round_shift_saturate_int16(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[0], silk_resampler_frac_FIR_12[11]), 15);
+      resampled[3 * i + 1] = resampler_round_shift_saturate_int16(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[8], silk_resampler_frac_FIR_12[3]), 15);
+      resampled[3 * i + 2] = resampler_round_shift_saturate_int16(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window + 1, 8}, silk_resampler_frac_FIR_12[4], silk_resampler_frac_FIR_12[7]), 15);
+    }
+    copy_n_items(upsampled.data() + 2 * input_samples, 8, resampler.sFIR.i16);
+    copy_n_items(input + input_samples - resampler.inputDelay, static_cast<std::size_t>(resampler.inputDelay), resampler.delayBuf);
+  } else {
+    silk_resampler(&resampler, resampled.data(), input, input_samples);
+  }
   for (int i = 0; i < output_samples; ++i) {
     samplesOut[api_channels == 2 ? channel + 2 * i : i] = resampled[i] * (1 / 32768.f);
   }
@@ -15797,7 +15827,6 @@ constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_fra
 
 static void silk_resampler_private_IIR_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
 static void silk_resampler_private_down_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
-static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len);
 static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], const opus_int16 in[], const opus_int16 A_Q14[], opus_int32 len);
 constexpr std::array<std::array<opus_uint8, 3>, 6> delay_matrix_enc =
     numeric_blob_matrix<opus_uint8, 3>(R"blob(06000300070300010A000206120A0C00002C)blob");
