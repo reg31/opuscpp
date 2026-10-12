@@ -15,12 +15,12 @@
     "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 18] out of 18"
   },
   "standard_interop": {
-    "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.503074 wins=16/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.987301",
-    "acceptance": "FAIL",
+    "exit_code": 0,
+    "summary": "fec_summary recovery_error_ratio=0.435776 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.986486",
+    "acceptance": "PASS",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },
-  "acceptance": "FAIL",
+  "acceptance": "PASS",
   "waiver": false
 }
