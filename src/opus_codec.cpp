@@ -14534,7 +14534,9 @@ template <bool FixedPulses>
 [[nodiscard]] static inline auto silk_quantize_candidate_pair(opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
                                                               const silk_nsq_quant_level_pair* levels, int fixed_pulse = 0) noexcept -> silk_nsq_candidate_pair {
   if constexpr (FixedPulses) {
-    const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80 : 0) + offset_Q10;
+    const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80
+                                                                                     : 0) +
+                       offset_Q10;
     return {q_Q10, q_Q10, 0, 0, 0, 0};
   }
   const opus_int32 q1_Q10 = residual_q10 - offset_Q10;
@@ -15023,11 +15025,11 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                                     {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                                     {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
       silk_noise_shape_quantizer<FixedPulses>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
-                                            {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
-                                            {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
-                                            {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
-                                            {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
-                                            LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
+                                              {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
+                                              {pxq, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_Q15_storage, ltp_frame_storage},
+                                              {A_Q12, static_cast<std::size_t>(psEncC->predictLPCOrder)}, {B_Q14, 5},
+                                              {AR_shp_Q13, static_cast<std::size_t>(psEncC->shapingLPCOrder)}, lag, HarmShapeFIRPacked_Q14, Tilt_Q14[k],
+                                              LF_shp_Q14[k], Gains_Q16[k], Lambda_Q10, offset_Q10);
     }
     x16 += psEncC->subfr_length;
     pulses += psEncC->subfr_length;
