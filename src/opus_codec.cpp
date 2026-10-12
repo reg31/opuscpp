@@ -5112,6 +5112,7 @@ struct c2_consumer_plan {
   int horizon = 0;
   bool replay = false;
   double error = 0;
+  double alternative_first_error = 0;
 };
 
 struct band_ctx {
@@ -5825,6 +5826,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
               c2_plan->band = i;
               c2_plan->round = default_first ? 1 : -1;
               c2_plan->horizon = horizon;
+              c2_plan->alternative_first_error = default_first ? -dist1 : -dist0;
             }
           }
           const bool take_first = c2_plan != nullptr && c2_plan->replay && c2_plan->band == i
@@ -7794,7 +7796,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                     st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                     0, st->complexity, oldBandE, nullptr, false, &plan);
-    if (plan.band >= 0) {
+    if (plan.band >= 0 && !(plan.alternative_first_error >= plan.error)) {
       const auto default_coder = *enc;
       const auto default_seed = st->rng;
       std::array<unsigned char, 1275> default_bytes;
