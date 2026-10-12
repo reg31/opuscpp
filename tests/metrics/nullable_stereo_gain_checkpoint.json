@@ -1,0 +1,362 @@
+{
+  "ready": {
+    "status": "READY_ROOT_ONLY_PUBLICATION",
+    "recorded_utc": "2026-10-12T09:15:12.335729+00:00",
+    "owner": "/root/stereo_reconstruction_recovery",
+    "base_commit": "e14efec40eadd644303ff57a388424c67786a1fb",
+    "latest_checkpoint_HEAD": "e14efec40eadd644303ff57a388424c67786a1fb",
+    "base_source_sha256": "437752d9f3c03b0ba701aba6f635da4b0a9de4599f97ccc33161cefa828c23a9",
+    "latest_protected_checkout_source_sha256": "437752d9f3c03b0ba701aba6f635da4b0a9de4599f97ccc33161cefa828c23a9",
+    "candidate_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\candidate.cpp",
+    "candidate_source_sha256": "d7a10dda5ab3e817367a5f58206f81dd2b76084df6221cd5f1dea4b28be69ee7",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "patch": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\candidate.patch",
+    "patch_sha256": "9bd6e5bc2060989866c351240df3c89eff951269cca69f2f871b99161890cf9f",
+    "claimed_functions": [
+      "quant_all_bands"
+    ],
+    "callers_reviewed": [
+      {
+        "caller": "celt_encode_candidate",
+        "source_line": 7674,
+        "contract": "Supplies actual oldBandE after process_fine_energy; preserve exp2(min32, log+eMean) arithmetic/physicalGram/timeB/coherentconstraint exactly."
+      },
+      {
+        "caller": "celt_decode_with_ec",
+        "source_line": 8617,
+        "contract": "encode0 never reaches thetaRDO; optional log pointer omitted; unchanged."
+      },
+      {
+        "caller": "tests/quant_all_bands_microbench.cpp quant_encode_once",
+        "source_line": 127,
+        "contract": "Direct normalized-shape quantization with explicit linear band_energy and no coded log energy; retain thetaRDO and use supplied linear bandE amplitude for both source and reconstructed shapes."
+      },
+      {
+        "caller": "tests/quant_all_bands_microbench.cpp quant_decode_once",
+        "source_line": 142,
+        "contract": "encode0 never reaches thetaRDO; unchanged; frozen full micro_driver is exact copy of this caller."
+      }
+    ],
+    "production_files": [
+      "src/opus_codec.cpp"
+    ],
+    "test_changes": "None: unchanged existing nullable micro_driver/quant_all_bands_microbench coverage reused; unchanged real codec driver reused for exact non-null output/state identity.",
+    "mechanism": "Only two nullable conditional gain expressions: absent coded_log_energy uses existing supplied linear bandE, present pointer preserves actual coded gain expression. No fabricated coded-log/energy adapter, dropped RDO coverage, signature/caller/header/options/storage/ABI changes or blanket DSP rollback.",
+    "non_null_state_proof": "Both changed declarations evaluate the byte-identical original exp2f/min/log+eMeans expression when coded_log_energy is non-null. No persistent write, call argument, coherent-source predicate, scale, Gram, trial/budget/restoration/folding code, or caller changed. Source proof plus full packet and entropy-range sequence/decoded PCM identity across three actual non-null contexts.",
+    "result": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\RESULT.json",
+      "sha256": "e940fd6089a4564e0e6a23f10c38ace781b9ca58634c58537ecaaec73a91f45a"
+    },
+    "execution": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\contract_EXECUTION.json",
+      "sha256": "57573727a338be5e59cf05625dee5dcee03317e0b2fddb6042a53f00c313473f",
+      "commands": 8,
+      "all_terminal0": true
+    },
+    "actual_method_start": "2026-10-12T09:10:16Z",
+    "discovery20": "2026-10-12T09:30:16Z",
+    "first60": "2026-10-12T10:10:16Z",
+    "actual_first_outcome": "2026-10-12T09:13:01.032901+00:00",
+    "actual_nullable_regression_terminal": "2026-10-12T09:13:32.983753+00:00",
+    "original_clock": "2026-10-11T19:44:09Z",
+    "historical_elapsed_phase": "2026-10-12T03:44:09Z",
+    "continuous_main_quality_exemption": true,
+    "old_clocks_misses_closed_methods_failures_preserved": true,
+    "every_old_new_loss_immediate_next": true,
+    "current_quality_candidate_or_missing_fact": "No additional candidate; rem18 source-bound W223 tuple preserved and same stereo assignment continues after this repair.",
+    "goal": "NOT MET"
+  },
+  "result": {
+    "status": "QUALIFIED_OPTIONAL_CODED_ENERGY_CONTRACT_REPAIR",
+    "recorded_utc": "2026-10-12T09:15:12.334728+00:00",
+    "base_commit": "e14efec40eadd644303ff57a388424c67786a1fb",
+    "base_source_sha256": "437752d9f3c03b0ba701aba6f635da4b0a9de4599f97ccc33161cefa828c23a9",
+    "candidate_source_sha256": "d7a10dda5ab3e817367a5f58206f81dd2b76084df6221cd5f1dea4b28be69ee7",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "scope": "Only two nullable conditional gain expressions: absent coded_log_energy uses existing supplied linear bandE, present pointer preserves actual coded gain expression. No fabricated coded-log/energy adapter, dropped RDO coverage, signature/caller/header/options/storage/ABI changes or blanket DSP rollback.",
+    "non_null_state_proof": "Both changed declarations evaluate the byte-identical original exp2f/min/log+eMeans expression when coded_log_energy is non-null. No persistent write, call argument, coherent-source predicate, scale, Gram, trial/budget/restoration/folding code, or caller changed. Source proof plus full packet and entropy-range sequence/decoded PCM identity across three actual non-null contexts.",
+    "cases": [
+      {
+        "id": "plucked_antiphase",
+        "all12_metrics_identity": true,
+        "all_encoded_packets_ranges_mode_channels_PCM_identity": true,
+        "all3_source_golds_exact": true,
+        "observable_encoder_decoder_range_state_identity": true,
+        "independent_floors": [
+          "INTEROP_FLOOR id=plucked_antiphase lane=0 pass=1 max=1.7881393432617188e-07 rms=1.3334361683994538e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=plucked_antiphase lane=1 pass=1 max=1.7881393432617188e-07 rms=1.3334361683994538e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=plucked_antiphase lane=2 pass=1 max=0 rms=0 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1"
+        ],
+        "artifacts": [
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_0.f32",
+            "sha256": "780f5c94ab7f5d327de13a49581e156bb0cae78d4f59209e5769f9fd7ac76f3c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.f32",
+            "gold_sha256": "780f5c94ab7f5d327de13a49581e156bb0cae78d4f59209e5769f9fd7ac76f3c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_0.packets",
+            "sha256": "d364cc7bb3b7bf4332fb3655382c66314bf20eeab496d09580cfd5663514d702",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.packets",
+            "gold_sha256": "d364cc7bb3b7bf4332fb3655382c66314bf20eeab496d09580cfd5663514d702"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_0.modes.csv",
+            "sha256": "c9f03393d6aa106a4fe6ab5c46a4d6d16c8f086c9fb9e2bf5c25f46daaa1d52d",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.modes.csv",
+            "gold_sha256": "c9f03393d6aa106a4fe6ab5c46a4d6d16c8f086c9fb9e2bf5c25f46daaa1d52d"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.f32",
+            "sha256": "780f5c94ab7f5d327de13a49581e156bb0cae78d4f59209e5769f9fd7ac76f3c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.f32",
+            "gold_sha256": "780f5c94ab7f5d327de13a49581e156bb0cae78d4f59209e5769f9fd7ac76f3c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.packets",
+            "sha256": "d364cc7bb3b7bf4332fb3655382c66314bf20eeab496d09580cfd5663514d702",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.packets",
+            "gold_sha256": "d364cc7bb3b7bf4332fb3655382c66314bf20eeab496d09580cfd5663514d702"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.modes.csv",
+            "sha256": "c9f03393d6aa106a4fe6ab5c46a4d6d16c8f086c9fb9e2bf5c25f46daaa1d52d",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_1.modes.csv",
+            "gold_sha256": "c9f03393d6aa106a4fe6ab5c46a4d6d16c8f086c9fb9e2bf5c25f46daaa1d52d"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.f32",
+            "sha256": "a61f0b7ee6fe8230e0cdccc22f5140215e0048e80af3f7ae01f313fa160242f1",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.f32",
+            "gold_sha256": "a61f0b7ee6fe8230e0cdccc22f5140215e0048e80af3f7ae01f313fa160242f1"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.packets",
+            "sha256": "dd082be12065243cb4a10dea7ca3b4cd9d06643d93e6ebd69824ab045380cce3",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.packets",
+            "gold_sha256": "dd082be12065243cb4a10dea7ca3b4cd9d06643d93e6ebd69824ab045380cce3"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.modes.csv",
+            "sha256": "087b65ad9802483c4d106388029d3fbf9a53c673e66280c71a2cf81c04074d57",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_antiphase\\plucked_antiphase_2.modes.csv",
+            "gold_sha256": "087b65ad9802483c4d106388029d3fbf9a53c673e66280c71a2cf81c04074d57"
+          }
+        ]
+      },
+      {
+        "id": "row11_music32",
+        "all12_metrics_identity": true,
+        "all_encoded_packets_ranges_mode_channels_PCM_identity": true,
+        "all3_source_golds_exact": true,
+        "observable_encoder_decoder_range_state_identity": true,
+        "independent_floors": [
+          "INTEROP_FLOOR id=row11_music32 lane=0 pass=1 max=2.384185791015625e-07 rms=1.7332832794989711e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=row11_music32 lane=1 pass=1 max=2.384185791015625e-07 rms=1.7332832794989711e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=row11_music32 lane=2 pass=1 max=0 rms=0 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1"
+        ],
+        "artifacts": [
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_0.f32",
+            "sha256": "e009b26ff628d5578089124f7b8d489d41b7fa6c6a9524d29349bada00a4822c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.f32",
+            "gold_sha256": "e009b26ff628d5578089124f7b8d489d41b7fa6c6a9524d29349bada00a4822c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_0.packets",
+            "sha256": "29bd75e83e7efa1a61de479cbe20db53b5397f48edab7531640348c13979b477",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.packets",
+            "gold_sha256": "29bd75e83e7efa1a61de479cbe20db53b5397f48edab7531640348c13979b477"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_0.modes.csv",
+            "sha256": "9ccab233e5d5b904a72a899ddf0d3033f16be18aeeeaf2156d4073a5fd79d71c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.modes.csv",
+            "gold_sha256": "9ccab233e5d5b904a72a899ddf0d3033f16be18aeeeaf2156d4073a5fd79d71c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_1.f32",
+            "sha256": "e009b26ff628d5578089124f7b8d489d41b7fa6c6a9524d29349bada00a4822c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.f32",
+            "gold_sha256": "e009b26ff628d5578089124f7b8d489d41b7fa6c6a9524d29349bada00a4822c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_1.packets",
+            "sha256": "29bd75e83e7efa1a61de479cbe20db53b5397f48edab7531640348c13979b477",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.packets",
+            "gold_sha256": "29bd75e83e7efa1a61de479cbe20db53b5397f48edab7531640348c13979b477"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_1.modes.csv",
+            "sha256": "9ccab233e5d5b904a72a899ddf0d3033f16be18aeeeaf2156d4073a5fd79d71c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_1.modes.csv",
+            "gold_sha256": "9ccab233e5d5b904a72a899ddf0d3033f16be18aeeeaf2156d4073a5fd79d71c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_2.f32",
+            "sha256": "7d0817da2df914a13b4ab33dbb8b3f0ff3d10d13f1a9f8df59bb786e09178ac4",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_2.f32",
+            "gold_sha256": "7d0817da2df914a13b4ab33dbb8b3f0ff3d10d13f1a9f8df59bb786e09178ac4"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_2.packets",
+            "sha256": "36fe1dd1df6e89e2ab8de027a5eb11dd75fcf49f85fedbd0cd2d28b82ce3534a",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_2.packets",
+            "gold_sha256": "36fe1dd1df6e89e2ab8de027a5eb11dd75fcf49f85fedbd0cd2d28b82ce3534a"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\row11_music32\\row11_music32_2.modes.csv",
+            "sha256": "2a38ed6651d10a32b88eebabaeb2226d060fe6a7422bff27081651172216c919",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\row11_music32\\row11_music32_2.modes.csv",
+            "gold_sha256": "2a38ed6651d10a32b88eebabaeb2226d060fe6a7422bff27081651172216c919"
+          }
+        ]
+      },
+      {
+        "id": "plucked_classical_ineligible_c6",
+        "all12_metrics_identity": true,
+        "all_encoded_packets_ranges_mode_channels_PCM_identity": true,
+        "all3_source_golds_exact": true,
+        "observable_encoder_decoder_range_state_identity": true,
+        "independent_floors": [
+          "INTEROP_FLOOR id=plucked_classical_ineligible_c6 lane=0 pass=1 max=2.384185791015625e-07 rms=1.169100146404464e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=plucked_classical_ineligible_c6 lane=1 pass=1 max=2.384185791015625e-07 rms=1.169100146404464e-08 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1",
+          "INTEROP_FLOOR id=plucked_classical_ineligible_c6 lane=2 pass=1 max=0 rms=0 tolerance_max=5e-7 tolerance_rms=5e-8 baseline_same_floor_not_waived=1"
+        ],
+        "artifacts": [
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_0.f32",
+            "sha256": "c2644eb203cf57294fad7238224a300de296dee9e7f96eabd1eb03dd827d7714",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.f32",
+            "gold_sha256": "c2644eb203cf57294fad7238224a300de296dee9e7f96eabd1eb03dd827d7714"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_0.packets",
+            "sha256": "a7e8444e9988c64708bf61a459be25859c27d3214154aa1490be952eb6604869",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.packets",
+            "gold_sha256": "a7e8444e9988c64708bf61a459be25859c27d3214154aa1490be952eb6604869"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_0.modes.csv",
+            "sha256": "56ae0543b9c9505c126d11d3f207d87d04c56ac9876d6a96726ad080e0d6a31c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.modes.csv",
+            "gold_sha256": "56ae0543b9c9505c126d11d3f207d87d04c56ac9876d6a96726ad080e0d6a31c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.f32",
+            "sha256": "c2644eb203cf57294fad7238224a300de296dee9e7f96eabd1eb03dd827d7714",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.f32",
+            "gold_sha256": "c2644eb203cf57294fad7238224a300de296dee9e7f96eabd1eb03dd827d7714"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.packets",
+            "sha256": "a7e8444e9988c64708bf61a459be25859c27d3214154aa1490be952eb6604869",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.packets",
+            "gold_sha256": "a7e8444e9988c64708bf61a459be25859c27d3214154aa1490be952eb6604869"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.modes.csv",
+            "sha256": "56ae0543b9c9505c126d11d3f207d87d04c56ac9876d6a96726ad080e0d6a31c",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_1.modes.csv",
+            "gold_sha256": "56ae0543b9c9505c126d11d3f207d87d04c56ac9876d6a96726ad080e0d6a31c"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.f32",
+            "sha256": "a359dea2fed99bc8f0fdb76b6a6a5370d3b2adc96dfb9c71a07fea9a5c874968",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.f32",
+            "gold_sha256": "a359dea2fed99bc8f0fdb76b6a6a5370d3b2adc96dfb9c71a07fea9a5c874968"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.packets",
+            "sha256": "81ce7b9b0c0c6d575ff39696c3c6ea639c5bd7ed0a27598bc99cc4855b13e559",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.packets",
+            "gold_sha256": "81ce7b9b0c0c6d575ff39696c3c6ea639c5bd7ed0a27598bc99cc4855b13e559"
+          },
+          {
+            "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.modes.csv",
+            "sha256": "63f2412d1cff7b05d3129ffa02255db3ea46dd0f49a14e21ee4377517ebafda1",
+            "gold": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation17\\candidate\\quality\\plucked_classical_ineligible_c6\\plucked_classical_ineligible_c6_2.modes.csv",
+            "gold_sha256": "63f2412d1cff7b05d3129ffa02255db3ea46dd0f49a14e21ee4377517ebafda1"
+          }
+        ]
+      }
+    ],
+    "nullable_regression": {
+      "source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\micro\\tests\\micro_driver.cpp",
+      "source_sha256": "4f71c51288ad26f94c635c0f736cd7df54dbc8622de01875e7c63c459d6ce38f",
+      "source_unchanged_from_failed_full": true,
+      "all4_cases": [
+        {
+          "case": "mono-mid",
+          "bytes": 76,
+          "encode_ms": 27.6286,
+          "decode_ms": 25.7933,
+          "checksum": 340886119
+        },
+        {
+          "case": "mono-high",
+          "bytes": 115,
+          "encode_ms": 27.416,
+          "decode_ms": 22.9179,
+          "checksum": 2633358364
+        },
+        {
+          "case": "stereo-mid",
+          "bytes": 103,
+          "encode_ms": 106.718,
+          "decode_ms": 37.8069,
+          "checksum": 1470193116
+        },
+        {
+          "case": "stereo-high",
+          "bytes": 147,
+          "encode_ms": 115.562,
+          "decode_ms": 38.0652,
+          "checksum": 2703015114
+        }
+      ],
+      "iterations": 2000,
+      "CWRS_roundtrip_check_reused": true,
+      "all_encodes_and_decodes_completed": true,
+      "encode_default_pointer_still_omitted": true,
+      "all_RDO_coverage_retained": true
+    },
+    "failed_original": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_refresh_e14efec40ead-20261012\\EXECUTION.json",
+      "source_epoch": "e14/437",
+      "timing_micro_exit": "0xC0000005",
+      "not_retagged_or_restarted": true
+    },
+    "native_receipt": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\contract_EXECUTION.json",
+      "sha256": "57573727a338be5e59cf05625dee5dcee03317e0b2fddb6042a53f00c313473f",
+      "commands": 8,
+      "all_terminal0": true
+    },
+    "cost": "No new speed claim or balanced whole-cost run for this nullable crash repair. Micro timings retained at their actual epoch; all existing old quality/cost obligations stay open.",
+    "goal": "NOT MET"
+  },
+  "root_decision": {
+    "decision": "ACCEPT_CONTRACT_CRASH_REPAIR",
+    "recorded_utc": "2026-10-12T09:18:51.139885+00:00",
+    "ready_sha256": "409f78ae898818ca8338e3649329dd8d014818dceb030f0a919fe2198bbe944b",
+    "base_commit": "e14efec40eadd644303ff57a388424c67786a1fb",
+    "candidate_source_sha256": "d7a10dda5ab3e817367a5f58206f81dd2b76084df6221cd5f1dea4b28be69ee7",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "basis": "Reached null-default direct caller crash; legal supplied linear amplitude fallback; existing non-null expression/source state preserved and affected fixtures identity verified",
+    "checks_reused": true,
+    "duplicate_native_checks": 0,
+    "speed_claim": false,
+    "whole_cost_measured": false,
+    "full_goal_met": false
+  },
+  "format_transport_proof": {
+    "status": "EXACT_CANDIDATE_PLUS_VERIFIED_CI_LINE_WRAP",
+    "qualified_candidate_sha256": "d7a10dda5ab3e817367a5f58206f81dd2b76084df6221cd5f1dea4b28be69ee7",
+    "integrated_source_sha256": "0688b1ad0635b54ef8e98711f3690193fa4b1fd057f4d3ee8b6227ec8528406d",
+    "remote_format_commit": "e6c7a6c",
+    "only_extra_change": "std::equal lambda line wrap already on remote",
+    "no_measurement_retag": true,
+    "duplicate_native_checks": 0
+  }
+}
