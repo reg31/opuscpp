@@ -5106,6 +5106,14 @@ struct mono_fold_plan {
   unsigned fold_mask = 0;
 };
 
+struct c2_consumer_plan {
+  int band = -1;
+  int round = 0;
+  int horizon = 0;
+  bool replay = false;
+  double error = 0;
+};
+
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
   opus_int32 raw_stereo_itheta;
@@ -5590,7 +5598,7 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false) {
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false, c2_consumer_plan* c2_plan = nullptr) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5801,7 +5809,27 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           ctx.theta_round = 1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
           dist1 = -gram_error(X, Y);
-          if (coherent_source ? source_correlated : dist0 >= dist1) {
+
+          const bool default_first = coherent_source ? source_correlated : dist0 >= dist1;
+          const auto decoded_coherent = [N](const celt_norm* left, const celt_norm* right) {
+            return std::equal(left, left + N, right) ||
+                   std::equal(left, left + N, right, [](celt_norm l, celt_norm r) { return l == -r; });
+          };
+          if (c2_plan != nullptr && c2_plan->band < 0 && B > 1 && !coherent_source &&
+              !decoded_coherent(X_save2_storage.data(), Y_save2_storage.data()) &&
+              !decoded_coherent(X, Y) && ec_tell_frac(&ec_save2) != ec_tell_frac(ec)) {
+            const int horizon = std::min({3, codedBands - i, intensity - i});
+            if (horizon > 1) {
+              c2_plan->band = i;
+              c2_plan->round = default_first ? 1 : -1;
+              c2_plan->horizon = horizon;
+            }
+          }
+          const bool take_first = c2_plan != nullptr && c2_plan->replay && c2_plan->band == i
+                                      ? c2_plan->round < 0
+                                      : default_first;
+          if (take_first) {
+
             x_cm = cm2;
             *ec = ec_save2;
             ctx = ctx_save2;
@@ -5811,6 +5839,10 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
               copy_n_items(norm_save2_storage.data(), static_cast<std::size_t>(N), lowband_out);
             copy_n_items(bytes_save_storage.data(), static_cast<std::size_t>(save_bytes), bytes_buf);
           }
+
+          if (c2_plan != nullptr && c2_plan->band >= 0 && i >= c2_plan->band &&
+              i < c2_plan->band + c2_plan->horizon)
+            c2_plan->error += gram_error(X, Y);
         } else {
           ctx.theta_round = 0;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
@@ -7801,6 +7833,42 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
         if (needed == 0)
           break;
         protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
+      }
+    } else if (shortBlocks > 1 && !dual_stereo) {
+      const auto initial_coder = *enc;
+      const auto initial_seed = st->rng;
+      std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
+      std::array<celt_norm, 2 * celt_max_frame_samples> initial_spectrum;
+      copy_n_items(X, static_cast<std::size_t>(2 * N), initial_spectrum.data());
+      c2_consumer_plan plan;
+      quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                      0, st->complexity, oldBandE, nullptr, false, &plan);
+      if (plan.band >= 0) {
+        const auto default_coder = *enc;
+        const auto default_seed = st->rng;
+        std::array<unsigned char, 1275> default_bytes;
+        std::memcpy(default_bytes.data(), enc->buf, enc->storage);
+        std::array<celt_norm, 2 * celt_max_frame_samples> default_spectrum;
+        copy_n_items(X, static_cast<std::size_t>(2 * N), default_spectrum.data());
+        std::array<unsigned char, 2 * celt_default_nb_ebands> default_masks;
+        const auto mask_count = static_cast<std::size_t>(2 * (std::min(end, codedBands) - start));
+        copy_n_items(collapse_masks_storage.data() + 2 * start, mask_count, default_masks.data() + 2 * start);
+        *enc = initial_coder;
+        st->rng = initial_seed;
+        std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+        copy_n_items(initial_spectrum.data(), static_cast<std::size_t>(2 * N), X);
+        c2_consumer_plan alternative{plan.band, plan.round, plan.horizon, true};
+        quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                        st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                        0, st->complexity, oldBandE, nullptr, false, &alternative);
+        if (!(alternative.error < plan.error)) {
+          *enc = default_coder;
+          st->rng = default_seed;
+          std::memcpy(enc->buf, default_bytes.data(), enc->storage);
+          copy_n_items(default_spectrum.data(), static_cast<std::size_t>(2 * N), X);
+          copy_n_items(default_masks.data() + 2 * start, mask_count, collapse_masks_storage.data() + 2 * start);
+        }
       }
     } else {
       quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
