@@ -187,15 +187,15 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.935x | 1.893x | 221x | 236x | 1639x | 866x |
-| 24&nbsp;kbps | 0.952x | 1.319x | 206x | 216x | 1010x | 766x |
-| 32&nbsp;kbps | 0.951x | 1.297x | 207x | 218x | 983x | 758x |
-| 48&nbsp;kbps | 0.999x | 1.257x | 196x | 196x | 826x | 657x |
-| 64&nbsp;kbps | 1.003x | 1.223x | 177x | 177x | 689x | 563x |
-| 96&nbsp;kbps | 1.037x | 1.166x | 149x | 144x | 524x | 449x |
-| 128&nbsp;kbps | 1.014x | 1.154x | 131x | 129x | 457x | 396x |
-| 192&nbsp;kbps | 0.930x | 1.177x | 110x | 118x | 396x | 336x |
-| 256&nbsp;kbps | 0.936x | 1.149x | 104x | 111x | 340x | 296x |
+| 16&nbsp;kbps | 0.950x | 1.856x | 225x | 237x | 1632x | 879x |
+| 24&nbsp;kbps | 1.023x | 1.300x | 209x | 204x | 973x | 749x |
+| 32&nbsp;kbps | 0.971x | 1.361x | 207x | 213x | 1010x | 742x |
+| 48&nbsp;kbps | 0.990x | 1.288x | 196x | 198x | 822x | 638x |
+| 64&nbsp;kbps | 0.991x | 1.277x | 175x | 176x | 697x | 546x |
+| 96&nbsp;kbps | 1.050x | 1.080x | 149x | 142x | 486x | 450x |
+| 128&nbsp;kbps | 0.998x | 1.182x | 129x | 129x | 459x | 388x |
+| 192&nbsp;kbps | 0.952x | 1.166x | 113x | 118x | 389x | 334x |
+| 256&nbsp;kbps | 0.956x | 1.246x | 105x | 110x | 357x | 287x |
 
 ## Quality metrics vs official Opus
 
@@ -203,7 +203,7 @@ AUDIO quality proxies compare both encoders at complexity10 on the same six-seco
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.0022 | -0.0012 | +1.8904 | 16.672 kbps | 17.065 kbps |
+| 16&nbsp;kbps | +0.0022 | -0.0012 | +1.8905 | 16.672 kbps | 17.065 kbps |
 | 24&nbsp;kbps | +0.0514 | +0.0308 | +0.3498 | 24.673 kbps | 25.229 kbps |
 | 32&nbsp;kbps | +0.0566 | +0.0062 | +0.1615 | 32.737 kbps | 33.613 kbps |
 | 48&nbsp;kbps | +0.1948 | +0.0261 | -0.0667 | 48.560 kbps | 48.560 kbps |
@@ -222,8 +222,8 @@ VOIP uses a separate synthetic mono speech-like validation sample because its mo
 | 16&nbsp;kbps | +0.1314 | +0.0042 | +0.2598 | 12.327 kbps | 12.072 kbps |
 | 24&nbsp;kbps | +0.1360 | +0.0043 | +0.0018 | 24.307 kbps | 24.020 kbps |
 | 32&nbsp;kbps | +0.1588 | +0.0042 | +0.2031 | 32.401 kbps | 32.088 kbps |
-| 48&nbsp;kbps | +0.2431 | -0.0006 | +0.1549 | 48.432 kbps | 48.409 kbps |
-| 64&nbsp;kbps | +0.4174 | +0.0055 | +0.3876 | 64.445 kbps | 64.515 kbps |
+| 48&nbsp;kbps | +0.2440 | -0.0004 | +0.1549 | 48.432 kbps | 48.409 kbps |
+| 64&nbsp;kbps | +0.4175 | +0.0055 | +0.3876 | 64.445 kbps | 64.515 kbps |
 | 96&nbsp;kbps | +0.7710 | +0.0103 | +0.4002 | 96.400 kbps | 96.499 kbps |
 | 128&nbsp;kbps | +0.8327 | +0.0050 | +0.3880 | 128.400 kbps | 128.489 kbps |
 | 192&nbsp;kbps | +1.0999 | +0.0054 | +0.4278 | 192.400 kbps | 192.472 kbps |
@@ -261,15 +261,15 @@ Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configuration
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1804 | +0.1237 | 5.2% |
-| 24&nbsp;kbps | +0.2227 | +0.1311 | 4.3% |
-| 32&nbsp;kbps | +0.2047 | +0.1212 | 4.8% |
-| 48&nbsp;kbps | +0.2197 | +0.1224 | 3.6% |
-| 64&nbsp;kbps | +0.2222 | +0.1265 | 3.8% |
-| 96&nbsp;kbps | +0.2131 | +0.1568 | 12.4% |
-| 128&nbsp;kbps | +0.2115 | +0.1576 | 8.8% |
-| 192&nbsp;kbps | +0.2149 | +0.1591 | 4.4% |
-| 256&nbsp;kbps | +0.2156 | +0.1594 | 2.7% |
+| 16&nbsp;kbps | +0.1804 | +0.1237 | 4.6% |
+| 24&nbsp;kbps | +0.2227 | +0.1311 | 3.8% |
+| 32&nbsp;kbps | +0.2047 | +0.1212 | 3.4% |
+| 48&nbsp;kbps | +0.2197 | +0.1224 | 4.2% |
+| 64&nbsp;kbps | +0.2222 | +0.1265 | 4.2% |
+| 96&nbsp;kbps | +0.2131 | +0.1568 | 3.6% |
+| 128&nbsp;kbps | +0.2115 | +0.1575 | 3.9% |
+| 192&nbsp;kbps | +0.2149 | +0.1591 | 3.9% |
+| 256&nbsp;kbps | +0.2156 | +0.1594 | 5.5% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`.
 
@@ -287,9 +287,9 @@ Memory uses 256 instances across three processes with FEC and denoising disabled
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
 | Encoder mono | 19,760 B | 31,856 B | -38.0% |
-| Encoder stereo | 29,888 B | 48,880 B | -38.9% |
+| Encoder stereo | 30,016 B | 48,880 B | -38.6% |
 | Decoder mono | 8,432 B | 18,464 B | -54.3% |
-| Decoder stereo | 17,616 B | 27,088 B | -35.0% |
+| Decoder stereo | 17,600 B | 27,088 B | -35.0% |
 
 Source CSV:
 
@@ -299,5 +299,5 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 432,268 B | 0 B | 432,268 B |
-| Android arm64 Clang `-O2` | 428,252 B | 472 B | 428,724 B |
+| Host MinGW GCC `-O2` | 435,212 B | 0 B | 435,212 B |
+| Android arm64 Clang `-O2` | 429,952 B | 472 B | 430,424 B |
