@@ -16053,8 +16053,6 @@ static void silk_resampler_private_IIR_FIR(void* SS, opus_int16 out[], const opu
   std::memcpy(S->sFIR.i16, buf.data() + (nSamplesIn << 1), static_cast<std::size_t>(8 * sizeof(opus_int16)));
 }
 
-
-
 static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len) {
   if (len <= 0) {
     return;
