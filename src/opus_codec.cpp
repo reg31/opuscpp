@@ -13404,7 +13404,8 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
         collapse_mask |= 1U << celt_udiv(position, block_size);
       }
     }
-    exp_rotation(X, N, -1, B, K, spread);
+    if (2 * K < N && spread != 0)
+      exp_rotation(X, N, -1, B, K, spread);
     return collapse_mask;
   }
   auto* out = iy;
@@ -13413,7 +13414,8 @@ static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_de
   };
   const opus_val32 Ryy = celt_pvq_decode_unrank(N, K, dec, writer);
   const unsigned collapse_mask = normalise_residual_and_extract_collapse_mask(iy, X, N, B, Ryy, gain);
-  exp_rotation(X, N, -1, B, K, spread);
+  if (2 * K < N && spread != 0)
+    exp_rotation(X, N, -1, B, K, spread);
   return collapse_mask;
 }
 
