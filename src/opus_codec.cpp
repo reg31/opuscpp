@@ -7599,330 +7599,239 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
-  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
-  const bool trim_rdo = C == 1 && shortBlocks == 0 && !silence;
-  constexpr int trim_byte_slot = 1280;
-  static_assert((celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period) - 2 * celt_max_frame_samples) * sizeof(celt_sig) >=
-                2 * trim_byte_slot + 3 * celt_max_channels * celt_default_nb_ebands * sizeof(celt_glog));
-  auto* trim_header = reinterpret_cast<unsigned char*>(freq + 2 * N);
-  auto* trim_packet = trim_header + trim_byte_slot;
-  auto* trim_energy = reinterpret_cast<celt_glog*>(trim_header + 2 * trim_byte_slot);
-  auto* trim_error = trim_energy + celt_max_channels * nbEBands;
-  auto* trim_offset = trim_error + celt_max_channels * nbEBands;
-  auto trim_winner_state = energy_stage_state;
-  auto trim_winner_coder = energy_stage_coder;
-  int trim_baseline = -1, trim_packet_bytes = 0;
-  opus_int32 trim_vbr_count = 0, trim_vbr_reservoir = 0, trim_vbr_drift = 0, trim_vbr_offset = 0;
-  double trim_best_error = std::numeric_limits<double>::infinity();
-  if (trim_rdo)
-    std::memcpy(trim_header, energy_stage_buffer.data(), enc->storage);
-  for (int trim_trial = 0; trim_trial < (trim_rdo ? 3 : 1); ++trim_trial) {
-    if (trim_trial != 0 && trim_baseline < 0)
-      break;
-    if ((trim_trial == 1 && trim_baseline <= 0) || (trim_trial == 2 && trim_baseline >= 10))
-      continue;
-    if (trim_trial != 0) {
-      *st = energy_stage_state;
-      *enc = energy_stage_coder;
-      std::memcpy(enc->buf, trim_header, enc->storage);
-      std::memcpy(energy_stage_buffer.data(), trim_header, enc->storage);
-      std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
-      std::copy_n(energy_stage_tf.data(), end, tf_res.data());
-      std::copy_n(energy_stage_offsets.data(), end, offsets.data());
-      copy_n_items(X + N, static_cast<std::size_t>(N), X);
-      nbCompressedBytes = energy_stage_bytes;
-      nbAvailableBytes = energy_stage_available;
-      total_bits = energy_stage_total_bits;
-      tell = energy_stage_tell;
-      energy_rounding.fill(0.f);
-    }
-    for (int energy_round = 0; energy_round < 2; ++energy_round) {
-      quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                          &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
-      process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
+  for (int energy_round = 0; energy_round < 2; ++energy_round) {
+    quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
+                        &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
+    process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
-      const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
-      spread_decision = 2;
-      if (signal_spread) {
-        if (hybrid) {
-          spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
-        } else {
-          spread_decision = 0;
-          const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
-                                       toneishness >= .40f &&
-                                       16 * effectiveBytes >= C * N;
-          const bool release_high_rate = input_release && st->bitrate >= 48000;
-          if (tonal_high_rate || release_high_rate) {
-            spread_decision = 2;
-          }
-        }
-        ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
-      }
-      opus_int32 total_boost;
-      tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                         total_boost);
-      dual_stereo = 0;
-      if (C == 2) {
-        if (LM != 0) {
-          dual_stereo = analyzed_dual_stereo;
-        }
-        st->intensity = analyzed_intensity;
-        if (empty_channel[0] != empty_channel[1] || common_source) {
-          st->intensity = start;
-          dual_stereo = 0;
-        }
-      }
-      int alloc_trim = 5;
-      if (tell + (6 << 3) <= total_bits - total_boost) {
-        if (start > 0) {
-          st->stereo_saving = 0;
-          alloc_trim = 5;
-        } else {
-          alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
-        }
-        alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
-        if (!hybrid && C == 2) {
-          alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
-        }
-        if (trim_rdo) {
-          if (trim_baseline < 0)
-            trim_baseline = alloc_trim;
-          alloc_trim = std::clamp(trim_baseline + (trim_trial == 1 ? -1 : trim_trial == 2 ? 1
-                                                                                          : 0),
-                                  0, 10);
-        }
-        ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
-        tell = ec_tell_frac(enc);
-      }
-      int min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
+    const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
+    spread_decision = 2;
+    if (signal_spread) {
       if (hybrid) {
-        min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
-      }
-      if (vbr_rate > 0) {
-        const int lm_diff = celt_max_lm - LM;
-        nbCompressedBytes = std::min(nbCompressedBytes, 1275 >> (3 - LM));
-        opus_int32 base_target = !hybrid ? vbr_rate - ((40 * C + 20) << 3) : std::max(0, vbr_rate - ((9 * C + 4) << 3));
-        if (st->constrained_vbr) {
-          base_target += (st->vbr_offset >> lm_diff);
-        }
-        opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset, tf_estimate)
-                                   : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
-                                                 st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
-        if (!hybrid) {
-          if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
-            target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
-          }
-          if (C == 1 && st->midrate_quality_boost_bps > 0) {
-            target += bitrate_to_bits(st->midrate_quality_boost_bps, celt_sample_rate, frame_size) << 3;
-          }
-        } else {
-          if (st->high_z_tonal_Q7 > 64 && st->silk_info.bitrateBps >= 56000 && st->silk_info.bitrateBps < 80000) {
-            target += bitrate_to_bits(5000, celt_sample_rate, frame_size) << 3;
-          }
-          const opus_val32 tone_gate = st->silk_info.bitrateBps >= 48000 ? .99f : .80f;
-          if (C == 2 && st->silk_info.bitrateBps >= 32000 && st->silk_info.offset < 100 && toneishness > tone_gate) {
-            const opus_int32 residual_celt_bps = st->silk_info.bitrateBps - st->silk_info.actualSilkBps;
-            if (residual_celt_bps > st->bitrate) {
-              target += bitrate_to_bits(residual_celt_bps - st->bitrate, celt_sample_rate, frame_size) << 3;
-            }
-          }
-        }
-        target += tell;
-        nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
-        opus_int32 delta = target - vbr_rate;
-        target = nbAvailableBytes << (3 + 3);
-        if (silence) {
-          nbAvailableBytes = 2;
-          target = 2 * 8 << 3;
-          delta = 0;
-        }
-        const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
-        if (st->constrained_vbr) {
-          st->vbr_reservoir += target - vbr_rate;
-          st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
-          st->vbr_offset = -st->vbr_drift;
-          if (st->vbr_reservoir < 0) {
-            const int adjust = (-st->vbr_reservoir) / (8 << 3);
-            nbAvailableBytes += silence ? 0 : adjust;
-            st->vbr_reservoir = 0;
-          }
-        }
-        nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
-        if (trim_rdo && trim_trial != 0) {
-          nbCompressedBytes = trim_packet_bytes;
-          nbAvailableBytes = trim_packet_bytes;
-          st->vbr_count = trim_vbr_count;
-          st->vbr_reservoir = trim_vbr_reservoir;
-          st->vbr_drift = trim_vbr_drift;
-          st->vbr_offset = trim_vbr_offset;
-        }
-        ec_enc_shrink(enc, nbCompressedBytes);
-      }
-      opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
-      anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
-      bits -= anti_collapse_rsv;
-      codedBands =
-          clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
-                                 pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
-      st->lastCodedBands =
-          static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
-
-      if (energy_round != 0)
-        break;
-      bool energy_needs_refinement = false;
-      for (int channel = 0; channel < C; ++channel) {
-        const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) && celt_noise_gaussian_source_supported(pcm, N, CC, C, channel);
-        for (int band = start; band < end; ++band) {
-          const int index = channel * nbEBands + band;
-          const bool model_fine = energy_model_channel && band >= codedBands && tf_res[band] >= 0;
-          const int width = model_fine ? 0 : fine_quant[band];
-          const auto rounding = celt_coarse_fine_power_rounding[width];
-          energy_rounding[index] = rounding;
-          energy_needs_refinement |= width > 0 && error[index] + rounding >= 1.f;
+        spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
+      } else {
+        spread_decision = 0;
+        const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
+                                     toneishness >= .40f &&
+                                     16 * effectiveBytes >= C * N;
+        const bool release_high_rate = input_release && st->bitrate >= 48000;
+        if (tonal_high_rate || release_high_rate) {
+          spread_decision = 2;
         }
       }
-      if (!energy_needs_refinement)
-        break;
-      *st = energy_stage_state;
-      *enc = energy_stage_coder;
-      std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-      std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
-      std::copy_n(energy_stage_tf.data(), end, tf_res.data());
-      std::copy_n(energy_stage_offsets.data(), end, offsets.data());
-      nbCompressedBytes = energy_stage_bytes;
-      nbAvailableBytes = energy_stage_available;
-      total_bits = energy_stage_total_bits;
-      tell = energy_stage_tell;
+      ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
     }
-
-    source_error_offset.fill(0.f);
-    if (spread_decision == 3 && shortBlocks == 0) {
-      for (int channel = 0; channel < C; ++channel) {
-        if (!std::isfinite(noise_covariance[channel]) || !celt_noise_gaussian_source_supported(pcm, N, CC, C, channel))
-          continue;
-        for (int band = codedBands; band < end; ++band) {
-          if (tf_res[band] < 0)
-            continue;
-          const int index = channel * nbEBands + band;
-          const auto target = static_cast<float>(.5 * (noise_covariance[channel] + celt_gaussian_noise_log_shape[LM][band]) - eMeans[band]);
-          source_error_offset[index] = error[index] - (target - oldBandE[index]);
-          error[index] = target - oldBandE[index];
-        }
+    opus_int32 total_boost;
+    tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
+                                       total_boost);
+    dual_stereo = 0;
+    if (C == 2) {
+      if (LM != 0) {
+        dual_stereo = analyzed_dual_stereo;
+      }
+      st->intensity = analyzed_intensity;
+      if (empty_channel[0] != empty_channel[1] || common_source) {
+        st->intensity = start;
+        dual_stereo = 0;
       }
     }
-
-    process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
-
-    std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
-    if (C == 1) {
-      const auto saved_coder = *enc;
-      const auto saved_seed = st->rng;
-      std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
-      copy_n_items(X, static_cast<std::size_t>(N), X + N);
-      unsigned protect_mask = 0;
-      for (int pass = 0; pass < 3; ++pass) {
-        if (pass != 0) {
-          *enc = saved_coder;
-          st->rng = saved_seed;
-          std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-          copy_n_items(X + N, static_cast<std::size_t>(N), X);
-        }
-        mono_fold_plan plan{protect_mask};
-        quant_all_bands(1, start, end, X, nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                        st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                        0, st->complexity, oldBandE, &plan, trim_rdo);
-        const unsigned needed = plan.changed_mask & plan.used_mask;
-        if (needed == 0)
-          break;
-        protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
+    int alloc_trim = 5;
+    if (tell + (6 << 3) <= total_bits - total_boost) {
+      if (start > 0) {
+        st->stereo_saving = 0;
+        alloc_trim = 5;
+      } else {
+        alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
       }
-    } else if (shortBlocks > 1 && !dual_stereo) {
-      const auto initial_coder = *enc;
-      const auto initial_seed = st->rng;
-      std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
-      std::array<celt_norm, 2 * celt_max_frame_samples> initial_spectrum;
-      copy_n_items(X, static_cast<std::size_t>(2 * N), initial_spectrum.data());
-      c2_consumer_plan plan;
-      quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                      0, st->complexity, oldBandE, nullptr, false, &plan);
-      if (plan.band >= 0) {
-        const auto default_coder = *enc;
-        const auto default_seed = st->rng;
-        std::array<unsigned char, 1275> default_bytes;
-        std::memcpy(default_bytes.data(), enc->buf, enc->storage);
-        std::array<celt_norm, 2 * celt_max_frame_samples> default_spectrum;
-        copy_n_items(X, static_cast<std::size_t>(2 * N), default_spectrum.data());
-        std::array<unsigned char, 2 * celt_default_nb_ebands> default_masks;
-        const auto mask_count = static_cast<std::size_t>(2 * (std::min(end, codedBands) - start));
-        copy_n_items(collapse_masks_storage.data() + 2 * start, mask_count, default_masks.data() + 2 * start);
-        *enc = initial_coder;
-        st->rng = initial_seed;
-        std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-        copy_n_items(initial_spectrum.data(), static_cast<std::size_t>(2 * N), X);
-        c2_consumer_plan alternative{plan.band, plan.round, plan.horizon, true};
-        quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                        st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                        0, st->complexity, oldBandE, nullptr, false, &alternative);
-        if (!(alternative.error < plan.error)) {
-          *enc = default_coder;
-          st->rng = default_seed;
-          std::memcpy(enc->buf, default_bytes.data(), enc->storage);
-          copy_n_items(default_spectrum.data(), static_cast<std::size_t>(2 * N), X);
-          copy_n_items(default_masks.data() + 2 * start, mask_count, collapse_masks_storage.data() + 2 * start);
+      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
+      if (!hybrid && C == 2) {
+        alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
+      }
+      ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
+      tell = ec_tell_frac(enc);
+    }
+    int min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
+    if (hybrid) {
+      min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
+    }
+    if (vbr_rate > 0) {
+      const int lm_diff = celt_max_lm - LM;
+      nbCompressedBytes = std::min(nbCompressedBytes, 1275 >> (3 - LM));
+      opus_int32 base_target = !hybrid ? vbr_rate - ((40 * C + 20) << 3) : std::max(0, vbr_rate - ((9 * C + 4) << 3));
+      if (st->constrained_vbr) {
+        base_target += (st->vbr_offset >> lm_diff);
+      }
+      opus_int32 target = hybrid ? celt_hybrid_target(base_target, LM, st->silk_info.offset, tf_estimate)
+                                 : compute_vbr(base_target, LM, equiv_rate, st->lastCodedBands, C, st->intensity, st->constrained_vbr,
+                                               st->stereo_saving, tot_boost, maxDepth, temporal_vbr, st->content_vbr, tf_estimate);
+      if (!hybrid) {
+        if (C == 1 && st->bitrate <= low_rate_tonal_celt_max_bps && toneishness > low_rate_tonal_celt_min_tone) {
+          target += bitrate_to_bits(low_rate_tonal_celt_boost_bps, celt_sample_rate, frame_size) << 3;
+        }
+        if (C == 1 && st->midrate_quality_boost_bps > 0) {
+          target += bitrate_to_bits(st->midrate_quality_boost_bps, celt_sample_rate, frame_size) << 3;
+        }
+      } else {
+        if (st->high_z_tonal_Q7 > 64 && st->silk_info.bitrateBps >= 56000 && st->silk_info.bitrateBps < 80000) {
+          target += bitrate_to_bits(5000, celt_sample_rate, frame_size) << 3;
+        }
+        const opus_val32 tone_gate = st->silk_info.bitrateBps >= 48000 ? .99f : .80f;
+        if (C == 2 && st->silk_info.bitrateBps >= 32000 && st->silk_info.offset < 100 && toneishness > tone_gate) {
+          const opus_int32 residual_celt_bps = st->silk_info.bitrateBps - st->silk_info.actualSilkBps;
+          if (residual_celt_bps > st->bitrate) {
+            target += bitrate_to_bits(residual_celt_bps - st->bitrate, celt_sample_rate, frame_size) << 3;
+          }
         }
       }
-    } else {
-      quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                      0, st->complexity, oldBandE);
+      target += tell;
+      nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
+      opus_int32 delta = target - vbr_rate;
+      target = nbAvailableBytes << (3 + 3);
+      if (silence) {
+        nbAvailableBytes = 2;
+        target = 2 * 8 << 3;
+        delta = 0;
+      }
+      const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
+      if (st->constrained_vbr) {
+        st->vbr_reservoir += target - vbr_rate;
+        st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
+        st->vbr_offset = -st->vbr_drift;
+        if (st->vbr_reservoir < 0) {
+          const int adjust = (-st->vbr_reservoir) / (8 << 3);
+          nbAvailableBytes += silence ? 0 : adjust;
+          st->vbr_reservoir = 0;
+        }
+      }
+      nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
+      ec_enc_shrink(enc, nbCompressedBytes);
     }
-    if (anti_collapse_rsv > 0) {
-      ec_enc_bits(enc, st->consec_transient < 2, 1);
-    }
-    process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
-                                  enc, C);
+    opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
+    anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
+    bits -= anti_collapse_rsv;
+    codedBands =
+        clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
+                               pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
+    st->lastCodedBands =
+        static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
-    if (!trim_rdo)
+    if (energy_round != 0)
       break;
-    if (trim_trial == 0) {
-      trim_packet_bytes = nbCompressedBytes;
-      trim_vbr_count = st->vbr_count;
-      trim_vbr_reservoir = st->vbr_reservoir;
-      trim_vbr_drift = st->vbr_drift;
-      trim_vbr_offset = st->vbr_offset;
-    }
-    auto sealed_coder = *enc;
-    ec_enc_done(&sealed_coder);
-    double distortion = 0;
-    for (int band = start; band < end; ++band) {
-      const auto gain = exp2f(std::min(32.f, oldBandE[band] + static_cast<opus_val32>(eMeans[band])));
-      for (int index = M * eBands[band]; index < M * eBands[band + 1]; ++index) {
-        const double target = static_cast<double>(bandE[band]) * X[N + index];
-        const double decoded = static_cast<double>(gain) * X[index];
-        const double delta = target - decoded;
-        distortion += delta * delta;
+    bool energy_needs_refinement = false;
+    for (int channel = 0; channel < C; ++channel) {
+      const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) && celt_noise_gaussian_source_supported(pcm, N, CC, C, channel);
+      for (int band = start; band < end; ++band) {
+        const int index = channel * nbEBands + band;
+        const bool model_fine = energy_model_channel && band >= codedBands && tf_res[band] >= 0;
+        const int width = model_fine ? 0 : fine_quant[band];
+        const auto rounding = celt_coarse_fine_power_rounding[width];
+        energy_rounding[index] = rounding;
+        energy_needs_refinement |= width > 0 && error[index] + rounding >= 1.f;
       }
     }
-    if (trim_trial == 0 || (sealed_coder.error == 0 && distortion < trim_best_error)) {
-      trim_best_error = distortion;
-      trim_winner_state = *st;
-      trim_winner_coder = *enc;
-      std::memcpy(trim_packet, enc->buf, enc->storage);
-      std::copy_n(oldBandE, C * nbEBands, trim_energy);
-      std::copy_n(error, C * nbEBands, trim_error);
-      std::copy_n(source_error_offset.data(), C * nbEBands, trim_offset);
+    if (!energy_needs_refinement)
+      break;
+    *st = energy_stage_state;
+    *enc = energy_stage_coder;
+    std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+    std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
+    std::copy_n(energy_stage_tf.data(), end, tf_res.data());
+    std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+    nbCompressedBytes = energy_stage_bytes;
+    nbAvailableBytes = energy_stage_available;
+    total_bits = energy_stage_total_bits;
+    tell = energy_stage_tell;
+  }
+
+  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
+  if (spread_decision == 3 && shortBlocks == 0) {
+    for (int channel = 0; channel < C; ++channel) {
+      if (!std::isfinite(noise_covariance[channel]) || !celt_noise_gaussian_source_supported(pcm, N, CC, C, channel))
+        continue;
+      for (int band = codedBands; band < end; ++band) {
+        if (tf_res[band] < 0)
+          continue;
+        const int index = channel * nbEBands + band;
+        const auto target = static_cast<float>(.5 * (noise_covariance[channel] + celt_gaussian_noise_log_shape[LM][band]) - eMeans[band]);
+        source_error_offset[index] = error[index] - (target - oldBandE[index]);
+        error[index] = target - oldBandE[index];
+      }
     }
   }
-  if (trim_rdo) {
-    *st = trim_winner_state;
-    *enc = trim_winner_coder;
-    nbCompressedBytes = trim_packet_bytes;
-    std::memcpy(enc->buf, trim_packet, enc->storage);
-    std::copy_n(trim_energy, C * nbEBands, oldBandE);
-    std::copy_n(trim_error, C * nbEBands, error);
-    std::copy_n(trim_offset, C * nbEBands, source_error_offset.data());
+
+  process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
+
+  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
+  if (C == 1) {
+    const auto saved_coder = *enc;
+    const auto saved_seed = st->rng;
+    std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
+    copy_n_items(X, static_cast<std::size_t>(N), X + N);
+    unsigned protect_mask = 0;
+    for (int pass = 0; pass < 3; ++pass) {
+      if (pass != 0) {
+        *enc = saved_coder;
+        st->rng = saved_seed;
+        std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+        copy_n_items(X + N, static_cast<std::size_t>(N), X);
+      }
+      mono_fold_plan plan{protect_mask};
+      quant_all_bands(1, start, end, X, nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                      0, st->complexity, oldBandE, &plan);
+      const unsigned needed = plan.changed_mask & plan.used_mask;
+      if (needed == 0)
+        break;
+      protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
+    }
+  } else if (shortBlocks > 1 && !dual_stereo) {
+    const auto initial_coder = *enc;
+    const auto initial_seed = st->rng;
+    std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
+    std::array<celt_norm, 2 * celt_max_frame_samples> initial_spectrum;
+    copy_n_items(X, static_cast<std::size_t>(2 * N), initial_spectrum.data());
+    c2_consumer_plan plan;
+    quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                    0, st->complexity, oldBandE, nullptr, false, &plan);
+    if (plan.band >= 0) {
+      const auto default_coder = *enc;
+      const auto default_seed = st->rng;
+      std::array<unsigned char, 1275> default_bytes;
+      std::memcpy(default_bytes.data(), enc->buf, enc->storage);
+      std::array<celt_norm, 2 * celt_max_frame_samples> default_spectrum;
+      copy_n_items(X, static_cast<std::size_t>(2 * N), default_spectrum.data());
+      std::array<unsigned char, 2 * celt_default_nb_ebands> default_masks;
+      const auto mask_count = static_cast<std::size_t>(2 * (std::min(end, codedBands) - start));
+      copy_n_items(collapse_masks_storage.data() + 2 * start, mask_count, default_masks.data() + 2 * start);
+      *enc = initial_coder;
+      st->rng = initial_seed;
+      std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+      copy_n_items(initial_spectrum.data(), static_cast<std::size_t>(2 * N), X);
+      c2_consumer_plan alternative{plan.band, plan.round, plan.horizon, true};
+      quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                      0, st->complexity, oldBandE, nullptr, false, &alternative);
+      if (!(alternative.error < plan.error)) {
+        *enc = default_coder;
+        st->rng = default_seed;
+        std::memcpy(enc->buf, default_bytes.data(), enc->storage);
+        copy_n_items(default_spectrum.data(), static_cast<std::size_t>(2 * N), X);
+        copy_n_items(default_masks.data() + 2 * start, mask_count, collapse_masks_storage.data() + 2 * start);
+      }
+    }
+  } else {
+    quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                    0, st->complexity, oldBandE);
   }
+  if (anti_collapse_rsv > 0) {
+    ec_enc_bits(enc, st->consec_transient < 2, 1);
+  }
+  process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
+                                enc, C);
+
+
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
