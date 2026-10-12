@@ -16883,12 +16883,6 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
       for (int j = 0; j < order; ++j)
         fitted_prepared.prediction[row * 16 + j] = static_cast<opus_int16>(float2int(fitted_prediction[row][j] * 4096.f));
     }
-    for (int block = 0; block < model_state.nb_subfr; ++block) {
-      std::copy_n(prepared.shaping.data() + block * 24, model_state.shapingLPCOrder, fitted_prepared.shaping.data() + block * 24);
-      fitted_prepared.low_frequency[block] = prepared.low_frequency[block];
-      fitted_prepared.tilt[block] = prepared.tilt[block];
-      fitted_prepared.harmonic[block] = prepared.harmonic[block];
-    }
     lbrr_prepared = &fitted_prepared;
   }
   auto lbrr_nsq = silk_nsq_working_state(lbrr->nsq);
