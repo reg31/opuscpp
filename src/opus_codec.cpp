@@ -6520,8 +6520,9 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       }
       if ((!st->vbr || (st->constrained_vbr && !isTransient)) && (tot_boost + boost_bits) >> 3 >> 3 > 2 * effectiveBytes / 3) {
         opus_int32 cap = ((2 * effectiveBytes / 3) << 3 << 3);
-        offsets[i] = cap - tot_boost;
-        tot_boost = cap;
+        const int quanta = std::min(width << 3, std::max(6 << 3, width));
+        offsets[i] = std::max(0, cap - tot_boost) / quanta;
+        tot_boost += offsets[i] * quanta;
         break;
       } else {
         offsets[i] = boost;
