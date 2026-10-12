@@ -7099,12 +7099,8 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   if (st->bitrate > 0) {
     const int missing_bands = std::clamp(celt_default_nb_ebands - st->end, 0, 3);
     const int spectral_budget = st->bitrate / std::max<int>(1, st->end);
-    const int lowrate_diff_limit = st->bitrate <= 16000 ? 22 : 56;
-    const bool balanced_tonal = st->input_diff_Q10 >= 1 && st->input_diff_Q10 <= 3 && toneishness >= .40f && toneishness <= .55f;
-    const bool lowrate_stereo = st->channels == 2 && spectral_budget < 1400 && st->input_diff_Q10 < lowrate_diff_limit && !balanced_tonal;
-    const int scarcity_boost = lowrate_stereo ? 0 : std::min(4, (std::max(0, 2050 - spectral_budget) + 49) / 50);
     const int bandwidth_boost = missing_bands > 0 ? (spectral_budget < 1200 ? std::min(7, 2 * missing_bands) : 7) : 0;
-    alloc_trim = std::clamp(alloc_trim + std::max(bandwidth_boost, scarcity_boost), 0, 10);
+    alloc_trim = std::clamp(alloc_trim + bandwidth_boost, 0, 10);
   }
   if (channels == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
     alloc_trim = std::clamp(alloc_trim + (st->high_z_tonal_Q7 > 64 ? -1 : 1), 0, 10);
