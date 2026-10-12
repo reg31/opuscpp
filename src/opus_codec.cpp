@@ -5698,16 +5698,33 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           unsigned cm, cm2;
           int nstart_bytes, nend_bytes, save_bytes;
           unsigned char* bytes_buf;
-          const auto gram = [N](const celt_norm* left, const celt_norm* right) {
-            return std::array<opus_val32, 3>{celt_inner_prod_c(left, left, N), celt_inner_prod_c(right, right, N), celt_inner_prod_c(left, right, N)};
+          const auto gram = [N, B](const celt_norm* left, const celt_norm* right) {
+            std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> result{};
+            if (B == 1) {
+              result[0] = {celt_inner_prod_c(left, left, N), celt_inner_prod_c(right, right, N), celt_inner_prod_c(left, right, N)};
+            } else {
+              for (int block = 0; block < B; ++block) {
+                auto& value = result[block];
+                for (int j = block; j < N; j += B) {
+                  value[0] += left[j] * left[j];
+                  value[1] += right[j] * right[j];
+                  value[2] += left[j] * right[j];
+                }
+              }
+            }
+            return result;
           };
           const auto source_gram = gram(X, Y);
           const auto gram_error = [&](const celt_norm* left, const celt_norm* right) {
             const auto reconstructed = gram(left, right);
-            const auto dl = reconstructed[0] - source_gram[0];
-            const auto dr = reconstructed[1] - source_gram[1];
-            const auto dc = reconstructed[2] - source_gram[2];
-            return dl * dl + dr * dr + 2.f * dc * dc;
+            opus_val32 error = 0;
+            for (int block = 0; block < B; ++block) {
+              const auto dl = reconstructed[block][0] - source_gram[block][0];
+              const auto dr = reconstructed[block][1] - source_gram[block][1];
+              const auto dc = reconstructed[block][2] - source_gram[block][2];
+              error += dl * dl + dr * dr + 2.f * dc * dc;
+            }
+            return error;
           };
           cm = x_cm | y_cm;
           ec_save = *ec;
