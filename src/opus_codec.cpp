@@ -5117,6 +5117,7 @@ struct c2_consumer_plan {
   bool replay = false;
   double error = 0;
   double alternative_first_error = 0;
+  double incumbent_error = 0;
 };
 
 struct band_ctx {
@@ -5851,6 +5852,9 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           if (c2_plan != nullptr && c2_plan->band >= 0 && i >= c2_plan->band &&
               i < c2_plan->band + c2_plan->horizon)
             c2_plan->error += gram_error(X, Y);
+          if (c2_plan != nullptr && c2_plan->replay && i == c2_plan->band + c2_plan->horizon - 1 &&
+              !(c2_plan->error < c2_plan->incumbent_error))
+            return;
         } else {
           ctx.theta_round = 0;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
@@ -7815,6 +7819,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
       copy_n_items(initial_spectrum.data(), static_cast<std::size_t>(2 * N), X);
       c2_consumer_plan alternative{plan.band, plan.round, plan.horizon, true};
+      alternative.incumbent_error = plan.error;
       quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                       st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                       0, st->complexity, oldBandE, nullptr, false, &alternative);
