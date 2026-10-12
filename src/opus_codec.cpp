@@ -18456,8 +18456,9 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       silk_HP_variable_cutoff(state_Fxx);
       auto& state0 = state_Fxx[0].sCmn;
       const opus_int32 lbrr_bits = coded_prefix_bits;
+      const opus_int32 target_lbrr_bits = !prefillFlag && psEnc->lbrr != nullptr ? psEnc->lbrr->average_bits : lbrr_bits;
       const opus_int32 frameBits =
-          std::max<opus_int32>(0, encControl->bitRate * encControl->payloadSize_ms / 1000 - lbrr_bits) / state0.nFramesPerPacket;
+          std::max<opus_int32>(0, encControl->bitRate * encControl->payloadSize_ms / 1000 - target_lbrr_bits) / state0.nFramesPerPacket;
       opus_int32 TargetRate_bps = frameBits * (encControl->payloadSize_ms == 10 ? 100 : 50) - 2 * psEnc->nBitsExceeded;
       if (!prefillFlag && state0.nFramesEncoded > 0) {
         const opus_int32 bitsBalance = ec_tell(psRangeEnc) - lbrr_bits - frameBits * state0.nFramesEncoded;

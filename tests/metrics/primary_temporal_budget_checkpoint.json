@@ -1,0 +1,2896 @@
+{
+  "ready": {
+    "status": "READY_VALIDATED_INCREMENTAL_PRIMARY_QUALITY_WITH_DISCLOSED_COST_AND_MARGIN_TRADEOFFS",
+    "owner": "/root/speed_ready_recovery_872",
+    "ready_utc": "2026-10-12T09:43:28.460268+00:00",
+    "base_commit": "872342d06a9d71fac356d9f1741c389246c7e326",
+    "observed_current_public_head": "872342d06a9d71fac356d9f1741c389246c7e326",
+    "base_source_sha256": "0688b1ad0635b54ef8e98711f3690193fa4b1fd057f4d3ee8b6227ec8528406d",
+    "candidate_source_sha256": "578483e6419dffaff3fee88eca7b5a2ca0c6ab9aee745f5cc52f77eec87ca432",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "diff_sha256": "8b704fb8b1845eedec706c3e45eae81ddf7245aa27c2fb02723a741ed1e5b8c2",
+    "claimed_functions": [
+      "silk_Encode"
+    ],
+    "patch": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\candidate.diff",
+      "sha256": "8b704fb8b1845eedec706c3e45eae81ddf7245aa27c2fb02723a741ed1e5b8c2"
+    },
+    "production_source": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\candidate.cpp",
+      "sha256": "578483e6419dffaff3fee88eca7b5a2ca0c6ab9aee745f5cc52f77eec87ca432"
+    },
+    "baseline_runtime": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\mode_decision_quality\\remediation19\\candidate\\candidate.o",
+      "sha256": "a7667179780db2283e84b0ff82525f8f1a587edb4a246f419f97bd42d3b8c2fb"
+    },
+    "candidate_runtime": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\candidate.o",
+      "sha256": "50db5fb2d89d8c19cb82fd91792db4950c7b42e5a5d7b6316c7ece76a4b6aead"
+    },
+    "scope": "One existingtemporal LBRR cost producer consumedasprimarysoftnominalrate hint; actualcodedprefix remainsin hardremaining/MIDreserve/maxBits/bitsBalance/controller/encoder checks, existingaverageproducer/state/lifetime unchanged. RebasepreservesRoote14 stereo support repair; no RDO/gain/NSQ/search/decoder/RAW/options/storage/ABI/flag/comment/heap change.",
+    "basis": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\budget_split_p54_58e\\BUDGET_FACT.json",
+      "sha256": "88dc4e7392d142a6d59c09ff53fddef84c015c4467119bcc1da31704ba52a5ef"
+    },
+    "material": {
+      "parent": {
+        "window": 108,
+        "packet": 54,
+        "RIGHT_band6_energy": 85.14441922904061,
+        "RIGHT_band6_disturbance": 70575.10926732428,
+        "masked_mse": 2288.3874928599507,
+        "power16": 27423208263172.42
+      },
+      "candidate": {
+        "window": 108,
+        "packet": 54,
+        "RIGHT_band6_energy": 1.4264745440057949,
+        "RIGHT_band6_disturbance": 7.8393447301721135,
+        "masked_mse": 1.8342639235605147,
+        "power16": 11.320022697226406
+      },
+      "OFF": {
+        "window": 108,
+        "packet": 54,
+        "RIGHT_band6_energy": 1.0545777743370472,
+        "RIGHT_band6_disturbance": 3.449323546174113,
+        "masked_mse": 2.341659513661679,
+        "power16": 30.067338638061585
+      }
+    },
+    "quality_first_case": [
+      {
+        "field": "snr_db",
+        "base": 7.5988844367581105,
+        "candidate": 9.27727760742748,
+        "OFF": 4.963661845427334,
+        "change": 1.67839317066937,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "segmental_snr_db",
+        "base": 8.376445673477834,
+        "candidate": 9.674650498625999,
+        "OFF": 3.6674051932159353,
+        "change": 1.298204825148165,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "rms_error",
+        "base": 0.03991129730464189,
+        "candidate": 0.03289850676101224,
+        "OFF": 0.05405762661342975,
+        "change": -0.007012790543629653,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "mean_abs_error",
+        "base": 0.02161244647109311,
+        "candidate": 0.017965414809358145,
+        "OFF": 0.029327606120613105,
+        "change": -0.003647031661734964,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "pesq_style",
+        "base": 2.3567394632770178,
+        "candidate": 2.4556423684661515,
+        "OFF": 2.002258140766584,
+        "change": 0.0989029051891337,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "visqol_style",
+        "base": 4.742446407094791,
+        "candidate": 4.822562689378077,
+        "OFF": 4.855673911479523,
+        "change": 0.08011628228328593,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "logband_corr",
+        "base": 0.9555360375908842,
+        "candidate": 0.9769966094352563,
+        "OFF": 0.9835098951715502,
+        "change": 0.02146057184437211,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "logband_error",
+        "base": 0.19439119333963006,
+        "candidate": 0.13769155062163896,
+        "OFF": 0.112388237620257,
+        "change": -0.056699642717991106,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "celt_quality",
+        "base": 94.33656675221658,
+        "candidate": 95.5048042444644,
+        "OFF": 96.78366249035807,
+        "change": 1.1682374922478118,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "celt_masked_error",
+        "base": 4.664104086010069,
+        "candidate": 3.6794906833571543,
+        "OFF": 2.6153585500697902,
+        "change": -0.984613402652915,
+        "loss": false,
+        "new_negative": false
+      },
+      {
+        "field": "celt_highband_error",
+        "base": 0.034828389612531874,
+        "candidate": 0.035150427953800724,
+        "OFF": 0.04007907218925586,
+        "change": 0.00032203834126885017,
+        "loss": true,
+        "new_negative": false
+      },
+      {
+        "field": "stereo_width_error",
+        "base": 0.10065764626176685,
+        "candidate": 0.061292405009006824,
+        "OFF": 0.03494773158479464,
+        "change": -0.03936524125276002,
+        "loss": false,
+        "new_negative": false
+      }
+    ],
+    "quality_second_case": [
+      {
+        "field": "snr_db",
+        "base": 6.582100740990362,
+        "candidate": 8.269797130967383,
+        "OFF": 3.887328805148284,
+        "change": 1.6876963899770212,
+        "loss": false,
+        "base_margin": 2.694771935842078,
+        "candidate_margin": 4.382468325819099,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "segmental_snr_db",
+        "base": 7.667255982078676,
+        "candidate": 8.985131943308,
+        "OFF": 3.6584925668150694,
+        "change": 1.3178759612293236,
+        "loss": false,
+        "base_margin": 4.008763415263607,
+        "candidate_margin": 5.32663937649293,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "rms_error",
+        "base": 0.05708692160460689,
+        "candidate": 0.0470058385880429,
+        "OFF": 0.07785297648580715,
+        "change": -0.01008108301656399,
+        "loss": false,
+        "base_margin": 0.020766054881200258,
+        "candidate_margin": 0.03084713789776425,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "mean_abs_error",
+        "base": 0.03372972359829989,
+        "candidate": 0.027975192040132064,
+        "OFF": 0.04485927956700263,
+        "change": -0.005754531558167828,
+        "loss": false,
+        "base_margin": 0.011129555968702735,
+        "candidate_margin": 0.016884087526870564,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "pesq_style",
+        "base": 2.296922857817276,
+        "candidate": 2.3981533926647987,
+        "OFF": 2.000132724910781,
+        "change": 0.10123053484752287,
+        "loss": false,
+        "base_margin": 0.2967901329064948,
+        "candidate_margin": 0.3980206677540177,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "visqol_style",
+        "base": 4.585561849011935,
+        "candidate": 4.6625509149068645,
+        "OFF": 4.820232272960734,
+        "change": 0.07698906589492971,
+        "loss": false,
+        "base_margin": -0.2346704239487991,
+        "candidate_margin": -0.1576813580538694,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "logband_corr",
+        "base": 0.9281438579626811,
+        "candidate": 0.9491881827390733,
+        "OFF": 0.9849367969738984,
+        "change": 0.021044324776392287,
+        "loss": false,
+        "base_margin": -0.05679293901121729,
+        "candidate_margin": -0.035748614234825005,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "logband_error",
+        "base": 0.35415657840770487,
+        "candidate": 0.28522664446246576,
+        "OFF": 0.1523826752765495,
+        "change": -0.06892993394523911,
+        "loss": false,
+        "base_margin": -0.20177390313115537,
+        "candidate_margin": -0.13284396918591626,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "celt_quality",
+        "base": 93.30686857376116,
+        "candidate": 94.86277187244723,
+        "OFF": 91.37061844492868,
+        "change": 1.5559032986860615,
+        "loss": false,
+        "base_margin": 1.9362501288324836,
+        "candidate_margin": 3.492153427518545,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "celt_masked_error",
+        "base": 5.542117015244155,
+        "candidate": 4.219107623906257,
+        "OFF": 7.219697633835309,
+        "change": -1.323009391337898,
+        "loss": false,
+        "base_margin": 1.6775806185911541,
+        "candidate_margin": 3.000590009929052,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "celt_highband_error",
+        "base": 0.3506569451537669,
+        "candidate": 0.018428616722463802,
+        "OFF": 0.013629090854553515,
+        "change": -0.33222832843130307,
+        "loss": false,
+        "base_margin": -0.3370278542992134,
+        "candidate_margin": -0.004799525867910288,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      },
+      {
+        "field": "stereo_width_error",
+        "base": 0.14668251440082247,
+        "candidate": 0.09351360125696115,
+        "OFF": 0.02301988236597257,
+        "change": -0.053168913143861324,
+        "loss": false,
+        "base_margin": -0.1236626320348499,
+        "candidate_margin": -0.07049371889098857,
+        "new_negative": false,
+        "worsened_negative": false,
+        "positive_margin_loss": false
+      }
+    ],
+    "quality_packet_bytes": {
+      "first": {
+        "parent": 115.85714285714286,
+        "candidate": 115.69435215946844,
+        "OFF": 113.29900332225914
+      },
+      "second": {
+        "parent": 120.7609561752988,
+        "candidate": 120.99601593625498,
+        "OFF": 118.34661354581674
+      }
+    },
+    "composition_quality": [
+      {
+        "case": {
+          "id": "two_talkers_voip",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "input_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "reference_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 288000,
+          "seconds": 6.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "unseen stereo geometry/holdout/two_talkers_voip",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "complete_all_three_lane_packet_range_F32_TOC_identity_to_previous_e14_composition": true,
+        "independent_decoder_floor_options_ranges_pass": true,
+        "artifacts": [
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_0.packets",
+              "sha256": "3077ed7a56ecba6c7d4b131b9a0f0cf60c4c0262285e38aa11dae96d8a395257"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_0.packets",
+              "sha256": "3077ed7a56ecba6c7d4b131b9a0f0cf60c4c0262285e38aa11dae96d8a395257"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_0.f32",
+              "sha256": "5925e91d3845ea4d6ec804cda1d05f68898ba7bbcd6f80886479a83404b273cd"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_0.f32",
+              "sha256": "5925e91d3845ea4d6ec804cda1d05f68898ba7bbcd6f80886479a83404b273cd"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_0.modes.csv",
+              "sha256": "6c71bfb0cafed32054e2b7a591b12a2e30a6f810ca1a2753a515cc11f0d048ff"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_0.modes.csv",
+              "sha256": "6c71bfb0cafed32054e2b7a591b12a2e30a6f810ca1a2753a515cc11f0d048ff"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_1.packets",
+              "sha256": "f671fe582ae2f7e3119cf484a2fb0887257966c1c67c82a2f6c7c1298bee8b53"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_1.packets",
+              "sha256": "f671fe582ae2f7e3119cf484a2fb0887257966c1c67c82a2f6c7c1298bee8b53"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_1.f32",
+              "sha256": "5e181b7c05864ce8954a42c17cdb7e093063f218d91eb0a1b4a660f2159e3be4"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_1.f32",
+              "sha256": "5e181b7c05864ce8954a42c17cdb7e093063f218d91eb0a1b4a660f2159e3be4"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_1.modes.csv",
+              "sha256": "ac6fa0d8d6b8ef497bb33d1dedb10a7dad8d6dd02ae75671903c5935d2588102"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_1.modes.csv",
+              "sha256": "ac6fa0d8d6b8ef497bb33d1dedb10a7dad8d6dd02ae75671903c5935d2588102"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_2.packets",
+              "sha256": "6dbebaeec940d6803f8528dd51e03096c816e1dabc339f2b5bef10c8b2241002"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_2.packets",
+              "sha256": "6dbebaeec940d6803f8528dd51e03096c816e1dabc339f2b5bef10c8b2241002"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_2.f32",
+              "sha256": "6030339bcf5e5cb286b17f137aa2c0bc762435b53a6d54bb601a6c714756a16a"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_2.f32",
+              "sha256": "6030339bcf5e5cb286b17f137aa2c0bc762435b53a6d54bb601a6c714756a16a"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\two_talkers_voip\\two_talkers_voip_2.modes.csv",
+              "sha256": "f464a26dd11f57d0c8cdef9b0eb0cd466420577d657ed976e04c021ef6f527f1"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\two_talkers_voip\\two_talkers_voip_2.modes.csv",
+              "sha256": "f464a26dd11f57d0c8cdef9b0eb0cd466420577d657ed976e04c021ef6f527f1"
+            },
+            "exact": true
+          }
+        ],
+        "actual_stdout": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\composition_two_talkers_voip.stdout",
+          "sha256": "f4e6ecf747bdbcab35b6425ad9d55dbd1e9462fcf9f9e927478dc2cab035177d"
+        }
+      },
+      {
+        "case": {
+          "id": "speechmusic_fec_stereo48",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "input_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "reference_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 240000,
+          "seconds": 5.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "source48k stereo FEC override",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "complete_all_three_lane_packet_range_F32_TOC_identity_to_previous_e14_composition": true,
+        "independent_decoder_floor_options_ranges_pass": true,
+        "artifacts": [
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.packets",
+              "sha256": "b4d9c61f5e139c2d5a311f9c5e0b67e292dc2df6781db15308b7242e68e0c763"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.packets",
+              "sha256": "b4d9c61f5e139c2d5a311f9c5e0b67e292dc2df6781db15308b7242e68e0c763"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.f32",
+              "sha256": "bbdfcf36ed7f4e4489a87320c14daf662c75a2f75f2b5474fd1c45f6f919c0fc"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.f32",
+              "sha256": "bbdfcf36ed7f4e4489a87320c14daf662c75a2f75f2b5474fd1c45f6f919c0fc"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.modes.csv",
+              "sha256": "3d57a0ce43d17ecf56c92a713c18ca76785d79a4cf09f121cfadbf3ae646cdd2"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_0.modes.csv",
+              "sha256": "3d57a0ce43d17ecf56c92a713c18ca76785d79a4cf09f121cfadbf3ae646cdd2"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.packets",
+              "sha256": "156a0294e4b990c6526c0887c2d88e09cf6323f4e1f1b62b93c790a0302e454c"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.packets",
+              "sha256": "156a0294e4b990c6526c0887c2d88e09cf6323f4e1f1b62b93c790a0302e454c"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.f32",
+              "sha256": "fc4d8084eccce4bdd29e7c4e18bfff22ca8537ae3b563af54028c901d35b8501"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.f32",
+              "sha256": "fc4d8084eccce4bdd29e7c4e18bfff22ca8537ae3b563af54028c901d35b8501"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.modes.csv",
+              "sha256": "fabdd8e8eaed5620055bf4d33c0ed504eb3b79eab418a11ddba39bf5479ac55d"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_1.modes.csv",
+              "sha256": "fabdd8e8eaed5620055bf4d33c0ed504eb3b79eab418a11ddba39bf5479ac55d"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.packets",
+              "sha256": "265c919e8470c06379cc3581a284039b1d73ca9b06d4ca16be0c268e007f4d36"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.packets",
+              "sha256": "265c919e8470c06379cc3581a284039b1d73ca9b06d4ca16be0c268e007f4d36"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.f32",
+              "sha256": "715d5a23bf868c124b9091df5bfd0d92e07746d1770b24f4ec056a0398a6200e"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.f32",
+              "sha256": "715d5a23bf868c124b9091df5bfd0d92e07746d1770b24f4ec056a0398a6200e"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.modes.csv",
+              "sha256": "7d3934275a0ecf02d5e93c60498fbf3da6afd969daf097ef2c5190b100c4ea3a"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speechmusic_fec_stereo48\\speechmusic_fec_stereo48_2.modes.csv",
+              "sha256": "7d3934275a0ecf02d5e93c60498fbf3da6afd969daf097ef2c5190b100c4ea3a"
+            },
+            "exact": true
+          }
+        ],
+        "actual_stdout": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\composition_speechmusic_fec_stereo48.stdout",
+          "sha256": "5f6367ff6485375b42671a0b8d220ce49b843223247c1d99c5aeefba3ef0de3d"
+        }
+      },
+      {
+        "case": {
+          "id": "speech_music_mix",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\speech_music_mix.wav",
+          "input_sha256": "fae629c6101ee4507329be4f82d079d4ad71499b49631d476b0995a1d64fb2e2",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\speech_music_mix.wav",
+          "reference_sha256": "fae629c6101ee4507329be4f82d079d4ad71499b49631d476b0995a1d64fb2e2",
+          "Fs": 48000,
+          "C": 1,
+          "samples": 177000,
+          "seconds": 3.6875,
+          "rate": 32000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 0,
+          "loss": 0,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "independent existing voip corpus/speech_music_mix",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "complete_all_three_lane_packet_range_F32_TOC_identity_to_previous_e14_composition": true,
+        "independent_decoder_floor_options_ranges_pass": true,
+        "artifacts": [
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_0.packets",
+              "sha256": "0b0eac79ba5067f4340eba93da8c858b62e805e6f3df706c69e1009ef5b3289b"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_0.packets",
+              "sha256": "0b0eac79ba5067f4340eba93da8c858b62e805e6f3df706c69e1009ef5b3289b"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_0.f32",
+              "sha256": "2bf8cb6c723b7c39cd102969c2d541623dbccb8e46416b9954c83ab4c14f7023"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_0.f32",
+              "sha256": "2bf8cb6c723b7c39cd102969c2d541623dbccb8e46416b9954c83ab4c14f7023"
+            },
+            "exact": true
+          },
+          {
+            "lane": 0,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_0.modes.csv",
+              "sha256": "c4dbbe2865b386fad54aaf3cd9533c98c4578e5ec91f36f2f06da16a9ba514fa"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_0.modes.csv",
+              "sha256": "c4dbbe2865b386fad54aaf3cd9533c98c4578e5ec91f36f2f06da16a9ba514fa"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_1.packets",
+              "sha256": "0b0eac79ba5067f4340eba93da8c858b62e805e6f3df706c69e1009ef5b3289b"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_1.packets",
+              "sha256": "0b0eac79ba5067f4340eba93da8c858b62e805e6f3df706c69e1009ef5b3289b"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_1.f32",
+              "sha256": "2bf8cb6c723b7c39cd102969c2d541623dbccb8e46416b9954c83ab4c14f7023"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_1.f32",
+              "sha256": "2bf8cb6c723b7c39cd102969c2d541623dbccb8e46416b9954c83ab4c14f7023"
+            },
+            "exact": true
+          },
+          {
+            "lane": 1,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_1.modes.csv",
+              "sha256": "c4dbbe2865b386fad54aaf3cd9533c98c4578e5ec91f36f2f06da16a9ba514fa"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_1.modes.csv",
+              "sha256": "c4dbbe2865b386fad54aaf3cd9533c98c4578e5ec91f36f2f06da16a9ba514fa"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_2.packets",
+              "sha256": "9f7c3ba49eea08794f8910d24e18d048f7b12f92dab218614a286dc46cd794bb"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_2.packets",
+              "sha256": "9f7c3ba49eea08794f8910d24e18d048f7b12f92dab218614a286dc46cd794bb"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_2.f32",
+              "sha256": "9472cadee1e63594576f6e5ab70fe71f368469ae9e53bdaf6c0441ad1f024117"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_2.f32",
+              "sha256": "9472cadee1e63594576f6e5ab70fe71f368469ae9e53bdaf6c0441ad1f024117"
+            },
+            "exact": true
+          },
+          {
+            "lane": 2,
+            "current": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\quality\\speech_music_mix\\speech_music_mix_2.modes.csv",
+              "sha256": "c8fb2055d19012e1ff305ccdad5975fb021471e08ac03a5d8d4d10f0ca44794c"
+            },
+            "previous_epoch_gold": {
+              "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\quality\\speech_music_mix\\speech_music_mix_2.modes.csv",
+              "sha256": "c8fb2055d19012e1ff305ccdad5975fb021471e08ac03a5d8d4d10f0ca44794c"
+            },
+            "exact": true
+          }
+        ],
+        "actual_stdout": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\composition_speech_music_mix.stdout",
+          "sha256": "17ec434a82c4731179bf2566c316add094265a03766748a7c3862871254e078d"
+        }
+      }
+    ],
+    "composition_source_bridge": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\SOURCE_BRIDGE.json",
+      "sha256": "eb76a6545c7db46039d69eef62c034a0477a1a3016e35bb44c7777ee014ca7f8"
+    },
+    "inactive_VOIP_control": "speech_music_mix C1/VOIP32k/FEC0 actualbaseline/candidate packets/F32/modes byteexact all186, independentfloors/options/ranges PASS; costregression retained, functionalidentity doesnotdismiss it.",
+    "standard_FEC": "fec_summary recovery_error_ratio=0.437983 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.986893",
+    "strict_FEC_counts": [
+      18,
+      18,
+      18,
+      18
+    ],
+    "strict_C2_composition_confirmation": [
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          0,
+          0
+        ],
+        "fields": {
+          "fidelity_fec": 0.195790091,
+          "next_fec": 0.186328715,
+          "transition_fec": 0.157673548,
+          "fidelity_ref": 0.209300684,
+          "next_ref": 0.199266824,
+          "transition_ref": 0.153816871,
+          "fidelity_plc": 0.706624083,
+          "self_consistency": 0.101798129,
+          "step_fec": -316.0,
+          "step_ref": -435.0
+        },
+        "exact_old_candidate_C2_fields": true
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          0,
+          1
+        ],
+        "fields": {
+          "fidelity_fec": 0.203839313,
+          "next_fec": 0.184479714,
+          "transition_fec": 0.174718532,
+          "fidelity_ref": 0.179502235,
+          "next_ref": 0.185727513,
+          "transition_ref": 0.15219348,
+          "fidelity_plc": 0.617070933,
+          "self_consistency": 0.170394077,
+          "step_fec": -643.0,
+          "step_ref": -551.5
+        },
+        "exact_old_candidate_C2_fields": true
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          1,
+          0
+        ],
+        "fields": {
+          "fidelity_fec": 0.336198449,
+          "next_fec": 0.311015142,
+          "transition_fec": 0.288795587,
+          "fidelity_ref": 0.303151851,
+          "next_ref": 0.298800662,
+          "transition_ref": 0.232360607,
+          "fidelity_plc": 0.897798538,
+          "self_consistency": 0.243527632,
+          "step_fec": -192.0,
+          "step_ref": -64.5
+        },
+        "exact_old_candidate_C2_fields": true
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          1,
+          1
+        ],
+        "fields": {
+          "fidelity_fec": 0.285517562,
+          "next_fec": 0.285103085,
+          "transition_fec": 0.206698419,
+          "fidelity_ref": 0.261270594,
+          "next_ref": 0.274502786,
+          "transition_ref": 0.209414824,
+          "fidelity_plc": 0.751015717,
+          "self_consistency": 0.223737685,
+          "step_fec": 141.5,
+          "step_ref": 679.5
+        },
+        "exact_old_candidate_C2_fields": true
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          2,
+          0
+        ],
+        "fields": {
+          "fidelity_fec": 0.520832146,
+          "next_fec": 0.492657322,
+          "transition_fec": 0.491111179,
+          "fidelity_ref": 0.499112134,
+          "next_ref": 0.53050362,
+          "transition_ref": 0.510319385,
+          "fidelity_plc": 1.278882326,
+          "self_consistency": 0.383666675,
+          "step_fec": -690.5,
+          "step_ref": 193.0
+        },
+        "exact_old_candidate_C2_fields": true
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          2,
+          1
+        ],
+        "fields": {
+          "fidelity_fec": 0.51314681,
+          "next_fec": 0.495195353,
+          "transition_fec": 0.42944595,
+          "fidelity_ref": 0.494249033,
+          "next_ref": 0.514897605,
+          "transition_ref": 0.385659202,
+          "fidelity_plc": 0.869311449,
+          "self_consistency": 0.40226035,
+          "step_fec": -438.5,
+          "step_ref": 854.5
+        },
+        "exact_old_candidate_C2_fields": true
+      }
+    ],
+    "strict_all18_raw_old_epoch": [
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          0,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.157406255,
+          "next_fec": 0.227931318,
+          "transition_fec": 0.127456931,
+          "fidelity_ref": 0.170272862,
+          "next_ref": 0.23501495,
+          "transition_ref": 0.149310743,
+          "fidelity_plc": 0.275070223,
+          "self_consistency": 0.065459902,
+          "step_fec": 779.0,
+          "step_ref": 792.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.59928158,
+          "next_fec": 0.701482242,
+          "transition_fec": 0.43400845,
+          "fidelity_ref": 0.652016973,
+          "next_ref": 0.712033028,
+          "transition_ref": 0.483983207,
+          "fidelity_plc": 0.524882059,
+          "self_consistency": 0.13531762,
+          "step_fec": 835.0,
+          "step_ref": 820.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.160574887,
+          "next_fec": 0.369225119,
+          "transition_fec": 0.123237598,
+          "fidelity_ref": 0.146307775,
+          "next_ref": 0.341905026,
+          "transition_ref": 0.137204032,
+          "fidelity_plc": 0.264874473,
+          "self_consistency": 0.067457777,
+          "step_fec": 893.0,
+          "step_ref": 910.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.0031686320000000046,
+          "next_fec": -0.141293801,
+          "transition_fec": 0.004219332999999992,
+          "fidelity_ref": 0.023965086999999996,
+          "next_ref": -0.106890076,
+          "transition_ref": 0.012106710999999992,
+          "fidelity_plc": 0.010195750000000003,
+          "self_consistency": -0.001997874999999996,
+          "step_fec": -114.0,
+          "step_ref": -118.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          0,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.215145665,
+          "next_fec": 0.177973233,
+          "transition_fec": 0.150989268,
+          "fidelity_ref": 0.174629873,
+          "next_ref": 0.174679553,
+          "transition_ref": 0.161217788,
+          "fidelity_plc": 0.306489026,
+          "self_consistency": 0.09301792,
+          "step_fec": -319.0,
+          "step_ref": -259.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.738268655,
+          "next_fec": 0.96740496,
+          "transition_fec": 0.8000232,
+          "fidelity_ref": 0.651415492,
+          "next_ref": 0.648971154,
+          "transition_ref": 0.239399895,
+          "fidelity_plc": 0.738268655,
+          "self_consistency": 0.394210135,
+          "step_fec": -259.0,
+          "step_ref": -271.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.194928339,
+          "next_fec": 0.193871204,
+          "transition_fec": 0.132190408,
+          "fidelity_ref": 0.157083091,
+          "next_ref": 0.181341914,
+          "transition_ref": 0.138496538,
+          "fidelity_plc": 0.300833736,
+          "self_consistency": 0.092846389,
+          "step_fec": -263.0,
+          "step_ref": -323.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.020217326000000008,
+          "next_fec": -0.015897970999999983,
+          "transition_fec": 0.01879886,
+          "fidelity_ref": 0.017546781999999983,
+          "next_ref": -0.0066623610000000055,
+          "transition_ref": 0.02272125,
+          "fidelity_plc": 0.0056552899999999795,
+          "self_consistency": 0.00017153100000000254,
+          "step_fec": -56.0,
+          "step_ref": 64.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          0,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.287931204,
+          "next_fec": 0.17731386,
+          "transition_fec": 0.140772743,
+          "fidelity_ref": 0.219247887,
+          "next_ref": 0.17465943,
+          "transition_ref": 0.144298152,
+          "fidelity_plc": 0.727073457,
+          "self_consistency": 0.136665709,
+          "step_fec": -334.0,
+          "step_ref": -338.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.643683622,
+          "next_fec": 0.722510345,
+          "transition_fec": 0.304709106,
+          "fidelity_ref": 0.684492399,
+          "next_ref": 0.665065994,
+          "transition_ref": 0.263676337,
+          "fidelity_plc": 0.962712569,
+          "self_consistency": 0.142381179,
+          "step_fec": -62.0,
+          "step_ref": -217.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.191602332,
+          "next_fec": 0.173856634,
+          "transition_fec": 0.13300072,
+          "fidelity_ref": 0.191602332,
+          "next_ref": 0.173856634,
+          "transition_ref": 0.13300072,
+          "fidelity_plc": 0.675292959,
+          "self_consistency": 0.0,
+          "step_fec": -349.0,
+          "step_ref": -349.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.09632887200000001,
+          "next_fec": 0.00345722599999998,
+          "transition_fec": 0.007772023000000017,
+          "fidelity_ref": 0.027645555000000016,
+          "next_ref": 0.0008027959999999945,
+          "transition_ref": 0.011297432000000024,
+          "fidelity_plc": 0.051780498000000064,
+          "self_consistency": 0.136665709,
+          "step_fec": 15.0,
+          "step_ref": 11.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          0,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.184613147,
+          "next_fec": 0.226917708,
+          "transition_fec": 0.181641165,
+          "fidelity_ref": 0.17363915,
+          "next_ref": 0.181800088,
+          "transition_ref": 0.165986588,
+          "fidelity_plc": 0.601943358,
+          "self_consistency": 0.12739328,
+          "step_fec": -74.0,
+          "step_ref": 795.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.63561068,
+          "next_fec": 0.73277849,
+          "transition_fec": 0.279519207,
+          "fidelity_ref": 0.673763989,
+          "next_ref": 0.674820852,
+          "transition_ref": 0.263568908,
+          "fidelity_plc": 0.986097425,
+          "self_consistency": 0.155653909,
+          "step_fec": -208.0,
+          "step_ref": -143.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.191181486,
+          "next_fec": 0.178597652,
+          "transition_fec": 0.153409591,
+          "fidelity_ref": 0.17536297,
+          "next_ref": 0.18348855,
+          "transition_ref": 0.152015131,
+          "fidelity_plc": 0.63913293,
+          "self_consistency": 0.137857906,
+          "step_fec": -316.0,
+          "step_ref": 580.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.006568339000000006,
+          "next_fec": 0.048320056,
+          "transition_fec": 0.02823157399999998,
+          "fidelity_ref": -0.0017238200000000148,
+          "next_ref": -0.0016884620000000017,
+          "transition_ref": 0.013971456999999993,
+          "fidelity_plc": -0.03718957200000006,
+          "self_consistency": -0.010464626000000005,
+          "step_fec": 242.0,
+          "step_ref": 215.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          0,
+          0
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.195790091,
+          "next_fec": 0.186328715,
+          "transition_fec": 0.157673548,
+          "fidelity_ref": 0.209300684,
+          "next_ref": 0.199266824,
+          "transition_ref": 0.153816871,
+          "fidelity_plc": 0.706624083,
+          "self_consistency": 0.101798129,
+          "step_fec": -316.0,
+          "step_ref": -435.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.591728501,
+          "next_fec": 0.569722322,
+          "transition_fec": 0.301290007,
+          "fidelity_ref": 0.570480556,
+          "next_ref": 0.624301232,
+          "transition_ref": 0.293012622,
+          "fidelity_plc": 0.775555783,
+          "self_consistency": 0.372207589,
+          "step_fec": -292.0,
+          "step_ref": -113.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.196403964,
+          "next_fec": 0.212762835,
+          "transition_fec": 0.151479945,
+          "fidelity_ref": 0.199926854,
+          "next_ref": 0.2144524,
+          "transition_ref": 0.175175801,
+          "fidelity_plc": 0.706534071,
+          "self_consistency": 0.101170635,
+          "step_fec": -139.5,
+          "step_ref": 675.5
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.000613872999999987,
+          "next_fec": -0.026434120000000005,
+          "transition_fec": 0.006193602999999992,
+          "fidelity_ref": 0.00937383,
+          "next_ref": -0.015185575999999978,
+          "transition_ref": -0.021358929999999998,
+          "fidelity_plc": 9.001200000002818e-05,
+          "self_consistency": 0.0006274940000000062,
+          "step_fec": -176.5,
+          "step_ref": -1110.5
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          0,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.203839313,
+          "next_fec": 0.184479714,
+          "transition_fec": 0.174718532,
+          "fidelity_ref": 0.179502235,
+          "next_ref": 0.185727513,
+          "transition_ref": 0.15219348,
+          "fidelity_plc": 0.617070933,
+          "self_consistency": 0.170394077,
+          "step_fec": -643.0,
+          "step_ref": -551.5
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.649346301,
+          "next_fec": 0.643189514,
+          "transition_fec": 0.29877634,
+          "fidelity_ref": 0.675348136,
+          "next_ref": 0.673463254,
+          "transition_ref": 0.245741464,
+          "fidelity_plc": 0.766489712,
+          "self_consistency": 0.175844263,
+          "step_fec": -448.0,
+          "step_ref": 517.5
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.204920071,
+          "next_fec": 0.187299277,
+          "transition_fec": 0.16868326,
+          "fidelity_ref": 0.17599771,
+          "next_ref": 0.185470328,
+          "transition_ref": 0.165609707,
+          "fidelity_plc": 0.630676633,
+          "self_consistency": 0.174131498,
+          "step_fec": -417.0,
+          "step_ref": -522.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.001080758000000015,
+          "next_fec": -0.002819562999999997,
+          "transition_fec": 0.006035272000000008,
+          "fidelity_ref": 0.0035045250000000083,
+          "next_ref": 0.00025718500000002087,
+          "transition_ref": -0.013416227000000003,
+          "fidelity_plc": -0.013605699999999943,
+          "self_consistency": -0.0037374209999999908,
+          "step_fec": -226.0,
+          "step_ref": -29.5
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          1,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.225036961,
+          "next_fec": 0.410942783,
+          "transition_fec": 0.250900514,
+          "fidelity_ref": 0.20882111,
+          "next_ref": 0.305236978,
+          "transition_ref": 0.209983724,
+          "fidelity_plc": 0.859031309,
+          "self_consistency": 0.098674583,
+          "step_fec": 461.0,
+          "step_ref": 484.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.718125669,
+          "next_fec": 0.828987679,
+          "transition_fec": 0.271244925,
+          "fidelity_ref": 0.663621132,
+          "next_ref": 0.746284936,
+          "transition_ref": 0.43631859,
+          "fidelity_plc": 1.432051461,
+          "self_consistency": 0.252028112,
+          "step_fec": 364.0,
+          "step_ref": 453.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.22896647,
+          "next_fec": 0.293619565,
+          "transition_fec": 0.179948814,
+          "fidelity_ref": 0.209352584,
+          "next_ref": 0.281303294,
+          "transition_ref": 0.170811096,
+          "fidelity_plc": 1.149396966,
+          "self_consistency": 0.117750531,
+          "step_fec": 469.0,
+          "step_ref": 445.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.003929508999999998,
+          "next_fec": 0.11732321799999995,
+          "transition_fec": 0.0709517,
+          "fidelity_ref": -0.000531474000000004,
+          "next_ref": 0.02393368400000001,
+          "transition_ref": 0.039172628000000015,
+          "fidelity_plc": -0.29036565700000005,
+          "self_consistency": -0.01907594800000001,
+          "step_fec": -8.0,
+          "step_ref": 39.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          1,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.339434409,
+          "next_fec": 0.364388054,
+          "transition_fec": 0.241988755,
+          "fidelity_ref": 0.32477652,
+          "next_ref": 0.299513786,
+          "transition_ref": 0.261356064,
+          "fidelity_plc": 0.879993745,
+          "self_consistency": 0.089826749,
+          "step_fec": -144.0,
+          "step_ref": -161.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 1.026548022,
+          "next_fec": 0.895819017,
+          "transition_fec": 0.969528753,
+          "fidelity_ref": 0.713662654,
+          "next_ref": 0.671142318,
+          "transition_ref": 0.323463324,
+          "fidelity_plc": 1.026548022,
+          "self_consistency": 0.963701829,
+          "step_fec": -138.0,
+          "step_ref": -281.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.279750114,
+          "next_fec": 0.305569949,
+          "transition_fec": 0.227870856,
+          "fidelity_ref": 0.269303909,
+          "next_ref": 0.318112201,
+          "transition_ref": 0.225900942,
+          "fidelity_plc": 0.881170055,
+          "self_consistency": 0.074328387,
+          "step_fec": -167.0,
+          "step_ref": -106.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.059684295,
+          "next_fec": 0.05881810500000001,
+          "transition_fec": 0.01411789899999999,
+          "fidelity_ref": 0.055472611000000005,
+          "next_ref": -0.01859841499999998,
+          "transition_ref": 0.035455122000000006,
+          "fidelity_plc": -0.0011763099999999582,
+          "self_consistency": 0.015498362000000002,
+          "step_fec": 23.0,
+          "step_ref": -55.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          1,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.24744622,
+          "next_fec": 0.263687466,
+          "transition_fec": 0.215734375,
+          "fidelity_ref": 0.228506659,
+          "next_ref": 0.262453847,
+          "transition_ref": 0.202990681,
+          "fidelity_plc": 0.896864713,
+          "self_consistency": 0.109725024,
+          "step_fec": -121.0,
+          "step_ref": -202.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.680104609,
+          "next_fec": 0.692728199,
+          "transition_fec": 0.286478785,
+          "fidelity_ref": 0.662625406,
+          "next_ref": 0.674010356,
+          "transition_ref": 0.304954609,
+          "fidelity_plc": 0.898602395,
+          "self_consistency": 0.205200526,
+          "step_fec": -338.0,
+          "step_ref": -54.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.262287183,
+          "next_fec": 0.282896421,
+          "transition_fec": 0.240749542,
+          "fidelity_ref": 0.234076128,
+          "next_ref": 0.269040722,
+          "transition_ref": 0.195983738,
+          "fidelity_plc": 0.998522706,
+          "self_consistency": 0.116210265,
+          "step_fec": -106.0,
+          "step_ref": -96.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.014840962999999985,
+          "next_fec": -0.019208955000000028,
+          "transition_fec": -0.025015167000000005,
+          "fidelity_ref": -0.0055694689999999936,
+          "next_ref": -0.006586874999999992,
+          "transition_ref": 0.0070069430000000155,
+          "fidelity_plc": -0.101657993,
+          "self_consistency": -0.006485240999999989,
+          "step_fec": -15.0,
+          "step_ref": -106.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          1,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.251265727,
+          "next_fec": 0.270956881,
+          "transition_fec": 0.227594524,
+          "fidelity_ref": 0.266862681,
+          "next_ref": 0.272489499,
+          "transition_ref": 0.257451858,
+          "fidelity_plc": 0.763286532,
+          "self_consistency": 0.189548629,
+          "step_fec": -156.0,
+          "step_ref": -301.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.687278128,
+          "next_fec": 0.667569423,
+          "transition_fec": 0.355132206,
+          "fidelity_ref": 0.699792919,
+          "next_ref": 0.695406526,
+          "transition_ref": 0.344063639,
+          "fidelity_plc": 1.024089821,
+          "self_consistency": 0.253168213,
+          "step_fec": -79.0,
+          "step_ref": -255.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.260304489,
+          "next_fec": 0.25647614,
+          "transition_fec": 0.186194244,
+          "fidelity_ref": 0.272105959,
+          "next_ref": 0.270403896,
+          "transition_ref": 0.223241791,
+          "fidelity_plc": 0.884414384,
+          "self_consistency": 0.196269099,
+          "step_fec": -33.0,
+          "step_ref": 130.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.009038761999999978,
+          "next_fec": 0.014480740999999964,
+          "transition_fec": 0.041400279999999984,
+          "fidelity_ref": -0.005243278000000018,
+          "next_ref": 0.002085603000000047,
+          "transition_ref": 0.03421006699999998,
+          "fidelity_plc": -0.12112785200000009,
+          "self_consistency": -0.006720470000000006,
+          "step_fec": -123.0,
+          "step_ref": -431.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          1,
+          0
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.336198449,
+          "next_fec": 0.311015142,
+          "transition_fec": 0.288795587,
+          "fidelity_ref": 0.303151851,
+          "next_ref": 0.298800662,
+          "transition_ref": 0.232360607,
+          "fidelity_plc": 0.897798538,
+          "self_consistency": 0.243527632,
+          "step_fec": -192.0,
+          "step_ref": -64.5
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.655200225,
+          "next_fec": 0.699512813,
+          "transition_fec": 0.328470094,
+          "fidelity_ref": 0.740837026,
+          "next_ref": 0.606513713,
+          "transition_ref": 0.422564016,
+          "fidelity_plc": 0.892767677,
+          "self_consistency": 0.351359484,
+          "step_fec": -212.0,
+          "step_ref": -84.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.334201189,
+          "next_fec": 0.342653983,
+          "transition_fec": 0.204302885,
+          "fidelity_ref": 0.30505893,
+          "next_ref": 0.316124478,
+          "transition_ref": 0.21089091,
+          "fidelity_plc": 0.855931134,
+          "self_consistency": 0.249792413,
+          "step_fec": -62.0,
+          "step_ref": 141.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.0019972600000000007,
+          "next_fec": -0.03163884099999997,
+          "transition_fec": 0.08449270200000003,
+          "fidelity_ref": -0.0019070789999999782,
+          "next_ref": -0.017323815999999992,
+          "transition_ref": 0.02146969700000001,
+          "fidelity_plc": 0.041867404,
+          "self_consistency": -0.006264780999999997,
+          "step_fec": -130.0,
+          "step_ref": -205.5
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          1,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.285517562,
+          "next_fec": 0.285103085,
+          "transition_fec": 0.206698419,
+          "fidelity_ref": 0.261270594,
+          "next_ref": 0.274502786,
+          "transition_ref": 0.209414824,
+          "fidelity_plc": 0.751015717,
+          "self_consistency": 0.223737685,
+          "step_fec": 141.5,
+          "step_ref": 679.5
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.691692766,
+          "next_fec": 0.656869339,
+          "transition_fec": 0.351514524,
+          "fidelity_ref": 0.701001368,
+          "next_ref": 0.644568194,
+          "transition_ref": 0.271908344,
+          "fidelity_plc": 0.817771695,
+          "self_consistency": 0.305485418,
+          "step_fec": -180.5,
+          "step_ref": -294.5
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.283511321,
+          "next_fec": 0.297866746,
+          "transition_fec": 0.210884833,
+          "fidelity_ref": 0.246818729,
+          "next_ref": 0.257470065,
+          "transition_ref": 0.219580331,
+          "fidelity_plc": 0.834547496,
+          "self_consistency": 0.238270409,
+          "step_fec": -186.5,
+          "step_ref": 93.5
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.0020062410000000197,
+          "next_fec": -0.012763661000000037,
+          "transition_fec": -0.004186413999999999,
+          "fidelity_ref": 0.014451865000000036,
+          "next_ref": 0.017032720999999973,
+          "transition_ref": -0.01016550699999999,
+          "fidelity_plc": -0.08353177899999997,
+          "self_consistency": -0.014532723999999997,
+          "step_fec": 328.0,
+          "step_ref": 586.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          10,
+          24000,
+          2,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.406911228,
+          "next_fec": 0.455066234,
+          "transition_fec": 0.377226279,
+          "fidelity_ref": 0.395451762,
+          "next_ref": 0.450889522,
+          "transition_ref": 0.378437022,
+          "fidelity_plc": 1.357595946,
+          "self_consistency": 0.137577327,
+          "step_fec": 2240.0,
+          "step_ref": 2391.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.775779791,
+          "next_fec": 0.755986329,
+          "transition_fec": 0.658332111,
+          "fidelity_ref": 0.684159635,
+          "next_ref": 0.775056677,
+          "transition_ref": 0.478974903,
+          "fidelity_plc": 1.455379434,
+          "self_consistency": 0.390870655,
+          "step_fec": 2382.0,
+          "step_ref": 2459.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.430158739,
+          "next_fec": 0.471432412,
+          "transition_fec": 0.448188781,
+          "fidelity_ref": 0.396530783,
+          "next_ref": 0.461877582,
+          "transition_ref": 0.407973716,
+          "fidelity_plc": 1.187953083,
+          "self_consistency": 0.22143868,
+          "step_fec": 2326.0,
+          "step_ref": 2113.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.023247511,
+          "next_fec": -0.01636617800000001,
+          "transition_fec": -0.07096250199999998,
+          "fidelity_ref": -0.0010790210000000133,
+          "next_ref": -0.010988060000000022,
+          "transition_ref": -0.029536693999999974,
+          "fidelity_plc": 0.16964286299999998,
+          "self_consistency": -0.083861353,
+          "step_fec": -86.0,
+          "step_ref": 278.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          2,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.447211753,
+          "next_fec": 0.516731013,
+          "transition_fec": 0.426383068,
+          "fidelity_ref": 0.446918588,
+          "next_ref": 0.51373173,
+          "transition_ref": 0.426882957,
+          "fidelity_plc": 0.779249453,
+          "self_consistency": 0.122265514,
+          "step_fec": -768.0,
+          "step_ref": -634.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 1.000974038,
+          "next_fec": 0.963422471,
+          "transition_fec": 1.142807447,
+          "fidelity_ref": 0.782495425,
+          "next_ref": 0.821001778,
+          "transition_ref": 0.549944469,
+          "fidelity_plc": 1.000974038,
+          "self_consistency": 1.306601049,
+          "step_fec": -269.0,
+          "step_ref": -1025.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.458986881,
+          "next_fec": 0.539629198,
+          "transition_fec": 0.423260345,
+          "fidelity_ref": 0.443135807,
+          "next_ref": 0.52814967,
+          "transition_ref": 0.436184185,
+          "fidelity_plc": 0.958045934,
+          "self_consistency": 0.126331262,
+          "step_fec": -730.0,
+          "step_ref": -737.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.011775128000000024,
+          "next_fec": -0.02289818499999996,
+          "transition_fec": 0.003122722999999994,
+          "fidelity_ref": 0.003782781000000013,
+          "next_ref": -0.014417939999999962,
+          "transition_ref": -0.009301227999999995,
+          "fidelity_plc": -0.178796481,
+          "self_consistency": -0.004065747999999994,
+          "step_fec": -38.0,
+          "step_ref": 103.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          2,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.483538373,
+          "next_fec": 0.480235034,
+          "transition_fec": 0.452503378,
+          "fidelity_ref": 0.445885154,
+          "next_ref": 0.478067677,
+          "transition_ref": 0.422448875,
+          "fidelity_plc": 1.155884419,
+          "self_consistency": 0.246141083,
+          "step_fec": -361.0,
+          "step_ref": -238.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.802790967,
+          "next_fec": 0.684358962,
+          "transition_fec": 0.486687027,
+          "fidelity_ref": 0.749776717,
+          "next_ref": 0.751198817,
+          "transition_ref": 0.47551309,
+          "fidelity_plc": 0.829666861,
+          "self_consistency": 0.384927814,
+          "step_fec": -1298.0,
+          "step_ref": -567.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.474286343,
+          "next_fec": 0.470832264,
+          "transition_fec": 0.419628251,
+          "fidelity_ref": 0.443103082,
+          "next_ref": 0.468196513,
+          "transition_ref": 0.409741137,
+          "fidelity_plc": 1.160822699,
+          "self_consistency": 0.213996253,
+          "step_fec": -816.0,
+          "step_ref": -881.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.009252030000000022,
+          "next_fec": 0.009402770000000005,
+          "transition_fec": 0.032875127000000004,
+          "fidelity_ref": 0.0027820720000000243,
+          "next_ref": 0.009871164000000043,
+          "transition_ref": 0.012707738000000024,
+          "fidelity_plc": -0.004938279999999962,
+          "self_consistency": 0.03214483000000001,
+          "step_fec": 455.0,
+          "step_ref": 643.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          1,
+          20,
+          32000,
+          2,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.479520961,
+          "next_fec": 0.540908394,
+          "transition_fec": 0.417391746,
+          "fidelity_ref": 0.510332028,
+          "next_ref": 0.535853337,
+          "transition_ref": 0.460018305,
+          "fidelity_plc": 1.215663983,
+          "self_consistency": 0.38494939,
+          "step_fec": -522.0,
+          "step_ref": -1179.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.770283448,
+          "next_fec": 0.783660495,
+          "transition_fec": 0.556042528,
+          "fidelity_ref": 0.781625766,
+          "next_ref": 0.805697505,
+          "transition_ref": 0.480377265,
+          "fidelity_plc": 1.044183405,
+          "self_consistency": 0.431638723,
+          "step_fec": -1532.0,
+          "step_ref": -1238.0
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.475635505,
+          "next_fec": 0.521496666,
+          "transition_fec": 0.436240391,
+          "fidelity_ref": 0.50518256,
+          "next_ref": 0.53111758,
+          "transition_ref": 0.419618894,
+          "fidelity_plc": 0.816460431,
+          "self_consistency": 0.36492118,
+          "step_fec": -356.0,
+          "step_ref": -952.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.0038854560000000093,
+          "next_fec": 0.019411728000000017,
+          "transition_fec": -0.018848644999999997,
+          "fidelity_ref": 0.005149468000000046,
+          "next_ref": 0.004735757000000063,
+          "transition_ref": 0.040399410999999996,
+          "fidelity_plc": 0.399203552,
+          "self_consistency": 0.02002820999999999,
+          "step_fec": -166.0,
+          "step_ref": -227.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          2,
+          0
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.520832146,
+          "next_fec": 0.492657322,
+          "transition_fec": 0.491111179,
+          "fidelity_ref": 0.499112134,
+          "next_ref": 0.53050362,
+          "transition_ref": 0.510319385,
+          "fidelity_plc": 1.278882326,
+          "self_consistency": 0.383666675,
+          "step_fec": -690.5,
+          "step_ref": 193.0
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.887603124,
+          "next_fec": 0.777073975,
+          "transition_fec": 0.550334475,
+          "fidelity_ref": 0.701289068,
+          "next_ref": 0.770098236,
+          "transition_ref": 0.690378675,
+          "fidelity_plc": 0.983255154,
+          "self_consistency": 0.910507142,
+          "step_fec": 509.5,
+          "step_ref": -196.5
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.532255563,
+          "next_fec": 0.571191741,
+          "transition_fec": 0.439235084,
+          "fidelity_ref": 0.518359733,
+          "next_ref": 0.517831751,
+          "transition_ref": 0.483761696,
+          "fidelity_plc": 0.763404163,
+          "self_consistency": 0.391362423,
+          "step_fec": 70.0,
+          "step_ref": 655.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": -0.011423416999999936,
+          "next_fec": -0.07853441900000002,
+          "transition_fec": 0.05187609500000001,
+          "fidelity_ref": -0.01924759900000006,
+          "next_ref": 0.012671868999999947,
+          "transition_ref": 0.02655768899999994,
+          "fidelity_plc": 0.5154781629999999,
+          "self_consistency": -0.007695748000000002,
+          "step_fec": -760.5,
+          "step_ref": -462.0
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          2,
+          1
+        ],
+        "current_candidate": {
+          "fidelity_fec": 0.51314681,
+          "next_fec": 0.495195353,
+          "transition_fec": 0.42944595,
+          "fidelity_ref": 0.494249033,
+          "next_ref": 0.514897605,
+          "transition_ref": 0.385659202,
+          "fidelity_plc": 0.869311449,
+          "self_consistency": 0.40226035,
+          "step_fec": -438.5,
+          "step_ref": 854.5
+        },
+        "pinned_OFF": {
+          "fidelity_fec": 0.788928344,
+          "next_fec": 0.787404278,
+          "transition_fec": 0.503490469,
+          "fidelity_ref": 0.789947322,
+          "next_ref": 0.785626099,
+          "transition_ref": 0.475419065,
+          "fidelity_plc": 1.05022455,
+          "self_consistency": 0.464241453,
+          "step_fec": -607.0,
+          "step_ref": 666.5
+        },
+        "historical_d378_baseline": {
+          "fidelity_fec": 0.506269324,
+          "next_fec": 0.468226855,
+          "transition_fec": 0.429958469,
+          "fidelity_ref": 0.493373456,
+          "next_ref": 0.505103577,
+          "transition_ref": 0.390668054,
+          "fidelity_plc": 1.103375299,
+          "self_consistency": 0.416626469,
+          "step_fec": -309.0,
+          "step_ref": 1206.0
+        },
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "all_raw_changes_vs_historical": {
+          "fidelity_fec": 0.006877485999999933,
+          "next_fec": 0.026968498000000007,
+          "transition_fec": -0.0005125189999999891,
+          "fidelity_ref": 0.0008755770000000163,
+          "next_ref": 0.009794028000000066,
+          "transition_ref": -0.005008852000000008,
+          "fidelity_plc": -0.23406385000000007,
+          "self_consistency": -0.01436611900000001,
+          "step_fec": -129.5,
+          "step_ref": -351.5
+        },
+        "source_qualification": "OFFdeterministicfixture unchanged/saved503d reused; historicalcurrentd378 values areNOTretaggedcurrente005 FECfields. CurrentcandidatevsOFFcounts actual."
+      }
+    ],
+    "strict_reuse_qualification": "Prior successful standard18 and strict4x18 retained at their exact e005/e14 epochs. Rebased candidate seven SILK/FEC helper bodies tokenexact to e14 candidate; current quant_all_bands normal non-null operands/arithmetic unchanged by the nullable repair and celt_encode_candidate still supplies actual oldBandE. Actual three current cases confirm full output/state equivalence with the earlier composition. No duplicate FEC or micro/full run.",
+    "price_old_e005_epoch": [
+      {
+        "case": {
+          "id": "two_talkers_voip",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "input_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "reference_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 288000,
+          "seconds": 6.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "unseen stereo geometry/holdout/two_talkers_voip",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 140.4157,
+            "candidate_ms": 148.5138,
+            "official_ms": 103.2528,
+            "candidate_over_base": 1.0576723258154181,
+            "official_over_candidate": 0.6952404423023314
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 130.973,
+            "candidate_ms": 132.1085,
+            "official_ms": 98.9696,
+            "candidate_over_base": 1.0086697258213524,
+            "official_over_candidate": 0.749153915153075
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 141.2201,
+            "candidate_ms": 133.0021,
+            "official_ms": 100.8886,
+            "candidate_over_base": 0.9418071506818081,
+            "official_over_candidate": 0.7585489251673468
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 132.0451,
+            "candidate_ms": 134.9214,
+            "official_ms": 100.5249,
+            "candidate_over_base": 1.021782709089546,
+            "official_over_candidate": 0.7450626809386799
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 131.3475,
+            "candidate_ms": 134.5906,
+            "official_ms": 97.2572,
+            "candidate_over_base": 1.0246909914539675,
+            "official_over_candidate": 0.7226151009060068
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 134.5684,
+            "candidate_ms": 133.1235,
+            "official_ms": 98.7568,
+            "candidate_over_base": 0.9892627095217006,
+            "official_over_candidate": 0.7418434761706235
+          }
+        ],
+        "base_median_ms": 133.30675,
+        "candidate_median_ms": 133.85705000000002,
+        "OFF_median_ms": 99.74725000000001,
+        "median_cost_change_fraction": 0.004128073034561419,
+        "OFF_over_candidate": 0.7451774112756855,
+        "slower_pairs": 4,
+        "calibration": "CALIBRATION id=two_talkers_voip affinity=1 priority=32768 C=2 Fs=48000 N=960 bitrate=48000 app=2048 complexity=10 VBR=1 CVBR=1 FEC=1 loss=20 DTX=0 DN=0 api=int16 samples=288000 padded_samples=288000 freshstate=1 frames=301 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      },
+      {
+        "case": {
+          "id": "speechmusic_fec_stereo48",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "input_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "reference_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 240000,
+          "seconds": 5.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "source48k stereo FEC override",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 108.28,
+            "candidate_ms": 107.0387,
+            "official_ms": 85.4215,
+            "candidate_over_base": 0.9885362024381235,
+            "official_over_candidate": 0.7980431376688991
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 111.0883,
+            "candidate_ms": 110.1809,
+            "official_ms": 86.8829,
+            "candidate_over_base": 0.9918317230527426,
+            "official_over_candidate": 0.7885477428483523
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 108.4742,
+            "candidate_ms": 105.7828,
+            "official_ms": 86.8854,
+            "candidate_over_base": 0.9751885701853528,
+            "official_over_candidate": 0.8213565910526097
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 108.5569,
+            "candidate_ms": 114.9657,
+            "official_ms": 84.6088,
+            "candidate_over_base": 1.0590363210445397,
+            "official_over_candidate": 0.7359482002023212
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 114.5775,
+            "candidate_ms": 107.5286,
+            "official_ms": 92.0263,
+            "candidate_over_base": 0.9384791953044882,
+            "official_over_candidate": 0.8558309138219972
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 106.0625,
+            "candidate_ms": 107.2355,
+            "official_ms": 88.3629,
+            "candidate_over_base": 1.011059516794343,
+            "official_over_candidate": 0.8240079078290304
+          }
+        ],
+        "base_median_ms": 108.51554999999999,
+        "candidate_median_ms": 107.38204999999999,
+        "OFF_median_ms": 86.88415,
+        "median_cost_change_fraction": -0.010445507579328495,
+        "OFF_over_candidate": 0.8091124168331673,
+        "slower_pairs": 2,
+        "calibration": "CALIBRATION id=speechmusic_fec_stereo48 affinity=1 priority=32768 C=2 Fs=48000 N=960 bitrate=48000 app=2048 complexity=10 VBR=1 CVBR=1 FEC=1 loss=20 DTX=0 DN=0 api=int16 samples=240000 padded_samples=240000 freshstate=1 frames=251 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      },
+      {
+        "case": {
+          "id": "music_mono",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\music_mono.wav",
+          "input_sha256": "d1bd1b6b5519c25df973399fdc25633cea13544dee4d6f884c8be62aed2a0bf6",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\music_mono.wav",
+          "reference_sha256": "d1bd1b6b5519c25df973399fdc25633cea13544dee4d6f884c8be62aed2a0bf6",
+          "Fs": 48000,
+          "C": 1,
+          "samples": 288000,
+          "seconds": 6.0,
+          "rate": 24000,
+          "app": 2049,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 0,
+          "loss": 0,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "independent existing voip corpus/music_mono",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 16.0374,
+            "candidate_ms": 15.7387,
+            "official_ms": 16.2445,
+            "candidate_over_base": 0.9813747864367041,
+            "official_over_candidate": 1.0321373429825842
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 15.8818,
+            "candidate_ms": 15.7129,
+            "official_ms": 17.2935,
+            "candidate_over_base": 0.9893651853064513,
+            "official_over_candidate": 1.100592506793781
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 15.895,
+            "candidate_ms": 15.7029,
+            "official_ms": 17.6747,
+            "candidate_over_base": 0.9879144385026738,
+            "official_over_candidate": 1.1255691623840183
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 17.2783,
+            "candidate_ms": 15.7927,
+            "official_ms": 18.3023,
+            "candidate_over_base": 0.9140193190302286,
+            "official_over_candidate": 1.1589088629556694
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 15.594,
+            "candidate_ms": 16.6317,
+            "official_ms": 16.8719,
+            "candidate_over_base": 1.0665448249326663,
+            "official_over_candidate": 1.0144422999452853
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 15.3885,
+            "candidate_ms": 15.6986,
+            "official_ms": 16.6503,
+            "candidate_over_base": 1.0201514117685284,
+            "official_over_candidate": 1.060623240288943
+          }
+        ],
+        "base_median_ms": 15.8884,
+        "candidate_median_ms": 15.7258,
+        "OFF_median_ms": 17.082700000000003,
+        "median_cost_change_fraction": -0.010233881322222582,
+        "OFF_over_candidate": 1.0862849584758807,
+        "slower_pairs": 2,
+        "calibration": "CALIBRATION id=music_mono affinity=1 priority=32768 C=1 Fs=48000 N=960 bitrate=24000 app=2049 complexity=10 VBR=1 CVBR=1 FEC=0 loss=0 DTX=0 DN=0 api=int16 samples=288000 padded_samples=288000 freshstate=1 frames=301 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      }
+    ],
+    "quality_losses": [
+      {
+        "field": "celt_highband_error",
+        "base": 0.034828389612531874,
+        "candidate": 0.035150427953800724,
+        "OFF": 0.04007907218925586,
+        "change": 0.00032203834126885017,
+        "loss": true,
+        "new_negative": false
+      }
+    ],
+    "quality_new_negatives": [],
+    "quality_worsened_negatives": [],
+    "quality_positive_margin_loss": "TwoTalkerHBE .034828389612531874 -> .035150427953800724 stillbetterOFF.040079072189255861; all12raw retained. First11+second12 fields improve current, oneHBE margin loss, no new/worsened OFFnegative affectedfields.",
+    "cost_losses": {
+      "current_composition_raw_slower": 7,
+      "old_e005_raw_slower": 8,
+      "all_orders_and_outliers_retained": true,
+      "prior_e14_composition_median": [
+        {
+          "case": "speech_music_mix",
+          "change": 0.21837185593301744
+        }
+      ],
+      "measurement_epoch": "Prior e14/437 -> 0f0cec9d; retained history only. Current872/0688 -> 578483e6 has no new cost measurement."
+    },
+    "no_speed_completion_claim": "No new timing; old e14 composed4x6 and old e0053x6 raw prices remain bound to their measured sources, with +21.8371856% inactiveVOIP cost loss preserved. No current872 cost result or 1.5x/50ms claim. All raw slower pairs/outliers/orders/concurrency and prior source epochs remain in inherited artifacts.",
+    "immediate_next_owner_remediation": "Same recovered main owner immediately remediates ALL disclosed inactiveVOIP encoding cost/raw losses and twoTalker HBE positive-margin loss after Root publication, using actual reached cost and aligned producer/consumer/OFF boundary. Preserve historical prices and margins; no retiming old outcomes, closed-method variant, unrelated DTX work, guessed gain/state/threshold policy or speed completion claim.",
+    "contracts": "Current affected FEC two cases and inactiveVOIP control full packets/ranges/alignedF32/TOC exact earlier composition, options/independentfloor pass. Current baseline cached rem19 curr object qualified by exact CIlambda linewrap transport. Prior successful standard/strict and nullable checks reused through source/caller/output proof; no duplicate full/FEC/price/micro run. Portable existing const int32/callerstorage/lifetimes/licenses/ABI/options/RAW/startup/denoiser preserved.",
+    "native": {
+      "prior_terminal": 206,
+      "new_terminal": 5,
+      "total_terminal": 211,
+      "live_owned": 0,
+      "runner_pid": 9468,
+      "tool_session_id": 43887,
+      "guards": [
+        16392,
+        2920,
+        28756,
+        8468,
+        10568
+      ],
+      "children": [
+        9560,
+        26060,
+        29604,
+        8996,
+        11436
+      ],
+      "completed_utc": "2026-10-12T09:41:27.362214+00:00",
+      "previous_handles": {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\PREVIOUS_HANDLE_INSPECTION.json",
+        "sha256": "03cde494ed302002db9474aac6c8ae3dd81fb29fde29bf2e00adffcf4cbbd76c"
+      }
+    },
+    "original_clock": [
+      "2026-10-11T18:16:47.7898476Z",
+      "2026-10-12T02:16:47.7898476Z"
+    ],
+    "main_exemption": true,
+    "clock_reset": false,
+    "discovery_overrun_retained": true,
+    "first_actual_candidate_outcome": "e005source891 firstrealcase terminal08:28:50.128792Z beforeoriginalbudget-source08:59:11 firstguide; rebase/testcompletion afterguide isnotnewfirstoutcome orreset.",
+    "bindings": [
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\PLAN.json",
+        "sha256": "bf8aa16c5f4e442bf304afe28fa433ba126ead6962457e84b592a87983ced611"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\EXECUTION.json",
+        "sha256": "fe1da3658673db1c157dd09fe3ff9f66f5e2d431f41ef10f1b9a62f08afc54e4"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\FIRST_RESULT.json",
+        "sha256": "77d8594d73b57378176f6691559a2cdb6a27e6bd55ea26de9defe9ce46045fe2"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\VALIDATION_PLAN.json",
+        "sha256": "4b2e8d23008b2a69d2101d7d96ec06ae4e9d12f38a5af8e45a86140545555615"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\VALIDATION_EXECUTION.json",
+        "sha256": "7feb04d5612d1d6855856d4291bd8465bf088fa527adfd60cdbfe88ecc8d3045"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\VALIDATION_RESULT.json",
+        "sha256": "6b5ee3ebf0e26c8911ec357632d94c36c45aff289516ac44b8ffbb812e510418"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\PLAN.json",
+        "sha256": "e8ec9e67ed948ce91950422a3d744c5a2bdd4f80e18676b42d46f5ab67a46f37"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\EXECUTION.json",
+        "sha256": "2d495a222982bf7dfc15109ba1837a19af3c0342c71d4c4126dc406455fa949b"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\CONTROL_PLAN.json",
+        "sha256": "2b9be50c865bd1187d03b9535fd1c8d226ecdbcee454132b74538ec7b9ccf296"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_e14\\CONTROL_EXECUTION.json",
+        "sha256": "b863f5601eb941c5b07529ebd86dfef8fd45082e95022105c1960616283f3598"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\READY.json",
+        "sha256": "d94a536e3e1bf6571ca9c2fc2d1c04cbc2b4c7a78a84448b269e3dbbb238e47c"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\PLAN.json",
+        "sha256": "e64298f16dea5b436c98d6484c37c2a9e5e8e7a963356c37e9a166ab74ec2fe9"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\SOURCE_BRIDGE.json",
+        "sha256": "eb76a6545c7db46039d69eef62c034a0477a1a3016e35bb44c7777ee014ca7f8"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\EXECUTION.json",
+        "sha256": "e711db31898bb14de7dd8e99fffff7eb4e17b39c10b7978239db7279c2726a90"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\PREVIOUS_HANDLE_INSPECTION.json",
+        "sha256": "03cde494ed302002db9474aac6c8ae3dd81fb29fde29bf2e00adffcf4cbbd76c"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\RESULT.json",
+        "sha256": "3fced308f13221fafe3ac1c95224fea36b6faaff0848629b57e1a90a37c68f27"
+      }
+    ],
+    "warnings": "Existingreusedtesthelperanonymousnamespace linkagewarning preserved; candidateSource compileclean. Budgetfact twoobserverbuildfailures preservedandonlyunfinishedstagesresumed; metadataalias/anchor/case-name/PowerShellinlinequoting errors repairedbeforedependentNative,no measurementreplay. No Root/global/Git/canonical/publication/fullsuite/provider mutation. Metadata caller-pointer assertion corrected before Native; no Native failure. Cached baseline is d7a10 source qualified to public0688 only by existing verified CI whitespace transport.",
+    "goal": "NOT_MET; existingglobal1009/868negatives/all17+153rawbelow1.5sourceepochs retained. Ready isincrementalvalidatedprimaryquality improvement underhuman measured-tradeoff rule, not finalgoalcompletion.",
+    "observed_concurrent_full_e14": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_refresh_e14efec40ead-20261012\\EXECUTION.json",
+      "sha256": "70ae2706bf1c3d004d8da5073473429cf9e99033dee7cbcc84e29be33a4044ac",
+      "status": "FAILED_PRESERVED",
+      "runner_pid": 33712,
+      "guard_pid": 28092,
+      "started_utc": "2026-10-12T09:51:21.513165+01:00",
+      "ended_utc": "2026-10-12T10:03:34.466506+01:00",
+      "own_price_interval": "composedpricejobs completed08:57:12.742402Z,inside actualpeer08:51:21â†’09:03:34 interval; no pause/correction orslowerpair exclusion"
+    },
+    "inherited_independent_base_contract_failure": "Currente14full timing_micro failed0xC0000005 fromquant_all_bands optionalcoded_log_energy null; Rootmapped/stereo_reconstruction_recovery repair outsideourbudgetfunction. Normalencoder caller supplies actualcodedenergy; ouractualencoder/FEC checks pass. Deliveronlynarrowbudgetdiff; do not overwriteRootrepair withfullSource. No bugrepair/sourceoverlap, retag, peerrestart or duplicatefullrun bythisowner. Root872 repair now published; current rebase preserves it. Failed e14 full and independent completed phases remain their own epoch.",
+    "recovered_owner": "/root/speed_nsq_dominant",
+    "current_composition_result": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\workers\\nsq_dominant_speed\\mean_lbrr_hint_e005\\rebased_872\\RESULT.json",
+      "sha256": "3fced308f13221fafe3ac1c95224fea36b6faaff0848629b57e1a90a37c68f27"
+    },
+    "current_base_repair": "872 nullable repair and verified CI line wrap preserved byteexact outside silk_Encode. Narrow diff Source inverse verified; no stale full-file integration.",
+    "balanced_price_prior_e14_composition": [
+      {
+        "case": {
+          "id": "two_talkers_voip",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "input_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\two_talkers_voip.wav",
+          "reference_sha256": "6e5f4ea7f78b93533c5618210b33549fb092d77b71c66e7c2ab17f1f225436c6",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 288000,
+          "seconds": 6.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "unseen stereo geometry/holdout/two_talkers_voip",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 170.3577,
+            "candidate_ms": 159.0477,
+            "official_ms": 119.1901,
+            "candidate_over_base": 0.9336102800166942,
+            "official_over_candidate": 0.7493984509049801
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 161.6298,
+            "candidate_ms": 160.8956,
+            "official_ms": 128.6498,
+            "candidate_over_base": 0.9954575208284612,
+            "official_over_candidate": 0.7995855697731945
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 162.078,
+            "candidate_ms": 156.4018,
+            "official_ms": 117.9931,
+            "candidate_over_base": 0.9649785905551649,
+            "official_over_candidate": 0.754422903061218
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 159.0981,
+            "candidate_ms": 163.1972,
+            "official_ms": 133.1133,
+            "candidate_over_base": 1.025764606868341,
+            "official_over_candidate": 0.8156592147414294
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 158.5088,
+            "candidate_ms": 156.0695,
+            "official_ms": 118.7045,
+            "candidate_over_base": 0.9846109490451003,
+            "official_over_candidate": 0.7605874305998289
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 644.3205,
+            "candidate_ms": 488.1907,
+            "official_ms": 122.1436,
+            "candidate_over_base": 0.7576830164491118,
+            "official_over_candidate": 0.25019649083851864
+          }
+        ],
+        "base_median_ms": 161.8539,
+        "candidate_median_ms": 159.97165,
+        "OFF_median_ms": 120.66685000000001,
+        "median_cost_change_fraction": -0.011629315079834335,
+        "OFF_over_candidate": 0.7543014652908813,
+        "slower_pairs": 1,
+        "calibration": "CALIBRATION id=two_talkers_voip affinity=1 priority=32768 C=2 Fs=48000 N=960 bitrate=48000 app=2048 complexity=10 VBR=1 CVBR=1 FEC=1 loss=20 DTX=0 DN=0 api=int16 samples=288000 padded_samples=288000 freshstate=1 frames=301 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      },
+      {
+        "case": {
+          "id": "speechmusic_fec_stereo48",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "input_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\quality_review\\holdout\\speech_music_stereo.wav",
+          "reference_sha256": "39a1569eea83eec6f8efd2e22af95e6f4e3a4af6a3d6be4651373d4b61dacd33",
+          "Fs": 48000,
+          "C": 2,
+          "samples": 240000,
+          "seconds": 5.0,
+          "rate": 48000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 1,
+          "loss": 20,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "source48k stereo FEC override",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 144.3488,
+            "candidate_ms": 120.7767,
+            "official_ms": 98.0699,
+            "candidate_over_base": 0.8367004090092885,
+            "official_over_candidate": 0.811993538488798
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 120.8083,
+            "candidate_ms": 117.826,
+            "official_ms": 96.5329,
+            "candidate_over_base": 0.975313782248405,
+            "official_over_candidate": 0.8192835197664353
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 119.9216,
+            "candidate_ms": 115.339,
+            "official_ms": 96.4618,
+            "candidate_over_base": 0.9617867006444211,
+            "official_over_candidate": 0.8363328969385897
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 124.6013,
+            "candidate_ms": 118.8513,
+            "official_ms": 95.6776,
+            "candidate_over_base": 0.9538528089193291,
+            "official_over_candidate": 0.8050193813614155
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 130.7748,
+            "candidate_ms": 121.6376,
+            "official_ms": 101.8103,
+            "candidate_over_base": 0.9301302697461591,
+            "official_over_candidate": 0.8369969483120351
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 149.3218,
+            "candidate_ms": 149.7557,
+            "official_ms": 103.3547,
+            "candidate_over_base": 1.0029058047786725,
+            "official_over_candidate": 0.6901553663733667
+          }
+        ],
+        "base_median_ms": 127.68805,
+        "candidate_median_ms": 119.814,
+        "OFF_median_ms": 97.3014,
+        "median_cost_change_fraction": -0.06166630315052979,
+        "OFF_over_candidate": 0.8121037608292855,
+        "slower_pairs": 1,
+        "calibration": "CALIBRATION id=speechmusic_fec_stereo48 affinity=1 priority=32768 C=2 Fs=48000 N=960 bitrate=48000 app=2048 complexity=10 VBR=1 CVBR=1 FEC=1 loss=20 DTX=0 DN=0 api=int16 samples=240000 padded_samples=240000 freshstate=1 frames=251 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      },
+      {
+        "case": {
+          "id": "music_mono",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\music_mono.wav",
+          "input_sha256": "d1bd1b6b5519c25df973399fdc25633cea13544dee4d6f884c8be62aed2a0bf6",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\music_mono.wav",
+          "reference_sha256": "d1bd1b6b5519c25df973399fdc25633cea13544dee4d6f884c8be62aed2a0bf6",
+          "Fs": 48000,
+          "C": 1,
+          "samples": 288000,
+          "seconds": 6.0,
+          "rate": 24000,
+          "app": 2049,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 0,
+          "loss": 0,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "independent existing voip corpus/music_mono",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 19.6775,
+            "candidate_ms": 23.8955,
+            "official_ms": 20.6952,
+            "candidate_over_base": 1.2143564985389403,
+            "official_over_candidate": 0.8660710175556068
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 25.0064,
+            "candidate_ms": 19.3133,
+            "official_ms": 25.088,
+            "candidate_over_base": 0.7723342824236996,
+            "official_over_candidate": 1.2990012064225172
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 18.5661,
+            "candidate_ms": 22.4617,
+            "official_ms": 22.9226,
+            "candidate_over_base": 1.2098232800642033,
+            "official_over_candidate": 1.020519372977112
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 26.2842,
+            "candidate_ms": 23.7339,
+            "official_ms": 22.559,
+            "candidate_over_base": 0.9029721277421416,
+            "official_over_candidate": 0.9504969684712585
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 26.1733,
+            "candidate_ms": 19.2774,
+            "official_ms": 26.6943,
+            "candidate_over_base": 0.7365292110662393,
+            "official_over_candidate": 1.384745868218743
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 24.4858,
+            "candidate_ms": 19.4375,
+            "official_ms": 23.5541,
+            "candidate_over_base": 0.7938274428444241,
+            "official_over_candidate": 1.2117864951768489
+          }
+        ],
+        "base_median_ms": 24.7461,
+        "candidate_median_ms": 20.9496,
+        "OFF_median_ms": 23.238349999999997,
+        "median_cost_change_fraction": -0.153418114369537,
+        "OFF_over_candidate": 1.1092502959483712,
+        "slower_pairs": 2,
+        "calibration": "CALIBRATION id=music_mono affinity=1 priority=32768 C=1 Fs=48000 N=960 bitrate=24000 app=2049 complexity=10 VBR=1 CVBR=1 FEC=0 loss=0 DTX=0 DN=0 api=int16 samples=288000 padded_samples=288000 freshstate=1 frames=301 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      },
+      {
+        "case": {
+          "id": "speech_music_mix",
+          "input": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\speech_music_mix.wav",
+          "input_sha256": "fae629c6101ee4507329be4f82d079d4ad71499b49631d476b0995a1d64fb2e2",
+          "reference": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\voip_corpus\\speech_music_mix.wav",
+          "reference_sha256": "fae629c6101ee4507329be4f82d079d4ad71499b49631d476b0995a1d64fb2e2",
+          "Fs": 48000,
+          "C": 1,
+          "samples": 177000,
+          "seconds": 3.6875,
+          "rate": 32000,
+          "app": 2048,
+          "frame_ms": 20,
+          "N": 960,
+          "complexity": 10,
+          "VBR": 1,
+          "CVBR": 1,
+          "FEC": 0,
+          "loss": 0,
+          "DTX": 0,
+          "DN": 0,
+          "encode_api": "int16",
+          "reset_ms": -1,
+          "schedule": [],
+          "family": "independent existing voip corpus/speech_music_mix",
+          "basis": "Prespecified unseen-source/control coverage, no candidate variant/score-fitting/fixture gate. Actual TOC/mode/BW/C/quality/bytes determine reachedcoverage."
+        },
+        "raw": [
+          {
+            "round": 0.0,
+            "order": "012",
+            "base_ms": 15.6942,
+            "candidate_ms": 20.0637,
+            "official_ms": 11.7149,
+            "candidate_over_base": 1.27841495584356,
+            "official_over_candidate": 0.5838853252391134
+          },
+          {
+            "round": 1.0,
+            "order": "021",
+            "base_ms": 19.6545,
+            "candidate_ms": 19.2545,
+            "official_ms": 11.9,
+            "candidate_over_base": 0.9796484265689792,
+            "official_over_candidate": 0.6180373419200706
+          },
+          {
+            "round": 2.0,
+            "order": "102",
+            "base_ms": 18.1919,
+            "candidate_ms": 15.2848,
+            "official_ms": 11.4947,
+            "candidate_over_base": 0.840198110147923,
+            "official_over_candidate": 0.7520347011410028
+          },
+          {
+            "round": 3.0,
+            "order": "120",
+            "base_ms": 15.7687,
+            "candidate_ms": 15.4031,
+            "official_ms": 15.85,
+            "candidate_over_base": 0.9768148293771839,
+            "official_over_candidate": 1.029013640111406
+          },
+          {
+            "round": 4.0,
+            "order": "201",
+            "base_ms": 16.5024,
+            "candidate_ms": 20.269,
+            "official_ms": 16.6511,
+            "candidate_over_base": 1.2282455885204575,
+            "official_over_candidate": 0.8215057476935221
+          },
+          {
+            "round": 5.0,
+            "order": "210",
+            "base_ms": 15.5358,
+            "candidate_ms": 20.142,
+            "official_ms": 11.6281,
+            "candidate_over_base": 1.2964893986791797,
+            "official_over_candidate": 0.577306126501837
+          }
+        ],
+        "base_median_ms": 16.135550000000002,
+        "candidate_median_ms": 19.659100000000002,
+        "OFF_median_ms": 11.80745,
+        "median_cost_change_fraction": 0.21837185593301744,
+        "OFF_over_candidate": 0.6006098956717244,
+        "slower_pairs": 3,
+        "calibration": "CALIBRATION id=speech_music_mix affinity=1 priority=32768 C=1 Fs=48000 N=960 bitrate=32000 app=2048 complexity=10 VBR=1 CVBR=1 FEC=0 loss=0 DTX=0 DN=0 api=int16 samples=177000 padded_samples=177600 freshstate=1 frames=186 goldsetup_untimed=1 encoder_only=1 caller_copy_floatconversion_packetcollection_included=1 lanes3=1"
+      }
+    ]
+  },
+  "root_decision": {
+    "decision": "ACCEPT_MEASURED_PRIMARY_QUALITY_INCREMENT",
+    "recorded_utc": "2026-10-12T09:45:33.742191+00:00",
+    "ready_sha256": "f1c6a5f8bf28cd05b73dc938fd71fb071f468953826113fffc3bd32a019b27d8",
+    "base_commit": "872342d06a9d71fac356d9f1741c389246c7e326",
+    "candidate_source_sha256": "578483e6419dffaff3fee88eca7b5a2ca0c6ab9aee745f5cc52f77eec87ca432",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "basis": "Material-aligned primary representation repair;23of24affectedfields improve,standard/strictFEC remainqualifiedPASS",
+    "tradeoffs": "HBE positive margin loss0.000322038 and historical inactiveVOIP median cost+21.8371856% plus allraw losses retained",
+    "cost_measurement_epoch": "Prior e14 composition, not current872/new578 price",
+    "authority": "Human accepts validated measured tradeoff with immediate same-owner remediation of all losses",
+    "immediate_next_owner": "/root/speed_ready_recovery_872",
+    "immediate_next": "Diagnose and remove inactiveVOIP addedcost and remediate HBE margin before unrelated work",
+    "duplicate_native_checks": 0,
+    "no_speed_claim": true,
+    "full_goal_met": false
+  },
+  "measurement_scope": "Source-bound affectedquality/currentcomposition proof; previouse14cost keptold, no newwholecostclaim"
+}
