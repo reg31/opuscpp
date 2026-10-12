@@ -4841,7 +4841,7 @@ struct celt_pulse_budget {
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false);
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -5099,6 +5099,13 @@ static int compute_qn(int N, int b, int offset, int pulse_cap, int stereo) {
   return root;
 }
 
+struct mono_fold_plan {
+  unsigned protect_mask = 0;
+  unsigned changed_mask = 0;
+  unsigned used_mask = 0;
+  unsigned fold_mask = 0;
+};
+
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
   opus_int32 raw_stereo_itheta;
@@ -5108,6 +5115,8 @@ struct band_ctx {
   opus_uint32 seed;
   opus_int16* decode_pulse_scratch;
   bool refine_mono;
+  bool changed_blocks;
+  mono_fold_plan* mono_plan;
 };
 
 struct split_ctx {
@@ -5352,9 +5361,11 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
       curr_bits = q == 0 ? 0 : cache[q] + 1;
       ctx->remaining_bits -= curr_bits;
     }
+    if (ctx->mono_plan != nullptr && q == 0 && gain != 0)
+      ctx->mono_plan->used_mask |= ctx->mono_plan->fold_mask;
     if (q != 0) {
       int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
+      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono, ctx->mono_plan == nullptr || (ctx->mono_plan->protect_mask & (1U << i)) != 0, ctx->mono_plan != nullptr ? &ctx->changed_blocks : nullptr) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
     } else {
       int j;
       if (ctx->resynth) {
@@ -5578,7 +5589,7 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr) {
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5613,6 +5624,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.disable_inv = disable_inv;
   ctx.resynth = resynth;
   ctx.refine_mono = encode && Y_ == nullptr;
+  ctx.mono_plan = mono_plan;
+  int fold_offset = 0;
   ctx.decode_pulse_scratch = decode_pulse_scratch;
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
@@ -5629,6 +5642,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
     unsigned y_cm;
     int last;
     ctx.i = i;
+    ctx.changed_blocks = false;
     last = (i == end - 1);
     X = X_ + M * eBands[i];
     Y = Y_ != nullptr ? Y_ + M * eBands[i] : nullptr;
@@ -5645,6 +5659,20 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       b = std::max(0, std::min(16383, raw_bits));
     } else {
       b = 0;
+    }
+    if (mono_plan != nullptr) {
+      if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || fold_offset == 0))
+        fold_offset = i;
+      mono_plan->fold_mask = 0;
+      if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[i] < 0)) {
+        const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - N);
+        const int end = begin + N;
+        for (int band = start; band < i; ++band)
+          if (M * eBands[band] < end && M * eBands[band + 1] > begin)
+            mono_plan->fold_mask |= 1U << band;
+        if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
+          mono_plan->fold_mask |= 1U << start;
+      }
     }
     if (resynth) {
       if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || lowband_offset == 0)) {
@@ -5795,9 +5823,28 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       collapse_masks[i * C] = static_cast<unsigned char>(x_cm);
       collapse_masks[i * C + C - 1] = static_cast<unsigned char>(y_cm);
     }
+    if (mono_plan != nullptr && ctx.changed_blocks)
+      mono_plan->changed_mask |= 1U << i;
     balance += pulses[i] + tell;
     update_lowband = b > (N << 3);
     ctx.avoid_split_noise = 0;
+  }
+  if (mono_plan != nullptr) {
+    for (int band = process_end; band < end; ++band) {
+      const int width = M * (eBands[band + 1] - eBands[band]);
+      if ((M * eBands[band] - width >= norm_offset || band == start + 1) && (update_lowband || fold_offset == 0))
+        fold_offset = band;
+      if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
+        const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - width);
+        const int finish = begin + width;
+        for (int source = start; source < band; ++source)
+          if (M * eBands[source] < finish && M * eBands[source + 1] > begin)
+            mono_plan->used_mask |= 1U << source;
+        if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
+          mono_plan->used_mask |= 1U << start;
+      }
+      update_lowband = 0;
+    }
   }
   *seed = ctx.seed;
 }
@@ -7680,9 +7727,33 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
-  quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                  st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                  0, st->complexity, oldBandE);
+  if (C == 1) {
+    const auto saved_coder = *enc;
+    const auto saved_seed = st->rng;
+    std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
+    copy_n_items(X, static_cast<std::size_t>(N), X + N);
+    unsigned protect_mask = 0;
+    for (int pass = 0; pass < 3; ++pass) {
+      if (pass != 0) {
+        *enc = saved_coder;
+        st->rng = saved_seed;
+        std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+        copy_n_items(X + N, static_cast<std::size_t>(N), X);
+      }
+      mono_fold_plan plan{protect_mask};
+      quant_all_bands(1, start, end, X, nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                      0, st->complexity, oldBandE, &plan);
+      const unsigned needed = plan.changed_mask & plan.used_mask;
+      if (needed == 0)
+        break;
+      protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
+    }
+  } else {
+    quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                    0, st->complexity, oldBandE);
+  }
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
   }
@@ -13106,7 +13177,7 @@ struct celt_pvq_quant_result {
   opus_val16 yy;
 };
 
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth, bool refine_mono = false) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr) -> celt_pvq_quant_result {
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
     iy_out[j] = X[j] < 0;
@@ -13210,12 +13281,12 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
       const double reduced_dot = dot - X[from];
       const double reduced_norm = norm - 2 * count + 1;
       const int from_block = B <= 1 ? 0 : celt_udiv(from, block_size);
-      for (int block = 0; block < blocks; ++block) {
-        if (B > 1 && block != from_block &&
+      for (int block = 0; block < (protect_blocks ? blocks : 1); ++block) {
+        if (protect_blocks && B > 1 && block != from_block &&
             (block_pulses[from_block] == 1 || block_pulses[block] == 0))
           continue;
-        const int begin = block * block_size;
-        const int end = std::min(N, begin + block_size);
+        const int begin = protect_blocks ? block * block_size : 0;
+        const int end = protect_blocks ? std::min(N, begin + block_size) : N;
         for (int to = begin; to < end; ++to) {
           if (to == from)
             continue;
@@ -13231,6 +13302,11 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
       }
     }
     if (donor >= 0) {
+      if (changed_blocks != nullptr && B > 1) {
+        const int from = celt_udiv(donor, block_size);
+        const int to = celt_udiv(receiver, block_size);
+        *changed_blocks |= from != to && (block_pulses[from] == 1 || block_pulses[to] == 0);
+      }
       iy_out[donor] -= 2;
       iy_out[receiver] += 2;
       y[donor] -= 2;
@@ -13348,7 +13424,7 @@ static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int
   return position < B * block_size ? 1U << celt_udiv(position, block_size) : 0;
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono) {
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks) {
   exp_rotation(X, N, 1, B, K, spread);
   if (K == 1) {
     int best_id = 0;
@@ -13363,7 +13439,7 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth);
   }
   std::array<int, celt_max_band_samples> iy;
-  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth, refine_mono);
+  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth, refine_mono, protect_blocks, changed_blocks);
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
   if (resynth) {
     exp_rotation(X, N, -1, B, K, spread);
