@@ -8230,7 +8230,17 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     st->postfilter_tapset = target_tapset;
     return;
   }
-  for (int channel = 0; channel < channels; ++channel) {
+  bool same_input = false;
+  if (channels == 2) {
+    const int history = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2;
+    const auto* first = out_syn[0] - history;
+    const auto* second = out_syn[1] - history;
+    const auto less = std::less<const celt_sig*>{};
+    same_input = !(less(first, out_syn[1] + N) && less(second, out_syn[0] + N)) &&
+                 std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
+  }
+  const int filter_channels = same_input ? 1 : channels;
+  for (int channel = 0; channel < filter_channels; ++channel) {
     st->postfilter_period = std::max<int>(st->postfilter_period, 15);
     st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
     comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
@@ -8240,6 +8250,9 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
       comb_filter(out_syn[channel] + celt_short_mdct_size, out_syn[channel] + celt_short_mdct_size, st->postfilter_period, target_period,
                   N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset,
                   celt_default_overlap);
+  }
+  if (same_input) {
+    copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
   }
   st->postfilter_period_old = st->postfilter_period;
   st->postfilter_gain_old = st->postfilter_gain;
