@@ -5480,6 +5480,7 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
 }
 
 static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, celt_norm* lowband_scratch, int fill) {
+  ctx->refine_mono = ctx->encode && ctx->i < ctx->intensity;
   unsigned cm = 0;
   int mbits, sbits;
   const int encode = ctx->encode;
