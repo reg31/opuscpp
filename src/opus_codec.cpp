@@ -18053,6 +18053,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         }
         break;
       }
+      const auto previous_upper = upper;
       if (nBits > maxBits) {
         if (lower.id < 0 && iter >= 2) {
           sEncCtrl.Lambda = std::max(sEncCtrl.Lambda * 1.5f, 1.5f);
@@ -18088,6 +18089,12 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       }
       if (lower.id < 0 || upper.id < 0) {
         gainMult_Q8 = nBits > maxBits ? std::min(1024, gainMult_Q8 * 3 / 2) : std::max(64, gainMult_Q8 * 4 / 5);
+        if (lbrr_deferred_generate && nBits > maxBits && lower.id < 0 && previous_upper.id >= 0 && upper.id >= 0 &&
+            previous_upper.bits > upper.bits && upper.multiplier > previous_upper.multiplier) {
+          const int bit_drop = previous_upper.bits - upper.bits;
+          const int step = ((nBits - maxBits) * (upper.multiplier - previous_upper.multiplier) + bit_drop - 1) / bit_drop;
+          gainMult_Q8 = static_cast<opus_int16>(std::min<int>(gainMult_Q8, upper.multiplier + std::max(1, step)));
+        }
       } else {
         gainMult_Q8 = lower.multiplier + ((upper.multiplier - lower.multiplier) * (maxBits - lower.bits)) / (upper.bits - lower.bits);
         const opus_int32 quarter_range = (upper.multiplier - lower.multiplier) >> 2;
