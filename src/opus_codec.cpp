@@ -5813,7 +5813,9 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           const bool default_first = coherent_source ? source_correlated : dist0 >= dist1;
           const auto decoded_coherent = [N](const celt_norm* left, const celt_norm* right) {
             return std::equal(left, left + N, right) ||
-                   std::equal(left, left + N, right, [](celt_norm l, celt_norm r) { return l == -r; });
+                   std::equal(left, left + N, right, [](celt_norm l, celt_norm r) {
+                     return l == -r;
+                   });
           };
           if (c2_plan != nullptr && c2_plan->band < 0 && B > 1 && !coherent_source &&
               !decoded_coherent(X_save2_storage.data(), Y_save2_storage.data()) &&
