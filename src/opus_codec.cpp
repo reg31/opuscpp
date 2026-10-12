@@ -5699,7 +5699,9 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           int nstart_bytes, nend_bytes, save_bytes;
           unsigned char* bytes_buf;
           const bool source_correlated = std::equal(X, X + N, Y);
-          const bool source_anticorrelated = std::equal(X, X + N, Y, [](celt_norm left, celt_norm right) { return left == -right; });
+          const bool source_anticorrelated = std::equal(X, X + N, Y, [](celt_norm left, celt_norm right) {
+            return left == -right;
+          });
           const bool coherent_source = source_correlated != source_anticorrelated;
           const auto left_gain = exp2f(std::min(32.f, coded_log_energy[i] + static_cast<opus_val32>(eMeans[i])));
           const auto right_gain = exp2f(std::min(32.f, coded_log_energy[celt_default_nb_ebands + i] + static_cast<opus_val32>(eMeans[i])));
