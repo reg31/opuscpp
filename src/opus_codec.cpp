@@ -5698,8 +5698,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           unsigned cm, cm2;
           int nstart_bytes, nend_bytes, save_bytes;
           unsigned char* bytes_buf;
-          opus_val16 w[2];
-          compute_channel_weights(bandE[i], bandE[celt_default_nb_ebands + i], w);
+          const auto gram = [N](const celt_norm* left, const celt_norm* right) {
+            return std::array<opus_val32, 3>{celt_inner_prod_c(left, left, N), celt_inner_prod_c(right, right, N), celt_inner_prod_c(left, right, N)};
+          };
+          const auto source_gram = gram(X, Y);
+          const auto gram_error = [&](const celt_norm* left, const celt_norm* right) {
+            const auto reconstructed = gram(left, right);
+            const auto dl = reconstructed[0] - source_gram[0];
+            const auto dr = reconstructed[1] - source_gram[1];
+            const auto dc = reconstructed[2] - source_gram[2];
+            return dl * dl + dr * dr + 2.f * dc * dc;
+          };
           cm = x_cm | y_cm;
           ec_save = *ec;
           ctx_save = ctx;
@@ -5707,7 +5716,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
           ctx.theta_round = -1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
-          dist0 = w[0] * celt_inner_prod_c(X_save_storage.data(), X, N) + w[1] * celt_inner_prod_c(Y_save_storage.data(), Y, N);
+          dist0 = -gram_error(X, Y);
           cm2 = x_cm;
           ec_save2 = *ec;
           ctx_save2 = ctx;
@@ -5727,7 +5736,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(Y_save_storage.data(), static_cast<std::size_t>(N), Y);
           ctx.theta_round = 1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
-          dist1 = w[0] * celt_inner_prod_c(X_save_storage.data(), X, N) + w[1] * celt_inner_prod_c(Y_save_storage.data(), Y, N);
+          dist1 = -gram_error(X, Y);
           if (dist0 >= dist1) {
             x_cm = cm2;
             *ec = ec_save2;
