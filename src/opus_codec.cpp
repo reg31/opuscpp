@@ -5698,6 +5698,9 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           unsigned cm, cm2;
           int nstart_bytes, nend_bytes, save_bytes;
           unsigned char* bytes_buf;
+          const bool source_correlated = std::equal(X, X + N, Y);
+          const bool source_anticorrelated = std::equal(X, X + N, Y, [](celt_norm left, celt_norm right) { return left == -right; });
+          const bool coherent_source = source_correlated != source_anticorrelated;
           const auto left_gain = exp2f(std::min(32.f, coded_log_energy[i] + static_cast<opus_val32>(eMeans[i])));
           const auto right_gain = exp2f(std::min(32.f, coded_log_energy[celt_default_nb_ebands + i] + static_cast<opus_val32>(eMeans[i])));
           const auto inverse_scale = 1.f / std::max({bandE[i], bandE[celt_default_nb_ebands + i], left_gain, right_gain});
@@ -5761,7 +5764,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           ctx.theta_round = 1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
           dist1 = -gram_error(X, Y);
-          if (dist0 >= dist1) {
+          if (coherent_source ? source_correlated : dist0 >= dist1) {
             x_cm = cm2;
             *ec = ec_save2;
             ctx = ctx_save2;
