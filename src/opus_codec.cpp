@@ -5577,7 +5577,7 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity) {
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5698,25 +5698,32 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           unsigned cm, cm2;
           int nstart_bytes, nend_bytes, save_bytes;
           unsigned char* bytes_buf;
-          const auto gram = [N, B](const celt_norm* left, const celt_norm* right) {
+          const auto left_gain = exp2f(std::min(32.f, coded_log_energy[i] + static_cast<opus_val32>(eMeans[i])));
+          const auto right_gain = exp2f(std::min(32.f, coded_log_energy[celt_default_nb_ebands + i] + static_cast<opus_val32>(eMeans[i])));
+          const auto inverse_scale = 1.f / std::max({bandE[i], bandE[celt_default_nb_ebands + i], left_gain, right_gain});
+          const auto gram = [N, B](const celt_norm* left, const celt_norm* right, opus_val32 left_amplitude, opus_val32 right_amplitude) {
             std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> result{};
             if (B == 1) {
-              result[0] = {celt_inner_prod_c(left, left, N), celt_inner_prod_c(right, right, N), celt_inner_prod_c(left, right, N)};
+              result[0] = {left_amplitude * left_amplitude * celt_inner_prod_c(left, left, N),
+                           right_amplitude * right_amplitude * celt_inner_prod_c(right, right, N),
+                           left_amplitude * right_amplitude * celt_inner_prod_c(left, right, N)};
             } else {
               for (int block = 0; block < B; ++block) {
                 auto& value = result[block];
                 for (int j = block; j < N; j += B) {
-                  value[0] += left[j] * left[j];
-                  value[1] += right[j] * right[j];
-                  value[2] += left[j] * right[j];
+                  const auto l = left_amplitude * left[j];
+                  const auto r = right_amplitude * right[j];
+                  value[0] += l * l;
+                  value[1] += r * r;
+                  value[2] += l * r;
                 }
               }
             }
             return result;
           };
-          const auto source_gram = gram(X, Y);
+          const auto source_gram = gram(X, Y, inverse_scale * bandE[i], inverse_scale * bandE[celt_default_nb_ebands + i]);
           const auto gram_error = [&](const celt_norm* left, const celt_norm* right) {
-            const auto reconstructed = gram(left, right);
+            const auto reconstructed = gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
             opus_val32 error = 0;
             for (int block = 0; block < B; ++block) {
               const auto dl = reconstructed[block][0] - source_gram[block][0];
@@ -7663,7 +7670,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   quant_all_bands(1, start, end, X, C == 2 ? X + N : nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                   st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                  0, st->complexity);
+                  0, st->complexity, oldBandE);
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
   }
