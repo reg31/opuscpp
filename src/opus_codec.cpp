@@ -5590,7 +5590,7 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr) {
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, int complexity, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false) {
   int i;
   opus_int32 remaining_bits;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -5600,7 +5600,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   int update_lowband = 1;
   int C = Y_ != nullptr ? 2 : 1;
   const int theta_rdo = encode && Y_ != nullptr && !dual_stereo;
-  const int resynth = !encode || theta_rdo;
+  const int resynth = !encode || theta_rdo || mono_resynth;
   struct band_ctx ctx;
   M = 1 << LM;
   B = shortBlocks ? M : 1;
@@ -5631,7 +5631,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
   ctx.raw_stereo_itheta = 0;
-  const int process_end = encode ? std::min(end, codedBands) : end;
+  const int process_end = encode && !mono_resynth ? std::min(end, codedBands) : end;
   for (i = start; i < process_end; i++) {
     opus_int32 tell;
     int b, N;
@@ -7565,6 +7565,43 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
+  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
+  const bool trim_rdo = C == 1 && shortBlocks == 0 && !silence;
+  constexpr int trim_byte_slot = 1280;
+  static_assert((celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period) - 2 * celt_max_frame_samples) * sizeof(celt_sig) >=
+                2 * trim_byte_slot + 3 * celt_max_channels * celt_default_nb_ebands * sizeof(celt_glog));
+  auto* trim_header = reinterpret_cast<unsigned char*>(freq + 2 * N);
+  auto* trim_packet = trim_header + trim_byte_slot;
+  auto* trim_energy = reinterpret_cast<celt_glog*>(trim_header + 2 * trim_byte_slot);
+  auto* trim_error = trim_energy + celt_max_channels * nbEBands;
+  auto* trim_offset = trim_error + celt_max_channels * nbEBands;
+  auto trim_winner_state = energy_stage_state;
+  auto trim_winner_coder = energy_stage_coder;
+  int trim_baseline = -1, trim_packet_bytes = 0;
+  opus_int32 trim_vbr_count = 0, trim_vbr_reservoir = 0, trim_vbr_drift = 0, trim_vbr_offset = 0;
+  double trim_best_error = std::numeric_limits<double>::infinity();
+  if (trim_rdo)
+    std::memcpy(trim_header, energy_stage_buffer.data(), enc->storage);
+  for (int trim_trial = 0; trim_trial < (trim_rdo ? 3 : 1); ++trim_trial) {
+    if (trim_trial != 0 && trim_baseline < 0)
+      break;
+    if ((trim_trial == 1 && trim_baseline <= 0) || (trim_trial == 2 && trim_baseline >= 10))
+      continue;
+    if (trim_trial != 0) {
+      *st = energy_stage_state;
+      *enc = energy_stage_coder;
+      std::memcpy(enc->buf, trim_header, enc->storage);
+      std::memcpy(energy_stage_buffer.data(), trim_header, enc->storage);
+      std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
+      std::copy_n(energy_stage_tf.data(), end, tf_res.data());
+      std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+      copy_n_items(X + N, static_cast<std::size_t>(N), X);
+      nbCompressedBytes = energy_stage_bytes;
+      nbAvailableBytes = energy_stage_available;
+      total_bits = energy_stage_total_bits;
+      tell = energy_stage_tell;
+      energy_rounding.fill(0.f);
+    }
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -7612,6 +7649,11 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
       if (!hybrid && C == 2) {
         alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
+      }
+      if (trim_rdo) {
+        if (trim_baseline < 0)
+          trim_baseline = alloc_trim;
+        alloc_trim = std::clamp(trim_baseline + (trim_trial == 1 ? -1 : trim_trial == 2 ? 1 : 0), 0, 10);
       }
       ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
       tell = ec_tell_frac(enc);
@@ -7670,6 +7712,14 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
         }
       }
       nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
+      if (trim_rdo && trim_trial != 0) {
+        nbCompressedBytes = trim_packet_bytes;
+        nbAvailableBytes = trim_packet_bytes;
+        st->vbr_count = trim_vbr_count;
+        st->vbr_reservoir = trim_vbr_reservoir;
+        st->vbr_drift = trim_vbr_drift;
+        st->vbr_offset = trim_vbr_offset;
+      }
       ec_enc_shrink(enc, nbCompressedBytes);
     }
     opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
@@ -7709,7 +7759,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     tell = energy_stage_tell;
   }
 
-  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
+  source_error_offset.fill(0.f);
   if (spread_decision == 3 && shortBlocks == 0) {
     for (int channel = 0; channel < C; ++channel) {
       if (!std::isfinite(noise_covariance[channel]) || !celt_noise_gaussian_source_supported(pcm, N, CC, C, channel))
@@ -7744,7 +7794,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       mono_fold_plan plan{protect_mask};
       quant_all_bands(1, start, end, X, nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                       st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                      0, st->complexity, oldBandE, &plan);
+                      0, st->complexity, oldBandE, &plan, trim_rdo);
       const unsigned needed = plan.changed_mask & plan.used_mask;
       if (needed == 0)
         break;
@@ -7760,6 +7810,47 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   }
   process_energy_finalise<true>(start, end, oldBandE, error, fine_quant.data(), fine_priority.data(), nbCompressedBytes * 8 - ec_tell(enc),
                                 enc, C);
+
+    if (!trim_rdo)
+      break;
+    if (trim_trial == 0) {
+      trim_packet_bytes = nbCompressedBytes;
+      trim_vbr_count = st->vbr_count;
+      trim_vbr_reservoir = st->vbr_reservoir;
+      trim_vbr_drift = st->vbr_drift;
+      trim_vbr_offset = st->vbr_offset;
+    }
+    auto sealed_coder = *enc;
+    ec_enc_done(&sealed_coder);
+    double distortion = 0;
+    for (int band = start; band < end; ++band) {
+      const auto gain = exp2f(std::min(32.f, oldBandE[band] + static_cast<opus_val32>(eMeans[band])));
+      for (int index = M * eBands[band]; index < M * eBands[band + 1]; ++index) {
+        const double target = static_cast<double>(bandE[band]) * X[N + index];
+        const double decoded = static_cast<double>(gain) * X[index];
+        const double delta = target - decoded;
+        distortion += delta * delta;
+      }
+    }
+    if (trim_trial == 0 || (sealed_coder.error == 0 && distortion < trim_best_error)) {
+      trim_best_error = distortion;
+      trim_winner_state = *st;
+      trim_winner_coder = *enc;
+      std::memcpy(trim_packet, enc->buf, enc->storage);
+      std::copy_n(oldBandE, C * nbEBands, trim_energy);
+      std::copy_n(error, C * nbEBands, trim_error);
+      std::copy_n(source_error_offset.data(), C * nbEBands, trim_offset);
+    }
+  }
+  if (trim_rdo) {
+    *st = trim_winner_state;
+    *enc = trim_winner_coder;
+    nbCompressedBytes = trim_packet_bytes;
+    std::memcpy(enc->buf, trim_packet, enc->storage);
+    std::copy_n(trim_energy, C * nbEBands, oldBandE);
+    std::copy_n(trim_error, C * nbEBands, error);
+    std::copy_n(trim_offset, C * nbEBands, source_error_offset.data());
+  }
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
