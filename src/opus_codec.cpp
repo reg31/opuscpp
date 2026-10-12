@@ -639,11 +639,15 @@ struct OpusDecoder;
 }
 
 [[nodiscard]] constexpr auto bits_to_bitrate_for_frame_rate(opus_int32 bits, int frame_rate) noexcept -> opus_int32 {
-  return frame_rate == 16 ? bits * 100 / 6 : frame_rate == 12 ? bits * 100 / 8 : frame_rate == 8 ? bits * 100 / 12 : bits * frame_rate;
+  return frame_rate == 16 ? bits * 100 / 6 : frame_rate == 12 ? bits * 100 / 8
+                                         : frame_rate == 8    ? bits * 100 / 12
+                                                              : bits * frame_rate;
 }
 
 [[nodiscard]] constexpr auto bitrate_to_bits_for_frame_rate(opus_int32 bitrate, int frame_rate) noexcept -> opus_int32 {
-  return frame_rate == 16 ? bitrate * 6 / 100 : frame_rate == 12 ? bitrate * 8 / 100 : frame_rate == 8 ? bitrate * 12 / 100 : bitrate / frame_rate;
+  return frame_rate == 16 ? bitrate * 6 / 100 : frame_rate == 12 ? bitrate * 8 / 100
+                                            : frame_rate == 8    ? bitrate * 12 / 100
+                                                                 : bitrate / frame_rate;
 }
 
 struct vbr_frame_budget final {
