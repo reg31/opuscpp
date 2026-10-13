@@ -12783,7 +12783,7 @@ static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* old
   return std::min(200.0f, dist);
 }
 
-template <bool Encode>
+template <bool Encode, bool FullBudget = false>
 static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel, const celt_glog* rounding_bias) {
   std::array<opus_val32, 2> prev{};
   int badness = 0;
@@ -12809,27 +12809,32 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
         }
         qi0 = qi;
-        tell = ec_tell(coder);
-        const int bits_left = budget - tell - 3 * C * (end - i);
-        if (i != start && bits_left < 30) {
-          if (bits_left < 24) {
-            qi = std::min(1, qi);
-          }
-          if (bits_left < 16) {
-            qi = std::max(-1, qi);
-          }
-        }
-        if (budget - tell >= 15) {
+        if constexpr (FullBudget) {
           const int probability_index = 2 * std::min(i, 20);
           ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
-        } else if (budget - tell >= 2) {
-          qi = std::clamp(qi, -1, 1);
-          ec_enc_icdf(coder, 2 * qi ^ -(qi < 0), shared_three_step_icdf.data(), 2);
-        } else if (budget - tell >= 1) {
-          qi = std::min(0, qi);
-          ec_enc_bit_logp(coder, -qi, 1);
         } else {
-          qi = -1;
+          tell = ec_tell(coder);
+          const int bits_left = budget - tell - 3 * C * (end - i);
+          if (i != start && bits_left < 30) {
+            if (bits_left < 24) {
+              qi = std::min(1, qi);
+            }
+            if (bits_left < 16) {
+              qi = std::max(-1, qi);
+            }
+          }
+          if (budget - tell >= 15) {
+            const int probability_index = 2 * std::min(i, 20);
+            ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
+          } else if (budget - tell >= 2) {
+            qi = std::clamp(qi, -1, 1);
+            ec_enc_icdf(coder, 2 * qi ^ -(qi < 0), shared_three_step_icdf.data(), 2);
+          } else if (budget - tell >= 1) {
+            qi = std::min(0, qi);
+            ec_enc_bit_logp(coder, -qi, 1);
+          } else {
+            qi = -1;
+          }
         }
         error[index] = residual - qi;
         badness += std::abs(qi0 - qi);
@@ -12858,6 +12863,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   const opus_int32 intra_bias = two_pass ? static_cast<opus_int32>((budget * *delayedIntra * loss_rate) / (C * 512)) : 0;
   const opus_val32 new_distortion = loss_distortion(eBands, oldEBands, start, end, C);
   const opus_uint32 tell = ec_tell(enc);
+  const bool full_budget = C == 2 && static_cast<opus_int64>(budget) - tell >= 18LL * C * (end - start) + 33;
   if (tell + 3 > budget) {
     two_pass = 0;
     intra = 0;
@@ -12874,7 +12880,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   int badness1 = 0;
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
-    badness1 = process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
+    badness1 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, old_intra.data(), budget, tell,
+                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
+                          : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
                                            e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
     std::copy_n(enc->buf + nstart_bytes, enc->offs - nstart_bytes, intra_bytes.data());
   }
@@ -12882,7 +12890,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
     const ec_enc enc_intra = *enc;
     const int tell_intra = static_cast<int>(ec_tell_frac(enc));
     *enc = enc_start;
-    const int badness2 = process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
+    const int badness2 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, oldEBands, budget, tell,
+                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias)
+                          : process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
                                                      e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias);
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
