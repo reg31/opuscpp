@@ -12881,9 +12881,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
     badness1 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, old_intra.data(), budget, tell,
-                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
-                          : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
-                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
+                                                               e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
+                           : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
+                                                         e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
     std::copy_n(enc->buf + nstart_bytes, enc->offs - nstart_bytes, intra_bytes.data());
   }
   if (!intra) {
@@ -12891,9 +12891,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
     const int tell_intra = static_cast<int>(ec_tell_frac(enc));
     *enc = enc_start;
     const int badness2 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, oldEBands, budget, tell,
-                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias)
-                          : process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
-                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias);
+                                                                         e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias)
+                                     : process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
+                                                                   e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias);
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
       *enc = enc_intra;
