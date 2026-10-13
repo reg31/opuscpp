@@ -4003,7 +4003,15 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
     const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
-    hp_cutoff(pcm, cutoff_Hz, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
+    const opus_int32 Fc_Q19 = static_cast<opus_int16>(2471) * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
+    const opus_int32 r_Q28 = (1 << 28) - 471 * Fc_Q19;
+    const opus_int32 r_Q22 = r_Q28 >> 6;
+    const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
+    const opus_int32 A_Q28[2]{static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * (fc_squared_Q22 - (2 << 22))) >> 16),
+                            static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
+    constexpr float inv28 = 1.f / (1 << 28);
+    const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
+    const opus_val32 r = r_Q28 * inv28;
     opus_val16 restoration = 0.f;
     if (st->channels == 1) {
       auto low_band_keep = opus_val16{0};
@@ -4030,11 +4038,16 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         state.hp_dc_memory = 0.f;
       }
       float raw_memory = state.raw_dc_memory, hp_memory = state.hp_dc_memory;
+      opus_val32 hp0 = st->hp_mem[2 * channel], hp1 = st->hp_mem[2 * channel + 1];
       const opus_val32 step = (state.cond_score - state.cond_mix) / static_cast<opus_val32>(frame_size);
       opus_val32 mix = state.cond_mix;
       for (int i = 0; i < frame_size; ++i) {
         const int index = i * st->channels + channel;
-        const float raw = pcm[index], hp = frame_pcm[index];
+        const float raw = pcm[index];
+        const opus_val32 filtered_input = r * raw;
+        const opus_val32 hp = hp0 + filtered_input;
+        hp0 = hp1 - hp * A[0] - 2.f * filtered_input;
+        hp1 = -hp * A[1] + filtered_input + 1e-30f;
         float protected_sample = hp;
         if (st->channels == 1) {
           const float raw_ac = raw - raw_memory;
@@ -4047,6 +4060,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         mix += step;
         frame_pcm[index] = raw + mix * (protected_sample - raw);
       }
+      st->hp_mem[2 * channel] = zero_tiny_float_mem(hp0);
+      st->hp_mem[2 * channel + 1] = zero_tiny_float_mem(hp1);
       state.cond_mix = state.cond_score;
       state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
       state.hp_dc_memory = zero_tiny_float_mem(hp_memory);
