@@ -18006,7 +18006,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     silk_LPC_analysis_filter_FLP(residual, psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
     double best_energy = silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length) +
                          silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length);
-    for (int k = 3; k >= 0; --k) {
+    for (int k = std::equal(NLSF_Q15, NLSF_Q15 + order, psEnc->sCmn.prev_NLSFq_Q15.begin()) ? -1 : 3; k >= 0; --k) {
       silk_interpolate(std::span<opus_int16>{interpolated, static_cast<std::size_t>(order)},
                        std::span<const opus_int16>{psEnc->sCmn.prev_NLSFq_Q15.data(), static_cast<std::size_t>(order)},
                        std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k);
