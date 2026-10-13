@@ -13387,22 +13387,35 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
       norm += count * count;
     }
     double best_dot = dot, best_norm = norm;
+    const int groups = protect_blocks ? blocks : 1;
+    std::array<int, 1 << (celt_max_lm + 1)> maximum;
+    for (int group = 0; group < groups; ++group) {
+      const int begin = protect_blocks ? group * block_size : 0;
+      const int end = protect_blocks ? std::min(N, begin + block_size) : N;
+      int best = begin;
+      double best_gradient = norm * X[begin] - dot * (iy_out[begin] >> 1);
+      for (int index = begin + 1; index < end; ++index) {
+        const double gradient = norm * X[index] - dot * (iy_out[index] >> 1);
+        if (gradient > best_gradient) {
+          best_gradient = gradient;
+          best = index;
+        }
+      }
+      maximum[group] = best;
+    }
     int donor = -1, receiver = -1;
-    for (int from = 0; from < N; ++from) {
-      const int count = iy_out[from] >> 1;
-      if (count == 0)
-        continue;
-      const double reduced_dot = dot - X[from];
-      const double reduced_norm = norm - 2 * count + 1;
-      const int from_block = B <= 1 ? 0 : celt_udiv(from, block_size);
-      for (int block = 0; block < (protect_blocks ? blocks : 1); ++block) {
-        if (protect_blocks && B > 1 && block != from_block &&
-            (block_pulses[from_block] == 1 || block_pulses[block] == 0))
+    for (int from_group = 0; from_group < groups; ++from_group) {
+      const int begin = protect_blocks ? from_group * block_size : 0;
+      const int end = protect_blocks ? std::min(N, begin + block_size) : N;
+      for (int from = begin; from < end; ++from) {
+        const int count = iy_out[from] >> 1;
+        if (count == 0)
           continue;
-        const int begin = protect_blocks ? block * block_size : 0;
-        const int end = protect_blocks ? std::min(N, begin + block_size) : N;
-        for (int to = begin; to < end; ++to) {
-          if (to == from)
+        const double reduced_dot = dot - X[from];
+        const double reduced_norm = norm - 2 * count + 1;
+        for (int to_group = 0; to_group < groups; ++to_group) {
+          const int to = maximum[to_group];
+          if (from == to || (protect_blocks && B > 1 && from_group != to_group && (block_pulses[from_group] == 1 || block_pulses[to_group] == 0)))
             continue;
           const double next_dot = reduced_dot + X[to];
           const double next_norm = reduced_norm + 2 * (iy_out[to] >> 1) + 1;
@@ -13415,16 +13428,39 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
         }
       }
     }
+    int moved = donor >= 0 ? 1 : 0;
     if (donor >= 0) {
+      int limit = iy_out[donor] >> 1;
+      if (protect_blocks && B > 1 && celt_udiv(donor, block_size) != celt_udiv(receiver, block_size))
+        limit = std::min(limit, block_pulses[celt_udiv(donor, block_size)] - 1);
+      const double delta = static_cast<double>(X[receiver]) - X[donor];
+      const int count_delta = (iy_out[receiver] >> 1) - (iy_out[donor] >> 1);
+      const double denominator = 2 * dot - delta * count_delta;
+      const double stationary = denominator > 0 ? std::clamp((delta * norm - dot * count_delta) / denominator, 0., static_cast<double>(limit)) : static_cast<double>(limit);
+      const int left = static_cast<int>(stationary);
+      const std::array<int, 3> moves{left, std::min(limit, left + 1), limit};
+      for (const int count : moves) {
+        if (count == 0)
+          continue;
+        const double next_dot = dot + count * delta;
+        const double next_norm = norm + 2 * count * count_delta + 2 * count * count;
+        if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
+          best_dot = next_dot;
+          best_norm = next_norm;
+          moved = count;
+        }
+      }
+    }
+    if (moved != 0) {
       if (changed_blocks != nullptr && B > 1) {
         const int from = celt_udiv(donor, block_size);
         const int to = celt_udiv(receiver, block_size);
-        *changed_blocks |= from != to && (block_pulses[from] == 1 || block_pulses[to] == 0);
+        *changed_blocks |= from != to && (block_pulses[from] == moved || block_pulses[to] == 0);
       }
-      iy_out[donor] -= 2;
-      iy_out[receiver] += 2;
-      y[donor] -= 2;
-      y[receiver] += 2;
+      iy_out[donor] -= 2 * moved;
+      iy_out[receiver] += 2 * moved;
+      y[donor] -= 2 * moved;
+      y[receiver] += 2 * moved;
       xy = static_cast<opus_val32>(best_dot);
       yy = static_cast<opus_val16>(best_norm);
       if (event_rank) {
