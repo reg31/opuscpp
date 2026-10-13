@@ -6613,6 +6613,15 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     }
     for (i = start; i < end; i++) {
       int width, boost, boost_bits;
+      if (C == 1 && st->channels == 1 && i > start && i + 1 < end) {
+        const int left_center = eBands[i - 1] + eBands[i];
+        const int center = eBands[i] + eBands[i + 1];
+        const int right_center = eBands[i + 1] + eBands[i + 2];
+        const celt_glog bracket =
+            ((right_center - center) * bandLogE[i - 1] + (center - left_center) * bandLogE[i + 1]) /
+            (right_center - left_center);
+        follower[i] = std::max(follower[i], std::max(0.f, bandLogE[i] - bracket));
+      }
       follower[i] = std::min(follower[i], 4.0f);
       width = C * (eBands[i + 1] - eBands[i]) << LM;
       if (width < 6) {
