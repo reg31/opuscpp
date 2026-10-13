@@ -15070,14 +15070,19 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
       r_Q10 = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
-      const auto candidates = silk_quantize_candidate_pair<FixedPulses>(r_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
+      lazy[k] = {LPC_pred_Q14, n_AR_Q14, n_LF_Q14, r_Q10, psDD->RD_Q10};
+    }
+    for (k = 0; k < nStatesDelayedDecision; ++k) {
+      auto& context = lazy[k];
+      psSS = psSampleState[k].data();
+      const auto candidates = silk_quantize_candidate_pair<FixedPulses>(context.alt_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
       psSS[0].Q_Q10 = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
-      psSS[0].RD_Q10 = psDD->RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
-      lazy[k] = {LPC_pred_Q14, n_AR_Q14, n_LF_Q14, first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10,
-                 psDD->RD_Q10 + (first_is_q0 ? candidate1 : candidate0)};
+      psSS[0].RD_Q10 = context.alt_RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
+      context.alt_Q10 = first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10;
+      context.alt_RD_Q10 += first_is_q0 ? candidate1 : candidate0;
     }
     *smpl_buf_idx = silk_decision_ring_dec(*smpl_buf_idx);
     last_smple_idx = silk_decision_ring_add(*smpl_buf_idx, decisionDelay);
