@@ -4008,7 +4008,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const opus_int32 r_Q22 = r_Q28 >> 6;
     const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
     const opus_int32 A_Q28[2]{static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * (fc_squared_Q22 - (2 << 22))) >> 16),
-                            static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
+                              static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
     constexpr float inv28 = 1.f / (1 << 28);
     const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
     const opus_val32 r = r_Q28 * inv28;
