@@ -11914,38 +11914,25 @@ static void classifier_compute_dense(float* output, const float* input, const op
 static void classifier_compute_gru(float* state, const float* input, const opus_int8* weights,
                                    const opus_int8* recur_weights, const opus_int8* bias,
                                    int nb_inputs, int nb_neurons) {
-  float tmp[32];
-  float z[32];
-  float r[32];
-  float h[32];
+  std::array<float, 96> gates;
+  std::array<float, 32> tmp;
   const int stride = 3 * nb_neurons;
-  for (int i = 0; i < nb_neurons; ++i) {
-    z[i] = bias[i];
-  }
-  classifier_gemm_accum(z, weights, nb_neurons, nb_inputs, stride, input);
-  classifier_gemm_accum(z, recur_weights, nb_neurons, nb_neurons, stride, state);
-  for (int i = 0; i < nb_neurons; ++i) {
+  auto* z = gates.data();
+  auto* r = z + nb_neurons;
+  auto* h = r + nb_neurons;
+  for (int i = 0; i < stride; ++i)
+    gates[i] = bias[i];
+  classifier_gemm_accum(gates.data(), weights, stride, nb_inputs, stride, input);
+  classifier_gemm_accum(gates.data(), recur_weights, 2 * nb_neurons, nb_neurons, stride, state);
+  for (int i = 0; i < nb_neurons; ++i)
     z[i] = classifier_sigmoid_approx(classifier_weights_scale * z[i]);
-  }
-  for (int i = 0; i < nb_neurons; ++i) {
-    r[i] = bias[nb_neurons + i];
-  }
-  classifier_gemm_accum(r, &weights[nb_neurons], nb_neurons, nb_inputs, stride, input);
-  classifier_gemm_accum(r, &recur_weights[nb_neurons], nb_neurons, nb_neurons, stride, state);
-  for (int i = 0; i < nb_neurons; ++i) {
+  for (int i = 0; i < nb_neurons; ++i)
     r[i] = classifier_sigmoid_approx(classifier_weights_scale * r[i]);
-  }
-  for (int i = 0; i < nb_neurons; ++i) {
-    h[i] = bias[2 * nb_neurons + i];
-  }
-  for (int i = 0; i < nb_neurons; ++i) {
+  for (int i = 0; i < nb_neurons; ++i)
     tmp[i] = state[i] * r[i];
-  }
-  classifier_gemm_accum(h, &weights[2 * nb_neurons], nb_neurons, nb_inputs, stride, input);
-  classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp);
-  for (int i = 0; i < nb_neurons; ++i) {
+  classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp.data());
+  for (int i = 0; i < nb_neurons; ++i)
     state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
-  }
 }
 
 static bool classical_leak_is_digital_silence(const float* overlap, const float* block, int lsb_depth) {
