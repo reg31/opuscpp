@@ -840,7 +840,7 @@ static int ref_opus_packet_get_samples_per_frame(const unsigned char* data, opus
   return frame_shift == 3 ? static_cast<int>(sample_rate * 60 / 1000) : static_cast<int>(sample_rate * (1 << frame_shift) / 100);
 }
 
-static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len, const unsigned char* frames[48], opus_int16 size[48], int* payload_offset) {
+static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len, opus_int16 size[48], int& payload_offset) {
   const unsigned char* data0 = data;
   if (size == nullptr || len < 0) {
     return -1;
@@ -921,15 +921,7 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     return -4;
   }
   sizes[count - 1] = static_cast<opus_int16>(last_size);
-  if (payload_offset) {
-    *payload_offset = static_cast<int>(data - data0);
-  }
-  if (frames != nullptr) {
-    for (int i = 0; i < count; ++i) {
-      frames[i] = data;
-      data += sizes[i];
-    }
-  }
+  payload_offset = static_cast<int>(data - data0);
   return count;
 }
 
@@ -1526,7 +1518,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
   const int packet_stream_channels = (data[0] & 0x4) != 0 ? 2 : 1;
   std::array<opus_int16, 48> frame_lengths;
   int payload_offset;
-  const int frame_count = ref_opus_packet_parse_impl(data, len, nullptr, frame_lengths.data(), &payload_offset);
+  const int frame_count = ref_opus_packet_parse_impl(data, len, frame_lengths.data(), payload_offset);
   if (frame_count < 0) {
     return frame_count;
   }
