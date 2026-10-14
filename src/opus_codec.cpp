@@ -18070,7 +18070,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
 template <std::size_t Lanes>
   requires(Lanes == 1 || Lanes == 4)
 static inline void silk_warped_autocorrelation_FLP(std::array<float*, Lanes> corr, std::array<const float*, Lanes> input,
-                                                  const float warping, const int length, const int order) {
+                                                   const float warping, const int length, const int order) {
   std::array<std::array<double, Lanes>, 24 + 1> state{};
   std::array<std::array<double, Lanes>, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
@@ -18168,13 +18168,13 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   }
   if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
     silk_warped_autocorrelation_FLP<4>({auto_corr[0], auto_corr[1], auto_corr[2], auto_corr[3]},
-                                      {x_windowed[0], x_windowed[1], x_windowed[2], x_windowed[3]}, warping,
-                                      psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
+                                       {x_windowed[0], x_windowed[1], x_windowed[2], x_windowed[3]}, warping,
+                                       psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
   } else {
     for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
       if (psEnc->sCmn.warping_Q16 > 0) {
         silk_warped_autocorrelation_FLP<1>({auto_corr[k]}, {x_windowed[k]}, warping, psEnc->sCmn.shapeWinLength,
-                                          psEnc->sCmn.shapingLPCOrder);
+                                           psEnc->sCmn.shapingLPCOrder);
       } else {
         silk_autocorrelation_FLP(auto_corr[k], x_windowed[k], psEnc->sCmn.shapeWinLength,
                                  psEnc->sCmn.shapingLPCOrder + 1);
