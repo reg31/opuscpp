@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f293e",
-  "source_commit": "293e02d414ee081ce611b5294193659ecbe39dbb",
-  "source_blob": "b35afea1eade00104ef29e29f0bb18a66dbcfaff",
-  "source_sha256": "6b6bc9828ffa982c96a0cda3018f29b736a9fd81654b5077a61f9530f71c8aa0",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fc82d",
+  "source_commit": "c82d0c7e6a4ed6f45eb564041e43d3e3dfc6d51f",
+  "source_blob": "22a1face1e530639ecd7452026165010a9b5b40a",
+  "source_sha256": "5e180d1275db7e3a63e30cbe639e47b74e977ff623dc3d204193161bf7909d16",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "293e02d414ee081ce611b5294193659ecbe39dbb",
+  "tests_commit": "c82d0c7e6a4ed6f45eb564041e43d3e3dfc6d51f",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -64,14 +64,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f293e\\build\\official_compare_report\\codex_native_celt_293e02d414ee_20261013\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f293e\\build\\official_compare_report\\codex_native_celt_293e02d414ee_20261013\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fc82d\\build\\official_compare_report\\codex_native_celt_c82d0c7e6a4e_20261014\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fc82d\\build\\official_compare_report\\codex_native_celt_c82d0c7e6a4e_20261014\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "67192d2b85480cdf215c1d0673668292b69433567b8940a5dca89e7602b0b2b0",
   "quality_driver_diff_sha256": "ea0ee8742d476a4777421b0094071f6adf2317040a8361e0745615cf95bdc2f3",
   "quality_driver_transformation": "exactly two std::setprecision(8) -> std::setprecision(17) replacements; pinned public test copy remains unchanged",
-  "quality_binary_sha256": "9e1058d486dc4bf70c85bd960fafdc5c3d0b55dbfb38c4283131a36be712200b",
+  "quality_binary_sha256": "6109b3d140a65c3bc136898848e6f8daf4aabd01e469ee7cec556d94a2d8f5a2",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -84,7 +84,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f293e\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fc82d\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "c59659640b6345edb82f0a3836b085747635ca7146331923420c9020aa837e12",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -98,7 +98,7 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 891,
+  "quality_negative_fields": 898,
   "acceptance_status": "pass",
   "acceptance_counts": [
     18,
@@ -108,12 +108,12 @@
   ],
   "standard_fec_acceptance": "PASS",
   "measurement_date": "2026-10-14",
-  "completed_utc": "2026-10-13T23:15:15.696478+00:00",
+  "completed_utc": "2026-10-14T14:21:28.766150+00:00",
   "root_runner_sha256": "2c6f23aa102e9790a33e9c05dd3f7589053f9c1956f4a17f6fbd39c8c1e1f2ef",
   "phase_runner_sha256": "92267952694b7290598bb88ba617598759d3750b1b55fc104d7dc8964e8f5cf1",
-  "input_manifest_sha256": "b97643a6b218e290819189b3cfc42c393ecefef350e41790d4cab6baa9203354",
+  "input_manifest_sha256": "4ce48506fcf11f85dd31fcf1729555518173bcc25271005a9417915398de31f5",
   "harness_sha256": "b71011a03c8631dfd8debd09a1f96f71607c0a5586c5beb2db3d3395179a6e6f",
-  "binary_sha256": "e915c718bd6727f9d21e4fb0f6d1fb05005599e05a424c9f30d0c7f6329a9df1",
+  "binary_sha256": "305f4745cd854ad1e02248f431c0210b2787e238a2c3ec70c96cd380bcdadc2e",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,
