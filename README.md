@@ -63,15 +63,15 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.960x | 1.896x | +0.0022 | -0.0011 | 16.664 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 0.936x | 1.310x | +0.0515 | +0.0308 | 24.673 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 0.935x | 1.302x | +0.0568 | +0.0068 | 32.737 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 0.942x | 1.265x | +0.1949 | +0.0256 | 48.560 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 0.962x | 1.213x | +0.2804 | +0.0244 | 64.613 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.003x | 1.151x | +0.2743 | +0.0145 | 96.720 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 0.951x | 1.180x | +0.1538 | +0.0035 | 128.827 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 0.945x | 1.222x | +0.0695 | +0.0050 | 193.040 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 0.900x | 1.181x | +0.0347 | +0.0025 | 256.553 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 0.994x | 1.750x | +0.0022 | -0.0011 | 16.664 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 0.941x | 1.327x | +0.0515 | +0.0308 | 24.673 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 0.924x | 1.301x | +0.0568 | +0.0068 | 32.737 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 0.945x | 1.290x | +0.1949 | +0.0256 | 48.560 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 0.950x | 1.156x | +0.2804 | +0.0244 | 64.613 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 0.988x | 1.137x | +0.2743 | +0.0145 | 96.720 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 0.952x | 1.146x | +0.1538 | +0.0035 | 128.827 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 0.921x | 1.195x | +0.0695 | +0.0050 | 193.040 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 0.889x | 1.159x | +0.0347 | +0.0025 | 256.553 kbps | 256.737 kbps |
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
@@ -94,10 +94,10 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 19,824 B | 31,824 B | -37.7% |
-| Encoder stereo | 30,000 B | 48,880 B | -38.6% |
-| Decoder mono | 8,432 B | 18,432 B | -54.3% |
-| Decoder stereo | 17,616 B | 27,168 B | -35.2% |
+| Encoder mono | 19,792 B | 31,872 B | -37.9% |
+| Encoder stereo | 29,888 B | 48,944 B | -38.9% |
+| Decoder mono | 8,432 B | 18,448 B | -54.3% |
+| Decoder stereo | 17,600 B | 27,120 B | -35.1% |
 
 ## Compatibility coverage
 
