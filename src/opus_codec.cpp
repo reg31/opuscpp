@@ -2614,6 +2614,16 @@ constexpr int preprocess_filter_general_audio = -2;
 constexpr int preprocess_filter_stable_tonal = -1;
 constexpr int silk_preserve_stereo_bias = 1;
 constexpr int silk_preserve_stereo_force = 2;
+static inline void set_ref_encoder_defaults(OpusEncoder* st) {
+  st->hybrid_stereo_width_Q14 = 1 << 14;
+  st->prev_HB_gain = 1.0f;
+  st->variable_HP_smth2_Q15 = silk_log_60_q15;
+  st->mode = opus_mode_hybrid;
+  st->bandwidth = 1105;
+  st->audio_preprocess_mode = audio_preprocess_music;
+  st->audio_preprocess_hold = audio_preprocess_warmup_frames;
+}
+
 static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, int application) {
   auto silkEncSizeBytes = align(silk_encoder_get_size(channels));
   if (!encoder_uses_silk(application)) {
@@ -2642,13 +2652,7 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   st->application = application;
   st->encoder_buffer = encoder_uses_silk(application) ? st->Fs / 100 : 0;
   st->delay_compensation = st->Fs / 250;
-  st->hybrid_stereo_width_Q14 = 1 << 14;
-  st->prev_HB_gain = 1.0f;
-  st->variable_HP_smth2_Q15 = silk_log_60_q15;
-  st->mode = opus_mode_hybrid;
-  st->bandwidth = 1105;
-  st->audio_preprocess_mode = audio_preprocess_music;
-  st->audio_preprocess_hold = audio_preprocess_warmup_frames;
+  set_ref_encoder_defaults(st);
 }
 
 static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channels) {
@@ -4692,13 +4696,7 @@ static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_e
     reset_encoder_silk_state(st);
   }
   st->stream_channels = st->channels;
-  st->hybrid_stereo_width_Q14 = 1 << 14;
-  st->prev_HB_gain = 1.0f;
-  st->mode = opus_mode_hybrid;
-  st->bandwidth = 1105;
-  st->variable_HP_smth2_Q15 = silk_log_60_q15;
-  st->audio_preprocess_mode = audio_preprocess_music;
-  st->audio_preprocess_hold = audio_preprocess_warmup_frames;
+  set_ref_encoder_defaults(st);
 }
 
 static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned char* data, opus_int32 maxlen, int pad) {
