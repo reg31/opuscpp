@@ -2951,7 +2951,7 @@ constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
   return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
 }
 
-static int update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics, float raw_toneishness) noexcept {
+static void update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics, float raw_toneishness) noexcept {
   const auto track_score = [](int score, bool detected, int attack, int release_Q7) noexcept {
     score = detected ? score + std::max(1, (115 - score) / attack) : (score * release_Q7) >> 7;
     return std::clamp(score, 0, 115);
@@ -2977,20 +2977,6 @@ static int update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_
   voice_score = track_score(voice_score, speech_activity && !stereo_music, lowrate_vad_policy && vad_score > 64 ? 4 : 5,
                             sustained_harmonic ? 112 : 126);
   music_score = track_score(music_score, stereo_music || sustained_harmonic || high_z, 8, 112);
-  if (stereo_music) {
-    return 0;
-  }
-  if (lowrate_vad_policy && vad_score > 80 && voice_score > 48 && harmonic_music < 64) {
-    return 115;
-  }
-  if (voice_score > 60 && harmonic_music < 80) {
-    return 115;
-  }
-  if (harmonic_music > 52 && music_score >= voice_score + 8) {
-    return 0;
-  }
-  return voice_score > 44 && voice_score + 16 >= music_score ? 115 : music_score >= voice_score + 8 && music_score > 36 ? 0
-                                                                                                                        : 48;
 }
 
 static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
@@ -3013,8 +2999,7 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
 
 static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs);
 
-[[nodiscard]] static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> int {
-  int voice_est = 48;
+static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> void {
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
     float raw_toneishness = 0;
     if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
@@ -3028,13 +3013,11 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
         raw_toneishness = toneish;
       }
     }
-    voice_est = update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
+    update_lightweight_voice_estimate(st, analysis.stereo_width, analysis.activity, raw_toneishness);
     if (st->application == OPUS_APPLICATION_VOIP) {
-      voice_est = voice_est > 48 ? 115 : 0;
       update_voip_noise_confidence(st, analysis.activity);
     }
   }
-  return voice_est;
 }
 
 [[nodiscard]] static opus_int32 quality_mode_threshold(int voice_weight, opus_val16 stereo_width, bool voip_style, int prev_mode) noexcept {
@@ -3536,7 +3519,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       --st->stereo_recovery_frames;
     }
   }
-  static_cast<void>(classify_encoder_frame(st, analysis, pcm, frame_size));
+  classify_encoder_frame(st, analysis, pcm, frame_size);
   const auto voice_est = classifier_voice_estimate(st);
   const auto voice_weight = voice_est * voice_est;
   celt_enc->high_z_tonal_Q7 = static_cast<opus_uint8>(st->lightweight_high_z_tonal_Q7);
