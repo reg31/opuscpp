@@ -3309,7 +3309,7 @@ struct multiframe_encode_params final {
 };
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr);
-[[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params) -> opus_int32 {
+[[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params, const vbr_frame_budget& packet_budget) -> opus_int32 {
   const int enc_frame_size = st->mode != opus_mode_silk_only ? st->Fs / 50
                              : frame_size == 2 * st->Fs / 25 ? st->Fs / 25
                              : frame_size == 3 * st->Fs / 25 ? 3 * st->Fs / 50
@@ -3327,8 +3327,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   int dtx_count = 0;
   stage_storage.prime_from_encoder(st);
   opus_int32 repacketize_len = (st->use_vbr || st->user_bitrate_bps == -1) ? out_data_bytes : std::min(params.cbr_bytes, out_data_bytes);
-  const opus_int32 packet_target_bits = params.governed_vbr ? params.target_bits : bitrate_to_bits(st->bitrate_bps, st->Fs, frame_size);
-  const auto packet_budget = make_vbr_frame_budget(packet_target_bits, st->vbr_budget_reservoir_bits);
+  const opus_int32 packet_target_bits = params.target_bits;
   if (params.governed_vbr) {
     repacketize_len = std::min(repacketize_len, packet_budget.max_bytes);
   }
@@ -3723,7 +3722,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
     return encode_multiframe_packet(
         st, pcm, frame_size, data, out_data_bytes,
-        {governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits});
+        {governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits}, frame_budget);
   }
   const multiframe_encode_params params{governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits};
   if (frame_size <= st->Fs / 50) {
