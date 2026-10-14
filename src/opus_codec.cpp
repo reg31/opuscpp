@@ -13962,6 +13962,15 @@ static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16
   }
 }
 
+static void silk_reset_prediction_history(silk_decoder_state* psDec) noexcept {
+  psDec->first_frame_after_reset = 1;
+  psDec->lagPrev = 100;
+  psDec->LastGainIndex = 10;
+  psDec->prevSignalType = 0;
+  zero_object(psDec->outBuf);
+  zero_object(psDec->sLPC_Q14_buf);
+}
+
 static void silk_reset_decoder(silk_decoder_state* psDec) {
   silk_release_cng(psDec);
   *psDec = {};
@@ -14365,12 +14374,7 @@ static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int3
     psDec->ltp_mem_length = 20 * fs_kHz;
     psDec->psNLSF_CB = silk_nlsf_codebook_for_fs(fs_kHz);
     psDec->LPC_order = psDec->psNLSF_CB->order;
-    psDec->first_frame_after_reset = 1;
-    psDec->lagPrev = 100;
-    psDec->LastGainIndex = 10;
-    psDec->prevSignalType = 0;
-    zero_object(psDec->outBuf);
-    zero_object(psDec->sLPC_Q14_buf);
+    silk_reset_prediction_history(psDec);
   }
   psDec->fs_kHz = fs_kHz;
   psDec->frame_length = frame_length;
@@ -14562,12 +14566,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
     }
   }
   if (decControl->nChannelsInternal == 2 && decode_only_middle == 0 && psDec->prev_decode_only_middle == 1) {
-    zero_object(channel_state[1]->outBuf);
-    zero_object(channel_state[1]->sLPC_Q14_buf);
-    channel_state[1]->lagPrev = 100;
-    channel_state[1]->LastGainIndex = 10;
-    channel_state[1]->prevSignalType = 0;
-    channel_state[1]->first_frame_after_reset = 1;
+    silk_reset_prediction_history(channel_state[1]);
   }
   std::array<opus_int16, celt_max_channels*(silk_max_frame_length + 2)> decoded_channel_storage;
   auto* samplesOut1_tmp_storage1 = decoded_channel_storage.data();
