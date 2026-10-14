@@ -614,7 +614,7 @@ struct CeltEncoderInternal {
   opus_int32 bitrate, midrate_quality_boost_bps;
   bool vbr, constrained_vbr;
   opus_uint8 lsb_depth, loss_rate;
-  bool prediction_disabled, audio_application, voip_application, stereo_policy_celt;
+  bool prediction_disabled, audio_application, stereo_policy_celt;
   opus_uint8 stereo_coherence_Q8;
   opus_uint32 rng;
   opus_uint16 prefilter_period;
@@ -2645,7 +2645,6 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   celt_encoder_init(celt_enc, Fs, channels);
   celt_enc->complexity = st->silk_mode.complexity;
   celt_enc->audio_application = application == OPUS_APPLICATION_AUDIO;
-  celt_enc->voip_application = application == OPUS_APPLICATION_VOIP;
   st->use_vbr = 1;
   st->vbr_constraint = 1;
   st->user_bitrate_bps = -1000;
