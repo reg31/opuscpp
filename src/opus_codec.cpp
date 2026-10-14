@@ -18067,38 +18067,20 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
 }
 
-static inline void silk_warped_autocorrelation_FLP(float* corr, const float* input, const float warping, const int length,
-                                                   const int order) {
-  std::array<double, 24 + 1> state{};
-  std::array<double, 24 + 1> C{};
+template <std::size_t Lanes>
+  requires(Lanes == 1 || Lanes == 4)
+static inline void silk_warped_autocorrelation_FLP(std::array<float*, Lanes> corr, std::array<const float*, Lanes> input,
+                                                  const float warping, const int length, const int order) {
+  std::array<std::array<double, Lanes>, 24 + 1> state{};
+  std::array<std::array<double, Lanes>, 24 + 1> C{};
   for (int n = 0; n < length; n++) {
-    const double sample = input[n];
-    double tmp1 = sample;
-    for (int i = 0; i < order; i += 2) {
-      double tmp2 = state[i] + warping * state[i + 1] - warping * tmp1;
-      state[i] = tmp1;
-      C[i] += sample * tmp1;
-      tmp1 = state[i + 1] + warping * state[i + 2] - warping * tmp2;
-      state[i + 1] = tmp2;
-      C[i + 1] += sample * tmp2;
+    std::array<double, Lanes> sample, tmp1;
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
+      sample[lane] = input[lane][n];
+      tmp1[lane] = sample[lane];
     }
-    state[order] = tmp1;
-    C[order] += sample * tmp1;
-  }
-  for (int index = 0; index <= order; ++index) {
-    corr[index] = static_cast<float>(C[index]);
-  }
-}
-
-static inline void silk_warped_autocorrelation_4_FLP(float corr[4][24 + 1], const float input[4][15 * 16], const float warping,
-                                                     const int length, const int order) {
-  std::array<std::array<double, 4>, 24 + 1> state{};
-  std::array<std::array<double, 4>, 24 + 1> C{};
-  for (int n = 0; n < length; n++) {
-    const double sample[4] = {input[0][n], input[1][n], input[2][n], input[3][n]};
-    double tmp1[4] = {sample[0], sample[1], sample[2], sample[3]};
     for (int i = 0; i < order; i += 2) {
-      for (int lane = 0; lane < 4; lane++) {
+      for (std::size_t lane = 0; lane < Lanes; ++lane) {
         const double tmp2 = state[i][lane] + warping * state[i + 1][lane] - warping * tmp1[lane];
         state[i][lane] = tmp1[lane];
         C[i][lane] += sample[lane] * tmp1[lane];
@@ -18107,12 +18089,12 @@ static inline void silk_warped_autocorrelation_4_FLP(float corr[4][24 + 1], cons
         C[i + 1][lane] += sample[lane] * tmp2;
       }
     }
-    for (int lane = 0; lane < 4; lane++) {
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
       state[order][lane] = tmp1[lane];
       C[order][lane] += sample[lane] * tmp1[lane];
     }
   }
-  for (int lane = 0; lane < 4; lane++) {
+  for (std::size_t lane = 0; lane < Lanes; ++lane) {
     for (int index = 0; index <= order; ++index) {
       corr[lane][index] = static_cast<float>(C[index][lane]);
     }
@@ -18185,13 +18167,14 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
     x_ptr += psEnc->sCmn.subfr_length;
   }
   if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
-    silk_warped_autocorrelation_4_FLP(auto_corr, x_windowed, warping, psEnc->sCmn.shapeWinLength,
-                                      psEnc->sCmn.shapingLPCOrder);
+    silk_warped_autocorrelation_FLP<4>({auto_corr[0], auto_corr[1], auto_corr[2], auto_corr[3]},
+                                      {x_windowed[0], x_windowed[1], x_windowed[2], x_windowed[3]}, warping,
+                                      psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
   } else {
     for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
       if (psEnc->sCmn.warping_Q16 > 0) {
-        silk_warped_autocorrelation_FLP(auto_corr[k], x_windowed[k], warping, psEnc->sCmn.shapeWinLength,
-                                        psEnc->sCmn.shapingLPCOrder);
+        silk_warped_autocorrelation_FLP<1>({auto_corr[k]}, {x_windowed[k]}, warping, psEnc->sCmn.shapeWinLength,
+                                          psEnc->sCmn.shapingLPCOrder);
       } else {
         silk_autocorrelation_FLP(auto_corr[k], x_windowed[k], psEnc->sCmn.shapeWinLength,
                                  psEnc->sCmn.shapingLPCOrder + 1);
