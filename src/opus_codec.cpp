@@ -6802,6 +6802,33 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
   *pitch = 2 * best_pitch[0] - offset;
 }
 
+OPUSCPP_NOINLINE static auto celt_prefilter_common_fit_terms(const celt_sig* x, int N, int pitch_index, int previous_period, opus_val16 previous_gain) -> std::array<double, 2> {
+  double cross = 0, power = 0;
+  constexpr int overlap = celt_default_overlap;
+  const auto& taps = comb_filter_tapset_gains[0];
+  const auto* window = celt_mode()->window;
+  std::array<std::array<double, 2>, celt_max_frame_samples> terms;
+        for (int i = 0; i < N; ++i) {
+          const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
+          double target = x[i];
+          if (i < overlap && previous_gain != 0) {
+            target -= (1 - fade) * previous_gain *
+                      (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+          }
+          const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
+          const double cross_term = target * predictor;
+          const double power_term = predictor * predictor;
+          cross += cross_term;
+          power += power_term;
+          terms[i] = {cross_term, power_term};
+        }
+  for (int i = 0; i < N; ++i) {
+    cross += terms[i][0];
+    power += terms[i][1];
+  }
+  return {cross, power};
+}
+
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
   std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
@@ -6862,6 +6889,12 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
       const auto& taps = comb_filter_tapset_gains[0];
       const auto* window = celt_mode()->window;
       const int previous_period = std::max<int>(st->prefilter_period, 15);
+      const bool common_input = std::memcmp(pre[0], pre[1], static_cast<std::size_t>(N + max_period) * sizeof(celt_sig)) == 0;
+      if (common_input) {
+        const auto moments = celt_prefilter_common_fit_terms(pre[0] + max_period, N, pitch_index, previous_period, st->prefilter_gain);
+        cross = moments[0];
+        power = moments[1];
+      } else {
       for (int c = 0; c < CC; ++c) {
         const auto* x = pre[c] + max_period;
         for (int i = 0; i < N; ++i) {
@@ -6875,6 +6908,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
           cross += target * predictor;
           power += predictor * predictor;
         }
+      }
       }
       if (power > 0 && std::isfinite(cross / power)) {
         gain1 = static_cast<float>(std::clamp(cross / power, 0., 1.));
