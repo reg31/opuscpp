@@ -6808,20 +6808,20 @@ OPUSCPP_NOINLINE static auto celt_prefilter_common_fit_terms(const celt_sig* x, 
   const auto& taps = comb_filter_tapset_gains[0];
   const auto* window = celt_mode()->window;
   std::array<std::array<double, 2>, celt_max_frame_samples> terms;
-        for (int i = 0; i < N; ++i) {
-          const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
-          double target = x[i];
-          if (i < overlap && previous_gain != 0) {
-            target -= (1 - fade) * previous_gain *
-                      (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
-          }
-          const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
-          const double cross_term = target * predictor;
-          const double power_term = predictor * predictor;
-          cross += cross_term;
-          power += power_term;
-          terms[i] = {cross_term, power_term};
-        }
+  for (int i = 0; i < N; ++i) {
+    const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
+    double target = x[i];
+    if (i < overlap && previous_gain != 0) {
+      target -= (1 - fade) * previous_gain *
+                (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+    }
+    const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
+    const double cross_term = target * predictor;
+    const double power_term = predictor * predictor;
+    cross += cross_term;
+    power += power_term;
+    terms[i] = {cross_term, power_term};
+  }
   for (int i = 0; i < N; ++i) {
     cross += terms[i][0];
     power += terms[i][1];
@@ -6895,20 +6895,20 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
         cross = moments[0];
         power = moments[1];
       } else {
-      for (int c = 0; c < CC; ++c) {
-        const auto* x = pre[c] + max_period;
-        for (int i = 0; i < N; ++i) {
-          const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
-          double target = x[i];
-          if (i < overlap && st->prefilter_gain != 0) {
-            target -= (1 - fade) * st->prefilter_gain *
-                      (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+        for (int c = 0; c < CC; ++c) {
+          const auto* x = pre[c] + max_period;
+          for (int i = 0; i < N; ++i) {
+            const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
+            double target = x[i];
+            if (i < overlap && st->prefilter_gain != 0) {
+              target -= (1 - fade) * st->prefilter_gain *
+                        (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+            }
+            const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
+            cross += target * predictor;
+            power += predictor * predictor;
           }
-          const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
-          cross += target * predictor;
-          power += predictor * predictor;
         }
-      }
       }
       if (power > 0 && std::isfinite(cross / power)) {
         gain1 = static_cast<float>(std::clamp(cross / power, 0., 1.));
