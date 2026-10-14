@@ -12409,112 +12409,51 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
 }
 
 static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_info* info_out, int Fs, int len) {
-  int pos;
-  int curr_lookahead;
-  int i;
-  int pos0;
-  float prob_avg;
-  float prob_count;
-  float prob_min, prob_max;
-  float vad_prob;
-  int mpos, vpos;
-  int bandwidth_span;
-
-  pos = tonal->read_pos;
-  curr_lookahead = tonal->write_pos - tonal->read_pos;
-  if (curr_lookahead < 0) {
-    curr_lookahead += 100;
-  }
-
-  tonal->read_subframe += len / (Fs / 400);
-  while (tonal->read_subframe >= 8) {
-    tonal->read_subframe -= 8;
-    tonal->read_pos++;
-  }
-  if (tonal->read_pos >= 100) {
-    tonal->read_pos -= 100;
-  }
+  int pos = tonal->read_pos;
+  const int curr_lookahead = (tonal->write_pos - pos + 100) % 100;
+  const int subframes = tonal->read_subframe + len / (Fs / 400);
+  tonal->read_subframe = subframes % 8;
+  tonal->read_pos = (tonal->read_pos + subframes / 8) % 100;
 
   if (len > Fs / 50 && pos != tonal->write_pos) {
-    pos++;
-    if (pos == 100) {
-      pos = 0;
-    }
+    pos = (pos + 1) % 100;
   }
   if (pos == tonal->write_pos) {
-    pos--;
+    pos = (pos + 99) % 100;
   }
-  if (pos < 0) {
-    pos = 99;
-  }
-  pos0 = pos;
+  const int pos0 = pos;
   const auto& record = tonal->info[pos];
   *info_out = {.music_prob = record.music_prob, .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}, .valid = record.valid, .bandwidth = record.bandwidth};
   copy_n_items(record.leak_boost, 19, info_out->leak_boost);
   if (!info_out->valid) {
     return;
   }
+  const int distance = (tonal->write_pos - pos0 + 100) % 100;
+  const int future = std::min(3, distance - 1);
+  const int past = std::min(6 - future, 99 - distance);
   opus_uint8 max_bandwidth = info_out->bandwidth;
-  bandwidth_span = 6;
-  for (i = 0; i < 3; ++i) {
-    pos++;
-    if (pos == 100) {
-      pos = 0;
-    }
-    if (pos == tonal->write_pos) {
-      break;
-    }
-    max_bandwidth = std::max(max_bandwidth, static_cast<opus_uint8>(tonal->info[pos].bandwidth));
-    bandwidth_span--;
+  for (int offset = -past; offset <= future; ++offset) {
+    max_bandwidth = std::max(max_bandwidth, static_cast<opus_uint8>(tonal->info[(pos0 + offset + 100) % 100].bandwidth));
   }
-  pos = pos0;
-  for (i = 0; i < bandwidth_span; ++i) {
-    pos--;
-    if (pos < 0) {
-      pos = 99;
-    }
-    if (pos == tonal->write_pos) {
-      break;
-    }
-    max_bandwidth = std::max(max_bandwidth, static_cast<opus_uint8>(tonal->info[pos].bandwidth));
-  }
-
   info_out->bandwidth = max_bandwidth;
 
-  mpos = vpos = pos0;
-  if (curr_lookahead > 15) {
-    mpos += 5;
-    if (mpos >= 100) {
-      mpos -= 100;
-    }
-    vpos += 1;
-    if (vpos >= 100) {
-      vpos -= 100;
-    }
-  }
-
-  prob_min = 1.f;
-  prob_max = 0.f;
-  vad_prob = tonal->info[vpos].activity_probability;
-  prob_count = std::max(.1f, vad_prob);
-  prob_avg = std::max(.1f, vad_prob) * tonal->info[mpos].music_prob;
+  int mpos = (pos0 + (curr_lookahead > 15 ? 5 : 0)) % 100;
+  int vpos = (pos0 + (curr_lookahead > 15 ? 1 : 0)) % 100;
+  float prob_min = 1.f;
+  float prob_max = 0.f;
+  const float vad_prob = tonal->info[vpos].activity_probability;
+  float prob_count = std::max(.1f, vad_prob);
+  float prob_avg = std::max(.1f, vad_prob) * tonal->info[mpos].music_prob;
   while (1) {
-    float pos_vad;
-    mpos++;
-    if (mpos == 100) {
-      mpos = 0;
-    }
+    mpos = (mpos + 1) % 100;
     if (mpos == tonal->write_pos) {
       break;
     }
-    vpos++;
-    if (vpos == 100) {
-      vpos = 0;
-    }
+    vpos = (vpos + 1) % 100;
     if (vpos == tonal->write_pos) {
       break;
     }
-    pos_vad = tonal->info[vpos].activity_probability;
+    const float pos_vad = tonal->info[vpos].activity_probability;
     prob_min = std::min((prob_avg - 10.f * (vad_prob - pos_vad)) / prob_count, prob_min);
     prob_max = std::max((prob_avg + 10.f * (vad_prob - pos_vad)) / prob_count, prob_max);
     prob_count += std::max(.1f, pos_vad);
@@ -12527,14 +12466,13 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
   prob_max = std::min(prob_max, 1.f);
 
   if (curr_lookahead < 10) {
-    float pmin, pmax;
-    pmin = prob_min;
-    pmax = prob_max;
+    float pmin = prob_min;
+    float pmax = prob_max;
     pos = pos0;
-    for (i = 0; i < std::min(tonal->count - 1, 15); ++i) {
-      pos--;
-      if (pos < 0) {
-        pos = 99;
+    for (int i = 0; i < std::min(tonal->count - 1, 15); ++i) {
+      pos = (pos + 99) % 100;
+      if (pos == tonal->write_pos) {
+        break;
       }
       pmin = std::min(pmin, tonal->info[pos].music_prob);
       pmax = std::max(pmax, tonal->info[pos].music_prob);
