@@ -10859,6 +10859,29 @@ consteval auto pitch512_bitrev() {
   return p;
 }
 static constexpr auto pitch512_permutation = pitch512_bitrev();
+consteval auto pitch512_cycle_leaders() {
+  constexpr auto count = [] {
+    int result = 0;
+    for (int start = 0; start < 512; ++start) {
+      int position = pitch512_permutation[start];
+      while (position > start)
+        position = pitch512_permutation[position];
+      result += position == start;
+    }
+    return result;
+  }();
+  std::array<opus_int16, count> leaders{};
+  int index = 0;
+  for (int start = 0; start < 512; ++start) {
+    int position = pitch512_permutation[start];
+    while (position > start)
+      position = pitch512_permutation[position];
+    if (position == start)
+      leaders[index++] = static_cast<opus_int16>(start);
+  }
+  return leaders;
+}
+static constexpr auto pitch512_leaders = pitch512_cycle_leaders();
 static constexpr kiss_fft_state pitch512_state{512, 1.f / 512, pitch512_twiddles.data(), pitch512_permutation.data()};
 template <int M> static void pitch512_radix4(kiss_fft_cpx* data) {
   constexpr int stride = 512 / (4 * M);
@@ -10969,14 +10992,10 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
     transformed[512 - k] = {real, imaginary};
   }
 
-  std::array<bool, 512> visited{};
-  for (int start = 0; start < 512; ++start) {
-    if (visited[start])
-      continue;
+  for (const int start : pitch512_leaders) {
     auto value = transformed[start];
     int position = start;
     do {
-      visited[position] = true;
       const int next = state->bitrev[position];
       std::swap(value, transformed[next]);
       position = next;
