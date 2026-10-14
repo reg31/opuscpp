@@ -2666,35 +2666,6 @@ static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channel
   return toc;
 }
 
-static void silk_biquad_res(const opus_res* in, opus_int32 r_Q28, const opus_int32* A_Q28, opus_val32* S, opus_res* out, const opus_int32 len, int stride) {
-  constexpr float inv28 = 1.f / (1 << 28);
-  const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
-  const opus_val32 r = r_Q28 * inv28;
-  for (int k = 0; k < len; k++) {
-    const opus_val32 inval = in[k * stride];
-    const opus_val32 filtered_input = r * inval;
-    const opus_val32 vout = S[0] + filtered_input;
-    S[0] = S[1] - vout * A[0] - 2.f * filtered_input;
-    S[1] = -vout * A[1] + filtered_input + 1e-30f;
-    out[k * stride] = vout;
-  }
-  S[0] = zero_tiny_float_mem(S[0]);
-  S[1] = zero_tiny_float_mem(S[1]);
-}
-
-static void hp_cutoff(const opus_res* in, opus_int32 cutoff_Hz, opus_res* out, opus_val32* hp_mem, int len, int channels, opus_int32 Fs) {
-  const opus_int32 Fc_Q19 = static_cast<opus_int16>(2471) * static_cast<opus_int16>(cutoff_Hz) / (Fs / 1000);
-  const opus_int32 r_Q28 = (1 << 28) - 471 * Fc_Q19;
-  const opus_int32 r_Q22 = r_Q28 >> 6;
-  const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
-  const opus_int32 A_Q28[2]{static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * (fc_squared_Q22 - (2 << 22))) >> 16),
-                            static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
-  silk_biquad_res(in, r_Q28, A_Q28, hp_mem, out, len, channels);
-  if (channels == 2) {
-    silk_biquad_res(in + 1, r_Q28, A_Q28, hp_mem + 2, out + 1, len, channels);
-  }
-}
-
 template <int Channels> static void dc_reject_channels(const opus_val16* in, opus_val16* out, opus_val32* hp_mem, int len, float coef) {
   std::array<float, Channels> memory;
   for (int channel = 0; channel < Channels; ++channel) {
