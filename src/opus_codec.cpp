@@ -7,6 +7,7 @@
 #include <concepts>
 #include <cmath>
 #include <cfloat>
+#include <charconv>
 #include <cfenv>
 #include <cstdarg>
 #include <cstddef>
@@ -691,10 +692,6 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
                                       opus_int16* pcm16 = nullptr, bool update_pitch_cache = true);
 static void celt_decoder_reset_state(CeltDecoderInternal* st);
-consteval auto numeric_blob_hex_value(char ch) -> unsigned {
-  return ch <= '9' ? static_cast<unsigned>(ch - '0') : static_cast<unsigned>((ch | 0x20) - 'a' + 10);
-}
-
 template <typename T>
 using numeric_blob_storage_t =
     std::conditional_t<sizeof(T) == 1, std::uint8_t,
@@ -706,9 +703,9 @@ template <typename T, std::size_t Characters> consteval auto numeric_blob_array(
   auto position = std::size_t{};
   for (auto& value : values) {
     auto bits = storage_t{};
-    for (std::size_t digit = 0; digit < sizeof(T) * 2; ++digit) {
-      bits = static_cast<storage_t>((bits << 4U) | numeric_blob_hex_value(blob[position++]));
-    }
+    const auto* next = blob + position + sizeof(T) * 2;
+    std::from_chars(blob + position, next, bits, 16);
+    position += sizeof(T) * 2;
     value = std::bit_cast<T>(bits);
   }
   return values;
