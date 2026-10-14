@@ -7031,7 +7031,10 @@ struct celt_input_metrics {
   const int len2 = len / 2;
   const float forward_decay = allow_weak_transients ? .03125f : .0625f;
   *weak_transient = false;
+  bool equivalent = C == 2;
   for (int c = 0; c < C; ++c) {
+    if (c == 1 && equivalent)
+      break;
     opus_val32 filter_mem0 = 0, filter_mem1 = 0;
     opus_val32 mean = 0, mem0 = 0;
     for (int i = 0; i < len2; ++i) {
@@ -7045,6 +7048,9 @@ struct celt_input_metrics {
       const float previous1 = filter_mem0;
       filter_mem0 = filter_mem0 - x1 + .5f * filter_mem1;
       filter_mem1 = x1 - previous1;
+      if (equivalent)
+        equivalent = std::bit_cast<opus_uint32>(x0) == std::bit_cast<opus_uint32>(in[2 * i + len]) &&
+                     std::bit_cast<opus_uint32>(x1) == std::bit_cast<opus_uint32>(in[2 * i + 1 + len]);
       if (i < 6) {
         y0 = 0;
         y1 = 0;
