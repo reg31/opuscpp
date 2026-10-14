@@ -18,6 +18,7 @@
 #include <limits>
 #include <memory>
 #include <new>
+#include <numeric>
 #include <span>
 #include <type_traits>
 #include <utility>
@@ -18735,8 +18736,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       input_positions[1] += nSamplesToBuffer;
     } else if (stereo_input) {
       for (int n = 0; n < nSamplesFromInput; ++n) {
-        const opus_int32 sum = FLOAT2INT16(samplesIn[2 * n] + samplesIn[2 * n + 1]);
-        buf[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
+        const float mean = std::midpoint(samplesIn[2 * n] * 32768.f, samplesIn[2 * n + 1] * 32768.f);
+        buf[n] = static_cast<opus_int16>(pcm_float2int(std::clamp(mean, -32768.f, 32767.f)));
       }
       const int mono_input_start = input_positions[0];
       resample_input(0, buf);
