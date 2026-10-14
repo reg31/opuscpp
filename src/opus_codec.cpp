@@ -254,13 +254,24 @@ template <int Order>
   return prediction_q10;
 }
 
-template <int Order, typename Source>
-  requires((Order == 10 || Order == 16) && std::is_invocable_r_v<opus_int32, Source&, int>)
-static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10) noexcept {
-  for (int i = 0; i < length; ++i) {
-    const auto pred_Q10 = silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
-    sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
-    pxq[i] = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
+template <bool AddOutput = false, typename Source>
+  requires std::is_invocable_r_v<opus_int32, Source&, int>
+static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
+  const auto synthesize = [&]<int Order>() noexcept {
+    for (int i = 0; i < length; ++i) {
+      const auto pred_Q10 = silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
+      sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
+      auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
+      if constexpr (AddOutput) {
+        sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
+      }
+      pxq[i] = sample;
+    }
+  };
+  if (order16) {
+    synthesize.template operator()<16>();
+  } else {
+    synthesize.template operator()<10>();
   }
 }
 
@@ -13733,12 +13744,8 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
     }
     silk_NLSF2A(A_Q12, psCNG->CNG_smth_NLSF_Q15, psDec->LPC_order);
     std::memcpy(CNG_sig_Q14, psCNG->CNG_synth_state, static_cast<std::size_t>(16 * sizeof(opus_int32)));
-    for (int i = 0; i < length; ++i) {
-      const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_q10(CNG_sig_Q14 + 16 + i, A_Q12, psDec->LPC_order);
-      CNG_sig_Q14[16 + i] = saturating_add_int32(CNG_sig_Q14[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
-      const auto cng_sample = scale_and_saturate_q14<8>(CNG_sig_Q14[16 + i], gain_Q10);
-      frame[i] = saturate_int16_from_int32(static_cast<opus_int32>(frame[i]) + cng_sample);
-    }
+    const auto source = [&](int i) { return CNG_sig_Q14[16 + i]; };
+    silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
     std::memcpy(psCNG->CNG_synth_state, &CNG_sig_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
   } else {
     std::memset(psCNG->CNG_synth_state, 0, static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int32)));
@@ -14015,13 +14022,6 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
       signalType = 2;
       control.pitchL[k] = state.lagPrev;
     }
-    const auto synthesize = [&](auto&& source) noexcept {
-      if (state.LPC_order == 16) {
-        silk_decode_lpc_subframe_q14<16>(sLPC_Q14, source, pxq, state.subfr_length, A_Q12, Gain_Q10);
-      } else {
-        silk_decode_lpc_subframe_q14<10>(sLPC_Q14, source, pxq, state.subfr_length, A_Q12, Gain_Q10);
-      }
-    };
     if (signalType == 2) {
       lag = control.pitchL[k];
       if (k == 0 || (k == 2 && NLSF_interpolation_flag)) {
@@ -14051,18 +14051,18 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         }
       }
       auto* pred_lag_ptr = &sLTP_Q15[sLTP_buf_idx - lag + 5 / 2];
-      synthesize([&](int i) noexcept {
+      silk_decode_lpc_subframe_q14(sLPC_Q14, [&](int i) noexcept {
         const opus_int32 LTP_pred_Q13 = silk_ltp_prediction_5tap(pred_lag_ptr, B_Q14);
         ++pred_lag_ptr;
         const auto residual = wrap_add(decode_excitation(subframe_offset + i), wrap_shift_left(LTP_pred_Q13, 1));
         sLTP_Q15[sLTP_buf_idx] = wrap_shift_left(residual, 1);
         ++sLTP_buf_idx;
         return residual;
-      });
+      }, pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
     } else {
-      synthesize([&](int i) noexcept {
+      silk_decode_lpc_subframe_q14(sLPC_Q14, [&](int i) noexcept {
         return decode_excitation(subframe_offset + i);
-      });
+      }, pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
     }
     std::memcpy(k + 1 < state.nb_subfr ? sLPC_Q14 : state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     pxq += state.subfr_length;
