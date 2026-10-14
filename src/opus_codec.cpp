@@ -14222,15 +14222,6 @@ static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx*
   indices.Seed = static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.Seed, silk_uniform4_iCDF.data()));
 }
 
-static void silk_decode_indices(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding) {
-  const bool vad = decode_LBRR || psDec->VAD_flags[FrameIndex];
-  const int type_offset =
-      ec_dec_icdf(psRangeDec, vad ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8) + 2 * vad;
-  psDec->indices.signalType = static_cast<opus_uint8>(type_offset >> 1);
-  psDec->indices.quantOffsetType = static_cast<opus_uint8>(type_offset & 1);
-  silk_process_indices<false>(psDec, psDec->indices, psRangeDec, condCoding);
-}
-
 static auto silk_combine_pulses(std::span<int> combined, std::span<const int> input, int max_pulses) noexcept -> bool {
   for (std::size_t index = 0; index < combined.size(); ++index) {
     const auto sum = input[2 * index] + input[2 * index + 1];
@@ -14354,17 +14345,26 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
   silk_process_signs<Encode>(coder, pulses.first(static_cast<std::size_t>(block_count * 16)), signal_type, quant_offset_type, sums);
 }
 
+static void silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding, std::span<opus_int16> pulses) {
+  const bool vad = decode_LBRR || psDec->VAD_flags[FrameIndex];
+  const int type_offset =
+      ec_dec_icdf(psRangeDec, vad ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8) + 2 * vad;
+  psDec->indices.signalType = static_cast<opus_uint8>(type_offset >> 1);
+  psDec->indices.quantOffsetType = static_cast<opus_uint8>(type_offset & 1);
+  silk_process_indices<false>(psDec, psDec->indices, psRangeDec, condCoding);
+  silk_process_pulses<false>(psRangeDec, pulses.first(static_cast<std::size_t>((psDec->frame_length + 15) & ~15)),
+                             psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
+}
+
 static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
   const int L = psDec->frame_length;
   silk_decoder_control psDecCtrl;
   psDecCtrl.LTP_scale_Q14 = 0;
   if (lostFlag == 0 || (lostFlag == 2 && psDec->LBRR_flags[psDec->nFramesDecoded] == 1)) {
     std::array<opus_int16, silk_max_frame_length> pulse_storage;
-    auto pulses = std::span<opus_int16>{pulse_storage.data(), static_cast<std::size_t>((L + 16 - 1) & ~(16 - 1))};
-    silk_decode_indices(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding);
-    silk_process_pulses<false>(psRangeDec, pulses, psDec->indices.signalType, psDec->indices.quantOffsetType, psDec->frame_length);
+    silk_decode_symbols(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding, pulse_storage);
     silk_decode_parameters(*psDec, psDecCtrl, condCoding);
-    silk_decode_core(*psDec, psDecCtrl, pOut, pulses.data());
+    silk_decode_core(*psDec, psDecCtrl, pOut, pulse_storage.data());
     silk_PLC_update(psDec, &psDecCtrl);
     psDec->lossCnt = 0;
     psDec->first_frame_after_reset = 0;
@@ -14558,11 +14558,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
               }
             }
             condCoding = i > 0 && channel_state[n]->LBRR_flags[i - 1] ? 2 : 0;
-            silk_decode_indices(channel_state[n], psRangeDec, i, 1, condCoding);
-            silk_process_pulses<false>(
-                psRangeDec,
-                std::span<opus_int16>{pulses.data(), static_cast<std::size_t>(((channel_state[n]->frame_length + 16 - 1) & ~(16 - 1)))},
-                channel_state[n]->indices.signalType, channel_state[n]->indices.quantOffsetType, channel_state[n]->frame_length);
+            silk_decode_symbols(channel_state[n], psRangeDec, i, 1, condCoding, pulses);
           }
         }
       }
