@@ -14713,7 +14713,6 @@ static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8
     ind[k] = static_cast<opus_int8>(std::clamp<int>(ind[k], 0, 64 - 1));
     if (k == 0 && conditional == 0) {
       ind[k] = static_cast<opus_int8>(std::clamp<int>(ind[k], *prev_ind - 4, 64 - 1));
-      *prev_ind = ind[k];
     } else {
       ind[k] = ind[k] - *prev_ind;
       int double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
@@ -14721,15 +14720,9 @@ static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8
         ind[k] = double_step_size_threshold + ((ind[k] - double_step_size_threshold + 1) >> (1));
       }
       ind[k] = static_cast<opus_int8>(std::clamp<int>(ind[k], -4, 36));
-      if (ind[k] > double_step_size_threshold) {
-        *prev_ind += wrap_shift_left(ind[k], 1) - double_step_size_threshold;
-        *prev_ind = std::min(*prev_ind, static_cast<opus_int8>(64 - 1));
-      } else {
-        *prev_ind += ind[k];
-      }
       ind[k] -= -4;
     }
-    gain_Q16[k] = silk_log2lin(std::min<opus_int32>((1907825LL * static_cast<opus_int16>(*prev_ind) >> 16) + 2090, 3967));
+    silk_gains_dequant(gain_Q16 + k, ind + k, prev_ind, k == 0 ? conditional : 1, 1);
   }
 }
 
