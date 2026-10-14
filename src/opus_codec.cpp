@@ -16752,6 +16752,7 @@ static bool silk_lpc_values_finite(std::span<const float> values) noexcept {
 template <std::size_t Order>
   requires(Order > 0)
 auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const float, Order> pred_coef, std::span<const float> signal, bool known_finite = false) noexcept -> void {
+  int index = static_cast<int>(pred_coef.size()), n = static_cast<int>(signal.size());
   if constexpr (sizeof(float) == sizeof(std::uint32_t) && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::digits == 24) {
     if constexpr (std::bit_cast<std::uint32_t>(1.f) == 0x3f800000U && std::bit_cast<std::uint32_t>(-0.f) == 0x80000000U && std::bit_cast<std::uint32_t>(std::numeric_limits<float>::infinity()) == 0x7f800000U) {
       const auto less = std::less<const float*>{};
@@ -16760,7 +16761,6 @@ auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const fl
           !(less(residual.data(), pred_coef.data() + pred_coef.size()) && less(pred_coef.data(), residual.data() + residual.size()))) {
         const bool finite = known_finite || (silk_lpc_values_finite(pred_coef) && silk_lpc_values_finite(signal));
         if (finite) {
-          int index = static_cast<int>(pred_coef.size()), n = static_cast<int>(signal.size());
           for (; index < n - 3; index += 4) {
             const auto* history = signal.data() + index - 1;
             std::array<float, 4> prediction{};
@@ -16775,19 +16775,11 @@ auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const fl
             residual[index + 2] = history[3] - prediction[2];
             residual[index + 3] = history[4] - prediction[3];
           }
-          for (; index < n; ++index) {
-            const auto* history = signal.data() + index - 1;
-            float prediction = 0;
-            for (std::size_t tap = 0; tap < pred_coef.size(); ++tap)
-              prediction += history[-static_cast<int>(tap)] * pred_coef[tap];
-            residual[index] = history[1] - prediction;
-          }
-          return;
         }
       }
     }
   }
-  for (auto index = static_cast<int>(pred_coef.size()); index < static_cast<int>(signal.size()); ++index) {
+  for (; index < n; ++index) {
     const auto* history = signal.data() + index - 1;
     auto prediction = 0.0f;
     for (std::size_t tap = 0; tap < pred_coef.size(); ++tap) {
