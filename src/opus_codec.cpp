@@ -2125,11 +2125,9 @@ static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uin
   auto* ec_sel_ptr = psNLSF_CB->ec_sel + CB1_index * psNLSF_CB->order / 2;
   for (int i = 0; i < psNLSF_CB->order; i += 2) {
     const opus_uint8 entry = *ec_sel_ptr++;
-    ec_ix[i] = (static_cast<opus_int32>(static_cast<opus_int16>(((entry) >> (1)) & 7)) *
-                static_cast<opus_int32>(static_cast<opus_int16>(2 * 4 + 1)));
+    ec_ix[i] = ((entry >> 1) & 7) * (2 * 4 + 1);
     pred_Q8[i] = psNLSF_CB->pred_Q8[i + (entry & 1) * (psNLSF_CB->order - 1)];
-    ec_ix[i + 1] = (static_cast<opus_int32>(static_cast<opus_int16>(((entry) >> (5)) & 7)) *
-                    static_cast<opus_int32>(static_cast<opus_int16>(2 * 4 + 1)));
+    ec_ix[i + 1] = ((entry >> 5) & 7) * (2 * 4 + 1);
     pred_Q8[i + 1] = psNLSF_CB->pred_Q8[i + (((entry) >> (4)) & 1) * (psNLSF_CB->order - 1) + 1];
   }
 }
