@@ -4414,16 +4414,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   return ret;
 }
 
-[[nodiscard]] static auto ensure_voice_denoise_state(OpusEncoder* st) noexcept -> bool {
-  if (st->voice_denoise == nullptr) {
-    st->voice_denoise = static_cast<VoiceDenoiseState*>(std::malloc(sizeof(VoiceDenoiseState)));
-    if (st->voice_denoise != nullptr) {
-      reset_voice_denoise_state(*st->voice_denoise);
-    }
-  }
-  return st->voice_denoise != nullptr;
-}
-
 static void release_voice_denoise_state(OpusEncoder* st) noexcept {
   std::free(st->voice_denoise);
   st->voice_denoise = nullptr;
@@ -19032,8 +19022,12 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     if (value != 0 && (st->application != OPUS_APPLICATION_VOIP || st->channels != 1)) {
       return OPUS_OK;
     }
-    if (value != 0 && !ensure_voice_denoise_state(st)) {
-      return OPUS_ALLOC_FAIL;
+    if (value != 0 && st->voice_denoise == nullptr) {
+      st->voice_denoise = static_cast<VoiceDenoiseState*>(std::malloc(sizeof(VoiceDenoiseState)));
+      if (st->voice_denoise == nullptr) {
+        return OPUS_ALLOC_FAIL;
+      }
+      reset_voice_denoise_state(*st->voice_denoise);
     }
     if (value == 0) {
       release_voice_denoise_state(st);
