@@ -4661,8 +4661,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     vbr |= length != frame_lengths.front();
   }
   const bool compact = !pad || maxlen == payload_size + 1 + (count == 2 && vbr ? 1 + (frame_lengths.front() >= 252) : 0);
-  const int code = compact && count == 1 ? 0 : compact && count == 2 ? (vbr ? 2 : 1)
-                                                                     : 3;
+  const int code = compact ? (count == 1 ? 0 : count == 2 ? (vbr ? 2 : 1) : 3) : 3;
   opus_int32 total_size = payload_size + (code == 3 ? 2 : 1);
   if (code == 2) {
     total_size += 1 + (frame_lengths.front() >= 252);
@@ -4674,9 +4673,9 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   if (total_size > maxlen) {
     return -2;
   }
+  const int padding = pad ? maxlen - total_size : 0;
   const bool inplace = count == 1 && frame_data.front() == data + 1;
   if (inplace) {
-    const int padding = pad ? maxlen - total_size : 0;
     const int payload_offset = code == 3 ? 2 + (padding > 0 ? (padding + 254) / 255 : 0) : 1;
     move_n_items(data + 1, static_cast<std::size_t>(frame_lengths.front()), data + payload_offset);
   }
@@ -4686,7 +4685,6 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     ptr += encode_size(frame_lengths.front(), ptr);
   } else if (code == 3) {
     *ptr++ = static_cast<unsigned char>(count | (vbr ? 0x80 : 0));
-    const int padding = pad ? maxlen - total_size : 0;
     if (padding > 0) {
       data[1] |= 0x40;
       for (int remaining = padding; remaining > 255; remaining -= 255) {
