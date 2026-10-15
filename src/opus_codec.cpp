@@ -17682,7 +17682,7 @@ static void silk_A2NLSF_FLP(opus_int16* NLSF_Q15, const float* pAR, const int LP
 }
 
 static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LPC_order) {
-  std::array<opus_int16, 16> a_fix_Q12{};
+  std::array<opus_int16, 16> a_fix_Q12;
   silk_NLSF2A(a_fix_Q12.data(), NLSF_Q15, LPC_order);
   for (int index = 0; index < LPC_order; ++index) {
     pAR[index] = static_cast<float>(a_fix_Q12[index]) * (1.0f / 4096.0f);
