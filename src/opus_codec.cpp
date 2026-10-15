@@ -4642,10 +4642,9 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-  const int result = frame_size <= celt_max_frame_samples
-                         ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
-                         : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
-  return result;
+  return frame_size <= celt_max_frame_samples
+             ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
+             : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
 }
 
 int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept {
@@ -4665,8 +4664,7 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
   if (frame_size <= 0) {
     return -1;
   }
-  const int result = encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
-  return result;
+  return encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
 }
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
