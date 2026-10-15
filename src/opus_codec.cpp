@@ -11962,8 +11962,8 @@ static float classical_leak_downmix_resample(classical_leak_state* s, const opus
   }
   float tmp[1440];
   constexpr bool exact_pcm16_format = std::numeric_limits<float>::is_iec559 &&
-      std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits >= 17 &&
-      std::numeric_limits<float>::min_exponent <= -15 && std::numeric_limits<float>::max_exponent > 16;
+                                      std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits >= 17 &&
+                                      std::numeric_limits<float>::min_exponent <= -15 && std::numeric_limits<float>::max_exponent > 16;
   if (exact_pcm16_format && pcm16 != nullptr) {
     for (int j = 0; j < subframe; ++j) {
       float y = static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels]);
