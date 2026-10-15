@@ -8239,10 +8239,11 @@ struct celt_decoder_views {
 };
 
 static void celt_bind_decoder_energy_views(celt_decoder_views& views, celt_sig* storage, int channels) noexcept {
+  constexpr int band_count = celt_decoder_energy_channel_count * celt_default_nb_ebands;
   views.oldBandE = reinterpret_cast<celt_glog*>(storage + celt_decoder_channel_storage * channels);
-  views.oldLogE = views.oldBandE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
-  views.oldLogE2 = views.oldLogE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
-  views.backgroundLogE = views.oldLogE2 + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  views.oldLogE = views.oldBandE + band_count;
+  views.oldLogE2 = views.oldLogE + band_count;
+  views.backgroundLogE = views.oldLogE2 + band_count;
   views.lpc = reinterpret_cast<opus_val16*>(views.backgroundLogE + channels * celt_default_nb_ebands);
 }
 
@@ -8266,7 +8267,7 @@ static void celt_bind_decoder_energy_views(celt_decoder_views& views, celt_sig* 
 static void celt_load_decode_history(CeltDecoderInternal* st, celt_sig* history, bool need_old_overlap = true) {
   for (int channel = 0; channel < st->channels; ++channel) {
     const auto* stored = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
-    copy_n_items(stored + celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs,
+    copy_n_items(stored + celt_decoder_prefix_storage,
                  static_cast<std::size_t>(celt_decode_buffer_size - celt_decoder_raw_start + (need_old_overlap ? celt_decoder_retained_overlap : 0)),
                  history + channel * (celt_decode_buffer_size + celt_default_overlap) + celt_decoder_raw_start);
   }
