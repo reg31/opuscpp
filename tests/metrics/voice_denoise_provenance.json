@@ -1,6 +1,6 @@
 {
-  "source_commit": "f1c41d4ba6a0f5c0787d0b05df6a96db3f952f26",
-  "source_sha256": "10df9e156245265ca80ff167a0a79fc14b6f0d410d7d0f6a9add69bd19b051c3",
+  "source_commit": "f4bc3cada170e9d99bee36219ada8548b097b64c",
+  "source_sha256": "f38f5eb04714578e9c1197295d1177767380d4b1ad890d62e93c6222bd9f9b86",
   "quality": {
     "boundary_passed": 25,
     "boundary_total": 25,
@@ -9,11 +9,11 @@
       "snr_db": 12,
       "segmental_snr_db": 17,
       "rms_error": 12,
-      "mean_abs_error": 18,
+      "mean_abs_error": 17,
       "pesq_style": 16,
       "visqol_style": 34,
       "logband_corr": 43,
-      "logband_error": 28,
+      "logband_error": 29,
       "celt_quality": 40,
       "celt_masked_error": 40,
       "celt_highband_error": 21,
