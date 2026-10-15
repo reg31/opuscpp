@@ -8880,7 +8880,6 @@ OPUSCPP_NOINLINE static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_
   celt_decoder_views decoder;
   decoder.history_size = history_size;
   decoder.raw_offset = celt_decode_buffer_size - history_size;
-  decoder.cache_backup_start = decoder.cache_backup_count = 0;
   for (int channel = 0; channel < st->channels; ++channel) {
     decoder.decode_mem[channel] = working.data() + channel * stride;
     decoder.out_syn[channel] = decoder.decode_mem[channel] + celt_lpc_order;
