@@ -12646,8 +12646,6 @@ static opus_val16 remove_doubling(opus_val16* x, int N, int* T0_, int prev_perio
       opus_val16 thresh = std::max(.3f, .7f * g0 - cont);
       if (T1 < 3 * minperiod) {
         thresh = std::max(.4f, .85f * g0 - cont);
-      } else if (T1 < 2 * minperiod) {
-        thresh = std::max(.5f, .9f * g0 - cont);
       }
       if (g1 > thresh) {
         best_xy = xy;
