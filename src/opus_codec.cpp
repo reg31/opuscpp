@@ -18846,7 +18846,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         const opus_int32 bitsBalance = ec_tell(psRangeEnc) - lbrr_bits - frameBits * state0.nFramesEncoded;
         TargetRate_bps -= 2 * bitsBalance;
       }
-      TargetRate_bps = std::clamp(TargetRate_bps, std::min(5000, encControl->bitRate), std::max(5000, encControl->bitRate));
+      TargetRate_bps = std::clamp(TargetRate_bps, std::min(5000, encControl->bitRate),
+                                  std::max(5000, encControl->bitRate) - 2 * std::min(0, psEnc->nBitsExceeded));
       opus_int32 MStargetRates_bps[2];
       if (stereo_coding) {
         const int frame_index = state0.nFramesEncoded;
@@ -18948,7 +18949,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         }
         psEnc->nBitsExceeded += *nBytesOut * 8;
         psEnc->nBitsExceeded -= static_cast<opus_int32>(encControl->bitRate * encControl->payloadSize_ms / 1000);
-        psEnc->nBitsExceeded = std::clamp(psEnc->nBitsExceeded, 0, 10000);
+        psEnc->nBitsExceeded = std::clamp(psEnc->nBitsExceeded, -10000, 10000);
         const int switch_threshold =
             fixed_q<8>(0.05f) + silk_mul_wb(fixed_q<24>((1.0f - 0.05f) / 5000.0f), psEnc->timeSinceSwitchAllowed_ms);
         psEnc->allowBandwidthSwitch = state0.speech_activity_Q8 < switch_threshold;
