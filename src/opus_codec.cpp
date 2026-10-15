@@ -8236,7 +8236,7 @@ static void pitch_whiten(opus_val16* x_lp, int len) {
 }
 
 struct celt_decoder_views {
-  int history_size, raw_offset = 0;
+  int history_size, raw_offset;
   int cache_backup_start = 0, cache_backup_count = 0;
   std::array<celt_sig*, 2> cache_backup{};
   std::array<celt_sig*, 2> decode_mem{}, out_syn{};
