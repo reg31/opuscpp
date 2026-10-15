@@ -16669,7 +16669,7 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
 void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
   constexpr int QOUT = 12, QIN = 17;
   int i = 0;
-  int idx = 0;
+  int idx;
   for (; i < 10; ++i) {
     opus_int32 maxabs = 0;
     for (int k = 0; k < d; ++k) {
