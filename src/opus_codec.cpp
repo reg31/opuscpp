@@ -15435,14 +15435,11 @@ static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, co
     return;
   }
   const auto half = pulses.size() / 2;
-  auto left = 0;
-  if (total_pulses > 0) {
-    const std::span<const opus_uint8> table = pulses.size() == 2   ? silk_shell_code_table0
-                                              : pulses.size() == 4 ? silk_shell_code_table1
-                                              : pulses.size() == 8 ? silk_shell_code_table2
-                                                                   : silk_shell_code_table3;
-    left = silk_index_symbol<false>(coder, left, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
-  }
+  const std::span<const opus_uint8> table = pulses.size() == 2   ? silk_shell_code_table0
+                                            : pulses.size() == 4 ? silk_shell_code_table1
+                                            : pulses.size() == 8 ? silk_shell_code_table2
+                                                                 : silk_shell_code_table3;
+  const auto left = silk_index_symbol<false>(coder, 0, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
   silk_shell_code_node(coder, pulses.first(half), left);
   silk_shell_code_node(coder, pulses.last(half), total_pulses - left);
 }
