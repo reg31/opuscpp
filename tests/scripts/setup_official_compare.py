@@ -21,6 +21,7 @@ import wave
 
 OFFICIAL_OPUS_REPO = "https://github.com/xiph/opus.git"
 OFFICIAL_OPUS_TAG = "main"
+OFFICIAL_OPUS_COMMIT = "51bd2e649f4516d103ab9a7f22a768595621e847"
 RFC6716_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors.tar.gz"
 RFC8251_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors-rfc8251.tar.gz"
 BITRATES = (16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000)
@@ -903,12 +904,16 @@ def extract_tarball(archive: pathlib.Path, out_dir: pathlib.Path) -> None:
 
 def ensure_official_clone(repo_dir: pathlib.Path) -> None:
     if (repo_dir / ".git").exists():
+        if capture(["git", "status", "--porcelain", "--untracked-files=all"], cwd=repo_dir).strip():
+            raise RuntimeError("Official reference checkout must be clean; user changes are preserved")
         print(f"Using existing official-opus checkout: {repo_dir}")
-        run(["git", "fetch", "--tags", "--depth", "1", "origin", OFFICIAL_OPUS_TAG], cwd=repo_dir)
     else:
         repo_dir.parent.mkdir(parents=True, exist_ok=True)
-        run(["git", "clone", "--branch", OFFICIAL_OPUS_TAG, "--depth", "1", OFFICIAL_OPUS_REPO, str(repo_dir)])
-    run(["git", "checkout", OFFICIAL_OPUS_TAG], cwd=repo_dir)
+        run(["git", "clone", "--no-checkout", "--branch", OFFICIAL_OPUS_TAG, "--depth", "1", OFFICIAL_OPUS_REPO, str(repo_dir)])
+    run(["git", "fetch", "--depth", "1", "origin", OFFICIAL_OPUS_COMMIT], cwd=repo_dir)
+    run(["git", "checkout", "--detach", OFFICIAL_OPUS_COMMIT], cwd=repo_dir)
+    if capture(["git", "rev-parse", "HEAD"], cwd=repo_dir).strip() != OFFICIAL_OPUS_COMMIT:
+        raise RuntimeError("Official reference commit does not match the immutable pin")
 
 
 def configure_and_build_official(repo_dir: pathlib.Path, build_dir: pathlib.Path, generator: str | None) -> None:
@@ -1094,8 +1099,8 @@ def main() -> int:
 
     repo_root = pathlib.Path(__file__).resolve().parents[2]
     external_root = repo_root / "tests" / "external"
-    official_repo_dir = external_root / "official_opus"
-    official_build_dir = repo_root / "build" / "official_opus_o2_intrinsics_mingw"
+    official_repo_dir = external_root / "official_opus_51bd2e649f45"
+    official_build_dir = repo_root / "build" / "official_opus_51bd2e649f45_o2_intrinsics_mingw"
     harness_build_dir = repo_root / "build" / "conformance_decode"
     report_dir = repo_root / "build" / "official_compare_report"
     vector_root = external_root / "testvectors"
