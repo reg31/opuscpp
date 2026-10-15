@@ -2577,10 +2577,6 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
   return offset_ptr<opus_res>(st, align(sizeof(OpusEncoder)));
 }
 
-[[nodiscard]] static inline auto encoder_delay_buffer(const OpusEncoder* st) noexcept -> const opus_res* {
-  return offset_ptr<opus_res>(st, align(sizeof(OpusEncoder)));
-}
-
 [[nodiscard]] static inline auto encoder_silk_state(OpusEncoder* st) noexcept -> void* {
   return offset_ptr<void>(st, st->silk_enc_offset);
 }
@@ -3227,7 +3223,7 @@ struct encoder_stage_storage {
 
   auto prime_from_encoder(const OpusEncoder* st) noexcept -> void {
     if (history_samples != 0) {
-      copy_n_items(encoder_delay_buffer(st), history_samples, active.data());
+      copy_n_items(offset_ptr<opus_res>(st, align(sizeof(OpusEncoder))), history_samples, active.data());
     }
   }
   auto finish_frame(OpusEncoder* st) noexcept -> void {
