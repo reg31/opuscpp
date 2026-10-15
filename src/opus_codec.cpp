@@ -2069,7 +2069,7 @@ static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF, const int d) 
 }
 
 static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMin_Q15, const int L) {
-  int i, I = 0, k;
+  int i, I, k;
   opus_int16 center_freq_Q15;
   opus_int32 diff_Q15, min_diff_Q15, min_center_Q15, max_center_Q15;
   for (int loops = 0; loops < 20; ++loops) {
