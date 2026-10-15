@@ -6055,6 +6055,22 @@ static void compute_mdcts(int shortBlocks, celt_sig* in, celt_sig* out, int C, i
     N = celt_short_mdct_size << LM;
     shift = celt_max_lm - LM;
   }
+  if (C == 1 && CC == 2) {
+    const int bn = B * N;
+    if (std::memcmp(in, in + bn + overlap, static_cast<std::size_t>(bn + overlap) * sizeof(celt_sig)) == 0) {
+      compute_mdcts(shortBlocks, in, out, 1, 1, LM, 1, forward_scratch);
+      copy_n_items(out, static_cast<std::size_t>(bn), out + bn);
+      for (i = 0; i < bn; ++i)
+        out[i] = .5f * out[i] + .5f * out[bn + i];
+      if (upsample != 1) {
+        const int bound = bn / upsample;
+        for (int j = 0; j < bound; ++j)
+          out[j] *= upsample;
+        zero_n_items(out + bound, static_cast<std::size_t>(bn - bound));
+      }
+      return;
+    }
+  }
   for (c = 0; c < CC; ++c)
     for (b = 0; b < B; b++) {
       clt_mdct_forward_c(&celt_mode()->mdct, in + c * (B * N + overlap) + b * N, &out[b + c * N * B], celt_mode()->window, overlap, shift,
