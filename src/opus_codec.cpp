@@ -8483,16 +8483,14 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   if (same_input) {
     copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
   }
-  st->postfilter_period_old = st->postfilter_period;
+  st->postfilter_period_old = LM == 0 ? st->postfilter_period : target_period;
   st->postfilter_gain_old = st->postfilter_gain;
-  st->postfilter_tapset_old = st->postfilter_tapset;
+  st->postfilter_tapset_old = LM == 0 ? st->postfilter_tapset : target_tapset;
   st->postfilter_period = target_period;
   st->postfilter_gain = target_gain;
   st->postfilter_tapset = target_tapset;
   if (LM != 0) {
-    st->postfilter_period_old = st->postfilter_period;
     st->postfilter_gain_old = st->postfilter_gain;
-    st->postfilter_tapset_old = st->postfilter_tapset;
   }
 }
 
