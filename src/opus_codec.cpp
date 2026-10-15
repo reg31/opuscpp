@@ -4653,7 +4653,6 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   const int count = packet_frames->nb_frames;
   const auto frame_count = static_cast<std::size_t>(count);
   const auto frame_lengths = std::span<const opus_int16>{packet_frames->len}.first(frame_count);
-  const auto frame_data = std::span<const unsigned char* const>{packet_frames->frames}.first(frame_count);
   bool vbr = false;
   opus_int32 payload_size = 0;
   for (const auto length : frame_lengths) {
@@ -4674,7 +4673,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
     return -2;
   }
   const int padding = pad ? maxlen - total_size : 0;
-  const bool inplace = count == 1 && frame_data.front() == data + 1;
+  const bool inplace = count == 1 && packet_frames->frames.front() == data + 1;
   if (inplace) {
     const int payload_offset = code == 3 ? 2 + (padding > 0 ? (padding + 254) / 255 : 0) : 1;
     move_n_items(data + 1, static_cast<std::size_t>(frame_lengths.front()), data + payload_offset);
@@ -4689,7 +4688,6 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
         *ptr++ = 255;
       }
       *ptr++ = static_cast<unsigned char>((padding - 1) % 255);
-      total_size += padding;
     }
   }
   if (vbr) {
@@ -4699,13 +4697,13 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   }
   for (std::size_t index = 0; index < frame_count; ++index) {
     if (!inplace)
-      move_n_items(frame_data[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
+      move_n_items(packet_frames->frames[index], static_cast<std::size_t>(frame_lengths[index]), ptr);
     ptr += frame_lengths[index];
   }
   if (pad) {
     zero_n_items(ptr, static_cast<std::size_t>(data + maxlen - ptr));
   }
-  return total_size;
+  return pad ? maxlen : total_size;
 }
 
 namespace {
