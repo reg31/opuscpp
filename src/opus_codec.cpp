@@ -14179,10 +14179,10 @@ static void silk_shell_encode_tree(ec_ctx* coder, const int* magnitudes, const s
     else
       return magnitudes[offset];
   }();
-  const auto* table = Count == 2 ? silk_shell_code_table0.data()
-                       : Count == 4 ? silk_shell_code_table1.data()
-                       : Count == 8 ? silk_shell_code_table2.data()
-                                    : silk_shell_code_table3.data();
+  const auto* table = Count == 2   ? silk_shell_code_table0.data()
+                      : Count == 4 ? silk_shell_code_table1.data()
+                      : Count == 8 ? silk_shell_code_table2.data()
+                                   : silk_shell_code_table3.data();
   ec_enc_icdf(coder, left, table + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)], 8);
   if constexpr (Count > 2) {
     silk_shell_encode_tree<Count / 2>(coder, magnitudes, tree, offset, left);
