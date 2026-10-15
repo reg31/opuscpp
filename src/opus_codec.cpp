@@ -3021,7 +3021,7 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
 static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> void {
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
     float raw_toneishness = 0;
-    if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1 && raw_frame_size > 0) {
+    if (raw_pcm != nullptr && st->application == OPUS_APPLICATION_VOIP && st->channels == 1) {
       const bool needs_raw_tone =
           !analysis.activity.is_silence && analysis.activity.energy > 1e-7f &&
           (is_sparse_high_z_tonal_frame(analysis.activity) ||
