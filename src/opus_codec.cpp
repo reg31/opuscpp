@@ -3348,8 +3348,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const int frame_redundancy = params.redundancy && (frame_to_celt || (!params.to_celt && frame_index == 0));
     const int remaining_frames = nb_frames - frame_index;
     const opus_int32 frame_target_bits = remaining_target_bits / remaining_frames;
-    const auto frame_budget = make_vbr_frame_budget(frame_target_bits, local_credit_bits);
-    const opus_int32 frame_max_bytes = params.governed_vbr ? frame_budget.max_bytes : frame_target_bits / 8;
+    const auto frame_budget = params.governed_vbr
+                                  ? make_vbr_frame_budget(frame_target_bits, local_credit_bits)
+                                  : vbr_frame_budget{.allocator_bits = 0, .max_bytes = frame_target_bits / 8};
+    const opus_int32 frame_max_bytes = frame_budget.max_bytes;
     opus_int32 curr_max = std::min(max_len_sum - tot_size, std::min(max_len_sum / nb_frames, frame_max_bytes));
     const auto* frame_pcm = pcm + frame_index * (st->channels * enc_frame_size);
     if (st->classical_leak.analysis_read_pos_bak != -1) {
@@ -3357,7 +3359,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     }
     const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
     const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
-    const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
+    const opus_int32 allocator_target_bits = frame_budget.allocator_bits;
     int tmp_len =
         opus_encode_frame_native(st, frame_pcm, enc_frame_size, curr_data, curr_max, allocator_target_bits, frame_metrics,
                                  frame_redundancy, params.celt_to_silk, params.prefill, params.equiv_rate, frame_to_celt,
@@ -3388,7 +3390,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     ++packet_frames.nb_frames;
     tot_size += tmp_len;
     curr_data += tmp_len;
-    local_credit_bits = update_vbr_credit(local_credit_bits, tmp_len, frame_target_bits);
+    if (params.governed_vbr) {
+      local_credit_bits = update_vbr_credit(local_credit_bits, tmp_len, frame_target_bits);
+    }
     remaining_target_bits -= frame_target_bits;
     if (frame_index + 1 < nb_frames) {
       stage_storage.prime_from_encoder(st);
