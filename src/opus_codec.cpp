@@ -7938,9 +7938,9 @@ static void celt_decoder_reset_state(CeltDecoderInternal* st) {
   zero_object_tail(*st, offsetof(CeltDecoderInternal, last_pitch_index));
   st->prefix_head = 0;
   zero_n_items(celt_decoder_storage(st), celt_decoder_storage_count(st->channels));
-  auto* old_band_energy =
-      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + celt_decoder_channel_storage * st->channels);
-  auto* old_log_energy = old_band_energy + energy_channels * celt_default_nb_ebands;
+  auto* old_log_energy =
+      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + celt_decoder_channel_storage * st->channels) +
+      energy_channels * celt_default_nb_ebands;
   const auto band_count = static_cast<std::size_t>(energy_channels * celt_default_nb_ebands);
   std::fill_n(old_log_energy, 2 * band_count, -(28.f));
   st->skip_plc = 1;
