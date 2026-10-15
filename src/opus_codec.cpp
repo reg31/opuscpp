@@ -344,6 +344,7 @@ static void ec_enc_init(ec_enc* _this, unsigned char* _buf, opus_uint32 _size);
 static void ec_encode(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _ft);
 static void ec_enc_bit_logp(ec_enc* _this, int _val, unsigned _logp);
 static void ec_enc_icdf(ec_enc* _this, int _s, const unsigned char* _icdf, unsigned _ftb);
+static void ec_enc_binary_icdf8(ec_enc* coder, int bit, opus_uint8 cutoff);
 static void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft);
 static void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _ftb);
 static void ec_enc_shrink(ec_enc* _this, opus_uint32 _size);
@@ -9089,6 +9090,16 @@ void ec_enc_icdf(ec_enc* _this, int _s, const unsigned char* _icdf, unsigned _ft
   ec_enc_normalize(_this);
 }
 
+static void ec_enc_binary_icdf8(ec_enc* coder, int bit, opus_uint8 cutoff) {
+  const auto range = coder->rng;
+  const auto split = (range >> 8) * cutoff;
+  const auto zero_range = range - split;
+  const opus_uint32 selector = opus_uint32{0} - static_cast<opus_uint32>(bit != 0);
+  coder->val += zero_range & selector;
+  coder->rng = zero_range ^ ((zero_range ^ split) & selector);
+  ec_enc_normalize(coder);
+}
+
 void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft) {
   _ft--;
   int ftb = std::bit_width(_ft);
@@ -13710,7 +13721,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
       auto& pulse = pulse_block[pulse_index];
       if constexpr (Encode) {
         if (pulse != 0) {
-          ec_enc_icdf(coder, (pulse >> 15) + 1, icdf, 8);
+          ec_enc_binary_icdf8(coder, (pulse >> 15) + 1, icdf[0]);
         }
       } else if (pulse > 0) {
         pulse *= static_cast<opus_int16>((ec_dec_icdf(coder, icdf, 8) << 1) - 1);
@@ -14284,7 +14295,7 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
       for (const auto pulse : block_pulses) {
         const auto magnitude = std::abs(static_cast<int>(pulse));
         for (int shift = shifts[block_index] - 1; shift >= 0; --shift) {
-          ec_enc_icdf(coder, (magnitude >> shift) & 1, silk_lsb_iCDF.data(), 8);
+          ec_enc_binary_icdf8(coder, (magnitude >> shift) & 1, silk_lsb_iCDF[0]);
         }
       }
     } else {
