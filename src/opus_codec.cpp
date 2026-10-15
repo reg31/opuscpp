@@ -3444,7 +3444,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   opus_int32 cbr_bytes = -1;
   auto max_data_bytes = std::min(1276 * 6, out_data_bytes);
   st->rangeFinal = 0;
-  if (frame_size <= 0 || max_data_bytes <= 0) {
+  if (max_data_bytes <= 0) {
     return -1;
   }
   if (max_data_bytes == 1 && st->Fs == (frame_size * 10)) {
