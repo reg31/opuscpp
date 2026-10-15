@@ -3902,8 +3902,6 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   if (state.cue_run >= run_need || state.cue_rumble_consec >= rumble_need) {
     if (state.cue_dirty == 0) {
       state.cue_lf_ref = lf_abs;
-      state.cue_floor_hold = 0;
-      state.cue_adapt_run = 0;
     }
     state.cue_dirty = 1;
     state.cue_released = 0;
