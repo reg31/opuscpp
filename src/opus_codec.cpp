@@ -12541,8 +12541,8 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
   }
   int pcm_len = frame_size;
   int offset = 0;
+  const int step = Fs / 50;
   while (pcm_len > 0) {
-    const int step = Fs / 50;
     const int chunk = std::min(step, pcm_len);
     const int analysis_len = Fs == 48000 ? chunk / 2 : Fs == 16000 ? 3 * chunk / 2
                                                                    : chunk;
