@@ -2327,7 +2327,7 @@ static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_f
 static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid) {
   decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
 }
-template <bool Encode, typename Pulse> static void silk_shell_code_node(ec_ctx* coder, std::span<Pulse> pulses, int total_pulses);
+static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, int total_pulses);
 template <bool Encode, typename Pulse>
 static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length);
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
@@ -14361,7 +14361,7 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
       if constexpr (Encode) {
         silk_shell_encode_tree<16>(coder, magnitudes.data() + offset, shell_trees[block_index], 0, pulse_sums[block_index]);
       } else {
-        silk_shell_code_node<false>(coder, std::span<Pulse>{pulses.data() + offset, 16}, pulse_sums[block_index]);
+        silk_shell_code_node(coder, std::span<Pulse>{pulses.data() + offset, 16}, pulse_sums[block_index]);
       }
     } else if constexpr (!Encode) {
       zero_n_items(pulses.data() + offset, 16);
@@ -15444,29 +15444,22 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
   silk_finish_nsq(psEncC, NSQ);
 }
 
-template <bool Encode, typename Pulse> static void silk_shell_code_node(ec_ctx* coder, std::span<Pulse> pulses, const int total_pulses) {
+static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, const int total_pulses) {
   if (pulses.size() <= 1) {
-    if constexpr (!Encode) {
-      pulses.front() = static_cast<opus_int16>(total_pulses);
-    }
+    pulses.front() = static_cast<opus_int16>(total_pulses);
     return;
   }
   const auto half = pulses.size() / 2;
   auto left = 0;
-  if constexpr (Encode) {
-    for (const int pulse : pulses.first(half)) {
-      left += pulse;
-    }
-  }
   if (total_pulses > 0) {
     const std::span<const opus_uint8> table = pulses.size() == 2   ? silk_shell_code_table0
                                               : pulses.size() == 4 ? silk_shell_code_table1
                                               : pulses.size() == 8 ? silk_shell_code_table2
                                                                    : silk_shell_code_table3;
-    left = silk_index_symbol<Encode>(coder, left, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
+    left = silk_index_symbol<false>(coder, left, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
   }
-  silk_shell_code_node<Encode>(coder, pulses.first(half), left);
-  silk_shell_code_node<Encode>(coder, pulses.last(half), total_pulses - left);
+  silk_shell_code_node(coder, pulses.first(half), left);
+  silk_shell_code_node(coder, pulses.last(half), total_pulses - left);
 }
 
 constexpr std::array<opus_int32, 4> silk_vad_noise_level_bias{50, 25, 16, 12};
