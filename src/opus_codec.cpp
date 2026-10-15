@@ -3971,7 +3971,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
         restoration = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
-                                                      : 0.f;
+                                                    : 0.f;
       } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
         restoration = .30f;
       }
