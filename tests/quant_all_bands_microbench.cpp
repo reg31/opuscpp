@@ -126,7 +126,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
   quant_all_bands(1, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
                   band_energy.data(), pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &enc, LM,
-                  celt_default_nb_ebands, &seed, 0, 10);
+                  celt_default_nb_ebands, &seed, 0);
   ec_enc_done(&enc);
   return (ec_tell(&enc) + 7) >> 3;
 }
@@ -140,7 +140,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   ec_dec_init(&dec, const_cast<unsigned char*>(packet), static_cast<opus_uint32>(packet_bytes));
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
   quant_all_bands(0, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(), nullptr,
-                  pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &dec, LM, celt_default_nb_ebands, &seed, 0, 0);
+                  pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &dec, LM, celt_default_nb_ebands, &seed, 0);
   checksum = checksum_norms(work, checksum);
   return dec.error;
 }
