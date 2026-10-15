@@ -4631,8 +4631,7 @@ int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsi
     return OPUS_BAD_ARG;
   }
   const int frame_size = interleaved_frame_size(pcm.size(), st->channels);
-  const int packet_size = static_cast<int>(packet.size());
-  return frame_size < 0 ? OPUS_BAD_ARG : opus_encode(st, pcm.data(), frame_size, packet.data(), packet_size);
+  return frame_size < 0 ? OPUS_BAD_ARG : opus_encode(st, pcm.data(), frame_size, packet.data(), static_cast<int>(packet.size()));
 }
 
 int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size, unsigned char* data, int out_data_bytes) noexcept {
