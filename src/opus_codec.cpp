@@ -1409,8 +1409,8 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
       const int silk_ret = silk_Decode(silk_dec, &dec_control, lost_flag, first_frame, &dec, pcm_ptr, &silk_frame_size);
       if (silk_ret) {
         if (lost_flag) {
-          silk_frame_size = frame_size;
-          zero_n_items(pcm_ptr, static_cast<std::size_t>(frame_size * st->channels));
+          silk_frame_size = frame_size - decoded_samples;
+          zero_n_items(pcm_ptr, static_cast<std::size_t>(silk_frame_size * st->channels));
         } else {
           return -3;
         }
