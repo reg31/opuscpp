@@ -8286,6 +8286,14 @@ struct celt_decoder_views {
   opus_val16* lpc;
 };
 
+static void celt_bind_decoder_energy_views(celt_decoder_views& views, celt_sig* storage, int channels) noexcept {
+  views.oldBandE = reinterpret_cast<celt_glog*>(storage + celt_decoder_channel_storage * channels);
+  views.oldLogE = views.oldBandE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  views.oldLogE2 = views.oldLogE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  views.backgroundLogE = views.oldLogE2 + celt_decoder_energy_channel_count * celt_default_nb_ebands;
+  views.lpc = reinterpret_cast<opus_val16*>(views.backgroundLogE + channels * celt_default_nb_ebands);
+}
+
 [[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N, celt_sig* workspace, bool inplace, bool update_pitch_cache) noexcept -> celt_decoder_views {
   const auto overlap = celt_default_overlap;
   auto* const decode_storage = celt_decoder_storage(st);
@@ -8294,18 +8302,13 @@ struct celt_decoder_views {
   views.raw_offset = celt_decode_buffer_size - views.history_size;
   views.cache_backup_count = inplace ? std::min(N, celt_decoder_prefix_storage) : 0;
   views.cache_backup_start = inplace ? celt_decoder_prefix_storage - views.cache_backup_count : 0;
-  constexpr auto energy_channels = celt_decoder_energy_channel_count;
   for (int channel = 0; channel < st->channels; ++channel) {
     views.decode_mem[channel] = inplace ? decode_storage + channel * celt_decoder_channel_storage : workspace + channel * (celt_decode_buffer_size + overlap);
     views.out_syn[channel] = views.decode_mem[channel] + views.history_size - N;
     if (inplace && update_pitch_cache)
       views.cache_backup[channel] = workspace + channel * N;
   }
-  views.oldBandE = reinterpret_cast<celt_glog*>(decode_storage + celt_decoder_channel_storage * st->channels);
-  views.oldLogE = views.oldBandE + energy_channels * celt_default_nb_ebands;
-  views.oldLogE2 = views.oldLogE + energy_channels * celt_default_nb_ebands;
-  views.backgroundLogE = views.oldLogE2 + energy_channels * celt_default_nb_ebands;
-  views.lpc = reinterpret_cast<opus_val16*>(views.backgroundLogE + st->channels * celt_default_nb_ebands);
+  celt_bind_decoder_energy_views(views, decode_storage, st->channels);
   return views;
 }
 
@@ -8882,11 +8885,7 @@ OPUSCPP_NOINLINE static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_
     decoder.out_syn[channel] = decoder.decode_mem[channel] + celt_lpc_order;
   }
   auto* storage = celt_decoder_storage(st);
-  decoder.oldBandE = reinterpret_cast<celt_glog*>(storage + celt_decoder_channel_storage * st->channels);
-  decoder.oldLogE = decoder.oldBandE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
-  decoder.oldLogE2 = decoder.oldLogE + celt_decoder_energy_channel_count * celt_default_nb_ebands;
-  decoder.backgroundLogE = decoder.oldLogE2 + celt_decoder_energy_channel_count * celt_default_nb_ebands;
-  decoder.lpc = reinterpret_cast<opus_val16*>(decoder.backgroundLogE + st->channels * celt_default_nb_ebands);
+  celt_bind_decoder_energy_views(decoder, storage, st->channels);
   celt_decode_lost(st, N, 2, decoder, nullptr, true);
   deemphasis(decoder.out_syn.data(), pcm, N, st->channels, st->downsample, st->preemph_memD);
   return frame_size;
