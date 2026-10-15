@@ -8312,6 +8312,8 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
       head -= celt_decoder_prefix_pairs;
   }
   const int base = head * (celt_short_mdct_size / 2);
+  const int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
+  const int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
   for (int channel = 0; channel < st->channels; ++channel) {
     auto* lowpass = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
     const auto* raw = lowpass + celt_decoder_prefix_storage;
@@ -8324,7 +8326,6 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
         return lowpass + physical;
       return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
     };
-    const int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
     int i = std::max(1, old_count);
     while (i < celt_decoder_compact_prefix / 2) {
       int physical = base + i;
@@ -8353,7 +8354,6 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
         }
       }
     }
-    const int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
     for (int i = prefix_pairs; i < celt_decoder_prefix_pairs; ++i) {
       const int source = i * celt_short_mdct_size + N - celt_decoder_raw_start;
       int pair = head + i;
