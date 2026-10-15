@@ -3833,10 +3833,6 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
     state.cue_consec += sample_count;
     state.cue_rumble_consec = rumble_evidence ? state.cue_rumble_consec + sample_count : 0;
     state.cue_unknown_run = 0;
-    if (state.cue_dirty == 0 && state.cue_consec >= static_cast<opus_int64>(40) * sample_rate / 1000) {
-      state.cue_provisional = 1;
-      state.cue_provisional_run = 0;
-    }
   } else if (clean_evidence) {
     state.cue_consec = 0;
     state.cue_rumble_consec = 0;
@@ -3850,7 +3846,8 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
       state.cue_run = 0;
     }
   }
-  if (dc_fast && state.cue_dirty == 0) {
+  if (state.cue_dirty == 0 &&
+      (dc_fast || (dirty_evidence && state.cue_consec >= static_cast<opus_int64>(40) * sample_rate / 1000))) {
     state.cue_provisional = 1;
     state.cue_provisional_run = 0;
   }
