@@ -8328,8 +8328,7 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
     auto location = [&](int physical) {
       if (!backup)
         return lowpass + physical;
-      else
-        return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
+      return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
     };
     const int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
     int i = std::max(1, old_count);
