@@ -13832,7 +13832,7 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
       const int scale_Q10 = (11469 << 10) / std::max(LTP_Gain_Q14, 1);
       psPLC->LTPCoef_Q14 = silk_mul_i16_shift<10>(psPLC->LTPCoef_Q14, scale_Q10);
     } else if (LTP_Gain_Q14 > 15565) {
-      const int scale_Q14 = (15565 << 14) / std::max(LTP_Gain_Q14, 1);
+      const int scale_Q14 = (15565 << 14) / LTP_Gain_Q14;
       psPLC->LTPCoef_Q14 = silk_mul_i16_shift<14>(psPLC->LTPCoef_Q14, scale_Q14);
     }
   } else {
