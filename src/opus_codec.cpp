@@ -3232,9 +3232,6 @@ struct encoder_stage_storage {
   std::span<opus_res> active;
   std::size_t history_samples, celt_offset;
 
-  [[nodiscard]] auto active_frame() noexcept -> std::span<opus_res> {
-    return active.subspan(history_samples);
-  }
   [[nodiscard]] auto active_celt_window() noexcept -> std::span<opus_res> {
     return active.subspan(celt_offset);
   }
@@ -4100,7 +4097,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   ec_enc enc;
   opus_uint32 redundant_rng = 0;
   auto celt_pcm = stage_storage.active_celt_window();
-  auto frame_pcm = stage_storage.active_frame();
+  auto frame_pcm = stage_storage.active.subspan(stage_storage.history_samples);
   const int max_data_bytes = std::min<opus_int32>(orig_max_data_bytes, 1276);
   const int frame_rate = st->Fs / frame_size;
   st->rangeFinal = 0;
