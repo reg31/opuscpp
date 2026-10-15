@@ -8421,17 +8421,15 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
     source = std::max(N, std::min(N + raw_start, decoder.history_size - period_span));
   }
   const auto count = static_cast<std::size_t>(decoder.history_size - source + celt_decoder_retained_overlap);
+  if (update_pitch_cache)
+    celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
   if (from_stored && decoder.raw_offset == 0) {
-    if (update_pitch_cache)
-      celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
     for (int channel = 0; channel < channels; ++channel) {
       const auto* raw = celt_decoder_storage(st) + channel * celt_decoder_channel_storage + celt_decoder_prefix_storage;
       copy_n_items(raw + source - celt_decoder_raw_start, count, decode_mem[channel] + source - N);
     }
     return;
   }
-  if (update_pitch_cache)
-    celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
   move_n_items(decode_mem[0] + source, count, decode_mem[0] + source - N);
   if (channels == 2) {
     move_n_items(decode_mem[1] + source, count, decode_mem[1] + source - N);
