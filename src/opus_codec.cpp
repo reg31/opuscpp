@@ -3566,7 +3566,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
     if (!voip_style && mature && voice_est <= 16) {
-      st->mode = st->bitrate_bps >= (voip_style ? 23000 : 15000) ? opus_mode_celt_only : opus_mode_silk_only;
+      st->mode = st->bitrate_bps >= 15000 ? opus_mode_celt_only : opus_mode_silk_only;
     }
     if (max_data_bytes < bitrate_to_bits_for_frame_rate(frame_rate > 50 ? 9000 : 6000, frame_rate) / 8) {
       st->mode = opus_mode_celt_only;
