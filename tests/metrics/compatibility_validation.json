@@ -1,11 +1,12 @@
 {
-  "source_commit": "fbce994ee19bd4115aa5cd11bddfc48d667be70f",
-  "source_sha256": "0d001b4db46a5a78d13b4df54ddb9962d2c85f574fed4f7a786e9f7328a36382",
-  "source_root": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\ffbce9\\build\\official_compare_report\\codex_native_celt_fbce994ee19b_20261015",
+  "source_commit": "ba613950cfd5ec59bab1e7eb54ef0672d2dfeb9c",
+  "source_sha256": "a5bc76738f35d143a799d1856b12793f0087888bed8f28a666554fd37ebe5276",
+  "source_root": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "setup_helper_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\ffbce9\\build\\official_compare_report\\codex_native_celt_fbce994ee19b_20261015\\tests\\scripts\\setup_official_compare.py",
+  "setup_helper_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\scripts\\setup_official_compare.py",
   "setup_helper_sha256": "c59659640b6345edb82f0a3836b085747635ca7146331923420c9020aa837e12",
   "phase_runner_sha256": "92267952694b7290598bb88ba617598759d3750b1b55fc104d7dc8964e8f5cf1",
+  "repair_continuation_sha256": "b005a43e38bbaac2a1c399bdb615f66273e2ab63781d99346d51d59c3089452d",
   "auxiliary_fec_acceptance": {
     "exit_code": 0,
     "summary": "fec_summary recovery_error_ratio=0.445586 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.997555",
@@ -13,9 +14,9 @@
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },
-  "command_prefix": "compat_command",
-  "qualified_prior_compatibility_directory": null,
-  "reused_scope": null,
+  "command_prefix": "compat_repair_command",
+  "qualified_prior_compatibility_directory": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility",
+  "reused_scope": "Original completed compat001..043: RFC24/encode96/five API groups/LPC helpers and16case public oracle; no replay.",
   "official_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
   "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
   "official_source_commit": "503d81b138d76621aae4b12786e90de48aa8db3a",
@@ -61,26 +62,25 @@
     "opus_newvectors/testvector12m.dec": "bd7f89a4cb02fb8dcb8fca4425bbcfdbdb3487beed9cd9d49883beb0960e617b"
   },
   "compatibility_binary_hashes": {
-    "transient_invariant.exe": "9b2a4193d96d458578c9cf331cc202c2416bc0cad74b413ab46519be5f80ae81",
-    "voice_conditioning_release.exe": "770e937420691a4c1c3c372d0e181b9abaecc3f7a6130e076ff80a510f6ad8db",
-    "voice_denoise_state.exe": "069159d7925d48664e6a8af42386f874d1445a59d54518cc5325da99fc950c11",
-    "voip_quiet_start_latch.exe": "559d43e9388e49dd6568e376c554f9aee1ac01e97c022d3bc72acd92f3db69f1",
-    "api_behavior/celt_energy_decode.exe": "50a6a0ff14f9b570eec80b9df6fef43a7989e49fe3ff3051ae3c6ed87890a251",
-    "api_behavior/current_codec.o": "2207328c6aa188681c39ae035d012c0a150a312f97e2534d74448ec252462d87",
-    "api_behavior/decoder_channel_remap.exe": "a1b333b0c893a553d40ac4a2d346e92188caae93865c26745434716597b31788",
-    "api_behavior/dtx_behavior.exe": "50c4ae4d4000099788d05b618177958801c73979f9d55b7518ece028617678d7",
-    "api_behavior/dtx_vs_official.exe": "37b19ec9b37aac4996839ad8e914d58dabb22953c3a31cdbce35d6b9b243493d",
-    "api_behavior/fec_vs_official.exe": "4459b5abf03d7d00ea9773ba6ff867758193cf523484e8ce4527715500db7ffb",
-    "api_behavior/lpc_analysis_filter.exe": "7b460da5666e05cecefed3c2f5d3087a854c02a35a9411dee6a81343f878adc4",
-    "api_behavior/lpc_analysis_filter.o": "cb77a7966acb7141dbd015a091b560591a8e0ddd17dc9473a9f81b2d044eac83",
-    "api_behavior/packet_duration_behavior.exe": "ba2500b20fc415e5d45d20162481f91b9e202d6bdf3d54b35988ac80fc57cac3",
-    "api_behavior/postfilter_bypass.exe": "638ee92b1824563431f965283463ccabc83b2c951e599c3df82cb608baf18254",
-    "api_behavior/stereo_policy.exe": "6227261ba7383c4743b4da36fb5a7159f07f1a366707cbde388ca7992ef49d4e",
-    "api_behavior/vbr_budget_behavior.exe": "69064c1775c73d6e18be40b682d5c1fdfd475ad789f07b63cfeca85c7fbc06ba",
-    "decode_build/conformance_decode.exe": "255c99099d8014a63f0a34ef7f31a39aeafadfbdd850c3803930825c8d934d0e",
-    "encode_validation/codex_opus_codec.o": "eddcc77fcb526da53b0c148e801a5e29b8e9d402e2964c7d19eda60332752dce",
-    "encode_validation/conformance_encode.exe": "87fbf73f8bd65055028965521dcd17e552faa27afa5baa84b08b6957f6a71bf9",
-    "encode_validation/official_encode_validation.exe": "6b1c8134598465ee2f97b0f02d14e63d87ba351aa92167e2abb220b230679a96"
+    "transient_invariant.exe": "e5c3bfbb16ea9c0760ffae007b096b2408ebc46f10db5107ebf7fc18616bbe4f",
+    "voice_conditioning_release.exe": "735f9515e5f0e46f52a84e92fde5d6f972c6449455c50ad409282dd290bcdad3",
+    "voice_denoise_state.exe": "cb400facbfb48d9f99dfdf5b2b4daca03a2df054e768a3aee78677399404ff32",
+    "voip_quiet_start_latch.exe": "4f5d27d7b65add18bdd566bf35c221001568734a9c4f88b1097b77fc9de2b722",
+    "api_behavior/celt_energy_decode.exe": "8f6e45865e99d4bbed43b5c54937aa97cf941d4e9a49c03ea24c609b8a3cc16f",
+    "api_behavior/dtx_vs_official.exe": "d95810bff3bd2e83dffc947216ec0d6064e161bbe321053da9c6c7a0922f4700",
+    "api_behavior/fec_vs_official.exe": "2af3d741c15fe29ea7ceee8e84bc1241d052b6180142b5bd03ce9b170d78a6f4",
+    "api_behavior/stereo_policy.exe": "9a644caa976d952ef9e97bf8ef6ee7fe44b83d34c6de62e0cbca40b57409af65",
+    "qualified_prior/api_behavior/decoder_channel_remap.exe": "7293b4745499152fe73c1b0db72242d6bc39b55880bd30f1c190e4c307e64c0e",
+    "qualified_prior/api_behavior/dtx_behavior.exe": "74190fe002312f94b869bb6c4f499554a34645ee13ddc2b3bc63aa22d2888b6c",
+    "qualified_prior/api_behavior/lpc_analysis_filter.exe": "64e8291b7bb0ced9a5e3e1ee5ec723057ba0de4a1b59a128b8ade4da57fffc41",
+    "qualified_prior/api_behavior/lpc_analysis_filter.o": "0828dbfa2ebd5a32191107d31238d9862abd0ffe5d6060eb3e9510d03f64df78",
+    "qualified_prior/api_behavior/packet_duration_behavior.exe": "4514d0bf308dcc3ec892764876941d26d012eb2f236f2629a239fc9d614fc948",
+    "qualified_prior/api_behavior/postfilter_bypass.exe": "a231fa410223cd54cbcbfa2ae67e48b69fcb6de9340970f7fbe6cd431b1b8bb8",
+    "qualified_prior/api_behavior/vbr_budget_behavior.exe": "932b7c8f79d17706de12a629ebe15ffc76984f99ceba265f02313c71a5e10da0",
+    "qualified_prior/decode_build/conformance_decode.exe": "511a2349262fc0170d073a547bd62f620077fa6747f2e5389fcf957eac71ba7f",
+    "qualified_prior/encode_validation/codex_opus_codec.o": "c3cd684dc72893e98e97d5e07bf576b726b9bb684509b3cce3660cb9cb71a7d9",
+    "qualified_prior/encode_validation/conformance_encode.exe": "2f5a104d78628c0a68a083c0efed114ae25341bcb0871674d5f81eeff7d8a58b",
+    "qualified_prior/encode_validation/official_encode_validation.exe": "986e2e7a4ae388f730df8b0c9b265002c75dd82f1b8e4804d658670d84a5d250"
   },
   "rfc_decode": {
     "passed": "24",
@@ -181,5 +181,476 @@
     "transient_invariant": "focused policy=0 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\nnormal_attack policy=0 saturated=0 detected=1 flag_space=1 overflow=0 rejected=0 ret=80 range_match=1 wire_transient=1 decoded=960 PASS\nsaturated_steady policy=0 saturated=1 detected=0 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\npolicy_true policy=1 saturated=1 detected=1 flag_space=0 overflow=1 rejected=1 ret=-3 PASS\ncelt_unsignaled_transient_invariant checks=4 failures=0",
     "voip_quiet_start_latch": "voip_startup_behavior checks=26 failures=0 (mode convergence and byte-identical reset)"
   },
-  "scope": "Fresh source-bound RFC 8251 decode, encode interoperability, API behavior and lookahead checks; no sanitizer run."
+  "harness_repair": {
+    "status": "ALL_REQUIRED_UNFINISHED_COMPATIBILITY_CHECKS_PASS",
+    "source_commit": "ba613950cfd5ec59bab1e7eb54ef0672d2dfeb9c",
+    "source_sha256": "a5bc76738f35d143a799d1856b12793f0087888bed8f28a666554fd37ebe5276",
+    "original_failed_command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_044.cmd.json",
+    "original_failure_exit": 1,
+    "repaired_energy_compile_executed_once": true,
+    "reused_completed_commands": [
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_001.cmd.json",
+        "sha256": "5a7b769750a46f4f2868fe159ca6cb87b436a7124b0333a0ebad42bbf97a6e5e",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_002.cmd.json",
+        "sha256": "f9926971590c744cf58d2665080ab499f872d77c812f35431bc7e141df404186",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_003.cmd.json",
+        "sha256": "b4579e0bf8e953409d78b7be2be51083f3d8402688d6a2be600e745e5b31eed9",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_004.cmd.json",
+        "sha256": "6bdc411b19745a047bded6e2f831e68f50856e6f72266374d65f13b11d7f9f6e",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_005.cmd.json",
+        "sha256": "0d951c57f74878621ae5b4b26887ddb806c350141e49d4dfeda7a260c6fbd985",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_006.cmd.json",
+        "sha256": "36249d22df2f26a33be8428b24533a91e6a1251b466fdcb696a9d8c230187234",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_007.cmd.json",
+        "sha256": "3c4a1c7266e22b2004f298411f948dc54b5ce5c3dd3da6c1c8136292825c9bc3",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_008.cmd.json",
+        "sha256": "bd7158d67e58a9eaac0576556f41a3b56944a63aa1af73c2eaaa04951fa683da",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_009.cmd.json",
+        "sha256": "f1086fafebc3813dd897750ed084d6da0d395b9350ce804f0008f08f0f570764",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_010.cmd.json",
+        "sha256": "67376755f3af662e21d7d4171db0daf12a1ff490ff0d78c456cbedb3c20345d4",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_011.cmd.json",
+        "sha256": "c8599750d231363bebfbc8dbde7641ea7ee3896a918570d9bd898f0524e62af7",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_012.cmd.json",
+        "sha256": "150b8ac0873b57e911300e78b279554c1deffad93cdc94c1be78cfdc17dedd77",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_013.cmd.json",
+        "sha256": "e6cd9b90474edc29c6355f67437c66508cea9a76ba30bfcd7f02d8c7d0843ace",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_014.cmd.json",
+        "sha256": "6b2b85b9d2eb0c4c2c2569912deffdfb48f740013f1ab884d309ef37334d5496",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_015.cmd.json",
+        "sha256": "a9222ab8a046e365c1ce496cc8f201c7989b33a28f7d59a5b51996657460f368",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_016.cmd.json",
+        "sha256": "78187887fa38e86dc20edd89b86a5e2cbd160647daa8e0d6d7697090b444a0bb",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_017.cmd.json",
+        "sha256": "3bf66a65cba15d385e868b33304194b9bd2136bf58ad542b13702d01fac67711",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_018.cmd.json",
+        "sha256": "2b4a0ee3402eb71a17b77d8025d4c446b47aa778e4a7ad1c3416c64dcb5f4fc7",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_019.cmd.json",
+        "sha256": "f506a58a399c40a1fe1aaf03bfecce9db7b6ebdfc1fe632969cb8cfe78ea802d",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_020.cmd.json",
+        "sha256": "128229b570adea2cce69bf023682184ae8cc723385a9f9d1c8cc8910cc9b1207",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_021.cmd.json",
+        "sha256": "bd2b82268c3315fe1b2fcf07ccb45f6ec7e852866aa0bc14b94303e64edbb83d",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_022.cmd.json",
+        "sha256": "2e34b3a08a874ee4e8b0f892bb3ec85d36c71fabe8363f84c5840dfd3bb578a9",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_023.cmd.json",
+        "sha256": "63a5eeb98bc1b76c13db8ad211674fe5e79dd0f294a8bd9e110ea388488e2255",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_024.cmd.json",
+        "sha256": "56a1902c3887fbc67b18c9935a926ccdb177298cbd61b68683402a4830efd1a7",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_025.cmd.json",
+        "sha256": "808da2de48e515f69f1e11cebee081e89402ef5e85054a93dea2bfead8b73064",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_026.cmd.json",
+        "sha256": "ca5b4640c223c77cb00568afb25203b3b24a64fe5ebfc3ec8ee54b009ee97fe4",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_027.cmd.json",
+        "sha256": "7fc47127b5269f34b629279551b2fd6d3cb86d3c74008b259bbc6bc746e49dec",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_028.cmd.json",
+        "sha256": "70a57fb8f5273f03a8ebef5f8b9eca0a4f5f510447028d9e760a29716783c223",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_029.cmd.json",
+        "sha256": "76e821bfc8798545dae4f6886b07f420637f4a93dd4e489d8f889fd76bdbf57f",
+        "stdout_sha256": "90d4e925016a3f4b8e0d2bda69aa248f4d36574172fd5410694c35f46e6fb2bc",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_030.cmd.json",
+        "sha256": "788a570a08493d7d0164f0dd58bf8a765beef6becb38011838368da1a39474df",
+        "stdout_sha256": "2fd9e27c80e5e861fb282d7778372485dbd551f1b36d667eff0ae886e353e73e",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_031.cmd.json",
+        "sha256": "3297edb236b3c38564fc4185dbe7421491b244f6351f02066006063448bf3406",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_032.cmd.json",
+        "sha256": "8a693aa7e763775da650ce563a289fa5df9dac524aebea88d00e6d73f50daf1a",
+        "stdout_sha256": "c94843089c365a48727a913e5feddfacd66f65189f7203245a07dccccfbbda88",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_033.cmd.json",
+        "sha256": "1231da21fd383172623c48b98909f2f6a87fc58d2e9b275908e7678348706fbb",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_034.cmd.json",
+        "sha256": "cfcb24c65f2179b65db289c62387f23da8eb8175dac3056610b74c60ece16f6c",
+        "stdout_sha256": "4977853324b1e4ff0dcd6ab43cde44d474bff7f1343d178628a2584ad81f92ce",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_035.cmd.json",
+        "sha256": "09574be3cdb777a42440a9f0a90da8f08dc4d0292f10be4be099f73323e0c4e4",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_036.cmd.json",
+        "sha256": "da97dfd86a2742f6e054c4e53c456482cb677d6e2691af6eee91a1a632316220",
+        "stdout_sha256": "755e3b794e2b4eef45be5c1ad4f47d2c6dcfe97618b2eb7799e175550e5a9ab1",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_037.cmd.json",
+        "sha256": "5781553797a0e5dd00d861c7ff3904690dae3c5d102de82b9738678e6649e8dd",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_038.cmd.json",
+        "sha256": "7a000755d95fc07c36e151a5b28545dbcd6386ddaea819f05090be0e604d1d76",
+        "stdout_sha256": "0497ec39301a423be3d4598c1bd779047ab0b8be1cc698f1721869e5ee6831e8",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_039.cmd.json",
+        "sha256": "d2e66ebba9aaefb4deb1bd5c67d8615b1437ead14042ccd0332617e389f8e9b3",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_040.cmd.json",
+        "sha256": "cc3bc32c75699a57e593a1010fb03956905639957bebc3d3112d6a0885168269",
+        "stdout_sha256": "28a4d882fcf5c78ff8b424b1d9c27dc00a1bc92cf1e9156d431629b43c518923",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_041.cmd.json",
+        "sha256": "245af447d473b0ee21e7ae3a2d943b06d68336fe092e534c24f427b70c615b76",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_042.cmd.json",
+        "sha256": "a84a2a577e94c76ed7528c392571a41851aa5a51e3314ac0dca38c441b514e4a",
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "reexecuted": false
+      },
+      {
+        "command": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\logs\\compat_command_043.cmd.json",
+        "sha256": "d0350a556eef7a671d9dcb8b77fb622e44b03e4ab13baca7ae74686c5708072d",
+        "stdout_sha256": "0e0b5068d7da8cc3b0dbac573779433beb08afb2780fe04c07fb2891fc6cf07d",
+        "reexecuted": false
+      }
+    ],
+    "executed_unfinished_commands": [
+      {
+        "label": "compat_repair_command_044",
+        "command_sha256": "ea73fb3245c06f353ffa4f30989621affa0658a31f18a44423ce77156a848b49",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\repair_fixture\\tests\\celt_energy_decode.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\celt_energy_decode.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_045",
+        "command_sha256": "de8a2ce29a0b420b9e8424b81b60738f3c40e0a6c92e5f740349c168ed75126c",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\celt_energy_decode.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_046",
+        "command_sha256": "b205611bd01535163d9bc6e4f6684f96e45d9f03533ac7881225ffa2c672acfe",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\stereo_policy.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\stereo_policy.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_047",
+        "command_sha256": "4a2b3a47306618369656be9ad725015cad8657e05058e5947b3c03e537675ba1",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\stereo_policy.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_048",
+        "command_sha256": "97d822540bb419d1c5378fa3969940b6ac7ed55fddbc61546728da1cd101f38e",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-I",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\dtx_vs_official.cpp",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\curr.o",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\dtx_vs_official.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_049",
+        "command_sha256": "0ca7f7e4dba026c92e3e48cd3e1c2b65ce502191f6b4dea278d650316cb19456",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\dtx_vs_official.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_050",
+        "command_sha256": "dc7c39355b868e94ef594e6c2018abc0acf014cdb88174032c50a8a22dbc28ae",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-I",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\fec_vs_official.cpp",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\curr.o",
+          "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_opus_o2_intrinsics_mingw\\libopus.a",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\fec_vs_official.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_051",
+        "command_sha256": "df9bb1a0536cb7399d5491928190125ae9a3424f9248e18160a2f304524fca7f",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\api_behavior\\fec_vs_official.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_052",
+        "command_sha256": "c8664b524f9f1f02f806d1eb2b36201930676aeee1d337a53eade2aeef23efef",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\src",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\voice_conditioning_release.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voice_conditioning_release.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_053",
+        "command_sha256": "68b0575e8dfa5911c86531c82fa6d9d2b3d422817357b6e1e1fffb60c9a41872",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voice_conditioning_release.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_054",
+        "command_sha256": "5099d278d81fb842367a3c60b0a70f3d7b191942a1a2412d7a63130f750d418f",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\src",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\voice_denoise_state.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voice_denoise_state.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_055",
+        "command_sha256": "4f0c4b6fc9b77fa61ff98592b527680d20efc3ff072197a0a56a8e45dee50283",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voice_denoise_state.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_056",
+        "command_sha256": "2cc830ea06a88153f500e7dd18ebb79ba4f784e4589ce8649d679dd15a2a8079",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\src",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\repair_fixture\\tests\\transient_invariant.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\transient_invariant.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_057",
+        "command_sha256": "0b4b5805c46ea179f22f3bb4d995bc0e72ac0269b9cb32cb431dc35f618107ff",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\transient_invariant.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_058",
+        "command_sha256": "0046ce14f4f0d32d3d19aa7fdf5af6605fc0f5f13254bb86168bc5c57c266393",
+        "exit": 0,
+        "argv": [
+          "C:\\Qt\\Tools\\mingw64\\bin\\g++.exe",
+          "-std=c++23",
+          "-O2",
+          "-DNDEBUG",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\src",
+          "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\tests\\voip_quiet_start_latch.cpp",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\src\\opus_codec.cpp",
+          "-o",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voip_quiet_start_latch.exe"
+        ]
+      },
+      {
+        "label": "compat_repair_command_059",
+        "command_sha256": "14e1748506345e26e62fe3ff9b85b93d1f81fac286bd3e56bc5ceaede7ce3e07",
+        "exit": 0,
+        "argv": [
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fba613\\build\\official_compare_report\\codex_native_celt_ba613950cfd5_20261015\\compatibility_repair\\voip_quiet_start_latch.exe"
+        ]
+      }
+    ],
+    "completed_six_phases_replayed": false,
+    "curr_object_reused_sha256": "c3647d52f3b995ec69e5bd9c42b40e4feefa6027c7df11a58ad0620326fa5277",
+    "original_files_unchanged": true,
+    "fixture_bindings": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_refresh_ba613950cfd5-20261015\\REPAIR_FIXTURE_BINDINGS.json",
+      "sha256": "0459c9cf9e43126f96c459ea1486da759667066fae5187b30076ff1f2e4111e8"
+    },
+    "completed_utc": "2026-10-15T12:16:47.045491+00:00"
+  },
+  "scope": "Same frozen full completed by only its required unfinished compatibility tail; original exit1 and all completed results preserved."
 }

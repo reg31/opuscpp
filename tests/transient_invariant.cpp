@@ -81,7 +81,7 @@ void run_case(const char* name, bool policy, bool saturated, float prime_level, 
 
   auto* celt_dec = decoder_celt_state(dec.get());
   std::array<celt_sig, celt_max_channels*(celt_decode_buffer_size + celt_default_overlap)> decoder_workspace;
-  const auto views = make_celt_decoder_views(celt_dec, kFrame, decoder_workspace.data(), false);
+  const auto views = make_celt_decoder_views(celt_dec, kFrame, decoder_workspace.data(), false, true);
   const int start = celt->start, end = celt->end;
   if (start != celt_dec->start || end != celt_dec->end || start >= end || end > kBands) {
     std::printf("%s ERROR decoder context\n", name);
