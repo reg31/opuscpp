@@ -16,7 +16,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -24,7 +24,7 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,29,32,36,28,31,31,30,30,29,29,27,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.227931318 next_ref=0.235014950 fidelity_fec=0.157406255 fidelity_ref=0.170272862 fidelity_plc=0.275070223 transition_fec=0.127456931 transition_ref=0.149310743 step_fec=779.000 step_ref=792.000 self_consistency=0.065459902\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,29,32,36,28,31,31,30,30,29,29,31,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.227931318 next_ref=0.235014950 fidelity_fec=0.157406255 fidelity_ref=0.170272862 fidelity_plc=0.275070223 transition_fec=0.127456931 transition_ref=0.149310743 step_fec=779.000 step_ref=792.000 self_consistency=0.065459902\n",
         "stderr": "",
         "fields": {
           "fidelity_fec": 0.157406255,
@@ -41,7 +41,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -81,7 +81,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -89,24 +89,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,40,38,46,38,37,45,35,41,42,39,36,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.177973233 next_ref=0.174679553 fidelity_fec=0.215145665 fidelity_ref=0.174629873 fidelity_plc=0.306489026 transition_fec=0.150989268 transition_ref=0.161217788 step_fec=-319.000 step_ref=-259.000 self_consistency=0.093017920\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,40,38,46,38,37,42,38,41,43,39,38,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.182529360 next_ref=0.178132049 fidelity_fec=0.200245705 fidelity_ref=0.160648644 fidelity_plc=0.314091392 transition_fec=0.172922362 transition_ref=0.147003621 step_fec=-281.000 step_ref=-335.000 self_consistency=0.100791708\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.215145665,
-          "next_fec": 0.177973233,
-          "transition_fec": 0.150989268,
-          "fidelity_ref": 0.174629873,
-          "next_ref": 0.174679553,
-          "transition_ref": 0.161217788,
-          "fidelity_plc": 0.306489026,
-          "self_consistency": 0.09301792,
-          "step_fec": -319.0,
-          "step_ref": -259.0
+          "fidelity_fec": 0.200245705,
+          "next_fec": 0.18252936,
+          "transition_fec": 0.172922362,
+          "fidelity_ref": 0.160648644,
+          "next_ref": 0.178132049,
+          "transition_ref": 0.147003621,
+          "fidelity_plc": 0.314091392,
+          "self_consistency": 0.100791708,
+          "step_fec": -281.0,
+          "step_ref": -335.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -146,7 +146,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -171,7 +171,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -211,7 +211,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -236,7 +236,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -276,7 +276,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -284,24 +284,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=405967375.000000 ms_lf_side=6198418.000000 ms_fec_mid=336040104.750000 ms_fec_side=24631595.750000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.186328715 next_ref=0.199266824 fidelity_fec=0.195790091 fidelity_ref=0.209300684 fidelity_plc=0.706624083 transition_fec=0.157673548 transition_ref=0.153816871 step_fec=-316.000 step_ref=-435.000 self_consistency=0.101798129\n",
+        "stdout": "pkt_toc=6c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=349391664.750000 ms_lf_side=5718336.750000 ms_fec_mid=327077352.500000 ms_fec_side=33432027.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.189749009 next_ref=0.201432940 fidelity_fec=0.195746028 fidelity_ref=0.194274646 fidelity_plc=0.745552984 transition_fec=0.178424494 transition_ref=0.173319743 step_fec=-355.500 step_ref=-52.000 self_consistency=0.117817279\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.195790091,
-          "next_fec": 0.186328715,
-          "transition_fec": 0.157673548,
-          "fidelity_ref": 0.209300684,
-          "next_ref": 0.199266824,
-          "transition_ref": 0.153816871,
-          "fidelity_plc": 0.706624083,
-          "self_consistency": 0.101798129,
-          "step_fec": -316.0,
-          "step_ref": -435.0
+          "fidelity_fec": 0.195746028,
+          "next_fec": 0.189749009,
+          "transition_fec": 0.178424494,
+          "fidelity_ref": 0.194274646,
+          "next_ref": 0.20143294,
+          "transition_ref": 0.173319743,
+          "fidelity_plc": 0.745552984,
+          "self_consistency": 0.117817279,
+          "step_fec": -355.5,
+          "step_ref": -52.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -341,7 +341,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -349,24 +349,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,117,122,126,119,123,130,128,118,115,110,102,\nms_src=9408722302.500000 ms_lf_mid=296760883.250000 ms_lf_side=6398051.250000 ms_fec_mid=344527099.000000 ms_fec_side=46409691.000000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.184479714 next_ref=0.185727513 fidelity_fec=0.203839313 fidelity_ref=0.179502235 fidelity_plc=0.617070933 transition_fec=0.174718532 transition_ref=0.152193480 step_fec=-643.000 step_ref=-551.500 self_consistency=0.170394077\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=146,117,122,119,113,123,128,130,119,117,111,101,\nms_src=9408722302.500000 ms_lf_mid=292509163.500000 ms_lf_side=6329733.500000 ms_fec_mid=375965794.500000 ms_fec_side=32724702.500000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.190073626 next_ref=0.191491290 fidelity_fec=0.208416426 fidelity_ref=0.178218686 fidelity_plc=0.639501007 transition_fec=0.169149159 transition_ref=0.126463616 step_fec=-98.500 step_ref=-55.000 self_consistency=0.172174118\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.203839313,
-          "next_fec": 0.184479714,
-          "transition_fec": 0.174718532,
-          "fidelity_ref": 0.179502235,
-          "next_ref": 0.185727513,
-          "transition_ref": 0.15219348,
-          "fidelity_plc": 0.617070933,
-          "self_consistency": 0.170394077,
-          "step_fec": -643.0,
-          "step_ref": -551.5
+          "fidelity_fec": 0.208416426,
+          "next_fec": 0.190073626,
+          "transition_fec": 0.169149159,
+          "fidelity_ref": 0.178218686,
+          "next_ref": 0.19149129,
+          "transition_ref": 0.126463616,
+          "fidelity_plc": 0.639501007,
+          "self_consistency": 0.172174118,
+          "step_fec": -98.5,
+          "step_ref": -55.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -406,7 +406,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -431,7 +431,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -471,7 +471,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -496,7 +496,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -536,7 +536,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -561,7 +561,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -601,7 +601,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -626,7 +626,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -666,7 +666,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -691,7 +691,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -731,7 +731,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -756,7 +756,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -796,7 +796,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -821,7 +821,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -861,7 +861,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -886,7 +886,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -926,7 +926,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -951,7 +951,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -991,7 +991,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -1016,7 +1016,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -1056,7 +1056,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -1081,7 +1081,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -1121,7 +1121,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -1146,7 +1146,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f98c44\\build\\official_compare_report\\codex_native_celt_98c44530f9a1_20261015\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fff7b0\\build\\official_compare_report\\codex_native_celt_ff7b06daf05e_20261015\\fec_source_official.exe",
           "2",
           "20",
           "48000",

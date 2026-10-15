@@ -1,6 +1,6 @@
 measurement,bitrate,material,opuscpp,official,opuscpp_nrmse,official_nrmse,opuscpp_gain_db,official_gain_db
 dtx_false_positive,16000,voice,0,0,,,,
-dtx_reentry,16000,voice,,,0.045732,0.830641,0.025182,5.097680
+dtx_reentry,16000,voice,,,0.049162,0.830641,0.066548,5.097680
 dtx_false_positive,16000,quiet_voice,0,0,,,,
 dtx_reentry,16000,quiet_voice,,,0.408188,0.708030,0.247601,0.759438
 dtx_false_positive,16000,far_field,0,0,,,,
@@ -8,11 +8,11 @@ dtx_reentry,16000,far_field,,,0.592136,0.819201,0.823034,1.110476
 dtx_false_positive,16000,noisy_voice,0,0,,,,
 dtx_reentry,16000,noisy_voice,,,0.995414,1.050055,2.052557,2.083455
 dtx_false_positive,16000,two_speakers,0,0,,,,
-dtx_reentry,16000,two_speakers,,,0.080654,0.714022,0.095106,0.735450
+dtx_reentry,16000,two_speakers,,,0.079752,0.714022,0.155839,0.735450
 dtx_false_positive,16000,speech_music,0,0,,,,
-dtx_reentry,16000,speech_music,,,0.122646,0.656766,0.038044,0.239473
+dtx_reentry,16000,speech_music,,,0.121975,0.656766,0.005781,0.239473
 dtx_false_positive,16000,fricative_voice,0,0,,,,
-dtx_reentry,16000,fricative_voice,,,0.065935,0.824224,0.068529,5.128546
+dtx_reentry,16000,fricative_voice,,,0.073816,0.824224,0.131321,5.128546
 dtx_false_positive,24000,voice,0,0,,,,
 dtx_reentry,24000,voice,,,0.041456,0.631924,0.011269,0.149767
 dtx_false_positive,24000,quiet_voice,0,0,,,,
@@ -26,4 +26,4 @@ dtx_reentry,24000,two_speakers,,,0.080959,0.559172,0.010300,0.188358
 dtx_false_positive,24000,speech_music,0,0,,,,
 dtx_reentry,24000,speech_music,,,0.097096,0.488405,0.002172,0.039267
 dtx_false_positive,24000,fricative_voice,0,0,,,,
-dtx_reentry,24000,fricative_voice,,,0.090138,0.827184,0.043308,5.112439
+dtx_reentry,24000,fricative_voice,,,0.094077,0.827184,0.127866,5.112439
