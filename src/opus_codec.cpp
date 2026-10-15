@@ -17985,30 +17985,39 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   }
   silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
   if (select_coded_interpolation) {
+    std::array<double, 2> selected_energy;
     opus_int16 interpolated[16]{};
     float prediction[16]{}, residual[(((5 * 4) * 16) + 4 * 16) / 2]{};
     const int order = psEnc->sCmn.predictLPCOrder;
     const int shift = order + psEnc->sCmn.subfr_length;
     silk_LPC_analysis_filter_FLP(residual, psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
-    double best_energy = silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length) +
-                         silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length);
+    selected_energy = {silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length),
+                       silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length)};
+    double best_energy = selected_energy[0] + selected_energy[1];
     for (int k = std::equal(NLSF_Q15, NLSF_Q15 + order, psEnc->sCmn.prev_NLSFq_Q15.begin()) ? -1 : 3; k >= 0; --k) {
       silk_interpolate(std::span<opus_int16>{interpolated, static_cast<std::size_t>(order)},
                        std::span<const opus_int16>{psEnc->sCmn.prev_NLSFq_Q15.data(), static_cast<std::size_t>(order)},
                        std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k);
       silk_NLSF2A_FLP(prediction, interpolated, order);
       silk_LPC_analysis_filter_FLP(residual, prediction, LPC_in_pre, 2 * shift, order, true);
-      const double energy = silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length) +
-                            silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length);
+      const std::array<double, 2> subframe_energy{silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length),
+                                                  silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length)};
+      const double energy = subframe_energy[0] + subframe_energy[1];
       if (energy < best_energy) {
         best_energy = energy;
+        selected_energy = subframe_energy;
         psEnc->sCmn.indices.NLSFInterpCoef_Q2 = static_cast<opus_uint8>(k);
         std::copy_n(prediction, order, psEncCtrl->PredCoef[0]);
       }
     }
+    for (int index = 0; index < 2; ++index)
+      psEncCtrl->ResNrg[index] = static_cast<float>(psEncCtrl->Gains[index] * psEncCtrl->Gains[index] * selected_energy[index]);
+    silk_residual_energy_FLP(psEncCtrl->ResNrg + 2, LPC_in_pre + 2 * shift, psEncCtrl->PredCoef + 1, psEncCtrl->Gains + 2,
+                             psEnc->sCmn.subfr_length, 2, order, true);
+  } else {
+    silk_residual_energy_FLP(psEncCtrl->ResNrg, LPC_in_pre, psEncCtrl->PredCoef, psEncCtrl->Gains, psEnc->sCmn.subfr_length,
+                             psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, known_finite);
   }
-  silk_residual_energy_FLP(psEncCtrl->ResNrg, LPC_in_pre, psEncCtrl->PredCoef, psEncCtrl->Gains, psEnc->sCmn.subfr_length,
-                           psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, known_finite);
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
 }
 
