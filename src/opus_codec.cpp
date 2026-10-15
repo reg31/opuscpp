@@ -12856,6 +12856,8 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   }
 }
 
+constexpr std::array<float, 9> fine_power_decision_bias{0.f, 0.084962502121925354f, 0.043106608092784882f, 0.021633801981806755f, 0.010827038437128067f, 0.0054147890768945217f, 0.0027075533289462328f, 0.001353796455077827f, 0.00067690073046833277f};
+
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C) {
   for (int i = start; i < end; ++i) {
@@ -12868,7 +12870,7 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
     for (int c = 0; c < C; ++c) {
       int q2 = 0;
       if constexpr (Encode) {
-        q2 = floor_to_int_reference((error[i + c * celt_default_nb_ebands] * (1 << prev) + .5f) * bins);
+        q2 = floor_to_int_reference((error[i + c * celt_default_nb_ebands] * (1 << prev) + .5f) * bins - fine_power_decision_bias[prev + extra_bits]);
         q2 = std::clamp(q2, 0, bins - 1);
         ec_enc_bits(coder, q2, extra_bits);
       } else {
@@ -12894,7 +12896,8 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
       for (int c = 0; c < C; ++c) {
         const auto q2 = [&]() {
           if constexpr (Encode) {
-            const auto encoded = error[i + c * celt_default_nb_ebands] < 0 ? 0 : 1;
+            const auto threshold = fine_power_decision_bias[fine_quant[i] + 1] * (1 << (14 - fine_quant[i] - 1)) * (1.f / 16384);
+            const auto encoded = error[i + c * celt_default_nb_ebands] < threshold ? 0 : 1;
             ec_enc_bits(coder, encoded, 1);
             return encoded;
           }
