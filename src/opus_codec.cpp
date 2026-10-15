@@ -16728,14 +16728,18 @@ struct max_abs_result {
   return 1.0f / (1.0f - lambda * gain);
 }
 
-static inline auto warped_true2monic_coefs(std::span<float> coefs, float lambda, float limit) noexcept -> void {
+template <bool Warped>
+static inline auto limit_coefs(std::span<float> coefs, float limit, float lambda = 0.0f) noexcept -> void {
   for (auto iter = 0;; ++iter) {
-    for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
-      coefs[index - 1] -= lambda * coefs[index];
-    }
-    auto gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
-    for (auto index = std::size_t{}; index < coefs.size(); ++index) {
-      coefs[index] *= gain;
+    float gain{};
+    if constexpr (Warped) {
+      for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
+        coefs[index - 1] -= lambda * coefs[index];
+      }
+      gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
+      for (auto index = std::size_t{}; index < coefs.size(); ++index) {
+        coefs[index] *= gain;
+      }
     }
     if (iter == 10) {
       return;
@@ -16744,23 +16748,14 @@ static inline auto warped_true2monic_coefs(std::span<float> coefs, float lambda,
     if (max_abs <= limit) {
       return;
     }
-    for (auto index = 1; index < static_cast<int>(coefs.size()); ++index) {
-      coefs[index - 1] += lambda * coefs[index];
-    }
-    gain = 1.0f / gain;
-    for (auto index = std::size_t{}; index < coefs.size(); ++index) {
-      coefs[index] *= gain;
-    }
-    const auto chirp = 0.99f - (0.8f + 0.1f * iter) * (max_abs - limit) / (max_abs * (max_index + 1));
-    silk_bwexpander_FLP(coefs, chirp);
-  }
-}
-
-static inline auto limit_coefs(std::span<float> coefs, float limit) noexcept -> void {
-  for (auto iter = 0; iter < 10; ++iter) {
-    const auto [max_abs, max_index] = max_abs_index(coefs);
-    if (max_abs <= limit) {
-      return;
+    if constexpr (Warped) {
+      for (auto index = 1; index < static_cast<int>(coefs.size()); ++index) {
+        coefs[index - 1] += lambda * coefs[index];
+      }
+      gain = 1.0f / gain;
+      for (auto index = std::size_t{}; index < coefs.size(); ++index) {
+        coefs[index] *= gain;
+      }
     }
     const auto chirp = 0.99f - (0.8f + 0.1f * iter) * (max_abs - limit) / (max_abs * (max_index + 1));
     silk_bwexpander_FLP(coefs, chirp);
@@ -18100,10 +18095,10 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
     }
     silk_bwexpander_FLP(std::span<float>{&psEncCtrl->AR[k * 24], static_cast<std::size_t>(psEnc->sCmn.shapingLPCOrder)}, BWExp);
     if (psEnc->sCmn.warping_Q16 > 0) {
-      warped_true2monic_coefs(std::span<float>{&psEncCtrl->AR[k * 24], static_cast<std::size_t>(psEnc->sCmn.shapingLPCOrder)}, warping,
-                              3.999f);
+      limit_coefs<true>(std::span<float>{&psEncCtrl->AR[k * 24], static_cast<std::size_t>(psEnc->sCmn.shapingLPCOrder)}, 3.999f,
+                        warping);
     } else {
-      limit_coefs(std::span<float>{&psEncCtrl->AR[k * 24], static_cast<std::size_t>(psEnc->sCmn.shapingLPCOrder)}, 3.999f);
+      limit_coefs<false>(std::span<float>{&psEncCtrl->AR[k * 24], static_cast<std::size_t>(psEnc->sCmn.shapingLPCOrder)}, 3.999f);
     }
     psEncCtrl->Gains[k] = psEncCtrl->Gains[k] * gain_mult + gain_add;
     if (voiced) {
