@@ -15124,7 +15124,6 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     }
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
-      psSS = psSampleState[k].data();
       psDD->Seed = silk_next_rand_seed(psDD->Seed);
       psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
       LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
