@@ -1,7 +1,7 @@
 {
-  "source_commit": "bcfbd264063b0251a63120ab1d74677c7a3fb542",
-  "source_sha256": "8146393a7ca8664fbdd082aa96601f672318fd79d45bd30436b87b9ea8154cbb",
-  "official_archive_sha256": "ca9ad4acbb9706212a6c22f7d36b70170df261407255e1c2e818902e7607ce2d",
+  "source_commit": "93a43fbcdfa70813f69e00e66fdf5324390934e4",
+  "source_sha256": "4ae5e8661f6536ae33ba78950d3a68f4454d5f1611077f7272cc8cb946c63079",
+  "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "strict_ratios": [
     0.817037,
     0.294492,
