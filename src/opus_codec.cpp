@@ -12529,8 +12529,8 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
     prob_avg += std::max(.1f, pos_vad) * tonal->info[mpos].music_prob;
   }
   info_out->music_prob = prob_avg / prob_count;
-  prob_min = std::min(prob_avg / prob_count, prob_min);
-  prob_max = std::max(prob_avg / prob_count, prob_max);
+  prob_min = std::min(info_out->music_prob, prob_min);
+  prob_max = std::max(info_out->music_prob, prob_max);
   prob_min = std::max(prob_min, 0.f);
   prob_max = std::min(prob_max, 1.f);
 
