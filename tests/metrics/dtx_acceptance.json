@@ -2,13 +2,13 @@
   "acceptance": "PASS",
   "gate_exit_code": 0,
   "reporting_exit_code": 0,
-  "summary": "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.324725 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=0.415034 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
+  "summary": "dtx_comparison=PASS false_positive_opuscpp=0 false_positive_official=0 reentry_nrmse_opuscpp=0.297378 reentry_nrmse_official=0.762239 reentry_gain_db_opuscpp=0.389987 reentry_gain_db_official=1.646307 silence_dtx_opuscpp=406 silence_dtx_official=406 steady_noise_dtx_opuscpp=120 steady_noise_dtx_official=0",
   "original_source_sha256": "da4c831bf8665f0cb8006425fc0e58bfec5f88434f81bfbb3ddfc7c27d3cb93f",
   "reporting_source_sha256": "07bff621ef013f6fc6772ba53c9bae6d4ea4637ad112957716940f659e73a210",
-  "gate_stdout_sha256": "f5cb6444d62e6ab9bb7a75e11016e02b7a43ca994fcba0f55a8f7e886f99faca",
-  "reporting_stdout_sha256": "f5cb6444d62e6ab9bb7a75e11016e02b7a43ca994fcba0f55a8f7e886f99faca",
+  "gate_stdout_sha256": "e5d611c7d6725a93e2cfe06c9dbdc00d16b3ef819eac7f6d1529640504e5eb04",
+  "reporting_stdout_sha256": "e5d611c7d6725a93e2cfe06c9dbdc00d16b3ef819eac7f6d1529640504e5eb04",
   "both_outputs_byte_identical": true,
-  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f9926b\\build\\official_compare_report\\codex_native_celt_9926b70638d6_20261015\\dtx_reporting.cpp",
+  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f76692\\build\\official_compare_report\\codex_native_celt_766923323702_20261015\\dtx_reporting.cpp",
   "waiver": false,
   "failure_is_non_gating_for_measurement_completion": true
 }
