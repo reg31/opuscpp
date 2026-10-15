@@ -12101,8 +12101,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float frame_loudness;
   float bandwidth_mask;
   int is_masked[19];
-  int bandwidth = 0;
-  float maxE = 0;
   float noise_floor;
   int remaining;
   classical_leak_record* info;
@@ -12365,8 +12363,8 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   }
   spec_variability = classifier_sqrt_d(spec_variability / 8 / 18);
   bandwidth_mask = 0;
-  bandwidth = 0;
-  maxE = 0;
+  int bandwidth = 0;
+  float maxE = 0;
   noise_floor = 5.7e-4f / (1 << (std::max(0, lsb_depth - 8)));
   noise_floor *= noise_floor;
   for (b = 0; b < 18; ++b) {
