@@ -1973,12 +1973,12 @@ static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, cons
   }
 }
 
-static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA, const int order) {
+static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA) {
   int k, n, mult2Q;
   opus_int32 invGain_Q30, rc_Q31, rc_mult1_Q30, rc_mult2, tmp1, tmp2;
   constexpr auto rc_limit_Q24 = fixed_q<24>(0.99975);
   invGain_Q30 = 1 << 30;
-  for (k = order - 1; k >= 0; k--) {
+  for (k = static_cast<int>(A_QA.size()) - 1; k >= 0; k--) {
     if (A_QA[k] > rc_limit_Q24 || A_QA[k] < -rc_limit_Q24) {
       return 0;
     }
@@ -2019,7 +2019,7 @@ static opus_int32 silk_LPC_inverse_pred_gain_c(const opus_int16* A_Q12, const in
     DC_resp += static_cast<opus_int32>(A_Q12[k]);
     coefficients[k] = wrap_shift_left(A_Q12[k], 24 - 12);
   }
-  return DC_resp >= 4096 ? 0 : LPC_inverse_pred_gain_QA_c(std::span{coefficients}.first(static_cast<std::size_t>(order)), order);
+  return DC_resp >= 4096 ? 0 : LPC_inverse_pred_gain_QA_c(std::span{coefficients}.first(static_cast<std::size_t>(order)));
 }
 
 static void silk_NLSF2A_find_poly(opus_int32* out, const opus_int32* cLSF, int dd) {
