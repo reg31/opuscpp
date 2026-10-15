@@ -5935,16 +5935,16 @@ static void celt_commit_band_state(celt_glog* old_band, celt_glog* old_log, celt
     auto* band = old_band + channel * nbEBands;
     auto* log = old_log + channel * nbEBands;
     auto* log2 = old_log2 + channel * nbEBands;
+    auto clear_range = [&](int offset, std::size_t length) {
+      std::fill_n(band + offset, length, 0.f);
+      std::fill_n(log + offset, length, -(28.f));
+      std::fill_n(log2 + offset, length, -(28.f));
+    };
     if (start > 0) {
-      std::fill_n(band, static_cast<std::size_t>(start), 0.f);
-      std::fill_n(log, static_cast<std::size_t>(start), -(28.f));
-      std::fill_n(log2, static_cast<std::size_t>(start), -(28.f));
+      clear_range(0, static_cast<std::size_t>(start));
     }
     if (end < nbEBands) {
-      const auto tail = static_cast<std::size_t>(nbEBands - end);
-      std::fill_n(band + end, tail, 0.f);
-      std::fill_n(log + end, tail, -(28.f));
-      std::fill_n(log2 + end, tail, -(28.f));
+      clear_range(end, static_cast<std::size_t>(nbEBands - end));
     }
   }
 }
