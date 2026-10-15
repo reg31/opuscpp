@@ -7996,17 +7996,12 @@ static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int dow
 }
 
 static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* oldBandE, int start, int effEnd, int C, int CC, int isTransient, int LM, int downsample, int silence) {
-  int i, M, b, B, N, shift, overlap;
-  overlap = celt_default_overlap;
-  N = celt_short_mdct_size << LM;
-  M = 1 << LM;
-  if (isTransient) {
-    B = M;
-    shift = celt_max_lm;
-  } else {
-    B = 1;
-    shift = celt_max_lm - LM;
-  }
+  int i, b;
+  constexpr int overlap = celt_default_overlap;
+  const int N = celt_short_mdct_size << LM;
+  const int M = 1 << LM;
+  const int B = isTransient ? M : 1;
+  const int shift = isTransient ? celt_max_lm : celt_max_lm - LM;
   if (CC == C && C == 2) {
     auto* freq1 = X + N;
     denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
