@@ -12898,18 +12898,20 @@ static double fine_envelope_outward(double value, bool upward) {
   return std::nextafter(value, upward ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity());
 }
 
-static bool fine_envelope_prefers_power(int start, int end, const celt_glog* error, const std::array<float, celt_max_channels * celt_default_nb_ebands>& log_offsets, const std::array<float, celt_max_channels * celt_default_nb_ebands>& power_offsets, int C) {
+template <typename Offsets>
+static bool fine_envelope_prefers_power(int start, int end, const celt_glog* error, const Offsets& offsets, int C) {
   std::array<double, 3> log_moments{};
   std::array<double, 3> power_moments{};
   bool different = false;
   for (int c = 0; c < C; ++c) {
     for (int i = start; i < end; ++i) {
       const int index = c * celt_default_nb_ebands + i;
-      const float log_error = error[index] - log_offsets[index];
-      const float power_error = error[index] - power_offsets[index];
+      const auto offset = offsets(i, c);
+      const float log_error = error[index] - offset[0];
+      const float power_error = error[index] - offset[1];
       if (!std::isfinite(log_error) || !std::isfinite(power_error))
         return true;
-      different |= log_offsets[index] != power_offsets[index];
+      different |= offset[0] != offset[1];
       const auto add = [](auto& moments, float value) {
         const double x = value;
         moments[0] += x;
@@ -12950,9 +12952,9 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
     } else {
       if (bits_left < C)
         return true;
-      std::array<float, celt_max_channels * celt_default_nb_ebands> log_offsets{};
-      std::array<float, celt_max_channels * celt_default_nb_ebands> power_offsets{};
-      bool different = false;
+      std::uint64_t refined_bands = 0;
+      std::uint64_t log_bits = 0;
+      std::uint64_t power_bits = 0;
       int remaining = bits_left;
       for (int prio = 0; prio < 2; ++prio) {
         for (int i = start; i < end && remaining >= C; ++i) {
@@ -12960,20 +12962,30 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
             continue;
           const auto step = (1 << (14 - fine_quant[i] - 1)) * (1.f / 16384);
           const auto threshold = fine_power_decision_bias[fine_quant[i] + 1] * step;
+          refined_bands |= std::uint64_t{1} << i;
           for (int c = 0; c < C; ++c) {
             const int index = c * celt_default_nb_ebands + i;
             const int log_bit = error[index] < 0 ? 0 : 1;
             const int power_bit = error[index] < threshold ? 0 : 1;
-            different |= log_bit != power_bit;
-            log_offsets[index] = (log_bit - .5f) * step;
-            power_offsets[index] = (power_bit - .5f) * step;
+            log_bits |= static_cast<std::uint64_t>(log_bit) << index;
+            power_bits |= static_cast<std::uint64_t>(power_bit) << index;
             --remaining;
           }
         }
       }
-      if (!different)
+      if (log_bits == power_bits)
         return true;
-      return fine_envelope_prefers_power(start, end, error, log_offsets, power_offsets, C);
+      const auto offsets = [&](int i, int c) {
+        std::array<float, 2> values{};
+        if (refined_bands & (std::uint64_t{1} << i)) {
+          const int index = c * celt_default_nb_ebands + i;
+          const auto step = (1 << (14 - fine_quant[i] - 1)) * (1.f / 16384);
+          values[0] = (static_cast<int>((log_bits >> index) & 1) - .5f) * step;
+          values[1] = (static_cast<int>((power_bits >> index) & 1) - .5f) * step;
+        }
+        return values;
+      };
+      return fine_envelope_prefers_power(start, end, error, offsets, C);
     }
   }();
 
