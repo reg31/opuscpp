@@ -8289,14 +8289,12 @@ static void celt_load_decode_history(CeltDecoderInternal* st, celt_sig* history,
 static void celt_store_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int) {
   for (int channel = 0; channel < st->channels; ++channel) {
     auto* stored = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
-    if (decoder.raw_offset != 0) {
-      if (decoder.cache_backup[channel] != nullptr) {
-        copy_n_items(decoder.cache_backup[channel], static_cast<std::size_t>(decoder.cache_backup_count), stored + decoder.cache_backup_start);
-      }
-    } else {
+    if (decoder.raw_offset == 0) {
       copy_n_items(decoder.decode_mem[channel] + celt_decoder_raw_start,
                    static_cast<std::size_t>(celt_decode_buffer_size - celt_decoder_raw_start + celt_decoder_retained_overlap),
                    stored + celt_decoder_prefix_storage);
+    } else if (decoder.cache_backup[channel] != nullptr) {
+      copy_n_items(decoder.cache_backup[channel], static_cast<std::size_t>(decoder.cache_backup_count), stored + decoder.cache_backup_start);
     }
   }
 }
