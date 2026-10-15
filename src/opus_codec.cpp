@@ -4640,8 +4640,8 @@ static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_e
   auto* voice_denoise = st->voice_denoise;
   zero_object_tail(*st, offsetof(OpusEncoder, bitrate_bps));
   st->voice_denoise = voice_denoise;
-  if (st->voice_denoise != nullptr) {
-    reset_voice_denoise_state(*st->voice_denoise);
+  if (voice_denoise != nullptr) {
+    reset_voice_denoise_state(*voice_denoise);
   }
   zero_n_items(encoder_delay_buffer(st), encoder_delay_buffer_count(st->channels, st->application));
   celt_encoder_reset_state(celt_enc);
