@@ -14999,6 +14999,9 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
   opus_int32 *psLPC_Q14, *shp_lag_ptr, *pred_lag_ptr;
   const auto length = static_cast<int>(x_sc_Q10.size());
   const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
+  const bool zero_ar = std::all_of(AR_shp_Q13.begin(), AR_shp_Q13.end(), [](opus_int16 coefficient) {
+    return coefficient == 0;
+  });
   const auto* b_q14_coefficients = b_Q14.data();
   const auto tilt_Q14_i16 = static_cast<opus_int16>(Tilt_Q14);
   const auto lf_shp_Q14_i16 = static_cast<opus_int16>(LF_shp_Q14);
@@ -15016,7 +15019,8 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
     } else {
       LTP_pred_Q13 = 0;
     }
-    n_AR_Q12 = silk_nsq_noise_shape_feedback<false>(NSQ->sDiff_shp_Q14, NSQ->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder);
+    n_AR_Q12 = zero_ar ? silk_nsq_noise_shape_feedback<false, 1, true>(NSQ->sDiff_shp_Q14, NSQ->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder)
+                      : silk_nsq_noise_shape_feedback<false>(NSQ->sDiff_shp_Q14, NSQ->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder);
     n_AR_Q12 = (static_cast<opus_int32>((n_AR_Q12) + (((NSQ->sLF_AR_shp_Q14) * static_cast<opus_int64>(tilt_Q14_i16)) >> 16)));
     n_LF_Q12 = (static_cast<opus_int32>(((NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - 1]) * static_cast<opus_int64>(lf_shp_Q14_i16)) >> 16));
     n_LF_Q12 = (static_cast<opus_int32>((n_LF_Q12) + (((NSQ->sLF_AR_shp_Q14) * lf_shp_Q14_high) >> 16)));
