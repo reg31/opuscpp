@@ -17963,7 +17963,24 @@ static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const f
     const auto* b = B + k * 5;
     const auto* x_lag_ptr = x_ptr - pitchL[k];
     const float inv_gain = invGains[k];
-    for (int i = 0; i < subfr_length + pre_length; ++i) {
+    const int length = subfr_length + pre_length;
+    int i = 0;
+    for (; i + 3 < length; i += 4) {
+      std::array<float, 4> residual{x_ptr[i], x_ptr[i + 1], x_ptr[i + 2], x_ptr[i + 3]};
+      const auto apply_tap = [&]<int Tap>() {
+        for (int lane = 0; lane < 4; ++lane)
+          residual[lane] -= b[Tap] * x_lag_ptr[i + lane + 5 / 2 - Tap];
+      };
+      apply_tap.template operator()<0>();
+      apply_tap.template operator()<1>();
+      apply_tap.template operator()<2>();
+      apply_tap.template operator()<3>();
+      apply_tap.template operator()<4>();
+      for (int lane = 0; lane < 4; ++lane)
+        LTP_res_ptr[i + lane] = residual[lane] * inv_gain;
+    }
+    x_lag_ptr += i;
+    for (; i < length; ++i) {
       auto residual = x_ptr[i];
       for (int j = 0; j < 5; ++j) {
         residual -= b[j] * x_lag_ptr[5 / 2 - j];
@@ -17971,7 +17988,7 @@ static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const f
       LTP_res_ptr[i] = residual * inv_gain;
       x_lag_ptr++;
     }
-    LTP_res_ptr += subfr_length + pre_length;
+    LTP_res_ptr += length;
     x_ptr += subfr_length;
   }
 }
