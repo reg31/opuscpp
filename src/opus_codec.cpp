@@ -3957,7 +3957,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
     const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
-    const opus_int32 Fc_Q19 = static_cast<opus_int16>(2471) * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
+    const opus_int32 Fc_Q19 = 2471 * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
     const opus_int32 r_Q28 = (1 << 28) - 471 * Fc_Q19;
     const opus_int32 r_Q22 = r_Q28 >> 6;
     const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
