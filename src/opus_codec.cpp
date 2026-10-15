@@ -2504,9 +2504,7 @@ struct VoiceDenoiseState {
 };
 
 static void reset_voice_denoise_state(VoiceDenoiseState& state) noexcept {
-  state = {};
-  state.gain.fill(1);
-  state.target_gain.fill(1);
+  state = {.gain = {1, 1, 1}, .target_gain = {1, 1, 1}};
 }
 
 struct voice_conditioning_channel {
