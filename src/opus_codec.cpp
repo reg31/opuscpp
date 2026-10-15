@@ -15554,7 +15554,7 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
 static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
   int i, s, ind1, bestIndex, prob_Q8, bits_q7;
   opus_int32 W_tmp_Q9;
-  opus_int16 res_Q10[16], NLSF_tmp_Q15[16], W_adj_Q5[16], ec_ix[16];
+  opus_int16 res_Q10[16], W_adj_Q5[16], ec_ix[16];
   opus_uint8 pred_Q8[16];
   const opus_uint8 *pCB_element, *iCDF_ptr;
   const opus_int16* pCB_Wght_Q9;
@@ -15569,9 +15569,9 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
     pCB_element = psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order;
     pCB_Wght_Q9 = psNLSF_CB->CB1_Wght_Q9 + ind1 * psNLSF_CB->order;
     for (i = 0; i < psNLSF_CB->order; i++) {
-      NLSF_tmp_Q15[i] = static_cast<opus_int16>(static_cast<opus_uint16>(pCB_element[i]) << 7);
+      const auto NLSF_tmp_Q15 = static_cast<opus_int16>(static_cast<opus_uint16>(pCB_element[i]) << 7);
       W_tmp_Q9 = pCB_Wght_Q9[i];
-      res_Q10[i] = static_cast<opus_int16>(silk_mul_i16_shift<14>(pNLSF_Q15[i] - NLSF_tmp_Q15[i], W_tmp_Q9));
+      res_Q10[i] = static_cast<opus_int16>(silk_mul_i16_shift<14>(pNLSF_Q15[i] - NLSF_tmp_Q15, W_tmp_Q9));
       W_adj_Q5[i] = silk_DIV32_varQ(
           static_cast<opus_int32>(pW_Q2[i]),
           (static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9)) * static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9))), 21);
