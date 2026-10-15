@@ -3225,10 +3225,6 @@ struct encoder_stage_storage {
   std::span<opus_res> active;
   std::size_t history_samples, celt_offset;
 
-  [[nodiscard]] auto active_celt_prefill(const OpusEncoder* st) noexcept -> std::span<opus_res> {
-    return active.subspan(celt_offset - static_cast<std::size_t>(st->Fs / 400 * st->channels),
-                          static_cast<std::size_t>(st->channels * st->Fs / 400));
-  }
   auto prime_from_encoder(const OpusEncoder* st) noexcept -> void {
     if (history_samples != 0) {
       copy_n_items(encoder_delay_buffer(st), history_samples, active.data());
@@ -4241,7 +4237,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   auto transition_prefill = std::span<opus_res>{};
   if (st->mode != opus_mode_silk_only && st->mode != st->prev_mode && st->prev_mode > 0 && silk_enc != nullptr) {
-    transition_prefill = stage_storage.active_celt_prefill(st);
+    transition_prefill = stage_storage.active.subspan(
+        stage_storage.celt_offset - static_cast<std::size_t>(st->Fs / 400 * st->channels),
+        static_cast<std::size_t>(st->channels * st->Fs / 400));
   }
   stage_storage.finish_frame(st);
   if (st->prev_HB_gain < 1.0f || HB_gain < 1.0f) {
