@@ -8639,13 +8639,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   const int end = st->end;
   int intensity = 0, dual_stereo = 0;
   const int LM = celt_frame_lm(frame_size);
-  if (LM < 0) {
-    return -1;
-  }
   const int M = 1 << LM;
-  if (len < 0 || len > 1275 || (pcm == nullptr && pcm16 == nullptr)) {
-    return -1;
-  }
   const int N = M * celt_short_mdct_size;
   std::array<celt_norm, celt_max_channels * celt_max_frame_samples> spectrum;
   auto* view_workspace = inplace ? spectrum.data() + std::max(C, CC) * N : workspace;
@@ -8653,9 +8647,6 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   auto out_syn = decoder.out_syn;
   auto *oldBandE = decoder.oldBandE, *oldLogE = decoder.oldLogE, *oldLogE2 = decoder.oldLogE2, *backgroundLogE = decoder.backgroundLogE;
   if (data == nullptr || len <= 1) {
-    if (pcm == nullptr) {
-      return -1;
-    }
     if (st->last_frame_type == 3 && (st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
       celt_consume_pending_fold(st, spectrum.data());
     if (!inplace && (!celt_can_use_retained_plc_history(st, N) || st->loss_duration >= 40 || st->start != 0 || st->skip_plc))
