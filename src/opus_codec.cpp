@@ -17956,7 +17956,7 @@ static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_
 }
 
 static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length, const int nb_subfr, const int LPC_order, bool known_finite) {
-  float LPC_res[(((5 * 4) * 16) + 4 * 16) / 2]{};
+  float LPC_res[(((5 * 4) * 16) + 4 * 16) / 2];
   auto* LPC_res_ptr = LPC_res + LPC_order;
   const int shift = LPC_order + subfr_length;
   for (int offset = 0; offset < (nb_subfr == 4 ? 4 : 2); offset += 2) {
