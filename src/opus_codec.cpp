@@ -8882,8 +8882,7 @@ OPUSCPP_NOINLINE static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_
     decoder.decode_mem[channel] = working.data() + channel * stride;
     decoder.out_syn[channel] = decoder.decode_mem[channel] + celt_lpc_order;
   }
-  auto* storage = celt_decoder_storage(st);
-  celt_bind_decoder_energy_views(decoder, storage, st->channels);
+  celt_bind_decoder_energy_views(decoder, celt_decoder_storage(st), st->channels);
   celt_decode_lost(st, N, 2, decoder, nullptr, true);
   deemphasis(decoder.out_syn.data(), pcm, N, st->channels, st->downsample, st->preemph_memD);
   return frame_size;
