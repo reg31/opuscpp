@@ -8032,14 +8032,13 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
     shift = celt_max_lm - LM;
   }
   if (CC == C && C == 2) {
-    auto* freq0 = X;
     auto* freq1 = X + N;
-    denormalise_bands<2>({freq0, freq1}, {freq0, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
+    denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
     if (B == 1 && shift == 0) {
-      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, freq0, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
+      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, X, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
     } else
       for (b = 0; b < B; b++) {
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq0[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
+        clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
         clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
       }
   } else {
