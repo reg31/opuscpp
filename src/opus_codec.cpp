@@ -191,7 +191,11 @@ template <int Shift>
 }
 
 [[nodiscard]] static auto saturating_add_int32(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32 {
-  return saturate_int32(static_cast<opus_int64>(lhs) + rhs);
+  const auto lhs_bits = std::bit_cast<opus_uint32>(lhs), rhs_bits = std::bit_cast<opus_uint32>(rhs);
+  const auto result = lhs_bits + rhs_bits;
+  if (((lhs_bits ^ result) & (rhs_bits ^ result) & 0x80000000U) != 0)
+    return std::bit_cast<opus_int32>(0x7fffffffU + (lhs_bits >> 31));
+  return std::bit_cast<opus_int32>(result);
 }
 
 [[nodiscard]] static auto delayed_pulse_from_q10(opus_int32 value_q10) noexcept -> opus_int8 {
@@ -1898,7 +1902,11 @@ template <int Shift>
 }
 
 [[nodiscard]] static auto saturating_subtract_int32(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32 {
-  return saturate_int32(static_cast<opus_int64>(lhs) - rhs);
+  const auto lhs_bits = std::bit_cast<opus_uint32>(lhs), rhs_bits = std::bit_cast<opus_uint32>(rhs);
+  const auto result = lhs_bits - rhs_bits;
+  if (((lhs_bits ^ rhs_bits) & (lhs_bits ^ result) & 0x80000000U) != 0)
+    return std::bit_cast<opus_int32>(0x7fffffffU + (lhs_bits >> 31));
+  return std::bit_cast<opus_int32>(result);
 }
 
 [[nodiscard]] static auto inverse_prediction_step(opus_int32 lhs, opus_int32 rhs, opus_int32 rc_q31, opus_int32 rc_mult2, int mult2_q) noexcept -> opus_int64 {
