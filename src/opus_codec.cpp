@@ -2039,7 +2039,7 @@ static void silk_NLSF2A_find_poly(opus_int32* out, const opus_int32* cLSF, int d
 static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF, const int d) {
   constexpr std::array<unsigned char, 16> ordering16{0, 15, 8, 7, 4, 11, 12, 3, 2, 13, 10, 5, 6, 9, 14, 1};
   constexpr std::array<unsigned char, 10> ordering10{0, 9, 6, 3, 4, 5, 8, 1, 2, 7};
-  opus_int32 cos_LSF_QA[24]{};
+  opus_int32 cos_LSF_QA[24];
   opus_int32 P[24 / 2 + 1], Q[24 / 2 + 1];
   opus_int32 a32_QA1[24];
   const auto* ordering = d == 16 ? ordering16.data() : ordering10.data();
