@@ -15471,7 +15471,6 @@ static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4
   opus_int32 sum_log_gain_tmp_Q7, best_sum_log_gain_Q7, max_gain_Q7;
   int gain_Q7 = 0;
   min_rate_dist_Q7 = 0x7FFFFFFF;
-  best_sum_log_gain_Q7 = 0;
   for (k = 0; k < 3; k++) {
     opus_int32 gain_safety = fixed_q<7>(0.4);
     const auto ltp_codebook = silk_LTP_codebook(k);
