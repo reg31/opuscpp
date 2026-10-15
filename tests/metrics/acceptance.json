@@ -16,7 +16,7 @@
   },
   "standard_interop": {
     "exit_code": 0,
-    "summary": "fec_summary recovery_error_ratio=0.44135 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.986689",
+    "summary": "fec_summary recovery_error_ratio=0.449019 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993413",
     "acceptance": "PASS",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
