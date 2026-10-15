@@ -14261,7 +14261,7 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
   std::array<int, silk_max_frame_length / 16> shifts;
   std::array<int, Encode ? silk_max_frame_length : 1> magnitudes;
   std::array<silk_shell_tree, Encode ? silk_max_frame_length / 16 : 1> shell_trees;
-  int rate_level = 0;
+  int rate_level;
 
   if constexpr (Encode) {
     if ((frame_length & 15) != 0) {
