@@ -6144,7 +6144,7 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
 }
 
 template <bool Coupled> static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
-                                                   celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
+                                                     celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
   opus_val32 L1 = 0, side_L1 = 0;
   const int pairs = N0 >> 1;
   for (int pair = 0; pair < pairs; ++pair) {
