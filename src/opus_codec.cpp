@@ -8716,9 +8716,8 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
       }
       postfilter_gain = (.09375f) * (qg + 1);
     }
-    tell = ec_tell(dec);
   }
-  const int isTransient = LM > 0 && tell + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
+  const int isTransient = LM > 0 && ec_tell(dec) + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
   tell = ec_tell(dec);
   const int shortBlocks = isTransient ? M : 0;
   const int intra_ener = tell + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
