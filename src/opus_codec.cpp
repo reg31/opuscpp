@@ -12095,7 +12095,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float frame_stationarity;
   float relativeE;
   float frame_probs[2];
-  float alpha, alphaE, alphaE2;
+  float alpha, alphaE;
   float frame_loudness;
   float bandwidth_mask;
   int is_masked[19];
@@ -12114,9 +12114,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
 
   alpha = 1.f / std::min(10, 1 + tonal->count);
   alphaE = 1.f / std::min(25, 1 + tonal->count);
-  alphaE2 = 1.f / std::min(100, 1 + tonal->count);
-  if (tonal->count <= 1)
-    alphaE2 = 1;
+  const float alphaE2 = tonal->count <= 1 ? 1.f : 1.f / std::min(100, 1 + tonal->count);
 
   const int pending_samples = tonal->mem_fill - 240;
   const int needed = 480 - pending_samples;
