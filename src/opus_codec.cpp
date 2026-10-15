@@ -12521,7 +12521,6 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
   if (curr_lookahead < 10) {
     float pmin = prob_min;
     float pmax = prob_max;
-    pos = pos0;
     for (int i = 0; i < std::min(tonal->count - 1, 15); ++i) {
       pos = (pos + 99) % 100;
       if (pos == tonal->write_pos) {
