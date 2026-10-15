@@ -8557,7 +8557,7 @@ static void celt_consume_pending_fold(CeltDecoderInternal* st, celt_sig* scratch
 }
 
 static bool celt_can_use_retained_plc_history(const CeltDecoderInternal* st, int N) noexcept {
-  return N == 240 || (N == 480 && celt_default_overlap == 120 && celt_decoder_retained_overlap == 60 &&
+  return N == 240 || (N == 480 &&
                       st->postfilter_period_old <= celt_plc_max_period - 2 && st->postfilter_period <= celt_plc_max_period - 2 &&
                       (st->last_frame_type != 3 || (st->last_pitch_index >= 100 && st->last_pitch_index <= celt_plc_max_pitch_period)));
 }
