@@ -15733,7 +15733,7 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
 }
 
 static void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16]) {
-  opus_int16 pNLSF0_temp_Q15[16]{};
+  opus_int16 pNLSF0_temp_Q15[16];
   opus_int16 pNLSFW_QW[16], pNLSFW0_temp_QW[16];
   auto NLSF_mu_Q20 = fixed_q<20>(0.003) + silk_mul_wb(fixed_q<28>(-0.001), psEncC->speech_activity_Q8);
   if (psEncC->nb_subfr == 2) {
@@ -17680,7 +17680,7 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
   std::copy_n(C_first_row.begin(), D, C_last_row.begin());
   CAb[0] = CAf[0] = C0 + 1e-5f * C0 + 1e-1;
   double invGain = 1.0f;
-  double nrg_f = 0;
+  double nrg_f;
   bool reached_max_gain = false;
   for (int n = 0; n < D; ++n) {
     for (int s = 0; s < nb_subfr; ++s) {
