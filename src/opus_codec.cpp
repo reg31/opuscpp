@@ -6778,7 +6778,7 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation);
 
 static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch) {
-  std::array<int, 2> best_pitch{};
+  std::array<int, 2> best_pitch;
   const int lag = len + max_pitch;
   std::array<opus_val16, celt_max_pitch_period / 2> x_lp4;
   std::array<opus_val16, celt_max_pitch_period / 2> y_lp4;
