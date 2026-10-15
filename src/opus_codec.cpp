@@ -3222,9 +3222,7 @@ struct encoder_stage_storage {
   std::size_t history_samples, celt_offset;
 
   auto prime_from_encoder(const OpusEncoder* st) noexcept -> void {
-    if (history_samples != 0) {
-      copy_n_items(offset_ptr<opus_res>(st, align(sizeof(OpusEncoder))), history_samples, active.data());
-    }
+    copy_n_items(offset_ptr<opus_res>(st, align(sizeof(OpusEncoder))), history_samples, active.data());
   }
   auto finish_frame(OpusEncoder* st) noexcept -> void {
     if (history_samples != 0) {
@@ -3312,11 +3310,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     st->classical_leak.read_subframe = st->classical_leak.analysis_read_subframe_bak;
   }
   std::array<opus_res, encoder_max_stage_samples> stage_buffer_storage;
-  const auto total_buffer = encoder_delay_compensation(st);
-  auto stage_storage = make_encoder_stage_storage(stage_buffer_storage, st, total_buffer, enc_frame_size);
+  auto stage_storage = make_encoder_stage_storage(stage_buffer_storage, st, encoder_delay_compensation(st), enc_frame_size);
   opus_int32 tot_size = 0;
   int dtx_count = 0;
-  stage_storage.prime_from_encoder(st);
   opus_int32 repacketize_len = (st->use_vbr || st->user_bitrate_bps == -1) ? out_data_bytes : std::min(params.cbr_bytes, out_data_bytes);
   const opus_int32 packet_target_bits = params.target_bits;
   if (params.governed_vbr) {
@@ -3334,6 +3330,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     st->prev_channels = st->stream_channels;
   }
   for (int frame_index = 0; frame_index < nb_frames; ++frame_index) {
+    stage_storage.prime_from_encoder(st);
     st->silk_mode.toMono = 0;
     const int frame_to_celt = params.to_celt && frame_index == nb_frames - 1;
     const int frame_redundancy = params.redundancy && (frame_to_celt || (!params.to_celt && frame_index == 0));
@@ -3385,9 +3382,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       local_credit_bits = update_vbr_credit(local_credit_bits, tmp_len, frame_target_bits);
     }
     remaining_target_bits -= frame_target_bits;
-    if (frame_index + 1 < nb_frames) {
-      stage_storage.prime_from_encoder(st);
-    }
   }
   st->silk_mode.toMono = bak_to_mono;
   if (result < 0) {
