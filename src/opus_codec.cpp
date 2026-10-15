@@ -15053,7 +15053,6 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   opus_int32 Winner_rand_state, LTP_pred_Q14, LPC_pred_Q14, n_AR_Q14, n_LTP_Q14, n_LF_Q14, r_Q10, RDmin_Q10, RDmax_Q10, Gain_Q10, tmp1,
       tmp2, *pred_lag_ptr, *shp_lag_ptr, *psLPC_Q14;
   NSQ_del_dec_struct* psDD;
-  silk_nsq_sample_state* psSS;
   const auto length = static_cast<int>(x_Q10.size());
   const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
   const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
@@ -15065,7 +15064,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         lane_ar[(index) * 4 + (state)] = psDelDec[state].sAR2_Q14[index];
     }
   }
-  std::array<std::array<silk_nsq_sample_state, 2>, silk_max_delayed_decision_states> psSampleState;
+  std::array<silk_nsq_sample_state, silk_max_delayed_decision_states> psSampleState;
   struct lazy_state_context {
     opus_int32 LPC_pred_Q14, n_AR_Q14, n_LF_Q14, alt_Q10, alt_RD_Q10;
   };
@@ -15139,42 +15138,42 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     }
     for (k = 0; k < nStatesDelayedDecision; ++k) {
       auto& context = lazy[k];
-      psSS = psSampleState[k].data();
+      auto& sample_state = psSampleState[k];
       const auto candidates = silk_quantize_candidate_pair<FixedPulses>(context.alt_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
-      psSS[0].Q_Q10 = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
-      psSS[0].RD_Q10 = context.alt_RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
+      sample_state.Q_Q10 = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
+      sample_state.RD_Q10 = context.alt_RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
       context.alt_Q10 = first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10;
       context.alt_RD_Q10 += first_is_q0 ? candidate1 : candidate0;
     }
     *smpl_buf_idx = silk_decision_ring_dec(*smpl_buf_idx);
     last_smple_idx = silk_decision_ring_add(*smpl_buf_idx, decisionDelay);
-    RDmin_Q10 = psSampleState[0][0].RD_Q10;
+    RDmin_Q10 = psSampleState[0].RD_Q10;
     Winner_ind = 0;
     for (k = 1; k < nStatesDelayedDecision; k++) {
-      if (psSampleState[k][0].RD_Q10 < RDmin_Q10) {
-        RDmin_Q10 = psSampleState[k][0].RD_Q10;
+      if (psSampleState[k].RD_Q10 < RDmin_Q10) {
+        RDmin_Q10 = psSampleState[k].RD_Q10;
         Winner_ind = k;
       }
     }
     Winner_rand_state = psDelDec[Winner_ind].RandState[last_smple_idx];
     if (psDelDec[0].RandState[last_smple_idx] != Winner_rand_state) {
-      psSampleState[0][0].RD_Q10 = ((psSampleState[0][0].RD_Q10) + (0x7FFFFFFF >> 4));
+      psSampleState[0].RD_Q10 = ((psSampleState[0].RD_Q10) + (0x7FFFFFFF >> 4));
       lazy[0].alt_RD_Q10 = ((lazy[0].alt_RD_Q10) + (0x7FFFFFFF >> 4));
     }
-    RDmax_Q10 = psSampleState[0][0].RD_Q10;
+    RDmax_Q10 = psSampleState[0].RD_Q10;
     RDmin_Q10 = lazy[0].alt_RD_Q10;
     RDmax_ind = 0;
     RDmin_ind = 0;
     for (k = 1; k < nStatesDelayedDecision; k++) {
       if (psDelDec[k].RandState[last_smple_idx] != Winner_rand_state) {
-        psSampleState[k][0].RD_Q10 = ((psSampleState[k][0].RD_Q10) + (0x7FFFFFFF >> 4));
+        psSampleState[k].RD_Q10 = ((psSampleState[k].RD_Q10) + (0x7FFFFFFF >> 4));
         lazy[k].alt_RD_Q10 = ((lazy[k].alt_RD_Q10) + (0x7FFFFFFF >> 4));
       }
-      if (psSampleState[k][0].RD_Q10 > RDmax_Q10) {
-        RDmax_Q10 = psSampleState[k][0].RD_Q10;
+      if (psSampleState[k].RD_Q10 > RDmax_Q10) {
+        RDmax_Q10 = psSampleState[k].RD_Q10;
         RDmax_ind = k;
       }
       if (lazy[k].alt_RD_Q10 < RDmin_Q10) {
@@ -15183,8 +15182,8 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       }
     }
     if (RDmin_Q10 < RDmax_Q10) {
-      psSampleState[RDmax_ind][0].Q_Q10 = lazy[RDmin_ind].alt_Q10;
-      psSampleState[RDmax_ind][0].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
+      psSampleState[RDmax_ind].Q_Q10 = lazy[RDmin_ind].alt_Q10;
+      psSampleState[RDmax_ind].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
       lazy[RDmax_ind].LPC_pred_Q14 = lazy[RDmin_ind].LPC_pred_Q14;
       lazy[RDmax_ind].n_AR_Q14 = lazy[RDmin_ind].n_AR_Q14;
       lazy[RDmax_ind].n_LF_Q14 = lazy[RDmin_ind].n_LF_Q14;
@@ -15213,19 +15212,19 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     NSQ->sLTP_buf_idx++;
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
-      psSS = &psSampleState[k][0];
-      const auto sample = silk_nsq_build_sample(psSS->Q_Q10, psDD->Seed, LTP_pred_Q14, lazy[k].LPC_pred_Q14,
+      const auto& sample_state = psSampleState[k];
+      const auto sample = silk_nsq_build_sample(sample_state.Q_Q10, psDD->Seed, LTP_pred_Q14, lazy[k].LPC_pred_Q14,
                                                 input_Q10, lazy[k].n_AR_Q14, lazy[k].n_LF_Q14);
       psDD->LF_AR_Q14 = sample.LF_AR_Q14;
       psDD->Diff_Q14 = sample.Diff_Q14;
       psDD->sLPC_Q14[16 + i] = sample.xq_Q14;
       psDD->Xq_Q14[*smpl_buf_idx] = sample.xq_Q14;
-      psDD->Q_Q10[*smpl_buf_idx] = psSS->Q_Q10;
+      psDD->Q_Q10[*smpl_buf_idx] = sample_state.Q_Q10;
       psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(sample.LPC_exc_Q14, 1);
       psDD->Shape_Q14[*smpl_buf_idx] = sample.sLTP_shp_Q14;
-      psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(psSS->Q_Q10));
+      psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(sample_state.Q_Q10));
       psDD->RandState[*smpl_buf_idx] = psDD->Seed;
-      psDD->RD_Q10 = psSS->RD_Q10;
+      psDD->RD_Q10 = sample_state.RD_Q10;
     }
     delayedGain_Q10_data[*smpl_buf_idx] = Gain_Q10;
   }
