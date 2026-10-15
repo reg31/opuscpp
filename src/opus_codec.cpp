@@ -8308,9 +8308,7 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
     if (backup && N != 960)
       copy_n_items(lowpass + tail_start, celt_decoder_prefix_storage - tail_start, saved);
     auto location = [&](int physical) {
-      if (!backup)
-        return lowpass + physical;
-      return physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
+      return backup && physical >= tail_start ? saved + physical - tail_start : lowpass + physical;
     };
     int i = std::max(1, old_count);
     while (i < celt_decoder_compact_prefix / 2) {
