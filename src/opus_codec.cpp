@@ -14350,14 +14350,12 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
 
   for (int block_index = 0; block_index < block_count; ++block_index) {
     const int offset = block_index * 16;
-    if (pulse_sums[block_index] > 0) {
-      if constexpr (Encode) {
+    if constexpr (Encode) {
+      if (pulse_sums[block_index] > 0) {
         silk_shell_encode_tree<16>(coder, magnitudes.data() + offset, shell_trees[block_index], 0, pulse_sums[block_index]);
-      } else {
-        silk_shell_code_node(coder, std::span<Pulse>{pulses.data() + offset, 16}, pulse_sums[block_index]);
       }
-    } else if constexpr (!Encode) {
-      zero_n_items(pulses.data() + offset, 16);
+    } else {
+      silk_shell_code_node(coder, std::span<Pulse>{pulses.data() + offset, 16}, std::max(pulse_sums[block_index], 0));
     }
   }
 
@@ -15438,8 +15436,8 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
 }
 
 static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, const int total_pulses) {
-  if (pulses.size() <= 1) {
-    pulses.front() = static_cast<opus_int16>(total_pulses);
+  if (pulses.size() <= 1 || total_pulses == 0) {
+    std::fill(pulses.begin(), pulses.end(), static_cast<opus_int16>(total_pulses));
     return;
   }
   const auto half = pulses.size() / 2;
