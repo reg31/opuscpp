@@ -7933,15 +7933,14 @@ constexpr int celt_decoder_energy_channel_count = 2;
 }
 
 static void celt_decoder_reset_state(CeltDecoderInternal* st) {
-  constexpr auto energy_channels = celt_decoder_energy_channel_count;
+  constexpr auto band_count =
+      static_cast<std::size_t>(celt_decoder_energy_channel_count * celt_default_nb_ebands);
   static_assert(std::is_standard_layout_v<CeltDecoderInternal>);
   zero_object_tail(*st, offsetof(CeltDecoderInternal, last_pitch_index));
   st->prefix_head = 0;
   zero_n_items(celt_decoder_storage(st), celt_decoder_storage_count(st->channels));
   auto* old_log_energy =
-      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + celt_decoder_channel_storage * st->channels) +
-      energy_channels * celt_default_nb_ebands;
-  const auto band_count = static_cast<std::size_t>(energy_channels * celt_default_nb_ebands);
+      reinterpret_cast<celt_glog*>(celt_decoder_storage(st) + celt_decoder_channel_storage * st->channels) + band_count;
   std::fill_n(old_log_energy, 2 * band_count, -(28.f));
   st->skip_plc = 1;
 }
