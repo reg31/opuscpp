@@ -4665,9 +4665,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
                                                           : 3)
                            : 3;
   opus_int32 total_size = payload_size + (code == 3 ? 2 : 1);
-  if (code == 2) {
-    total_size += 1 + (frame_lengths.front() >= 252);
-  } else if (code == 3 && vbr) {
+  if (vbr) {
     for (const auto length : frame_lengths.first(frame_count - 1)) {
       total_size += 1 + (length >= 252);
     }
@@ -4683,9 +4681,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   }
   auto* ptr = data;
   *ptr++ = static_cast<unsigned char>((packet_frames->toc & 0xFC) | code);
-  if (code == 2) {
-    ptr += encode_size(frame_lengths.front(), ptr);
-  } else if (code == 3) {
+  if (code == 3) {
     *ptr++ = static_cast<unsigned char>(count | (vbr ? 0x80 : 0));
     if (padding > 0) {
       data[1] |= 0x40;
@@ -4695,10 +4691,10 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
       *ptr++ = static_cast<unsigned char>((padding - 1) % 255);
       total_size += padding;
     }
-    if (vbr) {
-      for (const auto length : frame_lengths.first(frame_count - 1)) {
-        ptr += encode_size(length, ptr);
-      }
+  }
+  if (vbr) {
+    for (const auto length : frame_lengths.first(frame_count - 1)) {
+      ptr += encode_size(length, ptr);
     }
   }
   for (std::size_t index = 0; index < frame_count; ++index) {
