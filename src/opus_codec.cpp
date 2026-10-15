@@ -17776,7 +17776,7 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
 
 static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
   int k, subfr_length;
-  float a[16]{};
+  float a[16];
   float res_nrg, res_nrg_2nd, res_nrg_interp;
   opus_int16 NLSF0_Q15[16];
   float a_tmp[16]{}, LPC_res[((5 * 4) * 16) + 4 * 16];
