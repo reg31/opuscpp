@@ -1509,9 +1509,6 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
 
 constexpr int opus_decode_fast_unavailable = -1000000;
 static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec, opus_int16* pcm16 = nullptr) {
-  if (decode_fec < 0 || decode_fec > 1) {
-    return -1;
-  }
   if ((decode_fec || len == 0 || data == nullptr) && frame_size % (st->Fs / 400) != 0) {
     return -1;
   }
@@ -1626,7 +1623,7 @@ static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opu
 
 template <typename Sample>
 static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int32 len, Sample* pcm, int frame_size, int decode_fec) {
-  if (frame_size <= 0) {
+  if (frame_size <= 0 || decode_fec < 0 || decode_fec > 1) {
     return -1;
   }
   if (frame_size > opus_max_frame_samples_48k && (decode_fec || data == nullptr || len <= 0)) {
