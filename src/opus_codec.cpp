@@ -2637,7 +2637,6 @@ static inline void set_ref_encoder_defaults(OpusEncoder* st) {
   st->variable_HP_smth2_Q15 = silk_log_60_q15;
   st->mode = opus_mode_hybrid;
   st->bandwidth = 1105;
-  st->audio_preprocess_mode = audio_preprocess_music;
   st->audio_preprocess_hold = audio_preprocess_warmup_frames;
 }
 
