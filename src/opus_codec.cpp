@@ -8383,7 +8383,7 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   }
 }
 
-static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int channels, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
+static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
   if (st->postfilter_gain_old == 0 && st->postfilter_gain == 0 && target_gain == 0) {
     st->postfilter_period_old = target_period;
     st->postfilter_period = target_period;
@@ -8393,7 +8393,7 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     return;
   }
   bool same_input = false;
-  if (channels == 2) {
+  if (st->channels == 2) {
     const int history = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2;
     const auto* first = out_syn[0] - history;
     const auto* second = out_syn[1] - history;
@@ -8401,7 +8401,7 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     same_input = !(less(first, out_syn[1] + N) && less(second, out_syn[0] + N)) &&
                  std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
   }
-  const int filter_channels = same_input ? 1 : channels;
+  const int filter_channels = same_input ? 1 : st->channels;
   st->postfilter_period = std::max<int>(st->postfilter_period, 15);
   st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
   for (int channel = 0; channel < filter_channels; ++channel) {
@@ -8600,7 +8600,7 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
     }
     st->rng = seed;
     celt_synthesis(spectrum, out_syn.data(), oldBandE, start, effEnd, C, C, 0, LM, st->downsample, 0);
-    celt_apply_postfilter(st, out_syn.data(), C, N, LM, st->postfilter_period, st->postfilter_gain, st->postfilter_tapset);
+    celt_apply_postfilter(st, out_syn.data(), N, LM, st->postfilter_period, st->postfilter_gain, st->postfilter_tapset);
     st->skip_plc = 1;
   } else {
     opus_val16 fade = 1.0f;
@@ -8805,7 +8805,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
     std::fill_n(oldBandE, static_cast<std::size_t>(energy_channels * nbEBands), -(28.f));
   }
   celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, end, C, CC, isTransient, LM, st->downsample, silence);
-  celt_apply_postfilter(st, out_syn.data(), CC, N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
+  celt_apply_postfilter(st, out_syn.data(), N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
   celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, C == 1 && !silence);
   const celt_glog max_background_increase = std::min(160, st->loss_duration + M) * .001f;
   for (int index = 0; index < CC * nbEBands; ++index) {
