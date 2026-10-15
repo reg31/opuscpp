@@ -19133,7 +19133,6 @@ void opus_encoder_destroy(OpusEncoder* st) noexcept {
       for (int n = 0; n < st->channels; ++n)
         channels[n].x_buf.release();
       std::free(silk_enc->lbrr);
-      silk_enc->lbrr = nullptr;
     }
     release_voice_denoise_state(st);
   }
