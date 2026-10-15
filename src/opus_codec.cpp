@@ -2763,7 +2763,7 @@ static opus_int32 frame_size_select(opus_int32 frame_size, opus_int32 Fs) {
   const auto scaled_by_50 = 50 * samples;
   const bool supported = 400 * samples == Fs || 200 * samples == Fs || 100 * samples == Fs || scaled_by_50 == Fs || 25 * samples == Fs ||
                          scaled_by_50 == 3 * Fs || scaled_by_50 == 4 * Fs || scaled_by_50 == 5 * Fs || scaled_by_50 == 6 * Fs;
-  return frame_size < Fs / 400 || !supported ? -1 : frame_size;
+  return supported ? frame_size : -1;
 }
 
 struct frame_activity_metrics {
