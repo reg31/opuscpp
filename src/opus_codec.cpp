@@ -6143,6 +6143,46 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
   return L1;
 }
 
+template <bool Coupled> static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
+                                                   celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
+  opus_val32 L1 = 0, side_L1 = 0;
+  const int pairs = N0 >> 1;
+  for (int pair = 0; pair < pairs; ++pair) {
+    const int base = 2 * stride * pair;
+    for (int offset = 0; offset < stride; ++offset) {
+      const opus_val32 first = .70710678f * input[base + offset];
+      const opus_val32 second = .70710678f * input[base + stride + offset];
+      output[base + offset] = first + second;
+      output[base + stride + offset] = first - second;
+      if constexpr (Coupled) {
+        const opus_val32 side_first = .70710678f * side_input[base + offset];
+        const opus_val32 side_second = .70710678f * side_input[base + stride + offset];
+        side_output[base + offset] = side_first + side_second;
+        side_output[base + stride + offset] = side_first - side_second;
+      }
+    }
+    for (int offset = 0; offset < 2 * stride; ++offset) {
+      L1 += std::fabs(output[base + offset]);
+      if constexpr (Coupled)
+        side_L1 += std::fabs(side_output[base + offset]);
+    }
+  }
+  for (int index = 2 * pairs * stride; index < N0 * stride; ++index) {
+    output[index] = input[index];
+    L1 += std::fabs(output[index]);
+    if constexpr (Coupled) {
+      side_output[index] = side_input[index];
+      side_L1 += std::fabs(side_output[index]);
+    }
+  }
+  L1 += LM * bias * L1;
+  if constexpr (Coupled) {
+    side_L1 += LM * bias * side_L1;
+    return L1 == 0 || side_L1 == 0 ? static_cast<double>(L1) + side_L1 : static_cast<double>(L1) * side_L1;
+  }
+  return L1;
+}
+
 static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
@@ -6208,13 +6248,8 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     best_L1 = L1;
     record_legal_cost(0, L1);
     if (isTransient && !narrow && (!legal_entropy || (legal_levels & 1u) != 0)) {
-      copy_n_items(tmp.data(), static_cast<std::size_t>(N), tmp_1.data());
-      haar1(tmp_1.data(), N >> LM, 1 << LM);
-      if (coupled) {
-        copy_n_items(tmp_side.data(), static_cast<std::size_t>(N), tmp_side_1.data());
-        haar1(tmp_side_1.data(), N >> LM, 1 << LM);
-      }
-      L1 = l1_metric(tmp_1.data(), N, LM + 1, bias, coupled ? tmp_side_1.data() : nullptr);
+      L1 = coupled ? haar_l1_metric<true>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias, tmp_side_1.data(), tmp_side.data())
+                   : haar_l1_metric<false>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias);
       record_legal_cost(-1, L1);
       if (L1 < best_L1) {
         best_L1 = L1;
@@ -6224,16 +6259,18 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     const int haar_levels = legal_entropy ? last_legal_level : LM + !(isTransient || narrow);
     for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
-      haar1(tmp.data(), N >> k, 1 << k);
-      if (coupled)
-        haar1(tmp_side.data(), N >> k, 1 << k);
       if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
-        L1 = l1_metric(tmp.data(), N, B, bias, coupled ? tmp_side.data() : nullptr);
+        L1 = coupled ? haar_l1_metric<true>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), tmp_side.data())
+                     : haar_l1_metric<false>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias);
         record_legal_cost(k + 1, L1);
         if (L1 < best_L1) {
           best_L1 = L1;
           best_level = k + 1;
         }
+      } else {
+        haar1(tmp.data(), N >> k, 1 << k);
+        if (coupled)
+          haar1(tmp_side.data(), N >> k, 1 << k);
       }
     }
     if (isTransient)
