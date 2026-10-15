@@ -14017,7 +14017,7 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
 }
 
 static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_control& control, int condCoding) {
-  opus_int16 pNLSF_Q15[16], pNLSF0_Q15[16];
+  opus_int16 pNLSF_Q15[16];
   silk_gains_dequant(control.Gains_Q16, state.indices.GainsIndices, &state.LastGainIndex, condCoding == 2, state.nb_subfr);
   silk_NLSF_decode(pNLSF_Q15, state.indices.NLSFIndices, state.psNLSF_CB);
   silk_NLSF2A(control.PredCoef_Q12[1], pNLSF_Q15, state.LPC_order);
@@ -14025,6 +14025,7 @@ static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_contr
     state.indices.NLSFInterpCoef_Q2 = 4;
   }
   if (state.indices.NLSFInterpCoef_Q2 < 4) {
+    opus_int16 pNLSF0_Q15[16];
     for (int i = 0; i < state.LPC_order; i++) {
       pNLSF0_Q15[i] = state.prevNLSF_Q15[i] + (state.indices.NLSFInterpCoef_Q2 * (pNLSF_Q15[i] - state.prevNLSF_Q15[i]) >> 2);
     }
@@ -16018,8 +16019,7 @@ void silk_decode_pitch(opus_int16 lagIndex, opus_uint8 contourIndex, int pitch_l
   const int max_lag = 18 * Fs_kHz;
   const int lag = min_lag + lagIndex;
   for (int k = 0; k < nb_subfr; k++) {
-    pitch_lags[k] = lag + codebook.at(k, contourIndex);
-    pitch_lags[k] = std::clamp(pitch_lags[k], min_lag, max_lag);
+    pitch_lags[k] = std::clamp(lag + codebook.at(k, contourIndex), min_lag, max_lag);
   }
 }
 
