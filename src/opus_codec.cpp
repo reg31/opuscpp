@@ -1926,9 +1926,6 @@ template <int Shift>
 }
 
 template <typename T> static void silk_bwexpander(T* ar, std::size_t count, opus_int32 chirp_Q16) {
-  if (count == 0) {
-    return;
-  }
   const opus_int32 chirp_minus_one_Q16 = chirp_Q16 - 65536;
   for (auto index = std::size_t{}; index + 1 < count; ++index) {
     const auto scaled = static_cast<opus_int64>(chirp_Q16) * ar[index];
