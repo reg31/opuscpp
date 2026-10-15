@@ -18989,10 +18989,6 @@ template <bool Encoder>
     return align(sizeof(OpusDecoder)) + align(silk_decoder_get_size()) +
            static_cast<int>(sizeof(CeltDecoderInternal) + celt_decoder_storage_count(channels) * sizeof(celt_sig));
   }();
-  if (state_size <= 0) {
-    assign_error(error, OPUS_BAD_ARG);
-    return nullptr;
-  }
   auto* allocation = std::malloc(static_cast<std::size_t>(state_size));
   if (allocation == nullptr) {
     assign_error(error, OPUS_ALLOC_FAIL);
