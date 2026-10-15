@@ -6,7 +6,7 @@ dtx_reentry,16000,quiet_voice,,,0.278775,0.708030,0.232531,0.759438
 dtx_false_positive,16000,far_field,0,0,,,,
 dtx_reentry,16000,far_field,,,0.550942,0.819201,0.696755,1.110476
 dtx_false_positive,16000,noisy_voice,0,0,,,,
-dtx_reentry,16000,noisy_voice,,,0.956025,1.050055,2.194559,2.083455
+dtx_reentry,16000,noisy_voice,,,0.948426,1.050055,2.297730,2.083455
 dtx_false_positive,16000,two_speakers,0,0,,,,
 dtx_reentry,16000,two_speakers,,,0.058760,0.714022,0.009195,0.735450
 dtx_false_positive,16000,speech_music,0,0,,,,
@@ -20,7 +20,7 @@ dtx_reentry,24000,quiet_voice,,,0.286482,0.733938,0.384472,0.046976
 dtx_false_positive,24000,far_field,0,0,,,,
 dtx_reentry,24000,far_field,,,0.547544,0.800514,0.526694,1.010243
 dtx_false_positive,24000,noisy_voice,0,0,,,,
-dtx_reentry,24000,noisy_voice,,,0.963096,1.027264,1.275072,1.346731
+dtx_reentry,24000,noisy_voice,,,0.962789,1.027264,1.285922,1.346731
 dtx_false_positive,24000,two_speakers,0,0,,,,
 dtx_reentry,24000,two_speakers,,,0.080932,0.559172,0.009781,0.188358
 dtx_false_positive,24000,speech_music,0,0,,,,
