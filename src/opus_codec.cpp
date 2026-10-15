@@ -2986,8 +2986,7 @@ static void update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo
   auto& high_z_tonal = st->lightweight_high_z_tonal_Q7;
   high_z_tonal = track_score(high_z_tonal, high_z, 4, high_z_tonal > 64 && st->bitrate_bps < 40000 ? 124 : 104);
   vad_score = track_score(vad_score, speech_activity, 4, 112);
-  const bool lowrate_vad_policy = st->bitrate_bps < 40000;
-  voice_score = track_score(voice_score, speech_activity && !stereo_music, lowrate_vad_policy && vad_score > 64 ? 4 : 5,
+  voice_score = track_score(voice_score, speech_activity && !stereo_music, st->bitrate_bps < 40000 && vad_score > 64 ? 4 : 5,
                             sustained_harmonic ? 112 : 126);
   music_score = track_score(music_score, stereo_music || sustained_harmonic || high_z, 8, 112);
 }
