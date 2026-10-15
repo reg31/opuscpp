@@ -4637,7 +4637,6 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
   classical_leak_reset(&st->classical_leak);
-  celt_enc->classical_leak_valid = false;
   auto* voice_denoise = st->voice_denoise;
   zero_object_tail(*st, offsetof(OpusEncoder, bitrate_bps));
   st->voice_denoise = voice_denoise;
