@@ -4405,11 +4405,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   return ret;
 }
 
-static void release_voice_denoise_state(OpusEncoder* st) noexcept {
-  std::free(st->voice_denoise);
-  st->voice_denoise = nullptr;
-}
-
 struct voice_denoise_coefficients {
   opus_val16 low, middle;
 };
@@ -19010,7 +19005,8 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       reset_voice_denoise_state(*st->voice_denoise);
     }
     if (value == 0) {
-      release_voice_denoise_state(st);
+      std::free(st->voice_denoise);
+      st->voice_denoise = nullptr;
     }
     return OPUS_OK;
   }
@@ -19122,7 +19118,7 @@ void opus_encoder_destroy(OpusEncoder* st) noexcept {
         channels[n].x_buf.release();
       std::free(silk_enc->lbrr);
     }
-    release_voice_denoise_state(st);
+    std::free(st->voice_denoise);
   }
   std::free(st);
 }
