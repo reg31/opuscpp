@@ -8792,7 +8792,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   }
   celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, end, C, CC, isTransient, LM, st->downsample, silence);
   celt_apply_postfilter(st, out_syn.data(), CC, N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
-  celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, energy_channels == 2 && C == 1 && !silence);
+  celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, C == 1 && !silence);
   const celt_glog max_background_increase = std::min(160, st->loss_duration + M) * .001f;
   for (int index = 0; index < CC * nbEBands; ++index) {
     backgroundLogE[index] = std::min(backgroundLogE[index] + max_background_increase, oldBandE[index]);
