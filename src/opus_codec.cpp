@@ -8021,9 +8021,8 @@ static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int dow
 }
 
 static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* oldBandE, int start, int effEnd, int C, int CC, int isTransient, int LM, int downsample, int silence) {
-  int i, M, b, B, N, shift, nbEBands, overlap;
+  int i, M, b, B, N, shift, overlap;
   overlap = celt_default_overlap;
-  nbEBands = celt_default_nb_ebands;
   N = celt_short_mdct_size << LM;
   M = 1 << LM;
   if (isTransient) {
@@ -8036,7 +8035,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
   if (CC == C && C == 2) {
     auto* freq0 = X;
     auto* freq1 = X + N;
-    denormalise_bands<2>({freq0, freq1}, {freq0, freq1}, {oldBandE, oldBandE + nbEBands}, start, effEnd, M, downsample, silence);
+    denormalise_bands<2>({freq0, freq1}, {freq0, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
     if (B == 1 && shift == 0) {
       clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, freq0, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
     } else
@@ -8058,7 +8057,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
       }
     } else {
       auto* freq2 = out_syn[0] + overlap / 2;
-      denormalise_bands<1>({X + N}, {freq2}, {oldBandE + nbEBands}, start, effEnd, M, downsample, silence);
+      denormalise_bands<1>({X + N}, {freq2}, {oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
       for (i = 0; i < N; i++) {
         freq[i] = (((.5f * (freq[i]))) + ((.5f * (freq2[i]))));
       }
