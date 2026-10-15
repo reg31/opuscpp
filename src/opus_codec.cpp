@@ -3946,9 +3946,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
     const opus_val32 dt = static_cast<opus_val32>(frame_size) / static_cast<opus_val32>(sample_rate);
     const opus_val32 attack = 1.f - std::exp(-dt / .10f);
     const opus_val32 release = 1.f - std::exp(-dt / .80f);
-    const opus_val32 dc_attack = 20 <= 0
-                                     ? 1.f
-                                     : 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
+    const opus_val32 dc_attack = 1.f - std::exp(-dt / (static_cast<opus_val32>(20) * .001f));
     const bool dc_driven = target == 1.f && (dc_fast || dc_evidence);
     const opus_val32 coef = (target > state.cond_score)
                                 ? (dc_driven ? dc_attack : attack)
