@@ -8049,7 +8049,6 @@ constexpr int celt_decode_buffer_size = 2048, celt_plc_max_period = 1024, celt_l
 constexpr int celt_plc_max_pitch_period = 720;
 constexpr int celt_decoder_prefix_storage = celt_decoder_compact_prefix / 2 + 2 * celt_decoder_prefix_pairs;
 constexpr int celt_decoder_inplace_history_size = celt_decoder_channel_storage - celt_decoder_retained_overlap;
-constexpr int celt_decoder_inplace_frame_limit = celt_decoder_inplace_history_size - celt_max_pitch_period;
 static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p) {
   opus_val32 error = ac[0];
   float* lpc = _lpc;
@@ -8852,7 +8851,7 @@ static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned ch
       (st->downsample == 1 || st->downsample == 2 || st->downsample == 3 || st->downsample == 4 || st->downsample == 6) && st->channels >= 1 && st->channels <= celt_max_channels && update_pitch_cache &&
       celt_can_use_retained_plc_history(st, N))
     return celt_decode_pitch_480(st, pcm, frame_size);
-  if (!pitch_plc && N <= celt_decoder_inplace_frame_limit && N <= celt_max_frame_samples / 2)
+  if (!pitch_plc && N <= celt_max_frame_samples / 2)
     return celt_decode_with_ec_body(st, data, len, pcm, N, dec, pcm16, nullptr, true, update_pitch_cache);
   return celt_decode_with_ec_workspace(st, data, len, pcm, N, dec, pcm16, update_pitch_cache);
 }
