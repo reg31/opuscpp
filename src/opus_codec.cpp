@@ -12539,7 +12539,7 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
   float prob_max = 0.f;
   const float vad_prob = tonal->info[vpos].activity_probability;
   float prob_count = std::max(.1f, vad_prob);
-  float prob_avg = std::max(.1f, vad_prob) * tonal->info[mpos].music_prob;
+  float prob_avg = prob_count * tonal->info[mpos].music_prob;
   while (1) {
     mpos = (mpos + 1) % 100;
     if (mpos == tonal->write_pos) {
