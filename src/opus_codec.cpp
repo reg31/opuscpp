@@ -15011,7 +15011,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   NSQ_del_dec_struct* psDD;
   const auto length = static_cast<int>(x_Q10.size());
   const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
-  const bool zero_ar = std::all_of(AR_shp_Q13.begin(), AR_shp_Q13.end(), [](opus_int16 coefficient) { return coefficient == 0; });
+  const bool zero_ar = std::all_of(AR_shp_Q13.begin(), AR_shp_Q13.end(), [](opus_int16 coefficient) {
+    return coefficient == 0;
+  });
   const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
   std::array<opus_int32, 24 * 4> lane_ar;
   const bool use_four_lane_ar = (!FixedPulses) && nStatesDelayedDecision == 4;
