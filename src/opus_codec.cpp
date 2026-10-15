@@ -12118,7 +12118,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float leakage_from[19];
   float leakage_to[19];
   float layer_out[32];
-  int is_silence;
 
   alpha = 1.f / std::min(10, 1 + tonal->count);
   alphaE = 1.f / std::min(25, 1 + tonal->count);
@@ -12141,7 +12140,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   if (tonal->write_pos >= 100)
     tonal->write_pos -= 100;
 
-  is_silence = classical_leak_is_digital_silence(tonal->inmem, block, lsb_depth) ? 1 : 0;
+  const bool is_silence = classical_leak_is_digital_silence(tonal->inmem, block, lsb_depth);
 
   float in[960];
   for (i = 0; i < N2; ++i) {
