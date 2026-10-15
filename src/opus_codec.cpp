@@ -8848,7 +8848,7 @@ static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned ch
   const int N = frame_size * st->downsample;
   const bool pitch_plc = (data == nullptr || len <= 1) && st->loss_duration < 40 && st->start == 0 && !st->skip_plc;
   if (pitch_plc && N == 480 && data == nullptr && len == 0 && pcm != nullptr && pcm16 == nullptr &&
-      (st->downsample == 1 || st->downsample == 2 || st->downsample == 3 || st->downsample == 4 || st->downsample == 6) && st->channels >= 1 && st->channels <= celt_max_channels && update_pitch_cache &&
+      (st->downsample >= 1 && (st->downsample <= 4 || st->downsample == 6)) && st->channels >= 1 && st->channels <= celt_max_channels && update_pitch_cache &&
       celt_can_use_retained_plc_history(st, N))
     return celt_decode_pitch_480(st, pcm, frame_size);
   if (!pitch_plc && N <= celt_max_frame_samples / 2)
