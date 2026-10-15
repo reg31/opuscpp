@@ -5767,15 +5767,23 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           std::array<opus_val32, 1 << celt_max_lm> source_angles;
           for (int block = 0; block < B; ++block)
             source_angles[block] = stereo_angle(source_gram[block]);
-          const auto gram_error = [&](const celt_norm* left, const celt_norm* right) {
-            const auto reconstructed = gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
-            opus_val32 error = 0;
-            for (int block = 0; block < B; ++block) {
-              const auto difference = stereo_angle(reconstructed[block]) - source_angles[block];
-              error += difference * difference;
+          struct stereo_error {
+            const decltype(gram)& make_gram;
+            const decltype(stereo_angle)& angle;
+            const std::array<opus_val32, 1 << celt_max_lm>& source;
+            int blocks;
+            opus_val32 left_gain, right_gain, inverse_scale;
+            OPUSCPP_NOINLINE opus_val32 operator()(const celt_norm* left, const celt_norm* right) const {
+              const auto reconstructed = make_gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
+              opus_val32 error = 0;
+              for (int block = 0; block < blocks; ++block) {
+                const auto difference = angle(reconstructed[block]) - source[block];
+                error += difference * difference;
+              }
+              return error;
             }
-            return error;
           };
+          const stereo_error gram_error{gram, stereo_angle, source_angles, B, left_gain, right_gain, inverse_scale};
           cm = x_cm | y_cm;
           ec_save = *ec;
           ctx_save = ctx;
@@ -5840,7 +5848,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
 
           if (c2_plan != nullptr && c2_plan->band >= 0 && i >= c2_plan->band &&
               i < c2_plan->band + c2_plan->horizon)
-            c2_plan->error += gram_error(X, Y);
+            c2_plan->error += take_first ? -dist0 : -dist1;
           if (c2_plan != nullptr && c2_plan->replay && i == c2_plan->band + c2_plan->horizon - 1 &&
               !(c2_plan->error < c2_plan->incumbent_error))
             return;
