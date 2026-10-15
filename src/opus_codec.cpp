@@ -8290,7 +8290,7 @@ struct celt_decoder_views {
   opus_val16* lpc;
 };
 
-[[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N, celt_sig* workspace, bool inplace) noexcept -> celt_decoder_views {
+[[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N, celt_sig* workspace, bool inplace, bool update_pitch_cache) noexcept -> celt_decoder_views {
   const auto overlap = celt_default_overlap;
   auto* const decode_storage = celt_decoder_storage(st);
   celt_decoder_views views;
@@ -8302,7 +8302,7 @@ struct celt_decoder_views {
   for (int channel = 0; channel < st->channels; ++channel) {
     views.decode_mem[channel] = inplace ? decode_storage + channel * celt_decoder_channel_storage : workspace + channel * (celt_decode_buffer_size + overlap);
     views.out_syn[channel] = views.decode_mem[channel] + views.history_size - N;
-    if (inplace)
+    if (inplace && update_pitch_cache)
       views.cache_backup[channel] = workspace + channel * N;
   }
   views.oldBandE = reinterpret_cast<celt_glog*>(decode_storage + celt_decoder_channel_storage * st->channels);
@@ -8710,9 +8710,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   const int N = M * celt_short_mdct_size;
   std::array<celt_norm, celt_max_channels * celt_max_frame_samples> spectrum;
   auto* view_workspace = inplace ? spectrum.data() + std::max(C, CC) * N : workspace;
-  auto decoder = make_celt_decoder_views(st, N, view_workspace, inplace);
-  if (!update_pitch_cache)
-    decoder.cache_backup.fill(nullptr);
+  auto decoder = make_celt_decoder_views(st, N, view_workspace, inplace, update_pitch_cache);
   auto out_syn = decoder.out_syn;
   auto *oldBandE = decoder.oldBandE, *oldLogE = decoder.oldLogE, *oldLogE2 = decoder.oldLogE2, *backgroundLogE = decoder.backgroundLogE;
   if (data == nullptr || len <= 1) {
