@@ -3765,7 +3765,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   if (state.cond_init_done == 0) {
     dc = pcm[0];
   }
-  for (int index = 0; index < frame_size * 1; ++index) {
+  for (int index = 0; index < frame_size; ++index) {
     const opus_val32 sample = pcm[index * stride];
     sample_sum += sample;
     raw_e += static_cast<double>(sample) * sample;
@@ -3789,7 +3789,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   state.cond_mid_hp = mid_hp;
   state.cond_mid_hp2 = mid_hp2;
   state.cond_mid_lp = mid_lp;
-  const opus_val32 samples = static_cast<opus_val32>(frame_size * 1);
+  const opus_val32 samples = static_cast<opus_val32>(frame_size);
   const opus_val32 lf_abs = lf_e / samples;
   const opus_val32 mid_abs = mid_e / samples;
   const bool active = (tot_e / samples) > 1e-7f;
@@ -3815,7 +3815,7 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   const bool rumble_evidence = evidence && source_supported && lf_abs > 200.f * (mid_abs + 1e-20f);
   bool dirty_evidence = dc_evidence || rumble_evidence;
   const bool clean_evidence = evidence && mid_abs > 3e-4f && lf_abs < 20.f * (mid_abs + 1e-20f);
-  const opus_int64 sample_count = static_cast<opus_int64>(frame_size * 1);
+  const opus_int64 sample_count = static_cast<opus_int64>(frame_size);
   const opus_int64 run_need = static_cast<opus_int64>(100) * sample_rate / 1000;
   const opus_int64 release_need = static_cast<opus_int64>(300) * sample_rate / 1000;
   const opus_int64 expiry_need = static_cast<opus_int64>(400) * sample_rate / 1000;
