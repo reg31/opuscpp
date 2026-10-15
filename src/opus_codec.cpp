@@ -14669,8 +14669,8 @@ static void silk_LP_interpolate_filter_taps(opus_int32 B_Q28[3], opus_int32 A_Q2
 template <bool Warped, int Lanes = 1>
   requires(Lanes == 1 || Lanes == 4)
 static auto silk_nsq_noise_shape_feedback(std::conditional_t<Lanes == 1, opus_int32, std::array<opus_int32, Lanes>> diff,
-                                         opus_int32* state_Q14, const opus_int16* coefficients, int order,
-                                         int warping_Q16 = 0) noexcept {
+                                          opus_int32* state_Q14, const opus_int16* coefficients, int order,
+                                          int warping_Q16 = 0) noexcept {
   const auto multiply = [](opus_int32 value, opus_int16 coefficient) noexcept {
     if constexpr (Lanes == 1) {
       return silk_mul_wb(value, coefficient);
