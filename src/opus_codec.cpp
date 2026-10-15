@@ -16673,21 +16673,31 @@ void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
   }
 }
 
-static void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<const float> px, const int win_type) {
-  const auto length = static_cast<int>(px_win.size());
+template <std::size_t Lanes>
+  requires(Lanes == 1 || Lanes == 4)
+static void silk_apply_sine_windows_FLP(std::array<float*, Lanes> output, std::array<const float*, Lanes> input,
+                                        const int length, const int win_type) {
   const float freq = 3.1415926536f / (length + 1);
   const float c = 2.0f - freq * freq;
   float S0 = win_type < 2 ? 0.0f : 1.0f;
   float S1 = win_type < 2 ? freq : 0.5f * c;
   for (int block_index = 0; block_index < length / 4; ++block_index) {
     const auto k = static_cast<std::size_t>(block_index * 4);
-    px_win[k + 0] = px[k + 0] * 0.5f * (S0 + S1);
-    px_win[k + 1] = px[k + 1] * S1;
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
+      output[lane][k] = input[lane][k] * 0.5f * (S0 + S1);
+      output[lane][k + 1] = input[lane][k + 1] * S1;
+    }
     S0 = c * S1 - S0;
-    px_win[k + 2] = px[k + 2] * 0.5f * (S1 + S0);
-    px_win[k + 3] = px[k + 3] * S0;
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
+      output[lane][k + 2] = input[lane][k + 2] * 0.5f * (S1 + S0);
+      output[lane][k + 3] = input[lane][k + 3] * S0;
+    }
     S1 = c * S0 - S1;
   }
+}
+
+static void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<const float> px, const int win_type) {
+  silk_apply_sine_windows_FLP<1>({px_win.data()}, {px.data()}, static_cast<int>(px_win.size()), win_type);
 }
 
 static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses) {
@@ -18118,18 +18128,38 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   if (voiced) {
     HarmShapeGain *= silk_sqrt_reference(psEnc->LTPCorr);
   }
-  for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
-    int shift, slope_part, flat_part;
-    flat_part = psEnc->sCmn.fs_kHz * 3;
-    slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed[k], static_cast<std::size_t>(slope_part)},
-                               std::span<const float>{x_ptr, static_cast<std::size_t>(slope_part)}, 1);
-    shift = slope_part;
-    std::memcpy(x_windowed[k] + shift, x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)));
-    shift += flat_part;
-    silk_apply_sine_window_FLP(std::span<float>{x_windowed[k] + shift, static_cast<std::size_t>(slope_part)},
-                               std::span<const float>{x_ptr + shift, static_cast<std::size_t>(slope_part)}, 2);
-    x_ptr += psEnc->sCmn.subfr_length;
+  if (psEnc->sCmn.nb_subfr == 4) {
+    const int flat_part = psEnc->sCmn.fs_kHz * 3;
+    const int slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
+    const int shift = slope_part + flat_part;
+    std::array<float*, 4> window_output;
+    std::array<const float*, 4> window_input;
+    for (k = 0; k < 4; ++k) {
+      window_output[k] = x_windowed[k];
+      window_input[k] = x_ptr + k * psEnc->sCmn.subfr_length;
+    }
+    silk_apply_sine_windows_FLP<4>(window_output, window_input, slope_part, 1);
+    for (k = 0; k < 4; ++k) {
+      std::memcpy(window_output[k] + slope_part, window_input[k] + slope_part, static_cast<std::size_t>(flat_part) * sizeof(float));
+      window_output[k] += shift;
+      window_input[k] += shift;
+    }
+    silk_apply_sine_windows_FLP<4>(window_output, window_input, slope_part, 2);
+    x_ptr += 4 * psEnc->sCmn.subfr_length;
+  } else {
+    for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
+      int shift, slope_part, flat_part;
+      flat_part = psEnc->sCmn.fs_kHz * 3;
+      slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
+      silk_apply_sine_window_FLP(std::span<float>{x_windowed[k], static_cast<std::size_t>(slope_part)},
+                                 std::span<const float>{x_ptr, static_cast<std::size_t>(slope_part)}, 1);
+      shift = slope_part;
+      std::memcpy(x_windowed[k] + shift, x_ptr + shift, static_cast<std::size_t>(flat_part * sizeof(float)));
+      shift += flat_part;
+      silk_apply_sine_window_FLP(std::span<float>{x_windowed[k] + shift, static_cast<std::size_t>(slope_part)},
+                                 std::span<const float>{x_ptr + shift, static_cast<std::size_t>(slope_part)}, 2);
+      x_ptr += psEnc->sCmn.subfr_length;
+    }
   }
   if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
     silk_warped_autocorrelation_FLP<4>({auto_corr[0], auto_corr[1], auto_corr[2], auto_corr[3]},
