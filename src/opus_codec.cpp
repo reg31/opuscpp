@@ -1241,7 +1241,7 @@ static void silk_CNG_Reset(silk_decoder_state* psDec) {
     return;
   }
   auto* psCNG = psDec->sCNG;
-  const int NLSF_step_Q15 = (static_cast<opus_int32>((0x7FFF) / (psDec->LPC_order + 1)));
+  const int NLSF_step_Q15 = 0x7FFF / (psDec->LPC_order + 1);
   int NLSF_acc_Q15 = 0;
   for (int i = 0; i < psDec->LPC_order; i++) {
     NLSF_acc_Q15 += NLSF_step_Q15;
@@ -13843,7 +13843,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   for (int k = 0; k < psDec->nb_subfr; k++) {
     auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
     for (int i = 0; i < psDec->subfr_length; i++) {
-      const opus_int32 LTP_pred_Q12 = static_cast<opus_int32>(2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16));
+      const opus_int32 LTP_pred_Q12 = 2 + ((pred_lag_ptr[-2] * static_cast<opus_int64>(psPLC->LTPCoef_Q14)) >> 16);
       ++pred_lag_ptr;
       rand_seed = silk_next_rand_seed(rand_seed);
       idx = ((rand_seed) >> (25)) & (128 - 1);
