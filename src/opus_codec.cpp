@@ -13676,7 +13676,7 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
                                  8);
     }
     const opus_int32 gain_Q10 = ((gain_Q16) >> (6));
-    const int exc_mask = static_cast<int>(std::min(255u, std::bit_floor(static_cast<unsigned>(length) + 1U) - 1U));
+    const int exc_mask = static_cast<int>(std::bit_floor(static_cast<unsigned>(length) + 1U) - 1U);
     for (int i = 0; i < length; ++i) {
       psCNG->rand_seed = silk_next_rand_seed(psCNG->rand_seed);
       const int index = (psCNG->rand_seed >> 24) & exc_mask;
@@ -13804,7 +13804,7 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   const bool fade_collapsed_unvoiced =
       psDec->lossCnt == 0 && psDec->prevSignalType != 2 && (energy2 >> shift1) <= ((energy1 >> shift2) >> 4);
   opus_int32 conceal_gain_Q16 = 1 << 16;
-  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / std::max(static_cast<int>(psDec->frame_length), 1) : 0;
+  const opus_int32 conceal_gain_step_Q16 = fade_collapsed_unvoiced ? (1 << 11) / static_cast<int>(psDec->frame_length) : 0;
   const int rand_offset = ((energy1) >> (shift2)) < ((energy2) >> (shift1))
                               ? std::max(0, (psPLC->nb_subfr - 1) * psPLC->subfr_length - 128)
                               : std::max(0, psPLC->nb_subfr * psPLC->subfr_length - 128);
