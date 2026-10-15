@@ -17954,7 +17954,7 @@ static void silk_find_LTP_FLP(float XX[4 * 5 * 5], float xX[4 * 5], const float 
     silk_corrVector_FLP(std::span<const float>{lag_ptr, static_cast<std::size_t>(subfr_length + 4)},
                         std::span<const float>{r_ptr, static_cast<std::size_t>(subfr_length)},
                         std::span<float>{xX_ptr, static_cast<std::size_t>(5)});
-    const float xx = static_cast<float>(silk_energy_FLP(r_ptr, subfr_length + 5));
+    const float xx = static_cast<float>(silk_energy_FLP(r_ptr, subfr_length));
     const float temp = 1.0f / std::max(xx, 0.015f * (XX_ptr[0] + XX_ptr[24]) + 1.0f);
     silk_scale_copy_vector_FLP(XX_ptr, XX_ptr, temp, 5 * 5);
     silk_scale_copy_vector_FLP(xX_ptr, xX_ptr, temp, 5);
