@@ -7302,7 +7302,7 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   return temporal_vbr;
 }
 
-[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, int channels, opus_val32 toneishness) noexcept -> int {
+[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, int channels) noexcept -> int {
   if (hybrid) {
     return st->high_z_tonal_Q7 > 64 ? std::clamp(alloc_trim - 4, 0, 10) : alloc_trim;
   }
@@ -7733,7 +7733,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       } else {
         alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
       }
-      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C, toneishness);
+      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C);
       if (!hybrid && C == 2) {
         alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
       }
