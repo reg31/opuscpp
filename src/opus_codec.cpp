@@ -3207,12 +3207,6 @@ static inline void apply_voice_denoise_companion(VoiceDenoiseState& state, opus_
   state.companion_initialized = !silence;
 }
 
-static void blend_filtered_input(opus_res* filtered, const opus_res* input, int samples, opus_val16 keep) noexcept {
-  for (int index = 0; index < samples; ++index) {
-    filtered[index] += keep * (input[index] - filtered[index]);
-  }
-}
-
 [[nodiscard]] static constexpr auto encoder_error_balance_filter_for(const OpusEncoder* st) noexcept -> opus_val16 {
   if (st->application != OPUS_APPLICATION_VOIP) {
     return 1.0f;
@@ -4077,7 +4071,10 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     if (apply_mono_preprocess && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
       const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
-      blend_filtered_input(frame_pcm, pcm, frame_size, clean_music ? .94f : .86f);
+      const opus_val16 keep = clean_music ? .94f : .86f;
+      for (int index = 0; index < frame_size; ++index) {
+        frame_pcm[index] += keep * (pcm[index] - frame_pcm[index]);
+      }
       if (clean_music) {
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, .08f);
       }
