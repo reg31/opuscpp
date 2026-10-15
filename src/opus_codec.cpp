@@ -12894,8 +12894,92 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
   }
 }
 
+static double fine_envelope_outward(double value, bool upward) {
+  constexpr auto normal_minimum = std::numeric_limits<double>::min();
+  if (std::fabs(value) <= normal_minimum)
+    return upward ? 2. * normal_minimum : -2. * normal_minimum;
+  return std::nextafter(value, upward ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity());
+}
+
+static bool fine_envelope_prefers_power(int start, int end, const celt_glog* error, const std::array<float, celt_max_channels * celt_default_nb_ebands>& log_offsets, const std::array<float, celt_max_channels * celt_default_nb_ebands>& power_offsets, int C) {
+  std::array<double, 3> log_moments{};
+  std::array<double, 3> power_moments{};
+  bool different = false;
+  for (int c = 0; c < C; ++c) {
+    for (int i = start; i < end; ++i) {
+      const int index = c * celt_default_nb_ebands + i;
+      const float log_error = error[index] - log_offsets[index];
+      const float power_error = error[index] - power_offsets[index];
+      if (!std::isfinite(log_error) || !std::isfinite(power_error))
+        return true;
+      different |= log_offsets[index] != power_offsets[index];
+      const auto add = [](auto& moments, float value) {
+        const double x = value;
+        moments[0] += x;
+        moments[1] += x * x;
+        moments[2] += std::fabs(x);
+      };
+      add(log_moments, log_error);
+      add(power_moments, power_error);
+    }
+  }
+  if (!different)
+    return true;
+  const double count = C * (end - start);
+  const auto gamma = [](double operations) {
+    const auto product = operations * std::numeric_limits<double>::epsilon();
+    return product / (1. - product);
+  };
+  const auto interval = [&](const auto& moments) {
+    const auto g = gamma(count);
+    const auto sum_error = g * moments[2] / (1. - g);
+    const auto square_error = g * moments[1] / (1. - g);
+    const auto variance = count * moments[1] - moments[0] * moments[0];
+    const auto evaluation_error = gamma(3) * (count * moments[1] + moments[0] * moments[0]);
+    const auto bound = count * square_error + sum_error * (2. * std::fabs(moments[0]) + sum_error) + evaluation_error;
+    const auto inflated = fine_envelope_outward(bound / (1. - gamma(32)), true);
+    return std::array<double, 2>{fine_envelope_outward(variance - inflated, false), fine_envelope_outward(variance + inflated, true)};
+  };
+  const auto log_interval = interval(log_moments);
+  const auto power_interval = interval(power_moments);
+  return power_interval[1] <= log_interval[0];
+}
+
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C) {
+  const bool prefer_power = [&]() {
+    if constexpr (!Encode) {
+      return true;
+    } else {
+      if (bits_left < C)
+        return true;
+      std::array<float, celt_max_channels * celt_default_nb_ebands> log_offsets{};
+      std::array<float, celt_max_channels * celt_default_nb_ebands> power_offsets{};
+      bool different = false;
+      int remaining = bits_left;
+      for (int prio = 0; prio < 2; ++prio) {
+        for (int i = start; i < end && remaining >= C; ++i) {
+          if (fine_quant[i] >= 8 || fine_priority[i] != prio)
+            continue;
+          const auto step = (1 << (14 - fine_quant[i] - 1)) * (1.f / 16384);
+          const auto threshold = fine_power_decision_bias[fine_quant[i] + 1] * step;
+          for (int c = 0; c < C; ++c) {
+            const int index = c * celt_default_nb_ebands + i;
+            const int log_bit = error[index] < 0 ? 0 : 1;
+            const int power_bit = error[index] < threshold ? 0 : 1;
+            different |= log_bit != power_bit;
+            log_offsets[index] = (log_bit - .5f) * step;
+            power_offsets[index] = (power_bit - .5f) * step;
+            --remaining;
+          }
+        }
+      }
+      if (!different)
+        return true;
+      return fine_envelope_prefers_power(start, end, error, log_offsets, power_offsets, C);
+    }
+  }();
+
   for (int prio = 0; prio < 2; ++prio) {
     for (int i = start; i < end && bits_left >= C; ++i) {
       if (fine_quant[i] >= 8 || fine_priority[i] != prio) {
@@ -12905,7 +12989,7 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
         const auto q2 = [&]() {
           if constexpr (Encode) {
             const auto threshold = fine_power_decision_bias[fine_quant[i] + 1] * (1 << (14 - fine_quant[i] - 1)) * (1.f / 16384);
-            const auto encoded = error[i + c * celt_default_nb_ebands] < threshold ? 0 : 1;
+            const auto encoded = error[i + c * celt_default_nb_ebands] < (prefer_power ? threshold : 0.f) ? 0 : 1;
             ec_enc_bits(coder, encoded, 1);
             return encoded;
           }
