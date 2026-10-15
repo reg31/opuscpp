@@ -14707,7 +14707,7 @@ static void silk_LP_interpolate_filter_taps(opus_int32 B_Q28[3], opus_int32 A_Q2
   interpolate(a_out, silk_Transition_LP_A_Q28);
 }
 
-template <bool Warped, int Lanes = 1>
+template <bool Warped, int Lanes = 1, bool ZeroAR = false>
   requires(Lanes == 1 || Lanes == 4)
 static auto silk_nsq_noise_shape_feedback(std::conditional_t<Lanes == 1, opus_int32, std::array<opus_int32, Lanes>> diff,
                                           opus_int32* state_Q14, const opus_int16* coefficients, int order,
@@ -14742,24 +14742,33 @@ static auto silk_nsq_noise_shape_feedback(std::conditional_t<Lanes == 1, opus_in
     const auto old0 = state_Q14[lane];
     state_Q14[lane] = even[lane];
     odd[lane] = wrap_add(old0, warped(wrap_subtract(state_Q14[Lanes + lane], even[lane])));
-    out[lane] = wrap_add(order >> 1, multiply(even[lane], coefficients[0]));
+    if constexpr (ZeroAR)
+      out[lane] = order >> 1;
+    else
+      out[lane] = wrap_add(order >> 1, multiply(even[lane], coefficients[0]));
   }
   for (int index = 2; index < order; index += 2) {
     for (int lane = 0; lane < Lanes; ++lane) {
       even[lane] = wrap_add(state_Q14[(index - 1) * Lanes + lane], warped(wrap_subtract(state_Q14[index * Lanes + lane], odd[lane])));
       state_Q14[(index - 1) * Lanes + lane] = odd[lane];
-      out[lane] = wrap_add(out[lane], multiply(odd[lane], coefficients[index - 1]));
+      if constexpr (!ZeroAR)
+        out[lane] = wrap_add(out[lane], multiply(odd[lane], coefficients[index - 1]));
     }
     for (int lane = 0; lane < Lanes; ++lane) {
       odd[lane] = wrap_add(state_Q14[index * Lanes + lane], warped(wrap_subtract(state_Q14[(index + 1) * Lanes + lane], even[lane])));
       state_Q14[index * Lanes + lane] = even[lane];
-      out[lane] = wrap_add(out[lane], multiply(even[lane], coefficients[index]));
+      if constexpr (!ZeroAR)
+        out[lane] = wrap_add(out[lane], multiply(even[lane], coefficients[index]));
     }
   }
   for (int lane = 0; lane < Lanes; ++lane)
     state_Q14[(order - 1) * Lanes + lane] = odd[lane];
-  for (int lane = 0; lane < Lanes; ++lane)
-    out[lane] = wrap_shift_left(wrap_add(out[lane], multiply(odd[lane], coefficients[order - 1])), 1);
+  for (int lane = 0; lane < Lanes; ++lane) {
+    if constexpr (ZeroAR)
+      out[lane] = wrap_shift_left(out[lane], 1);
+    else
+      out[lane] = wrap_shift_left(wrap_add(out[lane], multiply(odd[lane], coefficients[order - 1])), 1);
+  }
   if constexpr (Lanes == 1)
     return out[0];
   else
@@ -15002,6 +15011,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   NSQ_del_dec_struct* psDD;
   const auto length = static_cast<int>(x_Q10.size());
   const auto shapingLPCOrder = static_cast<int>(AR_shp_Q13.size());
+  const bool zero_ar = std::all_of(AR_shp_Q13.begin(), AR_shp_Q13.end(), [](opus_int16 coefficient) { return coefficient == 0; });
   const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
   std::array<opus_int32, 24 * 4> lane_ar;
   const bool use_four_lane_ar = (!FixedPulses) && nStatesDelayedDecision == 4;
@@ -15050,16 +15060,16 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         std::array<opus_int32, 24> first_ar;
         std::copy_n(psDelDec[0].sAR2_Q14, shapingLPCOrder, first_ar.begin());
         n_AR_lane.fill(warping_Q16 == 0
-                           ? silk_nsq_noise_shape_feedback<false>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder)
-                           : silk_nsq_noise_shape_feedback<true>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
+                           ? (zero_ar ? silk_nsq_noise_shape_feedback<false, 1, true>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder) : silk_nsq_noise_shape_feedback<false>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder))
+                           : (zero_ar ? silk_nsq_noise_shape_feedback<true, 1, true>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16) : silk_nsq_noise_shape_feedback<true>(psDelDec[0].Diff_Q14, first_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16)));
         for (int index = 0; index < shapingLPCOrder; ++index) {
           for (int state = 0; state < 4; ++state)
             lane_ar[(index) * 4 + (state)] = first_ar[index];
         }
       } else if (warping_Q16 == 0) {
-        n_AR_lane = silk_nsq_noise_shape_feedback<false, 4>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
+        n_AR_lane = (zero_ar ? silk_nsq_noise_shape_feedback<false, 4, true>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16) : silk_nsq_noise_shape_feedback<false, 4>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
       } else {
-        n_AR_lane = silk_nsq_noise_shape_feedback<true, 4>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16);
+        n_AR_lane = (zero_ar ? silk_nsq_noise_shape_feedback<true, 4, true>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16) : silk_nsq_noise_shape_feedback<true, 4>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
       }
     }
     for (k = 0; k < nStatesDelayedDecision; k++) {
@@ -15069,8 +15079,8 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
       n_AR_Q14 = use_four_lane_ar ? n_AR_lane[k]
                                   : (warping_Q16 == 0
-                                         ? silk_nsq_noise_shape_feedback<false>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder)
-                                         : silk_nsq_noise_shape_feedback<true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
+                                         ? (zero_ar ? silk_nsq_noise_shape_feedback<false, 1, true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder) : silk_nsq_noise_shape_feedback<false>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder))
+                                         : (zero_ar ? silk_nsq_noise_shape_feedback<true, 1, true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16) : silk_nsq_noise_shape_feedback<true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder, warping_Q16)));
       n_AR_Q14 = (static_cast<opus_int32>((n_AR_Q14) + (((psDD->LF_AR_Q14) * static_cast<opus_int64>(tilt_Q14_i16)) >> 16)));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
       n_LF_Q14 = (static_cast<opus_int32>(((psDD->Shape_Q14[*smpl_buf_idx]) * static_cast<opus_int64>(lf_shp_Q14_i16)) >> 16));
