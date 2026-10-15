@@ -8003,7 +8003,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
   if (CC == C && C == 2) {
     auto* freq1 = X + N;
     denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
-    if (B == 1 && shift == 0) {
+    if (shift == 0) {
       clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, X, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
     } else
       for (b = 0; b < B; b++) {
