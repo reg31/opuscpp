@@ -13912,7 +13912,6 @@ static void silk_reset_decoder(silk_decoder_state* psDec) {
 }
 
 static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& control, opus_int16 xq[], const opus_int16 pulses[((5 * 4) * 16)]) {
-  int lag = 0;
   std::array<opus_int16, silk_max_ltp_mem_length> ltp_storage;
   std::array<opus_int32, silk_max_ltp_buffer_length> ltp_q15_storage;
   std::array<opus_int32, silk_max_subfr_length + 16> lpc_storage;
@@ -13966,7 +13965,7 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
       control.pitchL[k] = state.lagPrev;
     }
     if (signalType == 2) {
-      lag = control.pitchL[k];
+      const int lag = control.pitchL[k];
       if (k == 0 || (k == 2 && NLSF_interpolation_flag)) {
         const int start_idx = state.ltp_mem_length - lag - state.LPC_order - 5 / 2;
         const int length = state.ltp_mem_length - start_idx;
@@ -16619,8 +16618,8 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
 void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
   constexpr int QOUT = 12, QIN = 17;
   int i = 0;
-  int idx;
   for (; i < 10; ++i) {
+    int idx;
     opus_int32 maxabs = 0;
     for (int k = 0; k < d; ++k) {
       const opus_int32 absval = std::abs(a_QIN[k]);
