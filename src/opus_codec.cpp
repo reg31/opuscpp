@@ -3228,8 +3228,7 @@ struct encoder_stage_storage {
   }
   auto finish_frame(OpusEncoder* st) noexcept -> void {
     if (history_samples != 0) {
-      auto* source = active.data() + active.size() - history_samples;
-      copy_n_items(source, history_samples, encoder_delay_buffer(st));
+      copy_n_items(active.data() + active.size() - history_samples, history_samples, encoder_delay_buffer(st));
     }
   }
 };
