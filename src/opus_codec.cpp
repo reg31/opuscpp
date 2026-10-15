@@ -2641,10 +2641,7 @@ static inline void set_ref_encoder_defaults(OpusEncoder* st) {
 }
 
 static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, int application) {
-  auto silkEncSizeBytes = align(silk_encoder_get_size(channels));
-  if (!encoder_uses_silk(application)) {
-    silkEncSizeBytes = 0;
-  }
+  const auto silkEncSizeBytes = encoder_uses_silk(application) ? align(silk_encoder_get_size(channels)) : 0;
   const auto base_size =
       align(sizeof(OpusEncoder)) + align(static_cast<int>(encoder_delay_buffer_count(channels, application) * sizeof(opus_res)));
   std::uninitialized_value_construct_n(encoder_delay_buffer(st), encoder_delay_buffer_count(channels, application));
