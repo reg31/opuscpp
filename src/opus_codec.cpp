@@ -14158,12 +14158,45 @@ static auto silk_combine_pulses(std::span<int> combined, std::span<const int> in
   return false;
 }
 
+struct silk_shell_tree {
+  std::array<int, 8> pairs;
+  std::array<int, 4> quads;
+  std::array<int, 2> octets;
+};
+
+template <std::size_t Count>
+  requires(Count == 2 || Count == 4 || Count == 8 || Count == 16)
+static void silk_shell_encode_tree(ec_ctx* coder, const int* magnitudes, const silk_shell_tree& tree, int offset, int total_pulses) {
+  if (total_pulses == 0)
+    return;
+  const auto left = [&] {
+    if constexpr (Count == 16)
+      return tree.octets[0];
+    else if constexpr (Count == 8)
+      return tree.quads[offset / 4];
+    else if constexpr (Count == 4)
+      return tree.pairs[offset / 2];
+    else
+      return magnitudes[offset];
+  }();
+  const auto* table = Count == 2 ? silk_shell_code_table0.data()
+                       : Count == 4 ? silk_shell_code_table1.data()
+                       : Count == 8 ? silk_shell_code_table2.data()
+                                    : silk_shell_code_table3.data();
+  ec_enc_icdf(coder, left, table + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)], 8);
+  if constexpr (Count > 2) {
+    silk_shell_encode_tree<Count / 2>(coder, magnitudes, tree, offset, left);
+    silk_shell_encode_tree<Count / 2>(coder, magnitudes, tree, offset + Count / 2, total_pulses - left);
+  }
+}
+
 template <bool Encode, typename Pulse>
 static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length) {
   const int block_count = (frame_length + 15) >> 4;
   std::array<int, silk_max_frame_length / 16> pulse_sums;
   std::array<int, silk_max_frame_length / 16> shifts;
   std::array<int, Encode ? silk_max_frame_length : 1> magnitudes;
+  std::array<silk_shell_tree, Encode ? silk_max_frame_length / 16 : 1> shell_trees;
   int rate_level = 0;
 
   if constexpr (Encode) {
@@ -14173,17 +14206,16 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
     for (int index = 0; index < block_count * 16; ++index) {
       magnitudes[index] = std::abs(static_cast<int>(pulses[index]));
     }
-    std::array<int, 8> combined;
     for (int block_index = 0; block_index < block_count; ++block_index) {
+      auto& tree = shell_trees[block_index];
       shifts[block_index] = 0;
       auto block_magnitudes = std::span<int, 16>{magnitudes.data() + block_index * 16, 16};
       bool scale_down;
       do {
-        scale_down = silk_combine_pulses(std::span{combined}.first<8>(), block_magnitudes, silk_max_pulses_table[0]) ||
-                     silk_combine_pulses(std::span{combined}.first<4>(), std::span{combined}.first<8>(), silk_max_pulses_table[1]) ||
-                     silk_combine_pulses(std::span{combined}.first<2>(), std::span{combined}.first<4>(), silk_max_pulses_table[2]) ||
-                     silk_combine_pulses(std::span<int>{pulse_sums.data() + block_index, 1}, std::span{combined}.first<2>(),
-                                         silk_max_pulses_table[3]);
+        scale_down = silk_combine_pulses(tree.pairs, block_magnitudes, silk_max_pulses_table[0]) ||
+                     silk_combine_pulses(tree.quads, tree.pairs, silk_max_pulses_table[1]) ||
+                     silk_combine_pulses(tree.octets, tree.quads, silk_max_pulses_table[2]) ||
+                     silk_combine_pulses(std::span<int>{pulse_sums.data() + block_index, 1}, tree.octets, silk_max_pulses_table[3]);
         if (scale_down) {
           ++shifts[block_index];
           for (auto& magnitude : block_magnitudes) {
@@ -14234,7 +14266,7 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
     const int offset = block_index * 16;
     if (pulse_sums[block_index] > 0) {
       if constexpr (Encode) {
-        silk_shell_code_node<true>(coder, std::span<const int>{magnitudes.data() + offset, 16}, pulse_sums[block_index]);
+        silk_shell_encode_tree<16>(coder, magnitudes.data() + offset, shell_trees[block_index], 0, pulse_sums[block_index]);
       } else {
         silk_shell_code_node<false>(coder, std::span<Pulse>{pulses.data() + offset, 16}, pulse_sums[block_index]);
       }
