@@ -16614,9 +16614,9 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
   smooth_coef_Q16 = is10msFrame ? 328 : 655;
   smooth_coef_Q16 = silk_mul_wb(prev_speech_act_Q8 * prev_speech_act_Q8, smooth_coef_Q16);
   const auto lp_prediction = silk_stereo_find_predictor(LP_mid.data(), LP_side.data(),
-      std::span<opus_int32, 2>{state->mid_side_amp_Q0.data(), 2}, frame_length, smooth_coef_Q16);
+                                                        std::span<opus_int32, 2>{state->mid_side_amp_Q0.data(), 2}, frame_length, smooth_coef_Q16);
   const auto hp_prediction = silk_stereo_find_predictor(HP_mid.data(), HP_side.data(),
-      std::span<opus_int32, 2>{state->mid_side_amp_Q0.data() + 2, 2}, frame_length, smooth_coef_Q16);
+                                                        std::span<opus_int32, 2>{state->mid_side_amp_Q0.data() + 2, 2}, frame_length, smooth_coef_Q16);
   pred_Q13[0] = lp_prediction.predictor_Q13;
   pred_Q13[1] = hp_prediction.predictor_Q13;
   frac_Q16 = std::min<opus_int32>(hp_prediction.ratio_Q14 + 3 * lp_prediction.ratio_Q14, 1 << 16);
