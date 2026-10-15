@@ -17976,7 +17976,7 @@ static inline void silk_process_NLSFs_FLP(silk_encoder_state* psEncC, float Pred
 
 static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr) {
   int pred_gain_dB_Q7;
-  opus_int32 XX_Q17[4 * 5 * 5], xX_Q17[4 * 5]{};
+  opus_int32 XX_Q17[4 * 5 * 5], xX_Q17[4 * 5];
   for (int index = 0; index < nb_subfr * 5 * 5; ++index) {
     XX_Q17[index] = float2int(XX[index] * 131072.0f);
   }
