@@ -4328,7 +4328,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     }
     if (st->mode != st->prev_mode && st->prev_mode > 0 && encoder_uses_silk(st->application)) {
       unsigned char dummy[2];
-      celt_encoder_reset_state(celt_enc);
+      if (!redundancy || !celt_to_silk) {
+        celt_encoder_reset_state(celt_enc);
+      }
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
     }
