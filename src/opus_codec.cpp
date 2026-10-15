@@ -16514,7 +16514,11 @@ static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpas
   }
 }
 
-static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_int16 x[], const opus_int16 y[], std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
+struct silk_stereo_prediction {
+  opus_int32 predictor_Q13, ratio_Q14, current_mid_Q0, current_residual_Q0;
+};
+
+static silk_stereo_prediction silk_stereo_find_predictor(const opus_int16 x[], const opus_int16 y[], std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
   int scale, scale1, scale2;
   opus_int32 nrgx, nrgy, corr, pred_Q13, pred2_Q10;
   silk_sum_sqr_shift(&nrgx, &scale1, x, length);
@@ -16543,9 +16547,8 @@ static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_i
     mid_res_amp_Q0[0] = silk_mla_wb(mid_res_amp_Q0[0], mid_amplitude - mid_res_amp_Q0[0], smooth_coef_Q16);
     mid_res_amp_Q0[1] = silk_mla_wb(mid_res_amp_Q0[1], residual_amplitude - mid_res_amp_Q0[1], smooth_coef_Q16);
   }
-  ratio_Q14 = silk_DIV32_varQ(mid_res_amp_Q0[1], std::max(mid_res_amp_Q0[0], opus_int32{1}), 14);
-  ratio_Q14 = std::clamp<opus_int32>(ratio_Q14, 0, 32767);
-  return pred_Q13;
+  const auto ratio_Q14 = std::clamp<opus_int32>(silk_DIV32_varQ(mid_res_amp_Q0[1], std::max(mid_res_amp_Q0[0], opus_int32{1}), 14), 0, 32767);
+  return {pred_Q13, ratio_Q14, mid_amplitude, residual_amplitude};
 }
 
 static void silk_stereo_quant_pred(std::span<opus_int32, 2> pred_Q13, silk_stereo_pred_indices& ix) {
@@ -16590,7 +16593,7 @@ void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag) {
 
 void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length) {
   int n, is10msFrame, denom_Q16, delta0_Q13, delta1_Q13;
-  opus_int32 sum, diff, smooth_coef_Q16, pred_Q13[2], pred0_Q13, pred1_Q13, LP_ratio_Q14, HP_ratio_Q14, frac_Q16, frac_3_Q16,
+  opus_int32 sum, diff, smooth_coef_Q16, pred_Q13[2], pred0_Q13, pred1_Q13, frac_Q16, frac_3_Q16,
       min_mid_rate_bps, width_Q14, w_Q24, deltaw_Q24;
   opus_int16* mid = &x1[-2];
   opus_int16 side[silk_max_frame_length + 2];
@@ -16613,11 +16616,13 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
   is10msFrame = frame_length == 10 * fs_kHz;
   smooth_coef_Q16 = is10msFrame ? 328 : 655;
   smooth_coef_Q16 = silk_mul_wb(prev_speech_act_Q8 * prev_speech_act_Q8, smooth_coef_Q16);
-  pred_Q13[0] = silk_stereo_find_predictor(LP_ratio_Q14, LP_mid.data(), LP_side.data(),
-                                           std::span<opus_int32, 2>{state->mid_side_amp_Q0.data(), 2}, frame_length, smooth_coef_Q16);
-  pred_Q13[1] = silk_stereo_find_predictor(HP_ratio_Q14, HP_mid.data(), HP_side.data(),
-                                           std::span<opus_int32, 2>{state->mid_side_amp_Q0.data() + 2, 2}, frame_length, smooth_coef_Q16);
-  frac_Q16 = std::min<opus_int32>(HP_ratio_Q14 + 3 * LP_ratio_Q14, 1 << 16);
+  const auto lp_prediction = silk_stereo_find_predictor(LP_mid.data(), LP_side.data(),
+      std::span<opus_int32, 2>{state->mid_side_amp_Q0.data(), 2}, frame_length, smooth_coef_Q16);
+  const auto hp_prediction = silk_stereo_find_predictor(HP_mid.data(), HP_side.data(),
+      std::span<opus_int32, 2>{state->mid_side_amp_Q0.data() + 2, 2}, frame_length, smooth_coef_Q16);
+  pred_Q13[0] = lp_prediction.predictor_Q13;
+  pred_Q13[1] = hp_prediction.predictor_Q13;
+  frac_Q16 = std::min<opus_int32>(hp_prediction.ratio_Q14 + 3 * lp_prediction.ratio_Q14, 1 << 16);
   total_rate_bps -= is10msFrame ? 1200 : 600;
   if (total_rate_bps < 1) {
     total_rate_bps = 1;
@@ -16648,13 +16653,22 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
     pred_Q13[1] = 0;
   };
   const bool was_mid_only = state->width_prev_Q14 == 0;
+  const auto residual_is_small = [&]() {
+    const auto threshold = was_mid_only ? fixed_q<14>(0.05) : fixed_q<14>(0.02);
+    if (silk_mul_wb(frac_Q16, state->smth_width_Q14) >= threshold)
+      return false;
+    const auto lp_current_ratio_Q14 = std::clamp<opus_int32>(silk_DIV32_varQ(lp_prediction.current_residual_Q0, std::max(lp_prediction.current_mid_Q0, opus_int32{1}), 14), 0, 32767);
+    const auto hp_current_ratio_Q14 = std::clamp<opus_int32>(silk_DIV32_varQ(hp_prediction.current_residual_Q0, std::max(hp_prediction.current_mid_Q0, opus_int32{1}), 14), 0, 32767);
+    const auto current_frac_Q16 = std::min<opus_int32>(hp_current_ratio_Q14 + 3 * lp_current_ratio_Q14, 1 << 16);
+    return silk_mul_wb(current_frac_Q16, state->smth_width_Q14) < threshold;
+  };
   if (toMono) {
     reset_side_prediction();
     silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
   } else if (preserve_stereo != silk_preserve_stereo_force &&
              ((prev_speech_act_Q8 < 32 && total_rate_bps > 20000 && total_rate_bps < 28000) ||
               8 * total_rate_bps < (was_mid_only ? 13 : 11) * min_mid_rate_bps ||
-              silk_mul_wb(frac_Q16, state->smth_width_Q14) < (was_mid_only ? fixed_q<14>(0.05) : fixed_q<14>(0.02)))) {
+              residual_is_small())) {
     quantize_smoothed_pred();
     reset_side_prediction();
     if (state->width_prev_Q14 == 0) {
