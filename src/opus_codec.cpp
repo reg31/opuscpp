@@ -8296,15 +8296,13 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
   const bool backup = cache_backup[0] != nullptr;
   if (N <= 240)
     backup_start = celt_decoder_prefix_storage - N;
-  int head = 0;
-  if (N != 960) {
-    head = st->prefix_head + N / celt_short_mdct_size;
-    if (head >= celt_decoder_prefix_pairs)
-      head -= celt_decoder_prefix_pairs;
-  }
+  int head = N == 960 ? 0 : st->prefix_head + N / celt_short_mdct_size;
+  if (head >= celt_decoder_prefix_pairs)
+    head -= celt_decoder_prefix_pairs;
   const int base = head * (celt_short_mdct_size / 2);
-  const int old_count = std::max(0, celt_decoder_compact_prefix - N) / 2;
-  const int prefix_pairs = std::max(0, celt_decoder_compact_prefix - N) / celt_short_mdct_size;
+  const int retained_prefix = std::max(0, celt_decoder_compact_prefix - N);
+  const int old_count = retained_prefix / 2;
+  const int prefix_pairs = retained_prefix / celt_short_mdct_size;
   const int tail_start = backup ? backup_start : celt_decoder_prefix_storage;
   const int pair = celt_decoder_compact_prefix / 2 + 2 * head;
   for (int channel = 0; channel < st->channels; ++channel) {
