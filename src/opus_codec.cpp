@@ -8294,7 +8294,6 @@ static void celt_bind_decoder_energy_views(celt_decoder_views& views, celt_sig* 
 }
 
 [[nodiscard]] static auto make_celt_decoder_views(CeltDecoderInternal* st, int N, celt_sig* workspace, bool inplace, bool update_pitch_cache) noexcept -> celt_decoder_views {
-  const auto overlap = celt_default_overlap;
   auto* const decode_storage = celt_decoder_storage(st);
   celt_decoder_views views;
   views.history_size = inplace ? celt_decoder_inplace_history_size : celt_decode_buffer_size;
@@ -8302,7 +8301,7 @@ static void celt_bind_decoder_energy_views(celt_decoder_views& views, celt_sig* 
   views.cache_backup_count = inplace ? std::min(N, celt_decoder_prefix_storage) : 0;
   views.cache_backup_start = inplace ? celt_decoder_prefix_storage - views.cache_backup_count : 0;
   for (int channel = 0; channel < st->channels; ++channel) {
-    views.decode_mem[channel] = inplace ? decode_storage + channel * celt_decoder_channel_storage : workspace + channel * (celt_decode_buffer_size + overlap);
+    views.decode_mem[channel] = inplace ? decode_storage + channel * celt_decoder_channel_storage : workspace + channel * (celt_decode_buffer_size + celt_default_overlap);
     views.out_syn[channel] = views.decode_mem[channel] + views.history_size - N;
     if (inplace && update_pitch_cache)
       views.cache_backup[channel] = workspace + channel * N;
