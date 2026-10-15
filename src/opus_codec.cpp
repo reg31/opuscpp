@@ -5973,7 +5973,7 @@ int opuscpp_test_preprocess_filter_state(const OpusEncoder* st) noexcept {
 static void celt_commit_band_state(celt_glog* old_band, celt_glog* old_log, celt_glog* old_log2, int channels, int start, int end, bool is_transient, bool mirror_mono) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const auto count = static_cast<std::size_t>(channels * nbEBands);
-  if (mirror_mono && channels > 1) {
+  if (mirror_mono) {
     copy_n_items(old_band, static_cast<std::size_t>(nbEBands), old_band + nbEBands);
   }
   if (!is_transient) {
