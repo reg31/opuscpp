@@ -16533,6 +16533,7 @@ static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_i
   opus_int32 nrgx, nrgy, corr, pred_Q13, pred2_Q10;
   silk_sum_sqr_shift(&nrgx, &scale1, x, length);
   silk_sum_sqr_shift(&nrgy, &scale2, y, length);
+  const bool zero_mid_energy = nrgx == 0;
   scale = std::max(scale1, scale2);
   scale = scale + (scale & 1);
   nrgy = ((nrgy) >> (scale - scale2));
@@ -16545,12 +16546,17 @@ static opus_int32 silk_stereo_find_predictor(opus_int32& ratio_Q14, const opus_i
   pred2_Q10 = silk_mul_wb(pred_Q13, pred_Q13);
   smooth_coef_Q16 = std::max(smooth_coef_Q16, std::abs(pred2_Q10));
   scale >>= 1;
-  const auto mid_amplitude = wrap_shift_left(silk_SQRT_APPROX(nrgx), scale);
-  mid_res_amp_Q0[0] = silk_mla_wb(mid_res_amp_Q0[0], mid_amplitude - mid_res_amp_Q0[0], smooth_coef_Q16);
+  const auto mid_amplitude = zero_mid_energy ? 0 : wrap_shift_left(silk_SQRT_APPROX(nrgx), scale);
   nrgy = wrap_subtract(nrgy, wrap_shift_left(silk_mul_wb(corr, pred_Q13), 4));
   nrgy = wrap_add(nrgy, wrap_shift_left(silk_mul_wb(nrgx, pred2_Q10), 6));
   const auto residual_amplitude = wrap_shift_left(silk_SQRT_APPROX(nrgy), scale);
-  mid_res_amp_Q0[1] = silk_mla_wb(mid_res_amp_Q0[1], residual_amplitude - mid_res_amp_Q0[1], smooth_coef_Q16);
+  if (mid_res_amp_Q0[0] == 0 && mid_res_amp_Q0[1] == 0) {
+    mid_res_amp_Q0[0] = mid_amplitude;
+    mid_res_amp_Q0[1] = residual_amplitude;
+  } else {
+    mid_res_amp_Q0[0] = silk_mla_wb(mid_res_amp_Q0[0], mid_amplitude - mid_res_amp_Q0[0], smooth_coef_Q16);
+    mid_res_amp_Q0[1] = silk_mla_wb(mid_res_amp_Q0[1], residual_amplitude - mid_res_amp_Q0[1], smooth_coef_Q16);
+  }
   ratio_Q14 = silk_DIV32_varQ(mid_res_amp_Q0[1], std::max(mid_res_amp_Q0[0], opus_int32{1}), 14);
   ratio_Q14 = std::clamp<opus_int32>(ratio_Q14, 0, 32767);
   return pred_Q13;
@@ -18692,7 +18698,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
     silk_init_encoder(&state_Fxx[1]);
     zero_object(psEnc->sStereo.pred_prev_Q13);
     zero_object(psEnc->sStereo.sSide);
-    psEnc->sStereo.mid_side_amp_Q0 = {0, 1, 0, 1};
+    psEnc->sStereo.mid_side_amp_Q0 = {};
     psEnc->sStereo.width_prev_Q14 = 0;
     psEnc->sStereo.smth_width_Q14 = 1 << 14;
     if (psEnc->nChannelsAPI == 2) {
