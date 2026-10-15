@@ -2132,11 +2132,19 @@ static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uin
   }
 }
 
-static void silk_NLSF_residual_dequant(std::span<opus_int16, 16> x_Q10, std::span<const opus_int8, 16> indices, std::span<const opus_uint8, 16> pred_coef_Q8, const int quant_step_size_Q16, const opus_int16 order) {
+static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB) {
+  opus_uint8 pred_Q8[16];
+  opus_int16 ec_ix[16];
+  silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, NLSFIndices[0]);
+  const auto* pCB_element = &psNLSF_CB->CB1_NLSF_Q8[NLSFIndices[0] * psNLSF_CB->order];
+  const auto* pCB_Wght_Q9 = &psNLSF_CB->CB1_Wght_Q9[NLSFIndices[0] * psNLSF_CB->order];
+  const std::span<const opus_int8, 16> indices = NLSFIndices.last<16>();
+  const int quant_step_size_Q16 = psNLSF_CB->quantStepSize_Q16;
+  const opus_int16 order = psNLSF_CB->order;
   constexpr auto adjustment = static_cast<opus_int32>((0.1) * (static_cast<opus_int64>(1) << 10) + 0.5);
   auto residual = opus_int32{0};
   for (int index = order - 1; index >= 0; --index) {
-    const auto prediction = silk_mul_i16_shift<8>(residual, pred_coef_Q8[index]);
+    const auto prediction = silk_mul_i16_shift<8>(residual, pred_Q8[index]);
     residual = wrap_shift_left(indices[index], 10);
     if (residual > 0) {
       residual -= adjustment;
@@ -2144,20 +2152,9 @@ static void silk_NLSF_residual_dequant(std::span<opus_int16, 16> x_Q10, std::spa
       residual += adjustment;
     }
     residual = prediction + silk_mul_wb(residual, quant_step_size_Q16);
-    x_Q10[index] = residual;
-  }
-}
-
-static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB) {
-  opus_uint8 pred_Q8[16];
-  opus_int16 ec_ix[16], res_Q10[16];
-  silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, NLSFIndices[0]);
-  silk_NLSF_residual_dequant(res_Q10, NLSFIndices.last<16>(), pred_Q8, psNLSF_CB->quantStepSize_Q16, psNLSF_CB->order);
-  const auto* pCB_element = &psNLSF_CB->CB1_NLSF_Q8[NLSFIndices[0] * psNLSF_CB->order];
-  const auto* pCB_Wght_Q9 = &psNLSF_CB->CB1_Wght_Q9[NLSFIndices[0] * psNLSF_CB->order];
-  for (int i = 0; i < psNLSF_CB->order; ++i) {
-    const opus_int32 NLSF_Q15_tmp = wrap_shift_left(res_Q10[i], 14) / pCB_Wght_Q9[i] + wrap_shift_left(pCB_element[i], 7);
-    pNLSF_Q15[i] = static_cast<opus_int16>(std::clamp<opus_int32>(NLSF_Q15_tmp, 0, 32767));
+    const opus_int16 residual_Q10 = static_cast<opus_int16>(residual);
+    const opus_int32 NLSF_Q15_tmp = wrap_shift_left(residual_Q10, 14) / pCB_Wght_Q9[index] + wrap_shift_left(pCB_element[index], 7);
+    pNLSF_Q15[index] = static_cast<opus_int16>(std::clamp<opus_int32>(NLSF_Q15_tmp, 0, 32767));
   }
   silk_NLSF_stabilize(pNLSF_Q15.data(), psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
 }
