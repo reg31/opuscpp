@@ -5757,14 +5757,22 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             return result;
           };
           const auto source_gram = gram(X, Y, inverse_scale * bandE[i], inverse_scale * bandE[celt_default_nb_ebands + i]);
+          const auto stereo_angle = [](const std::array<opus_val32, 3>& value) {
+            const auto total = value[0] + value[1];
+            if (total == 0.f)
+              return 0.f;
+            const auto cross = 2.f * value[2];
+            return std::atan2(std::sqrt(std::max(0.f, total - cross)), std::sqrt(std::max(0.f, total + cross)));
+          };
+          std::array<opus_val32, 1 << celt_max_lm> source_angles;
+          for (int block = 0; block < B; ++block)
+            source_angles[block] = stereo_angle(source_gram[block]);
           const auto gram_error = [&](const celt_norm* left, const celt_norm* right) {
             const auto reconstructed = gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
             opus_val32 error = 0;
             for (int block = 0; block < B; ++block) {
-              const auto dl = reconstructed[block][0] - source_gram[block][0];
-              const auto dr = reconstructed[block][1] - source_gram[block][1];
-              const auto dc = reconstructed[block][2] - source_gram[block][2];
-              error += dl * dl + dr * dr + 2.f * dc * dc;
+              const auto difference = stereo_angle(reconstructed[block]) - source_angles[block];
+              error += difference * difference;
             }
             return error;
           };
