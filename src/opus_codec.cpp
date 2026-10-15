@@ -183,7 +183,17 @@ template <int Shift>
 template <int Shift>
   requires(Shift > 0)
 [[nodiscard]] static auto saturating_left_shift(opus_int32 value) noexcept -> opus_int32 {
-  return saturate_int32(static_cast<opus_int64>(value) * (opus_int64{1} << Shift));
+  if constexpr (Shift < 32) {
+    if (value > (opus_int32_max >> Shift)) {
+      return opus_int32_max;
+    }
+    if (value < (opus_int32_min >> Shift)) {
+      return opus_int32_min;
+    }
+    return wrap_shift_left(value, Shift);
+  } else {
+    return saturate_int32(static_cast<opus_int64>(value) * (opus_int64{1} << Shift));
+  }
 }
 
 [[nodiscard]] static auto saturating_left_shift(opus_int32 value, int shift) noexcept -> opus_int32 {
