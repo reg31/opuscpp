@@ -6001,7 +6001,7 @@ static void celt_commit_band_state(celt_glog* old_band, celt_glog* old_log, celt
 
 static void celt_commit_encoder_band_state(celt_glog* old_band, int channels, int start, int end, bool mirror_mono) {
   constexpr int nbEBands = celt_default_nb_ebands;
-  if (mirror_mono && channels > 1) {
+  if (mirror_mono) {
     copy_n_items(old_band, static_cast<std::size_t>(nbEBands), old_band + nbEBands);
   }
   for (int channel = 0; channel < channels; ++channel) {
