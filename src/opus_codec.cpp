@@ -11978,14 +11978,8 @@ static void classifier_compute_dense(float* output, const float* input, const op
   for (int i = 0; i < nb_neurons; ++i) {
     output[i] *= classifier_weights_scale;
   }
-  if (sigmoid) {
-    for (int i = 0; i < nb_neurons; ++i) {
-      output[i] = classifier_sigmoid_approx(output[i]);
-    }
-  } else {
-    for (int i = 0; i < nb_neurons; ++i) {
-      output[i] = classifier_tansig_approx(output[i]);
-    }
+  for (int i = 0; i < nb_neurons; ++i) {
+    output[i] = sigmoid ? classifier_sigmoid_approx(output[i]) : classifier_tansig_approx(output[i]);
   }
 }
 
