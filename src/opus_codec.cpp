@@ -17646,7 +17646,7 @@ static void silk_find_pitch_lags_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
 }
 
 static void silk_A2NLSF_FLP(opus_int16* NLSF_Q15, const float* pAR, const int LPC_order) {
-  std::array<opus_int32, 16> a_fix_Q16{};
+  std::array<opus_int32, 16> a_fix_Q16;
   for (int index = 0; index < LPC_order; ++index) {
     a_fix_Q16[index] = float2int(pAR[index] * 65536.0f);
   }
@@ -17779,7 +17779,7 @@ static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[],
   float a[16];
   float res_nrg, res_nrg_2nd, res_nrg_interp;
   opus_int16 NLSF0_Q15[16];
-  float a_tmp[16]{}, LPC_res[((5 * 4) * 16) + 4 * 16];
+  float a_tmp[16], LPC_res[((5 * 4) * 16) + 4 * 16];
   subfr_length = psEncC->subfr_length + psEncC->predictLPCOrder;
   psEncC->indices.NLSFInterpCoef_Q2 = 4;
   const bool calculate_half_fit = psEncC->Complexity >= 4 && !psEncC->first_frame_after_reset && psEncC->nb_subfr == 4;
