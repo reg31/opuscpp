@@ -12280,22 +12280,49 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     info->leak_boost[b] = static_cast<opus_uint8>(std::min(255, static_cast<int>(std::floor(0.5 + static_cast<double>(64.f * boost)))));
   }
 
-  for (i = 0; i < 8; ++i) {
-    int j;
-    float mindist = 1e15f;
-    for (j = 0; j < 8; ++j) {
-      int k;
-      float dist = 0;
-      for (k = 0; k < 18; ++k) {
-        float tmp;
-        tmp = tonal->logE[i][k] - tonal->logE[j][k];
-        dist += tmp * tmp;
-      }
-      if (j != i) {
-        mindist = std::min(mindist, dist);
+  bool symmetric_history = false;
+  if constexpr (sizeof(float) == sizeof(opus_uint32) && std::numeric_limits<float>::is_iec559 && FLT_EVAL_METHOD == 0) {
+    const bool nearest = std::fegetround() == FE_TONEAREST;
+    opus_uint32 exceptional_history = 0;
+    for (const auto& history : tonal->logE)
+      for (const float value : history)
+        exceptional_history |= static_cast<opus_uint32>((std::bit_cast<opus_uint32>(value) & 0x7f800000U) == 0x7f800000U);
+    symmetric_history = nearest && exceptional_history == 0;
+  }
+  if (symmetric_history) {
+    std::array<float, 8> minimum;
+    minimum.fill(1e15f);
+    for (int first = 0; first < 8; ++first) {
+      for (int second = first + 1; second < 8; ++second) {
+        float distance = 0;
+        for (int band = 0; band < 18; ++band) {
+          const float difference = tonal->logE[first][band] - tonal->logE[second][band];
+          distance += difference * difference;
+        }
+        minimum[first] = std::min(minimum[first], distance);
+        minimum[second] = std::min(minimum[second], distance);
       }
     }
-    spec_variability += mindist;
+    for (const float distance : minimum)
+      spec_variability += distance;
+  } else {
+    for (i = 0; i < 8; ++i) {
+      int j;
+      float mindist = 1e15f;
+      for (j = 0; j < 8; ++j) {
+        int k;
+        float dist = 0;
+        for (k = 0; k < 18; ++k) {
+          float tmp;
+          tmp = tonal->logE[i][k] - tonal->logE[j][k];
+          dist += tmp * tmp;
+        }
+        if (j != i) {
+          mindist = std::min(mindist, dist);
+        }
+      }
+      spec_variability += mindist;
+    }
   }
   spec_variability = classifier_sqrt_d(spec_variability / 8 / 18);
   bandwidth_mask = 0;
