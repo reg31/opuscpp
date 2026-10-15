@@ -13642,14 +13642,8 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
     for (int i = 0; i < psDec->LPC_order; i++) {
       psCNG->CNG_smth_NLSF_Q15[i] = silk_mla_wb(psCNG->CNG_smth_NLSF_Q15[i], psDec->prevNLSF_Q15[i] - psCNG->CNG_smth_NLSF_Q15[i], 16348);
     }
-    opus_int32 max_Gain_Q16 = 0;
-    int subfr = 0;
-    for (int i = 0; i < psDec->nb_subfr; i++) {
-      if (psDecCtrl->Gains_Q16[i] > max_Gain_Q16) {
-        max_Gain_Q16 = psDecCtrl->Gains_Q16[i];
-        subfr = i;
-      }
-    }
+    const int subfr = static_cast<int>(
+        std::max_element(psDecCtrl->Gains_Q16, psDecCtrl->Gains_Q16 + psDec->nb_subfr) - psDecCtrl->Gains_Q16);
     const auto history_length = static_cast<std::size_t>(std::min((psDec->nb_subfr - 1) * psDec->subfr_length, 256 - psDec->subfr_length));
     std::memmove(psCNG->CNG_exc_low + psDec->subfr_length, psCNG->CNG_exc_low, history_length * sizeof(opus_uint16));
     std::memmove(psCNG->CNG_exc_high + psDec->subfr_length, psCNG->CNG_exc_high, history_length * sizeof(opus_int8));
