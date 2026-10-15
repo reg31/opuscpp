@@ -8472,9 +8472,9 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
                  std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
   }
   const int filter_channels = same_input ? 1 : channels;
+  st->postfilter_period = std::max<int>(st->postfilter_period, 15);
+  st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
   for (int channel = 0; channel < filter_channels; ++channel) {
-    st->postfilter_period = std::max<int>(st->postfilter_period, 15);
-    st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
     comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
                 st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset,
                 celt_default_overlap);
