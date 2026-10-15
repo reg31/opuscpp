@@ -4608,7 +4608,7 @@ static opus_int32 encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int
   const auto sample_count = static_cast<std::size_t>(frame_size * st->channels);
   std::array<opus_res, Capacity> input_storage;
   for (std::size_t index = 0; index < sample_count; ++index) {
-    input_storage[index] = static_cast<opus_res>(pcm[index] * (1.0f / 32768.0f));
+    input_storage[index] = pcm[index] * (1.0f / 32768.0f);
   }
   return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
 }
