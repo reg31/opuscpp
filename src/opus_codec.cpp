@@ -3968,19 +3968,17 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     const opus_val32 r = r_Q28 * inv28;
     opus_val16 restoration = 0.f;
     if (st->channels == 1) {
-      auto low_band_keep = opus_val16{0};
       if (st->bitrate_bps <= 16000) {
         const auto diff = frame_metrics.mono_diff_ratio;
-        low_band_keep = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
+        restoration = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
                                                       : 0.f;
       } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
-        low_band_keep = .30f;
+        restoration = .30f;
       }
       if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps < voip_noisy_voice_low_band_min_bps &&
           frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
-        low_band_keep = voip_quiet_hissy_voice_low_band_keep;
+        restoration = voip_quiet_hissy_voice_low_band_keep;
       }
-      restoration = low_band_keep;
     }
     const float dc_coefficient = 6.3f * 3 / st->Fs;
     const float dc_feedback = 1.f - dc_coefficient;
