@@ -7902,8 +7902,8 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
 
 constexpr int celt_decoder_energy_channel_count = 2;
 [[nodiscard]] static constexpr auto celt_decoder_storage_count(int channels) noexcept -> std::size_t {
-  return static_cast<std::size_t>(channels) * celt_decoder_channel_storage +
-         3 * celt_decoder_energy_channel_count * celt_default_nb_ebands + static_cast<std::size_t>(channels) * (celt_default_nb_ebands + 24);
+  return static_cast<std::size_t>(channels) * (celt_decoder_channel_storage + celt_default_nb_ebands + 24) +
+         3 * celt_decoder_energy_channel_count * celt_default_nb_ebands;
 }
 
 static void celt_decoder_reset_state(CeltDecoderInternal* st) {
