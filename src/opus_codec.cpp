@@ -5830,10 +5830,6 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   *seed = ctx.seed;
 }
 
-static int resampling_factor(opus_int32 rate) {
-  return is_supported_sample_rate(rate) ? 48000 / rate : 0;
-}
-
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
   for (int i = 0; i < N; ++i) {
     const opus_val32 delayed_0 = x[i - T];
@@ -6030,7 +6026,7 @@ static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate,
   *st = {};
   std::uninitialized_default_construct_n(celt_encoder_storage(st), celt_encoder_storage_count(channels));
   st->channels = channels;
-  st->upsample = resampling_factor(sampling_rate);
+  st->upsample = 48000 / sampling_rate;
   celt_encoder_reset_state(st);
 }
 
@@ -7933,7 +7929,7 @@ static void celt_decoder_init(CeltDecoderInternal* st, opus_int32 sampling_rate,
   *st = {};
   std::uninitialized_default_construct_n(celt_decoder_storage(st), celt_decoder_storage_count(channels));
   st->channels = channels;
-  st->downsample = resampling_factor(sampling_rate);
+  st->downsample = 48000 / sampling_rate;
   celt_decoder_reset_state(st);
 }
 
