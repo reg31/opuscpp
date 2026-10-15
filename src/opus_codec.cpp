@@ -1019,7 +1019,7 @@ static void silk_ana_filt_bank_1(const opus_int16* in, opus_int32 S[2], opus_int
 static int silk_sigm_Q15(int in_Q5);
 static void silk_decode_pitch(opus_int16 lagIndex, opus_uint8 contourIndex, int pitch_lags[], const int Fs_kHz, const int nb_subfr);
 static void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, int d);
-static void silk_insertion_sort_increasing(opus_int32* a, int* idx, const int L, const int K);
+template <std::totally_ordered T, bool Increasing> static inline void silk_insertion_sort_top_k(T* a, int* idx, const int L, const int K);
 static void silk_NLSF_VQ_weights_laroia(opus_int16* pNLSFW_Q_OUT, const opus_int16* pNLSF_Q15, const int D);
 static auto silk_CLZ_FRAC(opus_int32 value, opus_int32* lz, opus_int32* frac_Q7) noexcept -> void {
   const opus_int32 leading_zeros = silk_CLZ32(value);
@@ -15542,7 +15542,7 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
   int tempIndices1[silk_nlsf_max_survivors];
   opus_int8 tempIndices2[silk_nlsf_max_survivors][silk_nlsf_max_order];
   silk_NLSF_VQ(err_Q24, pNLSF_Q15.data(), psNLSF_CB->CB1_NLSF_Q8, psNLSF_CB->CB1_Wght_Q9, psNLSF_CB->nVectors, psNLSF_CB->order);
-  silk_insertion_sort_increasing(err_Q24, tempIndices1, psNLSF_CB->nVectors, nSurvivors);
+  silk_insertion_sort_top_k<opus_int32, true>(err_Q24, tempIndices1, psNLSF_CB->nVectors, nSurvivors);
   for (int s = 0; s < nSurvivors; s++) {
     const int ind1 = tempIndices1[s];
     const opus_uint8* const pCB_element = psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order;
@@ -15563,7 +15563,7 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
     const int bits_q7 = (8 << 7) - silk_lin2log(prob_Q8);
     RD_Q25[s] += static_cast<opus_int16>(bits_q7) * static_cast<opus_int16>(NLSF_mu_Q20 >> 2);
   }
-  silk_insertion_sort_increasing(RD_Q25, &bestIndex, nSurvivors, 1);
+  silk_insertion_sort_top_k<opus_int32, true>(RD_Q25, &bestIndex, nSurvivors, 1);
   NLSFIndices[0] = static_cast<opus_int8>(tempIndices1[bestIndex]);
   std::memcpy(&NLSFIndices[1], tempIndices2[bestIndex], static_cast<std::size_t>(psNLSF_CB->order * sizeof(opus_int8)));
   silk_NLSF_decode(pNLSF_Q15, NLSFIndices, psNLSF_CB);
@@ -16396,10 +16396,6 @@ template <std::totally_ordered T, bool Increasing> static inline void silk_inser
       idx[j + 1] = i;
     }
   }
-}
-
-void silk_insertion_sort_increasing(opus_int32* a, int* idx, const int L, const int K) {
-  silk_insertion_sort_top_k<opus_int32, true>(a, idx, L, K);
 }
 
 static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpass, opus_int16* highpass, int frame_length) {
