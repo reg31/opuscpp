@@ -15437,29 +15437,24 @@ static int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncCont
 }
 
 static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5], const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr) {
-  int j, k, cbk_size;
   opus_uint8 temp_idx[4];
-  const opus_uint8* cl_ptr_Q5;
-  const opus_int8* cbk_ptr_Q7;
-  const opus_uint8* cbk_gain_ptr_Q7;
-  const opus_int32 *XX_Q17_ptr, *xX_Q17_ptr;
   opus_int32 res_nrg_Q15_subfr, res_nrg_Q15, rate_dist_Q7_subfr, rate_dist_Q7, min_rate_dist_Q7;
   opus_int32 sum_log_gain_tmp_Q7, best_sum_log_gain_Q7, max_gain_Q7;
   int gain_Q7 = 0;
   min_rate_dist_Q7 = 0x7FFFFFFF;
-  for (k = 0; k < 3; k++) {
+  for (int k = 0; k < 3; k++) {
     opus_int32 gain_safety = fixed_q<7>(0.4);
     const auto ltp_codebook = silk_LTP_codebook(k);
-    cl_ptr_Q5 = ltp_codebook.gain_bits_q5.data();
-    cbk_ptr_Q7 = ltp_codebook.vq_q7.data();
-    cbk_gain_ptr_Q7 = ltp_codebook.vq_gain_q7.data();
-    cbk_size = ltp_codebook.vq_size;
-    XX_Q17_ptr = XX_Q17;
-    xX_Q17_ptr = xX_Q17;
+    const opus_uint8* const cl_ptr_Q5 = ltp_codebook.gain_bits_q5.data();
+    const opus_int8* const cbk_ptr_Q7 = ltp_codebook.vq_q7.data();
+    const opus_uint8* const cbk_gain_ptr_Q7 = ltp_codebook.vq_gain_q7.data();
+    const int cbk_size = ltp_codebook.vq_size;
+    const opus_int32* XX_Q17_ptr = XX_Q17;
+    const opus_int32* xX_Q17_ptr = xX_Q17;
     res_nrg_Q15 = 0;
     rate_dist_Q7 = 0;
     sum_log_gain_tmp_Q7 = *sum_log_gain_Q7;
-    for (j = 0; j < nb_subfr; j++) {
+    for (int j = 0; j < nb_subfr; j++) {
       max_gain_Q7 = silk_log2lin(fixed_q<7>(250.0f / 6.0f) - sum_log_gain_tmp_Q7 + (7 << 7)) - gain_safety;
       silk_VQ_WMat_EC_c(&temp_idx[j], &res_nrg_Q15_subfr, &rate_dist_Q7_subfr, &gain_Q7, XX_Q17_ptr, xX_Q17_ptr, cbk_ptr_Q7,
                         cbk_gain_ptr_Q7, cl_ptr_Q5, subfr_len, max_gain_Q7, cbk_size);
@@ -15481,9 +15476,9 @@ static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4
       best_sum_log_gain_Q7 = sum_log_gain_tmp_Q7;
     }
   }
-  cbk_ptr_Q7 = silk_LTP_codebook(*periodicity_index).vq_q7.data();
-  for (j = 0; j < nb_subfr; j++) {
-    for (k = 0; k < 5; k++) {
+  const opus_int8* const cbk_ptr_Q7 = silk_LTP_codebook(*periodicity_index).vq_q7.data();
+  for (int j = 0; j < nb_subfr; j++) {
+    for (int k = 0; k < 5; k++) {
       B_Q14[j * 5 + k] = wrap_shift_left(cbk_ptr_Q7[cbk_index[j] * 5 + k], 7);
     }
   }
