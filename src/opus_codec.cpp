@@ -2183,13 +2183,12 @@ static opus_int32 silk_log2lin(const opus_int32 inLog_Q7) {
 }
 
 static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
-  int k, ind_tmp, double_step_size_threshold;
-  for (k = 0; k < nb_subfr; k++) {
+  for (int k = 0; k < nb_subfr; k++) {
     if (k == 0 && conditional == 0) {
       *prev_ind = std::max(ind[k], static_cast<opus_int8>(*prev_ind - 16));
     } else {
-      ind_tmp = ind[k] + -4;
-      double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
+      const int ind_tmp = ind[k] + -4;
+      const int double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
       if (ind_tmp > double_step_size_threshold) {
         *prev_ind += wrap_shift_left(ind_tmp, 1) - double_step_size_threshold;
       } else {
@@ -13952,7 +13951,6 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
     auto* B_Q14 = control.LTPCoef_Q14 + k * 5;
     int signalType = state.indices.signalType;
     const opus_int32 Gain_Q10 = ((control.Gains_Q16[k]) >> (6));
-    auto inv_gain_Q31 = silk_INVERSE32_varQ(control.Gains_Q16[k], 47);
     opus_int32 gain_adj_Q16 = opus_int32{1} << 16;
     if (control.Gains_Q16[k] != state.prev_gain_Q16) {
       gain_adj_Q16 = silk_DIV32_varQ(state.prev_gain_Q16, control.Gains_Q16[k], 16);
@@ -13970,6 +13968,7 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
     if (signalType == 2) {
       const int lag = control.pitchL[k];
       if (k == 0 || (k == 2 && NLSF_interpolation_flag)) {
+        auto inv_gain_Q31 = silk_INVERSE32_varQ(control.Gains_Q16[k], 47);
         const int start_idx = state.ltp_mem_length - lag - state.LPC_order - 5 / 2;
         const int length = state.ltp_mem_length - start_idx;
         auto* filtered = sLTP + start_idx;
