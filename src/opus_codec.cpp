@@ -8434,12 +8434,10 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   }
   if (update_pitch_cache)
     celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
-  if (channels == 2) {
-    move_n_items(decode_mem[0] + source, count, decode_mem[0] + source - N);
-    move_n_items(decode_mem[1] + source, count, decode_mem[1] + source - N);
-    return;
-  }
   move_n_items(decode_mem[0] + source, count, decode_mem[0] + source - N);
+  if (channels == 2) {
+    move_n_items(decode_mem[1] + source, count, decode_mem[1] + source - N);
+  }
 }
 
 static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int channels, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
