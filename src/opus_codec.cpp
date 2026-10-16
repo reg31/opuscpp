@@ -14607,20 +14607,22 @@ static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_contr
   if (state.first_frame_after_reset == 1) {
     state.indices.NLSFInterpCoef_Q2 = 4;
   }
+  if (state.lossCnt) {
+    silk_bwexpander(control.PredCoef_Q12[1], static_cast<std::size_t>(state.LPC_order), 63570);
+  }
   if (state.indices.NLSFInterpCoef_Q2 < 4) {
     opus_int16 pNLSF0_Q15[16];
     for (int i = 0; i < state.LPC_order; i++) {
       pNLSF0_Q15[i] = state.prevNLSF_Q15[i] + (state.indices.NLSFInterpCoef_Q2 * (pNLSF_Q15[i] - state.prevNLSF_Q15[i]) >> 2);
     }
     silk_NLSF2A(control.PredCoef_Q12[0], pNLSF0_Q15, state.LPC_order);
+    if (state.lossCnt) {
+      silk_bwexpander(control.PredCoef_Q12[0], static_cast<std::size_t>(state.LPC_order), 63570);
+    }
   } else {
     std::memcpy(control.PredCoef_Q12[0], control.PredCoef_Q12[1], static_cast<std::size_t>(state.LPC_order * sizeof(opus_int16)));
   }
   std::memcpy(state.prevNLSF_Q15, pNLSF_Q15, static_cast<std::size_t>(state.LPC_order * sizeof(opus_int16)));
-  if (state.lossCnt) {
-    silk_bwexpander(control.PredCoef_Q12[0], static_cast<std::size_t>(state.LPC_order), 63570);
-    silk_bwexpander(control.PredCoef_Q12[1], static_cast<std::size_t>(state.LPC_order), 63570);
-  }
   if (state.indices.signalType == 2) {
     silk_decode_pitch(state.indices.lagIndex, state.indices.contourIndex, control.pitchL, state.fs_kHz, state.nb_subfr);
     const auto* cbk_ptr_Q7 = silk_LTP_codebook(state.indices.PERIndex).vq_q7.data();
