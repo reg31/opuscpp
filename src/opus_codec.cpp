@@ -6156,24 +6156,48 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
                                                      celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
   opus_val32 L1 = 0, side_L1 = 0;
   const int pairs = N0 >> 1;
-  for (int pair = 0; pair < pairs; ++pair) {
-    const int base = 2 * stride * pair;
-    for (int offset = 0; offset < stride; ++offset) {
-      const opus_val32 first = .70710678f * input[base + offset];
-      const opus_val32 second = .70710678f * input[base + stride + offset];
-      output[base + offset] = first + second;
-      output[base + stride + offset] = first - second;
+  if (stride == 1) {
+    for (int pair = 0; pair < pairs; ++pair) {
+      const int base = 2 * pair;
+      const opus_val32 first = .70710678f * input[base];
+      const opus_val32 second = .70710678f * input[base + 1];
+      const opus_val32 sum = first + second;
+      const opus_val32 difference = first - second;
+      output[base] = sum;
+      output[base + 1] = difference;
+      L1 += std::fabs(sum);
+      L1 += std::fabs(difference);
       if constexpr (Coupled) {
-        const opus_val32 side_first = .70710678f * side_input[base + offset];
-        const opus_val32 side_second = .70710678f * side_input[base + stride + offset];
-        side_output[base + offset] = side_first + side_second;
-        side_output[base + stride + offset] = side_first - side_second;
+        const opus_val32 side_first = .70710678f * side_input[base];
+        const opus_val32 side_second = .70710678f * side_input[base + 1];
+        const opus_val32 side_sum = side_first + side_second;
+        const opus_val32 side_difference = side_first - side_second;
+        side_output[base] = side_sum;
+        side_output[base + 1] = side_difference;
+        side_L1 += std::fabs(side_sum);
+        side_L1 += std::fabs(side_difference);
       }
     }
-    for (int offset = 0; offset < 2 * stride; ++offset) {
-      L1 += std::fabs(output[base + offset]);
-      if constexpr (Coupled)
-        side_L1 += std::fabs(side_output[base + offset]);
+  } else {
+    for (int pair = 0; pair < pairs; ++pair) {
+      const int base = 2 * stride * pair;
+      for (int offset = 0; offset < stride; ++offset) {
+        const opus_val32 first = .70710678f * input[base + offset];
+        const opus_val32 second = .70710678f * input[base + stride + offset];
+        output[base + offset] = first + second;
+        output[base + stride + offset] = first - second;
+        if constexpr (Coupled) {
+          const opus_val32 side_first = .70710678f * side_input[base + offset];
+          const opus_val32 side_second = .70710678f * side_input[base + stride + offset];
+          side_output[base + offset] = side_first + side_second;
+          side_output[base + stride + offset] = side_first - side_second;
+        }
+      }
+      for (int offset = 0; offset < 2 * stride; ++offset) {
+        L1 += std::fabs(output[base + offset]);
+        if constexpr (Coupled)
+          side_L1 += std::fabs(side_output[base + offset]);
+      }
     }
   }
   for (int index = 2 * pairs * stride; index < N0 * stride; ++index) {
