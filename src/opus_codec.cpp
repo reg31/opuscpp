@@ -6136,7 +6136,7 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
   return L1;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> metric;
@@ -6194,6 +6194,12 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
         }
       }
       stereo_split(tmp.data(), tmp_side.data(), N);
+    } else if (bandE != nullptr && intensity_start >= 0 && i >= intensity_start) {
+      copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
+      copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
+      if ((stereo_itheta(tmp.data(), tmp_side.data(), 1, N) >> 16) > 8192)
+        negate_n(tmp_side.data(), N);
+      intensity_stereo(tmp.data(), tmp_side.data(), bandE, i, N);
     } else {
       copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
     }
@@ -6312,6 +6318,10 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   for (int i = len; i-- > 0;)
     tf_res[i] = best_path[i];
   return tf_select;
+}
+
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
+  return tf_analysis(len, isTransient, tf_res, lambda, X, N0, LM, tf_estimate, tf_chan, importance, coupled_end, bandE, -1);
 }
 
 template <bool Encode> static inline void process_tf_changes(int start, int end, int isTransient, int* tf_res, int LM, int tf_select, ec_ctx* coder) {
@@ -7608,7 +7618,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   int tf_select = 0;
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr);
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr, C == 2 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : -1);
   } else if (hybrid && weak_transient) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
