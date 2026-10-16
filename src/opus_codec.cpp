@@ -16897,11 +16897,11 @@ static void silk_apply_sine_window_FLP(std::span<float> px_win, const std::span<
   silk_apply_sine_windows_FLP<1>({px_win.data()}, {px.data()}, static_cast<int>(px_win.size()), win_type);
 }
 
-static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses) {
-  silk_encode_indices(psEncC, psEncC->indices, psRangeEnc, condCoding);
+static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr) {
+  silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
   silk_process_pulses<true>(psRangeEnc,
                             std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
-                            psEncC->indices.signalType, psEncC->indices.quantOffsetType, psEncC->frame_length);
+                            indices.signalType, indices.quantOffsetType, psEncC->frame_length);
 }
 
 struct silk_gain_search_bound {
@@ -17097,9 +17097,7 @@ static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_F
       const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
       auto& state = states[channel_index].sCmn;
       auto& indices = channel.indices[static_cast<std::size_t>(frame)];
-      silk_encode_indices(&state, indices, range_encoder, cond_coding, true);
-      silk_process_pulses<true>(range_encoder, std::span<opus_int8>{channel.pulses[static_cast<std::size_t>(frame)]}, indices.signalType,
-                                indices.quantOffsetType, state.frame_length);
+      silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
     }
   }
   for (auto& channel : lbrr.channels) {
@@ -17360,8 +17358,7 @@ static int silk_lbrr_frame_cost(const silk_encoder_state& common, const SideInfo
   const int start = ec_tell(&coder);
   std::array<opus_int8, silk_max_frame_length> coded_pulses;
   std::copy_n(pulses, common.frame_length, coded_pulses.begin());
-  silk_encode_indices(&state, indices, &coder, 0, true);
-  silk_process_pulses<true>(&coder, std::span<opus_int8>{coded_pulses}, indices.signalType, indices.quantOffsetType, common.frame_length);
+  silk_encode_indices_and_pulses(&state, indices, &coder, 0, coded_pulses.data(), true);
   return ec_tell(&coder) - start;
 }
 
@@ -18624,7 +18621,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         if (iter == max_iterations && lower.id < 0) {
           sRangeEnc_copy2 = *psRangeEnc;
         }
-        silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding, frame_pulses.data());
+        silk_encode_indices_and_pulses(&psEnc->sCmn, psEnc->sCmn.indices, psRangeEnc, condCoding, frame_pulses.data(), false);
         nBits = ec_tell(psRangeEnc);
         if (iter == max_iterations && lower.id < 0 && nBits > maxBits) {
           *psRangeEnc = sRangeEnc_copy2;
@@ -18636,7 +18633,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
           psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
           psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
           zero_n_items(frame_pulses.data(), static_cast<std::size_t>(psEnc->sCmn.frame_length));
-          silk_encode_indices_and_pulses(&psEnc->sCmn, psRangeEnc, condCoding, frame_pulses.data());
+          silk_encode_indices_and_pulses(&psEnc->sCmn, psEnc->sCmn.indices, psRangeEnc, condCoding, frame_pulses.data(), false);
           nBits = ec_tell(psRangeEnc);
           std::array<opus_int32, 4> replay_gains{};
           auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
@@ -18686,7 +18683,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
               innovation_common.indices = coded_indices;
               innovation_common.ec_prevLagIndex = ec_prevLagIndex_copy;
               innovation_common.ec_prevSignalType = ec_prevSignalType_copy;
-              silk_encode_indices_and_pulses(&innovation_common, &innovation_range, condCoding, innovation_pulses.data());
+              silk_encode_indices_and_pulses(&innovation_common, innovation_common.indices, &innovation_range, condCoding, innovation_pulses.data(), false);
               if (ec_tell(&innovation_range) > maxBits)
                 continue;
               innovation_indices = coded_indices;
