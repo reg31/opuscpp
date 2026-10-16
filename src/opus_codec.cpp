@@ -19177,11 +19177,10 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   switch (request) {
   case OPUS_SET_BITRATE_REQUEST: {
     auto value = va_arg(ap, opus_int32);
-    if (value != -1000 && value != -1) {
-      if (value <= 0) {
-        return OPUS_BAD_ARG;
-      }
+    if (value > 0) {
       value = std::clamp(value, static_cast<opus_int32>(500), static_cast<opus_int32>(750000 * st->channels));
+    } else if (value != OPUS_AUTO && value != OPUS_BITRATE_MAX) {
+      return OPUS_BAD_ARG;
     }
     st->user_bitrate_bps = value;
     reset_vbr_budget(st);
