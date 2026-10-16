@@ -14759,7 +14759,7 @@ struct silk_pitch_analysis_result {
 
 static auto silk_float2short_array(opus_int16* out, const float* in, opus_int32 length) noexcept -> void {
   for (opus_int32 i = 0; i < length; ++i) {
-    out[i] = static_cast<opus_int16>(std::clamp(float2int(in[i]), static_cast<opus_int32>(-32768), static_cast<opus_int32>(32767)));
+    out[i] = saturate_int16_from_int32(float2int(in[i]));
   }
 }
 
