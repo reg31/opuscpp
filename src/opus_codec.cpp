@@ -5804,21 +5804,22 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             const auto first_bits = ec_tell_frac(&ec_save2);
             const auto second_bits = ec_tell_frac(ec);
             if (default_first ? second_bits <= first_bits : first_bits <= second_bits) {
-              const auto physical_error = [&](const celt_norm* left, const celt_norm* right) {
-                double error = 0;
-                const auto source_left = inverse_scale * bandE[i];
-                const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
-                const auto decoded_left = inverse_scale * left_gain;
-                const auto decoded_right = inverse_scale * right_gain;
-                for (int j = 0; j < N; ++j) {
-                  const double dl = static_cast<double>(decoded_left * left[j]) - source_left * X_save_storage[j];
-                  const double dr = static_cast<double>(decoded_right * right[j]) - source_right * Y_save_storage[j];
-                  error += dl * dl + dr * dr;
-                }
-                return error;
-              };
-              const auto first_error = physical_error(X_save2_storage.data(), Y_save2_storage.data());
-              const auto second_error = physical_error(X, Y);
+              double first_error = 0;
+              double second_error = 0;
+              const auto source_left = inverse_scale * bandE[i];
+              const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
+              const auto decoded_left = inverse_scale * left_gain;
+              const auto decoded_right = inverse_scale * right_gain;
+              for (int j = 0; j < N; ++j) {
+                const auto source_l = source_left * X_save_storage[j];
+                const auto source_r = source_right * Y_save_storage[j];
+                const double first_dl = static_cast<double>(decoded_left * X_save2_storage[j]) - source_l;
+                const double first_dr = static_cast<double>(decoded_right * Y_save2_storage[j]) - source_r;
+                first_error += first_dl * first_dl + first_dr * first_dr;
+                const double second_dl = static_cast<double>(decoded_left * X[j]) - source_l;
+                const double second_dr = static_cast<double>(decoded_right * Y[j]) - source_r;
+                second_error += second_dl * second_dl + second_dr * second_dr;
+              }
               if (default_first ? second_error < first_error : first_error < second_error) {
                 const bool same_fold_state =
                     ctx_save2.seed == ctx.seed && cm2 == x_cm &&
