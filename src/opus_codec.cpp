@@ -4320,8 +4320,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes) {
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
-    }
-    if (!skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes) {
+    } else {
       ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255);
       if (ret < 0) {
         std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
