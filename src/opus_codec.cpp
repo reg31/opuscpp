@@ -2739,9 +2739,6 @@ static inline void gain_fade(const opus_res* in, opus_res* out, opus_val16 g1, o
 
 static opus_int32 user_bitrate_to_bitrate(OpusEncoder* st, int frame_rate, int max_data_bytes) {
   opus_int32 max_bitrate, user_bitrate;
-  if (!frame_rate) {
-    frame_rate = 400;
-  }
   max_bitrate = bits_to_bitrate_for_frame_rate(max_data_bytes * 8, frame_rate);
   if (st->user_bitrate_bps == -1000) {
     user_bitrate = 60 * frame_rate + st->Fs * st->channels;
@@ -19384,7 +19381,7 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_BITRATE_REQUEST:
-    return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 0, 1276));
+    return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 400, 1276));
   case OPUS_SET_VBR_REQUEST:
   case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
     if (const auto error = ctl_read_bounded<1>(ap, request == OPUS_SET_VBR_REQUEST ? st->use_vbr : st->vbr_constraint); error != OPUS_OK) {
