@@ -1,14 +1,14 @@
 measurement,bitrate,material,opuscpp,official,opuscpp_nrmse,official_nrmse,opuscpp_gain_db,official_gain_db
 dtx_false_positive,16000,voice,0,0,,,,
-dtx_reentry,16000,voice,,,0.048526,0.830641,0.024212,5.097680
+dtx_reentry,16000,voice,,,0.048320,0.830641,0.025235,5.097680
 dtx_false_positive,16000,quiet_voice,0,0,,,,
 dtx_reentry,16000,quiet_voice,,,0.278775,0.708030,0.232531,0.759438
 dtx_false_positive,16000,far_field,0,0,,,,
 dtx_reentry,16000,far_field,,,0.550942,0.819201,0.696755,1.110476
 dtx_false_positive,16000,noisy_voice,0,0,,,,
-dtx_reentry,16000,noisy_voice,,,0.948726,1.050055,2.299464,2.083455
+dtx_reentry,16000,noisy_voice,,,0.948426,1.050055,2.297730,2.083455
 dtx_false_positive,16000,two_speakers,0,0,,,,
-dtx_reentry,16000,two_speakers,,,0.061589,0.714022,0.039890,0.735450
+dtx_reentry,16000,two_speakers,,,0.058760,0.714022,0.009195,0.735450
 dtx_false_positive,16000,speech_music,0,0,,,,
 dtx_reentry,16000,speech_music,,,0.100556,0.656766,0.032078,0.239473
 dtx_false_positive,16000,fricative_voice,0,0,,,,
