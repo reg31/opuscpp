@@ -7762,10 +7762,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     if (C == 2) {
       if (LM != 0) {
         dual_stereo = tf_basis_dual_stereo;
-        if (!tf_basis_reselected && enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity),
-                                              [](int tf) {
-                                                return tf != 0;
-                                              }))
+        if (!tf_basis_reselected && enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity), [](int tf) {
+              return tf != 0;
+            }))
           dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data(), tf_basis_choice);
         if (!tf_basis_reselected && enable_tf_analysis && !common_source && empty_channel[0] == empty_channel[1] &&
             dual_stereo != analyzed_dual_stereo) {
