@@ -4082,11 +4082,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
     redundancy = redundancy_bytes != 0;
   };
-  auto configure_redundant_celt = [&](bool disable_prediction) {
+  auto configure_redundant_celt = [&] {
     celt_enc->start = 0;
-    if (disable_prediction) {
-      celt_enc->prediction_disabled = true;
-    }
     celt_enc->vbr = 0;
     celt_enc->bitrate = -1;
   };
@@ -4271,7 +4268,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
                            bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate), st->silk_mode.signalType};
   }
   if (redundancy && celt_to_silk) {
-    configure_redundant_celt(false);
+    configure_redundant_celt();
     const int err = celt_encode_with_ec(celt_enc, celt_pcm.data(), st->Fs / 200, data + nb_compr_bytes, redundancy_bytes, nullptr);
     if (err < 0) {
       return -3;
@@ -4337,7 +4334,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const int N2 = st->Fs / 200;
     const int N4 = st->Fs / 400;
     celt_encoder_reset_state(celt_enc);
-    configure_redundant_celt(true);
+    configure_redundant_celt();
+    celt_enc->prediction_disabled = true;
     if (st->mode == opus_mode_hybrid) {
       nb_compr_bytes = ret;
       ec_enc_shrink(&enc, nb_compr_bytes);
