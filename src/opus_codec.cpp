@@ -9227,7 +9227,10 @@ void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft) {
     ftb -= (8);
     const unsigned ft = (_ft >> ftb) + 1;
     const unsigned fl = static_cast<unsigned>(_fl >> ftb);
-    ec_encode(_this, fl, fl + 1, ft);
+    if (ft == 256U)
+      ec_encode(_this, fl, fl + 1, 256U);
+    else
+      ec_encode(_this, fl, fl + 1, ft);
     ec_enc_bits(_this, _fl & low_bits_mask(ftb), ftb);
   } else
     ec_encode(_this, _fl, _fl + 1, _ft + 1);
