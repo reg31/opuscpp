@@ -16380,17 +16380,21 @@ static void silk_downsample_by2(const opus_int16* in, opus_int32 S[2], opus_int1
   constexpr opus_int16 coefficient0 = Split ? A_fb1_20 : 9872;
   constexpr opus_int16 coefficient1 = Split ? A_fb1_21 : -25727;
   const int N2 = N >> 1;
+  if (N2 <= 0)
+    return;
+  opus_int32 state0 = S[0];
+  opus_int32 state1 = S[1];
   for (int k = 0; k < N2; ++k) {
     opus_int32 in32 = wrap_shift_left(in[2 * k], 10);
-    opus_int32 Y = in32 - S[0];
+    opus_int32 Y = in32 - state0;
     opus_int32 X = silk_mla_wb(Y, Y, coefficient1);
-    const opus_int32 out_1 = S[0] + X;
-    S[0] = in32 + X;
+    const opus_int32 out_1 = state0 + X;
+    state0 = in32 + X;
     in32 = wrap_shift_left(in[2 * k + 1], 10);
-    Y = in32 - S[1];
+    Y = in32 - state1;
     X = silk_mul_wb(Y, coefficient0);
-    const opus_int32 out_2 = S[1] + X;
-    S[1] = in32 + X;
+    const opus_int32 out_2 = state1 + X;
+    state1 = in32 + X;
     if constexpr (Split) {
       outL[k] = rounded_rshift_to_int16<11>(saturating_add_int32(out_2, out_1));
       outH[k] = rounded_rshift_to_int16<11>(saturating_subtract_int32(out_2, out_1));
@@ -16398,6 +16402,8 @@ static void silk_downsample_by2(const opus_int16* in, opus_int32 S[2], opus_int1
       outL[k] = rounded_rshift_to_int16<11>(out_1 + out_2);
     }
   }
+  S[0] = state0;
+  S[1] = state1;
 }
 
 void silk_ana_filt_bank_1(const opus_int16* in, opus_int32 S[2], opus_int16* outL, opus_int16* outH, opus_int32 N) {
