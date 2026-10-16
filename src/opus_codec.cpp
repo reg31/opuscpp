@@ -14711,17 +14711,14 @@ static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opu
 static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int32 fs_API_Hz) {
   const bool rate_changed = psDec->fs_kHz != fs_kHz;
   psDec->subfr_length = 5 * fs_kHz;
-  const int frame_length = psDec->nb_subfr * psDec->subfr_length;
+  psDec->frame_length = psDec->nb_subfr * psDec->subfr_length;
   if (rate_changed) {
     silk_resampler_init(&psDec->resampler_state, fs_kHz * 1000, fs_API_Hz, 0);
     psDec->ltp_mem_length = 20 * fs_kHz;
     psDec->psNLSF_CB = silk_nlsf_codebook_for_fs(fs_kHz);
     psDec->LPC_order = psDec->psNLSF_CB->order;
     silk_reset_prediction_history(psDec);
-  }
-  psDec->fs_kHz = fs_kHz;
-  psDec->frame_length = frame_length;
-  if (rate_changed) {
+    psDec->fs_kHz = fs_kHz;
     silk_CNG_Reset(psDec);
     silk_PLC_Reset(psDec);
   }
