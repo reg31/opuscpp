@@ -8021,7 +8021,6 @@ static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   zero_n_items(celt_encoder_storage(st), celt_encoder_storage_count(st->channels));
 
   std::fill_n(st->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-  st->signal_bw_temporal.reset();
   st->delayedIntra = 1;
 }
 
