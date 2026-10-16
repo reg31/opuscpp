@@ -12099,8 +12099,15 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
   for (int i = 0; i < nb_neurons; ++i)
     tmp[i] = state[i] * r[i];
   classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp.data());
-  for (int i = 0; i < nb_neurons; ++i)
-    state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
+  if constexpr (FLT_EVAL_METHOD == 0) {
+    for (int i = 0; i < nb_neurons; ++i)
+      h[i] = classifier_tansig_approx(classifier_weights_scale * h[i]);
+    for (int i = 0; i < nb_neurons; ++i)
+      state[i] = z[i] * state[i] + (1 - z[i]) * h[i];
+  } else {
+    for (int i = 0; i < nb_neurons; ++i)
+      state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
+  }
 }
 
 static bool classical_leak_is_digital_silence(const float* overlap, const float* block, int lsb_depth) {
