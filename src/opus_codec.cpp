@@ -18142,6 +18142,45 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
   *pred_gain_dB = static_cast<float>(pred_gain_dB_Q7) * (1.0f / 128.0f);
 }
 
+static void silk_LPC_analysis_filter_pair_FLP(float* residual0, float* residual1, const float* coefficients0,
+                                               const float* coefficients1, const float* signal, int length, int order) {
+  const auto filter = [&]<int Order>() {
+    int index = Order;
+    for (; index < length - 3; index += 4) {
+      const auto* history = signal + index - 1;
+      std::array<float, 4> prediction0{}, prediction1{};
+      for (int tap = 0; tap < Order; ++tap) {
+        const float coefficient0 = coefficients0[tap], coefficient1 = coefficients1[tap];
+        for (int lane = 0; lane < 4; ++lane) {
+          const float value = history[-tap + lane];
+          prediction0[lane] += value * coefficient0;
+          prediction1[lane] += value * coefficient1;
+        }
+      }
+      for (int lane = 0; lane < 4; ++lane) {
+        residual0[index + lane] = history[1 + lane] - prediction0[lane];
+        residual1[index + lane] = history[1 + lane] - prediction1[lane];
+      }
+    }
+    for (; index < length; ++index) {
+      float prediction0 = 0, prediction1 = 0;
+      for (int tap = 0; tap < Order; ++tap) {
+        const float value = signal[index - tap - 1];
+        prediction0 += value * coefficients0[tap];
+        prediction1 += value * coefficients1[tap];
+      }
+      residual0[index] = signal[index] - prediction0;
+      residual1[index] = signal[index] - prediction1;
+    }
+    std::fill_n(residual0, Order, 0.f);
+    std::fill_n(residual1, Order, 0.f);
+  };
+  if (order == 10)
+    filter.template operator()<10>();
+  else
+    filter.template operator()<16>();
+}
+
 static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
@@ -18193,27 +18232,31 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   if (select_coded_interpolation) {
     std::array<double, 2> selected_energy;
     opus_int16 interpolated[16]{};
-    float prediction[16]{}, residual[(((5 * 4) * 16) + 4 * 16) / 2]{};
+    float prediction[2][16]{}, residual[2][(((5 * 4) * 16) + 4 * 16) / 2]{};
     const int order = psEnc->sCmn.predictLPCOrder;
     const int shift = order + psEnc->sCmn.subfr_length;
-    silk_LPC_analysis_filter_FLP(residual, psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
-    selected_energy = {silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length),
-                       silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length)};
+    silk_LPC_analysis_filter_FLP(residual[0], psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
+    selected_energy = {silk_energy_FLP(residual[0] + order, psEnc->sCmn.subfr_length),
+                       silk_energy_FLP(residual[0] + order + shift, psEnc->sCmn.subfr_length)};
     double best_energy = selected_energy[0] + selected_energy[1];
-    for (int k = std::equal(NLSF_Q15, NLSF_Q15 + order, psEnc->sCmn.prev_NLSFq_Q15.begin()) ? -1 : 3; k >= 0; --k) {
-      silk_interpolate(std::span<opus_int16>{interpolated, static_cast<std::size_t>(order)},
-                       std::span<const opus_int16>{psEnc->sCmn.prev_NLSFq_Q15.data(), static_cast<std::size_t>(order)},
-                       std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k);
-      silk_NLSF2A_FLP(prediction, interpolated, order);
-      silk_LPC_analysis_filter_FLP(residual, prediction, LPC_in_pre, 2 * shift, order, true);
-      const std::array<double, 2> subframe_energy{silk_energy_FLP(residual + order, psEnc->sCmn.subfr_length),
-                                                  silk_energy_FLP(residual + order + shift, psEnc->sCmn.subfr_length)};
-      const double energy = subframe_energy[0] + subframe_energy[1];
-      if (energy < best_energy) {
-        best_energy = energy;
-        selected_energy = subframe_energy;
-        psEnc->sCmn.indices.NLSFInterpCoef_Q2 = static_cast<opus_uint8>(k);
-        std::copy_n(prediction, order, psEncCtrl->PredCoef[0]);
+    for (int k = std::equal(NLSF_Q15, NLSF_Q15 + order, psEnc->sCmn.prev_NLSFq_Q15.begin()) ? -1 : 3; k >= 0; k -= 2) {
+      for (int lane = 0; lane < 2; ++lane) {
+        silk_interpolate(std::span<opus_int16>{interpolated, static_cast<std::size_t>(order)},
+                         std::span<const opus_int16>{psEnc->sCmn.prev_NLSFq_Q15.data(), static_cast<std::size_t>(order)},
+                         std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k - lane);
+        silk_NLSF2A_FLP(prediction[lane], interpolated, order);
+      }
+      silk_LPC_analysis_filter_pair_FLP(residual[0], residual[1], prediction[0], prediction[1], LPC_in_pre, 2 * shift, order);
+      for (int lane = 0; lane < 2; ++lane) {
+        const std::array<double, 2> subframe_energy{silk_energy_FLP(residual[lane] + order, psEnc->sCmn.subfr_length),
+                                                    silk_energy_FLP(residual[lane] + order + shift, psEnc->sCmn.subfr_length)};
+        const double energy = subframe_energy[0] + subframe_energy[1];
+        if (energy < best_energy) {
+          best_energy = energy;
+          selected_energy = subframe_energy;
+          psEnc->sCmn.indices.NLSFInterpCoef_Q2 = static_cast<opus_uint8>(k - lane);
+          std::copy_n(prediction[lane], order, psEncCtrl->PredCoef[0]);
+        }
       }
     }
     for (int index = 0; index < 2; ++index)
