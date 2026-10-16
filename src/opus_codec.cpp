@@ -15788,16 +15788,6 @@ static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, co
 constexpr std::array<opus_int32, 4> silk_vad_noise_level_bias{50, 25, 16, 12};
 
 static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD);
-static void silk_VAD_Init(silk_VAD_state* psSilk_VAD) {
-  zero_object(*psSilk_VAD);
-  for (int b = 0; b < 4; ++b) {
-    psSilk_VAD->NL[b] = 100 * silk_vad_noise_level_bias[b];
-    psSilk_VAD->inv_NL[b] = static_cast<opus_int32>(0x7FFFFFFF / psSilk_VAD->NL[b]);
-    psSilk_VAD->NrgRatioSmth_Q8[b] = 25600;
-  }
-  psSilk_VAD->counter = 15;
-}
-
 constexpr std::array<opus_int16, 4> tiltWeights{30000, 6000, -12000, -12000};
 static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD) {
   int min_coef = 0;
@@ -17245,7 +17235,13 @@ static void silk_init_encoder(silk_encoder_state_FLP* psEnc) {
   zero_object(*psEnc);
   psEnc->sCmn.variable_HP_smth1_Q15 = silk_log_60_q15;
   psEnc->sCmn.first_frame_after_reset = 1;
-  silk_VAD_Init(&psEnc->sCmn.sVAD);
+  auto& vad = psEnc->sCmn.sVAD;
+  for (int b = 0; b < 4; ++b) {
+    vad.NL[b] = 100 * silk_vad_noise_level_bias[b];
+    vad.inv_NL[b] = static_cast<opus_int32>(0x7FFFFFFF / vad.NL[b]);
+    vad.NrgRatioSmth_Q8[b] = 25600;
+  }
+  vad.counter = 15;
 }
 
 static void silk_InitEncoder(void* encState, int channels) {
