@@ -866,12 +866,6 @@ static int ref_opus_packet_get_samples_per_frame(const unsigned char* data, opus
 
 static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len, std::span<opus_int16, 48> sizes, int& payload_offset) {
   const unsigned char* data0 = data;
-  if (len < 0) {
-    return -1;
-  }
-  if (len == 0) {
-    return -4;
-  }
   const auto toc = *data++;
   opus_int32 last_size = --len;
   int count = 1;
