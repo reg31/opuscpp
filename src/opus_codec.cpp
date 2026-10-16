@@ -393,7 +393,7 @@ static void ec_dec_init(ec_dec* _this, unsigned char* _buf, opus_uint32 _storage
 static unsigned ec_decode(ec_dec* _this, unsigned _ft) {
   _this->ext = celt_udiv(_this->rng, _ft);
   const unsigned s = static_cast<unsigned>(_this->val / _this->ext);
-  return _ft - ((s + 1) + (((_ft) - (s + 1)) & -((_ft) < (s + 1))));
+  return _ft - std::min(s + 1, _ft);
 }
 
 static inline void ec_dec_update(ec_dec* _this, unsigned _fl, unsigned _fh, unsigned _ft) {
