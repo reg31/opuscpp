@@ -14485,7 +14485,6 @@ static void silk_ResetDecoder(void* decState) {
 
 namespace {
 extern const std::array<std::array<opus_int16, 4>, 12> silk_resampler_frac_FIR_12;
-[[nodiscard]] constexpr auto resampler_round_shift_saturate_int16(opus_int32 value, int shift) noexcept -> opus_int16;
 [[nodiscard]] constexpr auto resampler_frac_fir_12_q15(std::span<const opus_int16, 8> buffer, std::span<const opus_int16, 4> leading, std::span<const opus_int16, 4> trailing) noexcept -> opus_int32;
 }
 static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len);
@@ -14503,12 +14502,12 @@ static inline void silk_resample_and_store_channel(silk_decoder_state& state, st
     silk_resampler_private_up2_HQ(resampler.sIIR, upsampled.data() + 8, delayed, input_samples);
     for (int i = 0; i < input_samples; ++i) {
       const auto* window = upsampled.data() + 2 * i;
-      resampled[3 * i] = resampler_round_shift_saturate_int16(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[0], silk_resampler_frac_FIR_12[11]), 15);
-      resampled[3 * i + 1] = resampler_round_shift_saturate_int16(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[8], silk_resampler_frac_FIR_12[3]), 15);
-      resampled[3 * i + 2] = resampler_round_shift_saturate_int16(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window + 1, 8}, silk_resampler_frac_FIR_12[4], silk_resampler_frac_FIR_12[7]), 15);
+      resampled[3 * i] = rounded_rshift_to_int16<15>(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[0], silk_resampler_frac_FIR_12[11]));
+      resampled[3 * i + 1] = rounded_rshift_to_int16<15>(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[8], silk_resampler_frac_FIR_12[3]));
+      resampled[3 * i + 2] = rounded_rshift_to_int16<15>(
+          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window + 1, 8}, silk_resampler_frac_FIR_12[4], silk_resampler_frac_FIR_12[7]));
     }
     copy_n_items(upsampled.data() + 2 * input_samples, 8, resampler.sFIR.i16);
     copy_n_items(input + input_samples - resampler.inputDelay, static_cast<std::size_t>(resampler.inputDelay), resampler.delayBuf);
@@ -16387,10 +16386,6 @@ static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], cons
 }
 
 namespace {
-[[nodiscard]] constexpr auto resampler_round_shift_saturate_int16(opus_int32 value, int shift) noexcept -> opus_int16 {
-  return saturate_int16_from_int32(rounded_rshift(value, shift));
-}
-
 [[nodiscard]] constexpr auto resampler_fractional_fir18_q6(std::span<const opus_int32, 18> buffer, std::span<const opus_int16, 9> leading, std::span<const opus_int16, 9> trailing) noexcept -> opus_int32 {
   auto acc = opus_int32{0};
   for (auto tap = std::size_t{}; tap < leading.size(); ++tap) {
@@ -16428,8 +16423,8 @@ template <std::size_t HalfOrder>
 static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
   for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
     const auto window = std::span<const opus_int32, 2 * HalfOrder>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
-    *out++ = resampler_round_shift_saturate_int16(
-        resampler_symmetric_fir_q6<HalfOrder>(window, std::span<const opus_int16, HalfOrder>{coefficients, HalfOrder}), 6);
+    *out++ = rounded_rshift_to_int16<6>(
+        resampler_symmetric_fir_q6<HalfOrder>(window, std::span<const opus_int16, HalfOrder>{coefficients, HalfOrder}));
   }
   return out;
 }
@@ -16445,7 +16440,7 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32
       const auto leading = std::span<const opus_int16, 9>{&FIR_Coefs[9 * interpol_ind], 9};
       const auto trailing = std::span<const opus_int16, 9>{&FIR_Coefs[9 * (FIR_Fracs - 1 - interpol_ind)], 9};
       const opus_int32 res_Q6 = resampler_fractional_fir18_q6(std::span<const opus_int32, 18>{buf_ptr, 18}, leading, trailing);
-      *out++ = resampler_round_shift_saturate_int16(res_Q6, 6);
+      *out++ = rounded_rshift_to_int16<6>(res_Q6);
     }
     break;
   case 24:
@@ -16488,7 +16483,7 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
     const auto leading = std::span<const opus_int16, 4>{silk_resampler_frac_FIR_12[table_index]};
     const auto trailing = std::span<const opus_int16, 4>{silk_resampler_frac_FIR_12[11 - table_index]};
     const opus_int32 res_Q15 = resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{buf_ptr, 8}, leading, trailing);
-    *out++ = resampler_round_shift_saturate_int16(res_Q15, 15);
+    *out++ = rounded_rshift_to_int16<15>(res_Q15);
   }
   return out;
 }
@@ -16833,7 +16828,7 @@ void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
   }
   if (i == 10) {
     for (int k = 0; k < d; ++k) {
-      a_QOUT[k] = resampler_round_shift_saturate_int16(a_QIN[k], QIN - QOUT);
+      a_QOUT[k] = rounded_rshift_to_int16<QIN - QOUT>(a_QIN[k]);
       a_QIN[k] = wrap_shift_left(a_QOUT[k], QIN - QOUT);
     }
   } else {
