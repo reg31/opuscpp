@@ -8726,7 +8726,7 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
   const int loss_duration = st->loss_duration;
   const int start = st->start;
   const bool use_noise_fill = loss_duration >= 40 || start != 0 || st->skip_plc;
-  bool retained_committed = false;
+  const bool from_retained = !use_noise_fill && (retained_pitch_history || (celt_can_use_retained_plc_history(st, N) && decoder.raw_offset == 0));
   if (use_noise_fill) {
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
@@ -8756,7 +8756,6 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
   } else {
     opus_val16 fade = 1.0f;
     auto old_mem = decode_mem;
-    const bool from_retained = retained_pitch_history || (celt_can_use_retained_plc_history(st, N) && decoder.raw_offset == 0);
     const int old_history_size = from_retained ? celt_decoder_inplace_history_size : decoder.history_size;
     const int old_raw_offset = celt_decode_buffer_size - old_history_size;
     if (from_retained) {
@@ -8780,18 +8779,15 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
       auto* stored = celt_decoder_storage(st) + c * celt_decoder_channel_storage;
       copy_n_items(decode_mem[c] + decoder.history_size + celt_default_overlap / 2, static_cast<std::size_t>(celt_default_overlap / 2),
                    stored + st->prefix_head * (celt_short_mdct_size / 2));
-    }
-    if (from_retained) {
-      for (int c = 0; c < C; ++c) {
+      if (from_retained) {
         move_n_items(old_mem[c] + celt_decoder_prefix_storage + N, static_cast<std::size_t>(old_history_size - celt_decoder_prefix_storage - N), old_mem[c] + celt_decoder_prefix_storage);
         copy_n_items(out_syn[c], static_cast<std::size_t>(N + celt_decoder_retained_overlap), old_mem[c] + old_history_size - N);
       }
-      retained_committed = true;
     }
   }
   st->loss_duration = std::min(10000, loss_duration + (1 << LM));
   st->last_frame_type = use_noise_fill ? 2 : 3;
-  return retained_committed;
+  return from_retained;
 }
 
 OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, celt_sig* workspace, bool inplace, bool update_pitch_cache) {
