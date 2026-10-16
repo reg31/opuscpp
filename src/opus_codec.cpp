@@ -19372,9 +19372,9 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   return OPUS_OK;
 }
 
-[[nodiscard]] static inline auto ctl_read_boolean(va_list& ap, int& destination) noexcept -> int {
+template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list& ap, int& destination) noexcept -> int {
   const auto value = va_arg(ap, opus_int32);
-  if (value < 0 || value > 1) {
+  if (value < 0 || value > Maximum) {
     return OPUS_BAD_ARG;
   }
   destination = value;
@@ -19398,7 +19398,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
     return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 0, 1276));
   case OPUS_SET_VBR_REQUEST:
   case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
-    if (const auto error = ctl_read_boolean(ap, request == OPUS_SET_VBR_REQUEST ? st->use_vbr : st->vbr_constraint); error != OPUS_OK) {
+    if (const auto error = ctl_read_bounded<1>(ap, request == OPUS_SET_VBR_REQUEST ? st->use_vbr : st->vbr_constraint); error != OPUS_OK) {
       return error;
     }
     reset_vbr_budget(st);
@@ -19407,7 +19407,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   case OPUS_GET_VBR_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->use_vbr));
   case OPUS_SET_DTX_REQUEST: {
-    if (const auto error = ctl_read_boolean(ap, st->use_dtx); error != OPUS_OK) {
+    if (const auto error = ctl_read_bounded<1>(ap, st->use_dtx); error != OPUS_OK) {
       return error;
     }
     st->nb_no_activity_ms_Q1 = 0;
@@ -19442,12 +19442,10 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   case OPUS_GET_VBR_CONSTRAINT_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->vbr_constraint));
   case OPUS_SET_COMPLEXITY_REQUEST: {
-    const auto value = va_arg(ap, opus_int32);
-    if (value < 0 || value > 10) {
-      return OPUS_BAD_ARG;
+    if (const auto error = ctl_read_bounded<10>(ap, st->silk_mode.complexity); error != OPUS_OK) {
+      return error;
     }
-    st->silk_mode.complexity = value;
-    encoder_celt_state(st)->complexity = value;
+    encoder_celt_state(st)->complexity = st->silk_mode.complexity;
     return OPUS_OK;
   }
   case OPUS_GET_COMPLEXITY_REQUEST:
@@ -19469,12 +19467,10 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   case OPUS_GET_INBAND_FEC_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.useInBandFEC));
   case OPUS_SET_PACKET_LOSS_PERC_REQUEST: {
-    const auto value = va_arg(ap, opus_int32);
-    if (value < 0 || value > 100) {
-      return OPUS_BAD_ARG;
+    if (const auto error = ctl_read_bounded<100>(ap, st->silk_mode.packetLossPercentage); error != OPUS_OK) {
+      return error;
     }
-    st->silk_mode.packetLossPercentage = value;
-    encoder_celt_state(st)->loss_rate = static_cast<opus_uint8>(value);
+    encoder_celt_state(st)->loss_rate = static_cast<opus_uint8>(st->silk_mode.packetLossPercentage);
     return OPUS_OK;
   }
   case OPUS_GET_PACKET_LOSS_PERC_REQUEST:
