@@ -100,7 +100,7 @@ void run_case(const char* name, bool policy, bool saturated, float prime_level, 
     while (ec_tell(&coder) + 3 <= kCapacity * 8)
       ec_enc_bits(&coder, 0, 32);
   const bool flag_space = ec_tell(&coder) + 3 <= kCapacity * 8;
-  const int ret = celt_encode_candidate(celt, pcm.data(), kFrame, buf.data(), kCapacity, &coder, false);
+  const int ret = celt_encode_with_ec(celt, pcm.data(), kFrame, buf.data(), kCapacity, &coder, false);
 
   const bool overflow = ec_tell(&coder) > static_cast<int>(coder.storage) * 8;
   const bool rejected = ret == OPUS_INTERNAL_ERROR && coder.error != 0 && overflow;

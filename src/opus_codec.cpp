@@ -7547,7 +7547,7 @@ static std::array<double, 2> celt_estimate_noise_covariance_parameter(const Celt
 
 constexpr std::array<celt_glog, 9> celt_coarse_fine_power_rounding{0.3390359525563188f, 0.45751874963942196f, 0.48922334841819398f, 0.497295774761502f, 0.49932331008195074f, 0.49983078784567636f, 0.49995769448057997f, 0.49998942346507441f, 0.49999735585657634f};
 
-OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
+OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
   const bool signal_bw_main = enc != nullptr;
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -8052,10 +8052,6 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   if (enc->error)
     return -3;
   return nbCompressedBytes;
-}
-
-static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int capacity, ec_enc* enc, bool protect_transients) {
-  return celt_encode_candidate(st, pcm, frame_size, compressed, capacity, enc, protect_transients);
 }
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
