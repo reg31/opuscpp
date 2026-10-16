@@ -7731,6 +7731,8 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
   stereo_tf_basis_choice tf_basis_choice;
+  int tf_basis_dual_stereo = analyzed_dual_stereo;
+  bool tf_basis_reselected = false;
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -7759,12 +7761,33 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     dual_stereo = 0;
     if (C == 2) {
       if (LM != 0) {
-        dual_stereo = analyzed_dual_stereo;
-        if (enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity),
+        dual_stereo = tf_basis_dual_stereo;
+        if (!tf_basis_reselected && enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity),
                                               [](int tf) {
                                                 return tf != 0;
                                               }))
           dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data(), tf_basis_choice);
+        if (!tf_basis_reselected && enable_tf_analysis && !common_source && empty_channel[0] == empty_channel[1] &&
+            dual_stereo != analyzed_dual_stereo) {
+          tf_basis_dual_stereo = dual_stereo;
+          const int lambda = std::max(80, 20480 / effectiveBytes + 2);
+          tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), lambda, X, N, LM, tf_estimate, tf_chan,
+                                  importance.data(), tf_basis_dual_stereo == 0 ? analyzed_intensity : 0,
+                                  st->complexity >= 8 ? bandE : nullptr, analyzed_intensity);
+          *st = energy_stage_state;
+          *enc = energy_stage_coder;
+          std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+          std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
+          std::copy_n(energy_stage_tf.data(), end, tf_res.data());
+          std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+          nbCompressedBytes = energy_stage_bytes;
+          nbAvailableBytes = energy_stage_available;
+          total_bits = energy_stage_total_bits;
+          tell = energy_stage_tell;
+          tf_basis_reselected = true;
+          energy_round = -1;
+          continue;
+        }
       }
       st->intensity = analyzed_intensity;
       if (empty_channel[0] != empty_channel[1] || common_source) {
