@@ -11997,10 +11997,8 @@ static void classifier_compute_gru(float* state, const float* input, const opus_
     gates[i] = bias[i];
   classifier_gemm_accum(gates.data(), weights, stride, nb_inputs, stride, input);
   classifier_gemm_accum(gates.data(), recur_weights, 2 * nb_neurons, nb_neurons, stride, state);
-  for (int i = 0; i < nb_neurons; ++i)
-    z[i] = classifier_sigmoid_approx(classifier_weights_scale * z[i]);
-  for (int i = 0; i < nb_neurons; ++i)
-    r[i] = classifier_sigmoid_approx(classifier_weights_scale * r[i]);
+  for (int i = 0; i < 2 * nb_neurons; ++i)
+    gates[i] = classifier_sigmoid_approx(classifier_weights_scale * gates[i]);
   for (int i = 0; i < nb_neurons; ++i)
     tmp[i] = state[i] * r[i];
   classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp.data());
