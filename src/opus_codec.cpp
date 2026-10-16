@@ -5672,9 +5672,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           const auto gram = [N, B](const celt_norm* left, const celt_norm* right, opus_val32 left_amplitude, opus_val32 right_amplitude) {
             std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> result{};
             if (B == 1) {
-              result[0] = {left_amplitude * left_amplitude * celt_inner_prod_c(left, left, N),
-                           right_amplitude * right_amplitude * celt_inner_prod_c(right, right, N),
-                           left_amplitude * right_amplitude * celt_inner_prod_c(left, right, N)};
+              std::array<opus_val32, 3> dot{};
+              for (int j = 0; j < N; ++j) {
+                const auto l = left[j];
+                const auto r = right[j];
+                dot[0] += l * l;
+                dot[1] += r * r;
+                dot[2] += l * r;
+              }
+              result[0] = {left_amplitude * left_amplitude * dot[0],
+                           right_amplitude * right_amplitude * dot[1],
+                           left_amplitude * right_amplitude * dot[2]};
             } else {
               for (int block = 0; block < B; ++block) {
                 auto& value = result[block];
