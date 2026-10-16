@@ -18295,6 +18295,9 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       silk_find_pitch_lags_FLP(psEnc, &sEncCtrl, pitch_residual.data(), x_frame);
       silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame);
       silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
+      if (psEnc->sCmn.first_frame_after_reset && sEncCtrl.ResNrg[0] == 0.f) {
+        sEncCtrl.Gains[0] = silk_pow_reference(2.0f, 0.16f * 2);
+      }
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding);
     }
     std::array<opus_int8, silk_max_frame_length> frame_pulses;
