@@ -6415,10 +6415,13 @@ static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandL
   return trim_index;
 }
 
-static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
+static inline int stereo_analysis(const celt_norm* X, int LM, int N0, int intensity) {
+  const int analysis_bands = std::min(celt_stereo_analysis_bands, intensity);
+  if (analysis_bands == 0)
+    return 0;
   opus_val32 sumLR = 1e-15f, sumMS = 1e-15f;
   const auto* eBands = celt_mode()->eBands;
-  for (int i = 0; i < celt_stereo_analysis_bands; ++i) {
+  for (int i = 0; i < analysis_bands; ++i) {
     for (int j = eBands[i] << LM; j < eBands[i + 1] << LM; ++j) {
       const opus_val32 left = X[j];
       const opus_val32 right = X[N0 + j];
@@ -6427,12 +6430,16 @@ static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
     }
   }
   sumMS *= 0.707107f;
-  int thetas = celt_stereo_analysis_bands;
+  int thetas = analysis_bands;
   if (LM <= 1) {
-    thetas -= 8;
+    thetas -= std::min(8, analysis_bands);
   }
-  const int band_width = eBands[celt_stereo_analysis_bands] << (LM + 1);
+  const int band_width = eBands[analysis_bands] << (LM + 1);
   return (band_width + thetas) * sumMS > band_width * sumLR;
+}
+
+static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
+  return stereo_analysis(X, LM, N0, celt_stereo_analysis_bands);
 }
 
 static celt_glog median_of_5(const celt_glog* x) {
@@ -7608,11 +7615,11 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     empty_channel[0] = false;
     empty_channel[1] = false;
   }
-  const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N) : 0;
   const int analyzed_intensity = C == 2 ? std::clamp(hysteresis_decision(equiv_rate / 1000, stereo_intensity_table.thresholds,
                                                                          stereo_intensity_table.hysteresis, st->intensity),
                                                      start, end)
                                         : 0;
+  const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N, analyzed_intensity) : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
   const bool enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
   int tf_select = 0;
