@@ -19212,8 +19212,9 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   }
   case OPUS_GET_BITRATE_REQUEST:
     return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 0, 1276));
-  case OPUS_SET_VBR_REQUEST: {
-    if (const auto error = ctl_read_boolean(ap, st->use_vbr); error != OPUS_OK) {
+  case OPUS_SET_VBR_REQUEST:
+  case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
+    if (const auto error = ctl_read_boolean(ap, request == OPUS_SET_VBR_REQUEST ? st->use_vbr : st->vbr_constraint); error != OPUS_OK) {
       return error;
     }
     reset_vbr_budget(st);
@@ -19254,13 +19255,6 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   }
   case OPUSCPP_GET_VOICE_DENOISE_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->voice_denoise != nullptr));
-  case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
-    if (const auto error = ctl_read_boolean(ap, st->vbr_constraint); error != OPUS_OK) {
-      return error;
-    }
-    reset_vbr_budget(st);
-    return OPUS_OK;
-  }
   case OPUS_GET_VBR_CONSTRAINT_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->vbr_constraint));
   case OPUS_SET_COMPLEXITY_REQUEST: {
