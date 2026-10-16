@@ -6488,6 +6488,34 @@ static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity,
   return (band_width + thetas) * sumMS > band_width * sumLR;
 }
 
+
+struct stereo_tf_basis_choice {
+  std::uint64_t key = std::numeric_limits<std::uint64_t>::max();
+  int choice = 0;
+};
+
+static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res,
+                              stereo_tf_basis_choice& cached) {
+  constexpr unsigned level_bits = std::bit_width(static_cast<unsigned>(2 * celt_max_lm));
+  static_assert(celt_stereo_analysis_bands * level_bits < std::numeric_limits<std::uint64_t>::digits);
+  static_assert([] {
+    for (const auto& row : tf_select_table)
+      for (auto level : row)
+        if (level < -celt_max_lm || level > celt_max_lm)
+          return false;
+    return true;
+  }());
+  std::uint64_t key = 0;
+  const int bands = std::min(celt_stereo_analysis_bands, intensity);
+  for (int i = 0; i < bands; ++i)
+    key = (key << level_bits) | static_cast<std::uint64_t>(tf_res[i] + celt_max_lm);
+  if (cached.key != key) {
+    cached.choice = stereo_analysis_tf(X, LM, N0, intensity, transient, tf_res);
+    cached.key = key;
+  }
+  return cached.choice;
+}
+
 static celt_glog median_of_5(const celt_glog* x) {
   auto t0 = std::min(x[0], x[1]);
   auto t1 = std::max(x[0], x[1]);
@@ -7705,6 +7733,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
+  stereo_tf_basis_choice tf_basis_choice;
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -7738,7 +7767,7 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
                                               [](int tf) {
                                                 return tf != 0;
                                               }))
-          dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data());
+          dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data(), tf_basis_choice);
       }
       st->intensity = analyzed_intensity;
       if (empty_channel[0] != empty_channel[1] || common_source) {
