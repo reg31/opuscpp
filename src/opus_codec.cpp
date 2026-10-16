@@ -19059,7 +19059,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   auto* psEnc = static_cast<silk_encoder*>(encState);
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
   const auto& prior_state = state_Fxx[0].sCmn;
-  const bool duration_changed = prior_state.fs_kHz > 0 && prior_state.frame_length > 0 && prior_state.nFramesPerPacket > 0 &&
+  const bool duration_changed = prior_state.fs_kHz > 0 &&
                                 prior_state.frame_length * prior_state.nFramesPerPacket / prior_state.fs_kHz != encControl->payloadSize_ms;
   std::array<std::array<opus_int16, silk_max_frame_length + 2>, celt_max_channels> input_buffers{};
   std::array<int, celt_max_channels> input_positions{};
