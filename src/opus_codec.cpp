@@ -5728,9 +5728,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             const auto cross = 2.f * value[2];
             return std::atan2(std::sqrt(std::max(0.f, total - cross)), std::sqrt(std::max(0.f, total + cross)));
           };
+          const bool scalar_rank = B == 1 && source_gram[0][0] + source_gram[0][1] > 0.f &&
+                                   (c2_plan == nullptr || c2_plan->band < 0);
           std::array<opus_val32, 1 << celt_max_lm> source_angles;
-          for (int block = 0; block < B; ++block)
-            source_angles[block] = stereo_angle(source_gram[block]);
+          if (scalar_rank) {
+            const auto total = source_gram[0][0] + source_gram[0][1];
+            const auto cross = 2.f * source_gram[0][2];
+            source_angles[0] = std::max(0.f, total + cross);
+            source_angles[1] = std::max(0.f, total - cross);
+          } else
+            for (int block = 0; block < B; ++block)
+              source_angles[block] = stereo_angle(source_gram[block]);
           struct stereo_error {
             const decltype(gram)& make_gram;
             const decltype(stereo_angle)& angle;
@@ -5739,6 +5747,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             opus_val32 left_gain, right_gain, inverse_scale;
             OPUSCPP_NOINLINE opus_val32 operator()(const celt_norm* left, const celt_norm* right) const {
               const auto reconstructed = make_gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
+              if (blocks == 0) {
+                const auto total = reconstructed[0][0] + reconstructed[0][1];
+                const auto cross = 2.f * reconstructed[0][2];
+                const auto mid = std::max(0.f, total + cross);
+                const auto side = std::max(0.f, total - cross);
+                const double power = static_cast<double>(mid) + side;
+                if (power == 0)
+                  return source[1];
+                const double residual = std::sqrt(static_cast<double>(source[0]) * side) - std::sqrt(static_cast<double>(source[1]) * mid);
+                return static_cast<opus_val32>(residual * residual / power);
+              }
               opus_val32 error = 0;
               for (int block = 0; block < blocks; ++block) {
                 const auto difference = angle(reconstructed[block]) - source[block];
@@ -5747,7 +5766,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
               return error;
             }
           };
-          const stereo_error gram_error{gram, stereo_angle, source_angles, B, left_gain, right_gain, inverse_scale};
+          const stereo_error gram_error{gram, stereo_angle, source_angles, scalar_rank ? 0 : B, left_gain, right_gain, inverse_scale};
           cm = x_cm | y_cm;
           ec_save = *ec;
           ctx_save = ctx;
