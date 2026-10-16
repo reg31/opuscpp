@@ -7351,13 +7351,10 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   const int enabled = nbAvailableBytes > 12 * st->stream_channels && can_signal && !silence && !st->prediction_disabled;
   const int applied = run_prefilter(st, in, prefilter_mem, st->channels, N, &result.pitch_index, &result.gain, &qg, enabled, st->complexity,
                                     nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
-  if (applied == 0) {
-    if (can_signal) {
-      ec_enc_bit_logp(enc, 0, 1);
-    }
+  if (can_signal || applied != 0)
+    ec_enc_bit_logp(enc, applied != 0, 1);
+  if (applied == 0)
     return result;
-  }
-  ec_enc_bit_logp(enc, 1, 1);
   result.pitch_index += 1;
   const int octave = std::bit_width(static_cast<opus_uint32>(result.pitch_index)) - 5;
   ec_enc_uint(enc, octave, 6);
