@@ -889,7 +889,7 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     break;
   case 2: {
     count = 2;
-    if (!parse_size(data, len, sizes[0]) || sizes[0] > len) {
+    if (!parse_size(data, len, sizes[0])) {
       return -4;
     }
     last_size = len - sizes[0];
@@ -928,9 +928,6 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
         payload_bytes += sizes[i];
       }
       last_size = len - payload_bytes;
-      if (last_size < 0) {
-        return -4;
-      }
     } else {
       last_size = len / count;
       if (last_size * count != len) {
@@ -941,7 +938,7 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     break;
   }
   }
-  if (last_size > 1275) {
+  if (last_size < 0 || last_size > 1275) {
     return -4;
   }
   sizes[count - 1] = static_cast<opus_int16>(last_size);
