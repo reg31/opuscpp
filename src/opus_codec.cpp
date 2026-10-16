@@ -1273,12 +1273,16 @@ static_assert(sizeof(OpusDecoder) <= 80);
 }
 
 static void smooth_fade(const opus_res* in1, const opus_res* in2, opus_res* out, int overlap, int channels, opus_int32 Fs) {
-  int inc = 48000 / Fs;
-  for (int c = 0; c < channels; c++) {
-    for (int i = 0; i < overlap; i++) {
-      opus_val16 w = celt_mode()->window[i * inc];
-      w *= w;
-      out[i * channels + c] = w * in2[i * channels + c] + (1.0f - w) * in1[i * channels + c];
+  const int inc = 48000 / Fs;
+  if (channels <= 0) {
+    return;
+  }
+  for (int i = 0; i < overlap; ++i) {
+    opus_val16 w = celt_mode()->window[i * inc];
+    w *= w;
+    for (int c = 0; c < channels; ++c) {
+      const int sample = i * channels + c;
+      out[sample] = (1.0f - w) * in1[sample] + w * in2[sample];
     }
   }
 }
