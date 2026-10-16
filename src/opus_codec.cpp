@@ -8490,47 +8490,40 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
 }
 
 static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
-  if (st->postfilter_gain_old == 0 && st->postfilter_gain == 0 && target_gain == 0) {
-    st->postfilter_period_old = target_period;
-    st->postfilter_period = target_period;
-    st->postfilter_gain_old = st->postfilter_gain = 0;
-    st->postfilter_tapset_old = target_tapset;
-    st->postfilter_tapset = target_tapset;
-    return;
-  }
-  bool same_input = false;
-  if (st->channels == 2) {
-    const int history = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2;
-    const auto* first = out_syn[0] - history;
-    const auto* second = out_syn[1] - history;
-    const auto less = std::less<const celt_sig*>{};
-    same_input = !(less(first, out_syn[1] + N) && less(second, out_syn[0] + N)) &&
-                 std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
-  }
-  const int filter_channels = same_input ? 1 : st->channels;
-  st->postfilter_period = std::max<int>(st->postfilter_period, 15);
-  st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
-  for (int channel = 0; channel < filter_channels; ++channel) {
-    comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
-                st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset,
-                celt_default_overlap);
-    if (LM != 0)
-      comb_filter(out_syn[channel] + celt_short_mdct_size, out_syn[channel] + celt_short_mdct_size, st->postfilter_period, target_period,
-                  N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset,
+  const bool zero_gains = st->postfilter_gain_old == 0 && st->postfilter_gain == 0 && target_gain == 0;
+  if (!zero_gains) {
+    bool same_input = false;
+    if (st->channels == 2) {
+      const int history = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2;
+      const auto* first = out_syn[0] - history;
+      const auto* second = out_syn[1] - history;
+      const auto less = std::less<const celt_sig*>{};
+      same_input = !(less(first, out_syn[1] + N) && less(second, out_syn[0] + N)) &&
+                   std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
+    }
+    const int filter_channels = same_input ? 1 : st->channels;
+    st->postfilter_period = std::max<int>(st->postfilter_period, 15);
+    st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
+    for (int channel = 0; channel < filter_channels; ++channel) {
+      comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
+                  st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset,
                   celt_default_overlap);
+      if (LM != 0)
+        comb_filter(out_syn[channel] + celt_short_mdct_size, out_syn[channel] + celt_short_mdct_size, st->postfilter_period, target_period,
+                    N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset,
+                    celt_default_overlap);
+    }
+    if (same_input) {
+      copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
+    }
   }
-  if (same_input) {
-    copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
-  }
-  st->postfilter_period_old = LM == 0 ? st->postfilter_period : target_period;
-  st->postfilter_gain_old = st->postfilter_gain;
-  st->postfilter_tapset_old = LM == 0 ? st->postfilter_tapset : target_tapset;
+  const bool retain_previous = !zero_gains && LM == 0;
+  st->postfilter_period_old = retain_previous ? st->postfilter_period : target_period;
+  st->postfilter_gain_old = zero_gains ? opus_val16{0} : retain_previous ? st->postfilter_gain : target_gain;
+  st->postfilter_tapset_old = retain_previous ? st->postfilter_tapset : target_tapset;
   st->postfilter_period = target_period;
-  st->postfilter_gain = target_gain;
+  st->postfilter_gain = zero_gains ? opus_val16{0} : target_gain;
   st->postfilter_tapset = target_tapset;
-  if (LM != 0) {
-    st->postfilter_gain_old = st->postfilter_gain;
-  }
 }
 
 static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size) {
