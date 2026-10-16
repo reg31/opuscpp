@@ -1300,13 +1300,6 @@ static int opus_packet_get_mode(const unsigned char* data) {
                                                                          : opus_mode_silk_only;
 }
 
-static inline void decoder_apply_packet_state(OpusDecoder* st, int mode, int bandwidth, int frame_size, int stream_channels) noexcept {
-  st->mode = mode;
-  st->bandwidth = bandwidth;
-  st->frame_size = frame_size;
-  st->stream_channels = stream_channels;
-}
-
 static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
   ec_dec dec;
   opus_int32 silk_frame_size;
@@ -1539,32 +1532,28 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
       return decode_native(st, nullptr, 0, pcm, frame_size, 0);
     }
     const int duration_copy = st->last_packet_duration;
-    int ret = 0;
     if (frame_size - packet_frame_size != 0) {
-      ret = decode_native(st, nullptr, 0, pcm, frame_size - packet_frame_size, 0);
+      const int ret = decode_native(st, nullptr, 0, pcm, frame_size - packet_frame_size, 0);
       if (ret < 0) {
         st->last_packet_duration = duration_copy;
         return ret;
       }
     }
-    decoder_apply_packet_state(st, packet_mode, packet_bandwidth, packet_frame_size, packet_stream_channels);
-    ret = opus_decode_frame(st, data, frame_lengths[0], pcm + st->channels * (frame_size - packet_frame_size), packet_frame_size, 1);
-    if (ret < 0) {
-      return ret;
+  } else {
+    if (frame_count * packet_frame_size > frame_size) {
+      return -2;
     }
-    st->last_packet_duration = frame_size;
-    return frame_size;
+    direct = direct && std::all_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
+               return length > 1;
+             });
+    if (pcm16 != nullptr && !direct) {
+      return opus_decode_fast_unavailable;
+    }
   }
-  if (frame_count * packet_frame_size > frame_size) {
-    return -2;
-  }
-  direct = direct && std::all_of(frame_lengths.begin(), frame_lengths.begin() + frame_count, [](opus_int16 length) {
-             return length > 1;
-           });
-  if (pcm16 != nullptr && !direct) {
-    return opus_decode_fast_unavailable;
-  }
-  decoder_apply_packet_state(st, packet_mode, packet_bandwidth, packet_frame_size, packet_stream_channels);
+  st->mode = packet_mode;
+  st->bandwidth = packet_bandwidth;
+  st->frame_size = packet_frame_size;
+  st->stream_channels = packet_stream_channels;
   auto* celt_dec = decoder_celt_state(st);
   if (direct) {
     if (packet_bandwidth) {
@@ -1573,7 +1562,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
     celt_dec->stream_channels = packet_stream_channels;
     celt_dec->start = 0;
   }
-  int nb_samples = 0;
+  int nb_samples = decode_fec ? frame_size - packet_frame_size : 0;
   for (int i = 0; i < frame_count; i++) {
     int ret;
     if (direct) {
@@ -1583,13 +1572,17 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
       ret = celt_decode_with_ec(celt_dec, data, frame_lengths[i], pcm != nullptr ? pcm + sample_offset : nullptr,
                                 packet_frame_size, &dec, pcm16 != nullptr ? pcm16 + sample_offset : nullptr);
     } else {
-      ret = opus_decode_frame(st, data, frame_lengths[i], pcm + nb_samples * st->channels, frame_size - nb_samples, 0);
+      ret = opus_decode_frame(st, data, frame_lengths[i], pcm + nb_samples * st->channels, frame_size - nb_samples, decode_fec ? 1 : 0);
     }
     if (ret < 0) {
       return ret;
     }
     if (direct) {
       st->rangeFinal = celt_dec->rng;
+    }
+    if (decode_fec) {
+      nb_samples = frame_size;
+      break;
     }
     data += frame_lengths[i];
     nb_samples += ret;
