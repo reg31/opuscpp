@@ -6450,6 +6450,45 @@ static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
   return stereo_analysis(X, LM, N0, celt_stereo_analysis_bands);
 }
 
+
+static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res) {
+  const int bands = std::min(celt_stereo_analysis_bands, intensity);
+  if (bands == 0)
+    return 0;
+  const auto* eBands = celt_mode()->eBands;
+  opus_val32 sumLR = 1e-15f, sumMS = 1e-15f;
+  std::array<celt_norm, celt_max_band_samples> left, right;
+  for (int i = 0; i < bands; ++i) {
+    const int begin = eBands[i] << LM;
+    const int N = (eBands[i + 1] - eBands[i]) << LM;
+    copy_n_items(X + begin, static_cast<std::size_t>(N), left.data());
+    copy_n_items(X + N0 + begin, static_cast<std::size_t>(N), right.data());
+    int B = transient ? 1 << LM : 1;
+    int N_B = N / B;
+    const int recombine = std::max(0, tf_res[i]);
+    for (int k = 0; k < recombine; ++k) {
+      haar1(left.data(), N >> k, 1 << k);
+      haar1(right.data(), N >> k, 1 << k);
+    }
+    B >>= recombine;
+    N_B <<= recombine;
+    for (int tf_change = tf_res[i]; (N_B & 1) == 0 && tf_change < 0; ++tf_change) {
+      haar1(left.data(), N_B, B);
+      haar1(right.data(), N_B, B);
+      B <<= 1;
+      N_B >>= 1;
+    }
+    for (int j = 0; j < N; ++j) {
+      sumLR += std::fabs(left[j]) + std::fabs(right[j]);
+      sumMS += std::fabs(left[j] + right[j]) + std::fabs(left[j] - right[j]);
+    }
+  }
+  sumMS *= .707107f;
+  const int thetas = bands - (LM <= 1 ? std::min(8, bands) : 0);
+  const int band_width = eBands[bands] << (LM + 1);
+  return (band_width + thetas) * sumMS > band_width * sumLR;
+}
+
 static celt_glog median_of_5(const celt_glog* x) {
   auto t0 = std::min(x[0], x[1]);
   auto t1 = std::max(x[0], x[1]);
@@ -7696,6 +7735,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
     if (C == 2) {
       if (LM != 0) {
         dual_stereo = analyzed_dual_stereo;
+        if (enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity),
+                                              [](int tf) { return tf != 0; }))
+          dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data());
       }
       st->intensity = analyzed_intensity;
       if (empty_channel[0] != empty_channel[1] || common_source) {
