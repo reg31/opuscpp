@@ -12136,10 +12136,44 @@ static float classical_leak_down2_hp(opus_val32* S, opus_val32* out, const opus_
   return hp;
 }
 
+static float classifier_pcm16_stereo_down2_hp(float* state, float* out, const opus_int16* input, int count) {
+  float state0 = state[0], state1 = state[1], state2 = state[2];
+  float hp = 0;
+  for (int k = 0; k < count; ++k) {
+    float in32 = (static_cast<float>(input[4 * k]) + static_cast<float>(input[4 * k + 1])) * .5f;
+    float Y = in32 - state0;
+    float X = Y * 0.6074371f;
+    float out32 = state0 + X;
+    state0 = in32 + X;
+    float hp32 = out32;
+    in32 = (static_cast<float>(input[4 * k + 2]) + static_cast<float>(input[4 * k + 3])) * .5f;
+    Y = in32 - state1;
+    X = Y * 0.15063f;
+    out32 = out32 + state1 + X;
+    state1 = in32 + X;
+    Y = -in32 - state2;
+    X = Y * 0.15063f;
+    hp32 = hp32 + state2 + X;
+    state2 = -in32 + X;
+    hp += hp32 * hp32;
+    out[k] = 0.5f * out32;
+  }
+  state[0] = state0;
+  state[1] = state1;
+  state[2] = state2;
+  return hp;
+}
+
 static float classical_leak_downmix_resample(classical_leak_state* s, const opus_res* pcm, float* out,
                                              int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
   if (subframe == 0) {
     return 0;
+  }
+  if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
+                std::numeric_limits<float>::digits >= 17 && std::numeric_limits<float>::min_exponent <= -15 &&
+                std::numeric_limits<float>::max_exponent > 16 && FLT_EVAL_METHOD == 0) {
+    if (Fs == 48000 && channels == 2 && pcm16 != nullptr && subframe > 0)
+      return classifier_pcm16_stereo_down2_hp(s->downmix_state, out, pcm16 + static_cast<std::size_t>(offset) * 4, subframe) * (1.f / 32768.f / 32768.f);
   }
   if (Fs == 48000) {
     subframe *= 2;
