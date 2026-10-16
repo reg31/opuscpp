@@ -6066,6 +6066,45 @@ static inline auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int
   return tell;
 }
 
+static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost) -> opus_int32 {
+  if (C != 2 || start != 0)
+    return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
+  const auto saved_coder = *coder;
+  const auto saved_bits = total_bits;
+  std::array<unsigned char, 1275> saved_bytes;
+  std::memcpy(saved_bytes.data(), coder->buf, coder->storage);
+  std::array<int, celt_default_nb_ebands> requested{}, counts{}, width{}, quantum{};
+  int requested_total = 0;
+  for (int band = start; band < end; ++band) {
+    width[band] = C * (eBands[band + 1] - eBands[band]) << LM;
+    quantum[band] = std::min(width[band] << 3, std::max(6 << 3, width[band]));
+    requested[band] = counts[band] = std::min(offsets[band], (cap[band] + quantum[band] - 1) / quantum[band]);
+    requested_total += requested[band] * quantum[band];
+  }
+  const auto tell = process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
+  if (total_boost == 0 || total_boost >= requested_total)
+    return tell;
+  const int delivered_budget = total_boost;
+  while (requested_total > delivered_budget) {
+    int best = -1;
+    for (int band = start; band < end; ++band) {
+      if (counts[band] == 0)
+        continue;
+      if (best < 0 ||
+          static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best] <
+              static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band])
+        best = band;
+    }
+    --counts[best];
+    requested_total -= quantum[best];
+  }
+  *coder = saved_coder;
+  std::memcpy(coder->buf, saved_bytes.data(), coder->storage);
+  total_bits = saved_bits;
+  std::copy_n(counts.data(), end, offsets.data());
+  return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
+}
+
 static constexpr int celt_encoder_history_size = 1024;
 static constexpr int celt_decoder_history_size = 2048;
 static constexpr int celt_decoder_compact_prefix = 600;
@@ -7860,8 +7899,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
     }
     opus_int32 total_boost;
-    tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                       total_boost);
+    tell = process_celt_encoder_dynalloc(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
+                                         total_boost);
     dual_stereo = 0;
     if (C == 2) {
       if (LM != 0) {
