@@ -7350,11 +7350,10 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
     ec_enc_bit_logp(enc, applied != 0, 1);
   if (applied == 0)
     return result;
-  result.pitch_index += 1;
-  const int octave = std::bit_width(static_cast<opus_uint32>(result.pitch_index)) - 5;
+  const int pitch_code = result.pitch_index + 1;
+  const int octave = std::bit_width(static_cast<opus_uint32>(pitch_code)) - 5;
   ec_enc_uint(enc, octave, 6);
-  ec_enc_bits(enc, result.pitch_index - (16 << octave), 4 + octave);
-  result.pitch_index -= 1;
+  ec_enc_bits(enc, pitch_code - (16 << octave), 4 + octave);
   ec_enc_bits(enc, qg, 3);
   ec_enc_icdf(enc, 0, shared_three_step_icdf.data(), 2);
   return result;
