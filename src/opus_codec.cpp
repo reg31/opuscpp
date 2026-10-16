@@ -4221,12 +4221,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   if (st->mode != opus_mode_silk_only) {
     celt_enc->prediction_disabled = false;
   }
-  auto transition_prefill = std::span<opus_res>{};
-  if (st->mode != opus_mode_silk_only && st->mode != st->prev_mode && st->prev_mode > 0 && silk_enc != nullptr) {
-    transition_prefill = stage_storage.active.subspan(
-        stage_storage.celt_offset - static_cast<std::size_t>(st->Fs / 400 * st->channels),
-        static_cast<std::size_t>(st->channels * st->Fs / 400));
-  }
   stage_storage.finish_frame(st);
   if (st->prev_HB_gain < 1.0f || HB_gain < 1.0f) {
     gain_fade(celt_pcm.data(), celt_pcm.data(), st->prev_HB_gain, HB_gain, frame_size, st->channels, st->Fs);
@@ -4309,6 +4303,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       if (!redundancy || !celt_to_silk) {
         celt_encoder_reset_state(celt_enc);
       }
+      const auto transition_prefill = stage_storage.active.subspan(
+          stage_storage.celt_offset - static_cast<std::size_t>(st->Fs / 400 * st->channels),
+          static_cast<std::size_t>(st->channels * st->Fs / 400));
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
     }
