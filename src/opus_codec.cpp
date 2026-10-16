@@ -6701,7 +6701,14 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       for (i = start; i < end; i++) {
         follower[nbEBands + i] = ((follower[nbEBands + i]) > (follower[i] - (4.f)) ? (follower[nbEBands + i]) : (follower[i] - (4.f)));
         follower[i] = ((follower[i]) > (follower[nbEBands + i] - (4.f)) ? (follower[i]) : (follower[nbEBands + i] - (4.f)));
-        follower[i] = (.5f * (std::max(0.f, bandLogE[i] - follower[i]) + std::max(0.f, bandLogE[nbEBands + i] - follower[nbEBands + i])));
+        const celt_glog left_demand = std::max(0.f, bandLogE[i] - follower[i]);
+        const celt_glog right_demand = std::max(0.f, bandLogE[nbEBands + i] - follower[nbEBands + i]);
+        follower[i] = .5f * (left_demand + right_demand);
+        const double difference = static_cast<double>(left_demand) - right_demand;
+        follower[nbEBands + i] = left_demand == right_demand
+                                     ? left_demand
+                                     : static_cast<celt_glog>(std::max(left_demand, right_demand) +
+                                                              .5 * std::log2(.5 + .5 * std::exp2(-2 * std::fabs(difference))));
       }
     } else {
       for (i = start; i < end; i++) {
@@ -6714,6 +6721,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     }
     const bool constrained_steady = (!st->vbr || st->constrained_vbr) && !isTransient;
     for (i = start; i < end; i++) {
+      if (C == 2)
+        follower[i] = follower[nbEBands + i];
       if (constrained_steady) {
         if (i >= 12) {
           follower[i] *= .25f;
