@@ -4184,8 +4184,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     const auto channels = silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc));
     for (int channel = 0; channel < st->channels; ++channel) {
       auto& omission = channels[channel].sCmn.dtx_omitted;
-      if (emit_dtx || omission)
-        omission = static_cast<opus_int8>((omission & 1) | (emit_dtx ? 2 : 0));
+      omission = static_cast<opus_int8>((omission & 1) | (emit_dtx ? 2 : 0));
     }
     if (!silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0))
       return OPUS_ALLOC_FAIL;
@@ -19039,8 +19038,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       }
     }
     silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
-    if (psEnc->sCmn.dtx_omitted)
-      psEnc->sCmn.dtx_omitted = static_cast<opus_int8>((psEnc->sCmn.dtx_omitted & 2) | (psEnc->sCmn.dtx_omitted >> 1));
+    psEnc->sCmn.dtx_omitted = static_cast<opus_int8>((psEnc->sCmn.dtx_omitted & 2) | (psEnc->sCmn.dtx_omitted >> 1));
   }
   psEnc->x_buf.commit(input_buffer + 1, frame, history);
   if (psEnc->sCmn.prefillFlag) {
