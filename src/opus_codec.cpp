@@ -3112,7 +3112,7 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
 }
 
 [[nodiscard]] static bool encoder_is_in_dtx(const OpusEncoder* st) noexcept {
-  return st->use_dtx && st->nb_no_activity_ms_Q1 >= dtx_entry_ms_Q1;
+  return st->nb_no_activity_ms_Q1 >= dtx_entry_ms_Q1;
 }
 
 [[nodiscard]] static opus_int32 finalize_dtx_packet(OpusEncoder* st, unsigned char* data, opus_int32 length, bool emit_dtx) noexcept {
