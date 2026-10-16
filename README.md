@@ -63,25 +63,25 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.998x | 1.927x | +0.0022 | -0.0011 | 16.657 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.014x | 1.313x | +0.0651 | +0.0426 | 24.684 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 0.943x | 1.348x | +0.0931 | +0.0145 | 32.741 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 0.960x | 1.162x | +0.2164 | +0.0292 | 48.560 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.032x | 1.208x | +0.3021 | +0.0264 | 64.613 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 0.990x | 1.134x | +0.2943 | +0.0163 | 96.720 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 1.013x | 1.313x | +0.1676 | +0.0057 | 128.827 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 0.973x | 1.235x | +0.0711 | +0.0058 | 193.040 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 0.909x | 1.151x | +0.0343 | +0.0029 | 256.553 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 1.045x | 1.867x | +0.0022 | -0.0011 | 16.660 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 0.987x | 1.360x | +0.0652 | +0.0430 | 24.683 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 0.992x | 1.267x | +0.0934 | +0.0144 | 32.748 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 0.977x | 1.297x | +0.2164 | +0.0292 | 48.560 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 0.967x | 1.242x | +0.3021 | +0.0264 | 64.613 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.066x | 1.083x | +0.2943 | +0.0163 | 96.720 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.001x | 1.193x | +0.1676 | +0.0057 | 128.827 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 0.975x | 1.150x | +0.0711 | +0.0058 | 193.040 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 0.870x | 1.140x | +0.0343 | +0.0029 | 256.553 kbps | 256.737 kbps |
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1865 | +0.0312 | 15.337 kbps | 12.072 kbps |
-| 24&nbsp;kbps | +0.1937 | +0.0171 | 24.388 kbps | 24.020 kbps |
-| 32&nbsp;kbps | +0.2412 | +0.0142 | 32.456 kbps | 32.088 kbps |
-| 48&nbsp;kbps | +0.3449 | +0.0085 | 48.445 kbps | 48.409 kbps |
-| 64&nbsp;kbps | +0.5011 | +0.0107 | 64.468 kbps | 64.515 kbps |
+| 16&nbsp;kbps | +0.1862 | +0.0312 | 15.356 kbps | 12.072 kbps |
+| 24&nbsp;kbps | +0.1938 | +0.0176 | 24.375 kbps | 24.020 kbps |
+| 32&nbsp;kbps | +0.2408 | +0.0138 | 32.445 kbps | 32.088 kbps |
+| 48&nbsp;kbps | +0.3450 | +0.0084 | 48.441 kbps | 48.409 kbps |
+| 64&nbsp;kbps | +0.5010 | +0.0108 | 64.469 kbps | 64.515 kbps |
 | 96&nbsp;kbps | +0.8588 | +0.0126 | 96.400 kbps | 96.499 kbps |
 | 128&nbsp;kbps | +0.9281 | +0.0068 | 128.400 kbps | 128.489 kbps |
 | 192&nbsp;kbps | +1.1001 | +0.0059 | 192.400 kbps | 192.472 kbps |
@@ -94,9 +94,9 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 19,792 B | 31,856 B | -37.9% |
-| Encoder stereo | 29,872 B | 48,944 B | -39.0% |
-| Decoder mono | 8,432 B | 18,464 B | -54.3% |
+| Encoder mono | 19,776 B | 31,872 B | -38.0% |
+| Encoder stereo | 29,888 B | 48,944 B | -38.9% |
+| Decoder mono | 8,432 B | 18,448 B | -54.3% |
 | Decoder stereo | 17,600 B | 27,136 B | -35.1% |
 
 ## Compatibility coverage
