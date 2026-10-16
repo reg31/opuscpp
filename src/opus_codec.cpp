@@ -8054,39 +8054,29 @@ template <typename Sample> [[nodiscard]] static inline auto deemphasis_output(ce
   return signal_to_float_pcm(sample);
 }
 
-template <typename Sample> static inline void deemphasis_stereo_simple(celt_sig* x0, celt_sig* x1, Sample* pcm, int N, celt_sig* mem) {
-  celt_sig m0, m1;
-  int j;
-  m0 = mem[0];
-  m1 = mem[1];
-  for (j = 0; j < N; j++) {
-    celt_sig tmp0 = x0[j] + 1e-30f + m0, tmp1 = x1[j] + 1e-30f + m1;
-    m0 = celt_preemphasis[0] * tmp0;
-    m1 = celt_preemphasis[0] * tmp1;
-    pcm[2 * j] = deemphasis_output<Sample>(tmp0);
-    pcm[2 * j + 1] = deemphasis_output<Sample>(tmp1);
-  }
-  mem[0] = zero_tiny_float_mem(m0);
-  mem[1] = zero_tiny_float_mem(m1);
-}
-
-template <typename Sample> static inline void deemphasis_mono_simple(celt_sig* x, Sample* pcm, int N, celt_sig* mem) {
-  celt_sig m = mem[0];
+template <int Channels, typename Sample> static inline void deemphasis_simple(celt_sig* const* in, Sample* pcm, int N, celt_sig* mem) {
+  std::array<celt_sig, Channels> memories;
+  std::copy_n(mem, Channels, memories.begin());
   for (int j = 0; j < N; ++j) {
-    const celt_sig tmp = x[j] + 1e-30f + m;
-    m = celt_preemphasis[0] * tmp;
-    pcm[j] = deemphasis_output<Sample>(tmp);
+    std::array<celt_sig, Channels> samples;
+    for (int c = 0; c < Channels; ++c)
+      samples[c] = in[c][j] + 1e-30f + memories[c];
+    for (int c = 0; c < Channels; ++c)
+      memories[c] = celt_preemphasis[0] * samples[c];
+    for (int c = 0; c < Channels; ++c)
+      pcm[Channels * j + c] = deemphasis_output<Sample>(samples[c]);
   }
-  mem[0] = zero_tiny_float_mem(m);
+  for (int c = 0; c < Channels; ++c)
+    mem[c] = zero_tiny_float_mem(memories[c]);
 }
 
-static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int downsample, celt_sig* mem) {
+template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* pcm, int N, int C, int downsample, celt_sig* mem) {
   if (downsample == 1 && C == 1) {
-    deemphasis_mono_simple(in[0], pcm, N, mem);
+    deemphasis_simple<1>(in, pcm, N, mem);
     return;
   }
   if (downsample == 1 && C == 2) {
-    deemphasis_stereo_simple(in[0], in[1], pcm, N, mem);
+    deemphasis_simple<2>(in, pcm, N, mem);
     return;
   }
   for (int c = 0; c < C; ++c) {
@@ -8097,7 +8087,7 @@ static void deemphasis(celt_sig* const* in, opus_res* pcm, int N, int C, int dow
       const celt_sig sample = in[c][j] + 1e-30f + m;
       m = celt_preemphasis[0] * sample;
       if (j == next_output) {
-        pcm[output++ * C + c] = signal_to_float_pcm(sample);
+        pcm[output++ * C + c] = deemphasis_output<Sample>(sample);
         next_output += downsample;
       }
     }
@@ -8898,11 +8888,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   }
   st->rng = dec->rng;
   if (pcm16 != nullptr && st->downsample == 1) {
-    if (CC == 1) {
-      deemphasis_mono_simple(out_syn[0], pcm16, N, st->preemph_memD);
-    } else {
-      deemphasis_stereo_simple(out_syn[0], out_syn[1], pcm16, N, st->preemph_memD);
-    }
+    deemphasis(out_syn.data(), pcm16, N, CC, st->downsample, st->preemph_memD);
   } else {
     deemphasis(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD);
   }
