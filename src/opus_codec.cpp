@@ -874,6 +874,7 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
   const auto toc = *data++;
   opus_int32 last_size = --len;
   int count = 1;
+  bool vbr = false;
   switch (toc & 3) {
   case 0:
     break;
@@ -885,14 +886,10 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     last_size = len / 2;
     sizes[0] = static_cast<opus_int16>(last_size);
     break;
-  case 2: {
+  case 2:
     count = 2;
-    if (!parse_size(data, len, sizes[0])) {
-      return -4;
-    }
-    last_size = len - sizes[0];
+    vbr = true;
     break;
-  }
   default: {
     if (len < 1) {
       return -4;
@@ -916,17 +913,8 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     if (len < 0) {
       return -4;
     }
-    const bool cbr = (ch & 0x80) == 0;
-    if (!cbr) {
-      opus_int32 payload_bytes = 0;
-      for (int i = 0; i < count - 1; ++i) {
-        if (!parse_size(data, len, sizes[i]) || sizes[i] > len) {
-          return -4;
-        }
-        payload_bytes += sizes[i];
-      }
-      last_size = len - payload_bytes;
-    } else {
+    vbr = (ch & 0x80) != 0;
+    if (!vbr) {
       last_size = len / count;
       if (last_size * count != len) {
         return -4;
@@ -935,6 +923,16 @@ static int ref_opus_packet_parse_impl(const unsigned char* data, opus_int32 len,
     }
     break;
   }
+  }
+  if (vbr) {
+    opus_int32 payload_bytes = 0;
+    for (int i = 0; i < count - 1; ++i) {
+      if (!parse_size(data, len, sizes[i]) || sizes[i] > len) {
+        return -4;
+      }
+      payload_bytes += sizes[i];
+    }
+    last_size = len - payload_bytes;
   }
   if (last_size < 0 || last_size > 1275) {
     return -4;
