@@ -14563,19 +14563,18 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   }
   const int stereo_to_mono =
       decControl->nChannelsInternal == 1 && psDec->nChannelsInternal == 2 && (decControl->internalSampleRate == 1000 * mid.fs_kHz);
-  if (mid.nFramesDecoded == 0) {
+  if (mid.nFramesDecoded == 0 && decControl->nChannelsInternal > 0) {
+    const int payload_ms = decControl->payloadSize_ms;
+    const bool short_packet = payload_ms == 0 || payload_ms == 10;
+    if (!short_packet && (payload_ms < 20 || payload_ms > 60 || payload_ms % 20 != 0)) {
+      return -203;
+    }
+    const int frames_per_packet = short_packet ? 1 : payload_ms / 20;
+    const int subframes = short_packet ? 2 : 4;
+    const int fs_kHz_dec = (decControl->internalSampleRate >> 10) + 1;
     for (int n = 0; n < decControl->nChannelsInternal; ++n) {
-      const int payload_ms = decControl->payloadSize_ms;
-      if (payload_ms == 0 || payload_ms == 10) {
-        channel_state[n]->nFramesPerPacket = 1;
-        channel_state[n]->nb_subfr = 2;
-      } else if (payload_ms >= 20 && payload_ms <= 60 && payload_ms % 20 == 0) {
-        channel_state[n]->nFramesPerPacket = payload_ms / 20;
-        channel_state[n]->nb_subfr = 4;
-      } else {
-        return -203;
-      }
-      const int fs_kHz_dec = (decControl->internalSampleRate >> 10) + 1;
+      channel_state[n]->nFramesPerPacket = frames_per_packet;
+      channel_state[n]->nb_subfr = subframes;
       if (fs_kHz_dec != 8 && fs_kHz_dec != 12 && fs_kHz_dec != 16) {
         return -200;
       }
