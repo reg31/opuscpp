@@ -11983,8 +11983,6 @@ static void classifier_compute_dense(float* output, const float* input, const op
   classifier_gemm_accum(output, weights, nb_neurons, nb_inputs, nb_neurons, input);
   for (int i = 0; i < nb_neurons; ++i) {
     output[i] *= classifier_weights_scale;
-  }
-  for (int i = 0; i < nb_neurons; ++i) {
     output[i] = sigmoid ? classifier_sigmoid_approx(output[i]) : classifier_tansig_approx(output[i]);
   }
 }
