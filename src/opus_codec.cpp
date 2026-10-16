@@ -2237,17 +2237,24 @@ static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16*
          static_cast<opus_int32>(static_cast<opus_int16>(step)) * static_cast<opus_int32>(static_cast<opus_int16>(2 * fine_index + 1));
 }
 
+template <bool Reconstruct = true>
 static void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13) {
   std::array<std::array<int, 3>, 2> ix{};
   const int joint_index = ec_dec_icdf(psRangeDec, silk_stereo_pred_joint_iCDF.data(), 8);
-  ix[0][2] = joint_index / 5;
-  ix[1][2] = joint_index - 5 * ix[0][2];
+  if constexpr (Reconstruct) {
+    ix[0][2] = joint_index / 5;
+    ix[1][2] = joint_index - 5 * ix[0][2];
+  }
   for (int channel = 0; channel < 2; ++channel) {
     ix[channel][0] = ec_dec_icdf(psRangeDec, silk_uniform3_iCDF.data(), 8);
     ix[channel][1] = ec_dec_icdf(psRangeDec, silk_uniform5_iCDF.data(), 8);
-    pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
+    if constexpr (Reconstruct) {
+      pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
+    }
   }
-  pred_Q13[0] -= pred_Q13[1];
+  if constexpr (Reconstruct) {
+    pred_Q13[0] -= pred_Q13[1];
+  }
 }
 
 static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz, int frame_length) {
@@ -14848,7 +14855,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
             std::array<opus_int16, ((5 * 4) * 16)> pulses;
             int condCoding;
             if (decControl->nChannelsInternal == 2 && n == 0) {
-              silk_stereo_decode_pred(psRangeDec, MS_pred_Q13);
+              silk_stereo_decode_pred<false>(psRangeDec, MS_pred_Q13);
               if (channel_state[1]->LBRR_flags[i] == 0) {
                 silk_stereo_decode_mid_only(psRangeDec, decode_only_middle);
               }
