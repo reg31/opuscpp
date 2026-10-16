@@ -14361,7 +14361,6 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   silk_PLC_struct* psPLC = &psDec->sPLC;
   const opus_int32 prevGain_Q10[2]{((psPLC->prevGain_Q16[0]) >> (6)), ((psPLC->prevGain_Q16[1]) >> (6))};
   std::array<opus_int32, silk_max_ltp_buffer_length> sLTP_Q14;
-  std::array<opus_int16, silk_max_ltp_mem_length> sLTP;
   if (psDec->first_frame_after_reset) {
     zero_n_items(psPLC->prevLPC_Q12, static_cast<std::size_t>(16));
   }
@@ -14410,19 +14409,23 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   opus_int32 rand_seed = psPLC->rand_seed;
   int lag = rounded_rshift<8>(psPLC->pitchL_Q8);
   int sLTP_buf_idx = psDec->ltp_mem_length;
-  int idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
-  silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
-  const opus_int32 inv_gain_Q30 = std::min(silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46), std::numeric_limits<opus_int32>::max() >> 1);
-  for (int i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
-    sLTP_Q14[i] = silk_mul_wb(inv_gain_Q30, sLTP[i]);
+  const bool has_harmonic = psPLC->LTPCoef_Q14 != 0;
+  if (has_harmonic) {
+    std::array<opus_int16, silk_max_ltp_mem_length> sLTP;
+    const int idx = psDec->ltp_mem_length - lag - psDec->LPC_order - 5 / 2;
+    silk_LPC_analysis_filter(&sLTP[idx], &psDec->outBuf[idx], A_Q12, psDec->ltp_mem_length - idx, psDec->LPC_order);
+    const opus_int32 inv_gain_Q30 = std::min(silk_INVERSE32_varQ(psPLC->prevGain_Q16[1], 46), std::numeric_limits<opus_int32>::max() >> 1);
+    for (int i = idx + psDec->LPC_order; i < psDec->ltp_mem_length; i++) {
+      sLTP_Q14[i] = silk_mul_wb(inv_gain_Q30, sLTP[i]);
+    }
   }
   for (int k = 0; k < psDec->nb_subfr; k++) {
     auto* pred_lag_ptr = &sLTP_Q14[sLTP_buf_idx - lag + 5 / 2];
     for (int i = 0; i < psDec->subfr_length; i++) {
-      const opus_int32 LTP_pred_Q12 = 2 + silk_mul_wb(pred_lag_ptr[-2], psPLC->LTPCoef_Q14);
+      const opus_int32 LTP_pred_Q12 = 2 + (has_harmonic ? silk_mul_wb(pred_lag_ptr[-2], psPLC->LTPCoef_Q14) : 0);
       ++pred_lag_ptr;
       rand_seed = silk_next_rand_seed(rand_seed);
-      idx = ((rand_seed) >> (25)) & (128 - 1);
+      const int idx = ((rand_seed) >> (25)) & (128 - 1);
       sLTP_Q14[sLTP_buf_idx] = wrap_shift_left(silk_mla_wb(LTP_pred_Q12, silk_read_excitation(psDec->exc_low[rand_offset + idx], psDec->exc_high[rand_offset + idx]), rand_scale_Q14), 2);
       ++sLTP_buf_idx;
     }
