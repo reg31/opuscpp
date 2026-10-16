@@ -19140,30 +19140,27 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         buf[n] = FLOAT2INT16(samplesIn[2 * n]);
         right[n] = FLOAT2INT16(samplesIn[2 * n + 1]);
       }
-      resample_input(0, buf);
-      input_positions[0] += nSamplesToBuffer;
-      resample_input(1, right);
-      input_positions[1] += nSamplesToBuffer;
     } else if (stereo_input) {
       for (int n = 0; n < nSamplesFromInput; ++n) {
         const float mean = std::midpoint(samplesIn[2 * n] * 32768.f, samplesIn[2 * n + 1] * 32768.f);
         buf[n] = static_cast<opus_int16>(pcm_float2int(std::clamp(mean, -32768.f, 32767.f)));
       }
-      const int mono_input_start = input_positions[0];
-      resample_input(0, buf);
-      input_positions[0] += nSamplesToBuffer;
-      if (psEnc->nPrevChannelsInternal == 2 && state_Fxx[0].sCmn.nFramesEncoded == 0) {
-        const int side_input_start = input_positions[1];
-        resample_input(1, buf);
-        for (int n = 0; n < nSamplesToBuffer; ++n) {
-          input_buffers[0].data()[mono_input_start + n + 2] =
-              (input_buffers[0].data()[mono_input_start + n + 2] + input_buffers[1].data()[side_input_start + n + 2]) >> 1;
-        }
-      }
     } else {
       celt_float2int16_c(samplesIn, buf, static_cast<std::size_t>(nSamplesFromInput));
-      resample_input(0, buf);
-      input_positions[0] += nSamplesToBuffer;
+    }
+    const int mono_input_start = input_positions[0];
+    resample_input(0, buf);
+    input_positions[0] += nSamplesToBuffer;
+    if (stereo_coding) {
+      resample_input(1, buf + nSamplesFromInput);
+      input_positions[1] += nSamplesToBuffer;
+    } else if (stereo_input && psEnc->nPrevChannelsInternal == 2 && state_Fxx[0].sCmn.nFramesEncoded == 0) {
+      const int side_input_start = input_positions[1];
+      resample_input(1, buf);
+      for (int n = 0; n < nSamplesToBuffer; ++n) {
+        input_buffers[0].data()[mono_input_start + n + 2] =
+            (input_buffers[0].data()[mono_input_start + n + 2] + input_buffers[1].data()[side_input_start + n + 2]) >> 1;
+      }
     }
     samplesIn += nSamplesFromInput * encControl->nChannelsAPI;
     nSamplesIn -= nSamplesFromInput;
