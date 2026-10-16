@@ -7341,7 +7341,6 @@ struct celt_input_metrics {
 
 struct celt_prefilter_result {
   int pitch_index{15};
-  int enabled{};
   opus_val16 gain{};
 };
 
@@ -7350,9 +7349,9 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   int qg = 0;
   const int can_signal = st->start == 0 && tell + 16 <= total_bits;
   const int enabled = nbAvailableBytes > 12 * st->stream_channels && can_signal && !silence && !st->prediction_disabled;
-  result.enabled = run_prefilter(st, in, prefilter_mem, st->channels, N, &result.pitch_index, &result.gain, &qg, enabled, st->complexity,
-                                 nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
-  if (result.enabled == 0) {
+  const int applied = run_prefilter(st, in, prefilter_mem, st->channels, N, &result.pitch_index, &result.gain, &qg, enabled, st->complexity,
+                                    nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
+  if (applied == 0) {
     if (can_signal) {
       ec_enc_bit_logp(enc, 0, 1);
     }
