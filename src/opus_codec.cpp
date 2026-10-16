@@ -6783,13 +6783,13 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       follower[i] = std::min(follower[i], 4.0f);
       width = C * (eBands[i + 1] - eBands[i]) << LM;
       if (width < 6) {
-        boost = static_cast<int>(follower[i]);
+        boost = C == 2 && start == 0 ? static_cast<int>(follower[i] + .5f) : static_cast<int>(follower[i]);
         boost_bits = boost * width << 3;
       } else if (width > 48) {
-        boost = static_cast<int>(follower[i] * 8);
+        boost = C == 2 && start == 0 ? static_cast<int>(follower[i] * 8 + .5f) : static_cast<int>(follower[i] * 8);
         boost_bits = (boost * width << 3) / 8;
       } else {
-        boost = static_cast<int>(follower[i] * width / 6);
+        boost = C == 2 && start == 0 ? static_cast<int>(follower[i] * width / 6 + .5f) : static_cast<int>(follower[i] * width / 6);
         boost_bits = boost * 6 << 3;
       }
       if ((!st->vbr || (st->constrained_vbr && !isTransient)) && (tot_boost + boost_bits) >> 3 >> 3 > 2 * effectiveBytes / 3) {
