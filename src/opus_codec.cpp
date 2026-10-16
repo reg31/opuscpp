@@ -4765,7 +4765,13 @@ struct celt_pulse_budget {
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr);
+struct celt_rotation_cache {
+  std::uint64_t key{};
+  opus_val16 c{}, s{};
+  int stride2{};
+};
+
+static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr, celt_rotation_cache* rotation_cache = nullptr);
 static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
@@ -5051,6 +5057,7 @@ struct band_ctx {
   bool refine_mono;
   bool changed_blocks;
   mono_fold_plan* mono_plan;
+  celt_rotation_cache* rotation_cache{};
 };
 
 struct split_ctx {
@@ -5299,7 +5306,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
       ctx->mono_plan->used_mask |= ctx->mono_plan->fold_mask;
     if (q != 0) {
       int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono, ctx->mono_plan == nullptr || (ctx->mono_plan->protect_mask & (1U << i)) != 0, ctx->mono_plan != nullptr ? &ctx->changed_blocks : nullptr) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
+      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono, ctx->mono_plan == nullptr || (ctx->mono_plan->protect_mask & (1U << i)) != 0, ctx->mono_plan != nullptr ? &ctx->changed_blocks : nullptr, ctx->rotation_cache) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
     } else {
       int j;
       if (ctx->resynth) {
@@ -5565,6 +5572,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.avoid_split_noise = B > 1;
   ctx.theta_round = 0;
   ctx.raw_stereo_itheta = 0;
+  celt_rotation_cache rotation_cache;
+  ctx.rotation_cache = encode ? &rotation_cache : nullptr;
   const int process_end = encode && !mono_resynth ? std::min(end, codedBands) : end;
   for (i = start; i < process_end; i++) {
     opus_int32 tell;
@@ -13283,6 +13292,30 @@ static int clt_compute_allocation(int start, int end, const int* offsets, const 
 
 static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_val16 s) {
   const opus_val16 ms = -s;
+  if (stride == 1) {
+    if (len <= 1)
+      return;
+    celt_norm carry = X[0];
+    for (int i = 0; i < len - 1; ++i) {
+      const celt_norm x2 = X[i + 1];
+      const celt_norm next = c * x2 + s * carry;
+      X[i] = c * carry + ms * x2;
+      carry = next;
+    }
+    X[len - 1] = carry;
+    if (len > 2) {
+      carry = X[len - 2];
+      for (int i = len - 3; i >= 0; --i) {
+        const celt_norm x1 = X[i];
+        const celt_norm upper = c * carry + s * x1;
+        const celt_norm next = c * x1 + ms * carry;
+        X[i + 1] = upper;
+        carry = next;
+      }
+      X[0] = carry;
+    }
+    return;
+  }
   const auto rotate = [&](int i) {
     const celt_norm x1 = X[i];
     const celt_norm x2 = X[i + stride];
@@ -13297,21 +13330,35 @@ static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_
   }
 }
 
-static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int spread) {
+static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int spread, celt_rotation_cache* rotation_cache = nullptr) {
   constexpr std::array<opus_uint8, 3> SPREAD_FACTOR{15, 10, 5};
   if (2 * K >= len || spread == 0) {
     return;
   }
-  const int factor = SPREAD_FACTOR[spread - 1];
-  const auto gain = static_cast<opus_val16>(static_cast<opus_val32>(len) / static_cast<opus_val32>(len + factor * K));
-  const auto theta = static_cast<opus_val16>(.5f * gain * gain);
-  const auto angle = (.5f * 3.1415926535897931) * theta;
-  const auto c = static_cast<opus_val16>(std::cos(angle));
-  const auto s = static_cast<opus_val16>(std::sin(angle));
-  int stride2 = 0;
-  if (len >= 8 * stride) {
-    stride2 = 1;
-    for (; (stride2 * stride2 + stride2) * stride + (stride >> 2) < len; ++stride2) {}
+  std::uint64_t key = 0;
+  if (rotation_cache != nullptr)
+    key = (static_cast<std::uint64_t>(len) << 32) | (static_cast<std::uint64_t>(K) << 8) |
+          (static_cast<std::uint64_t>(stride) << 2) | static_cast<std::uint64_t>(spread);
+  opus_val16 c, s;
+  int stride2;
+  if (rotation_cache != nullptr && rotation_cache->key == key) {
+    c = rotation_cache->c;
+    s = rotation_cache->s;
+    stride2 = rotation_cache->stride2;
+  } else {
+    const int factor = SPREAD_FACTOR[spread - 1];
+    const auto gain = static_cast<opus_val16>(static_cast<opus_val32>(len) / static_cast<opus_val32>(len + factor * K));
+    const auto theta = static_cast<opus_val16>(.5f * gain * gain);
+    const auto angle = (.5f * 3.1415926535897931) * theta;
+    c = static_cast<opus_val16>(std::cos(angle));
+    s = static_cast<opus_val16>(std::sin(angle));
+    stride2 = 0;
+    if (len >= 8 * stride) {
+      stride2 = 1;
+      for (; (stride2 * stride2 + stride2) * stride + (stride >> 2) < len; ++stride2) {}
+    }
+    if (rotation_cache != nullptr)
+      *rotation_cache = {key, c, s, stride2};
   }
   len = celt_udiv(len, stride);
   for (int i = 0; i < stride; ++i) {
@@ -13629,11 +13676,12 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
   return {collapse_mask, index, yy};
 }
 
-static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int B, opus_val32 gain, int position, bool negative, bool resynth) {
+static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int B, opus_val32 gain, int position, bool negative, bool resynth, celt_rotation_cache* rotation_cache = nullptr) {
   if (resynth) {
     zero_n_items(X, static_cast<std::size_t>(N));
     X[position] = negative ? -gain : gain;
-    exp_rotation(X, N, -1, B, 1, spread);
+    if (N > 2 && spread != 0)
+      exp_rotation(X, N, -1, B, 1, spread, rotation_cache);
   }
   if (B <= 1) {
     return 1;
@@ -13642,8 +13690,10 @@ static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int
   return position < B * block_size ? 1U << celt_udiv(position, block_size) : 0;
 }
 
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks) {
-  exp_rotation(X, N, 1, B, K, spread);
+static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks, celt_rotation_cache* rotation_cache) {
+  const bool rotate = 2 * K < N && spread != 0;
+  if (rotate)
+    exp_rotation(X, N, 1, B, K, spread, rotation_cache);
   if (K == 1) {
     int best_id = 0;
     for (int candidate = 1; candidate < N; ++candidate) {
@@ -13654,13 +13704,13 @@ static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc*
     const bool negative = X[best_id] < 0;
     const auto encoded_pulse = static_cast<opus_uint32>(negative ? (N << 1) - 1 - best_id : best_id);
     ec_enc_uint(enc, encoded_pulse, static_cast<opus_uint32>(N << 1));
-    return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth);
+    return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth, rotation_cache);
   }
   std::array<int, celt_max_band_samples> iy;
   const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth, refine_mono, protect_blocks, changed_blocks);
   ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
-  if (resynth) {
-    exp_rotation(X, N, -1, B, K, spread);
+  if (resynth && rotate) {
+    exp_rotation(X, N, -1, B, K, spread, rotation_cache);
   }
   return quant.collapse_mask;
 }
