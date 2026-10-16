@@ -12637,8 +12637,7 @@ static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_
 
 static void classical_leak_reset(classical_leak_state* s) {
   std::free(s->pending_pcm);
-  char* start = reinterpret_cast<char*>(&s->angle);
-  std::memset(start, 0, sizeof(*s) - static_cast<std::size_t>(start - reinterpret_cast<char*>(s)));
+  zero_object(*s);
   s->analysis_read_pos_bak = -1;
 }
 
