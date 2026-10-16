@@ -14932,19 +14932,18 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   }
   *nSamplesOut = static_cast<opus_int32>((nSamplesOutDec * decControl->API_sampleRate) / (mid.fs_kHz * 1000));
   std::array<opus_int16, OPUS_FRAME_SIZE_20MS> samplesOut2_tmp;
-  for (int n = 0; n < std::min(decControl->nChannelsAPI, decControl->nChannelsInternal); ++n) {
-    silk_resample_and_store_channel(*channel_state[n], samplesOut2_tmp, &samplesOut1_tmp[n][1], nSamplesOutDec, samplesOut,
+  const int resampled_channels = decControl->nChannelsAPI == 2 && stereo_to_mono
+                                     ? 2
+                                     : std::min(decControl->nChannelsAPI, decControl->nChannelsInternal);
+  for (int n = 0; n < resampled_channels; ++n) {
+    const int input_channel = n < decControl->nChannelsInternal ? n : 0;
+    silk_resample_and_store_channel(*channel_state[n], samplesOut2_tmp, &samplesOut1_tmp[input_channel][1], nSamplesOutDec, samplesOut,
                                     *nSamplesOut, decControl->nChannelsAPI, n);
   }
-  if (decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 1) {
-    if (stereo_to_mono) {
-      silk_resample_and_store_channel(*channel_state[1], samplesOut2_tmp, &samplesOut1_tmp[0][1], nSamplesOutDec, samplesOut,
-                                      *nSamplesOut, decControl->nChannelsAPI, 1);
-    } else {
-      const int output_samples = *nSamplesOut;
-      for (int i = 0; i < output_samples; ++i) {
-        samplesOut[1 + 2 * i] = samplesOut[2 * i];
-      }
+  if (decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 1 && !stereo_to_mono) {
+    const int output_samples = *nSamplesOut;
+    for (int i = 0; i < output_samples; ++i) {
+      samplesOut[1 + 2 * i] = samplesOut[2 * i];
     }
   }
   if (lostFlag == 1) {
