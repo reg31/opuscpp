@@ -19183,7 +19183,6 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
 }
 
 [[nodiscard]] auto dispatch_encoder_control(OpusEncoder* st, int request, va_list& ap) noexcept -> int {
-  auto* celt_enc = encoder_celt_state(st);
   switch (request) {
   case OPUS_SET_BITRATE_REQUEST: {
     auto value = va_arg(ap, opus_int32);
@@ -19250,7 +19249,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       return OPUS_BAD_ARG;
     }
     st->silk_mode.complexity = value;
-    celt_enc->complexity = value;
+    encoder_celt_state(st)->complexity = value;
     return OPUS_OK;
   }
   case OPUS_GET_COMPLEXITY_REQUEST:
@@ -19277,7 +19276,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
       return OPUS_BAD_ARG;
     }
     st->silk_mode.packetLossPercentage = value;
-    celt_enc->loss_rate = static_cast<opus_uint8>(value);
+    encoder_celt_state(st)->loss_rate = static_cast<opus_uint8>(value);
     return OPUS_OK;
   }
   case OPUS_GET_PACKET_LOSS_PERC_REQUEST:
@@ -19289,7 +19288,7 @@ template <typename T> [[nodiscard]] static inline auto ctl_write_value(va_list& 
   case OPUS_GET_IN_DTX_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(encoder_is_in_dtx(st)));
   case OPUS_RESET_STATE:
-    reset_ref_encoder_state(st, celt_enc);
+    reset_ref_encoder_state(st, encoder_celt_state(st));
     return OPUS_OK;
   default:
     return OPUS_UNIMPLEMENTED;
