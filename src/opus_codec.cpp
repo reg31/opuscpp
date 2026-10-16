@@ -610,6 +610,8 @@ struct classical_leak_state {
   classical_leak_info out_info;
   opus_int8 analysis_read_pos_bak;
   opus_uint8 analysis_read_subframe_bak;
+  float history_distances[28];
+  bool history_distance_valid;
 };
 static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept {
   if (state->pending_pcm == nullptr) {
@@ -12415,31 +12417,60 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   }
 
   bool symmetric_history = false;
+  bool cache_eligible = false;
   if constexpr (sizeof(float) == sizeof(opus_uint32) && std::numeric_limits<float>::is_iec559 && FLT_EVAL_METHOD == 0) {
     const bool nearest = std::fegetround() == FE_TONEAREST;
-    opus_uint32 exceptional_history = 0;
-    for (const auto& history : tonal->logE)
-      for (const float value : history)
-        exceptional_history |= static_cast<opus_uint32>((std::bit_cast<opus_uint32>(value) & 0x7f800000U) == 0x7f800000U);
-    symmetric_history = nearest && exceptional_history == 0;
+    bool bounded_history = nearest && tonal->count >= 8 && std::fetestexcept(FE_INEXACT) != 0;
+    if (bounded_history) {
+      const int first_row = tonal->history_distance_valid ? tonal->E_count : 0;
+      const int end_row = tonal->history_distance_valid ? tonal->E_count + 1 : 8;
+      for (int row = first_row; row < end_row; ++row) {
+        for (const float value : tonal->logE[row]) {
+          const opus_uint32 magnitude = std::bit_cast<opus_uint32>(value) & 0x7fffffffU;
+          bounded_history &= magnitude == 0 || (magnitude >= 0x2c000000U && magnitude <= 0x5d000000U);
+        }
+      }
+    }
+    cache_eligible = bounded_history;
+    if (cache_eligible) {
+      symmetric_history = true;
+    } else {
+      opus_uint32 exceptional_history = 0;
+      for (const auto& history : tonal->logE)
+        for (const float value : history)
+          exceptional_history |= static_cast<opus_uint32>((std::bit_cast<opus_uint32>(value) & 0x7f800000U) == 0x7f800000U);
+      symmetric_history = nearest && exceptional_history == 0;
+    }
   }
   if (symmetric_history) {
+    const bool cache_valid = cache_eligible && tonal->history_distance_valid;
     std::array<float, 8> minimum;
     minimum.fill(1e15f);
+    int pair = 0;
     for (int first = 0; first < 8; ++first) {
       for (int second = first + 1; second < 8; ++second) {
-        float distance = 0;
-        for (int band = 0; band < 18; ++band) {
-          const float difference = tonal->logE[first][band] - tonal->logE[second][band];
-          distance += difference * difference;
+        float distance;
+        if (cache_valid && first != tonal->E_count && second != tonal->E_count) {
+          distance = tonal->history_distances[pair];
+        } else {
+          distance = 0;
+          for (int band = 0; band < 18; ++band) {
+            const float difference = tonal->logE[first][band] - tonal->logE[second][band];
+            distance += difference * difference;
+          }
+          if (cache_eligible)
+            tonal->history_distances[pair] = distance;
         }
         minimum[first] = std::min(minimum[first], distance);
         minimum[second] = std::min(minimum[second], distance);
+        ++pair;
       }
     }
+    tonal->history_distance_valid = cache_eligible;
     for (const float distance : minimum)
       spec_variability += distance;
   } else {
+    tonal->history_distance_valid = false;
     for (i = 0; i < 8; ++i) {
       int j;
       float mindist = 1e15f;
