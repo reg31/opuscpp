@@ -14761,8 +14761,8 @@ static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 
 static void silk_encode_indices(silk_encoder_state* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
                                 bool lbrr = false) {
   const int type_offset = 2 * indices.signalType + indices.quantOffsetType;
-  const auto* icdf = type_offset >= 2 ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data();
-  ec_enc_icdf(psRangeEnc, lbrr || type_offset >= 2 ? type_offset - 2 : type_offset, lbrr ? silk_type_offset_VAD_iCDF.data() : icdf, 8);
+  const bool use_vad_table = lbrr || type_offset >= 2;
+  ec_enc_icdf(psRangeEnc, use_vad_table ? type_offset - 2 : type_offset, use_vad_table ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8);
   silk_process_indices<true>(psEncC, indices, psRangeEnc, condCoding);
 }
 
