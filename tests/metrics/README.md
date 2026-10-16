@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `14b24a52c7c9b366707c0e2b47ee3bf670517ec6`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -30,7 +30,7 @@ Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.94x to 1.11x | 1.20x to 1.97x |
+| AUDIO | 0.94x to 1.12x | 1.21x to 1.94x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,9 +41,9 @@ Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20464 | 20480 | Not exposed |
-| official_encoder_ch1 | 31824 | 31920 | 31668 |
-| current_decoder_ch1 | 8464 | 8368 | Not exposed |
-| official_decoder_ch1 | 18464 | 18560 | 18468 |
+| official_encoder_ch1 | 31824 | 31904 | 31668 |
+| current_decoder_ch1 | 8464 | 8336 | Not exposed |
+| official_decoder_ch1 | 18464 | 18576 | 18468 |
 | current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
 | current_decoder_ch2 | 17520 | 16224 | Not exposed |
@@ -57,8 +57,8 @@ Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 471932 | 0 | 0 | 471932 |
-| android | 467872 | 472 | 0 | 468344 |
+| host | 472528 | 0 | 0 | 472528 |
+| android | 467936 | 472 | 0 | 468408 |
 
 [Object-size data](binary_size.csv).
 
@@ -70,8 +70,8 @@ Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51b
 | Standard interoperability comparison | PASS |
 | Scored recovery wins | 18/18 |
 | Maximum recovery-error ratio | 0.903303 |
-| Recovery-error ratio | 0.416643 |
-| Packet-byte ratio | 0.995654 |
+| Recovery-error ratio | 0.404276 |
+| Packet-byte ratio | 0.994975 |
 | Backup coverage: opuscpp | 18/18 |
 | Backup coverage: official | 15/18 |
 | Configurations | 36 |
@@ -120,10 +120,10 @@ Measured: `32f4d6f2d31fafdc61c9cb9771257745e86c8623`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.5902 decode_ms=15.9017 checksum=340886119
-mono-high bytes=115 encode_ms=21.1223 decode_ms=15.0036 checksum=2633358364
-stereo-mid bytes=102 encode_ms=73.5185 decode_ms=29.0222 checksum=3625126390
-stereo-high bytes=147 encode_ms=81.6903 decode_ms=29.9808 checksum=2476207253
+mono-mid bytes=76 encode_ms=18.823 decode_ms=15.9613 checksum=340886119
+mono-high bytes=115 encode_ms=21.1728 decode_ms=15.0069 checksum=2633358364
+stereo-mid bytes=102 encode_ms=73.9673 decode_ms=28.9666 checksum=3625126390
+stereo-high bytes=147 encode_ms=81.5099 decode_ms=29.7475 checksum=2476207253
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
