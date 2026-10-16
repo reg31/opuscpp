@@ -14860,9 +14860,9 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   const int has_side = lostFlag == 0 ? !decode_only_middle
                                      : !psDec->prev_decode_only_middle || (decControl->nChannelsInternal == 2 && lostFlag == 2 &&
                                                                            channel_state[1]->LBRR_flags[channel_state[1]->nFramesDecoded] == 1);
+  const int FrameIndex = mid.nFramesDecoded;
   for (int n = 0; n < decControl->nChannelsInternal; ++n) {
     if (n == 0 || has_side) {
-      const int FrameIndex = mid.nFramesDecoded - n;
       const int condCoding = FrameIndex <= 0                           ? 0
                              : lostFlag == 2                           ? channel_state[n]->LBRR_flags[FrameIndex - 1] ? 2 : 0
                              : n > 0 && psDec->prev_decode_only_middle ? 1
