@@ -1304,7 +1304,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
   ec_dec dec;
   opus_int32 silk_frame_size;
   opus_res* pcm_transition = nullptr;
-  int celt_ret = 0, transition = 0;
+  int celt_ret = 0;
   int redundancy = 0, redundancy_bytes = 0, celt_to_silk = 0;
   opus_uint32 redundant_rng = 0;
   auto* silk_dec = decoder_silk_state(st);
@@ -1350,11 +1350,9 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
         audiosize = F5;
     }
   }
-  if (data != nullptr && st->prev_mode > 0 &&
-      ((mode == opus_mode_celt_only && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy) ||
-       (mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only))) {
-    transition = 1;
-  }
+  const bool transition = data != nullptr && st->prev_mode > 0 &&
+                          ((mode == opus_mode_celt_only && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy) ||
+                           (mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only));
   std::array<opus_res, celt_max_frame_samples * celt_max_channels / 4> auxiliary_storage;
   if (transition && mode == opus_mode_celt_only) {
     pcm_transition = auxiliary_storage.data();
@@ -1424,10 +1422,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     }
   }
   const int start_band = mode != opus_mode_celt_only ? 17 : 0;
-  if (redundancy) {
-    transition = 0;
-  }
-  if (transition && mode != opus_mode_celt_only) {
+  if (transition && !redundancy && mode != opus_mode_celt_only) {
     pcm_transition = auxiliary_storage.data();
     opus_decode_frame(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
   }
@@ -1473,7 +1468,7 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     copy_n_items(redundant_audio, static_cast<std::size_t>(F2_5 * st->channels), pcm);
     smooth_fade(redundant_audio + st->channels * F2_5, pcm + st->channels * F2_5, pcm + st->channels * F2_5, F2_5, st->channels, st->Fs);
   }
-  if (transition) {
+  if (pcm_transition != nullptr) {
     if (audiosize >= F5) {
       copy_n_items(pcm_transition, static_cast<std::size_t>(st->channels * F2_5), pcm);
       smooth_fade(pcm_transition + st->channels * F2_5, pcm + st->channels * F2_5, pcm + st->channels * F2_5, F2_5, st->channels, st->Fs);
