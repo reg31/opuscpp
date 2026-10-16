@@ -14398,9 +14398,7 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
   for (int block_index = 0; block_index < block_count; ++block_index) {
     const int offset = block_index * 16;
     if constexpr (Encode) {
-      if (pulse_sums[block_index] > 0) {
-        silk_shell_encode_tree<16>(coder, magnitudes.data() + offset, shell_trees[block_index], 0, pulse_sums[block_index]);
-      }
+      silk_shell_encode_tree<16>(coder, magnitudes.data() + offset, shell_trees[block_index], 0, pulse_sums[block_index]);
     } else {
       silk_shell_code_node(coder, std::span<Pulse>{pulses.data() + offset, 16}, pulse_sums[block_index]);
     }
