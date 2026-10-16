@@ -6488,7 +6488,6 @@ static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity,
   return (band_width + thetas) * sumMS > band_width * sumLR;
 }
 
-
 struct stereo_tf_basis_choice {
   std::uint64_t key = std::numeric_limits<std::uint64_t>::max();
   int choice = 0;
