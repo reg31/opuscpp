@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `93a43fbcdfa70813f69e00e66fdf5324390934e4`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `c56bf1004d2dcf060f39516b9b0c37e723e958bc`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -30,7 +30,7 @@ Measured: `93a43fbcdfa70813f69e00e66fdf5324390934e4`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.86x to 1.06x | 1.10x to 1.90x |
+| AUDIO | 0.89x to 1.05x | 1.15x to 1.79x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,7 +41,7 @@ Measured: `93a43fbcdfa70813f69e00e66fdf5324390934e4`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 19792 | 19840 | Not exposed |
-| official_encoder_ch1 | 31872 | 31936 | 31668 |
+| official_encoder_ch1 | 31872 | 31904 | 31668 |
 | current_decoder_ch1 | 8432 | 8336 | Not exposed |
 | official_decoder_ch1 | 18448 | 18560 | 18468 |
 | current_encoder_ch2 | 29888 | 29856 | Not exposed |
@@ -57,8 +57,8 @@ Measured: `93a43fbcdfa70813f69e00e66fdf5324390934e4`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 447956 | 0 | 0 | 447956 |
-| android | 443244 | 472 | 0 | 443716 |
+| host | 447572 | 0 | 0 | 447572 |
+| android | 443440 | 472 | 0 | 443912 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `93a43fbcdfa70813f69e00e66fdf5324390934e4`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=24.9135 decode_ms=22.5064 checksum=340886119
-mono-high bytes=115 encode_ms=26.7058 decode_ms=19.8248 checksum=2633358364
-stereo-mid bytes=103 encode_ms=102.492 decode_ms=36.6197 checksum=58924144
-stereo-high bytes=147 encode_ms=115.445 decode_ms=38.9398 checksum=2993918497
+mono-mid bytes=76 encode_ms=25.9057 decode_ms=21.7049 checksum=340886119
+mono-high bytes=115 encode_ms=25.7447 decode_ms=19.132 checksum=2633358364
+stereo-mid bytes=103 encode_ms=97.0193 decode_ms=35.4264 checksum=58924144
+stereo-high bytes=147 encode_ms=112.396 decode_ms=43.581 checksum=2993918497
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
