@@ -19623,7 +19623,14 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           maxBits -= side_reserve;
         }
         if (channelRate_bps > 0) {
-          silk_control_SNR(&state_Fxx[n].sCmn, channelRate_bps);
+          auto initial_target_bps = channelRate_bps;
+          if (!prefillFlag && psRangeEnc != nullptr) {
+            const auto available_bits = std::max<opus_int32>(0, maxBits - static_cast<opus_int32>(ec_tell(psRangeEnc)));
+            const auto capacity_samples = static_cast<opus_int64>(available_bits) * state_Fxx[n].sCmn.fs_kHz * 1000;
+            if (static_cast<opus_int64>(initial_target_bps) * state_Fxx[n].sCmn.frame_length > capacity_samples)
+              initial_target_bps = static_cast<opus_int32>(capacity_samples / state_Fxx[n].sCmn.frame_length);
+          }
+          silk_control_SNR(&state_Fxx[n].sCmn, initial_target_bps);
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
           auto* lbrr = psEnc->lbrr == nullptr ? nullptr : &psEnc->lbrr->channels[static_cast<std::size_t>(n)];
           const bool side_coded = encControl->nChannelsInternal == 2 &&
