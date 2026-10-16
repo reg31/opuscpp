@@ -2267,28 +2267,33 @@ static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_
   const opus_int32 denom_Q16 = static_cast<opus_int32>((static_cast<opus_int32>(1) << 16) / (8 * fs_kHz));
   const opus_int32 delta0_Q13 = rounded_i16_product_shift<16>(pred_Q13[0] - state->pred_prev_Q13[0], denom_Q16);
   const opus_int32 delta1_Q13 = rounded_i16_product_shift<16>(pred_Q13[1] - state->pred_prev_Q13[1], denom_Q16);
-  for (int n = 0; n < 8 * fs_kHz; ++n) {
-    pred0_Q13 += delta0_Q13;
-    pred1_Q13 += delta1_Q13;
+  const auto reconstruct = [&](int index) {
+    const opus_int32 sum = x1[index] + static_cast<opus_int32>(x2[index]);
+    const opus_int32 diff = x1[index] - static_cast<opus_int32>(x2[index]);
+    x1[index] = saturate_int16_from_int32(sum);
+    x2[index] = saturate_int16_from_int32(diff);
+  };
+  const auto predict = [&](int n) {
     const auto side_Q8 = wrap_shift_left(x2[n + 1], 8);
     const opus_int32 sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(x1, n), x1[n + 1], pred0_Q13, pred1_Q13);
     x2[n + 1] = rounded_rshift_to_int16<8>(sum);
+    if (n > 0) {
+      reconstruct(n);
+    }
+  };
+  for (int n = 0; n < 8 * fs_kHz; ++n) {
+    pred0_Q13 += delta0_Q13;
+    pred1_Q13 += delta1_Q13;
+    predict(n);
   }
   pred0_Q13 = pred_Q13[0];
   pred1_Q13 = pred_Q13[1];
   for (int n = 8 * fs_kHz; n < frame_length; ++n) {
-    const auto side_Q8 = wrap_shift_left(x2[n + 1], 8);
-    const opus_int32 sum = silk_stereo_apply_predictors_q8(side_Q8, silk_stereo_mid_mix_q9(x1, n), x1[n + 1], pred0_Q13, pred1_Q13);
-    x2[n + 1] = rounded_rshift_to_int16<8>(sum);
+    predict(n);
   }
   state->pred_prev_Q13[0] = pred_Q13[0];
   state->pred_prev_Q13[1] = pred_Q13[1];
-  for (int n = 0; n < frame_length; ++n) {
-    const opus_int32 sum = x1[n + 1] + static_cast<opus_int32>(x2[n + 1]);
-    const opus_int32 diff = x1[n + 1] - static_cast<opus_int32>(x2[n + 1]);
-    x1[n + 1] = saturate_int16_from_int32(sum);
-    x2[n + 1] = saturate_int16_from_int32(diff);
-  }
+  reconstruct(frame_length);
 }
 
 [[nodiscard]] static constexpr auto silk_pitch_contour_icdf(const int fs_kHz, const int nb_subfr) noexcept -> std::span<const opus_uint8> {
