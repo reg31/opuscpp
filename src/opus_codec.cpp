@@ -6450,7 +6450,6 @@ static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
   return stereo_analysis(X, LM, N0, celt_stereo_analysis_bands);
 }
 
-
 static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res) {
   const int bands = std::min(celt_stereo_analysis_bands, intensity);
   if (bands == 0)
@@ -7736,7 +7735,9 @@ OPUSCPP_NOINLINE static int celt_encode_candidate(CeltEncoderInternal* st, const
       if (LM != 0) {
         dual_stereo = analyzed_dual_stereo;
         if (enable_tf_analysis && std::any_of(tf_res.data(), tf_res.data() + std::min(celt_stereo_analysis_bands, analyzed_intensity),
-                                              [](int tf) { return tf != 0; }))
+                                              [](int tf) {
+                                                return tf != 0;
+                                              }))
           dual_stereo = stereo_analysis_tf(X, LM, N, analyzed_intensity, isTransient, tf_res.data());
       }
       st->intensity = analyzed_intensity;
