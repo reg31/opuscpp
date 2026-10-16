@@ -8519,7 +8519,8 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   }
   const bool retain_previous = !zero_gains && LM == 0;
   st->postfilter_period_old = retain_previous ? st->postfilter_period : target_period;
-  st->postfilter_gain_old = zero_gains ? opus_val16{0} : retain_previous ? st->postfilter_gain : target_gain;
+  st->postfilter_gain_old = zero_gains ? opus_val16{0} : retain_previous ? st->postfilter_gain
+                                                                         : target_gain;
   st->postfilter_tapset_old = retain_previous ? st->postfilter_tapset : target_tapset;
   st->postfilter_period = target_period;
   st->postfilter_gain = zero_gains ? opus_val16{0} : target_gain;
