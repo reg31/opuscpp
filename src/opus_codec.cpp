@@ -1941,7 +1941,34 @@ template <typename T> static void silk_bwexpander(T* ar, std::size_t count, opus
 template <int Order>
   requires(Order == 10 || Order == 16)
 static inline void silk_LPC_analysis_filter_order(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len) {
-  for (opus_int32 ix = len; ix > Order;) {
+  opus_int32 ix = len;
+  if (len > Order) {
+    const auto before = std::less<const opus_int16*>{};
+    const bool input_safe = out == in || !(before(out, in + len) && before(in, out + len));
+    const bool coefficients_safe = !(before(out, B + Order) && before(B, out + len));
+    if (input_safe && coefficients_safe) {
+      for (; ix - Order >= 4; ix -= 4) {
+        opus_uint32 prediction0 = 0, prediction1 = 0, prediction2 = 0, prediction3 = 0;
+        for (int tap = 0; tap < Order; ++tap) {
+          const auto coefficient = static_cast<opus_int32>(B[tap]);
+          prediction0 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 2]) * coefficient);
+          prediction1 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 3]) * coefficient);
+          prediction2 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 4]) * coefficient);
+          prediction3 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 5]) * coefficient);
+        }
+        const auto store = [&]<int Lane>(opus_uint32 prediction) {
+          const int index = ix - Lane - 1;
+          const auto residual = wrap_subtract(wrap_shift_left(in[index], 12), std::bit_cast<opus_int32>(prediction));
+          out[index] = saturate_int16_from_int32(rounded_rshift<12>(residual));
+        };
+        store.template operator()<0>(prediction0);
+        store.template operator()<1>(prediction1);
+        store.template operator()<2>(prediction2);
+        store.template operator()<3>(prediction3);
+      }
+    }
+  }
+  for (; ix > Order;) {
     --ix;
     const auto* in_ptr = &in[ix - 1];
     auto out32_Q12 = static_cast<opus_int32>(static_cast<opus_int16>(in_ptr[0])) * static_cast<opus_int32>(static_cast<opus_int16>(B[0]));
