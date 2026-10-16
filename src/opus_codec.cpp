@@ -12674,16 +12674,42 @@ static constexpr CeltModeInternal mode48000_960_120 = {
 }
 
 static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len) {
-  constexpr int factor = 2, offset = 1;
-  for (int i = 1; i < len; i++) {
-    x_lp[i] = .25f * x[0][(factor * i - offset)] + .25f * x[0][(factor * i + offset)] + .5f * x[0][factor * i];
-  }
-  x_lp[0] = .25f * x[0][offset] + .5f * x[0][0];
-  if (channels == 2) {
+  if constexpr (FLT_EVAL_METHOD != 0) {
+
+    constexpr int factor = 2, offset = 1;
     for (int i = 1; i < len; i++) {
-      x_lp[i] += .25f * x[1][(factor * i - offset)] + .25f * x[1][(factor * i + offset)] + .5f * x[1][factor * i];
+      x_lp[i] = .25f * x[0][(factor * i - offset)] + .25f * x[0][(factor * i + offset)] + .5f * x[0][factor * i];
     }
-    x_lp[0] += .25f * x[1][offset] + .5f * x[1][0];
+    x_lp[0] = .25f * x[0][offset] + .5f * x[0][0];
+    if (channels == 2) {
+      for (int i = 1; i < len; i++) {
+        x_lp[i] += .25f * x[1][(factor * i - offset)] + .25f * x[1][(factor * i + offset)] + .5f * x[1][factor * i];
+      }
+      x_lp[0] += .25f * x[1][offset] + .5f * x[1][0];
+    }
+    pitch_whiten(x_lp, len);
+
+    return;
+  }
+  if (len > 1) {
+    opus_val16 previous_odd = .25f * x[0][1];
+    for (int i = 1; i < len; ++i) {
+      const opus_val16 next_odd = .25f * x[0][2 * i + 1];
+      x_lp[i] = previous_odd + next_odd + .5f * x[0][2 * i];
+      previous_odd = next_odd;
+    }
+  }
+  x_lp[0] = .25f * x[0][1] + .5f * x[0][0];
+  if (channels == 2) {
+    if (len > 1) {
+      opus_val16 previous_odd = .25f * x[1][1];
+      for (int i = 1; i < len; ++i) {
+        const opus_val16 next_odd = .25f * x[1][2 * i + 1];
+        x_lp[i] += previous_odd + next_odd + .5f * x[1][2 * i];
+        previous_odd = next_odd;
+      }
+    }
+    x_lp[0] += .25f * x[1][1] + .5f * x[1][0];
   }
   pitch_whiten(x_lp, len);
 }
