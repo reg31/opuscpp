@@ -9,6 +9,7 @@
 #include <cfloat>
 #include <charconv>
 #include <cfenv>
+#include <cerrno>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -15098,6 +15099,53 @@ template <int Shift>
   return wrapped >= 40 ? wrapped - 40 : wrapped;
 }
 
+[[nodiscard]] static auto silk_nsq_shaping_integer(float value) noexcept -> opus_int32 {
+  if (value >= 0x1p31f)
+    return opus_int32_max;
+  if (value <= -0x1p31f)
+    return opus_int32_min;
+  return static_cast<opus_int32>(value);
+}
+
+template <bool Warped>
+static auto silk_nsq_noise_shape_float(const std::array<opus_int32, 4>& diff, float* state, const float* coefficients, int order, float warping) noexcept {
+  std::array<float, 4> even, odd, out;
+  for (int lane = 0; lane < 4; ++lane) {
+    const auto old = state[lane];
+    even[lane] = static_cast<float>(diff[lane]);
+    if constexpr (Warped)
+      even[lane] += warping * old;
+    state[lane] = even[lane];
+    odd[lane] = old;
+    if constexpr (Warped)
+      odd[lane] += warping * (state[4 + lane] - even[lane]);
+    out[lane] = even[lane] * coefficients[0];
+  }
+  for (int index = 2; index < order; index += 2) {
+    for (int lane = 0; lane < 4; ++lane) {
+      even[lane] = state[(index - 1) * 4 + lane];
+      if constexpr (Warped)
+        even[lane] += warping * (state[index * 4 + lane] - odd[lane]);
+      state[(index - 1) * 4 + lane] = odd[lane];
+      out[lane] += odd[lane] * coefficients[index - 1];
+    }
+    for (int lane = 0; lane < 4; ++lane) {
+      odd[lane] = state[index * 4 + lane];
+      if constexpr (Warped)
+        odd[lane] += warping * (state[(index + 1) * 4 + lane] - even[lane]);
+      state[index * 4 + lane] = even[lane];
+      out[lane] += even[lane] * coefficients[index];
+    }
+  }
+  std::array<opus_int32, 4> result;
+  for (int lane = 0; lane < 4; ++lane) {
+    state[(order - 1) * 4 + lane] = odd[lane];
+    out[lane] += odd[lane] * coefficients[order - 1];
+    result[lane] = silk_nsq_shaping_integer(2.f * out[lane]);
+  }
+  return result;
+}
+
 template <bool FixedPulses>
 static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool first_subframe) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
@@ -15112,7 +15160,26 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   const auto nStatesDelayedDecision = static_cast<int>(psDelDec.size());
   std::array<opus_int32, 24 * 4> lane_ar;
   const bool use_four_lane_ar = (!FixedPulses) && nStatesDelayedDecision == 4;
-  if (use_four_lane_ar) {
+  const int original_errno = errno;
+  std::fenv_t original_environment, held_environment;
+  bool use_float_ar = false;
+  if (use_four_lane_ar && !zero_ar && std::fegetenv(&original_environment) == 0) {
+    use_float_ar = std::feholdexcept(&held_environment) == 0;
+    if (!use_float_ar)
+      std::fesetenv(&original_environment);
+  }
+  errno = original_errno;
+  std::array<float, 24 * 4> float_ar;
+  std::array<float, 24> float_coefficients;
+  float float_warping = 0.f;
+  if (use_float_ar) {
+    float_warping = static_cast<opus_int16>(warping_Q16) * (1.f / 65536.f);
+    for (int index = 0; index < shapingLPCOrder; ++index) {
+      float_coefficients[index] = AR_shp_Q13[index] * (1.f / 65536.f);
+      for (int state = 0; state < 4; ++state)
+        float_ar[index * 4 + state] = static_cast<float>(psDelDec[state].sAR2_Q14[index]);
+    }
+  } else if (use_four_lane_ar) {
     for (int index = 0; index < shapingLPCOrder; ++index) {
       for (int state = 0; state < 4; ++state)
         lane_ar[(index) * 4 + (state)] = psDelDec[state].sAR2_Q14[index];
@@ -15153,7 +15220,12 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     }
     std::array<opus_int32, 4> n_AR_lane;
     if (use_four_lane_ar) {
-      if (first_subframe && i == 0) {
+      if (use_float_ar) {
+        const std::array<opus_int32, 4> differences{psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14};
+        n_AR_lane = warping_Q16 == 0
+                        ? silk_nsq_noise_shape_float<false>(differences, float_ar.data(), float_coefficients.data(), shapingLPCOrder, float_warping)
+                        : silk_nsq_noise_shape_float<true>(differences, float_ar.data(), float_coefficients.data(), shapingLPCOrder, float_warping);
+      } else if (first_subframe && i == 0) {
         std::array<opus_int32, 24> first_ar;
         std::copy_n(psDelDec[0].sAR2_Q14, shapingLPCOrder, first_ar.begin());
         n_AR_lane.fill(warping_Q16 == 0
@@ -15250,8 +15322,13 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         if (shapingLPCOrder < 24) {
           std::memcpy(psDelDec[RDmax_ind].sAR2_Q14 + shapingLPCOrder, psDelDec[RDmin_ind].sAR2_Q14 + shapingLPCOrder, static_cast<std::size_t>(24 - shapingLPCOrder) * sizeof(opus_int32));
         }
-        for (int index = 0; index < shapingLPCOrder; ++index)
-          lane_ar[(index) * 4 + (RDmax_ind)] = lane_ar[(index) * 4 + (RDmin_ind)];
+        if (use_float_ar) {
+          for (int index = 0; index < shapingLPCOrder; ++index)
+            float_ar[index * 4 + RDmax_ind] = float_ar[index * 4 + RDmin_ind];
+        } else {
+          for (int index = 0; index < shapingLPCOrder; ++index)
+            lane_ar[(index) * 4 + (RDmax_ind)] = lane_ar[(index) * 4 + (RDmin_ind)];
+        }
       }
     }
     psDD = &psDelDec[Winner_ind];
@@ -15289,8 +15366,12 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
   if (use_four_lane_ar) {
     for (int index = 0; index < shapingLPCOrder; ++index) {
       for (int state = 0; state < 4; ++state)
-        psDelDec[state].sAR2_Q14[index] = lane_ar[(index) * 4 + (state)];
+        psDelDec[state].sAR2_Q14[index] = use_float_ar ? silk_nsq_shaping_integer(float_ar[index * 4 + state]) : lane_ar[index * 4 + state];
     }
+  }
+  if (use_float_ar) {
+    std::fesetenv(&original_environment);
+    errno = original_errno;
   }
 }
 
