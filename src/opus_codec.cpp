@@ -18143,7 +18143,7 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
 }
 
 static void silk_LPC_analysis_filter_pair_FLP(float* residual0, float* residual1, const float* coefficients0,
-                                               const float* coefficients1, const float* signal, int length, int order) {
+                                              const float* coefficients1, const float* signal, int length, int order) {
   const auto filter = [&]<int Order>() {
     int index = Order;
     for (; index < length - 3; index += 4) {
