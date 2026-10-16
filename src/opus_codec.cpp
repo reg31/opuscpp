@@ -16134,12 +16134,12 @@ static void silk_biquad_alt_stride1(const opus_int16* in, const opus_int32 B_Q28
   for (int k = 0; k < len; ++k) {
     const opus_int32 inval = in[k];
     const opus_int32 out32_Q14 = wrap_shift_left(silk_mla_wb(S[0], B_Q28[0], inval), 2);
-    S[0] = S[1] + rounded_mul_i16_q16<14>(out32_Q14, A0_L_Q28);
-    S[0] = silk_mla_wb(S[0], out32_Q14, A0_U_Q28);
-    S[0] = silk_mla_wb(S[0], B_Q28[1], inval);
-    S[1] = rounded_mul_i16_q16<14>(out32_Q14, A1_L_Q28);
-    S[1] = silk_mla_wb(S[1], out32_Q14, A1_U_Q28);
-    S[1] = silk_mla_wb(S[1], B_Q28[2], inval);
+    opus_int32 state0 = S[1] + rounded_mul_i16_q16<14>(out32_Q14, A0_L_Q28);
+    state0 = silk_mla_wb(state0, out32_Q14, A0_U_Q28);
+    S[0] = silk_mla_wb(state0, B_Q28[1], inval);
+    opus_int32 state1 = rounded_mul_i16_q16<14>(out32_Q14, A1_L_Q28);
+    state1 = silk_mla_wb(state1, out32_Q14, A1_U_Q28);
+    S[1] = silk_mla_wb(state1, B_Q28[2], inval);
     out[k] = saturate_int16_from_int32((out32_Q14 + (1 << 14) - 1) >> 14);
   }
 }
