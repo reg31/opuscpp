@@ -16286,8 +16286,8 @@ constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_fra
   return output_hz * 6 == input_hz ? silk_resampler_ratio_config{1, 36, silk_Resampler_1_6_COEFS} : silk_resampler_ratio_config{0, 0, {}};
 }
 
-static void silk_resampler_private_IIR_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
-static void silk_resampler_private_down_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
+static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
+static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
 static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], const opus_int16 in[], const opus_int16 A_Q14[], opus_int32 len);
 constexpr std::array<std::array<opus_uint8, 3>, 6> delay_matrix_enc =
     numeric_blob_matrix<opus_uint8, 3>(R"blob(06000300070300010A000206120A0C00002C)blob");
@@ -16456,8 +16456,7 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32
   return out;
 }
 
-static void silk_resampler_private_down_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
-  silk_resampler_state_struct* S = static_cast<silk_resampler_state_struct*>(SS);
+static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
   opus_int32 nSamplesIn = 0;
   std::array<opus_int32, silk_max_resampler_batch_size + silk_max_resampler_fir_order> buf;
   std::memcpy(buf.data(), S->sFIR.i32, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)));
@@ -16491,8 +16490,7 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
   return out;
 }
 
-static void silk_resampler_private_IIR_FIR(void* SS, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
-  silk_resampler_state_struct* S = static_cast<silk_resampler_state_struct*>(SS);
+static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
   opus_int32 nSamplesIn = 0;
   std::array<opus_int16, 2 * silk_max_resampler_batch_size + 8> buf;
   std::memcpy(buf.data(), S->sFIR.i16, static_cast<std::size_t>(8 * sizeof(opus_int16)));
