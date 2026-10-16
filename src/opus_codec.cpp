@@ -6883,11 +6883,19 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
           for (int i = 0; i < overlap_end; ++i) {
             const double fade = static_cast<double>(window[i]) * window[i];
             double target = x[i];
+            double previous_prediction = 0;
+            bool reuse_previous = false;
             if (st->prefilter_gain != 0) {
-              target -= (1 - fade) * st->prefilter_gain *
-                        (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+              if constexpr (FLT_EVAL_METHOD == 0) {
+                target -= (1 - fade) * st->prefilter_gain *
+                          (previous_prediction = taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+                reuse_previous = pitch_index == previous_period;
+              } else {
+                target -= (1 - fade) * st->prefilter_gain *
+                          (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
+              }
             }
-            const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
+            const double predictor = fade * (reuse_previous ? previous_prediction : taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
             cross += target * predictor;
             power += predictor * predictor;
           }
