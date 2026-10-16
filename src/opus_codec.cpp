@@ -6506,8 +6506,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   if (importance != nullptr)
     std::fill_n(importance, end, 13);
   if (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement) {
-    int last = 0;
     for (c = 0; c < C; ++c) {
+      int last = 0;
       celt_glog offset, tmp;
       celt_glog* f;
       auto* bandLogE3 = &bandLogE2[c * nbEBands];
