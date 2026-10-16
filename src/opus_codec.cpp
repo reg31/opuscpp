@@ -14258,15 +14258,12 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
     }
     const opus_int32 gain_Q10 = ((gain_Q16) >> (6));
     const int exc_mask = static_cast<int>(std::bit_floor(static_cast<unsigned>(length) + 1U) - 1U);
-    for (int i = 0; i < length; ++i) {
-      psCNG->rand_seed = silk_next_rand_seed(psCNG->rand_seed);
-      const int index = (psCNG->rand_seed >> 24) & exc_mask;
-      CNG_sig_Q14[16 + i] = silk_read_excitation(psCNG->CNG_exc_low[index], psCNG->CNG_exc_high[index]);
-    }
     silk_NLSF2A(A_Q12, psCNG->CNG_smth_NLSF_Q15, psDec->LPC_order);
     std::memcpy(CNG_sig_Q14, psCNG->CNG_synth_state, static_cast<std::size_t>(16 * sizeof(opus_int32)));
-    const auto source = [&](int i) {
-      return CNG_sig_Q14[16 + i];
+    const auto source = [&](int) noexcept {
+      psCNG->rand_seed = silk_next_rand_seed(psCNG->rand_seed);
+      const int index = (psCNG->rand_seed >> 24) & exc_mask;
+      return silk_read_excitation(psCNG->CNG_exc_low[index], psCNG->CNG_exc_high[index]);
     };
     silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
     std::memcpy(psCNG->CNG_synth_state, &CNG_sig_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
