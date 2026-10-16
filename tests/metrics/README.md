@@ -1,12 +1,12 @@
 # Complete production metrics
 
-Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `e6d9d368da4e04c5b341034cc556178986e9a64d`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
 | Suite | Cases | Fields | Below official |
 |---|---:|---:|---:|
-| Matrix | 498 | 12 | 808 |
+| Matrix | 498 | 12 | 817 |
 | Publication | 806 | 12 | 818 |
 
 | Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
@@ -16,13 +16,13 @@ Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51b
 | rms_error | Lower | 21 | 9 |
 | mean_abs_error | Lower | 24 | 10 |
 | pesq_style | Higher | 22 | 8 |
-| visqol_style | Higher | 79 | 88 |
-| logband_corr | Higher | 76 | 98 |
+| visqol_style | Higher | 80 | 88 |
+| logband_corr | Higher | 78 | 98 |
 | logband_error | Lower | 77 | 85 |
-| celt_quality | Higher | 115 | 140 |
-| celt_masked_error | Lower | 115 | 140 |
+| celt_quality | Higher | 117 | 139 |
+| celt_masked_error | Lower | 117 | 139 |
 | celt_highband_error | Lower | 210 | 206 |
-| stereo_width_error | Lower | 27 | 16 |
+| stereo_width_error | Lower | 29 | 18 |
 
 [Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
 
@@ -30,7 +30,7 @@ Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.90x to 1.05x | 1.17x to 1.85x |
+| AUDIO | 0.91x to 1.03x | 1.13x to 1.93x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,13 +41,13 @@ Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 19792 | 19824 | Not exposed |
-| official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 8464 | 8320 | Not exposed |
-| official_decoder_ch1 | 18448 | 18560 | 18468 |
-| current_encoder_ch2 | 29888 | 29856 | Not exposed |
+| official_encoder_ch1 | 31856 | 31872 | 31668 |
+| current_decoder_ch1 | 8432 | 8320 | Not exposed |
+| official_decoder_ch1 | 18464 | 18560 | 18468 |
+| current_encoder_ch2 | 29872 | 29856 | Not exposed |
 | official_encoder_ch2 | 48944 | 48736 | 48684 |
-| current_decoder_ch2 | 17600 | 16240 | Not exposed |
-| official_decoder_ch2 | 27168 | 27264 | 27236 |
+| current_decoder_ch2 | 17600 | 16208 | Not exposed |
+| official_decoder_ch2 | 27136 | 27280 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 447472 | 0 | 0 | 447472 |
-| android | 445192 | 472 | 0 | 445664 |
+| host | 448520 | 0 | 0 | 448520 |
+| android | 445808 | 472 | 0 | 446280 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `6c1bff89944c7f427423a6f226a0f2dc91176e62`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=65.4213 decode_ms=45.4344 checksum=340886119
-mono-high bytes=115 encode_ms=36.7793 decode_ms=25.47 checksum=2633358364
-stereo-mid bytes=103 encode_ms=123.452 decode_ms=44.1304 checksum=58924144
-stereo-high bytes=147 encode_ms=141.471 decode_ms=46.7057 checksum=2993918497
+mono-mid bytes=76 encode_ms=33.5776 decode_ms=29.6967 checksum=340886119
+mono-high bytes=115 encode_ms=37.2177 decode_ms=26.1052 checksum=2633358364
+stereo-mid bytes=103 encode_ms=134.774 decode_ms=47.1078 checksum=58924144
+stereo-high bytes=147 encode_ms=137.091 decode_ms=42.5258 checksum=2993918497
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
