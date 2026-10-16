@@ -612,6 +612,9 @@ struct classical_leak_state {
   opus_uint8 analysis_read_subframe_bak;
   float history_distances[28];
   bool history_distance_valid;
+  float history_energy_roots[8][18];
+  int energy_roots_rounding;
+  bool energy_roots_valid;
 };
 static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept {
   if (state->pending_pcm == nullptr) {
@@ -12353,6 +12356,20 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     E = (1.f / 32768.f / 32768.f) * E;
     band_log2[0] = .5f * 1.442695f * static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
   }
+  constexpr bool energy_root_format = sizeof(float) == sizeof(opus_uint32) &&
+                                      std::numeric_limits<float>::is_iec559 && FLT_EVAL_METHOD == 0;
+  int energy_root_rounding = 0;
+  bool energy_roots_build = false;
+  bool energy_roots_reuse = false;
+  if constexpr (energy_root_format) {
+    energy_root_rounding = std::fegetround();
+    energy_roots_build = energy_root_rounding == FE_TONEAREST || energy_root_rounding == FE_DOWNWARD ||
+                         energy_root_rounding == FE_UPWARD || energy_root_rounding == FE_TOWARDZERO;
+    energy_roots_reuse = energy_roots_build && tonal->energy_roots_valid &&
+                         tonal->energy_roots_rounding == energy_root_rounding && std::fetestexcept(FE_INEXACT) != 0;
+  }
+  if (!energy_roots_reuse)
+    tonal->energy_roots_valid = false;
   for (b = 0; b < 18; ++b) {
     float E = 0, tE = 0, nE = 0;
     raw_band_energy[b] = 0;
@@ -12398,9 +12415,31 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     relativeE += (logE[b] - tonal->lowE[b]) / (1e-5f + (tonal->highE[b] - tonal->lowE[b]));
 
     L1 = L2 = 0;
-    for (i = 0; i < 8; ++i) {
-      L1 += classifier_sqrt_d(tonal->E[i][b]);
-      L2 += tonal->E[i][b];
+    bool current_root_safe = false;
+    if constexpr (energy_root_format) {
+      const opus_uint32 bits = std::bit_cast<opus_uint32>(E);
+      const opus_uint32 magnitude = bits & 0x7fffffffU;
+      current_root_safe = magnitude == 0 || (bits < 0x7f800000U && magnitude >= 0x00800000U);
+    }
+    if (energy_roots_reuse && current_root_safe) {
+      tonal->history_energy_roots[tonal->E_count][b] = classifier_sqrt_d(E);
+      for (i = 0; i < 8; ++i) {
+        L1 += tonal->history_energy_roots[i][b];
+        L2 += tonal->E[i][b];
+      }
+    } else {
+      for (i = 0; i < 8; ++i) {
+        const float energy = tonal->E[i][b];
+        const float root = classifier_sqrt_d(energy);
+        if constexpr (energy_root_format) {
+          tonal->history_energy_roots[i][b] = root;
+          const opus_uint32 bits = std::bit_cast<opus_uint32>(energy);
+          const opus_uint32 magnitude = bits & 0x7fffffffU;
+          energy_roots_build &= magnitude == 0 || (bits < 0x7f800000U && magnitude >= 0x00800000U);
+        }
+        L1 += root;
+        L2 += energy;
+      }
     }
 
     stationarity = std::min(0.99f, L1 / classifier_sqrt_d(1e-15 + 8 * L2));
@@ -12417,6 +12456,10 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     tonal->prev_band_tonality[b] = band_tonality[b];
   }
 
+  if constexpr (energy_root_format) {
+    tonal->energy_roots_valid = energy_roots_build;
+    tonal->energy_roots_rounding = energy_root_rounding;
+  }
   leakage_from[0] = band_log2[0];
   leakage_to[0] = band_log2[0] - 2.5f;
   for (b = 1; b < 19; ++b) {
