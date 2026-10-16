@@ -19133,9 +19133,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           flags = wrap_shift_left(flags, 1);
           flags |= packet_has_lbrr[static_cast<std::size_t>(n)];
         }
-        if (!prefillFlag) {
-          ec_enc_patch_initial_bits(psRangeEnc, flags, (state0.nFramesPerPacket + 1) * encControl->nChannelsInternal);
-        }
+        ec_enc_patch_initial_bits(psRangeEnc, flags, (state0.nFramesPerPacket + 1) * encControl->nChannelsInternal);
         psEnc->nBitsExceeded += *nBytesOut * 8;
         psEnc->nBitsExceeded -= static_cast<opus_int32>(encControl->bitRate * encControl->payloadSize_ms / 1000);
         psEnc->nBitsExceeded = std::clamp(psEnc->nBitsExceeded, -10000, 10000);
