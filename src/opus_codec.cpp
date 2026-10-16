@@ -7596,9 +7596,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       vbr_rate = bitrate_to_bits(st->bitrate, celt_sample_rate, frame_size) << 3;
       effectiveBytes = vbr_rate >> (3 + 3);
     } else {
-      opus_int32 tmp = st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0);
       if (st->bitrate != -1) {
-        nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (tmp + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
+        nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (static_cast<opus_int32>(st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0)) + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
         if (enc != nullptr)
           ec_enc_shrink(enc, nbCompressedBytes);
       }
