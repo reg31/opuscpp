@@ -12199,6 +12199,59 @@ static float classical_leak_downmix_resample(classical_leak_state* s, const opus
   return ret * (1.f / 32768.f / 32768.f);
 }
 
+template <typename Float>
+static Float classifier_unified_atan2_nearest(Float y, Float x) {
+  const auto legacy = [y, x]() {
+    float (*volatile call)(float, float) = classifier_fast_atan2f;
+    return static_cast<Float>(call(static_cast<float>(y), static_cast<float>(x)));
+  };
+  if constexpr (std::is_same_v<Float, float> && sizeof(Float) == sizeof(opus_uint32) &&
+                std::numeric_limits<Float>::is_iec559 && std::numeric_limits<Float>::radix == 2 &&
+                std::numeric_limits<Float>::digits == 24 && std::numeric_limits<Float>::max_exponent == 128 &&
+                FLT_EVAL_METHOD == 0) {
+    const opus_uint32 x_bits = std::bit_cast<opus_uint32>(x);
+    const opus_uint32 y_bits = std::bit_cast<opus_uint32>(y);
+    const opus_uint32 x_magnitude = x_bits & 0x7fffffffU;
+    const opus_uint32 y_magnitude = y_bits & 0x7fffffffU;
+    const auto bounded = [](opus_uint32 magnitude) {
+      return magnitude == 0 || (magnitude >= 0x00800000U && magnitude <= 0x49800000U);
+    };
+    if (!bounded(x_magnitude) || !bounded(y_magnitude))
+      return legacy();
+    const Float cA = 0.43157974f;
+    const Float cB = 0.67848403f;
+    const Float cC = 0.08595542f;
+    const Float cE = static_cast<Float>(3.14159265358979323846 / 2);
+    const Float x2 = x * x;
+    const Float y2 = y * y;
+    if (x2 + y2 < 1e-18f)
+      return 0;
+    const opus_uint32 steep = 0U - static_cast<opus_uint32>(x2 < y2);
+    const opus_uint32 x2_bits = std::bit_cast<opus_uint32>(x2);
+    const opus_uint32 y2_bits = std::bit_cast<opus_uint32>(y2);
+    const opus_uint32 exchange = (x2_bits ^ y2_bits) & steep;
+    const Float major = std::bit_cast<Float>(x2_bits ^ exchange);
+    const Float minor = std::bit_cast<Float>(y2_bits ^ exchange);
+    const Float denominator = (major + cB * minor) * (major + cC * minor);
+    const Float selected_x = std::bit_cast<Float>(x_bits ^ (steep & 0x80000000U));
+    const Float xy = selected_x * y;
+    const opus_uint32 xy_bits = std::bit_cast<opus_uint32>(xy);
+    const opus_uint32 xy_magnitude = xy_bits & 0x7fffffffU;
+    if (xy_magnitude != 0 && xy_magnitude < 0x00800000U)
+      return legacy();
+    const opus_uint32 y_negative = ((y_bits >> 31) & static_cast<opus_uint32>(y_magnitude != 0)) << 31;
+    const opus_uint32 xy_negative = ((xy_bits >> 31) & static_cast<opus_uint32>(xy_magnitude != 0)) << 31;
+    const opus_uint32 half_pi = std::bit_cast<opus_uint32>(cE);
+    const Float first = xy * (major + cA * minor) / denominator + std::bit_cast<Float>(half_pi | y_negative);
+    const opus_uint32 opposite_zero = (std::bit_cast<opus_uint32>(first) ^ 0x80000000U) & 0x80000000U;
+    const opus_uint32 shallow_correction = half_pi | xy_negative;
+    const opus_uint32 correction = shallow_correction ^ ((shallow_correction ^ opposite_zero) & steep);
+    return first - std::bit_cast<Float>(correction);
+  } else {
+    return legacy();
+  }
+}
+
 static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* pcm, int len, int offset,
                                    int channels, int lsb_depth, int Fs, const opus_int16* pcm16 = nullptr) {
   int i, b;
@@ -12291,6 +12344,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     return;
   }
 
+  const bool unified_phase_atan = std::fegetround() == FE_TONEAREST;
   for (i = 1; i < N2; ++i) {
     float X1r, X2r, X1i, X2i;
     float angle, d_angle, d2_angle;
@@ -12301,11 +12355,11 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     X2r = out[N + (i)] + out[N + (N - i)];
     X2i = out[(N - i)] - out[(i)];
 
-    angle = static_cast<float>(.5f / 3.141592653) * classifier_fast_atan2f(X1i, X1r);
+    angle = static_cast<float>(.5f / 3.141592653) * (unified_phase_atan ? classifier_unified_atan2_nearest(X1i, X1r) : classifier_fast_atan2f(X1i, X1r));
     d_angle = angle - A[i];
     d2_angle = d_angle - dA[i];
 
-    angle2 = static_cast<float>(.5f / 3.141592653) * classifier_fast_atan2f(X2i, X2r);
+    angle2 = static_cast<float>(.5f / 3.141592653) * (unified_phase_atan ? classifier_unified_atan2_nearest(X2i, X2r) : classifier_fast_atan2f(X2i, X2r));
     d_angle2 = angle2 - angle;
     d2_angle2 = d_angle2 - d_angle;
 
