@@ -5803,14 +5803,10 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           } else
             for (int block = 0; block < B; ++block)
               source_angles[block] = stereo_angle(source_gram[block]);
-          struct stereo_error {
-            const decltype(gram)& make_gram;
-            const decltype(stereo_angle)& angle;
-            const std::array<opus_val32, 1 << celt_max_lm>& source;
-            int blocks;
-            opus_val32 left_gain, right_gain, inverse_scale;
-            OPUSCPP_NOINLINE opus_val32 operator()(const celt_norm* left, const celt_norm* right) const {
-              const auto reconstructed = make_gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
+          const int blocks = scalar_rank ? 0 : B;
+          const auto trial_error = [&, left_gain, right_gain, inverse_scale, blocks](const celt_norm* left, const celt_norm* right) {
+            if (!reuse_split_trials) {
+              const auto reconstructed = gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
               if (blocks == 0) {
                 const auto total = reconstructed[0][0] + reconstructed[0][1];
                 const auto cross = 2.f * reconstructed[0][2];
@@ -5818,22 +5814,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
                 const auto side = std::max(0.f, total - cross);
                 const double power = static_cast<double>(mid) + side;
                 if (power == 0)
-                  return source[1];
-                const double residual = std::sqrt(static_cast<double>(source[0]) * side) - std::sqrt(static_cast<double>(source[1]) * mid);
+                  return source_angles[1];
+                const double residual = std::sqrt(static_cast<double>(source_angles[0]) * side) - std::sqrt(static_cast<double>(source_angles[1]) * mid);
                 return static_cast<opus_val32>(residual * residual / power);
               }
               opus_val32 error = 0;
               for (int block = 0; block < blocks; ++block) {
-                const auto difference = angle(reconstructed[block]) - source[block];
+                const auto difference = stereo_angle(reconstructed[block]) - source_angles[block];
                 error += difference * difference;
               }
               return error;
             }
-          };
-          const stereo_error gram_error{gram, stereo_angle, source_angles, scalar_rank ? 0 : B, left_gain, right_gain, inverse_scale};
-          const auto trial_error = [&](const celt_norm* left, const celt_norm* right) {
-            if (!reuse_split_trials)
-              return gram_error(left, right);
             const auto source_left = inverse_scale * bandE[i];
             const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
             const auto decoded_left = inverse_scale * left_gain;
