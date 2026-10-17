@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `a05ed0ff3fe8282833fad59e7cac4eb2565d2345`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `dabcf031c01960bc927f0f33dda7afe891d512fe`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -30,7 +30,7 @@ Measured: `a05ed0ff3fe8282833fad59e7cac4eb2565d2345`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.94x to 1.11x | 1.22x to 1.93x |
+| AUDIO | 0.95x to 1.14x | 1.18x to 1.92x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,13 +41,13 @@ Measured: `a05ed0ff3fe8282833fad59e7cac4eb2565d2345`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20480 | 20464 | Not exposed |
-| official_encoder_ch1 | 31824 | 31856 | 31668 |
+| official_encoder_ch1 | 31824 | 31872 | 31668 |
 | current_decoder_ch1 | 8464 | 8352 | Not exposed |
 | official_decoder_ch1 | 18464 | 18560 | 18468 |
 | current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
 | current_decoder_ch2 | 17520 | 16224 | Not exposed |
-| official_decoder_ch2 | 27120 | 27264 | 27236 |
+| official_decoder_ch2 | 27136 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `a05ed0ff3fe8282833fad59e7cac4eb2565d2345`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 479492 | 0 | 0 | 479492 |
-| android | 468116 | 472 | 0 | 468588 |
+| host | 479108 | 0 | 0 | 479108 |
+| android | 467700 | 472 | 0 | 468172 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `a05ed0ff3fe8282833fad59e7cac4eb2565d2345`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=17.8855 decode_ms=16.5472 checksum=340886119
-mono-high bytes=115 encode_ms=21.2342 decode_ms=15.5625 checksum=2633358364
-stereo-mid bytes=102 encode_ms=76.8227 decode_ms=31.7783 checksum=3625126390
-stereo-high bytes=147 encode_ms=84.2641 decode_ms=32.5448 checksum=2476207253
+mono-mid bytes=76 encode_ms=18.9392 decode_ms=16.9241 checksum=340886119
+mono-high bytes=115 encode_ms=21.3192 decode_ms=15.6976 checksum=2633358364
+stereo-mid bytes=102 encode_ms=75.5669 decode_ms=30.8376 checksum=3625126390
+stereo-high bytes=147 encode_ms=83.4682 decode_ms=31.3472 checksum=2476207253
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
