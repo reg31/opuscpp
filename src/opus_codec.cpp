@@ -7027,6 +7027,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     for (i = start; i < end; i++) {
       int width, boost, boost_bits;
       if (C == 1) {
+        if (source_energy != nullptr)
+          follower[i] = std::max(0.f, follower[i] - celt_roex_demand_reduction(start, end, i, source_energy));
         if (st->channels == 1 && i > start && i + 1 < end) {
           const int left_center = eBands[i - 1] + eBands[i];
           const int center = eBands[i] + eBands[i + 1];
@@ -7036,8 +7038,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
               (right_center - left_center);
           follower[i] = std::max(follower[i], std::max(0.f, bandLogE[i] - bracket));
         }
-        if (source_energy != nullptr)
-          follower[i] = std::max(0.f, follower[i] - celt_roex_demand_reduction(start, end, i, source_energy));
       }
       follower[i] = std::min(follower[i], 4.0f);
       width = C * (eBands[i + 1] - eBands[i]) << LM;
