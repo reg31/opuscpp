@@ -19024,6 +19024,28 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   }
 }
 
+static bool silk_zero_offset_floor_exceeds_residual(const silk_encoder_state& state, const silk_encoder_control_FLP& control) noexcept {
+  const int saved_errno = errno;
+  std::fenv_t original_environment, held_environment;
+  bool prefer_low_offset = false;
+  if (std::fegetenv(&original_environment) == 0) {
+    if (std::feholdexcept(&held_environment) == 0) {
+      const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
+      double zero_excitation_power = 0.0, residual_power = 0.0;
+      for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
+        const double zero_excitation = static_cast<double>(control.Gains[subframe]) * offset;
+        zero_excitation_power += zero_excitation * zero_excitation;
+        residual_power += static_cast<double>(control.ResNrg[subframe]) / state.subfr_length;
+      }
+      prefer_low_offset = std::isfinite(zero_excitation_power) && std::isfinite(residual_power) &&
+                          residual_power >= 0.0 && zero_excitation_power > residual_power;
+    }
+    std::fesetenv(&original_environment);
+  }
+  errno = saved_errno;
+  return prefer_low_offset;
+}
+
 static void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
   silk_shape_state_FLP* psShapeSt = &psEnc->sShape;
   int k;
@@ -19052,6 +19074,9 @@ static void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_c
   if (psEnc->sCmn.indices.signalType == 2) {
     psEnc->sCmn.indices.quantOffsetType = psEncCtrl->LTPredCodGain + psEnc->sCmn.input_tilt_Q15 * (1.0f / 32768.0f) > 1.0f ? 0 : 1;
   }
+  if (psEnc->sCmn.indices.signalType != 2 && psEnc->sCmn.indices.quantOffsetType == 1 &&
+      silk_zero_offset_floor_exceeds_residual(psEnc->sCmn, *psEncCtrl))
+    psEnc->sCmn.indices.quantOffsetType = 0;
   quant_offset = silk_Quantization_Offsets_Q10[psEnc->sCmn.indices.signalType >> 1][psEnc->sCmn.indices.quantOffsetType] / 1024.0f;
   psEncCtrl->Lambda = 1.2f + -0.05f * psEnc->sCmn.nStatesDelayedDecision + -0.2f * psEnc->sCmn.speech_activity_Q8 * (1.0f / 256.0f) +
                       -0.1f * psEncCtrl->input_quality + -0.2f * psEncCtrl->coding_quality + 0.8f * quant_offset;
@@ -19103,13 +19128,17 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
   }
   if (!psEnc->sCmn.prefillFlag) {
     silk_nsq_preparation prepared;
+    int redundancy_quant_offset_type;
     {
       std::array<float, silk_max_ltp_buffer_length + silk_max_frame_length / 2> pitch_residual;
       auto* res_pitch_frame = pitch_residual.data() + psEnc->sCmn.ltp_mem_length;
       silk_find_pitch_lags_FLP(psEnc, &sEncCtrl, pitch_residual.data(), x_frame);
       silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame);
       silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
+      redundancy_quant_offset_type = psEnc->sCmn.indices.quantOffsetType;
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding);
+      if (psEnc->sCmn.indices.signalType == 2)
+        redundancy_quant_offset_type = psEnc->sCmn.indices.quantOffsetType;
     }
     std::array<opus_int8, silk_max_frame_length> frame_pulses;
     std::array<opus_int16, silk_max_frame_length> nsq_samples;
@@ -19142,8 +19171,16 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     bool use_reconstructed_lbrr_target = true;
     if (lbrr_deferred_generate) {
       lbrr_original_indices = psEnc->sCmn.indices;
+      lbrr_original_indices.quantOffsetType = static_cast<opus_int8>(redundancy_quant_offset_type);
       std::copy_n(sEncCtrl.Gains, static_cast<std::size_t>(psEnc->sCmn.nb_subfr), lbrr_original_gains.begin());
       lbrr_original_lambda = sEncCtrl.Lambda;
+      if (redundancy_quant_offset_type != psEnc->sCmn.indices.quantOffsetType) {
+        const float redundancy_offset =
+            silk_Quantization_Offsets_Q10[psEnc->sCmn.indices.signalType >> 1][redundancy_quant_offset_type] / 1024.f;
+        lbrr_original_lambda = 1.2f + -0.05f * psEnc->sCmn.nStatesDelayedDecision +
+                               -0.2f * psEnc->sCmn.speech_activity_Q8 * (1.0f / 256.0f) +
+                               -0.1f * sEncCtrl.input_quality + -0.2f * sEncCtrl.coding_quality + 0.8f * redundancy_offset;
+      }
       lbrr_original_last_gain_index = psEnc->sShape.LastGainIndex;
     }
     constexpr int max_iterations = 6;
