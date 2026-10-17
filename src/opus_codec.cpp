@@ -4729,10 +4729,14 @@ static int clt_compute_allocation(int start, int end, const int* offsets, const 
 
 constexpr int celt_bits2pulses_lut_lm_count = 4;
 constexpr int celt_bits2pulses_lut_rows = celt_bits2pulses_lut_lm_count * celt_default_nb_ebands;
-constexpr int celt_bits2pulses_lut_entries = 15936;
+constexpr int celt_bits2pulses_lut_entries = 4424;
 
 struct celt_bits2pulses_lut_table {
-  std::array<opus_uint16, celt_bits2pulses_lut_rows + 1> offsets{};
+  struct range {
+    opus_uint16 begin;
+    opus_uint16 length;
+  };
+  std::array<range, celt_bits2pulses_lut_rows> ranges{};
   std::array<opus_uint8, celt_bits2pulses_lut_entries> values{};
 };
 
@@ -4767,11 +4771,8 @@ struct celt_pulse_budget {
   int pulses;
   if (bits >= 0 && lm > 0 && lm <= celt_bits2pulses_lut_lm_count) {
     const auto row = static_cast<std::size_t>((lm - 1) * celt_default_nb_ebands + band);
-    const auto begin = celt_bits2pulses_lut.offsets[row];
-    const auto end = celt_bits2pulses_lut.offsets[row + 1];
-    pulses = static_cast<unsigned>(bits) < static_cast<unsigned>(end - begin)
-                 ? celt_bits2pulses_lut.values[begin + static_cast<unsigned>(bits)]
-                 : cache[0];
+    const auto range = celt_bits2pulses_lut.ranges[row];
+    pulses = static_cast<unsigned>(bits) < range.length ? celt_bits2pulses_lut.values[range.begin + static_cast<unsigned>(bits)] : cache[0];
   } else {
     pulses = celt_bits2pulses_search(cache, bits);
   }
@@ -10679,6 +10680,7 @@ namespace {
       const auto cache_offset = cache_index50[static_cast<std::size_t>(lm * celt_default_nb_ebands + band)];
       const auto max_pulse = cache_bits50[static_cast<std::size_t>(cache_offset)];
       const auto count = cache_bits50[static_cast<std::size_t>(cache_offset + max_pulse)] + 2;
+      std::array<opus_uint8, 257> row_values{};
       int upper = 1;
       for (int bits = 0; bits < count; ++bits) {
         const int target = bits - 1;
@@ -10688,9 +10690,26 @@ namespace {
         const int lower = upper - 1;
         const int lower_value = lower == 0 ? -1 : cache_bits50[static_cast<std::size_t>(cache_offset + lower)];
         const int upper_value = cache_bits50[static_cast<std::size_t>(cache_offset + upper)];
-        table.values[entry++] = static_cast<opus_uint8>(target - lower_value <= upper_value - target ? lower : upper);
+        row_values[static_cast<std::size_t>(bits)] = static_cast<opus_uint8>(target - lower_value <= upper_value - target ? lower : upper);
       }
-      table.offsets[static_cast<std::size_t>(row + 1)] = static_cast<opus_uint16>(entry);
+      int previous = 0;
+      for (; previous < row; ++previous) {
+        const auto range = table.ranges[static_cast<std::size_t>(previous)];
+        if (range.length != count)
+          continue;
+        int bits = 0;
+        for (; bits < count && row_values[static_cast<std::size_t>(bits)] == table.values[range.begin + static_cast<std::size_t>(bits)]; ++bits) {
+        }
+        if (bits == count)
+          break;
+      }
+      if (previous < row) {
+        table.ranges[static_cast<std::size_t>(row)] = table.ranges[static_cast<std::size_t>(previous)];
+      } else {
+        table.ranges[static_cast<std::size_t>(row)] = {static_cast<opus_uint16>(entry), static_cast<opus_uint16>(count)};
+        for (int bits = 0; bits < count; ++bits)
+          table.values[entry++] = row_values[static_cast<std::size_t>(bits)];
+      }
     }
   }
   return table;
