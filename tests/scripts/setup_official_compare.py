@@ -465,7 +465,7 @@ def run_encode_validation_conformance(
     official_lib: pathlib.Path,
     vector_dir: pathlib.Path,
     report_dir: pathlib.Path,
-) -> dict[str, str]:
+) -> dict[str, object]:
     build_dir = report_dir / "encode_validation"
     build_dir.mkdir(parents=True, exist_ok=True)
     validation_exe = build_dir / ("official_encode_validation.exe" if os.name == "nt" else "official_encode_validation")
@@ -497,7 +497,40 @@ def run_encode_validation_conformance(
     capture([str(validation_exe), str(vector_dir), str(validation_path)])
     output = capture([str(conformance_exe), str(vector_dir), str(validation_path)])
     match = re.search(r"Encode conformance completed \((\d+) case checks passed\)", output)
-    return {"passed": match.group(1) if match else "0"}
+    passed = match.group(1) if match else "0"
+    comparisons = []
+    case = None
+    for line in output.splitlines():
+        if line.startswith("PACKET_ACCEPTANCE_PASS "):
+            case = line.removeprefix("PACKET_ACCEPTANCE_PASS ")
+        elif line.startswith("NATIVE_OFF_WAVEFORM "):
+            record = json.loads(line.removeprefix("NATIVE_OFF_WAVEFORM "))
+            record["case"] = case
+            comparisons.append(record)
+    return {
+        "passed": passed,
+        "packet_acceptance": {"passed": passed, "criterion": "Existing official decode return count; optional encoder packet/final-range bitexact checks are unchanged."},
+        "native_off_waveform": {
+            "status": "MEASURED" if comparisons else "NOT_RECORDED",
+            "reference_library": str(official_lib),
+            "configured_official_commit": OFFICIAL_OPUS_COMMIT,
+            "scope": "Independent fresh 48kHz Float32 Native/OFF decoder defaults per case, continuous same packets, decode_fec=0, raw frame support without lookahead crop; numeric errors exclude reported nonfinite pairs.",
+            "acceptance_threshold": None,
+            "cases_expected": int(passed),
+            "cases_reported": len(comparisons),
+            "frames_expected": sum(row["frames_expected"] for row in comparisons),
+            "frames_compared": sum(row["frames_compared"] for row in comparisons),
+            "samples": sum(row["samples"] for row in comparisons),
+            "differing_samples": sum(row["differing_samples"] for row in comparisons),
+            "nonfinite_samples": sum(row["nonfinite_samples"] for row in comparisons),
+            "native_return_mismatches": sum(row["native_return_mismatches"] for row in comparisons),
+            "official_return_mismatches": sum(row["official_return_mismatches"] for row in comparisons),
+            "max_absolute_error": max((row["max_absolute_error"] for row in comparisons), default=None),
+            "sum_square_error": sum(row["sum_square_error"] for row in comparisons),
+            "bit_exact_cases": sum(row["bit_exact"] is True for row in comparisons),
+            "records": comparisons,
+        },
+    }
 
 
 def run_perceptual_and_memory(

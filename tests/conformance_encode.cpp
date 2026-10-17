@@ -1,4 +1,8 @@
 #include <array>
+#include <bit>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <charconv>
 #include <cstdint>
 #include <filesystem>
@@ -22,9 +26,60 @@ void codex_opus_encoder_destroy(codex_OpusEncoder* st) noexcept;
 int codex_opus_encoder_ctl(codex_OpusEncoder* st, int request, ...) noexcept;
 int codex_opus_encode(codex_OpusEncoder* st, const std::int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;
 
+struct codex_OpusDecoder;
+codex_OpusDecoder* codex_opus_decoder_create(int Fs, int channels, int* error) noexcept;
+void codex_opus_decoder_destroy(codex_OpusDecoder* st) noexcept;
+int codex_opus_decode_float(codex_OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;
+
 namespace {
 
 using namespace encode_conformance;
+
+struct waveform_comparison {
+  std::size_t frames_expected = 0, frames_compared = 0, samples = 0, differing_samples = 0, nonfinite_samples = 0;
+  std::size_t native_return_mismatches = 0, official_return_mismatches = 0, coded_mono_packets = 0, coded_stereo_packets = 0;
+  double max_absolute_error = 0.0, sum_square_error = 0.0;
+
+  void observe(std::span<const float> native, std::span<const float> official) {
+    if (native.size() != official.size())
+      throw std::runtime_error("waveform comparison extent mismatch");
+    ++frames_compared;
+    samples += native.size();
+    for (std::size_t i = 0; i < native.size(); ++i) {
+      differing_samples += std::bit_cast<std::uint32_t>(native[i]) != std::bit_cast<std::uint32_t>(official[i]);
+      if (!std::isfinite(native[i]) || !std::isfinite(official[i])) {
+        ++nonfinite_samples;
+        continue;
+      }
+      const double error = static_cast<double>(official[i]) - native[i];
+      max_absolute_error = std::max(max_absolute_error, std::abs(error));
+      sum_square_error += error * error;
+    }
+  }
+
+  [[nodiscard]] auto report(int channels, const scenario& current) const -> std::string {
+    std::ostringstream out;
+    out << std::setprecision(17)
+        << "NATIVE_OFF_WAVEFORM {\"sample_rate\":48000,\"decoder_channels\":" << channels
+        << ",\"frame_size\":" << current.frame_size << ",\"application\":" << current.application
+        << ",\"bitrate\":" << scenario_bitrate(current, channels) << ",\"complexity\":" << current.complexity
+        << ",\"vbr\":" << (current.vbr ? "true" : "false")
+        << ",\"frames_expected\":" << frames_expected << ",\"frames_compared\":" << frames_compared
+        << ",\"samples\":" << samples << ",\"differing_samples\":" << differing_samples
+        << ",\"nonfinite_samples\":" << nonfinite_samples
+        << ",\"native_return_mismatches\":" << native_return_mismatches
+        << ",\"official_return_mismatches\":" << official_return_mismatches
+        << ",\"coded_mono_packets\":" << coded_mono_packets << ",\"coded_stereo_packets\":" << coded_stereo_packets
+        << ",\"max_absolute_error\":" << max_absolute_error << ",\"sum_square_error\":" << sum_square_error
+        << ",\"bit_exact\":";
+    if (frames_compared == frames_expected && samples != 0 && nonfinite_samples == 0)
+      out << (differing_samples == 0 ? "true" : "false");
+    else
+      out << "null";
+    out << '}';
+    return out.str();
+  }
+};
 
 struct worker_slice {
   std::size_t begin = 0;
@@ -187,6 +242,14 @@ struct validation_options final {
   return {decoder, &opus_decoder_destroy};
 }
 
+[[nodiscard]] auto make_native_decoder(int channels) -> std::unique_ptr<codex_OpusDecoder, decltype(&codex_opus_decoder_destroy)> {
+  int error = OPUS_OK;
+  auto* decoder = codex_opus_decoder_create(48000, channels, &error);
+  if (error != OPUS_OK || decoder == nullptr)
+    throw std::runtime_error("failed to create native waveform decoder");
+  return {decoder, &codex_opus_decoder_destroy};
+}
+
 [[nodiscard]] auto describe_packet_mismatch(std::span<const unsigned char> expected, std::span<const unsigned char> actual,
                                             std::uint32_t expected_range, std::uint32_t actual_range, const clip_input& clip,
                                             const scenario& current, std::size_t frame_index) -> std::string {
@@ -283,10 +346,15 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
   auto encoder = make_encoder(clip.channels, current);
   configure_encoder(encoder.get(), clip.channels, current);
   auto official_decoder = make_official_decoder(clip.channels);
+  auto native_waveform_decoder = make_native_decoder(clip.channels);
+  auto official_waveform_decoder = make_official_decoder(clip.channels);
+  waveform_comparison waveform;
 
   const auto samples = load_pcm_samples(clip.path);
   const auto samples_per_frame = static_cast<std::size_t>(current.frame_size * clip.channels);
   auto decoded = std::vector<std::int16_t>(samples_per_frame);
+  auto native_waveform = std::vector<float>(samples_per_frame);
+  auto official_waveform = std::vector<float>(samples_per_frame);
   const auto expected_frames = samples.size() / samples_per_frame;
   const auto expected_validation_frames =
       options.max_frame_index.has_value() ? std::min(expected_frames, *options.max_frame_index + 1U) : expected_frames;
@@ -335,9 +403,22 @@ void configure_encoder(codex_OpusEncoder* encoder, int channels, const scenario&
                                  " frame " + std::to_string(frame_index));
       }
     }
+    ++waveform.frames_expected;
+    if (packet_size > 0) {
+      if (packet[0] & 4)
+        ++waveform.coded_stereo_packets;
+      else
+        ++waveform.coded_mono_packets;
+    }
+    const int native_count = codex_opus_decode_float(native_waveform_decoder.get(), packet.data(), packet_size, native_waveform.data(), current.frame_size, 0);
+    const int official_count = opus_decode_float(official_waveform_decoder.get(), packet.data(), packet_size, official_waveform.data(), current.frame_size, 0);
+    waveform.native_return_mismatches += native_count != current.frame_size;
+    waveform.official_return_mismatches += official_count != current.frame_size;
+    if (native_count == current.frame_size && official_count == current.frame_size)
+      waveform.observe(native_waveform, official_waveform);
   }
 
-  return "PASS clip=" + clip.label + " scenario=" + std::string{current.name} + " frames=" + std::to_string(validation_case.frames.size());
+  return "PACKET_ACCEPTANCE_PASS clip=" + clip.label + " scenario=" + std::string{current.name} + " frames=" + std::to_string(validation_case.frames.size()) + "\n" + waveform.report(clip.channels, current);
 }
 
 }
