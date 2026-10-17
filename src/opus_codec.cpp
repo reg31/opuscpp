@@ -357,7 +357,6 @@ static void ec_enc_init(ec_enc* _this, unsigned char* _buf, opus_uint32 _size);
 static void ec_encode(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _ft);
 static void ec_enc_bit_logp(ec_enc* _this, int _val, unsigned _logp);
 static void ec_enc_icdf(ec_enc* _this, int _s, const unsigned char* _icdf, unsigned _ftb);
-static void ec_enc_binary_icdf8(ec_enc* coder, int bit, opus_uint8 cutoff);
 static void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft);
 static void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _ftb);
 static void ec_enc_shrink(ec_enc* _this, opus_uint32 _size);
@@ -16614,7 +16613,6 @@ static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, co
 
 constexpr std::array<opus_int32, 4> silk_vad_noise_level_bias{50, 25, 16, 12};
 
-static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD);
 constexpr std::array<opus_int16, 4> tiltWeights{30000, 6000, -12000, -12000};
 static void silk_VAD_GetNoiseLevels(std::span<const opus_int32, 4> pX, silk_VAD_state* psSilk_VAD) {
   int min_coef = 0;
