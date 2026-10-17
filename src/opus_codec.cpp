@@ -14431,25 +14431,41 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
     double best_dot = dot, best_norm = norm;
     const int groups = protect_blocks ? blocks : 1;
     std::array<int, 1 << (celt_max_lm + 1)> maximum;
+    std::array<int, 1 << (celt_max_lm + 1)> minimum;
+    constexpr bool gradient_format = FLT_EVAL_METHOD == 0 && std::numeric_limits<celt_norm>::is_iec559 && std::numeric_limits<celt_norm>::radix == 2 && std::numeric_limits<celt_norm>::digits == 24 && std::numeric_limits<double>::is_iec559 && std::numeric_limits<double>::radix == 2 && std::numeric_limits<double>::digits == 53;
+    const bool projected_gradient = gradient_format && block_size > 0 && std::isfinite(dot) && std::isfinite(norm) && norm > 0;
     for (int group = 0; group < groups; ++group) {
       const int begin = protect_blocks ? group * block_size : 0;
       const int end = protect_blocks ? std::min(N, begin + block_size) : N;
       int best = begin;
       double best_gradient = norm * X[begin] - dot * (iy_out[begin] >> 1);
+      int least = -1;
+      double least_gradient = 0;
+      if (projected_gradient && (iy_out[begin] >> 1) > 0) {
+        least = begin;
+        least_gradient = best_gradient;
+      }
       for (int index = begin + 1; index < end; ++index) {
         const double gradient = norm * X[index] - dot * (iy_out[index] >> 1);
         if (gradient > best_gradient) {
           best_gradient = gradient;
           best = index;
         }
+        if (projected_gradient && (iy_out[index] >> 1) > 0 && (least < 0 || gradient < least_gradient)) {
+          least = index;
+          least_gradient = gradient;
+        }
       }
       maximum[group] = best;
+      minimum[group] = least;
     }
     int donor = -1, receiver = -1;
     for (int from_group = 0; from_group < groups; ++from_group) {
       const int begin = protect_blocks ? from_group * block_size : 0;
       const int end = protect_blocks ? std::min(N, begin + block_size) : N;
-      for (int from = begin; from < end; ++from) {
+      const int first = projected_gradient ? minimum[from_group] : begin;
+      const int last = projected_gradient ? (first < 0 ? first : first + 1) : end;
+      for (int from = first; from < last; ++from) {
         const int count = iy_out[from] >> 1;
         if (count == 0)
           continue;
