@@ -4236,10 +4236,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   st->prev_HB_gain = HB_gain;
   if (st->mode != opus_mode_hybrid || st->stream_channels == 1)
-    st->silk_mode.stereoWidth_Q14 = equiv_rate > 32000 ? 16384
-                                    : equiv_rate < 16000
-                                        ? 0
-                                        : 16384 - 2048 * static_cast<opus_int32>(32000 - equiv_rate) / (equiv_rate - 14000);
+    st->silk_mode.stereoWidth_Q14 = equiv_rate > 32000 || (st->mode == opus_mode_celt_only && st->stream_channels == 2)
+                                        ? 16384
+                                    : equiv_rate < 16000 ? 0
+                                                         : 16384 - 2048 * static_cast<opus_int32>(32000 - equiv_rate) / (equiv_rate - 14000);
   if (st->channels == 2 && (st->hybrid_stereo_width_Q14 < (1 << 14) || st->silk_mode.stereoWidth_Q14 < (1 << 14))) {
     opus_val16 g1 = st->hybrid_stereo_width_Q14 * (1.f / 16384);
     opus_val16 g2 = static_cast<opus_val16>(st->silk_mode.stereoWidth_Q14) * (1.f / 16384);
