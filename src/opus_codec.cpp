@@ -6100,6 +6100,102 @@ static inline auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int
   return tell;
 }
 
+template <class Float>
+static constexpr bool celt_projection_binary64 =
+    sizeof(Float) == sizeof(std::uint64_t) && std::numeric_limits<Float>::is_iec559 &&
+    std::numeric_limits<Float>::radix == 2 && std::numeric_limits<Float>::digits == 53 &&
+    std::numeric_limits<Float>::max_exponent == 1024 && std::numeric_limits<Float>::min_exponent == -1021 &&
+    (std::endian::native == std::endian::little || std::endian::native == std::endian::big);
+
+template <class Float>
+static constexpr std::uint64_t celt_projection_target_bits(const Float& value) {
+  if constexpr (celt_projection_binary64<Float>)
+    return std::bit_cast<std::uint64_t>(value);
+  else
+    return 0;
+}
+
+static bool celt_exact_projection_heap(int start, int end, const int* requested, int* counts, const int* width, const int* quantum, const double* targets, int& requested_total, int delivered_budget) {
+  if constexpr (!celt_projection_binary64<double>)
+    return false;
+  constexpr int max_width = 2 * celt_max_band_samples;
+  constexpr auto max_target = celt_projection_target_bits(static_cast<double>(32 * max_width));
+  if (start < 0 || end > celt_default_nb_ebands || start >= end || delivered_budget < 0)
+    return false;
+  for (int band = start; band < end; ++band) {
+    if (counts[band] == 0)
+      continue;
+    if (counts[band] < 0 || counts[band] > requested[band] || requested[band] > 32 || width[band] < 1 || width[band] > max_width || quantum[band] < 1 || quantum[band] > max_width)
+      return false;
+    const auto bits = celt_projection_target_bits(targets[band]);
+    if (bits > max_target)
+      return false;
+    if (bits != 0) {
+      const int exponent = static_cast<int>((bits >> 52) & 2047) - 1023;
+      if (exponent < -24)
+        return false;
+      const unsigned low_bits = static_cast<unsigned>(28 - exponent);
+      if ((bits & ((std::uint64_t{1} << low_bits) - 1)) != 0)
+        return false;
+    }
+  }
+  std::array<opus_int64, celt_default_nb_ebands> primary;
+  std::array<double, celt_default_nb_ebands> continuous;
+  const auto update = [&](int band) {
+    primary[band] = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band];
+    continuous[band] = 2 * (targets[band] - counts[band] * quantum[band]) + quantum[band];
+  };
+  const auto before = [&](int band, int best) {
+    const auto marginal = primary[band] * width[best];
+    const auto incumbent = primary[best] * width[band];
+    if (marginal != incumbent)
+      return marginal < incumbent;
+    const double continuous_marginal = continuous[band] * width[best];
+    const double continuous_incumbent = continuous[best] * width[band];
+    if (continuous_marginal != continuous_incumbent)
+      return continuous_marginal < continuous_incumbent;
+    const auto step = static_cast<opus_int64>(quantum[band]) * width[best];
+    const auto incumbent_step = static_cast<opus_int64>(quantum[best]) * width[band];
+    return step != incumbent_step ? step < incumbent_step : band < best;
+  };
+  std::array<int, celt_default_nb_ebands> heap;
+  int size = 0;
+  for (int band = start; band < end; ++band)
+    if (counts[band] > 0) {
+      update(band);
+      heap[size++] = band;
+    }
+  if (size == 0 && requested_total > delivered_budget)
+    return false;
+  const auto sift = [&](int position) {
+    const int value = heap[position];
+    while (2 * position + 1 < size) {
+      int child = 2 * position + 1;
+      if (child + 1 < size && before(heap[child + 1], heap[child]))
+        ++child;
+      if (!before(heap[child], value))
+        break;
+      heap[position] = heap[child];
+      position = child;
+    }
+    heap[position] = value;
+  };
+  for (int position = size / 2; position-- > 0;)
+    sift(position);
+  while (requested_total > delivered_budget) {
+    const int best = heap[0];
+    --counts[best];
+    requested_total -= quantum[best];
+    if (counts[best] == 0)
+      heap[0] = heap[--size];
+    else
+      update(best);
+    if (size > 0)
+      sift(0);
+  }
+  return true;
+}
+
 static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost, const double* requested_boost = nullptr) -> opus_int32 {
   if (C != 2 || start != 0)
     return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
@@ -6121,30 +6217,32 @@ static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const 
   if (total_boost == 0 || total_boost >= requested_total)
     return tell;
   const int delivered_budget = total_boost;
-  while (requested_total > delivered_budget) {
-    int best = -1;
-    for (int band = start; band < end; ++band) {
-      if (counts[band] == 0)
-        continue;
-      if (best < 0) {
-        best = band;
-        continue;
+  if (!celt_exact_projection_heap(start, end, requested.data(), counts.data(), width.data(), quantum.data(), targets.data(), requested_total, delivered_budget)) {
+    while (requested_total > delivered_budget) {
+      int best = -1;
+      for (int band = start; band < end; ++band) {
+        if (counts[band] == 0)
+          continue;
+        if (best < 0) {
+          best = band;
+          continue;
+        }
+        const auto marginal = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best];
+        const auto incumbent = static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band];
+        bool better = marginal < incumbent;
+        if (marginal == incumbent) {
+          const double continuous_marginal = (2 * (targets[band] - counts[band] * quantum[band]) + quantum[band]) * width[best];
+          const double continuous_incumbent = (2 * (targets[best] - counts[best] * quantum[best]) + quantum[best]) * width[band];
+          better = continuous_marginal < continuous_incumbent ||
+                   (continuous_marginal == continuous_incumbent &&
+                    static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]);
+        }
+        if (better)
+          best = band;
       }
-      const auto marginal = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best];
-      const auto incumbent = static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band];
-      bool better = marginal < incumbent;
-      if (marginal == incumbent) {
-        const double continuous_marginal = (2 * (targets[band] - counts[band] * quantum[band]) + quantum[band]) * width[best];
-        const double continuous_incumbent = (2 * (targets[best] - counts[best] * quantum[best]) + quantum[best]) * width[band];
-        better = continuous_marginal < continuous_incumbent ||
-                 (continuous_marginal == continuous_incumbent &&
-                  static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]);
-      }
-      if (better)
-        best = band;
+      --counts[best];
+      requested_total -= quantum[best];
     }
-    --counts[best];
-    requested_total -= quantum[best];
   }
   *coder = saved_coder;
   std::memcpy(coder->buf, saved_bytes.data(), coder->storage);
