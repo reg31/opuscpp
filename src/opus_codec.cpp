@@ -4836,13 +4836,13 @@ static int bitexact_log2tan(int isin, int icos) {
   return (ls - lc) * (1 << 11) + bitexact_log2tan_poly(isin) - bitexact_log2tan_poly(icos);
 }
 
-template <bool Normalise = true>
+template <bool Normalise = true, bool CommonSource = false>
 static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
   const int M = 1 << LM;
   const int N = M * celt_short_mdct_size;
-  for (int c = 0; c < C; ++c) {
+  for (int c = 0; c < (Normalise && CommonSource ? 1 : C); ++c) {
     const int channel_offset = c * N;
     const int energy_offset = c * nbEBands;
     for (int i = 0; i < end; ++i) {
@@ -7976,13 +7976,17 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       }
     }
     compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
-    if (common_source) {
-      copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
-    }
     if (CC == 2 && C == 1) {
       tf_chan = 0;
     }
-    compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
+    if (common_source) {
+      compute_band_energies_and_normalise<true, true>(freq, bandE, bandLogE, start, end, C, LM);
+      copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
+      copy_n_items(bandE, static_cast<std::size_t>(end), bandE + nbEBands);
+      copy_n_items(bandLogE, static_cast<std::size_t>(end), bandLogE + nbEBands);
+    } else {
+      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
+    }
     {
       opus_int32 qr_equiv_rate = equiv_rate;
       if (st->bitrate > 0) {
