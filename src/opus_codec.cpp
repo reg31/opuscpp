@@ -4720,6 +4720,8 @@ template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
 static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses, const int* fine_quant, const ec_ctx* coder);
 
+static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1);
+
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C);
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM);
@@ -8095,8 +8097,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           for (int band = codedBands; band < end; ++band)
             same_uncoded &= trial_fine[band] == fine_quant[band] && trial_priority[band] == fine_priority[band];
           if (same_basis && same_uncoded && !trim_preview_coder.error) {
-            const double incumbent_cost = celt_fine_phase_cost(start, codedBands, C, LM, st->intensity, dual_stereo, bandE, oldBandE, error, pulses.data(), fine_quant.data(), enc);
-            const double trial_cost = celt_fine_phase_cost(start, trial_coded, C, LM, trial_intensity, trial_dual, bandE, oldBandE, error, trial_pulses.data(), trial_fine.data(), &trim_preview_coder);
+            const auto paired_cost = celt_fine_phase_cost_pair(start, codedBands, C, LM, st->intensity, dual_stereo, bandE, oldBandE, error, pulses.data(), fine_quant.data(), enc, trial_pulses.data(), trial_fine.data(), &trim_preview_coder);
+            const double incumbent_cost = paired_cost[0];
+            const double trial_cost = paired_cost[1];
             if (trial_cost < incumbent_cost) {
               auto* output = enc->buf;
               *enc = trim_preview_coder;
@@ -13617,6 +13620,64 @@ static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int
       const double source = bandE[index];
       const double difference = source - gain;
       cost += difference * difference + source * gain * shape_error;
+    }
+  }
+  return cost;
+}
+
+static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
+  constexpr double ln2 = 0.693147180559945309417232121458;
+  constexpr double gain_variance = ln2 * ln2 / 12;
+  std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
+  std::array<double, 2> cost{};
+  const std::array<const int*, 2> pulses{pulses0, pulses1};
+  for (int band = start; band < codedBands; ++band) {
+    const std::array<int, 2> planned_fine{fine_quant0[band], fine_quant1[band]};
+    const std::array<int, 2> fine{
+        tell[0] + C * planned_fine[0] <= static_cast<int>(coder0->storage * 8) ? planned_fine[0] : 0,
+        tell[1] + C * planned_fine[1] <= static_cast<int>(coder1->storage * 8) ? planned_fine[1] : 0};
+    tell[0] += C * fine[0];
+    tell[1] += C * fine[1];
+    const int N = (celt_mode()->eBands[band + 1] - celt_mode()->eBands[band]) << LM;
+    const int den = C * N + (C == 2 && N > 2 && !dual_stereo && band < intensity);
+    const int shape_dimension = den - C;
+    std::array<double, 2> shape_error{pulses0[band] >= C << 3 ? 0. : 2., pulses1[band] >= C << 3 ? 0. : 2.};
+    if (shape_dimension > 0) {
+      const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
+      for (int arm = 0; arm < 2; ++arm) {
+        if (arm == 1 && pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1]) {
+          shape_error[1] = shape_error[0];
+          continue;
+        }
+        const int band_bits = pulses[arm][band] + (C * planned_fine[arm] << 3);
+        int offset = (NClogN >> 1) - den * 21;
+        if (N == 2)
+          offset += den << 3 >> 2;
+        if (band_bits + offset < den * 2 << 3)
+          offset += NClogN >> 2;
+        else if (band_bits + offset < den * 3 << 3)
+          offset += NClogN >> 3;
+        shape_error[arm] = static_cast<double>(shape_dimension) / C * gain_variance * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension));
+      }
+    }
+    for (int channel = 0; channel < C; ++channel) {
+      const int index = channel * celt_default_nb_ebands + band;
+      const auto gain_for = [&](int width) -> double {
+        float offset = 0;
+        if (width > 0) {
+          const int bins = 1 << width;
+          const int q = std::clamp(floor_to_int_reference((error[index] + .5f) * bins - fine_power_decision_bias[width]), 0, bins - 1);
+          offset = (q + .5f) * (1 << (14 - width)) * (1.f / 16384) - .5f;
+        }
+        return exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
+      };
+      const double gain0 = gain_for(fine[0]);
+      const double gain1 = fine[0] == fine[1] ? gain0 : gain_for(fine[1]);
+      const double source = bandE[index];
+      const double difference0 = source - gain0;
+      cost[0] += difference0 * difference0 + source * gain0 * shape_error[0];
+      const double difference1 = source - gain1;
+      cost[1] += difference1 * difference1 + source * gain1 * shape_error[1];
     }
   }
   return cost;
