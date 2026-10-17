@@ -14446,10 +14446,18 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
       }
     }
     double dot = 0, norm = 0;
-    for (int index = 0; index < N; ++index) {
-      dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
-      const double count = iy_out[index] >> 1;
-      norm += count * count;
+    constexpr bool exact_integer_norm_format = std::is_same_v<opus_val16, opus_val32> && std::is_same_v<opus_val16, celt_norm> && std::numeric_limits<opus_val16>::is_iec559 && std::numeric_limits<opus_val16>::radix == 2 && std::numeric_limits<opus_val16>::digits == 24 && std::numeric_limits<opus_val16>::min_exponent == -125 && std::numeric_limits<opus_val16>::max_exponent == 128;
+    if constexpr (exact_integer_norm_format) {
+      norm = static_cast<double>(yy);
+      for (int index = 0; index < N; ++index) {
+        dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
+      }
+    } else {
+      for (int index = 0; index < N; ++index) {
+        dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
+        const double count = iy_out[index] >> 1;
+        norm += count * count;
+      }
     }
     double best_dot = dot, best_norm = norm;
     const int groups = protect_blocks ? blocks : 1;
