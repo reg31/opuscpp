@@ -6100,7 +6100,7 @@ static inline auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int
   return tell;
 }
 
-static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost) -> opus_int32 {
+static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost, const double* requested_boost = nullptr) -> opus_int32 {
   if (C != 2 || start != 0)
     return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
   const auto saved_coder = *coder;
@@ -6109,11 +6109,13 @@ static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const 
   std::memcpy(saved_bytes.data(), coder->buf, coder->storage);
   std::array<int, celt_default_nb_ebands> requested{}, counts{}, width{}, quantum{};
   int requested_total = 0;
+  std::array<double, celt_default_nb_ebands> targets{};
   for (int band = start; band < end; ++band) {
     width[band] = C * (eBands[band + 1] - eBands[band]) << LM;
     quantum[band] = std::min(width[band] << 3, std::max(6 << 3, width[band]));
     requested[band] = counts[band] = std::min(offsets[band], (cap[band] + quantum[band] - 1) / quantum[band]);
     requested_total += requested[band] * quantum[band];
+    targets[band] = requested_boost != nullptr ? requested_boost[band] : static_cast<double>(requested[band]) * quantum[band];
   }
   const auto tell = process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
   if (total_boost == 0 || total_boost >= requested_total)
@@ -6130,9 +6132,15 @@ static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const 
       }
       const auto marginal = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best];
       const auto incumbent = static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band];
-      if (marginal < incumbent ||
-          (marginal == incumbent &&
-           static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]))
+      bool better = marginal < incumbent;
+      if (marginal == incumbent) {
+        const double continuous_marginal = (2 * (targets[band] - counts[band] * quantum[band]) + quantum[band]) * width[best];
+        const double continuous_incumbent = (2 * (targets[best] - counts[best] * quantum[best]) + quantum[best]) * width[band];
+        better = continuous_marginal < continuous_incumbent ||
+                 (continuous_marginal == continuous_incumbent &&
+                  static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]);
+      }
+      if (better)
         best = band;
     }
     --counts[best];
@@ -6743,7 +6751,7 @@ static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int sta
   follower[1] += (.5f) * low_rate_lf_boost;
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr, double* requested_boost = nullptr) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -6754,6 +6762,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> follower;
   std::array<celt_glog, celt_default_nb_ebands> noise_floor;
   zero_n_items(offsets, static_cast<std::size_t>(nbEBands));
+  if (requested_boost != nullptr)
+    std::fill_n(requested_boost, nbEBands, 0.);
   celt_glog maxDepth = -(31.9f);
   for (i = 0; i < end; i++) {
     noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
@@ -6862,6 +6872,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       }
       follower[i] = std::min(follower[i], 4.0f);
       width = C * (eBands[i + 1] - eBands[i]) << LM;
+      if (requested_boost != nullptr)
+        requested_boost[i] = static_cast<double>(follower[i]) * width * 8;
       if (width < 6) {
         boost = C == 2 && start == 0 ? static_cast<int>(follower[i] + .5f) : static_cast<int>(follower[i]);
         boost_bits = boost * width << 3;
@@ -6876,6 +6888,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         opus_int32 cap = ((2 * effectiveBytes / 3) << 3 << 3);
         const int quanta = std::min(width << 3, std::max(6 << 3, width));
         offsets[i] = std::max(0, cap - tot_boost) / quanta;
+        if (requested_boost != nullptr)
+          requested_boost[i] = static_cast<double>(offsets[i]) * quanta;
         tot_boost += offsets[i] * quanta;
         break;
       } else {
@@ -7731,6 +7745,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
   std::array<std::array<int, celt_default_nb_ebands>, 5> band_workspace;
   auto& [offsets, tf_res, fine_quant, pulses, fine_priority] = band_workspace;
+  std::array<double, celt_default_nb_ebands> requested_boost{};
   const auto& cap = celt_caps_for(LM, C);
   auto& importance = fine_priority;
 
@@ -7857,7 +7872,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, importance.data());
+                                 &tot_boost, toneishness, importance.data(), C == 2 && start == 0 ? requested_boost.data() : nullptr);
   }
   auto* X = freq;
 
@@ -7943,7 +7958,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     }
     opus_int32 total_boost;
     tell = process_celt_encoder_dynalloc(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                         total_boost);
+                                         total_boost, requested_boost.data());
     dual_stereo = 0;
     if (C == 2) {
       if (LM != 0) {
