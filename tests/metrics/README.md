@@ -1,24 +1,24 @@
 # Complete production metrics
 
-Measured: `4cdbab035bf55038c5b288e376c1fbb611cf8286`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
 | Suite | Cases | Fields | Below official |
 |---|---:|---:|---:|
-| Matrix | 498 | 12 | 780 |
-| Publication | 806 | 12 | 801 |
+| Matrix | 498 | 12 | 772 |
+| Publication | 806 | 12 | 797 |
 
 | Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
 |---|---|---:|---:|
-| snr_db | Higher | 21 | 8 |
-| segmental_snr_db | Higher | 17 | 8 |
-| rms_error | Lower | 21 | 8 |
+| snr_db | Higher | 20 | 8 |
+| segmental_snr_db | Higher | 15 | 7 |
+| rms_error | Lower | 20 | 8 |
 | mean_abs_error | Lower | 20 | 7 |
-| pesq_style | Higher | 19 | 8 |
-| visqol_style | Higher | 76 | 93 |
+| pesq_style | Higher | 17 | 7 |
+| visqol_style | Higher | 75 | 92 |
 | logband_corr | Higher | 75 | 106 |
-| logband_error | Lower | 69 | 83 |
+| logband_error | Lower | 68 | 82 |
 | celt_quality | Higher | 112 | 125 |
 | celt_masked_error | Lower | 112 | 125 |
 | celt_highband_error | Lower | 214 | 215 |
@@ -30,7 +30,7 @@ Measured: `4cdbab035bf55038c5b288e376c1fbb611cf8286`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.91x to 1.11x | 1.22x to 1.82x |
+| AUDIO | 0.93x to 1.14x | 1.17x to 1.95x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -40,14 +40,14 @@ Measured: `4cdbab035bf55038c5b288e376c1fbb611cf8286`; pinned official Opus: `51b
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20464 | 20480 | Not exposed |
-| official_encoder_ch1 | 31824 | 31888 | 31668 |
-| current_decoder_ch1 | 8464 | 8336 | Not exposed |
-| official_decoder_ch1 | 18464 | 18592 | 18468 |
+| current_encoder_ch1 | 20448 | 20496 | Not exposed |
+| official_encoder_ch1 | 31824 | 31936 | 31668 |
+| current_decoder_ch1 | 8496 | 8336 | Not exposed |
+| official_decoder_ch1 | 18432 | 18560 | 18468 |
 | current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17520 | 16208 | Not exposed |
-| official_decoder_ch2 | 27120 | 27264 | 27236 |
+| current_decoder_ch2 | 17584 | 16224 | Not exposed |
+| official_decoder_ch2 | 27168 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `4cdbab035bf55038c5b288e376c1fbb611cf8286`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 479696 | 0 | 0 | 479696 |
-| android | 472976 | 472 | 0 | 473448 |
+| host | 481172 | 0 | 0 | 481172 |
+| android | 474328 | 472 | 0 | 474800 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `4cdbab035bf55038c5b288e376c1fbb611cf8286`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.564 decode_ms=15.8702 checksum=340886119
-mono-high bytes=115 encode_ms=21.0402 decode_ms=14.9521 checksum=2633358364
-stereo-mid bytes=102 encode_ms=72.5516 decode_ms=29.0306 checksum=3625126390
-stereo-high bytes=147 encode_ms=80.7487 decode_ms=29.7772 checksum=2476207253
+mono-mid bytes=76 encode_ms=18.6735 decode_ms=16.0218 checksum=340886119
+mono-high bytes=115 encode_ms=21.1192 decode_ms=14.9723 checksum=2633358364
+stereo-mid bytes=102 encode_ms=73.424 decode_ms=29.0617 checksum=3625126390
+stereo-high bytes=147 encode_ms=80.6869 decode_ms=29.7827 checksum=2476207253
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
