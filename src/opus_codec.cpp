@@ -19912,7 +19912,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           ? input_buffers[1].size()
           : std::size_t{2};
   zero_n_items(input_buffers[1].data(), side_initialization_count);
-  std::array<int, celt_max_channels> input_positions{};
   for (int n = 0; n < encControl->nChannelsAPI; ++n) {
     state_Fxx[n].sCmn.nFramesEncoded = 0;
   }
@@ -19996,18 +19995,15 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   std::array<int, celt_max_channels> packet_has_lbrr{};
   int coded_prefix_bits = 0;
   while (true) {
-    int nSamplesToBuffer = std::min(state_Fxx[0].sCmn.frame_length - input_positions[0], nSamplesToBufferMax);
-    if (stereo_coding) {
-      nSamplesToBuffer = std::min(nSamplesToBuffer, state_Fxx[1].sCmn.frame_length - input_positions[1]);
-      nSamplesToBuffer = std::min(nSamplesToBuffer, 10 * nBlocksOf10ms * state_Fxx[1].sCmn.fs_kHz);
-    } else if (stereo_input && psEnc->nPrevChannelsInternal == 2 && state_Fxx[0].sCmn.nFramesEncoded == 0) {
-      nSamplesToBuffer = std::min(nSamplesToBuffer, state_Fxx[1].sCmn.frame_length - input_positions[1]);
+    int nSamplesToBuffer = std::min(state_Fxx[0].sCmn.frame_length, nSamplesToBufferMax);
+    if (!stereo_coding && stereo_input && psEnc->nPrevChannelsInternal == 2 && state_Fxx[0].sCmn.nFramesEncoded == 0) {
+      nSamplesToBuffer = std::min(nSamplesToBuffer, state_Fxx[1].sCmn.frame_length);
     }
     const int nSamplesFromInput =
         static_cast<opus_int32>(nSamplesToBuffer * state_Fxx[0].sCmn.API_fs_Hz / (state_Fxx[0].sCmn.fs_kHz * 1000));
     auto resample_input = [&](int channel, const opus_int16* input) {
       auto& state = state_Fxx[channel].sCmn;
-      silk_resampler(&state.resampler_state, &input_buffers[channel].data()[input_positions[channel] + 2], input, nSamplesFromInput);
+      silk_resampler(&state.resampler_state, &input_buffers[channel].data()[2], input, nSamplesFromInput);
     };
     if (stereo_coding) {
       const int id = state_Fxx[0].sCmn.nFramesEncoded;
@@ -20027,24 +20023,20 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
     } else {
       celt_float2int16_c(samplesIn, buf, static_cast<std::size_t>(nSamplesFromInput));
     }
-    const int mono_input_start = input_positions[0];
     resample_input(0, buf);
-    input_positions[0] += nSamplesToBuffer;
     if (stereo_coding) {
       resample_input(1, buf + nSamplesFromInput);
-      input_positions[1] += nSamplesToBuffer;
     } else if (stereo_input && psEnc->nPrevChannelsInternal == 2 && state_Fxx[0].sCmn.nFramesEncoded == 0) {
-      const int side_input_start = input_positions[1];
       resample_input(1, buf);
       for (int n = 0; n < nSamplesToBuffer; ++n) {
-        input_buffers[0].data()[mono_input_start + n + 2] =
-            (input_buffers[0].data()[mono_input_start + n + 2] + input_buffers[1].data()[side_input_start + n + 2]) >> 1;
+        input_buffers[0].data()[n + 2] =
+            (input_buffers[0].data()[n + 2] + input_buffers[1].data()[n + 2]) >> 1;
       }
     }
     samplesIn += nSamplesFromInput * encControl->nChannelsAPI;
     nSamplesIn -= nSamplesFromInput;
     psEnc->allowBandwidthSwitch = 0;
-    if (input_positions[0] >= state_Fxx[0].sCmn.frame_length) {
+    if (nSamplesToBuffer >= state_Fxx[0].sCmn.frame_length) {
       if (state_Fxx[0].sCmn.nFramesEncoded == 0 && !prefillFlag) {
         const std::array<opus_uint8, 2> icdf{
             static_cast<opus_uint8>(256 - (256 >> ((state_Fxx[0].sCmn.nFramesPerPacket + 1) * encControl->nChannelsInternal))), 0};
@@ -20155,7 +20147,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction,
                                 n == 0 || (n == 1 && side_worth_protecting), input_buffers[n].data());
         }
-        input_positions[n] = 0;
         state_Fxx[n].sCmn.nFramesEncoded++;
       }
       psEnc->prev_decode_only_middle = psEnc->sStereo.mid_only_flags[state0.nFramesEncoded - 1];
