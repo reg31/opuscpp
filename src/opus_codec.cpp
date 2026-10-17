@@ -270,18 +270,20 @@ template <int Order>
   return prediction_q10;
 }
 
-template <bool AddOutput = false, typename Source>
+template <bool AddOutput = false, typename Source, bool StorePCM = true>
   requires std::is_invocable_r_v<opus_int32, Source&, int>
 static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
   const auto synthesize = [&]<int Order>() noexcept {
     for (int i = 0; i < length; ++i) {
       const auto pred_Q10 = silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
       sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
-      auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
-      if constexpr (AddOutput) {
-        sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
+      if constexpr (StorePCM) {
+        auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
+        if constexpr (AddOutput) {
+          sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
+        }
+        pxq[i] = sample;
       }
-      pxq[i] = sample;
     }
   };
   if (order16) {
@@ -14761,7 +14763,11 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
       const int index = (psCNG->rand_seed >> 24) & exc_mask;
       return silk_read_excitation(psCNG->CNG_exc_low[index], psCNG->CNG_exc_high[index]);
     };
-    silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
+    if (gain_Q10 == 0) {
+      silk_decode_lpc_subframe_q14<true, decltype(source)&, false>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
+    } else {
+      silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
+    }
     std::memcpy(psCNG->CNG_synth_state, &CNG_sig_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
   } else {
     std::memset(psCNG->CNG_synth_state, 0, static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int32)));
