@@ -10289,19 +10289,8 @@ static float* stockham_forward_soa(float* data, float* scratch, const kiss_fft_s
   }
 }
 
-static void fft_impl_480(kiss_fft_cpx* fout, const kiss_fft_state* st) {
-  kf_bfly4_m1(fout, 120);
-  kf_bfly2(fout, 60);
-  kf_bfly4(fout, 15, st, 8);
-  kf_bfly3(fout, 5, st, 32);
-  kf_bfly5(fout, 1, st, 96);
-}
-
 static void fft_impl(const kiss_fft_state* st, kiss_fft_cpx* fout) {
   switch (st->nfft) {
-  case 480:
-    fft_impl_480(fout, st);
-    break;
   case 240:
     kf_bfly4_m1(fout, 60);
     kf_bfly4(fout, 30, st, 4);
