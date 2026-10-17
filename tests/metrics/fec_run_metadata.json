@@ -1,6 +1,6 @@
 {
-  "source_commit": "2300fd08ab5ee4358d9a6df8dfb89bd52f3c2fb7",
-  "source_sha256": "ec187eb5bc374bb482b159b08a6bdb9a9601f87844e890f4a9d94d86cff656be",
+  "source_commit": "25396f0e0493c0e3fbe96a25945807b19d990566",
+  "source_sha256": "cc1bfe9ee7d58f6a32aecfa218b73dcd28a5f315d7b97b632c43ac15746e9470",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "strict_ratios": [
     0.675443,
