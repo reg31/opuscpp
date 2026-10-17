@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `15384741d053da6b4de557177a43663c266c24a5`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -30,7 +30,7 @@ Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.93x to 1.14x | 1.17x to 1.95x |
+| AUDIO | 0.93x to 1.13x | 1.22x to 1.92x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -40,14 +40,14 @@ Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51b
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20448 | 20496 | Not exposed |
-| official_encoder_ch1 | 31824 | 31936 | 31668 |
-| current_decoder_ch1 | 8496 | 8336 | Not exposed |
-| official_decoder_ch1 | 18432 | 18560 | 18468 |
-| current_encoder_ch2 | 30656 | 30560 | Not exposed |
+| current_encoder_ch1 | 20464 | 20464 | Not exposed |
+| official_encoder_ch1 | 31824 | 31888 | 31668 |
+| current_decoder_ch1 | 8464 | 8352 | Not exposed |
+| official_decoder_ch1 | 18480 | 18576 | 18468 |
+| current_encoder_ch2 | 30640 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17584 | 16224 | Not exposed |
-| official_decoder_ch2 | 27168 | 27264 | 27236 |
+| current_decoder_ch2 | 17520 | 16224 | Not exposed |
+| official_decoder_ch2 | 27136 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 481172 | 0 | 0 | 481172 |
-| android | 474328 | 472 | 0 | 474800 |
+| host | 483728 | 0 | 0 | 483728 |
+| android | 475864 | 472 | 0 | 476336 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `714b7799d3aac80e790daae9c2ea1faa00ac630d`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.6735 decode_ms=16.0218 checksum=340886119
-mono-high bytes=115 encode_ms=21.1192 decode_ms=14.9723 checksum=2633358364
-stereo-mid bytes=102 encode_ms=73.424 decode_ms=29.0617 checksum=3625126390
-stereo-high bytes=147 encode_ms=80.6869 decode_ms=29.7827 checksum=2476207253
+mono-mid bytes=76 encode_ms=18.8809 decode_ms=16.1951 checksum=340886119
+mono-high bytes=115 encode_ms=21.3264 decode_ms=15.0521 checksum=2633358364
+stereo-mid bytes=102 encode_ms=73.3343 decode_ms=32.1947 checksum=3625126390
+stereo-high bytes=147 encode_ms=83.5936 decode_ms=30.1843 checksum=2476207253
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
