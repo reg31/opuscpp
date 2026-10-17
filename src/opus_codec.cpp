@@ -6090,9 +6090,15 @@ static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const 
     for (int band = start; band < end; ++band) {
       if (counts[band] == 0)
         continue;
-      if (best < 0 ||
-          static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best] <
-              static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band])
+      if (best < 0) {
+        best = band;
+        continue;
+      }
+      const auto marginal = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best];
+      const auto incumbent = static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band];
+      if (marginal < incumbent ||
+          (marginal == incumbent &&
+           static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]))
         best = band;
     }
     --counts[best];
