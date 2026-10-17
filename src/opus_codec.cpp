@@ -17379,11 +17379,12 @@ static void silk_resampler_down2_3(opus_int32* S, opus_int16* out, const opus_in
     for (opus_int32 counter = nSamplesIn; counter > 2; counter -= 3, buf_ptr += 3) {
       auto res_Q6 = silk_mul_wb(buf_ptr[0], silk_Resampler_2_3_COEFS_LQ[2]);
       res_Q6 = silk_mla_wb(res_Q6, buf_ptr[1], silk_Resampler_2_3_COEFS_LQ[3]);
-      res_Q6 = silk_mla_wb(res_Q6, buf_ptr[2], silk_Resampler_2_3_COEFS_LQ[5]);
+      const auto shared_Q6 = silk_mul_wb(buf_ptr[2], silk_Resampler_2_3_COEFS_LQ[5]);
+      res_Q6 = wrap_add(res_Q6, shared_Q6);
       res_Q6 = silk_mla_wb(res_Q6, buf_ptr[3], silk_Resampler_2_3_COEFS_LQ[4]);
       *out++ = rounded_rshift_to_int16<6>(res_Q6);
       res_Q6 = silk_mul_wb(buf_ptr[1], silk_Resampler_2_3_COEFS_LQ[4]);
-      res_Q6 = silk_mla_wb(res_Q6, buf_ptr[2], silk_Resampler_2_3_COEFS_LQ[5]);
+      res_Q6 = wrap_add(res_Q6, shared_Q6);
       res_Q6 = silk_mla_wb(res_Q6, buf_ptr[3], silk_Resampler_2_3_COEFS_LQ[3]);
       res_Q6 = silk_mla_wb(res_Q6, buf_ptr[4], silk_Resampler_2_3_COEFS_LQ[2]);
       *out++ = rounded_rshift_to_int16<6>(res_Q6);
