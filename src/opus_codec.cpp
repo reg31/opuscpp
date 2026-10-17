@@ -5092,7 +5092,7 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
     qn = 1;
   }
   if (encode) {
-    if (stereo && ctx->theta_round == 1) {
+    if (stereo && (ctx->theta_round == 1 || ctx->theta_round == -2)) {
       itheta_q30 = ctx->raw_stereo_itheta;
     } else {
       itheta_q30 = stereo_itheta(X, Y, stereo, N);
@@ -5721,7 +5721,37 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             }
             return result;
           };
-          const auto source_gram = gram(X, Y, inverse_scale * bandE[i], inverse_scale * bandE[celt_default_nb_ebands + i]);
+          const bool prepare_theta = B == 1 && N > 1 &&
+                                     !(bandE[i] < 1e-10f || bandE[celt_default_nb_ebands + i] < 1e-10f);
+          std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> source_gram{};
+          if (prepare_theta) {
+            const auto left_amplitude = inverse_scale * bandE[i];
+            const auto right_amplitude = inverse_scale * bandE[celt_default_nb_ebands + i];
+            std::array<opus_val32, 3> dot{};
+            opus_val32 Emid = 0;
+            opus_val32 Eside = 0;
+            for (int j = 0; j < N; ++j) {
+              const auto l = X[j];
+              const auto r = Y[j];
+              dot[0] += l * l;
+              dot[1] += r * r;
+              dot[2] += l * r;
+              const celt_norm m = l + r;
+              const celt_norm s = l - r;
+              Emid = Emid + static_cast<opus_val32>(m) * static_cast<opus_val32>(m);
+              Eside = Eside + static_cast<opus_val32>(s) * static_cast<opus_val32>(s);
+            }
+            source_gram[0] = {left_amplitude * left_amplitude * dot[0],
+                              right_amplitude * right_amplitude * dot[1],
+                              left_amplitude * right_amplitude * dot[2]};
+            const opus_val32 mid = std::sqrt(Emid);
+            const opus_val32 side = std::sqrt(Eside);
+            const auto angle = side * side + mid * mid < 1e-18f ? 0.0f : side < mid ? celt_atan_norm(side / mid)
+                                                                                    : 1.0f - celt_atan_norm(mid / side);
+            ctx.raw_stereo_itheta = static_cast<int>(std::floor(.5f + 65536.f * 16384 * angle));
+          } else {
+            source_gram = gram(X, Y, inverse_scale * bandE[i], inverse_scale * bandE[celt_default_nb_ebands + i]);
+          }
           const auto stereo_angle = [](const std::array<opus_val32, 3>& value) {
             const auto total = value[0] + value[1];
             if (total == 0.f)
@@ -5773,7 +5803,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           ctx_save = ctx;
           copy_n_items(X, static_cast<std::size_t>(N), X_save_storage.data());
           copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
-          ctx.theta_round = -1;
+          ctx.theta_round = prepare_theta ? -2 : -1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
           dist0 = -gram_error(X, Y);
           cm2 = x_cm;
