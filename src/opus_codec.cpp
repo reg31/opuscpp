@@ -8615,7 +8615,8 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
   }
 }
 
-static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
+template <bool AccumulateEnergy = false>
+static opus_val32 celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
   std::array<opus_val16, celt_lpc_order> rden;
   std::array<opus_val16, 2 * celt_lpc_order> y;
   std::reverse_copy(den, den + celt_lpc_order, rden.begin());
@@ -8623,6 +8624,7 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
     y[index] = -mem[celt_lpc_order - 1 - index];
     y[index + celt_lpc_order] = y[index];
   }
+  opus_val32 reconstruction_energy = 0;
   int pos = 0;
   int i = 0;
   for (; i < N - 3; i += 4) {
@@ -8648,6 +8650,12 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
     sum[3] = ((sum[3]) + static_cast<opus_val32>(history[celt_lpc_order]) * static_cast<opus_val32>(den[2]));
     history[celt_lpc_order + 3] = -(sum[3]);
     _y[i + 3] = sum[3];
+    if constexpr (AccumulateEnergy) {
+      for (int lane = 0; lane < 4; ++lane) {
+        const auto sample = _y[i + lane];
+        reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
+      }
+    }
     copy_n_items(history + celt_lpc_order, 4, history);
     pos += 4;
     if (pos == celt_lpc_order)
@@ -8661,6 +8669,10 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
     }
     history[celt_lpc_order] = (sum);
     _y[i] = sum;
+    if constexpr (AccumulateEnergy) {
+      const auto sample = _y[i];
+      reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
+    }
     history[0] = history[celt_lpc_order];
     if (++pos == celt_lpc_order)
       pos = 0;
@@ -8668,6 +8680,7 @@ static void celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y
   for (i = 0; i < celt_lpc_order; i++) {
     mem[i] = _y[N - i - 1];
   }
+  return reconstruction_energy;
 }
 
 static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n) {
@@ -8986,13 +8999,8 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   for (int i = 0; i < celt_lpc_order; ++i) {
     lpc_mem[i] = buf[history_size - N - 1 - i];
   }
-  celt_iir(buf + history_size - N, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
   {
-    opus_val32 S2 = 0;
-    for (int i = 0; i < extrapolation_len; ++i) {
-      const auto sample = buf[history_size - N + i];
-      S2 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
-    }
+    const opus_val32 S2 = celt_iir<true>(buf + history_size - N, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
     if (!(S1 > 0.2f * S2)) {
       zero_n_items(buf + history_size - N, static_cast<std::size_t>(extrapolation_len));
     } else if (S1 < S2) {
