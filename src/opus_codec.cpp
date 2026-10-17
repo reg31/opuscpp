@@ -13848,21 +13848,27 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
     std::array<double, 2> shape_error{pulses0[band] >= C << 3 ? 0. : 2., pulses1[band] >= C << 3 ? 0. : 2.};
     if (shape_dimension > 0) {
       const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
-      for (int arm = 0; arm < 2; ++arm) {
-        if (arm == 1 && pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1]) {
-          shape_error[1] = shape_error[0];
-          continue;
-        }
+      int base_offset = (NClogN >> 1) - den * 21;
+      if (N == 2)
+        base_offset += den << 3 >> 2;
+      const auto cell_for = [&](int arm) {
         const int band_bits = pulses[arm][band] + (C * planned_fine[arm] << 3);
-        int offset = (NClogN >> 1) - den * 21;
-        if (N == 2)
-          offset += den << 3 >> 2;
+        int offset = base_offset;
         if (band_bits + offset < den * 2 << 3)
           offset += NClogN >> 2;
         else if (band_bits + offset < den * 3 << 3)
           offset += NClogN >> 3;
-        shape_error[arm] = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension)));
-      }
+        return pulses[arm][band] + offset;
+      };
+      const int cell0 = cell_for(0);
+      const bool same_inputs = pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1];
+      const int cell1 = same_inputs ? cell0 : cell_for(1);
+      const bool same_cell = cell0 == cell1;
+      const auto evaluate = [&](int cell) {
+        return static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(cell) / (4 * shape_dimension)));
+      };
+      shape_error[0] = evaluate(cell0);
+      shape_error[1] = same_cell ? shape_error[0] : evaluate(cell1);
     }
     for (int channel = 0; channel < C; ++channel) {
       const int index = channel * celt_default_nb_ebands + band;
@@ -13905,21 +13911,27 @@ static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, i
     std::array<double, 2> shape_error{pulses0[band] >= C << 3 ? 0. : 2., pulses1[band] >= C << 3 ? 0. : 2.};
     if (shape_dimension > 0) {
       const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
-      for (int arm = 0; arm < 2; ++arm) {
-        if (arm == 1 && pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1]) {
-          shape_error[1] = shape_error[0];
-          continue;
-        }
+      int base_offset = (NClogN >> 1) - den * 21;
+      if (N == 2)
+        base_offset += den << 3 >> 2;
+      const auto cell_for = [&](int arm) {
         const int band_bits = pulses[arm][band] + (C * planned_fine[arm] << 3);
-        int offset = (NClogN >> 1) - den * 21;
-        if (N == 2)
-          offset += den << 3 >> 2;
+        int offset = base_offset;
         if (band_bits + offset < den * 2 << 3)
           offset += NClogN >> 2;
         else if (band_bits + offset < den * 3 << 3)
           offset += NClogN >> 3;
-        shape_error[arm] = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension)));
-      }
+        return pulses[arm][band] + offset;
+      };
+      const int cell0 = cell_for(0);
+      const bool same_inputs = pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1];
+      const int cell1 = same_inputs ? cell0 : cell_for(1);
+      const bool same_cell = cell0 == cell1;
+      const auto evaluate = [&](int cell) {
+        return static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(cell) / (4 * shape_dimension)));
+      };
+      shape_error[0] = evaluate(cell0);
+      shape_error[1] = same_cell ? shape_error[0] : evaluate(cell1);
     }
     for (int channel = 0; channel < C; ++channel) {
       const int index = channel * celt_default_nb_ebands + band;
