@@ -8615,8 +8615,15 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
   }
 }
 
-template <bool AccumulateEnergy = false>
-static opus_val32 celt_iir(const opus_val32* _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
+template <bool AccumulateEnergy = false, typename Source>
+static opus_val32 celt_iir(Source&& _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
+  const auto input = [&](int index) noexcept -> opus_val32 {
+    if constexpr (std::is_invocable_r_v<opus_val32, Source&, int>) {
+      return _x(index);
+    } else {
+      return _x[index];
+    }
+  };
   std::array<opus_val16, celt_lpc_order> rden;
   std::array<opus_val16, 2 * celt_lpc_order> y;
   std::reverse_copy(den, den + celt_lpc_order, rden.begin());
@@ -8631,10 +8638,10 @@ static opus_val32 celt_iir(const opus_val32* _x, const opus_val16* den, opus_val
     auto* history = y.data() + pos;
     zero_n_items(history + celt_lpc_order, 4);
     std::array<opus_val32, 4> sum;
-    sum[0] = _x[i];
-    sum[1] = _x[i + 1];
-    sum[2] = _x[i + 2];
-    sum[3] = _x[i + 3];
+    sum[0] = input(i);
+    sum[1] = input(i + 1);
+    sum[2] = input(i + 2);
+    sum[3] = input(i + 3);
     xcorr_kernel_c(rden.data(), history, sum, celt_lpc_order);
     history[celt_lpc_order] = -(sum[0]);
     _y[i] = sum[0];
@@ -8663,7 +8670,7 @@ static opus_val32 celt_iir(const opus_val32* _x, const opus_val16* den, opus_val
   }
   for (; i < N; i++) {
     auto* history = y.data() + pos;
-    opus_val32 sum = _x[i];
+    opus_val32 sum = input(i);
     for (int j = 0; j < celt_lpc_order; j++) {
       sum -= (static_cast<opus_val32>(rden[j]) * static_cast<opus_val32>(history[j]));
     }
@@ -8989,18 +8996,21 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
   }
   const auto extrapolation_offset = celt_plc_max_period - pitch_index, extrapolation_len = N + celt_default_overlap;
   attenuation = fade * decay;
-  for (int i = 0, j = 0; i < extrapolation_len; ++i, ++j) {
-    if (j >= pitch_index) {
-      j -= pitch_index;
+  int excitation_phase = 0;
+  const auto excitation = [&](int) noexcept -> opus_val32 {
+    if (excitation_phase >= pitch_index) {
+      excitation_phase -= pitch_index;
       attenuation *= decay;
     }
-    buf[history_size - N + i] = attenuation * exc[extrapolation_offset + j];
-  }
+    const opus_val32 sample = attenuation * exc[extrapolation_offset + excitation_phase];
+    ++excitation_phase;
+    return sample;
+  };
   for (int i = 0; i < celt_lpc_order; ++i) {
     lpc_mem[i] = buf[history_size - N - 1 - i];
   }
   {
-    const opus_val32 S2 = celt_iir<true>(buf + history_size - N, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
+    const opus_val32 S2 = celt_iir<true>(excitation, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
     if (!(S1 > 0.2f * S2)) {
       zero_n_items(buf + history_size - N, static_cast<std::size_t>(extrapolation_len));
     } else if (S1 < S2) {
