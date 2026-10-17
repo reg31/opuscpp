@@ -4658,9 +4658,11 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   const auto frame_lengths = std::span<const opus_int16>{packet_frames->len}.first(frame_count);
   bool vbr = false;
   opus_int32 payload_size = 0;
+  opus_int32 length_bytes = 0;
   for (const auto length : frame_lengths) {
     payload_size += length;
     vbr |= length != frame_lengths.front();
+    length_bytes += 1 + (length >= 252);
   }
   const bool compact = !pad || maxlen == payload_size + 1 + (count == 2 && vbr ? 1 + (frame_lengths.front() >= 252) : 0);
   const int code = compact ? (count == 1 ? 0 : count == 2 ? (vbr ? 2 : 1)
@@ -4668,9 +4670,7 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
                            : 3;
   opus_int32 total_size = payload_size + (code == 3 ? 2 : 1);
   if (vbr) {
-    for (const auto length : frame_lengths.first(frame_count - 1)) {
-      total_size += 1 + (length >= 252);
-    }
+    total_size += length_bytes - 1 - (frame_lengths.back() >= 252);
   }
   if (total_size > maxlen) {
     return -2;
