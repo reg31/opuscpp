@@ -4718,7 +4718,6 @@ extern constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise
 static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias = nullptr);
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
-static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses, const int* fine_quant, const ec_ctx* coder);
 
 static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1);
 
@@ -13798,47 +13797,6 @@ static double celt_finite_log_cell_marginal(double squared_log_step) {
   const double step = std::sqrt(squared_log_step);
   const double half_step = .5 * step;
   return (step * std::cosh(step) - std::sinh(step) - 4 * (half_step * std::cosh(half_step) - std::sinh(half_step))) / (2 * step);
-}
-
-static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses, const int* fine_quant, const ec_ctx* coder) {
-  constexpr double ln2 = 0.693147180559945309417232121458;
-  int tell = ec_tell(coder);
-  double cost = 0;
-  for (int band = start; band < codedBands; ++band) {
-    const int planned_fine = fine_quant[band];
-    const int fine = tell + C * planned_fine <= static_cast<int>(coder->storage * 8) ? planned_fine : 0;
-    tell += C * fine;
-    const int N = (celt_mode()->eBands[band + 1] - celt_mode()->eBands[band]) << LM;
-    const int den = C * N + (C == 2 && N > 2 && !dual_stereo && band < intensity);
-    const int shape_dimension = den - C;
-    double shape_error = pulses[band] >= C << 3 ? 0 : 2;
-    if (shape_dimension > 0) {
-      const int band_bits = pulses[band] + (C * planned_fine << 3);
-      const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
-      int offset = (NClogN >> 1) - den * 21;
-      if (N == 2)
-        offset += den << 3 >> 2;
-      if (band_bits + offset < den * 2 << 3)
-        offset += NClogN >> 2;
-      else if (band_bits + offset < den * 3 << 3)
-        offset += NClogN >> 3;
-      shape_error = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[band] + offset) / (4 * shape_dimension)));
-    }
-    for (int channel = 0; channel < C; ++channel) {
-      const int index = channel * celt_default_nb_ebands + band;
-      float offset = 0;
-      if (fine > 0) {
-        const int bins = 1 << fine;
-        const int q = std::clamp(floor_to_int_reference((error[index] + .5f) * bins - fine_power_decision_bias[fine]), 0, bins - 1);
-        offset = (q + .5f) * (1 << (14 - fine)) * (1.f / 16384) - .5f;
-      }
-      const double gain = exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
-      const double source = bandE[index];
-      const double difference = source - gain;
-      cost += difference * difference + source * gain * shape_error;
-    }
-  }
-  return cost;
 }
 
 static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
