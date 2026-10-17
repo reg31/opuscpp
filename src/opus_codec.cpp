@@ -5059,6 +5059,12 @@ struct c2_consumer_plan {
   double incumbent_error = 0;
 };
 
+enum class celt_split_trial {
+  nearest,
+  lower,
+  upper
+};
+
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
   opus_int32 raw_stereo_itheta;
@@ -5071,6 +5077,8 @@ struct band_ctx {
   bool changed_blocks;
   mono_fold_plan* mono_plan;
   celt_rotation_cache* rotation_cache{};
+  celt_split_trial split_trial{};
+  int coherent_theta{-1};
 };
 
 struct split_ctx {
@@ -5109,7 +5117,12 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
   if (qn != 1) {
     if (encode) {
       if (!stereo || ctx->theta_round == 0) {
-        itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
+        if (!stereo && ctx->split_trial != celt_split_trial::nearest) {
+          const auto scaled = itheta * static_cast<opus_int32>(qn);
+          itheta = (scaled + (ctx->split_trial == celt_split_trial::upper ? 16383 : 0)) >> 14;
+          ctx->split_trial = celt_split_trial::nearest;
+        } else
+          itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
         if (!stereo && ctx->avoid_split_noise && itheta > 0 && itheta < qn) {
           int unquantized = celt_quantized_theta_runtime(itheta, qn);
           imid = bitexact_cos(static_cast<opus_int16>(unquantized));
@@ -5128,6 +5141,8 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
         const int down = std::min(qn - 1, std::max(0, static_cast<int>((itheta * static_cast<opus_int32>(qn) + bias) >> 14)));
         itheta = ctx->theta_round < 0 ? down : down + 1;
       }
+      if (stereo && ctx->coherent_theta >= 0)
+        itheta = ctx->coherent_theta != 0 ? qn : 0;
     }
     if (stereo && N > 2) {
       int p0 = 3, x = itheta, x0 = qn / 2, ft = p0 * (x0 + 1) + x0;
@@ -5600,6 +5615,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
     int last;
     ctx.i = i;
     ctx.changed_blocks = false;
+    ctx.split_trial = celt_split_trial::nearest;
+    ctx.coherent_theta = -1;
     last = (i == end - 1);
     X = X_ + M * eBands[i];
     Y = Y_ != nullptr ? Y_ + M * eBands[i] : nullptr;
@@ -5690,6 +5707,14 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             return left == -right;
           });
           const bool coherent_source = source_correlated != source_anticorrelated;
+          const bool reuse_split_trials = B > 1 && coherent_source &&
+                                          !(bandE[i] < 1e-10f || bandE[celt_default_nb_ebands + i] < 1e-10f) &&
+                                          (c2_plan == nullptr || c2_plan->band < 0 || i < c2_plan->band ||
+                                           i >= c2_plan->band + c2_plan->horizon);
+          if (reuse_split_trials) {
+            ctx.coherent_theta = source_anticorrelated ? 1 : 0;
+            ctx.split_trial = celt_split_trial::lower;
+          }
           const auto left_gain = coded_log_energy != nullptr
                                      ? exp2f(std::min(32.f, coded_log_energy[i] + static_cast<opus_val32>(eMeans[i])))
                                      : bandE[i];
@@ -5802,6 +5827,21 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
             }
           };
           const stereo_error gram_error{gram, stereo_angle, source_angles, scalar_rank ? 0 : B, left_gain, right_gain, inverse_scale};
+          const auto trial_error = [&](const celt_norm* left, const celt_norm* right) {
+            if (!reuse_split_trials)
+              return gram_error(left, right);
+            const auto source_left = inverse_scale * bandE[i];
+            const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
+            const auto decoded_left = inverse_scale * left_gain;
+            const auto decoded_right = inverse_scale * right_gain;
+            double error = 0;
+            for (int j = 0; j < N; ++j) {
+              const double dl = static_cast<double>(decoded_left * left[j]) - source_left * X_save_storage[j];
+              const double dr = static_cast<double>(decoded_right * right[j]) - source_right * Y_save_storage[j];
+              error += dl * dl + dr * dr;
+            }
+            return static_cast<opus_val32>(error);
+          };
           cm = x_cm | y_cm;
           ec_save = *ec;
           ctx_save = ctx;
@@ -5809,7 +5849,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
           ctx.theta_round = prepare_theta ? -2 : -1;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
-          dist0 = -gram_error(X, Y);
+          dist0 = -trial_error(X, Y);
           cm2 = x_cm;
           ec_save2 = *ec;
           ctx_save2 = ctx;
@@ -5828,10 +5868,13 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(X_save_storage.data(), static_cast<std::size_t>(N), X);
           copy_n_items(Y_save_storage.data(), static_cast<std::size_t>(N), Y);
           ctx.theta_round = 1;
+          if (reuse_split_trials)
+            ctx.split_trial = celt_split_trial::upper;
           x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
-          dist1 = -gram_error(X, Y);
+          dist1 = -trial_error(X, Y);
 
-          bool default_first = coherent_source ? source_correlated : dist0 >= dist1;
+          bool default_first = reuse_split_trials ? dist0 >= dist1 : coherent_source ? source_correlated
+                                                                                     : dist0 >= dist1;
           if (!coherent_source) {
             const auto first_bits = ec_tell_frac(&ec_save2);
             const auto second_bits = ec_tell_frac(ec);
