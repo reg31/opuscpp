@@ -8590,9 +8590,13 @@ static void _celt_lpc(opus_val16* _lpc, const opus_val32* ac, int p) {
   }
 }
 
-static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N) {
+static std::array<opus_val32, 2> celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y, int N) {
   std::array<opus_val16, celt_lpc_order> rnum;
   std::reverse_copy(num, num + celt_lpc_order, rnum.begin());
+  std::array<opus_val32, 2> energy{1, 1};
+  const int decay_length = N >> 1;
+  const int energy_begin = N - 2 * decay_length;
+  const int energy_middle = N - decay_length;
   int i = 0;
   for (; i < N - 3; i += 4) {
     std::array<opus_val32, 4> sum;
@@ -8605,6 +8609,14 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
     y[i + 1] = (sum[1]);
     y[i + 2] = (sum[2]);
     y[i + 3] = (sum[3]);
+    for (int j = 0; j < 4; ++j) {
+      const int index = i + j;
+      if (index >= energy_begin) {
+        const auto sample = y[index];
+        auto& half_energy = energy[index < energy_middle ? 1 : 0];
+        half_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
+      }
+    }
   }
   for (; i < N; i++) {
     opus_val32 sum = ((x[i]));
@@ -8612,7 +8624,13 @@ static void celt_fir_c(const opus_val16* x, const opus_val16* num, opus_val16* y
       sum = ((sum) + static_cast<opus_val32>(rnum[j]) * static_cast<opus_val32>(x[i + j - celt_lpc_order]));
     }
     y[i] = (sum);
+    if (i >= energy_begin) {
+      const auto sample = y[i];
+      auto& half_energy = energy[i < energy_middle ? 1 : 0];
+      half_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
+    }
   }
+  return energy;
 }
 
 template <bool AccumulateEnergy = false, typename Source>
@@ -8967,16 +8985,9 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     _celt_lpc(lpc, ac.data(), celt_lpc_order);
   }
   const auto safe_exc_length = std::max(exc_length, 0);
-  celt_fir_c(old_buf + old_history_size - safe_exc_length, lpc, exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
+  const auto residual_energy = celt_fir_c(old_buf + old_history_size - safe_exc_length, lpc, exc + celt_plc_max_period - safe_exc_length, safe_exc_length);
   {
-    opus_val32 E1 = 1, E2 = 1;
-    const auto decay_length = exc_length >> 1;
-    for (int i = 0; i < decay_length; ++i) {
-      auto sample = exc[celt_plc_max_period - decay_length + i];
-      E1 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
-      sample = exc[celt_plc_max_period - 2 * decay_length + i];
-      E2 += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
-    }
+    opus_val32 E1 = residual_energy[0], E2 = residual_energy[1];
     E1 = std::min(E1, E2);
     decay = static_cast<opus_val16>(std::sqrt(static_cast<float>(E1) / E2));
   }
