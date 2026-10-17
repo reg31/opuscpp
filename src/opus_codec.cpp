@@ -7468,13 +7468,11 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
   const int nbEBands = celt_default_nb_ebands;
   const opus_int16* eBands = celt_mode()->eBands;
   const int coded_bands = lastCodedBands ? lastCodedBands : nbEBands;
+  opus_int32 target = base_target;
   int coded_bins = eBands[coded_bands] << LM;
   if (C == 2) {
-    coded_bins += eBands[std::min(intensity, coded_bands)] << LM;
-  }
-  opus_int32 target = base_target;
-  if (C == 2) {
     const int coded_stereo_bands = std::min(intensity, coded_bands);
+    coded_bins += eBands[coded_stereo_bands] << LM;
     const int coded_stereo_dof = (eBands[coded_stereo_bands] << LM) - coded_stereo_bands;
     const opus_val16 max_frac = 0.8f * static_cast<opus_val32>(coded_stereo_dof) / static_cast<opus_val16>(coded_bins);
     stereo_saving = std::min(stereo_saving, 1.0f);
