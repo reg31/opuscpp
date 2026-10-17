@@ -5604,6 +5604,17 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   celt_rotation_cache rotation_cache;
   ctx.rotation_cache = encode ? &rotation_cache : nullptr;
   const int process_end = encode && !mono_resynth ? std::min(end, codedBands) : end;
+  const auto mark_fold_sources = [&](int band, int width, unsigned& mask) {
+    if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
+      const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - width);
+      const int finish = begin + width;
+      for (int source = start; source < band; ++source)
+        if (M * eBands[source] < finish && M * eBands[source + 1] > begin)
+          mask |= 1U << source;
+      if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
+        mask |= 1U << start;
+    }
+  };
   for (i = start; i < process_end; i++) {
     opus_int32 tell;
     int b, N;
@@ -5639,15 +5650,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || fold_offset == 0))
         fold_offset = i;
       mono_plan->fold_mask = 0;
-      if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[i] < 0)) {
-        const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - N);
-        const int end = begin + N;
-        for (int band = start; band < i; ++band)
-          if (M * eBands[band] < end && M * eBands[band + 1] > begin)
-            mono_plan->fold_mask |= 1U << band;
-        if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
-          mono_plan->fold_mask |= 1U << start;
-      }
+      mark_fold_sources(i, N, mono_plan->fold_mask);
     }
     if (resynth) {
       if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || lowband_offset == 0)) {
@@ -5970,15 +5973,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       const int width = M * (eBands[band + 1] - eBands[band]);
       if ((M * eBands[band] - width >= norm_offset || band == start + 1) && (update_lowband || fold_offset == 0))
         fold_offset = band;
-      if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
-        const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - width);
-        const int finish = begin + width;
-        for (int source = start; source < band; ++source)
-          if (M * eBands[source] < finish && M * eBands[source + 1] > begin)
-            mono_plan->used_mask |= 1U << source;
-        if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
-          mono_plan->used_mask |= 1U << start;
-      }
+      mark_fold_sources(band, width, mono_plan->used_mask);
       update_lowband = 0;
     }
   }
