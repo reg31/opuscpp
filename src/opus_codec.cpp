@@ -19955,7 +19955,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   const bool stereo_coding = encControl->nChannelsInternal == 2;
   const int nBlocksOf10ms = 100 * nSamplesIn / encControl->API_sampleRate;
   const int tot_blocks = std::max(1, nBlocksOf10ms >> 1);
-  int curr_block = 0;
   if (prefillFlag) {
     saved_payload_size_ms = encControl->payloadSize_ms;
     saved_complexity = encControl->complexity;
@@ -20081,8 +20080,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       TargetRate_bps = std::clamp(TargetRate_bps, std::min(5000, encControl->bitRate),
                                   std::max(5000, encControl->bitRate) - 2 * std::min(0, psEnc->nBitsExceeded));
       opus_int32 MStargetRates_bps[2];
+      const int frame_index = state0.nFramesEncoded;
       if (stereo_coding) {
-        const int frame_index = state0.nFramesEncoded;
         silk_stereo_LR_to_MS(&psEnc->sStereo, &input_buffers[0].data()[2], &input_buffers[1].data()[2], psEnc->sStereo.predIx[frame_index],
                              &psEnc->sStereo.mid_only_flags[frame_index], MStargetRates_bps, TargetRate_bps, state0.speech_activity_Q8,
                              encControl->toMono, encControl->preserveStereo, state0.fs_kHz, state0.frame_length);
@@ -20126,16 +20125,15 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         }
         side_worth_protecting = side_energy * 8 > mid_energy;
       }
-      const int packet_frame_index = state0.nFramesEncoded;
       for (int n = 0; n < encControl->nChannelsInternal; ++n) {
         int maxBits = encControl->maxBits;
         const opus_int32 coded_prefix = std::min<opus_int32>(coded_prefix_bits, encControl->maxBits);
         const opus_int32 normal_capacity = encControl->maxBits - coded_prefix;
-        if (tot_blocks == 2 && curr_block == 0) {
+        if (tot_blocks == 2 && frame_index == 0) {
           maxBits = coded_prefix + normal_capacity * 3 / 5;
-        } else if (tot_blocks == 3 && curr_block < 2)
-          maxBits = coded_prefix + normal_capacity * (curr_block == 0 ? 2 : 3) / (curr_block == 0 ? 5 : 4);
-        int useCBR = encControl->useCBR && curr_block == tot_blocks - 1;
+        } else if (tot_blocks == 3 && frame_index < 2)
+          maxBits = coded_prefix + normal_capacity * (frame_index == 0 ? 2 : 3) / (frame_index == 0 ? 5 : 4);
+        int useCBR = encControl->useCBR && frame_index == tot_blocks - 1;
         const opus_int32 channelRate_bps = stereo_coding ? MStargetRates_bps[n] : TargetRate_bps;
         if (encControl->nChannelsInternal == 2 && n == 0 && MStargetRates_bps[1] > 0) {
           useCBR = 0;
@@ -20159,7 +20157,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           const int condCoding = state0.nFramesEncoded - n <= 0 ? 0 : (n > 0 && psEnc->prev_decode_only_middle ? 1 : 2);
           auto* lbrr = psEnc->lbrr == nullptr ? nullptr : &psEnc->lbrr->channels[static_cast<std::size_t>(n)];
           const bool side_coded = encControl->nChannelsInternal == 2 &&
-                                  psEnc->sStereo.mid_only_flags[static_cast<std::size_t>(packet_frame_index)] == 0;
+                                  psEnc->sStereo.mid_only_flags[static_cast<std::size_t>(frame_index)] == 0;
           const int lbrr_gain_reduction =
               state_Fxx[n].sCmn.nb_subfr == 2
                   ? 1
@@ -20192,7 +20190,6 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         psEnc->timeSinceSwitchAllowed_ms = psEnc->allowBandwidthSwitch ? 0 : psEnc->timeSinceSwitchAllowed_ms + encControl->payloadSize_ms;
       }
       if (nSamplesIn != 0) {
-        ++curr_block;
         continue;
       }
     }
