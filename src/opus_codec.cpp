@@ -778,9 +778,9 @@ struct mdct_lookup {
 };
 
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr);
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail = false);
-static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail = false);
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap, bool known_zero_tail = false);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
+static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride);
+static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap);
 struct CeltModeInternal {
   const opus_int16* eBands;
   const unsigned char* allocVectors;
@@ -8534,11 +8534,11 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
     auto* freq1 = X + N;
     denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
     if (shift == 0) {
-      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, X, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap, true);
+      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, X, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap);
     } else
       for (b = 0; b < B; b++) {
-        clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
+        clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
+        clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
       }
   } else {
     denormalise_bands<1>({X}, {X}, {oldBandE}, start, effEnd, M, downsample, silence);
@@ -8546,7 +8546,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
       if (CC == 2) {
         for (b = 0; b < B; b++) {
           clt_mdct_backward_dual_history_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap,
-                                           shift, B, true);
+                                           shift, B);
         }
         return;
       }
@@ -8557,7 +8557,7 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
       }
     }
     for (b = 0; b < B; b++) {
-      clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, true);
+      clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
     }
   }
 }
@@ -10488,25 +10488,23 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
 
 template <std::size_t Channels, typename Index, bool NaturalFloat = false>
 static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels> input, std::array<std::conditional_t<NaturalFloat, float, kiss_fft_cpx>*, Channels> work,
-                                               const float* trig, int length, int stride, const Index* mapping, bool known_zero_tail) {
+                                               const float* trig, int length, int stride, const Index* mapping) {
   const int half = length / 2;
   int index = 0;
-  if (known_zero_tail) {
-    for (; index < length / 12; ++index) {
-      const float t0 = trig[index], t1 = trig[half + index];
-      const int mapped = NaturalFloat ? index : mapping[index];
-      for (std::size_t channel = 0; channel < Channels; ++channel) {
-        const float x1 = input[channel][2 * index * stride];
-        if constexpr (NaturalFloat) {
-          work[channel][mapped] = x1 * t0 - (-0.0f);
-          work[channel][half + mapped] = 0.0f + x1 * t1;
-        } else {
-          work[channel][mapped] = {x1 * t0 - (-0.0f), 0.0f + x1 * t1};
-        }
+  for (; index < length / 12; ++index) {
+    const float t0 = trig[index], t1 = trig[half + index];
+    const int mapped = NaturalFloat ? index : mapping[index];
+    for (std::size_t channel = 0; channel < Channels; ++channel) {
+      const float x1 = input[channel][2 * index * stride];
+      if constexpr (NaturalFloat) {
+        work[channel][mapped] = x1 * t0 - (-0.0f);
+        work[channel][half + mapped] = 0.0f + x1 * t1;
+      } else {
+        work[channel][mapped] = {x1 * t0 - (-0.0f), 0.0f + x1 * t1};
       }
     }
   }
-  const int middle_end = known_zero_tail ? 5 * length / 12 : half;
+  const int middle_end = 5 * length / 12;
   for (; index < middle_end; ++index) {
     const float t0 = trig[index], t1 = trig[half + index];
     const int mapped = NaturalFloat ? index : mapping[index];
@@ -10538,7 +10536,7 @@ static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels
 
 template <bool Fixed20ms, bool StockhamShort = false>
 static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input, float* output, int overlap, int shift = 0,
-                                        int stride = 1, bool known_zero_tail = false) {
+                                        int stride = 1) {
   static_assert(!StockhamShort || !Fixed20ms);
   std::array<float, StockhamShort ? celt_max_frame_samples / 2 : 0> stockham_scratch;
   const int N = Fixed20ms ? 1920 : lookup->n >> shift;
@@ -10553,10 +10551,10 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
     const auto* fft_state = lookup->kfft[shift];
     auto* initial = N4 == 60 ? bank : stockham_scratch.data();
     auto* other = N4 == 60 ? stockham_scratch.data() : bank;
-    clt_mdct_backward_prerotate<1, opus_int16, true>({input}, {initial}, trig, N2, stride, nullptr, known_zero_tail);
+    clt_mdct_backward_prerotate<1, opus_int16, true>({input}, {initial}, trig, N2, stride, nullptr);
     stockham_result = stockham_forward_soa(initial, other, fft_state);
   } else if constexpr (Fixed20ms) {
-    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, 1, pfa_input_map_480.data(), known_zero_tail);
+    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, 1, pfa_input_map_480.data());
     for (int index = 0; index < 32; ++index) {
       pfa_fft15(work + 15 * pfa_split_radix_permutation[index], transformed + index);
     }
@@ -10565,7 +10563,7 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
     }
   } else {
     const auto* fft_state = lookup->kfft[shift];
-    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, stride, fft_state->bitrev, known_zero_tail);
+    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, stride, fft_state->bitrev);
     fft_impl(fft_state, work);
   }
   float* yp0 = output + (overlap >> 1);
@@ -10595,18 +10593,18 @@ static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input,
   }
 }
 
-static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride, bool known_zero_tail) {
+static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride) {
   if (shift == 0 && stride == 1 && l->n == 1920) {
-    clt_mdct_backward_transform<true>(l, in, out, overlap, 0, 1, known_zero_tail);
+    clt_mdct_backward_transform<true>(l, in, out, overlap, 0, 1);
   } else {
     const int nfft = l->kfft[shift]->nfft;
     const int samples = (l->n >> shift) / 2;
     const auto before = std::less<const float*>{};
     if ((nfft == 60 || nfft == 120 || nfft == 240) && samples == 2 * nfft && stride > 0 && std::fegetround() == FE_TONEAREST &&
         (!before(in, out + samples + overlap) || !before(out, in + (samples - 1) * stride + 1)))
-      clt_mdct_backward_transform<false, true>(l, in, out, overlap, shift, stride, known_zero_tail);
+      clt_mdct_backward_transform<false, true>(l, in, out, overlap, shift, stride);
     else
-      clt_mdct_backward_transform<false>(l, in, out, overlap, shift, stride, known_zero_tail);
+      clt_mdct_backward_transform<false>(l, in, out, overlap, shift, stride);
   }
 }
 
@@ -10619,21 +10617,21 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
   }
 }
 
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap, bool known_zero_tail) {
-  clt_mdct_backward_transform<true>(lookup, input0, output0, overlap, 0, 1, known_zero_tail);
-  clt_mdct_backward_transform<true>(lookup, input1, output1, overlap, 0, 1, known_zero_tail);
+static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap) {
+  clt_mdct_backward_transform<true>(lookup, input0, output0, overlap, 0, 1);
+  clt_mdct_backward_transform<true>(lookup, input1, output1, overlap, 0, 1);
   clt_mdct_backward_overlap_c(output0, window, overlap);
   clt_mdct_backward_overlap_c(output1, window, overlap);
 }
 
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail) {
-  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride, known_zero_tail);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
+  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride);
   clt_mdct_backward_overlap_c(out, window, overlap);
 }
 
-static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride, bool known_zero_tail) {
+static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride) {
   const int N = l->n >> shift;
-  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride, known_zero_tail);
+  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride);
   copy_n_items(out0 + (overlap >> 1), static_cast<std::size_t>(N >> 1), out1 + (overlap >> 1));
   clt_mdct_backward_overlap_c(out0, window, overlap);
   clt_mdct_backward_overlap_c(out1, window, overlap);
