@@ -778,6 +778,7 @@ struct mdct_lookup {
 };
 
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr);
+static void clt_mdct_forward_energy_prefix(float*, float*, float*, float*, int);
 static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
 static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride);
 static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap);
@@ -4837,7 +4838,7 @@ static int bitexact_log2tan(int isin, int icos) {
 }
 
 template <bool Normalise = true, bool CommonSource = false>
-static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM) {
+static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM, const float* energy_prefix = nullptr) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
   const int M = 1 << LM;
@@ -4849,7 +4850,8 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
       const int band_begin = M * eBands[i];
       const int band_width = M * (eBands[i + 1] - eBands[i]);
       auto* band = X + channel_offset + band_begin;
-      const opus_val32 sum = 1e-27f + celt_inner_prod_c(band, band, band_width);
+      const auto prefix = energy_prefix != nullptr && band_begin + band_width <= N / 2 ? energy_prefix[i + energy_offset] : std::numeric_limits<float>::quiet_NaN();
+      const opus_val32 sum = 1e-27f + (energy_prefix != nullptr && std::isfinite(prefix) ? prefix : celt_inner_prod_c(band, band, band_width));
       bandE[i + energy_offset] = std::sqrt(sum);
       bandLogE[i + energy_offset] = std::log2(bandE[i + energy_offset]) - eMeans[i];
       if constexpr (Normalise) {
@@ -7961,7 +7963,15 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         }
       }
     }
-    compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
+    auto* energy_prefix = forward_scratch + celt_max_frame_samples;
+    static_assert(forward_scratch_offset + celt_max_frame_samples + 2 * celt_default_nb_ebands <= celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period));
+    const bool fused_energy = shortBlocks == 0 && C == 2 && CC == 2 && LM == 3 && st->upsample == 1 && !common_source && FLT_EVAL_METHOD == 0 && std::fegetround() == FE_TONEAREST;
+    if (fused_energy) {
+      for (int c = 0; c < 2; ++c)
+        clt_mdct_forward_energy_prefix(in + c * (N + overlap), freq + c * N, forward_scratch, energy_prefix + c * nbEBands, end);
+    } else {
+      compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
+    }
     if (CC == 2 && C == 1) {
       tf_chan = 0;
     }
@@ -7971,7 +7981,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       copy_n_items(bandE, static_cast<std::size_t>(end), bandE + nbEBands);
       copy_n_items(bandLogE, static_cast<std::size_t>(end), bandLogE + nbEBands);
     } else {
-      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM);
+      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, fused_energy ? energy_prefix : nullptr);
     }
     {
       opus_int32 qr_equiv_rate = equiv_rate;
@@ -10337,9 +10347,10 @@ static int ec_laplace_decode(ec_dec* dec, unsigned fs, int decay) {
   return val;
 }
 
-template <bool Fixed20ms, bool Stockham480 = false, bool CallerScratch = false>
-static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr) {
+template <bool Fixed20ms, bool Stockham480 = false, bool CallerScratch = false, bool EnergyPrefix = false>
+static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr, float* energy_prefix = nullptr, int energy_prefix_end = celt_default_nb_ebands) {
   static_assert(!CallerScratch || Stockham480);
+  static_assert(!EnergyPrefix || (Fixed20ms && Stockham480 && CallerScratch));
   const auto* st = l->kfft[Fixed20ms ? 0 : shift];
   const auto scale = st->scale;
   const int N = Fixed20ms ? 1920 : l->n >> shift;
@@ -10395,6 +10406,9 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
     fft_impl(st, f2);
   }
   if constexpr (Fixed20ms) {
+    int energy_band = 0;
+    if constexpr (EnergyPrefix)
+      zero_n_items(energy_prefix, static_cast<std::size_t>(celt_default_nb_ebands));
     for (int i = 0; i < N4 / 2; ++i) {
       const int mirror = N4 - 1 - i;
       const auto low = Stockham480 ? kiss_fft_cpx{transformed[i], transformed[N4 + i]} : f2[i];
@@ -10405,6 +10419,15 @@ static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* o
       out[N2 - 1 - 2 * i] = low.r * low_t1 + low.i * low_t0;
       out[2 * mirror] = high.i * high_t1 - high.r * high_t0;
       out[N2 - 1 - 2 * mirror] = high.r * high_t1 + high.i * high_t0;
+      if constexpr (EnergyPrefix) {
+        if (2 * i >= 8 * celt_mode()->eBands[energy_band + 1])
+          ++energy_band;
+        const auto even = out[2 * i], odd = out[2 * i + 1];
+        if (energy_band < energy_prefix_end) {
+          energy_prefix[energy_band] += even * even;
+          energy_prefix[energy_band] += odd * odd;
+        }
+      }
     }
   } else {
     for (int i = 0; i < N4; ++i) {
@@ -10438,6 +10461,11 @@ static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, cons
     } else
       clt_mdct_forward_transform<false>(l, in, out, window, overlap, shift, stride);
   }
+}
+
+static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch, float* prefix, int end) {
+  const auto* mode = celt_mode();
+  clt_mdct_forward_transform<true, true, true, true>(&mode->mdct, in, out, mode->window, celt_default_overlap, 0, 1, scratch, prefix, end);
 }
 
 template <std::size_t Channels, typename Index, bool NaturalFloat = false>
