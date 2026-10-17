@@ -8341,42 +8341,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
     }
   } else if (shortBlocks > 1 && !dual_stereo) {
-    const auto initial_coder = *enc;
-    const auto initial_seed = st->rng;
-    std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
-    std::array<celt_norm, 2 * celt_max_frame_samples> initial_spectrum;
-    copy_n_items(X, static_cast<std::size_t>(2 * N), initial_spectrum.data());
     c2_consumer_plan plan;
     quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                     st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
                     0, oldBandE, nullptr, false, &plan);
-    if (plan.band >= 0 && !(plan.alternative_first_error >= plan.error)) {
-      const auto default_coder = *enc;
-      const auto default_seed = st->rng;
-      std::array<unsigned char, 1275> default_bytes;
-      std::memcpy(default_bytes.data(), enc->buf, enc->storage);
-      std::array<celt_norm, 2 * celt_max_frame_samples> default_spectrum;
-      copy_n_items(X, static_cast<std::size_t>(2 * N), default_spectrum.data());
-      std::array<unsigned char, 2 * celt_default_nb_ebands> default_masks;
-      const auto mask_count = static_cast<std::size_t>(2 * (std::min(end, codedBands) - start));
-      copy_n_items(collapse_masks_storage.data() + 2 * start, mask_count, default_masks.data() + 2 * start);
-      *enc = initial_coder;
-      st->rng = initial_seed;
-      std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-      copy_n_items(initial_spectrum.data(), static_cast<std::size_t>(2 * N), X);
-      c2_consumer_plan alternative{plan.band, plan.round, plan.horizon, true};
-      alternative.incumbent_error = plan.error;
-      quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                      0, oldBandE, nullptr, false, &alternative);
-      if (!(alternative.error < plan.error)) {
-        *enc = default_coder;
-        st->rng = default_seed;
-        std::memcpy(enc->buf, default_bytes.data(), enc->storage);
-        copy_n_items(default_spectrum.data(), static_cast<std::size_t>(2 * N), X);
-        copy_n_items(default_masks.data() + 2 * start, mask_count, collapse_masks_storage.data() + 2 * start);
-      }
-    }
   } else {
     quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                     st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
