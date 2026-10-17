@@ -13741,9 +13741,38 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
   }
 }
 
+static double celt_finite_log_cell_marginal(double squared_log_step) {
+  if (squared_log_step <= 1) {
+    constexpr auto coefficients = [] {
+      std::array<double, 10> values{};
+      double factorial = 1;
+      double half_power = .5;
+      for (int k = 1; k <= 10; ++k) {
+        factorial *= (2 * k) * (2 * k + 1);
+        values[k - 1] = k * (1 - half_power) / factorial;
+        half_power *= .25;
+      }
+      return values;
+    }();
+    double value = coefficients.back();
+    value = coefficients[8] + squared_log_step * value;
+    value = coefficients[7] + squared_log_step * value;
+    value = coefficients[6] + squared_log_step * value;
+    value = coefficients[5] + squared_log_step * value;
+    value = coefficients[4] + squared_log_step * value;
+    value = coefficients[3] + squared_log_step * value;
+    value = coefficients[2] + squared_log_step * value;
+    value = coefficients[1] + squared_log_step * value;
+    value = coefficients[0] + squared_log_step * value;
+    return squared_log_step * value;
+  }
+  const double step = std::sqrt(squared_log_step);
+  const double half_step = .5 * step;
+  return (step * std::cosh(step) - std::sinh(step) - 4 * (half_step * std::cosh(half_step) - std::sinh(half_step))) / (2 * step);
+}
+
 static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses, const int* fine_quant, const ec_ctx* coder) {
   constexpr double ln2 = 0.693147180559945309417232121458;
-  constexpr double gain_variance = ln2 * ln2 / 12;
   int tell = ec_tell(coder);
   double cost = 0;
   for (int band = start; band < codedBands; ++band) {
@@ -13764,7 +13793,7 @@ static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int
         offset += NClogN >> 2;
       else if (band_bits + offset < den * 3 << 3)
         offset += NClogN >> 3;
-      shape_error = static_cast<double>(shape_dimension) / C * gain_variance * std::exp2(-static_cast<double>(pulses[band] + offset) / (4 * shape_dimension));
+      shape_error = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[band] + offset) / (4 * shape_dimension)));
     }
     for (int channel = 0; channel < C; ++channel) {
       const int index = channel * celt_default_nb_ebands + band;
@@ -13785,7 +13814,6 @@ static double celt_fine_phase_cost(int start, int codedBands, int C, int LM, int
 
 static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
   constexpr double ln2 = 0.693147180559945309417232121458;
-  constexpr double gain_variance = ln2 * ln2 / 12;
   std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
   std::array<double, 2> cost{};
   const std::array<const int*, 2> pulses{pulses0, pulses1};
@@ -13815,7 +13843,7 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
           offset += NClogN >> 2;
         else if (band_bits + offset < den * 3 << 3)
           offset += NClogN >> 3;
-        shape_error[arm] = static_cast<double>(shape_dimension) / C * gain_variance * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension));
+        shape_error[arm] = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension)));
       }
     }
     for (int channel = 0; channel < C; ++channel) {
@@ -13843,7 +13871,6 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
 
 static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
   constexpr double ln2 = 0.693147180559945309417232121458;
-  constexpr double gain_variance = ln2 * ln2 / 12;
   std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
   std::array<double, 2> cost{};
   const std::array<const int*, 2> pulses{pulses0, pulses1};
@@ -13873,7 +13900,7 @@ static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, i
           offset += NClogN >> 2;
         else if (band_bits + offset < den * 3 << 3)
           offset += NClogN >> 3;
-        shape_error[arm] = static_cast<double>(shape_dimension) / C * gain_variance * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension));
+        shape_error[arm] = static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(pulses[arm][band] + offset) / (4 * shape_dimension)));
       }
     }
     for (int channel = 0; channel < C; ++channel) {
