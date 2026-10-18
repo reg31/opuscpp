@@ -4985,6 +4985,9 @@ static void denormalise_bands(std::array<const celt_norm*, Channels> normalized,
       }
     }
   }
+  if constexpr (Channels == 1) {
+    bound = std::max(bound, prefix);
+  }
   for (auto* channel : frequency) {
     zero_n_items(channel + bound, static_cast<std::size_t>(N - bound));
   }
