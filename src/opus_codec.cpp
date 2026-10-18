@@ -6533,6 +6533,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1, tmp_side, tmp_side_1;
   const bool legal_entropy = bandE != nullptr && coupled_end >= len && LM >= 2;
+  const bool legal_metric = legal_entropy || (bandE != nullptr && intensity_start >= 0);
   std::array<std::array<double, 4>, celt_default_nb_ebands> legal_cost{};
   int tf_select = 0;
   for (int i = 0; i < len; i++) {
@@ -6549,7 +6550,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     unsigned legal_levels = 0;
     int last_legal_level = 0;
     const int legal_states = isTransient ? 4 : 2;
-    if (legal_entropy) {
+    if (legal_metric) {
       for (int state = 0; state < legal_states; ++state) {
         const int tf = tf_select_table[LM][4 * isTransient + state];
         int level = isTransient ? tf : -tf;
@@ -6596,7 +6597,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias, coupled ? tmp_side.data() : nullptr);
     best_L1 = L1;
     record_legal_cost(0, L1);
-    if (isTransient && !narrow && (!legal_entropy || (legal_levels & 1u) != 0)) {
+    if (isTransient && !narrow && (!legal_metric || (legal_levels & 1u) != 0)) {
       L1 = coupled ? haar_l1_metric<true>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias, tmp_side_1.data(), tmp_side.data())
                    : haar_l1_metric<false>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias);
       record_legal_cost(-1, L1);
@@ -6605,10 +6606,10 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
         best_level = -1;
       }
     }
-    const int haar_levels = legal_entropy ? last_legal_level : LM + !(isTransient || narrow);
+    const int haar_levels = legal_metric ? last_legal_level : LM + !(isTransient || narrow);
     for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
-      if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
+      if (!legal_metric || (legal_levels & (1u << (k + 2))) != 0) {
         L1 = coupled ? haar_l1_metric<true>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), tmp_side.data())
                      : haar_l1_metric<false>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias);
         record_legal_cost(k + 1, L1);
