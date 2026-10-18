@@ -8128,7 +8128,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       if (hybrid) {
         spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
       } else {
-        spread_decision = 0;
         const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
                                      toneishness >= .40f &&
                                      16 * effectiveBytes >= C * N;
