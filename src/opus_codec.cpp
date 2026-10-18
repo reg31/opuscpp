@@ -7935,16 +7935,13 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     nbCompressedBytes = std::min(nbCompressedBytes, 1275);
     if (st->vbr && st->bitrate != -1) {
       vbr_rate = bitrate_to_bits(st->bitrate, celt_sample_rate, frame_size) << 3;
-      effectiveBytes = vbr_rate >> (3 + 3);
-    } else {
-      if (st->bitrate != -1) {
-        nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (static_cast<opus_int32>(st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0)) + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
-        if (enc != nullptr)
-          ec_enc_shrink(enc, nbCompressedBytes);
-      }
-      effectiveBytes = nbCompressedBytes - nbFilledBytes;
+    } else if (st->bitrate != -1) {
+      nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (static_cast<opus_int32>(st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0)) + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
+      if (enc != nullptr)
+        ec_enc_shrink(enc, nbCompressedBytes);
     }
     nbAvailableBytes = nbCompressedBytes - nbFilledBytes;
+    effectiveBytes = st->vbr && st->bitrate != -1 ? vbr_rate >> (3 + 3) : nbAvailableBytes;
     equiv_rate = (static_cast<opus_int32>(nbCompressedBytes) * 8 * 50 << (3 - LM)) - (40 * C + 20) * ((400 >> LM) - 50);
     if (st->bitrate != -1)
       equiv_rate = std::min(equiv_rate, st->bitrate - (40 * C + 20) * ((400 >> LM) - 50));
