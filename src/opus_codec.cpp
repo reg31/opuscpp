@@ -10181,6 +10181,43 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
       }(),
        ...);
     }(std::make_index_sequence<4>{});
+  } else if constexpr (!ScaleInput && Radix == 5 && M == 96) {
+    for (int block = 0; block < M; block += 4) {
+      std::array<kiss_fft_cpx, 4> zero, one, two, three, four;
+      for (int lane = 0; lane < 4; ++lane) {
+        const int k = block + lane;
+        const int index = 5 * k;
+        zero[lane] = {input[index], input[480 + index]};
+        const auto load = [&]<int Lane>() {
+          return complex_multiply({input[index + Lane], input[480 + index + Lane]}, st->twiddles[k * Lane]);
+        };
+        one[lane] = load.template operator()<1>();
+        two[lane] = load.template operator()<2>();
+        three[lane] = load.template operator()<3>();
+        four[lane] = load.template operator()<4>();
+      }
+      for (int lane = 0; lane < 4; ++lane) {
+        const int k = block + lane;
+        const auto sum14 = complex_add(one[lane], four[lane]);
+        const auto difference14 = complex_subtract(one[lane], four[lane]);
+        const auto sum23 = complex_add(two[lane], three[lane]);
+        const auto difference23 = complex_subtract(two[lane], three[lane]);
+        const auto ya = st->twiddles[96], yb = st->twiddles[192];
+        const kiss_fft_cpx base1{zero[lane].r + (sum14.r * ya.r + sum23.r * yb.r), zero[lane].i + (sum14.i * ya.r + sum23.i * yb.r)};
+        const kiss_fft_cpx cross1{difference14.i * ya.i + difference23.i * yb.i, -(difference14.r * ya.i + difference23.r * yb.i)};
+        const kiss_fft_cpx base2{zero[lane].r + (sum14.r * yb.r + sum23.r * ya.r), zero[lane].i + (sum14.i * yb.r + sum23.i * ya.r)};
+        const kiss_fft_cpx cross2{difference23.i * ya.i - difference14.i * yb.i, difference14.r * yb.i - difference23.r * ya.i};
+        const auto store = [&]<int Lane>(const kiss_fft_cpx& value) {
+          output[k + Lane * M] = value.r;
+          output[480 + k + Lane * M] = value.i;
+        };
+        store.template operator()<0>(complex_add(zero[lane], complex_add(sum14, sum23)));
+        store.template operator()<1>(complex_subtract(base1, cross1));
+        store.template operator()<4>(complex_add(base1, cross1));
+        store.template operator()<2>(complex_add(base2, cross2));
+        store.template operator()<3>(complex_subtract(base2, cross2));
+      }
+    }
   } else {
     for (int k = 0; k < M; ++k) {
 #if defined(__GNUC__) && !defined(__clang__)
