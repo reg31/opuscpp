@@ -7456,6 +7456,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   opus_val16 gain1, pf_threshold;
   int pf_on, qg;
   std::array<opus_val32, celt_max_channels> output_abs_sum{};
+  bool common_input = false;
   bool cancel_pitch = false;
   constexpr auto max_period = celt_max_pitch_period, min_period = celt_min_pitch_period;
   const int overlap = celt_default_overlap;
@@ -7513,7 +7514,7 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
       const auto& taps = comb_filter_tapset_gains[0];
       const auto* window = celt_mode()->window;
       const int previous_period = std::max<int>(st->prefilter_period, 15);
-      const bool common_input = std::memcmp(pre[0], pre[1], static_cast<std::size_t>(N + max_period) * sizeof(celt_sig)) == 0;
+      common_input = std::memcmp(pre[0], pre[1], static_cast<std::size_t>(N + max_period) * sizeof(celt_sig)) == 0;
       if (common_input) {
         const auto moments = celt_prefilter_common_fit_terms(pre[0] + max_period, N, pitch_index, previous_period, st->prefilter_gain);
         cross = moments[0];
@@ -7596,13 +7597,26 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
     gain1 = (0.09375f) * (qg + 1);
     pf_on = 1;
   }
-  for (int c = 0; c < CC; ++c) {
+  if (common_input) {
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
-    copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-    comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0,
-                0, overlap);
+    copy_n_items(celt_encoder_storage(st), static_cast<std::size_t>(overlap), in);
+    comb_filter(in + overlap, pre[0] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0, 0, overlap);
     for (int i = 0; i < N; ++i) {
-      output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
+      output_abs_sum[0] += std::abs(in[overlap + i]);
+    }
+    st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
+    copy_n_items(celt_encoder_storage(st) + overlap, static_cast<std::size_t>(overlap), in + (N + overlap));
+    copy_n_items(in + overlap, static_cast<std::size_t>(N), in + (N + overlap) + overlap);
+    output_abs_sum[1] = output_abs_sum[0];
+  } else {
+    for (int c = 0; c < CC; ++c) {
+      st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
+      copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
+      comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0,
+                  0, overlap);
+      for (int i = 0; i < N; ++i) {
+        output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
+      }
     }
   }
   if (CC == 2) {
