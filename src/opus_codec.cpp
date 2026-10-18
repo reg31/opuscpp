@@ -18665,14 +18665,25 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     }
     const float minimum_inverse_gain = model_state.first_frame_after_reset ? 1.f / 1e2f : (1.f / 1e4f) / (0.25f + 0.75f * control->coding_quality);
     opus_int16 fitted_nlsf[16]{};
-    float fitted_prediction[2][16]{};
     silk_find_LPC_FLP(&model_state, fitted_nlsf, model_input.data(), minimum_inverse_gain, false);
-    silk_process_NLSFs_FLP(&model_state, fitted_prediction, fitted_nlsf, model_state.prev_NLSFq_Q15.data());
-    std::copy_n(model_state.indices.NLSFIndices, 17, indices.NLSFIndices);
-    indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
-    for (int row = 0; row < 2; ++row) {
-      for (int j = 0; j < order; ++j)
-        fitted_prepared.prediction[row * 16 + j] = static_cast<opus_int16>(float2int(fitted_prediction[row][j] * 4096.f));
+    if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
+                  std::numeric_limits<float>::digits >= 16 && std::numeric_limits<float>::min_exponent <= -11 &&
+                  std::numeric_limits<float>::max_exponent >= 16) {
+      opus_int16 fitted_prediction[2][16]{};
+      silk_process_NLSFs(&model_state, fitted_prediction, fitted_nlsf, model_state.prev_NLSFq_Q15.data());
+      std::copy_n(model_state.indices.NLSFIndices, 17, indices.NLSFIndices);
+      indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
+      for (int row = 0; row < 2; ++row)
+        std::copy_n(fitted_prediction[row], order, fitted_prepared.prediction.begin() + row * 16);
+    } else {
+      float fitted_prediction[2][16]{};
+      silk_process_NLSFs_FLP(&model_state, fitted_prediction, fitted_nlsf, model_state.prev_NLSFq_Q15.data());
+      std::copy_n(model_state.indices.NLSFIndices, 17, indices.NLSFIndices);
+      indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
+      for (int row = 0; row < 2; ++row) {
+        for (int j = 0; j < order; ++j)
+          fitted_prepared.prediction[row * 16 + j] = static_cast<opus_int16>(float2int(fitted_prediction[row][j] * 4096.f));
+      }
     }
     lbrr_prepared = &fitted_prepared;
   }
