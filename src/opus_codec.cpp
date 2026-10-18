@@ -9447,7 +9447,7 @@ static constexpr auto celt_pvq_fast_rows = make_celt_pvq_fast_rows();
 template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_uint32 index, Writer& writer) noexcept -> opus_val32 {
   opus_val32 yy = 0;
   int position = 0;
-  for (; n > 2; --n, ++position) {
+  while (n > 2) {
     opus_uint32 p, q;
     const int k0 = k;
     int sign;
@@ -9462,13 +9462,23 @@ template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_u
         for (p = row[k]; p > index; p = row[--k]) {}
       }
     } else {
-      p = celt_pvq_fast_rows[static_cast<unsigned>(k)][n];
-      q = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)][n];
-      if (p <= index && index < q) {
+      const int limit = std::max(2, k);
+      const auto* lower = celt_pvq_fast_rows[static_cast<unsigned>(k)] + n;
+      const auto* upper = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)] + n;
+      p = *lower;
+      q = *upper;
+      while (p <= index && index < q) {
         index -= p;
         writer(position, 0);
-        continue;
+        --n;
+        ++position;
+        if (n <= limit)
+          break;
+        p = *--lower;
+        q = *--upper;
       }
+      if (n <= limit)
+        continue;
       sign = -(index >= q);
       index -= q & sign;
       while ((p = celt_pvq_fast_rows[static_cast<unsigned>(--k)][n]) > index) {}
@@ -9477,6 +9487,8 @@ template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_u
     const auto value = static_cast<opus_int16>((k0 - k + sign) ^ sign);
     writer(position, value);
     yy += static_cast<opus_val32>(value * value);
+    --n;
+    ++position;
   }
   auto p = static_cast<opus_uint32>(2 * k + 1);
   const int sign0 = -(index >= p);
