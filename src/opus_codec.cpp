@@ -7028,7 +7028,7 @@ static celt_glog celt_roex_demand_reduction(int start, int end, int band, const 
   return static_cast<celt_glog>(.5 * std::log2(excitation / (amplitude * amplitude)));
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr, double* requested_boost = nullptr, const celt_ener* source_energy = nullptr) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr, double* requested_boost = nullptr, const celt_ener* source_energy = nullptr, bool common_follower_source = false) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -7064,6 +7064,10 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   }
   if (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement) {
     for (c = 0; c < C; ++c) {
+      if (c == 1 && common_follower_source) {
+        copy_n_items(follower.data(), static_cast<std::size_t>(end), follower.data() + nbEBands);
+        continue;
+      }
       int last = 0;
       celt_glog offset, tmp;
       celt_glog* f;
@@ -8247,7 +8251,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       ec_enc_bit_logp(enc, isTransient, 3);
     enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, enable_tf_analysis ? importance.data() : nullptr, C == 2 && start == 0 ? requested_boost.data() : nullptr, C == 1 ? bandE : nullptr);
+                                 &tot_boost, toneishness, enable_tf_analysis ? importance.data() : nullptr, C == 2 && start == 0 ? requested_boost.data() : nullptr, C == 1 ? bandE : nullptr, common_source && !second_mdct && LM > 0);
   }
   auto* X = freq;
 
