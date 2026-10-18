@@ -15589,17 +15589,20 @@ static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int3
   }
 }
 
-[[nodiscard]] static auto silk_ensure_decoder_channel(silk_decoder_state*& channel) noexcept -> silk_decoder_state* {
-  if (channel == nullptr) {
-    auto* state = static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state)));
+[[nodiscard]] static auto silk_ensure_decoder_channel(silk_decoder_state*& channel, bool reset = false) noexcept -> silk_decoder_state* {
+  auto* state = channel;
+  if (state == nullptr) {
+    state = static_cast<silk_decoder_state*>(std::malloc(sizeof(silk_decoder_state)));
     if (state == nullptr) {
       return nullptr;
     }
     state->sCNG = nullptr;
-    silk_reset_decoder(state);
-    channel = state;
+  } else if (!reset) {
+    return state;
   }
-  return channel;
+  silk_reset_decoder(state);
+  channel = state;
+  return state;
 }
 
 static void silk_release_decoder_channel(silk_decoder_state*& channel) noexcept {
@@ -15669,7 +15672,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   if (mid_state == nullptr)
     return -1;
   if ((decControl->nChannelsInternal == 2 || psDec->nChannelsInternal == 2 || decControl->nChannelsAPI == 2) &&
-      silk_ensure_decoder_channel(psDec->side_channel_state) == nullptr)
+      silk_ensure_decoder_channel(psDec->side_channel_state, decControl->nChannelsInternal > psDec->nChannelsInternal && decControl->nChannelsInternal == 2) == nullptr)
     return -1;
   auto& mid = *mid_state;
   std::array<silk_decoder_state*, 2> channel_state{&mid, psDec->side_channel_state};
@@ -15677,9 +15680,6 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
     for (int n = 0; n < decControl->nChannelsInternal; ++n) {
       channel_state[n]->nFramesDecoded = 0;
     }
-  }
-  if (decControl->nChannelsInternal > psDec->nChannelsInternal && decControl->nChannelsInternal == 2) {
-    silk_reset_decoder(channel_state[1]);
   }
   const int stereo_to_mono =
       decControl->nChannelsInternal == 1 && psDec->nChannelsInternal == 2 && (decControl->internalSampleRate == 1000 * mid.fs_kHz);
