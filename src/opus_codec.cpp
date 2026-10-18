@@ -14583,7 +14583,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
     }
     const opus_val16 rcp = (K + 0.8f) * (1.f / sum);
     for (int j = 0; j < N; ++j) {
-      const int pulse_int = static_cast<int>(std::floor(rcp * X[j]));
+      const int pulse_int = static_cast<int>(rcp * X[j]);
       const auto pulse = static_cast<celt_norm>(pulse_int);
       iy_out[j] = (pulse_int << 1) | (iy_out[j] & 1);
       yy += static_cast<opus_val32>(pulse) * static_cast<opus_val32>(pulse);
