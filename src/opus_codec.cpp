@@ -3664,7 +3664,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     reset_encoder_silk_state(st);
     prefill = previous_stereo_policy && stereo_policy_allowed ? 3 : 1;
   }
-  const int delayed_bandwidth = st->bandwidth;
   if (st->mode == opus_mode_celt_only || first || st->silk_mode.allowBandwidthSwitch) {
     int bandwidth = 1105;
     for (; bandwidth > 1101; --bandwidth) {
@@ -3683,7 +3682,15 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     if (bandwidth == 1102) {
       bandwidth = 1103;
     }
-    st->bandwidth = st->auto_bandwidth = bandwidth;
+    st->auto_bandwidth = bandwidth;
+    if (frame_metrics.energy == 0 && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
+        st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
+        std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
+          return sample == 0;
+        })) {
+      bandwidth = st->bandwidth;
+    }
+    st->bandwidth = bandwidth;
     if (!first && st->mode != opus_mode_celt_only && !st->silk_mode.inWBmodeWithoutVariableLP && st->bandwidth > 1103) {
       st->bandwidth = 1103;
     }
@@ -3750,14 +3757,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     if (st->bandwidth == 1102) {
       st->bandwidth = 1103;
     }
-  }
-  if (st->bandwidth > delayed_bandwidth && frame_metrics.energy == 0 &&
-      st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
-      st->prev_framesize == frame_size && celt_enc->overlap_max > 0 &&
-      std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
-        return sample == 0;
-      })) {
-    st->bandwidth = delayed_bandwidth;
   }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
   const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
