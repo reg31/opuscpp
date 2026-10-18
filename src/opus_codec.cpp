@@ -2222,10 +2222,11 @@ static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], o
 
 static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* x, int len) {
   const auto samples = std::span<const opus_int16>{x, static_cast<std::size_t>(len)};
-  auto shft = 31 - silk_CLZ32(len);
+  const auto initial_shift = 31 - silk_CLZ32(len);
+  auto shft = initial_shift;
   auto nrg = silk_shifted_sum_sqr(samples, shft, len);
   shft = std::max(0, shft + 3 - silk_CLZ32(nrg));
-  nrg = silk_shifted_sum_sqr(samples, shft);
+  nrg = shft == initial_shift ? wrap_subtract(nrg, len) : silk_shifted_sum_sqr(samples, shft);
   *shift = shft;
   *energy = nrg;
 }
