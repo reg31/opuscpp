@@ -10190,10 +10190,10 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
       std::array<kiss_fft_cpx, 4> zero, one, two, three, four;
       for (int lane = 0; lane < 4; ++lane) {
         const int k = block + lane;
-        const int index = 5 * k;
+        const int index = 5 * block + lane;
         zero[lane] = {input[index], input[480 + index]};
         const auto load = [&]<int Lane>() {
-          return complex_multiply({input[index + Lane], input[480 + index + Lane]}, st->twiddles[k * Lane]);
+          return complex_multiply({input[index + 4 * Lane], input[480 + index + 4 * Lane]}, st->twiddles[k * Lane]);
         };
         one[lane] = load.template operator()<1>();
         two[lane] = load.template operator()<2>();
@@ -10230,7 +10230,13 @@ static void stockham_stage_tensor480(const float* input, float* output, const ki
       for (int group = 0; group < groups; ++group) {
         const int source_index = k * Radix * groups + group;
         const auto store = [&]<int Lane>(int, const kiss_fft_cpx& value) {
-          const int target = (k + Lane * M) * groups + group;
+          const int target = [&] {
+            if constexpr (!ScaleInput && Radix == 3 && M == 32) {
+              const int j = k + Lane * M;
+              return (j / 4) * 20 + group * 4 + j % 4;
+            } else
+              return (k + Lane * M) * groups + group;
+          }();
           output[target] = value.r;
           output[480 + target] = value.i;
         };
