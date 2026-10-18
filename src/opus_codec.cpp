@@ -17630,9 +17630,10 @@ static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const 
   }
   std::array<opus_int32, 6> memory;
   std::copy_n(S, memory.size(), memory.begin());
-  auto update_stage = [](const opus_int32 input, opus_int32& state, const opus_int16 coefficient) noexcept {
+  auto update_stage = []<bool AddDelta = false>(const opus_int32 input, opus_int32& state, const opus_int16 coefficient) noexcept {
     const auto delta = input - state;
-    const auto scaled = static_cast<opus_int32>((delta * static_cast<opus_int64>(coefficient)) >> 16);
+    const auto product = (delta * static_cast<opus_int64>(coefficient)) >> 16;
+    const auto scaled = static_cast<opus_int32>(AddDelta ? delta + product : product);
     const auto output = state + scaled;
     state = input + scaled;
     return output;
@@ -17641,17 +17642,11 @@ static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const 
     const auto in32 = wrap_shift_left(in[k], 10);
     const auto even0 = update_stage(in32, memory[0], silk_resampler_up2_hq_0[0]);
     const auto even1 = update_stage(even0, memory[1], silk_resampler_up2_hq_0[1]);
-    const auto even_delta = even1 - memory[2];
-    const auto even_scaled = static_cast<opus_int32>(even_delta + ((even_delta * static_cast<opus_int64>(silk_resampler_up2_hq_0[2])) >> 16));
-    const auto even = memory[2] + even_scaled;
-    memory[2] = even1 + even_scaled;
+    const auto even = update_stage.operator()<true>(even1, memory[2], silk_resampler_up2_hq_0[2]);
     out[2 * k] = rounded_rshift_to_int16<10>(even);
     const auto odd0 = update_stage(in32, memory[3], silk_resampler_up2_hq_1[0]);
     const auto odd1 = update_stage(odd0, memory[4], silk_resampler_up2_hq_1[1]);
-    const auto odd_delta = odd1 - memory[5];
-    const auto odd_scaled = static_cast<opus_int32>(odd_delta + ((odd_delta * static_cast<opus_int64>(silk_resampler_up2_hq_1[2])) >> 16));
-    const auto odd = memory[5] + odd_scaled;
-    memory[5] = odd1 + odd_scaled;
+    const auto odd = update_stage.operator()<true>(odd1, memory[5], silk_resampler_up2_hq_1[2]);
     out[2 * k + 1] = rounded_rshift_to_int16<10>(odd);
   }
   std::copy(memory.begin(), memory.end(), S);
