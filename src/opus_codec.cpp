@@ -6973,8 +6973,17 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
     }
   }
-  if (importance != nullptr)
-    std::fill_n(importance, end, 13);
+  if (importance != nullptr) {
+    if (C == 2 && st->classical_leak_valid && effectiveBytes < (30 + 5 * LM) && !st->lowrate_refinement) {
+      for (i = 0; i < end; ++i) {
+        const celt_glog depth = std::max(0.f, std::max(bandLogE[i], bandLogE[nbEBands + i]) - noise_floor[i]);
+        const celt_glog cue = i < 19 ? std::min(depth, (1.f / 64.f) * static_cast<celt_glog>(st->classical_leak_boost[i])) : 0.f;
+        importance[i] = static_cast<int>(std::floor(.5f + 13.f * std::exp2(std::min(cue, 4.f))));
+      }
+    } else {
+      std::fill_n(importance, end, 13);
+    }
+  }
   if (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement) {
     for (c = 0; c < C; ++c) {
       int last = 0;
