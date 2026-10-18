@@ -15140,9 +15140,13 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         if (k == 2) {
           const int current_length = 2 * state.subfr_length;
           const int history_length = std::max(0, length - current_length);
-          copy_n_items(state.outBuf + state.ltp_mem_length - history_length, static_cast<std::size_t>(history_length), filtered);
-          copy_n_items(xq + std::max(0, current_length - length), static_cast<std::size_t>(length - history_length), filtered + history_length);
-          silk_LPC_analysis_filter(filtered, filtered, A_Q12, length, state.LPC_order);
+          const auto* input = xq + std::max(0, current_length - length);
+          if (history_length != 0) {
+            copy_n_items(state.outBuf + state.ltp_mem_length - history_length, static_cast<std::size_t>(history_length), filtered);
+            copy_n_items(xq + std::max(0, current_length - length), static_cast<std::size_t>(length - history_length), filtered + history_length);
+            input = filtered;
+          }
+          silk_LPC_analysis_filter(filtered, input, A_Q12, length, state.LPC_order);
         } else {
           silk_LPC_analysis_filter(filtered, state.outBuf + start_idx, A_Q12, length, state.LPC_order);
         }
