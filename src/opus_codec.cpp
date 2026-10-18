@@ -16374,24 +16374,31 @@ template <int Shift>
 template <bool Warped>
 static auto silk_nsq_noise_shape_float(const std::array<opus_int32, 4>& diff, float* state, const float* coefficients, int order, float warping) noexcept {
   std::array<float, 4> even, odd, out, ahead, difference;
+  std::array<float, Warped ? 4 : 0> carried;
   const auto warping_squared = warping * warping;
   for (int lane = 0; lane < 4; ++lane) {
     const auto old = state[lane];
     even[lane] = static_cast<float>(diff[lane]);
-    if constexpr (Warped)
+    if constexpr (Warped) {
+      carried[lane] = state[4 + lane];
       even[lane] += warping * old;
+    }
     state[lane] = even[lane];
     odd[lane] = old;
     if constexpr (Warped)
-      odd[lane] += warping * (state[4 + lane] - even[lane]);
+      odd[lane] += warping * (carried[lane] - even[lane]);
     out[lane] = even[lane] * coefficients[0];
   }
   for (int index = 2; index < order; index += 2) {
     for (int lane = 0; lane < 4; ++lane) {
-      even[lane] = state[(index - 1) * 4 + lane];
+      if constexpr (Warped)
+        even[lane] = carried[lane];
+      else
+        even[lane] = state[(index - 1) * 4 + lane];
       if constexpr (Warped) {
         difference[lane] = state[index * 4 + lane] - odd[lane];
-        ahead[lane] = state[index * 4 + lane] + warping * (state[(index + 1) * 4 + lane] - even[lane]);
+        carried[lane] = state[(index + 1) * 4 + lane];
+        ahead[lane] = state[index * 4 + lane] + warping * (carried[lane] - even[lane]);
         even[lane] += warping * difference[lane];
       }
       state[(index - 1) * 4 + lane] = odd[lane];
