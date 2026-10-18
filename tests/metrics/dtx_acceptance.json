@@ -8,7 +8,7 @@
   "gate_stdout_sha256": "6e82be5527a8552a2ff1ff767baeff910953abe0583bd86a90740d9cc41c93b1",
   "reporting_stdout_sha256": "6e82be5527a8552a2ff1ff767baeff910953abe0583bd86a90740d9cc41c93b1",
   "both_outputs_byte_identical": true,
-  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fc9dc9\\build\\official_compare_report\\codex_native_celt_c9dc9b991d25_20261018\\dtx_reporting.cpp",
+  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fe30ea\\build\\official_compare_report\\codex_native_celt_e30ea7cf87b6_20261018\\dtx_reporting.cpp",
   "waiver": false,
   "failure_is_non_gating_for_measurement_completion": true
 }
