@@ -6617,7 +6617,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     const int haar_levels = legal_metric ? last_legal_level : LM + !(isTransient || narrow);
     for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
-      if (!legal_metric || (legal_levels & (1u << (k + 2))) != 0) {
+      if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
         L1 = coupled ? haar_l1_metric<true>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), tmp_side.data())
                      : haar_l1_metric<false>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias);
         record_legal_cost(k + 1, L1);
