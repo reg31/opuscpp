@@ -47,7 +47,7 @@ void start_state(voice_conditioning_channel& state, float score, int provisional
   std::vector<float> warmup;
   float phase = 0.f;
   make_tone(warmup, 1000.f, 0.2f, phase);
-  update_voice_conditioning(state, warmup.data(), test_frame, 1, test_fs);
+  update_voice_conditioning(state, warmup.data(), test_frame, 1, test_fs, voice_conditioning_coefficients{test_fs});
   state.cond_started = 1;
   state.cond_score = score;
   state.cond_mix = score;
@@ -72,7 +72,7 @@ double run_clean_frames(voice_conditioning_channel& state, int frames, std::vect
   float phase = 0.f;
   for (int f = 0; f < frames; ++f) {
     make_tone(pcm, 1000.f, 0.2f, phase);
-    update_voice_conditioning(state, pcm.data(), test_frame, 1, test_fs);
+    update_voice_conditioning(state, pcm.data(), test_frame, 1, test_fs, voice_conditioning_coefficients{test_fs});
     if (trace)
       trace->push_back(static_cast<double>(state.cond_score));
   }
@@ -120,7 +120,7 @@ int main() {
     double rumble6 = 0.0;
     for (int f = 0; f < attack_frames; ++f) {
       make_tone(rumble, 50.f, 0.3f, phase);
-      update_voice_conditioning(state, rumble.data(), test_frame, 1, test_fs);
+      update_voice_conditioning(state, rumble.data(), test_frame, 1, test_fs, voice_conditioning_coefficients{test_fs});
       if (f == 5) {
         rumble6 = state.cond_score;
 
@@ -138,7 +138,7 @@ int main() {
     std::vector<float> mixed;
     float phase = 0.f;
     make_dc_with_ac(mixed, 0.15f, 40.f, 0.1f, phase);
-    update_voice_conditioning(state, mixed.data(), test_frame, 1, test_fs);
+    update_voice_conditioning(state, mixed.data(), test_frame, 1, test_fs, voice_conditioning_coefficients{test_fs});
     CHECK(state.cond_score > 0.6, "DC evidence attacks within one frame");
     std::printf("C2: dc_f1=%.3f\n", static_cast<double>(state.cond_score));
   }
@@ -150,7 +150,7 @@ int main() {
     float phase = 0.f;
     for (int f = 0; f < 20; ++f) {
       make_tone(rumble, 50.f, 0.3f, phase);
-      update_voice_conditioning(state, rumble.data(), test_frame, 1, test_fs);
+      update_voice_conditioning(state, rumble.data(), test_frame, 1, test_fs, voice_conditioning_coefficients{test_fs});
     }
     CHECK(state.cue_dirty == 1, "recovery scenario requires a latched dirty state");
     run_clean_frames(state, 240);

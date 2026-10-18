@@ -3783,13 +3783,21 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
              : 0.f;
 }
 
-static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate) {
-  constexpr opus_val32 lf_coef_hz = 150.f;
-  constexpr opus_val32 dc_coef_hz = 5.f;
-  const opus_val32 lf_coef = 1.f - std::exp(-6.2831853f * lf_coef_hz / static_cast<opus_val32>(sample_rate));
-  const opus_val32 dc_coef = 1.f - std::exp(-6.2831853f * dc_coef_hz / static_cast<opus_val32>(sample_rate));
-  const opus_val32 mid_hp_coef = 1.f - std::exp(-6.2831853f * 300.f / static_cast<opus_val32>(sample_rate));
-  const opus_val32 mid_lp_coef = 1.f - std::exp(-6.2831853f * 3000.f / static_cast<opus_val32>(sample_rate));
+struct voice_conditioning_coefficients {
+  opus_val32 lf_coef, dc_coef, mid_hp_coef, mid_lp_coef;
+
+  explicit voice_conditioning_coefficients(opus_int32 sample_rate) {
+    constexpr opus_val32 lf_coef_hz = 150.f;
+    constexpr opus_val32 dc_coef_hz = 5.f;
+    lf_coef = 1.f - std::exp(-6.2831853f * lf_coef_hz / static_cast<opus_val32>(sample_rate));
+    dc_coef = 1.f - std::exp(-6.2831853f * dc_coef_hz / static_cast<opus_val32>(sample_rate));
+    mid_hp_coef = 1.f - std::exp(-6.2831853f * 300.f / static_cast<opus_val32>(sample_rate));
+    mid_lp_coef = 1.f - std::exp(-6.2831853f * 3000.f / static_cast<opus_val32>(sample_rate));
+  }
+};
+
+static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate, const voice_conditioning_coefficients& coefficients) {
+  const auto& [lf_coef, dc_coef, mid_hp_coef, mid_lp_coef] = coefficients;
   opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
   opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
   double sample_sum = 0, raw_e = 0;
@@ -3986,9 +3994,10 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
 static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
   if (st->application == OPUS_APPLICATION_VOIP) {
+    const voice_conditioning_coefficients coefficients{st->Fs};
     std::array<opus_val32, 2> initial_value;
     for (int channel = 0; channel < st->channels; ++channel) {
-      initial_value[channel] = update_voice_conditioning(st->conditioning[channel], pcm + channel, frame_size, st->channels, st->Fs);
+      initial_value[channel] = update_voice_conditioning(st->conditioning[channel], pcm + channel, frame_size, st->channels, st->Fs, coefficients);
     }
     const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
     st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
