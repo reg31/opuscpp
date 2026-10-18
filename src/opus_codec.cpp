@@ -6303,8 +6303,8 @@ static bool celt_exact_projection_heap(int start, int end, const int* requested,
   return true;
 }
 
-static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost, const double* requested_boost = nullptr) -> opus_int32 {
-  if (C != 2 || start != 0)
+static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost, const double* requested_boost = nullptr, bool has_requested_offsets = true) -> opus_int32 {
+  if (C != 2 || start != 0 || !has_requested_offsets)
     return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
   const auto saved_coder = *coder;
   const auto saved_bits = total_bits;
@@ -8224,7 +8224,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     }
     opus_int32 total_boost;
     tell = process_celt_encoder_dynalloc(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                         total_boost, requested_boost.data());
+                                         total_boost, requested_boost.data(), tot_boost != 0);
     dual_stereo = 0;
     if (C == 2) {
       if (LM != 0) {
