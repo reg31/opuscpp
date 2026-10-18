@@ -13973,6 +13973,78 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
   }
   const opus_val16 coef = intra ? 0 : pred_coef[LM];
   const opus_val16 beta = intra ? beta_intra : beta_coef[LM];
+  if constexpr (Encode && FullBudget) {
+    if (C == 2) {
+      opus_val32 previous0 = 0;
+      opus_val32 previous1 = 0;
+      for (int i = start; i < end; ++i) {
+        const auto consume_channel = [&]<int Channel>(opus_val32 previous) {
+          constexpr int c = Channel;
+          const int index = i + c * celt_default_nb_ebands;
+          const celt_glog old_energy = std::max(-9.f, oldEBands[index]);
+          int qi;
+          int qi0;
+          if constexpr (Encode) {
+            const celt_glog input_energy = eBands[index];
+            const opus_val32 residual = input_energy - coef * old_energy - previous;
+            qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
+            const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
+            if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
+              qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
+            }
+            qi0 = qi;
+            if constexpr (FullBudget) {
+              const int probability_index = 2 * std::min(i, 20);
+              ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
+            } else {
+              tell = ec_tell(coder);
+              const int bits_left = budget - tell - 3 * C * (end - i);
+              if (i != start && bits_left < 30) {
+                if (bits_left < 24) {
+                  qi = std::min(1, qi);
+                }
+                if (bits_left < 16) {
+                  qi = std::max(-1, qi);
+                }
+              }
+              if (budget - tell >= 15) {
+                const int probability_index = 2 * std::min(i, 20);
+                ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
+              } else if (budget - tell >= 2) {
+                qi = std::clamp(qi, -1, 1);
+                ec_enc_icdf(coder, 2 * qi ^ -(qi < 0), shared_three_step_icdf.data(), 2);
+              } else if (budget - tell >= 1) {
+                qi = std::min(0, qi);
+                ec_enc_bit_logp(coder, -qi, 1);
+              } else {
+                qi = -1;
+              }
+            }
+            error[index] = residual - qi;
+            badness += std::abs(qi0 - qi);
+          } else {
+            tell = ec_tell(coder);
+            if (budget - tell >= 15) {
+              const int probability_index = 2 * std::min(i, 20);
+              qi = ec_laplace_decode(coder, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
+            } else if (budget - tell >= 2) {
+              qi = ec_dec_icdf(coder, shared_three_step_icdf.data(), 2);
+              qi = (qi >> 1) ^ -(qi & 1);
+            } else {
+              qi = budget - tell >= 1 ? -ec_dec_bit_logp(coder, 1) : -1;
+            }
+          }
+          const auto quantized = static_cast<opus_val32>(qi);
+          oldEBands[index] = coef * old_energy + previous + quantized;
+          previous += quantized - beta * quantized;
+          return previous;
+        };
+        previous0 = consume_channel.template operator()<0>(previous0);
+        previous1 = consume_channel.template operator()<1>(previous1);
+      }
+      return badness;
+    }
+  }
   for (int i = start; i < end; ++i) {
     for (int c = 0; c < C; ++c) {
       const int index = i + c * celt_default_nb_ebands;
