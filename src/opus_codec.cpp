@@ -3774,7 +3774,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   const opus_int32 requested_frame_bits =
       governed_vbr ? next_vbr_target_bits(st, frame_size) : bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
-  const auto frame_budget = make_vbr_frame_budget(requested_frame_bits, st->vbr_budget_reservoir_bits);
+  const auto frame_budget = governed_vbr ? make_vbr_frame_budget(requested_frame_bits, st->vbr_budget_reservoir_bits) : vbr_frame_budget{};
   if ((frame_size > st->Fs / 50 && (st->mode != opus_mode_silk_only)) || frame_size > 3 * st->Fs / 50) {
     return encode_multiframe_packet(
         st, pcm, frame_size, data, out_data_bytes,
