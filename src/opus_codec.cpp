@@ -12823,8 +12823,36 @@ static float classifier_pcm16_stereo_down2_hp(float* state, float* out, const op
   state[2] = state2;
   return hp;
 }
+static float classifier_pcm16_mono_down2_hp(float* state, float* out, const opus_int16* input, int count) {
+  float state0 = state[0], state1 = state[1], state2 = state[2];
+  float hp = 0;
+  for (int k = 0; k < count; ++k) {
+    float in32 = static_cast<float>(input[2 * k]);
+    float Y = in32 - state0;
+    float X = Y * 0.6074371f;
+    float out32 = state0 + X;
+    state0 = in32 + X;
+    float hp32 = out32;
+    in32 = static_cast<float>(input[2 * k + 1]);
+    Y = in32 - state1;
+    X = Y * 0.15063f;
+    out32 = out32 + state1 + X;
+    state1 = in32 + X;
+    Y = -in32 - state2;
+    X = Y * 0.15063f;
+    hp32 = hp32 + state2 + X;
+    state2 = -in32 + X;
+    hp += hp32 * hp32;
+    out[k] = 0.5f * out32;
+  }
+  state[0] = state0;
+  state[1] = state1;
+  state[2] = state2;
+  return hp;
+}
 
-static float classical_leak_downmix_resample(classical_leak_state* s, const opus_res* pcm, float* out,
+
+static float classical_leak_downmix_resample_generic(classical_leak_state* s, const opus_res* pcm, float* out,
                                              int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
   if (subframe == 0) {
     return 0;
@@ -12891,6 +12919,18 @@ static float classical_leak_downmix_resample(classical_leak_state* s, const opus
     ret = classical_leak_down2_hp(s->downmix_state, out, tmp3x, 3 * subframe);
   }
   return ret * (1.f / 32768.f / 32768.f);
+}
+
+static float classical_leak_downmix_resample(classical_leak_state* s, const opus_res* pcm, float* out, int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
+  if (subframe == 0)
+    return 0;
+  if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
+                std::numeric_limits<float>::digits >= 17 && std::numeric_limits<float>::min_exponent <= -15 &&
+                std::numeric_limits<float>::max_exponent > 16 && FLT_EVAL_METHOD == 0) {
+    if (Fs == 48000 && channels == 1 && pcm16 != nullptr && subframe > 0 && offset >= 0)
+      return classifier_pcm16_mono_down2_hp(s->downmix_state, out, pcm16 + static_cast<std::size_t>(offset) * 2, subframe) * (1.f / 32768.f / 32768.f);
+  }
+  return classical_leak_downmix_resample_generic(s, pcm, out, subframe, offset, channels, Fs, pcm16);
 }
 
 template <typename Float>
