@@ -15467,15 +15467,12 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
     ec_enc_icdf(coder, rate_level, silk_rate_levels_iCDF[signal_type >> 1].data(), 8);
     const auto* block_icdf = silk_pulses_per_block_iCDF[rate_level].data();
     for (int block_index = 0; block_index < block_count; ++block_index) {
-      if (shifts[block_index] == 0) {
-        ec_enc_icdf(coder, pulse_sums[block_index], block_icdf, 8);
-        continue;
+      const auto* count_icdf = block_icdf;
+      for (int shift = 0; shift < shifts[block_index]; ++shift) {
+        ec_enc_icdf(coder, 17, count_icdf, 8);
+        count_icdf = silk_pulses_per_block_iCDF[9].data();
       }
-      ec_enc_icdf(coder, 17, block_icdf, 8);
-      for (int shift = 1; shift < shifts[block_index]; ++shift) {
-        ec_enc_icdf(coder, 17, silk_pulses_per_block_iCDF[9].data(), 8);
-      }
-      ec_enc_icdf(coder, pulse_sums[block_index], silk_pulses_per_block_iCDF[9].data(), 8);
+      ec_enc_icdf(coder, pulse_sums[block_index], count_icdf, 8);
     }
   } else {
     rate_level = ec_dec_icdf(coder, silk_rate_levels_iCDF[signal_type >> 1].data(), 8);
