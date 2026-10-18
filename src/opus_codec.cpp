@@ -7111,6 +7111,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       offset = (1.f);
       for (i = 2; i < end - 2; i++) {
         f[i] = std::max(f[i], median_of_5(&bandLogE3[i - 2]) - offset);
+        f[i] = std::max(f[i], noise_floor[i]);
       }
       tmp = median_of_3(&bandLogE3[0]) - offset;
       f[0] = std::max(f[0], tmp);
@@ -7118,7 +7119,10 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       tmp = median_of_3(&bandLogE3[end - 3]) - offset;
       f[end - 2] = std::max(f[end - 2], tmp);
       f[end - 1] = std::max(f[end - 1], tmp);
-      for (i = 0; i < end; i++) {
+      for (i = 0; i < std::min(2, end); i++) {
+        f[i] = std::max(f[i], noise_floor[i]);
+      }
+      for (i = std::max(2, end - 2); i < end; i++) {
         f[i] = std::max(f[i], noise_floor[i]);
       }
     }
