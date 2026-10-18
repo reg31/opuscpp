@@ -16714,37 +16714,34 @@ static int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncCont
   if (!allow_bandwidth_switch && !encControl->opusCanSwitch) {
     return orig_kHz;
   }
-  int fs_kHz = orig_kHz;
-  if (fs_Hz > encControl->desiredInternalSampleRate) {
-    if (psEncC->sLP.mode == 0) {
-      psEncC->sLP.transition_frame_no = (5120 / (5 * 4));
-      zero_object(psEncC->sLP.In_LP_State);
-    }
-    if (encControl->opusCanSwitch) {
-      psEncC->sLP.mode = 0;
-      fs_kHz = orig_kHz == 16 ? 12 : 8;
-    } else if (psEncC->sLP.transition_frame_no <= 0) {
-      encControl->switchReady = 1;
-      encControl->maxBits -= encControl->maxBits * 5 / (encControl->payloadSize_ms + 5);
-    } else {
-      psEncC->sLP.mode = -2;
-    }
-  } else if (fs_Hz < encControl->desiredInternalSampleRate) {
-    if (encControl->opusCanSwitch) {
-      fs_kHz = orig_kHz == 8 ? 12 : 16;
-      psEncC->sLP.transition_frame_no = 0;
-      zero_object(psEncC->sLP.In_LP_State);
-      psEncC->sLP.mode = 1;
-    } else if (psEncC->sLP.mode == 0) {
-      encControl->switchReady = 1;
-      encControl->maxBits -= encControl->maxBits * 5 / (encControl->payloadSize_ms + 5);
-    } else {
+  if (fs_Hz == encControl->desiredInternalSampleRate) {
+    if (psEncC->sLP.mode < 0) {
       psEncC->sLP.mode = 1;
     }
-  } else if (psEncC->sLP.mode < 0) {
-    psEncC->sLP.mode = 1;
+    return orig_kHz;
   }
-  return fs_kHz;
+  const bool decreasing_bandwidth = fs_Hz > encControl->desiredInternalSampleRate;
+  if (decreasing_bandwidth && psEncC->sLP.mode == 0) {
+    psEncC->sLP.transition_frame_no = (5120 / (5 * 4));
+    zero_object(psEncC->sLP.In_LP_State);
+  }
+  if (encControl->opusCanSwitch) {
+    if (decreasing_bandwidth) {
+      psEncC->sLP.mode = 0;
+      return orig_kHz == 16 ? 12 : 8;
+    }
+    psEncC->sLP.transition_frame_no = 0;
+    zero_object(psEncC->sLP.In_LP_State);
+    psEncC->sLP.mode = 1;
+    return orig_kHz == 8 ? 12 : 16;
+  }
+  if (decreasing_bandwidth ? psEncC->sLP.transition_frame_no > 0 : psEncC->sLP.mode != 0) {
+    psEncC->sLP.mode = decreasing_bandwidth ? -2 : 1;
+    return orig_kHz;
+  }
+  encControl->switchReady = 1;
+  encControl->maxBits -= encControl->maxBits * 5 / (encControl->payloadSize_ms + 5);
+  return orig_kHz;
 }
 
 static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5], const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr) {
