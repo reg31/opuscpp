@@ -14675,7 +14675,7 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus
       }
     }
     xy += X[best_id];
-    yy += y[best_id];
+    yy = best_den;
     y[best_id] += 2;
     iy_out[best_id] += 2;
     if (event_rank) {
