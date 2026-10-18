@@ -7048,13 +7048,17 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   if (requested_boost != nullptr)
     std::fill_n(requested_boost, nbEBands, 0.);
   celt_glog maxDepth = -(31.9f);
-  for (i = 0; i < end; i++) {
-    noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
-    maxDepth = std::max(maxDepth, bandLogE[i] - noise_floor[i]);
-  }
-  if (C == 2 && !common_follower_source) {
+  const bool analyze_followers = effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement;
+  const bool fuse_producers = analyze_followers && !common_follower_source;
+  if (!fuse_producers) {
     for (i = 0; i < end; i++) {
-      maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
+      noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
+      maxDepth = std::max(maxDepth, bandLogE[i] - noise_floor[i]);
+    }
+    if (C == 2 && !common_follower_source) {
+      for (i = 0; i < end; i++) {
+        maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
+      }
     }
   }
   if (importance != nullptr) {
@@ -7068,7 +7072,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       std::fill_n(importance, end, 13);
     }
   }
-  if (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement) {
+  if (analyze_followers) {
     for (c = 0; c < C; ++c) {
       if (c == 1 && common_follower_source) {
         copy_n_items(follower.data(), static_cast<std::size_t>(end), follower.data() + nbEBands);
@@ -7084,8 +7088,18 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         }
       }
       f = follower.data() + c * nbEBands;
+      if (fuse_producers) {
+        if (c == 0)
+          noise_floor[0] = celt_noise_floor_base[0] + (9 - st->lsb_depth);
+        maxDepth = std::max(maxDepth, bandLogE[c * nbEBands] - noise_floor[0]);
+      }
       f[0] = bandLogE3[0];
       for (i = 1; i < end; i++) {
+        if (fuse_producers) {
+          if (c == 0)
+            noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
+          maxDepth = std::max(maxDepth, bandLogE[c * nbEBands + i] - noise_floor[i]);
+        }
         if (bandLogE3[i] > bandLogE3[i - 1] + (.5f)) {
           last = i;
         }
