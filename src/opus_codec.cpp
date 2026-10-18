@@ -2635,9 +2635,6 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
 static void reset_encoder_silk_state(OpusEncoder* st) {
   auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
   auto* lbrr = silk_enc->lbrr;
-  auto* channels = silk_encoder_channel_states(silk_enc);
-  for (int n = 0; n < st->channels; ++n)
-    channels[n].x_buf.release();
   silk_InitEncoder(silk_enc, st->channels);
   silk_enc->lbrr = lbrr;
   if (lbrr != nullptr) {
@@ -2682,7 +2679,9 @@ static void ref_opus_encoder_init(OpusEncoder* st, opus_int32 Fs, int channels, 
   st->stream_channels = st->channels = channels;
   st->Fs = Fs;
   if (encoder_uses_silk(application)) {
-    silk_InitEncoder(encoder_silk_state(st), st->channels);
+    auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
+    std::uninitialized_default_construct_n(silk_encoder_channel_states(silk_enc), static_cast<std::size_t>(channels));
+    silk_InitEncoder(silk_enc, st->channels);
   }
   st->silk_mode.API_sampleRate = st->Fs;
   st->silk_mode.complexity = 9;
@@ -18217,7 +18216,6 @@ static void silk_InitEncoder(void* encState, int channels) {
   auto* psEnc = static_cast<silk_encoder*>(encState);
   *psEnc = {};
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
-  std::uninitialized_default_construct_n(state_Fxx, static_cast<std::size_t>(channels));
   for (int n = 0; n < channels; n++) {
     silk_init_encoder(&state_Fxx[n]);
   }
