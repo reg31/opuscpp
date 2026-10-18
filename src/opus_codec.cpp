@@ -8243,15 +8243,13 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       target += tell;
       nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
       opus_int32 delta = target - vbr_rate;
-      target = nbAvailableBytes << (3 + 3);
       if (silence) {
         nbAvailableBytes = 2;
-        target = 2 * 8 << 3;
         delta = 0;
       }
       const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
       if (st->constrained_vbr) {
-        st->vbr_reservoir += target - vbr_rate;
+        st->vbr_reservoir += (nbAvailableBytes << (3 + 3)) - vbr_rate;
         st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
         st->vbr_offset = -st->vbr_drift;
         if (st->vbr_reservoir < 0) {
