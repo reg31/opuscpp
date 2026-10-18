@@ -2204,31 +2204,42 @@ static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], o
   }
 }
 
-[[nodiscard]] static auto silk_shifted_sum_sqr(std::span<const opus_int16> samples, const int shft, const opus_int32 initial = 0) noexcept
+template <typename SampleAt>
+[[nodiscard]] static auto silk_shifted_sum_sqr(const std::size_t count, const int shft, const opus_int32 initial, SampleAt sample_at) noexcept
     -> opus_int32 {
   auto energy = initial;
-  const auto even_count = samples.size() & ~std::size_t{1};
+  const auto even_count = count & ~std::size_t{1};
   for (std::size_t index = 0; index < even_count; index += 2) {
-    auto pair_energy = static_cast<opus_int32>(samples[index]) * static_cast<opus_int32>(samples[index]);
-    pair_energy = wrap_add(pair_energy, static_cast<opus_int32>(samples[index + 1]) * static_cast<opus_int32>(samples[index + 1]));
+    const auto first = static_cast<opus_int32>(sample_at(index));
+    auto pair_energy = first * first;
+    const auto second = static_cast<opus_int32>(sample_at(index + 1));
+    pair_energy = wrap_add(pair_energy, second * second);
     energy = wrap_add(energy, pair_energy >> shft);
   }
-  if (even_count != samples.size()) {
-    const auto tail_energy = static_cast<opus_int32>(samples[even_count]) * static_cast<opus_int32>(samples[even_count]);
-    energy = wrap_add(energy, tail_energy >> shft);
+  if (even_count != count) {
+    const auto tail = static_cast<opus_int32>(sample_at(even_count));
+    energy = wrap_add(energy, (tail * tail) >> shft);
   }
   return energy;
 }
 
-static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* x, int len) {
-  const auto samples = std::span<const opus_int16>{x, static_cast<std::size_t>(len)};
-  const auto initial_shift = 31 - silk_CLZ32(len);
-  auto shft = initial_shift;
-  auto nrg = silk_shifted_sum_sqr(samples, shft, len);
-  shft = std::max(0, shft + 3 - silk_CLZ32(nrg));
-  nrg = shft == initial_shift ? wrap_subtract(nrg, len) : silk_shifted_sum_sqr(samples, shft);
+[[nodiscard]] static auto silk_shifted_sum_sqr(std::span<const opus_int16> samples, const int shft, const opus_int32 initial = 0) noexcept
+    -> opus_int32 {
+  return silk_shifted_sum_sqr(samples.size(), shft, initial, [samples](std::size_t index) {
+    return samples[index];
+  });
+}
+
+static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* x, int len, const int initial_shift, opus_int32 nrg) {
+  const auto shft = std::max(0, initial_shift + 3 - silk_CLZ32(nrg));
+  nrg = shft == initial_shift ? wrap_subtract(nrg, len) : silk_shifted_sum_sqr(std::span<const opus_int16>{x, static_cast<std::size_t>(len)}, shft);
   *shift = shft;
   *energy = nrg;
+}
+
+static void silk_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* x, int len) {
+  const auto initial_shift = 31 - silk_CLZ32(len);
+  silk_sum_sqr_shift(energy, shift, x, len, initial_shift, silk_shifted_sum_sqr(std::span<const opus_int16>{x, static_cast<std::size_t>(len)}, initial_shift, len));
 }
 
 [[nodiscard]] static auto silk_stereo_mid_mix_q9(const opus_int16* mid, int n) noexcept -> opus_int32 {
@@ -14912,13 +14923,18 @@ static void silk_PLC_update(silk_decoder_state* psDec, silk_decoder_control* psD
 
 static void silk_PLC_energy(opus_int32* energy1, int* shift1, opus_int32* energy2, int* shift2, std::span<const opus_uint16> exc_low, std::span<const opus_int8> exc_high, std::span<const opus_int32> prevGain_Q10, int subfr_length, int nb_subfr) {
   opus_int16 exc_buf[2 * silk_max_subfr_length];
+  opus_int32 initial_energies[2];
+  const auto initial_shift = 31 - silk_CLZ32(subfr_length);
   for (int k = 0; k < 2; k++) {
-    for (int i = 0; i < subfr_length; i++) {
-      exc_buf[k * subfr_length + i] = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
-    }
+    initial_energies[k] = silk_shifted_sum_sqr(static_cast<std::size_t>(subfr_length), initial_shift, subfr_length, [&](std::size_t index) {
+      const auto i = static_cast<int>(index);
+      const auto sample = saturate_int16_from_int32(multiply_q16(silk_read_excitation(exc_low[i + (k + nb_subfr - 2) * subfr_length], exc_high[i + (k + nb_subfr - 2) * subfr_length]), prevGain_Q10[k]) >> 8);
+      exc_buf[k * subfr_length + i] = sample;
+      return sample;
+    });
   }
-  silk_sum_sqr_shift(energy1, shift1, exc_buf, subfr_length);
-  silk_sum_sqr_shift(energy2, shift2, exc_buf + subfr_length, subfr_length);
+  silk_sum_sqr_shift(energy1, shift1, exc_buf, subfr_length, initial_shift, initial_energies[0]);
+  silk_sum_sqr_shift(energy2, shift2, exc_buf + subfr_length, subfr_length, initial_shift, initial_energies[1]);
 }
 
 static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl, std::span<opus_int16> frame) {
