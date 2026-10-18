@@ -19522,9 +19522,10 @@ static void silk_find_LTP_FLP(float XX[4 * 5 * 5], float xX[4 * 5], const float 
   }
 }
 
-static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length) {
+static bool silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length) {
   auto* x_ptr = x;
   auto* LTP_res_ptr = LTP_res;
+  bool all_finite = nb_subfr >= 2;
   for (int k = 0; k < nb_subfr; ++k) {
     const auto* b = B + k * 5;
     const auto* x_lag_ptr = x_ptr - pitchL[k];
@@ -19544,6 +19545,7 @@ static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const f
       apply_tap.template operator()<4>();
       for (int lane = 0; lane < 4; ++lane)
         LTP_res_ptr[i + lane] = residual[lane] * inv_gain;
+      all_finite = all_finite && silk_lpc_values_finite({LTP_res_ptr + i, 4});
     }
     x_lag_ptr += i;
     for (; i < length; ++i) {
@@ -19552,11 +19554,13 @@ static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const f
         residual -= b[j] * x_lag_ptr[5 / 2 - j];
       }
       LTP_res_ptr[i] = residual * inv_gain;
+      all_finite = all_finite && silk_lpc_values_finite({LTP_res_ptr + i, 1});
       x_lag_ptr++;
     }
     LTP_res_ptr += length;
     x_ptr += subfr_length;
   }
+  return all_finite;
 }
 
 static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
@@ -19638,13 +19642,14 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
   }
+  bool known_finite;
   if (psEnc->sCmn.indices.signalType == 2) {
     silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, LTPCoef_Q14, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
-    silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
-                                 psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
+    known_finite = silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
+                                                psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
     auto* x_ptr = x - psEnc->sCmn.predictLPCOrder;
     auto* x_pre_ptr = LPC_in_pre;
@@ -19656,6 +19661,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     zero_n_items(psEncCtrl->LTPCoef, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * 5));
     psEncCtrl->LTPredCodGain = 0.0f;
     psEnc->sCmn.sum_log_gain_Q7 = 0;
+    known_finite = psEnc->sCmn.nb_subfr >= 2 && silk_lpc_values_finite({LPC_in_pre, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * (psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder))});
   }
   if (psEnc->sCmn.first_frame_after_reset) {
     minInvGain = 1.0f / 1e2f;
@@ -19663,7 +19669,6 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     minInvGain = static_cast<float>(std::pow(2, psEncCtrl->LTPredCodGain / 3)) / 1e4f;
     minInvGain /= 0.25f + 0.75f * psEncCtrl->coding_quality;
   }
-  const bool known_finite = psEnc->sCmn.nb_subfr >= 2 && silk_lpc_values_finite({LPC_in_pre, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * (psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder))});
   const bool select_coded_interpolation = known_finite && psEnc->sCmn.Complexity >= 4 && !psEnc->sCmn.first_frame_after_reset && psEnc->sCmn.nb_subfr == 4;
   if (select_coded_interpolation) {
     float prediction[16]{};
