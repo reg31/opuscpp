@@ -5406,7 +5406,20 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
             }
             cm = cm_mask;
           } else {
-            for (j = 0; j < N; j++) {
+            constexpr opus_uint32 a = 1664525U, offset = 1013904223U;
+            constexpr opus_uint32 a2 = a * a, a3 = a2 * a, a4 = a3 * a;
+            constexpr opus_uint32 b2 = a * offset + offset, b3 = a * b2 + offset, b4 = a * b3 + offset;
+            for (j = 0; j + 3 < N; j += 4) {
+              const auto seed = ctx->seed;
+              const std::array<opus_uint32, 4> next{a * seed + offset, a2 * seed + b2, a3 * seed + b3, a4 * seed + b4};
+              for (int k = 0; k < 4; ++k) {
+                ctx->seed = next[k];
+                opus_val16 tmp = (1.0f / 256);
+                tmp = (ctx->seed) & 0x8000 ? tmp : -tmp;
+                X[j + k] = lowband[j + k] + tmp;
+              }
+            }
+            for (; j < N; j++) {
               ctx->seed = celt_lcg_rand(ctx->seed);
               opus_val16 tmp = (1.0f / 256);
               tmp = (ctx->seed) & 0x8000 ? tmp : -tmp;
