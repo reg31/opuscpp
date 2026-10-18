@@ -2858,6 +2858,7 @@ static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int fr
   opus_val64 mono_energy = 0, mono_diff_energy = 0;
   opus_val32 right_difference_energy = 0, left_difference_energy = 0;
   opus_val32 previous_mono = pcm[0];
+  opus_val32 previous_left = 0, previous_right = 0;
   int zero_crossings = 0;
   for (int i = 0; i < frame_size; ++i) {
     const auto left = pcm[i * channels];
@@ -2877,11 +2878,13 @@ static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int fr
       xy += left * right;
       yy += right * right;
       if (i != 0) {
-        const auto right_delta = right - pcm[(i - 1) * channels + channels - 1];
+        const auto right_delta = right - previous_right;
         right_difference_energy += right_delta * right_delta;
-        const auto left_delta = left - pcm[(i - 1) * channels];
+        const auto left_delta = left - previous_left;
         left_difference_energy += left_delta * left_delta;
       }
+      previous_left = left;
+      previous_right = right;
     }
   }
   if constexpr (MeasureWidth) {
