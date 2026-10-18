@@ -18236,42 +18236,41 @@ static void silk_InitEncoder(void* encState, int channels) {
 static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control, ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
   auto& lbrr = *encoder->lbrr;
   const int frames = states[0].sCmn.nFramesPerPacket;
+  const int start_bits = ec_tell(range_encoder);
   if ((lbrr.frames_per_packet != 0 && lbrr.frames_per_packet != frames) ||
       (lbrr.channels_in_packet != 0 && lbrr.channels_in_packet != control.nChannelsInternal)) {
-    for (auto& channel : lbrr.channels) {
-      channel.flags.fill(0);
-    }
-    lbrr.average_bits = 0;
-  }
-  const int start_bits = ec_tell(range_encoder);
-  for (int channel_index = 0; channel_index < control.nChannelsInternal; ++channel_index) {
-    auto& channel = lbrr.channels[static_cast<std::size_t>(channel_index)];
-    int symbol = 0;
-    for (int frame = 0; frame < frames; ++frame) {
-      symbol |= channel.flags[static_cast<std::size_t>(frame)] << frame;
-    }
-    packet_has_lbrr[static_cast<std::size_t>(channel_index)] = symbol != 0;
-    if (symbol != 0 && frames > 1) {
-      const auto* icdf = frames == 2 ? silk_LBRR_flags_2_iCDF.data() : silk_LBRR_flags_3_iCDF.data();
-      ec_enc_icdf(range_encoder, symbol - 1, icdf, 8);
-    }
-  }
-  for (int frame = 0; frame < frames; ++frame) {
+    for (int channel_index = 0; channel_index < control.nChannelsInternal; ++channel_index)
+      packet_has_lbrr[static_cast<std::size_t>(channel_index)] = 0;
+  } else {
     for (int channel_index = 0; channel_index < control.nChannelsInternal; ++channel_index) {
       auto& channel = lbrr.channels[static_cast<std::size_t>(channel_index)];
-      if (!channel.flags[static_cast<std::size_t>(frame)]) {
-        continue;
+      int symbol = 0;
+      for (int frame = 0; frame < frames; ++frame) {
+        symbol |= channel.flags[static_cast<std::size_t>(frame)] << frame;
       }
-      if (control.nChannelsInternal == 2 && channel_index == 0) {
-        silk_stereo_encode_pred(range_encoder, encoder->sStereo.predIx[static_cast<std::size_t>(frame)]);
-        if (!lbrr.channels[1].flags[static_cast<std::size_t>(frame)]) {
-          silk_stereo_encode_mid_only(range_encoder, encoder->sStereo.mid_only_flags[static_cast<std::size_t>(frame)]);
+      packet_has_lbrr[static_cast<std::size_t>(channel_index)] = symbol != 0;
+      if (symbol != 0 && frames > 1) {
+        const auto* icdf = frames == 2 ? silk_LBRR_flags_2_iCDF.data() : silk_LBRR_flags_3_iCDF.data();
+        ec_enc_icdf(range_encoder, symbol - 1, icdf, 8);
+      }
+    }
+    for (int frame = 0; frame < frames; ++frame) {
+      for (int channel_index = 0; channel_index < control.nChannelsInternal; ++channel_index) {
+        auto& channel = lbrr.channels[static_cast<std::size_t>(channel_index)];
+        if (!channel.flags[static_cast<std::size_t>(frame)]) {
+          continue;
         }
+        if (control.nChannelsInternal == 2 && channel_index == 0) {
+          silk_stereo_encode_pred(range_encoder, encoder->sStereo.predIx[static_cast<std::size_t>(frame)]);
+          if (!lbrr.channels[1].flags[static_cast<std::size_t>(frame)]) {
+            silk_stereo_encode_mid_only(range_encoder, encoder->sStereo.mid_only_flags[static_cast<std::size_t>(frame)]);
+          }
+        }
+        const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
+        auto& state = states[channel_index].sCmn;
+        auto& indices = channel.indices[static_cast<std::size_t>(frame)];
+        silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
       }
-      const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
-      auto& state = states[channel_index].sCmn;
-      auto& indices = channel.indices[static_cast<std::size_t>(frame)];
-      silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
     }
   }
   for (auto& channel : lbrr.channels) {
