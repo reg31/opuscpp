@@ -19462,9 +19462,9 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
       tmp1 += C_last_row[n - k - 1] * Atmp;
       tmp2 += C_first_row[n - k - 1] * Atmp;
     }
-    CAf[n + 1] = tmp1;
-    CAb[n + 1] = tmp2;
-    double num = CAb[n + 1];
+    const double forward_endpoint = tmp1;
+    const double backward_endpoint = tmp2;
+    double num = backward_endpoint;
     double nrg_b = CAb[0];
     nrg_f = CAf[0];
     for (int k = 0; k < n; ++k) {
@@ -19496,11 +19496,16 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
       std::fill_n(Af.data() + n + 1, static_cast<std::size_t>(D - n - 1), 0.0);
       break;
     }
-    for (int k = 0; k <= n + 1; ++k) {
+    tmp1 = CAf[0];
+    CAf[0] += rc * backward_endpoint;
+    CAb[n + 1] = backward_endpoint + rc * tmp1;
+    for (int k = 1; k <= n; ++k) {
       tmp1 = CAf[k];
       CAf[k] += rc * CAb[n - k + 1];
       CAb[n - k + 1] += rc * tmp1;
     }
+    CAf[n + 1] = forward_endpoint + rc * CAb[0];
+    CAb[0] += rc * forward_endpoint;
   }
   if (reached_max_gain) {
     for (int index = 0; index < D; ++index) {
