@@ -15625,12 +15625,15 @@ static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opu
   *pN = L;
 }
 
+template <bool InitializeResampler = true>
 static void silk_decoder_set_fs(silk_decoder_state* psDec, int fs_kHz, opus_int32 fs_API_Hz) {
   const bool rate_changed = psDec->fs_kHz != fs_kHz;
   psDec->subfr_length = 5 * fs_kHz;
   psDec->frame_length = psDec->nb_subfr * psDec->subfr_length;
   if (rate_changed) {
-    silk_resampler_init(&psDec->resampler_state, fs_kHz * 1000, fs_API_Hz, 0);
+    if constexpr (InitializeResampler) {
+      silk_resampler_init(&psDec->resampler_state, fs_kHz * 1000, fs_API_Hz, 0);
+    }
     psDec->ltp_mem_length = 20 * fs_kHz;
     psDec->psNLSF_CB = silk_nlsf_codebook_for_fs(fs_kHz);
     psDec->LPC_order = psDec->psNLSF_CB->order;
@@ -15750,7 +15753,11 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
       if (fs_kHz_dec != 8 && fs_kHz_dec != 12 && fs_kHz_dec != 16) {
         return -200;
       }
-      silk_decoder_set_fs(channel_state[n], fs_kHz_dec, decControl->API_sampleRate);
+      if (n == 1 && decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 2 && psDec->nChannelsInternal == 1) {
+        silk_decoder_set_fs<false>(channel_state[n], fs_kHz_dec, decControl->API_sampleRate);
+      } else {
+        silk_decoder_set_fs(channel_state[n], fs_kHz_dec, decControl->API_sampleRate);
+      }
     }
   }
   if (decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 2 && psDec->nChannelsInternal == 1) {
