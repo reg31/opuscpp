@@ -8010,6 +8010,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     if (fused_energy) {
       for (int c = 0; c < 2; ++c)
         clt_mdct_forward_energy_prefix(in + c * (N + overlap), freq + c * N, forward_scratch, energy_prefix + c * nbEBands, end);
+    } else if (C == 1 && CC == 2 && shortBlocks == 0 && LM == 3 && st->upsample == 1 && FLT_EVAL_METHOD == 0 && std::fegetround() == FE_TONEAREST) {
+      for (int i = 0; i < N + overlap; ++i)
+        in[i] = .5f * in[i] + .5f * in[N + overlap + i];
+      compute_mdcts(0, in, freq, 1, 1, LM, 1, forward_scratch);
     } else {
       compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
     }
