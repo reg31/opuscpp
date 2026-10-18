@@ -8506,7 +8506,6 @@ static void ref_opus_decoder_init(OpusDecoder* st, opus_int32 Fs, int channels) 
   std::memset(silk_dec, 0, static_cast<std::size_t>(silk_decoder_get_size()));
   st->stream_channels = st->channels = channels;
   st->Fs = Fs;
-  silk_ResetDecoder(silk_dec);
   celt_decoder_init(celt_dec, Fs, channels);
   st->frame_size = Fs / 400;
 }
