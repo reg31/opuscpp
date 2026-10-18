@@ -18781,8 +18781,9 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
   if (indices.signalType == 0) {
     indices.signalType = 1;
   }
+  const silk_nsq_history* starting_history = &lbrr->nsq;
   if (frame == 0 || lbrr->flags[frame - 1] == 0) {
-    silk_copy_nsq_history(lbrr->nsq, pre_frame_nsq);
+    starting_history = &pre_frame_nsq;
     lbrr->previous_gain_index = original_last_gain_index;
     indices.GainsIndices[0] =
         static_cast<opus_int8>(std::min<int>(indices.GainsIndices[0] + std::max(lbrr->gain_increase - gain_reduction, 2), 63));
@@ -18808,7 +18809,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
       const float inverse_gain = 1.f / control->Gains[block];
       for (int j = 0; j < subframe + order; ++j) {
         const int input_index = block * subframe - order + j;
-        const opus_int16 sample = input_index < 0 ? lbrr->nsq.xq[model_state.ltp_mem_length + input_index] : samples[input_index];
+        const opus_int16 sample = input_index < 0 ? starting_history->xq[model_state.ltp_mem_length + input_index] : samples[input_index];
         model_input[block * (subframe + order) + j] = inverse_gain * static_cast<float>(sample);
       }
     }
@@ -18836,7 +18837,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     }
     lbrr_prepared = &fitted_prepared;
   }
-  auto lbrr_nsq = silk_nsq_working_state(lbrr->nsq);
+  auto lbrr_nsq = silk_nsq_working_state(*starting_history);
   silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr_nsq, lbrr->pulses[frame].data(), samples, *lbrr_prepared);
   silk_copy_nsq_history(lbrr->nsq, lbrr_nsq);
   std::copy_n(original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), control->Gains);
