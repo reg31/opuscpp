@@ -2130,6 +2130,15 @@ static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMi
   }
 }
 
+OPUSCPP_NOINLINE static void silk_NLSF_unpack_entropy(std::span<opus_int16, 16> ec_ix, const silk_NLSF_CB_struct* codebook, int CB1_index) {
+  const auto* selector = codebook->ec_sel + CB1_index * codebook->order / 2;
+  for (int i = 0; i < codebook->order; i += 2) {
+    const opus_uint8 entry = *selector++;
+    ec_ix[i] = ((entry >> 1) & 7) * (2 * 4 + 1);
+    ec_ix[i + 1] = ((entry >> 5) & 7) * (2 * 4 + 1);
+  }
+}
+
 static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB, const int CB1_index) {
   auto* ec_sel_ptr = psNLSF_CB->ec_sel + CB1_index * psNLSF_CB->order / 2;
   for (int i = 0; i < psNLSF_CB->order; i += 2) {
@@ -15289,7 +15298,6 @@ template <bool Encode> [[nodiscard]] static inline int silk_index_symbol(ec_ctx*
 template <bool Encode, typename State>
 static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx* coder, int condCoding) {
   opus_int16 ec_ix[16];
-  opus_uint8 pred_Q8[16];
   const int nb_subfr = std::min(static_cast<int>(state->nb_subfr), 4);
   if (condCoding == 2) {
     indices.GainsIndices[0] =
@@ -15305,7 +15313,12 @@ static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx*
   }
   indices.NLSFIndices[0] = static_cast<opus_int8>(
       silk_index_symbol<Encode>(coder, indices.NLSFIndices[0], silk_nlsf_cb1_icdf(state->psNLSF_CB, indices.signalType)));
-  silk_NLSF_unpack(ec_ix, pred_Q8, state->psNLSF_CB, indices.NLSFIndices[0]);
+  if constexpr (Encode) {
+    opus_uint8 pred_Q8[16];
+    silk_NLSF_unpack(ec_ix, pred_Q8, state->psNLSF_CB, indices.NLSFIndices[0]);
+  } else {
+    silk_NLSF_unpack_entropy(ec_ix, state->psNLSF_CB, indices.NLSFIndices[0]);
+  }
   for (int i = 0; i < state->psNLSF_CB->order; ++i) {
     const int index = indices.NLSFIndices[i + 1];
     int base = silk_index_symbol<Encode>(coder, std::clamp(index + 4, 0, 8), &state->psNLSF_CB->ec_iCDF[ec_ix[i]]);
