@@ -8140,6 +8140,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   stereo_tf_basis_choice tf_basis_choice;
   int tf_basis_dual_stereo = analyzed_dual_stereo;
   bool tf_basis_reselected = false;
+  std::array<opus_int8, celt_max_channels> noise_source_support{-1, -1};
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -8346,7 +8347,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       break;
     bool energy_needs_refinement = false;
     for (int channel = 0; channel < C; ++channel) {
-      const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) && celt_noise_gaussian_source_supported(pcm, N, CC, C, channel);
+      const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) &&
+                                        (noise_source_support[channel] = static_cast<opus_int8>(celt_noise_gaussian_source_supported(pcm, N, CC, C, channel)));
       for (int band = start; band < end; ++band) {
         const int index = channel * nbEBands + band;
         const bool model_fine = energy_model_channel && band >= codedBands && tf_res[band] >= 0;
@@ -8373,7 +8375,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
   if (spread_decision == 3 && shortBlocks == 0) {
     for (int channel = 0; channel < C; ++channel) {
-      if (!std::isfinite(noise_covariance[channel]) || !celt_noise_gaussian_source_supported(pcm, N, CC, C, channel))
+      if (!std::isfinite(noise_covariance[channel]) ||
+          !(noise_source_support[channel] < 0 ? celt_noise_gaussian_source_supported(pcm, N, CC, C, channel) : noise_source_support[channel] != 0))
         continue;
       for (int band = codedBands; band < end; ++band) {
         if (tf_res[band] < 0)
