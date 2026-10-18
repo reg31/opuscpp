@@ -13860,9 +13860,10 @@ constexpr std::array<float, 9> fine_power_decision_bias{0.f, 0.08496250212192535
 
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C) {
+  int fine_bits_left = Encode ? static_cast<opus_int32>(coder->storage * 8) - ec_tell(coder) : 0;
   for (int i = start; i < end; ++i) {
     const auto extra_bits = extra_quant[i];
-    if (extra_bits <= 0 || ec_tell(coder) + C * extra_bits > static_cast<opus_int32>(coder->storage * 8)) {
+    if (extra_bits <= 0 || (Encode ? C * extra_bits > fine_bits_left : ec_tell(coder) + C * extra_bits > static_cast<opus_int32>(coder->storage * 8))) {
       continue;
     }
     const auto prev = prev_quant == nullptr ? 0 : prev_quant[i];
@@ -13883,6 +13884,8 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
         error[i + c * celt_default_nb_ebands] -= offset;
       }
     }
+    if constexpr (Encode)
+      fine_bits_left -= C * extra_bits;
   }
 }
 
