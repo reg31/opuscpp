@@ -3448,6 +3448,15 @@ template <std::size_t Capacity>
          st->use_vbr && st->vbr_constraint && st->bitrate_bps >= 48000 && st->bitrate_bps < 112000;
 }
 
+[[nodiscard]] static bool auto_audio_side_has_rate(const StereoWidthState& moments, int frame_size, int sample_rate, opus_int32 equivalent_rate) noexcept {
+  const double total = static_cast<double>(moments.XX) + moments.YY;
+  const double cross = 2.0 * moments.XY;
+  const double mid = total + cross;
+  const double side = std::max(0.0, total - cross);
+  const int bits = bitrate_to_bits(equivalent_rate, sample_rate, frame_size);
+  return side > 0 && bits > 0 && frame_size > 1 && side > mid * std::exp2(-2.0 * bits / (frame_size - 1));
+}
+
 static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 out_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm16 = nullptr) {
   int prefill = 0, redundancy = 0, celt_to_silk = 0, to_celt = 0;
   opus_int32 cbr_bytes = -1;
@@ -3551,7 +3560,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
         compute_equiv_rate(st->bitrate_bps, st->channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
     opus_int32 stereo_threshold = quality_bandwidth_threshold(voice_weight, stereo_music_threshold, stereo_voice_threshold);
     stereo_threshold += st->stream_channels == 2 ? -1000 : 1000;
-    st->stream_channels = (channel_equiv_rate > stereo_threshold) ? 2 : 1;
+    const bool retain_side = channel_equiv_rate <= stereo_threshold && st->application == OPUS_APPLICATION_AUDIO &&
+                             auto_audio_side_has_rate(st->width_mem, frame_size, st->Fs, channel_equiv_rate);
+    st->stream_channels = (channel_equiv_rate > stereo_threshold || retain_side) ? 2 : 1;
   } else {
     st->stream_channels = st->channels;
   }
