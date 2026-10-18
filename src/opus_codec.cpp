@@ -2139,6 +2139,15 @@ OPUSCPP_NOINLINE static void silk_NLSF_unpack_entropy(std::span<opus_int16, 16> 
   }
 }
 
+OPUSCPP_NOINLINE static void silk_NLSF_unpack_prediction(std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* codebook, int CB1_index) {
+  const auto* selector = codebook->ec_sel + CB1_index * codebook->order / 2;
+  for (int i = 0; i < codebook->order; i += 2) {
+    const opus_uint8 entry = *selector++;
+    pred_Q8[i] = codebook->pred_Q8[i + (entry & 1) * (codebook->order - 1)];
+    pred_Q8[i + 1] = codebook->pred_Q8[i + (((entry) >> (4)) & 1) * (codebook->order - 1) + 1];
+  }
+}
+
 static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uint8, 16> pred_Q8, const silk_NLSF_CB_struct* psNLSF_CB, const int CB1_index) {
   auto* ec_sel_ptr = psNLSF_CB->ec_sel + CB1_index * psNLSF_CB->order / 2;
   for (int i = 0; i < psNLSF_CB->order; i += 2) {
@@ -2152,8 +2161,7 @@ static void silk_NLSF_unpack(std::span<opus_int16, 16> ec_ix, std::span<opus_uin
 
 static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, std::span<opus_int8, 17> NLSFIndices, const silk_NLSF_CB_struct* psNLSF_CB) {
   opus_uint8 pred_Q8[16];
-  opus_int16 ec_ix[16];
-  silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, NLSFIndices[0]);
+  silk_NLSF_unpack_prediction(pred_Q8, psNLSF_CB, NLSFIndices[0]);
   const auto* pCB_element = &psNLSF_CB->CB1_NLSF_Q8[NLSFIndices[0] * psNLSF_CB->order];
   const auto* pCB_Wght_Q9 = &psNLSF_CB->CB1_Wght_Q9[NLSFIndices[0] * psNLSF_CB->order];
   const std::span<const opus_int8, 16> indices = NLSFIndices.last<16>();
