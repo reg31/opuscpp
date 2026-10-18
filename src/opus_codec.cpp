@@ -7978,6 +7978,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   bool weak_transient = false;
   bool input_release = false;
   bool common_source = false;
+  bool enable_tf_analysis = false;
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
@@ -8127,8 +8128,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     }
     if (transient_enabled)
       ec_enc_bit_logp(enc, isTransient, 3);
+    enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, importance.data(), C == 2 && start == 0 ? requested_boost.data() : nullptr, C == 1 ? bandE : nullptr);
+                                 &tot_boost, toneishness, enable_tf_analysis ? importance.data() : nullptr, C == 2 && start == 0 ? requested_boost.data() : nullptr, C == 1 ? bandE : nullptr);
   }
   auto* X = freq;
 
@@ -8149,7 +8151,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
                                         : 0;
   const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N, analyzed_intensity) : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
-  const bool enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
   int tf_select = 0;
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
