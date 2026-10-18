@@ -7049,7 +7049,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
     maxDepth = std::max(maxDepth, bandLogE[i] - noise_floor[i]);
   }
-  if (C == 2) {
+  if (C == 2 && !common_follower_source) {
     for (i = 0; i < end; i++) {
       maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
     }
