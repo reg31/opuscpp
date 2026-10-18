@@ -6542,17 +6542,16 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
   return L1;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start) {
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start, int* metric, int metric_end) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
-  std::array<int, celt_default_nb_ebands> metric;
   std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1, tmp_side, tmp_side_1;
   const bool legal_entropy = bandE != nullptr && coupled_end >= len && LM >= 2;
   const bool legal_metric = legal_entropy || (bandE != nullptr && intensity_start >= 0);
-  std::array<std::array<double, 4>, celt_default_nb_ebands> legal_cost{};
+  std::array<std::array<double, 4>, celt_default_nb_ebands> legal_cost;
   int tf_select = 0;
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < metric_end; i++) {
     int k, N;
     int narrow;
     double L1, best_L1;
@@ -6725,6 +6724,11 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   for (int i = len; i-- > 0;)
     tf_res[i] = best_path[i];
   return tf_select;
+}
+
+static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start) {
+  std::array<int, celt_default_nb_ebands> metric;
+  return tf_analysis(len, isTransient, tf_res, lambda, X, N0, LM, tf_estimate, tf_chan, importance, coupled_end, bandE, intensity_start, metric.data(), len);
 }
 
 static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
@@ -8208,10 +8212,11 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
                                         : 0;
   const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N, analyzed_intensity) : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
+  std::array<int, celt_default_nb_ebands> tf_metric;
   int tf_select = 0;
   if (enable_tf_analysis) {
     const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr, C == 2 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : -1);
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr, C == 2 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : -1, tf_metric.data(), end);
   } else if (hybrid && weak_transient) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
@@ -8287,7 +8292,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           const int lambda = std::max(80, 20480 / effectiveBytes + 2);
           tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), lambda, X, N, LM, tf_estimate, tf_chan,
                                   importance.data(), tf_basis_dual_stereo == 0 ? analyzed_intensity : 0,
-                                  st->complexity >= 8 ? bandE : nullptr, analyzed_intensity);
+                                  st->complexity >= 8 ? bandE : nullptr, analyzed_intensity, tf_metric.data(), analyzed_intensity);
           *st = energy_stage_state;
           *enc = energy_stage_coder;
           std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
