@@ -18141,6 +18141,39 @@ static bool silk_lpc_values_finite(std::span<const float> values) noexcept {
   return false;
 }
 
+template <std::size_t Order, std::size_t Outputs>
+static void silk_lpc_analysis_filter_finite(std::array<float*, Outputs> residual,
+                                            std::array<std::span<const float, Order>, Outputs> coefficients,
+                                            std::span<const float> signal) noexcept {
+  int index = static_cast<int>(coefficients[0].size()), length = static_cast<int>(signal.size());
+  for (; index < length - 3; index += 4) {
+    const auto* history = signal.data() + index - 1;
+    std::array<std::array<float, 4>, Outputs> prediction{};
+    for (std::size_t tap = 0; tap < coefficients[0].size(); ++tap) {
+      for (int lane = 0; lane < 4; ++lane) {
+        const float value = history[-static_cast<int>(tap) + lane];
+        for (std::size_t output = 0; output < Outputs; ++output)
+          prediction[output][lane] += value * coefficients[output][tap];
+      }
+    }
+    for (int lane = 0; lane < 4; ++lane) {
+      for (std::size_t output = 0; output < Outputs; ++output)
+        residual[output][index + lane] = history[1 + lane] - prediction[output][lane];
+    }
+  }
+  for (; index < length; ++index) {
+    const auto* history = signal.data() + index - 1;
+    std::array<float, Outputs> prediction{};
+    for (std::size_t tap = 0; tap < coefficients[0].size(); ++tap) {
+      const float value = history[-static_cast<int>(tap)];
+      for (std::size_t output = 0; output < Outputs; ++output)
+        prediction[output] += value * coefficients[output][tap];
+    }
+    for (std::size_t output = 0; output < Outputs; ++output)
+      residual[output][index] = history[1] - prediction[output];
+  }
+}
+
 template <std::size_t Order>
   requires(Order > 0)
 auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const float, Order> pred_coef, std::span<const float> signal, bool known_finite = false) noexcept -> void {
@@ -18153,20 +18186,8 @@ auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const fl
           !(less(residual.data(), pred_coef.data() + pred_coef.size()) && less(pred_coef.data(), residual.data() + residual.size()))) {
         const bool finite = known_finite || (silk_lpc_values_finite(pred_coef) && silk_lpc_values_finite(signal));
         if (finite) {
-          for (; index < n - 3; index += 4) {
-            const auto* history = signal.data() + index - 1;
-            std::array<float, 4> prediction{};
-            for (std::size_t tap = 0; tap < pred_coef.size(); ++tap) {
-              const int offset = -static_cast<int>(tap);
-              const float coef = pred_coef[tap];
-              for (int lane = 0; lane < 4; ++lane)
-                prediction[lane] += history[offset + lane] * coef;
-            }
-            residual[index] = history[1] - prediction[0];
-            residual[index + 1] = history[2] - prediction[1];
-            residual[index + 2] = history[3] - prediction[2];
-            residual[index + 3] = history[4] - prediction[3];
-          }
+          silk_lpc_analysis_filter_finite<Order, 1>({residual.data()}, {pred_coef}, signal);
+          return;
         }
       }
     }
@@ -19382,33 +19403,9 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
 static void silk_LPC_analysis_filter_pair_FLP(float* residual0, float* residual1, const float* coefficients0,
                                               const float* coefficients1, const float* signal, int length, int order) {
   const auto filter = [&]<int Order>() {
-    int index = Order;
-    for (; index < length - 3; index += 4) {
-      const auto* history = signal + index - 1;
-      std::array<float, 4> prediction0{}, prediction1{};
-      for (int tap = 0; tap < Order; ++tap) {
-        const float coefficient0 = coefficients0[tap], coefficient1 = coefficients1[tap];
-        for (int lane = 0; lane < 4; ++lane) {
-          const float value = history[-tap + lane];
-          prediction0[lane] += value * coefficient0;
-          prediction1[lane] += value * coefficient1;
-        }
-      }
-      for (int lane = 0; lane < 4; ++lane) {
-        residual0[index + lane] = history[1 + lane] - prediction0[lane];
-        residual1[index + lane] = history[1 + lane] - prediction1[lane];
-      }
-    }
-    for (; index < length; ++index) {
-      float prediction0 = 0, prediction1 = 0;
-      for (int tap = 0; tap < Order; ++tap) {
-        const float value = signal[index - tap - 1];
-        prediction0 += value * coefficients0[tap];
-        prediction1 += value * coefficients1[tap];
-      }
-      residual0[index] = signal[index] - prediction0;
-      residual1[index] = signal[index] - prediction1;
-    }
+    silk_lpc_analysis_filter_finite<Order, 2>({residual0, residual1},
+                                              {std::span<const float, Order>{coefficients0, Order}, std::span<const float, Order>{coefficients1, Order}},
+                                              {signal, static_cast<std::size_t>(length)});
     std::fill_n(residual0, Order, 0.f);
     std::fill_n(residual1, Order, 0.f);
   };
