@@ -633,6 +633,7 @@ struct CeltEncoderInternal {
   bool classical_leak_valid = false;
   opus_uint8 classical_leak_boost[19]{};
   opus_uint8 channels, stream_channels, complexity, upsample, start, end;
+  bool prefilter_history_valid = false;
   opus_int32 bitrate, midrate_quality_boost_bps;
   bool vbr, constrained_vbr;
   opus_uint8 lsb_depth, loss_rate;
@@ -8192,8 +8193,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
                                             toneishness);
     }
+    const bool prefilter_history_valid = st->prefilter_history_valid;
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
                                       toneishness, tf_estimate, input_metrics.abs_sum, freq);
+    st->prefilter_history_valid = true;
     common_source = C == 2 && CC == 2 &&
                     std::memcmp(in, in + N + overlap, static_cast<std::size_t>(N + overlap) * sizeof(celt_sig)) == 0;
     constexpr int forward_scratch_offset = celt_max_channels * (celt_max_frame_samples + 2 * celt_default_nb_ebands);
@@ -8205,7 +8208,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       isTransient = 0;
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
     preserve_hybrid_tf_time_support = [&] {
-      if (!hybrid || shortBlocks == 0 || effectiveBytes >= 15 || st->silk_info.signalType == 2)
+      if (!prefilter_history_valid || !hybrid || shortBlocks == 0 || effectiveBytes >= 15 || st->silk_info.signalType == 2)
         return false;
       bool later_support = false;
       for (int c = 0; c < CC; ++c) {
@@ -8667,6 +8670,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   static_assert(std::is_standard_layout_v<CeltEncoderInternal>);
   st->classical_leak_valid = false;
+  st->prefilter_history_valid = false;
   zero_object_tail(*st, offsetof(CeltEncoderInternal, rng));
   zero_n_items(celt_encoder_storage(st), celt_encoder_storage_count(st->channels));
 
