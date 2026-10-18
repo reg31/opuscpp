@@ -17834,7 +17834,26 @@ template <std::size_t HalfOrder>
 
 template <std::size_t HalfOrder>
 static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
-  for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
+  opus_int32 index_Q16 = 0;
+  for (; index_Q16 < max_index_Q16;) {
+    const opus_int32 next_index_Q16 = index_Q16 + index_increment_Q16;
+    if (next_index_Q16 >= max_index_Q16)
+      break;
+    const auto first = std::span<const opus_int32, 2 * HalfOrder>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
+    const auto second = std::span<const opus_int32, 2 * HalfOrder>{buffer + (next_index_Q16 >> 16), 2 * HalfOrder};
+    opus_int32 first_acc = 0, second_acc = 0;
+    for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
+      const auto coefficient = coefficients[tap];
+      const auto first_sum = static_cast<opus_int32>(first[tap] + first[2 * HalfOrder - 1 - tap]);
+      const auto second_sum = static_cast<opus_int32>(second[tap] + second[2 * HalfOrder - 1 - tap]);
+      first_acc = silk_mla_wb(first_acc, first_sum, coefficient);
+      second_acc = silk_mla_wb(second_acc, second_sum, coefficient);
+    }
+    *out++ = rounded_rshift_to_int16<6>(first_acc);
+    *out++ = rounded_rshift_to_int16<6>(second_acc);
+    index_Q16 = next_index_Q16 + index_increment_Q16;
+  }
+  for (; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
     const auto window = std::span<const opus_int32, 2 * HalfOrder>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
     *out++ = rounded_rshift_to_int16<6>(
         resampler_symmetric_fir_q6<HalfOrder>(window, std::span<const opus_int16, HalfOrder>{coefficients, HalfOrder}));
