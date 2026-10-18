@@ -3571,18 +3571,19 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (stereo_policy_allowed && st->stereo_recovery_frames < 255 && st->lightweight_analysis_frames >= audio_preprocess_hold_frames && frame_metrics.mono_diff_ratio < .025f && frame_metrics.mono_zero_cross_rate < .075f && frame_metrics.stereo_coherence >= 0 && frame_metrics.stereo_coherence < .1f && !frame_metrics.stereo_shape_match) {
     st->silk_mode.preserveStereo = silk_preserve_stereo_force;
   }
+  auto equiv_rate = compute_equiv_rate(st->bitrate_bps, st->channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
   if (st->channels == 2) {
-    const opus_int32 channel_equiv_rate =
-        compute_equiv_rate(st->bitrate_bps, st->channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
     opus_int32 stereo_threshold = quality_bandwidth_threshold(voice_weight, stereo_music_threshold, stereo_voice_threshold);
     stereo_threshold += st->stream_channels == 2 ? -1000 : 1000;
-    const bool retain_side = channel_equiv_rate <= stereo_threshold && st->application == OPUS_APPLICATION_AUDIO &&
-                             auto_audio_side_has_rate(st->width_mem, frame_size, st->Fs, channel_equiv_rate);
-    st->stream_channels = (channel_equiv_rate > stereo_threshold || retain_side) ? 2 : 1;
+    const bool retain_side = equiv_rate <= stereo_threshold && st->application == OPUS_APPLICATION_AUDIO &&
+                             auto_audio_side_has_rate(st->width_mem, frame_size, st->Fs, equiv_rate);
+    st->stream_channels = (equiv_rate > stereo_threshold || retain_side) ? 2 : 1;
   } else {
     st->stream_channels = st->channels;
   }
-  auto equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
+  if (st->stream_channels != st->channels) {
+    equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
+  }
   if (st->application == OPUS_APPLICATION_RESTRICTED_LOWDELAY) {
     st->mode = opus_mode_celt_only;
   } else {
