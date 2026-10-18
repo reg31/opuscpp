@@ -8103,6 +8103,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   bool input_release = false;
   bool common_source = false;
   bool enable_tf_analysis = false;
+  bool preserve_hybrid_tf_time_support = false;
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
@@ -8182,6 +8183,22 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     if (!transient_enabled)
       isTransient = 0;
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
+    preserve_hybrid_tf_time_support = [&] {
+      if (!hybrid || shortBlocks == 0 || effectiveBytes >= 15 || st->silk_info.signalType == 2)
+        return false;
+      bool later_support = false;
+      for (int c = 0; c < CC; ++c) {
+        const auto channel = std::span<const celt_sig>(in + c * (N + overlap), static_cast<std::size_t>(N + overlap));
+        if (!std::ranges::all_of(channel.first(static_cast<std::size_t>(2 * overlap)), [](celt_sig value) {
+              return value == 0.f;
+            }))
+          return false;
+        later_support = later_support || std::ranges::any_of(channel.subspan(static_cast<std::size_t>(2 * overlap)), [](celt_sig value) {
+                          return value != 0.f;
+                        });
+      }
+      return later_support;
+    }();
     const bool second_mdct = shortBlocks != 0 && st->complexity >= 8 &&
                              (effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement);
     auto* second_mdct_bandE = freq + N * CC;
@@ -8284,8 +8301,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
   } else if (hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2) {
-    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 0);
-    tf_select = isTransient;
+    std::fill_n(tf_res.data(), static_cast<std::size_t>(end), preserve_hybrid_tf_time_support ? 1 : 0);
+    tf_select = preserve_hybrid_tf_time_support ? 0 : isTransient;
   } else if (hybrid) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), isTransient);
   } else {
