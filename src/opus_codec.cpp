@@ -4336,20 +4336,15 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
     }
-    if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes) {
+    if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes ||
+        (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255)) < 0) {
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
-    } else {
-      ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255);
-      if (ret < 0) {
-        std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-        celt_enc->signal_bw_temporal.reset();
+      if (ret < 0)
         return -3;
-      }
-      if (redundancy && celt_to_silk && st->mode == opus_mode_hybrid && nb_compr_bytes != ret) {
-        move_n_items(data + nb_compr_bytes, static_cast<std::size_t>(redundancy_bytes), data + ret);
-        nb_compr_bytes = ret + redundancy_bytes;
-      }
+    } else if (redundancy && celt_to_silk && st->mode == opus_mode_hybrid && nb_compr_bytes != ret) {
+      move_n_items(data + nb_compr_bytes, static_cast<std::size_t>(redundancy_bytes), data + ret);
+      nb_compr_bytes = ret + redundancy_bytes;
     }
     st->rangeFinal = celt_enc->rng;
   } else {
