@@ -12851,9 +12851,8 @@ static float classifier_pcm16_mono_down2_hp(float* state, float* out, const opus
   return hp;
 }
 
-
 static float classical_leak_downmix_resample_generic(classical_leak_state* s, const opus_res* pcm, float* out,
-                                             int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
+                                                     int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
   if (subframe == 0) {
     return 0;
   }
