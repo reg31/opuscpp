@@ -3727,7 +3727,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                                 st->bitrate_bps < audio_midrate_celt_quality_boost_max_bps
                                             ? audio_midrate_celt_quality_boost_bps
                                             : opus_int32{0};
-  if (st->silk_mode.useInBandFEC) {
+  if (st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage != 0 && st->mode != opus_mode_celt_only) {
     static_cast<void>(decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate));
     const auto coding_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr,
                                                 st->mode, st->silk_mode.complexity, 0);
