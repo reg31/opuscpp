@@ -19177,7 +19177,7 @@ static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[],
   subfr_length = psEncC->subfr_length + psEncC->predictLPCOrder;
   psEncC->indices.NLSFInterpCoef_Q2 = 4;
   const bool calculate_half_fit = psEncC->Complexity >= 4 && !psEncC->first_frame_after_reset && psEncC->nb_subfr == 4;
-  if (calculate_half_fit && psEncC->predictLPCOrder == 16) {
+  if (calculate_half_fit) {
     double cached_C_first_row[16]{};
     res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder,
                                      nullptr, cached_C_first_row);
@@ -19186,10 +19186,6 @@ static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[],
   } else {
     res_nrg = silk_burg_modified_FLP(a, x, minInvGain, subfr_length, psEncC->nb_subfr, psEncC->predictLPCOrder,
                                      nullptr, nullptr);
-    if (calculate_half_fit) {
-      res_nrg -= silk_burg_modified_FLP(a_tmp, x + (4 / 2) * subfr_length, minInvGain, subfr_length, 4 / 2,
-                                        psEncC->predictLPCOrder, nullptr, nullptr);
-    }
   }
   if (calculate_half_fit) {
     silk_A2NLSF_FLP(NLSF_Q15, a_tmp, psEncC->predictLPCOrder);
