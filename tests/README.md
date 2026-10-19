@@ -187,15 +187,15 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.028x | 1.893x | 235x | 228x | 1618x | 855x |
-| 24&nbsp;kbps | 1.084x | 1.208x | 232x | 214x | 999x | 827x |
-| 32&nbsp;kbps | 0.996x | 1.313x | 213x | 214x | 956x | 728x |
-| 48&nbsp;kbps | 1.085x | 1.303x | 205x | 189x | 837x | 642x |
-| 64&nbsp;kbps | 1.033x | 1.520x | 188x | 182x | 820x | 540x |
-| 96&nbsp;kbps | 1.019x | 1.281x | 140x | 137x | 548x | 428x |
-| 128&nbsp;kbps | 0.938x | 1.356x | 122x | 130x | 498x | 367x |
-| 192&nbsp;kbps | 0.962x | 1.276x | 108x | 113x | 415x | 325x |
-| 256&nbsp;kbps | 0.961x | 1.212x | 103x | 107x | 356x | 294x |
+| 16&nbsp;kbps | 1.035x | 1.974x | 340x | 329x | 2457x | 1244x |
+| 24&nbsp;kbps | 1.086x | 1.368x | 336x | 309x | 1505x | 1101x |
+| 32&nbsp;kbps | 1.061x | 1.356x | 331x | 312x | 1439x | 1061x |
+| 48&nbsp;kbps | 1.036x | 1.314x | 302x | 292x | 1225x | 933x |
+| 64&nbsp;kbps | 1.038x | 1.293x | 267x | 258x | 1030x | 797x |
+| 96&nbsp;kbps | 1.026x | 1.248x | 215x | 210x | 817x | 654x |
+| 128&nbsp;kbps | 1.003x | 1.153x | 177x | 177x | 650x | 564x |
+| 192&nbsp;kbps | 0.909x | 1.272x | 150x | 165x | 564x | 443x |
+| 256&nbsp;kbps | 0.945x | 1.178x | 149x | 158x | 512x | 434x |
 
 ## Quality metrics vs official Opus
 
@@ -203,9 +203,9 @@ AUDIO quality proxies compare both encoders at complexity10 on the same six-seco
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.4769 | +0.3063 | +1.6655 | 16.745 kbps | 17.065 kbps |
-| 24&nbsp;kbps | +0.1330 | +0.0254 | -0.8758 | 24.903 kbps | 25.229 kbps |
-| 32&nbsp;kbps | +0.1712 | +0.0181 | -1.1412 | 33.116 kbps | 33.613 kbps |
+| 16&nbsp;kbps | +0.4767 | +0.3060 | +1.3537 | 16.736 kbps | 17.065 kbps |
+| 24&nbsp;kbps | +0.1320 | +0.0237 | -1.4584 | 24.899 kbps | 25.229 kbps |
+| 32&nbsp;kbps | +0.1722 | +0.0184 | -2.0787 | 33.096 kbps | 33.613 kbps |
 | 48&nbsp;kbps | +0.3697 | +0.0327 | -0.0460 | 48.560 kbps | 48.560 kbps |
 | 64&nbsp;kbps | +0.4342 | +0.0308 | -0.0275 | 64.613 kbps | 64.613 kbps |
 | 96&nbsp;kbps | +0.3476 | +0.0145 | +0.0227 | 96.720 kbps | 96.697 kbps |
@@ -219,11 +219,11 @@ VOIP uses a separate synthetic mono speech-like validation sample because its mo
 
 | Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1892 | +0.0303 | +0.1861 | 15.373 kbps | 12.072 kbps |
-| 24&nbsp;kbps | +0.1695 | +0.0134 | +0.0802 | 24.181 kbps | 24.020 kbps |
-| 32&nbsp;kbps | +0.2040 | +0.0113 | +0.3386 | 32.215 kbps | 32.088 kbps |
-| 48&nbsp;kbps | +0.2955 | +0.0069 | +0.2211 | 48.413 kbps | 48.409 kbps |
-| 64&nbsp;kbps | +0.4476 | +0.0094 | -0.0005 | 64.523 kbps | 64.515 kbps |
+| 16&nbsp;kbps | +0.1890 | +0.0305 | +0.3590 | 15.336 kbps | 12.072 kbps |
+| 24&nbsp;kbps | +0.1696 | +0.0129 | +0.0802 | 24.176 kbps | 24.020 kbps |
+| 32&nbsp;kbps | +0.2029 | +0.0122 | +0.3386 | 32.211 kbps | 32.088 kbps |
+| 48&nbsp;kbps | +0.2951 | +0.0071 | +0.2210 | 48.391 kbps | 48.409 kbps |
+| 64&nbsp;kbps | +0.4475 | +0.0095 | +0.0010 | 64.524 kbps | 64.515 kbps |
 | 96&nbsp;kbps | +0.8611 | +0.0122 | +0.4166 | 96.400 kbps | 96.499 kbps |
 | 128&nbsp;kbps | +0.9268 | +0.0065 | +0.3912 | 128.400 kbps | 128.489 kbps |
 | 192&nbsp;kbps | +1.1000 | +0.0057 | +0.4242 | 192.400 kbps | 192.472 kbps |
@@ -237,9 +237,9 @@ Coverage includes the broad ladder, stereo/content holdouts, four mono speech re
 
 | Set | Comparisons | Negative PESQ-style | Negative ViSQOL-style | Negative CELT proxy |
 |---:|---:|---:|---:|---:|
-| Broad ladder | 99 | 6 | 9 | 28 |
-| Stereo/content holdouts | 30 | 5 | 8 | 10 |
-| Mono speech recordings | 36 | 0 | 0 | 1 |
+| Broad ladder | 99 | 5 | 9 | 27 |
+| Stereo/content holdouts | 30 | 4 | 8 | 10 |
+| Mono speech recordings | 36 | 0 | 0 | 0 |
 | Retained tonal stress | 9 | 0 | 0 | 0 |
 
 All signed deltas and effective bitrates are in [quality_broad.csv](metrics/quality_broad.csv).
@@ -261,15 +261,15 @@ Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configuration
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1893 | +0.1208 | 10.9% |
-| 24&nbsp;kbps | +0.2188 | +0.1229 | 4.0% |
-| 32&nbsp;kbps | +0.2029 | +0.1182 | 2.6% |
-| 48&nbsp;kbps | +0.2190 | +0.1219 | 2.1% |
-| 64&nbsp;kbps | +0.2111 | +0.1300 | 4.5% |
-| 96&nbsp;kbps | +0.2126 | +0.1581 | 7.3% |
-| 128&nbsp;kbps | +0.2129 | +0.1575 | 8.9% |
-| 192&nbsp;kbps | +0.2154 | +0.1583 | 9.4% |
-| 256&nbsp;kbps | +0.2156 | +0.1593 | 4.5% |
+| 16&nbsp;kbps | +0.1846 | +0.1179 | -1.5% |
+| 24&nbsp;kbps | +0.2203 | +0.1204 | -1.1% |
+| 32&nbsp;kbps | +0.2053 | +0.1197 | 10.3% |
+| 48&nbsp;kbps | +0.2158 | +0.1189 | -2.1% |
+| 64&nbsp;kbps | +0.2107 | +0.1306 | 4.6% |
+| 96&nbsp;kbps | +0.2126 | +0.1581 | -5.3% |
+| 128&nbsp;kbps | +0.2129 | +0.1575 | 5.8% |
+| 192&nbsp;kbps | +0.2154 | +0.1583 | 10.3% |
+| 256&nbsp;kbps | +0.2156 | +0.1593 | 5.7% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`.
 
@@ -286,10 +286,10 @@ Memory uses 256 instances across three processes with FEC and denoising disabled
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 20,496 B | 31,824 B | -35.6% |
+| Encoder mono | 20,480 B | 31,824 B | -35.6% |
 | Encoder stereo | 30,656 B | 48,928 B | -37.3% |
 | Decoder mono | 8,416 B | 18,432 B | -54.3% |
-| Decoder stereo | 17,600 B | 27,088 B | -35.0% |
+| Decoder stereo | 17,568 B | 27,104 B | -35.2% |
 
 Source CSV:
 
@@ -299,5 +299,5 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 507,564 B | 0 B | 507,564 B |
-| Android arm64 Clang `-O2` | 488,212 B | 472 B | 488,684 B |
+| Host MinGW GCC `-O2` | 507,756 B | 0 B | 507,756 B |
+| Android arm64 Clang `-O2` | 488,336 B | 472 B | 488,808 B |
