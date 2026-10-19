@@ -3621,6 +3621,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (st->stream_channels != st->channels) {
     equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr, 0, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
   }
+  bool threshold_requested_silk = false;
   if (st->application == OPUS_APPLICATION_RESTRICTED_LOWDELAY) {
     st->mode = opus_mode_celt_only;
   } else {
@@ -3636,6 +3637,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const auto mode_stereo_width = analysis.stereo_width;
     const auto threshold = quality_mode_threshold(mode_voice_weight, mode_stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
+    threshold_requested_silk = st->mode == opus_mode_silk_only;
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
     if (!voip_style && mature && voice_est <= 16) {
       st->mode = st->bitrate_bps >= 15000 ? opus_mode_celt_only : opus_mode_silk_only;
@@ -3697,10 +3699,11 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr, st->mode, st->silk_mode.complexity, st->silk_mode.packetLossPercentage);
   if (st->mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only) {
-    reset_encoder_silk_state(st);
     prefill = previous_stereo_policy && stereo_policy_allowed ? 3 : 1;
   }
-  if (st->mode == opus_mode_celt_only || first || st->silk_mode.allowBandwidthSwitch) {
+  const int incoming_bandwidth = st->bandwidth;
+  const bool inherited_bandwidth = st->mode != opus_mode_celt_only && !first && !st->silk_mode.allowBandwidthSwitch;
+  const auto select_auto_bandwidth = [&](opus_int32 rate) {
     int bandwidth = 1105;
     for (; bandwidth > 1101; --bandwidth) {
       const auto threshold_slot = static_cast<std::size_t>(2 * (bandwidth - 1102));
@@ -3711,13 +3714,17 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
       if (!first) {
         threshold += st->auto_bandwidth >= bandwidth ? -hysteresis : hysteresis;
       }
-      if (equiv_rate >= threshold) {
+      if (rate >= threshold) {
         break;
       }
     }
     if (bandwidth == 1102) {
       bandwidth = 1103;
     }
+    return bandwidth;
+  };
+  if (!inherited_bandwidth) {
+    int bandwidth = select_auto_bandwidth(equiv_rate);
     st->auto_bandwidth = bandwidth;
     if (frame_metrics.energy == 0 && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
         st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
@@ -3736,6 +3743,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   }
   const auto sample_rate_bandwidth = 1101 + (st->Fs >= 12000) + (st->Fs >= 16000) + (st->Fs >= 24000) + (st->Fs >= 48000);
   st->bandwidth = std::min(st->bandwidth, sample_rate_bandwidth);
+  const bool pre_floor_hybrid_bandwidth = st->bandwidth > 1103;
   if (st->mode != opus_mode_celt_only && st->Fs >= 24000) {
     const opus_int32 hybrid_floor_bps = voice_est >= 100 && st->lightweight_harmonic_music_Q7 < 80 ? 14000
                                         : st->channels == 2                                        ? 12000
@@ -3751,19 +3759,20 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                                 st->bitrate_bps < audio_midrate_celt_quality_boost_max_bps
                                             ? audio_midrate_celt_quality_boost_bps
                                             : opus_int32{0};
+  int detected_bandwidth_limit = 0;
   if (st->classical_leak.out_info.valid) {
     const int det_band = st->classical_leak.out_info.bandwidth;
-    const int mapped = det_band <= 12 ? 1101 : det_band <= 14 ? 1102
-                                           : det_band <= 16   ? 1103
-                                           : det_band <= 18   ? 1104
-                                                              : 1105;
+    detected_bandwidth_limit = det_band <= 12 ? 1101 : det_band <= 14 ? 1102
+                                                   : det_band <= 16   ? 1103
+                                                   : det_band <= 18   ? 1104
+                                                                      : 1105;
     const int sc = st->stream_channels;
     const int floor_bw = equiv_rate <= 18000 * sc && st->mode == opus_mode_celt_only   ? 1101
                          : equiv_rate <= 24000 * sc && st->mode == opus_mode_celt_only ? 1102
                          : equiv_rate <= 30000 * sc                                    ? 1103
                          : equiv_rate <= 44000 * sc                                    ? 1104
                                                                                        : 1105;
-    st->bandwidth = std::min(st->bandwidth, std::max(mapped, floor_bw));
+    st->bandwidth = std::min(st->bandwidth, std::max(detected_bandwidth_limit, floor_bw));
   }
   if (st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage != 0 && st->mode != opus_mode_celt_only) {
     st->silk_mode.LBRR_coded = decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate);
@@ -3776,6 +3785,67 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     st->mode = opus_mode_hybrid;
   } else if (st->bandwidth <= 1103 && st->mode == opus_mode_hybrid) {
     st->mode = opus_mode_silk_only;
+  }
+  if (threshold_requested_silk && st->mode == opus_mode_hybrid && st->prev_mode == opus_mode_celt_only &&
+      inherited_bandwidth && pre_floor_hybrid_bandwidth && st->bandwidth == incoming_bandwidth &&
+      !(st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage != 0) &&
+      st->bitrate_bps - compute_silk_rate_for_hybrid(st->bitrate_bps, st->bandwidth, st->use_vbr,
+                                                     st->stream_channels, false) >
+          500 &&
+      frame_metrics.stereo_coherence >= 0) {
+    const auto live_stereo_width = 1.f - frame_metrics.stereo_coherence;
+    if (live_stereo_width > analysis.stereo_width) {
+      const auto mode_selection_equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate,
+                                                                st->use_vbr, 0, st->silk_mode.complexity,
+                                                                st->silk_mode.packetLossPercentage);
+      const int mode_voice_weight = st->classical_leak.out_info.valid && st->application == OPUS_APPLICATION_AUDIO
+                                        ? std::min(voice_weight, 115 * 115)
+                                        : voice_weight;
+      if (mode_selection_equiv_rate >= quality_mode_threshold(mode_voice_weight, live_stereo_width, voip_style, st->prev_mode)) {
+        const auto destination_equiv_rate = compute_equiv_rate(st->bitrate_bps, st->stream_channels, frame_rate, st->use_vbr,
+                                                               opus_mode_celt_only, st->silk_mode.complexity,
+                                                               st->silk_mode.packetLossPercentage);
+        const int destination_auto_bandwidth = select_auto_bandwidth(destination_equiv_rate);
+        int destination_bandwidth = destination_auto_bandwidth;
+        if (frame_metrics.energy == 0 && st->prev_framesize == frame_size && celt_enc->overlap_max > 0 &&
+            destination_bandwidth > incoming_bandwidth &&
+            std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
+              return sample == 0;
+            })) {
+          destination_bandwidth = incoming_bandwidth;
+        }
+        destination_bandwidth = std::min(destination_bandwidth, sample_rate_bandwidth);
+        if (detected_bandwidth_limit != 0) {
+          const int sc = st->stream_channels;
+          const int floor_bw = destination_equiv_rate <= 18000 * sc   ? 1101
+                               : destination_equiv_rate <= 24000 * sc ? 1102
+                               : destination_equiv_rate <= 30000 * sc ? 1103
+                               : destination_equiv_rate <= 44000 * sc ? 1104
+                                                                      : 1105;
+          destination_bandwidth = std::min(destination_bandwidth, std::max(detected_bandwidth_limit, floor_bw));
+        }
+        if (destination_bandwidth == 1102) {
+          destination_bandwidth = 1103;
+        }
+        if (destination_bandwidth == st->bandwidth) {
+          st->mode = opus_mode_celt_only;
+          st->auto_bandwidth = destination_auto_bandwidth;
+          equiv_rate = destination_equiv_rate;
+          redundancy = 0;
+          celt_to_silk = 0;
+          to_celt = 0;
+          prefill = 0;
+          celt_enc->midrate_quality_boost_bps = st->application == OPUS_APPLICATION_AUDIO && frame_size == st->Fs / 50 &&
+                                                        st->bitrate_bps >= audio_midrate_celt_quality_boost_min_bps &&
+                                                        st->bitrate_bps < audio_midrate_celt_quality_boost_max_bps
+                                                    ? audio_midrate_celt_quality_boost_bps
+                                                    : opus_int32{0};
+        }
+      }
+    }
+  }
+  if (st->mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only) {
+    reset_encoder_silk_state(st);
   }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
   const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
