@@ -1,28 +1,28 @@
 # Complete production metrics
 
-Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `f5f8a3f55038dba4c25cef10199c73942b64116a`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
 | Suite | Cases | Fields | Below official |
 |---|---:|---:|---:|
-| Matrix | 498 | 12 | 744 |
-| Publication | 806 | 12 | 789 |
+| Matrix | 498 | 12 | 741 |
+| Publication | 806 | 12 | 754 |
 
 | Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
 |---|---|---:|---:|
-| snr_db | Higher | 19 | 11 |
-| segmental_snr_db | Higher | 19 | 12 |
-| rms_error | Lower | 19 | 11 |
-| mean_abs_error | Lower | 17 | 10 |
-| pesq_style | Higher | 21 | 12 |
-| visqol_style | Higher | 68 | 87 |
-| logband_corr | Higher | 67 | 99 |
-| logband_error | Lower | 65 | 78 |
-| celt_quality | Higher | 119 | 137 |
-| celt_masked_error | Lower | 119 | 137 |
-| celt_highband_error | Lower | 189 | 180 |
-| stereo_width_error | Lower | 22 | 15 |
+| snr_db | Higher | 19 | 12 |
+| segmental_snr_db | Higher | 13 | 10 |
+| rms_error | Lower | 19 | 12 |
+| mean_abs_error | Lower | 14 | 9 |
+| pesq_style | Higher | 14 | 10 |
+| visqol_style | Higher | 62 | 72 |
+| logband_corr | Higher | 66 | 89 |
+| logband_error | Lower | 60 | 67 |
+| celt_quality | Higher | 133 | 143 |
+| celt_masked_error | Lower | 133 | 143 |
+| celt_highband_error | Lower | 184 | 171 |
+| stereo_width_error | Lower | 24 | 16 |
 
 [Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
 
@@ -30,7 +30,7 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.93x to 1.06x | 1.20x to 1.92x |
+| AUDIO | 0.93x to 1.07x | 1.16x to 1.98x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,13 +41,13 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20480 | 20448 | Not exposed |
-| official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 8448 | 8320 | Not exposed |
-| official_decoder_ch1 | 18496 | 18560 | 18468 |
-| current_encoder_ch2 | 30640 | 30560 | Not exposed |
+| official_encoder_ch1 | 31824 | 31888 | 31668 |
+| current_decoder_ch1 | 8448 | 8336 | Not exposed |
+| official_decoder_ch1 | 18480 | 18576 | 18468 |
+| current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
 | current_decoder_ch2 | 17568 | 16224 | Not exposed |
-| official_decoder_ch2 | 27104 | 27264 | 27236 |
+| official_decoder_ch2 | 27088 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 506460 | 0 | 0 | 506460 |
-| android | 485796 | 472 | 0 | 486268 |
+| host | 505708 | 0 | 0 | 505708 |
+| android | 485540 | 472 | 0 | 486012 |
 
 [Object-size data](binary_size.csv).
 
@@ -66,20 +66,20 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 
 | FEC metric | Value |
 |---|---:|
-| Strict source comparison | PASS |
-| Standard interoperability comparison | PASS |
-| Scored recovery wins | 18/18 |
-| Maximum recovery-error ratio | 0.903303 |
-| Recovery-error ratio | 0.408094 |
-| Packet-byte ratio | 0.994975 |
-| Backup coverage: opuscpp | 18/18 |
+| Strict source comparison | FAIL |
+| Standard interoperability comparison | FAIL |
+| Scored recovery wins | 17/18 |
+| Maximum recovery-error ratio | 1.514000 |
+| Recovery-error ratio | 0.70936 |
+| Packet-byte ratio | 0.996265 |
+| Backup coverage: opuscpp | 15/18 |
 | Backup coverage: official | 15/18 |
 | Configurations | 36 |
 | Direction rows | 72 |
-| C1 | 18/18 |
+| C1 | 17/18 |
 | C2 | 18/18 |
 | C3 | 18/18 |
-| C4 | 18/18 |
+| C4 | 15/18 |
 
 [FEC direction fields](fec_interop_metrics.csv) · [Source comparisons](fec_source_metrics.json) · [Ratios and raw output](fec_run_metadata.json).
 
@@ -88,9 +88,9 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 | dtx_comparison | PASS |
 | false_positive_opuscpp | 0 |
 | false_positive_official | 0 |
-| reentry_nrmse_opuscpp | 0.297220 |
+| reentry_nrmse_opuscpp | 0.309319 |
 | reentry_nrmse_official | 0.762239 |
-| reentry_gain_db_opuscpp | 0.457875 |
+| reentry_gain_db_opuscpp | 0.603645 |
 | reentry_gain_db_official | 1.646307 |
 | silence_dtx_opuscpp | 406 |
 | silence_dtx_official | 406 |
@@ -112,18 +112,18 @@ Measured: `ebaad238815d169a7d0f7d1e5fb8d26c0163ce07`; pinned official Opus: `51b
 
 | Signal | silk_pct | hybrid_pct | celt_pct |
 |---|---:|---:|---:|
-| speech_like | 0.0 | 85.3 | 14.7 |
-| harmonic_music | 0.0 | 1.0 | 99.0 |
+| speech_like | 0.0 | 88.0 | 12.0 |
+| harmonic_music | 0.0 | 5.7 | 94.3 |
 
 [Mode data](mode_balance_metrics.json).
 
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.9556 decode_ms=16.6321 checksum=340886119
-mono-high bytes=115 encode_ms=20.6168 decode_ms=15.6541 checksum=2633358364
-stereo-mid bytes=102 encode_ms=75.4626 decode_ms=31.1699 checksum=3625126390
-stereo-high bytes=147 encode_ms=83.4876 decode_ms=32.9308 checksum=2476207253
+mono-mid bytes=76 encode_ms=18.9402 decode_ms=17.1648 checksum=340886119
+mono-high bytes=115 encode_ms=22.7575 decode_ms=16.3178 checksum=2633358364
+stereo-mid bytes=102 encode_ms=87.8183 decode_ms=35.8229 checksum=3625126390
+stereo-high bytes=147 encode_ms=85.2642 decode_ms=31.6896 checksum=2476207253
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).

@@ -2,25 +2,143 @@
   "strict_source": {
     "rows": 18,
     "counts": [
+      17,
       18,
       18,
-      18,
-      18
+      15
     ],
-    "failed_rows": [],
-    "exit_code": 0,
-    "acceptance": "PASS",
+    "failed_rows": [
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          0,
+          1
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          false
+        ],
+        "current": {
+          "fidelity_fec": 0.617814746,
+          "next_fec": 0.773120654,
+          "transition_fec": 0.530104688,
+          "fidelity_ref": 0.170940334,
+          "next_ref": 0.174560957,
+          "transition_ref": 0.148780857,
+          "fidelity_plc": 0.617814746,
+          "self_consistency": 0.596832636,
+          "step_fec": -291.0,
+          "step_ref": 9.0
+        },
+        "official": {
+          "fidelity_fec": 0.738268655,
+          "next_fec": 0.96740496,
+          "transition_fec": 0.8000232,
+          "fidelity_ref": 0.651415492,
+          "next_ref": 0.648971154,
+          "transition_ref": 0.239399895,
+          "fidelity_plc": 0.738268655,
+          "self_consistency": 0.394210135,
+          "step_fec": -259.0,
+          "step_ref": -271.0
+        }
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          1,
+          1
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          true,
+          false
+        ],
+        "current": {
+          "fidelity_fec": 0.949547904,
+          "next_fec": 0.799315657,
+          "transition_fec": 0.93212934,
+          "fidelity_ref": 0.254626704,
+          "next_ref": 0.268937922,
+          "transition_ref": 0.227502066,
+          "fidelity_plc": 0.949547904,
+          "self_consistency": 0.951637461,
+          "step_fec": -73.0,
+          "step_ref": -124.0
+        },
+        "official": {
+          "fidelity_fec": 1.026548022,
+          "next_fec": 0.895819017,
+          "transition_fec": 0.969528753,
+          "fidelity_ref": 0.713662654,
+          "next_ref": 0.671142318,
+          "transition_ref": 0.323463324,
+          "fidelity_plc": 1.026548022,
+          "self_consistency": 0.963701829,
+          "step_fec": -138.0,
+          "step_ref": -281.0
+        }
+      },
+      {
+        "key": [
+          1,
+          20,
+          16000,
+          2,
+          1
+        ],
+        "criteria_pass": [
+          false,
+          true,
+          true,
+          false
+        ],
+        "current": {
+          "fidelity_fec": 1.010644132,
+          "next_fec": 0.820650328,
+          "transition_fec": 0.489519779,
+          "fidelity_ref": 0.518315657,
+          "next_ref": 0.556590946,
+          "transition_ref": 0.444361983,
+          "fidelity_plc": 1.010644132,
+          "self_consistency": 1.021186151,
+          "step_fec": -786.0,
+          "step_ref": -498.0
+        },
+        "official": {
+          "fidelity_fec": 1.000974038,
+          "next_fec": 0.963422471,
+          "transition_fec": 1.142807447,
+          "fidelity_ref": 0.782495425,
+          "next_ref": 0.821001778,
+          "transition_ref": 0.549944469,
+          "fidelity_plc": 1.000974038,
+          "self_consistency": 1.306601049,
+          "step_fec": -269.0,
+          "step_ref": -1025.0
+        }
+      }
+    ],
+    "exit_code": 1,
+    "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false,
-    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 18] out of 18"
+    "stdout": "FEC source criteria C1/C2/C3/C4: [17, 18, 18, 15] out of 18"
   },
   "standard_interop": {
-    "exit_code": 0,
-    "summary": "fec_summary recovery_error_ratio=0.408094 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.994975",
-    "acceptance": "PASS",
+    "exit_code": 1,
+    "summary": "fec_summary recovery_error_ratio=0.70936 wins=17/18 coverage=15/18 official_coverage=15/18 packet_byte_ratio=0.996265",
+    "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },
-  "acceptance": "PASS",
+  "acceptance": "FAIL",
   "waiver": false
 }
