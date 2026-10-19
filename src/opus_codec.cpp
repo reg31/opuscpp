@@ -6831,15 +6831,6 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
   return tf_select;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start) {
-  std::array<int, celt_default_nb_ebands> metric;
-  return tf_analysis(len, isTransient, tf_res, lambda, X, N0, LM, tf_estimate, tf_chan, importance, coupled_end, bandE, intensity_start, metric.data(), len);
-}
-
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE) {
-  return tf_analysis(len, isTransient, tf_res, lambda, X, N0, LM, tf_estimate, tf_chan, importance, coupled_end, bandE, -1);
-}
-
 template <bool Encode> static inline void process_tf_changes(int start, int end, int isTransient, int* tf_res, int LM, int tf_select, ec_ctx* coder) {
   opus_uint32 budget = coder->storage * 8;
   opus_uint32 tell = ec_tell(coder);
