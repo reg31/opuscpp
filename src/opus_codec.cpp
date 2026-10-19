@@ -6161,6 +6161,39 @@ static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
     numeric_blob_matrix<signed char, 8>(R"blob(00FF00FF00FF00FF00FF00FE010001FF00FE00FD020001FF00FE00FD030001FF)blob");
 [[nodiscard]] static auto celt_caps_for(int LM, int C) noexcept -> const std::array<int, celt_default_nb_ebands>&;
 
+// Rough normalized-power CDF for the existing legal spreading choices (RFC 6716, 5.3.7).
+// These reference-encoder class boundaries are a conditional prior, not a fitted score model.
+[[nodiscard]] static int celt_input_spreading_decision(const celt_norm* X, const opus_int16* eBands,
+                                                       int start, int end, int C, int N, int LM) noexcept {
+  const int M = 1 << LM;
+  int score = 0;
+  int bands = 0;
+  for (int c = 0; c < C; ++c) {
+    for (int band = start; band < end; ++band) {
+      const int size = M * (eBands[band + 1] - eBands[band]);
+      if (size <= 8)
+        continue;
+      const auto* x = X + c * N + M * eBands[band];
+      std::array<int, 3> below{};
+      for (int j = 0; j < size; ++j) {
+        const opus_val32 square = x[j] * x[j];
+        const opus_val32 power = square * size;
+        below[0] += power < .25f;
+        below[1] += power < .0625f;
+        below[2] += power < .015625f;
+      }
+      score += (2 * below[0] >= size) + (2 * below[1] >= size) + (2 * below[2] >= size);
+      ++bands;
+    }
+  }
+  if (bands == 0)
+    return 2;
+  const int normalized_score = (score << 8) / bands;
+  return normalized_score < 80 ? 3 : normalized_score < 256 ? 2
+                                 : normalized_score < 384   ? 1
+                                                            : 0;
+}
+
 [[nodiscard]] constexpr auto celt_hybrid_target(opus_int32 base_target, int LM, int silk_offset, opus_val16 tf_estimate) noexcept -> opus_int32 {
   auto target = base_target;
   if (silk_offset < 100) {
@@ -8358,6 +8391,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
   const auto noise_covariance = celt_estimate_noise_covariance_parameter(st, bandE, bandLogE, LM, shortBlocks);
+  const int input_spread = !hybrid && !silence ? celt_input_spreading_decision(X, eBands, start, end, common_source ? 1 : C, N, LM) : 2;
   auto* error = bandLogE2;
   for_each_celt_band(st, [&](int index) {
     if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
@@ -8394,6 +8428,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       if (hybrid) {
         spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
       } else {
+        spread_decision = input_spread;
         const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
                                      toneishness >= .40f &&
                                      16 * effectiveBytes >= C * N;
