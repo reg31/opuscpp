@@ -4036,6 +4036,26 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   return dc_fast ? frame_mean : pcm[0];
 }
 
+static inline void prepare_audio_mono_staging(const opus_res* pcm, opus_res* frame_pcm, int frame_size,
+                                              opus_val16 keep, bool apply_tilt, opus_val16 smoothing) noexcept {
+  if (!apply_tilt) {
+    for (int index = 0; index < frame_size; ++index) {
+      const opus_res sample = pcm[index];
+      frame_pcm[index] = sample + keep * (sample - sample);
+    }
+    return;
+  }
+  const opus_res first = pcm[0];
+  opus_res previous = (first + keep * (first - first)) * 1.0f;
+  frame_pcm[0] = previous;
+  for (int index = 1; index < frame_size; ++index) {
+    const opus_res sample = pcm[index];
+    const opus_res current = (sample + keep * (sample - sample)) * 1.0f;
+    frame_pcm[index] = current + smoothing * (previous - current);
+    previous = current;
+  }
+}
+
 static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
   if (st->application == OPUS_APPLICATION_VOIP) {
@@ -4140,17 +4160,17 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
     }
     const bool apply_mono_preprocess = st->channels == 1 && !low_z_mono && st->preprocess_filter_state <= 0 &&
                                        choose_audio_preprocess_mode(st) != audio_preprocess_speech;
-    copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
     if (apply_mono_preprocess && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
       const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
       const opus_val16 keep = clean_music ? .94f : .86f;
-      for (int index = 0; index < frame_size; ++index) {
-        frame_pcm[index] += keep * (pcm[index] - frame_pcm[index]);
-      }
-      if (clean_music) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, .08f);
-      }
+      const bool final_audio_tilt = st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps >= 28000 &&
+                                    st->bitrate_bps <= 40000 && st->lightweight_high_z_tonal_Q7 < 64;
+      const opus_val16 smoothing = clean_music ? .08f : final_audio_tilt ? -.035f
+                                                                         : 0.f;
+      prepare_audio_mono_staging(pcm, frame_pcm, frame_size, keep, clean_music || final_audio_tilt, smoothing);
+      return denoise_handled;
     }
+    copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
   } else {
     dc_reject(pcm, frame_pcm, st->hp_mem, frame_size, st->channels, st->Fs);
   }
