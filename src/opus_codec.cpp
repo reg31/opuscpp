@@ -1558,9 +1558,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
   st->stream_channels = packet_stream_channels;
   auto* celt_dec = decoder_celt_state(st);
   if (direct) {
-    if (packet_bandwidth) {
-      celt_dec->end = bandwidth_to_endband(packet_bandwidth);
-    }
+    celt_dec->end = bandwidth_to_endband(packet_bandwidth);
     celt_dec->stream_channels = packet_stream_channels;
     celt_dec->start = 0;
   }
