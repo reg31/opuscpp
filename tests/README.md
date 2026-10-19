@@ -187,15 +187,15 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.994x | 1.984x | 300x | 302x | 2101x | 1059x |
-| 24&nbsp;kbps | 1.067x | 1.412x | 289x | 270x | 1367x | 968x |
-| 32&nbsp;kbps | 1.031x | 1.328x | 290x | 281x | 1287x | 969x |
-| 48&nbsp;kbps | 1.031x | 1.234x | 262x | 255x | 1010x | 818x |
-| 64&nbsp;kbps | 0.996x | 1.216x | 231x | 232x | 919x | 756x |
-| 96&nbsp;kbps | 0.976x | 1.241x | 186x | 191x | 720x | 580x |
-| 128&nbsp;kbps | 0.982x | 1.243x | 165x | 169x | 635x | 510x |
-| 192&nbsp;kbps | 0.925x | 1.198x | 141x | 153x | 533x | 445x |
-| 256&nbsp;kbps | 0.933x | 1.157x | 135x | 144x | 448x | 387x |
+| 16&nbsp;kbps | 0.989x | 2.005x | 268x | 271x | 1996x | 995x |
+| 24&nbsp;kbps | 1.037x | 1.292x | 264x | 254x | 1165x | 902x |
+| 32&nbsp;kbps | 1.035x | 1.314x | 263x | 254x | 1163x | 885x |
+| 48&nbsp;kbps | 1.023x | 1.264x | 227x | 222x | 929x | 735x |
+| 64&nbsp;kbps | 0.986x | 1.298x | 188x | 190x | 802x | 618x |
+| 96&nbsp;kbps | 1.061x | 1.392x | 162x | 152x | 636x | 457x |
+| 128&nbsp;kbps | 0.944x | 1.321x | 139x | 147x | 554x | 419x |
+| 192&nbsp;kbps | 0.965x | 1.373x | 125x | 129x | 473x | 345x |
+| 256&nbsp;kbps | 0.926x | 1.215x | 119x | 129x | 421x | 347x |
 
 ## Quality metrics vs official Opus
 
@@ -239,7 +239,7 @@ Coverage includes the broad ladder, stereo/content holdouts, four mono speech re
 |---:|---:|---:|---:|---:|
 | Broad ladder | 99 | 6 | 9 | 28 |
 | Stereo/content holdouts | 30 | 4 | 7 | 11 |
-| Mono speech recordings | 36 | 0 | 0 | 0 |
+| Mono speech recordings | 36 | 0 | 0 | 1 |
 | Retained tonal stress | 9 | 0 | 0 | 0 |
 
 All signed deltas and effective bitrates are in [quality_broad.csv](metrics/quality_broad.csv).
@@ -261,15 +261,15 @@ Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configuration
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1897 | +0.1179 | 3.9% |
-| 24&nbsp;kbps | +0.2194 | +0.1258 | 6.8% |
-| 32&nbsp;kbps | +0.2046 | +0.1205 | 4.7% |
-| 48&nbsp;kbps | +0.2182 | +0.1221 | 12.1% |
-| 64&nbsp;kbps | +0.2115 | +0.1309 | 4.7% |
-| 96&nbsp;kbps | +0.2126 | +0.1581 | 3.2% |
-| 128&nbsp;kbps | +0.2129 | +0.1575 | 6.9% |
-| 192&nbsp;kbps | +0.2154 | +0.1583 | 1.2% |
-| 256&nbsp;kbps | +0.2156 | +0.1593 | 4.4% |
+| 16&nbsp;kbps | +0.1897 | +0.1179 | 8.4% |
+| 24&nbsp;kbps | +0.2194 | +0.1258 | 5.0% |
+| 32&nbsp;kbps | +0.2046 | +0.1205 | 5.7% |
+| 48&nbsp;kbps | +0.2182 | +0.1221 | 7.5% |
+| 64&nbsp;kbps | +0.2115 | +0.1309 | 4.0% |
+| 96&nbsp;kbps | +0.2126 | +0.1581 | 6.2% |
+| 128&nbsp;kbps | +0.2129 | +0.1575 | 11.0% |
+| 192&nbsp;kbps | +0.2154 | +0.1583 | 6.4% |
+| 256&nbsp;kbps | +0.2156 | +0.1593 | 12.2% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`.
 
@@ -286,10 +286,10 @@ Memory uses 256 instances across three processes with FEC and denoising disabled
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 20,480 B | 31,824 B | -35.6% |
-| Encoder stereo | 30,656 B | 48,880 B | -37.3% |
-| Decoder mono | 8,448 B | 18,480 B | -54.3% |
-| Decoder stereo | 17,568 B | 27,088 B | -35.1% |
+| Encoder mono | 20,496 B | 31,824 B | -35.6% |
+| Encoder stereo | 30,656 B | 48,928 B | -37.3% |
+| Decoder mono | 8,416 B | 18,432 B | -54.3% |
+| Decoder stereo | 17,616 B | 27,088 B | -35.0% |
 
 Source CSV:
 
@@ -299,5 +299,5 @@ Source CSV:
 
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
-| Host MinGW GCC `-O2` | 505,708 B | 0 B | 505,708 B |
-| Android arm64 Clang `-O2` | 485,540 B | 472 B | 486,012 B |
+| Host MinGW GCC `-O2` | 505,580 B | 0 B | 505,580 B |
+| Android arm64 Clang `-O2` | 485,448 B | 472 B | 485,920 B |
