@@ -4598,8 +4598,12 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
     reset_voice_denoise_state(*state);
     return;
   }
-  const bool noise_shape = metrics.energy > 2e-4f && metrics.energy < .03f && metrics.mono_diff_ratio > .40f &&
-                           metrics.mono_zero_cross_rate > .22f;
+  const int previous_activity = previous_silk_activity_q8(st);
+  const bool silk_noise_activity = previous_activity >= 0 && previous_activity < dtx_noise_activity_max_Q8 && st->lightweight_vad_score_Q7 < 24 &&
+                                   st->lightweight_music_score_Q7 < 24 && st->lightweight_harmonic_music_Q7 < 24 &&
+                                   st->lightweight_high_z_tonal_Q7 < 24;
+  const bool noise_shape = metrics.energy > 2e-4f && metrics.energy < .03f &&
+                           (silk_noise_activity || (metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .22f));
   const bool releasing = state->hold_samples > 0 || state->gain != std::array<opus_val16, 3>{1, 1, 1} ||
                          state->target_gain != std::array<opus_val16, 3>{1, 1, 1};
   if (!broadband && !noise_shape && !releasing) {
@@ -4713,7 +4717,9 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
   state->previous_high_energy = energy[2];
   state->initialized = true;
 
-  const auto observed_confidence = st->lightweight_voice_score_Q7 > 32
+  const auto observed_confidence = silk_noise_activity
+                                       ? 1.f - static_cast<float>(previous_activity) / dtx_noise_activity_max_Q8
+                                   : st->lightweight_voice_score_Q7 > 32
                                        ? std::min(std::clamp((metrics.mono_diff_ratio - 1.8f) * 5.f, 0.f, 1.f), std::clamp((metrics.mono_zero_cross_rate - .46f) * 25.f, 0.f, 1.f))
                                        : std::min(std::clamp((metrics.mono_diff_ratio - .35f) / .30f, 0.f, 1.f), std::clamp((metrics.mono_zero_cross_rate - .18f) / .24f, 0.f, 1.f));
   state->confidence += noise_shape ? .35f * (observed_confidence - state->confidence) : -.15f * state->confidence;
