@@ -7830,6 +7830,44 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   } else if (output_abs_sum[0] > input_abs_sum[0]) {
     cancel_pitch = true;
   }
+  if (cancel_pitch && CC == 2 && st->stream_channels == 2 && !common_input && qg > 0) {
+    const auto finite = [](opus_val32 value) {
+      return (std::bit_cast<opus_uint32>(value) & 0x7fffffffU) < 0x7f800000U;
+    };
+    if (finite(input_abs_sum[0]) && finite(input_abs_sum[1]) && finite(output_abs_sum[0]) && finite(output_abs_sum[1]) && finite(st->prefilter_gain)) {
+      const int saved_errno = errno;
+      std::fenv_t original_environment, held_environment;
+      if (std::fegetenv(&original_environment) == 0) {
+        if (std::feholdexcept(&held_environment) == 0) {
+          // A shared stereo fit can overshoot one channel. Keep the largest
+          // lower wire gain that meets the same channel acceptance criteria.
+          for (int trial_qg = qg - 1; trial_qg >= 0; --trial_qg) {
+            const opus_val16 trial_gain = .09375f * (trial_qg + 1);
+            std::array<opus_val32, 2> trial_after{};
+            comb_filter(in + overlap, pre[0] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -trial_gain, 0, 0, overlap);
+            for (int i = 0; i < N; ++i)
+              trial_after[0] += std::abs(in[overlap + i]);
+            const opus_val32 threshold0 = .25f * trial_gain * input_abs_sum[0] + .01f * input_abs_sum[1];
+            if (!(trial_after[0] - input_abs_sum[0] <= threshold0))
+              continue;
+            comb_filter(in + (N + overlap) + overlap, pre[1] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -trial_gain, 0, 0, overlap);
+            for (int i = 0; i < N; ++i)
+              trial_after[1] += std::abs(in[(N + overlap) + overlap + i]);
+            const opus_val32 threshold1 = .25f * trial_gain * input_abs_sum[1] + .01f * input_abs_sum[0];
+            if (trial_after[1] - input_abs_sum[1] <= threshold1 &&
+                (input_abs_sum[0] - trial_after[0] >= threshold0 || input_abs_sum[1] - trial_after[1] >= threshold1)) {
+              gain1 = trial_gain;
+              qg = trial_qg;
+              cancel_pitch = false;
+              break;
+            }
+          }
+        }
+        std::fesetenv(&original_environment);
+      }
+      errno = saved_errno;
+    }
+  }
   if (cancel_pitch) {
     for (int c = 0; c < CC; ++c) {
       copy_n_items(pre[c] + max_period, static_cast<std::size_t>(N), in + c * (N + overlap) + overlap);
