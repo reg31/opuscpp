@@ -3637,9 +3637,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
         mode_voice_weight = std::min(mode_voice_weight, 115 * 115);
       }
     }
-    const auto mode_stereo_width = frame_metrics.stereo_coherence >= 0
-                                       ? std::max(analysis.stereo_width, 1.f - frame_metrics.stereo_coherence)
-                                       : analysis.stereo_width;
+    const auto mode_stereo_width = analysis.stereo_width;
     const auto threshold = quality_mode_threshold(mode_voice_weight, mode_stereo_width, voip_style, st->prev_mode);
     st->mode = (equiv_rate >= threshold) ? opus_mode_celt_only : opus_mode_silk_only;
     const bool mature = st->lightweight_analysis_frames >= audio_preprocess_warmup_frames;
