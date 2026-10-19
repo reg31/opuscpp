@@ -1,12 +1,12 @@
 {
   "status": "PASS",
   "status_from_current_run": true,
-  "run_id": "codex_native_celt_28b4579b1017_20261019",
-  "source_sha256": "5572c8e058a95dd9e15479874ada6923082f1ef088dff6516aa346eea64731c3",
+  "run_id": "codex_native_celt_5ee1ee976391_20261019",
+  "source_sha256": "895911e82d83facaa2858219c95261dc285c00495f2e796884b6492aee2291c6",
   "test_sha256": "f0243673f876813e8f7ef7b65b5401907fd195c577dddb0e92e39bc485252fe2",
   "adapter_sha256": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
-  "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
-  "matrix_results_sha256": "ff4c447cdcd87e9a0cb04b46e25762907824982659fef07cb264810eec68776d",
+  "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
+  "matrix_results_sha256": "ff7eed7ce03c41712db198c477d6ff2317feb144a6371a335d98fa6f1f2c7d8b",
   "oracle": "RFC6716 section6 opus_compare exit0 for each configuration plus per-packet exact final ranges; no per-frame PCM tolerance",
   "matrix": {
     "status": "PASS",
@@ -22,19 +22,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.7,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "5b769f67e58510b135ed5c19edee299afaae6a066f1118cd31c98ad71c60b6d1",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "7a2509e28dcca0ae7ffba9583eca10b38e0eaa22cd2d9c10c0b4be9d85ca7db2",
         "packet_sha256": "cb65e5e6a1b1503ac995fe41c3594315b27d38df4760e6be3b5fdbc63137c5a4",
         "ranges_sha256": "0dbc45ec468111e45ac2e5044c6793c70a2e9d6d32020a160c9b7c4445381a80",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -47,19 +47,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 83.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "07f168101d92536f5a80c8be860e1c17850c952599de9be82d22420054798505",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "e902872f58bb402b065747f29c310c0c4ccdb39ef7567bf13e98eb71fd8dc313",
         "packet_sha256": "abddf9a026ad6218098f48d5bb425a219b1e873e3ebf30c297841330228771fa",
         "ranges_sha256": "ec1767d21d88821e2a426846c4c5a39dc65e24fd6b05ca3b1aaa84b8c4b775a3",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -72,19 +72,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "d39a0b4070d0ba0660c040b3d4d77c3955cb4fe021da1f068eb1add480de388f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "9117819f9a14d39586c2ef9d286dd93122449ed26b0c4982c7dfd9ed3dbd9513",
         "packet_sha256": "9bf6771fb4a7325995e32f15b5ebac60eb1d312ae49ad6535b11f00233b0ca46",
         "ranges_sha256": "56395193cb3401208b2f4c2177d79dc2dc65a831c46f46398778f3ed0c1df88d",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -97,19 +97,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.5,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "b4a5f3d4d07ae71345dcc90fccce98bbb346a9128922d063cc8fc1d471575c63",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "10548140e768175698c8c19dd5df20a4bc6fcd69a2bb9c5661461bf69e8577f5",
         "packet_sha256": "f53141ccc2725477a9bd83ffe68a6e428b60d517105c3463bb836bcb140447ad",
         "ranges_sha256": "3735650070226571e3c4bd38b2762c7c4421c1ca8accb4d5d55b29df2687bdcc",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -122,19 +122,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.3,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "0d8ed0f6a27d9f97d9f89a9daa51af09fbfd96458982e6b9da5ed42c8cd73d71",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "e46858592e1783ce2bf35e184f6d2e8d0d6d310d5a1a4ef98fd7326dbf299fe2",
         "packet_sha256": "ec7918ea4178aff800f9e77dc6f3a74560b387a3ea124af7aab6ecab3fd28f1d",
         "ranges_sha256": "ff3543a8fac1d914903c2c036317c34f5ab83b5d80c2eb1b9a1654e15211ba23",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -147,19 +147,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 81.9,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "50fd88132cb835c4fe730cad3fede3e0581d1603f20ac6b0bec96d6fb6abc312",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "785879398d4f2047adb465dde28abe19d14a2da376646e800911572f0d9b578e",
         "packet_sha256": "c629086107d8b80f7ac18e0b0c713eaadc0b8dc2d798eb551922de8b3e216c64",
         "ranges_sha256": "702ad1ec47cbd7409a118afbe02d3f5c6cd47ba9a3f9227d6c981ff471cdea75",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -172,19 +172,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 83.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "e177639eeeaca2077631d70f86e7ffcb528c32bad0747cbb3fcba576c3cf7aaa",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "0c59d06a926e5784541d9c4025242e21a4776a0b832d61669be906e163dc15d0",
         "packet_sha256": "5a0eaae7ed1aea87ddd4f1a2333ef01a8087397968149e1dfc881123ef5cf906",
         "ranges_sha256": "50f49650fa20fb6c83ac125cb802e1d3943917596e0f64819b498ea74e68d067",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -197,19 +197,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 84.6,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "d40b93f395251b3e01405ec61a1d576e127838a7b3d1a714350c29acc0028033",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "b16c6c6401a69f415940fa75014ef89258e0f5e6a83a51642312aaadb54fa76d",
         "packet_sha256": "15b5254ac8289752fc962ed46e4dd3ed2d0cfac369a794f2f0611e7558d1cc2b",
         "ranges_sha256": "babfe740af84ef23ae3065026115ea6502fc4c8823f03495fd848305d6566703",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -222,19 +222,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.1,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "c6e03cfc05ca5e24b8928c03c1c6486d1712fe8f1b888d84c1aa1e08d5ec2dcf",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "0522c71ef5f5171de09abaeb4a49a16114fa0df95a0fb46d6427ee0c05082257",
         "packet_sha256": "478da842406f911b0445c3e4f557aff866d5d52345cb073dfab0364715f22bf4",
         "ranges_sha256": "a40991efe0d60f0d176091159faa35448b1a5c0ffbb1d847b72bfddccc5b868c",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -247,19 +247,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 67.2,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "7d11d6118c9bf68a6fc79a8094ba0864b89b004f0eb1ba83870b4ff596c1f6c6",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "2e9cae574e9b5ead5e64eb94918b9d5f6e2c8e4bc8ac56163b356ce9ab2ee6ca",
         "packet_sha256": "d585ff6ee5905a3a6bc10c07bbcdb99a1feb5a31579adf88ac1d53c056961853",
         "ranges_sha256": "79dc31c7a6a7829378854edfe429342ba229dd7fa9c04d4f061eab41155c97d7",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -272,19 +272,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 60.2,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "9912ff69a20f2fce97bea19b53af3adec908c88cd1fbfd3d6d58fad74ad4d35f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "713a172706d6b7796afa87d24a40b7e5d562a745657cbb4e48844f7b4210c9de",
         "packet_sha256": "004976b6651c87f5a31791d5bf25750d48b83b2feadf0fb68200f917201e8e09",
         "ranges_sha256": "104edc80793eca73cfe7ce0b7a6318d4f4043a20f2ad5d3fa85de40ffae79271",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -297,19 +297,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 64.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "5596b857216c4bc4edb6e2ef5d4feeaea03d1122e8cca48e089af5edee8a8ffa",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "326ce2dfa340d3f7b90320b3c3d48cfd012ee3c3621c3d04cb5b3bffe36b68ad",
         "packet_sha256": "927f15a30c19c52480696f6d978e6dadd46f489f55dc1f58c8ac4d67fd6b787c",
         "ranges_sha256": "f8ab9c61e8cd89078b46ede63fab9f1bfba4725d81cf392387c986d403316176",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -322,19 +322,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.1,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "c6e03cfc05ca5e24b8928c03c1c6486d1712fe8f1b888d84c1aa1e08d5ec2dcf",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "0522c71ef5f5171de09abaeb4a49a16114fa0df95a0fb46d6427ee0c05082257",
         "packet_sha256": "478da842406f911b0445c3e4f557aff866d5d52345cb073dfab0364715f22bf4",
         "ranges_sha256": "a40991efe0d60f0d176091159faa35448b1a5c0ffbb1d847b72bfddccc5b868c",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -347,19 +347,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 67.2,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "7d11d6118c9bf68a6fc79a8094ba0864b89b004f0eb1ba83870b4ff596c1f6c6",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "2e9cae574e9b5ead5e64eb94918b9d5f6e2c8e4bc8ac56163b356ce9ab2ee6ca",
         "packet_sha256": "d585ff6ee5905a3a6bc10c07bbcdb99a1feb5a31579adf88ac1d53c056961853",
         "ranges_sha256": "79dc31c7a6a7829378854edfe429342ba229dd7fa9c04d4f061eab41155c97d7",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -372,19 +372,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 60.2,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "9912ff69a20f2fce97bea19b53af3adec908c88cd1fbfd3d6d58fad74ad4d35f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "713a172706d6b7796afa87d24a40b7e5d562a745657cbb4e48844f7b4210c9de",
         "packet_sha256": "004976b6651c87f5a31791d5bf25750d48b83b2feadf0fb68200f917201e8e09",
         "ranges_sha256": "104edc80793eca73cfe7ce0b7a6318d4f4043a20f2ad5d3fa85de40ffae79271",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -397,19 +397,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 64.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "5596b857216c4bc4edb6e2ef5d4feeaea03d1122e8cca48e089af5edee8a8ffa",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "326ce2dfa340d3f7b90320b3c3d48cfd012ee3c3621c3d04cb5b3bffe36b68ad",
         "packet_sha256": "927f15a30c19c52480696f6d978e6dadd46f489f55dc1f58c8ac4d67fd6b787c",
         "ranges_sha256": "f8ab9c61e8cd89078b46ede63fab9f1bfba4725d81cf392387c986d403316176",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f28b45\\build\\official_compare_report\\codex_native_celt_28b4579b1017_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f5ee1e\\build\\official_compare_report\\codex_native_celt_5ee1ee976391_20261019\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stderr.txt"
       }
     ],
     "failures": [],
@@ -423,7 +423,7 @@
     "comparator_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
     "comparator_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
     "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
-    "source_sha256": "5572c8e058a95dd9e15479874ada6923082f1ef088dff6516aa346eea64731c3",
+    "source_sha256": "895911e82d83facaa2858219c95261dc285c00495f2e796884b6492aee2291c6",
     "oracle": "RFC6716 section6 opus_compare exit0 for each configuration plus per-packet exact final ranges; no per-frame PCM tolerance"
   },
   "stdout": "lpc_case complexity=0 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=9 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=9 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_case complexity=10 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=10 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=10 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=10 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_silk_layer_frames=2276\nlpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\nlpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"
