@@ -1368,9 +1368,6 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     pcm_transition = auxiliary_storage.data();
     opus_decode_frame(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
   }
-  if (audiosize > frame_size) {
-    return -1;
-  }
   frame_size = audiosize;
   if (mode != opus_mode_celt_only) {
     const bool pcm_too_small = frame_size < F10;
