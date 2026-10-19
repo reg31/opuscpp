@@ -63,15 +63,15 @@ Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measuremen
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.017x | 1.926x | +0.5179 | +0.3285 | 16.684 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.101x | 1.367x | +0.1668 | +0.0482 | 24.683 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 1.039x | 1.306x | +0.1913 | +0.0248 | 32.748 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 1.054x | 1.237x | +0.3764 | +0.0331 | 48.560 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.011x | 1.276x | +0.4378 | +0.0306 | 64.613 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 0.902x | 1.293x | +0.3462 | +0.0143 | 96.720 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 0.953x | 1.232x | +0.2200 | +0.0034 | 128.827 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 0.950x | 1.233x | +0.0739 | +0.0043 | 193.040 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 0.999x | 1.185x | +0.0352 | +0.0051 | 256.908 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 1.023x | 1.879x | +0.5179 | +0.3285 | 16.684 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.073x | 1.349x | +0.1668 | +0.0482 | 24.683 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 1.064x | 1.325x | +0.1913 | +0.0248 | 32.748 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.061x | 1.251x | +0.3764 | +0.0331 | 48.560 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.066x | 1.291x | +0.4378 | +0.0306 | 64.613 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.005x | 1.309x | +0.3462 | +0.0143 | 96.720 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.023x | 1.304x | +0.2200 | +0.0034 | 128.827 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 0.966x | 1.258x | +0.0739 | +0.0043 | 193.040 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 0.972x | 1.174x | +0.0352 | +0.0051 | 256.908 kbps | 256.737 kbps |
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
