@@ -7648,7 +7648,27 @@ OPUSCPP_NOINLINE static auto celt_prefilter_common_fit_terms(const celt_sig* x, 
   return {cross, power};
 }
 
-template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
+static int celt_prefilter_passthrough(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain) {
+  constexpr auto max_period = celt_max_pitch_period;
+  const int overlap = celt_default_overlap;
+  for (int c = 0; c < CC; ++c) {
+    copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
+    copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), celt_encoder_storage(st) + c * overlap);
+    if (N > max_period) {
+      copy_n_items(in + c * (N + overlap) + overlap + N - max_period, static_cast<std::size_t>(max_period),
+                   prefilter_mem + c * max_period);
+    } else {
+      move_n_items(prefilter_mem + c * max_period + N, static_cast<std::size_t>(max_period - N), prefilter_mem + c * max_period);
+      copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), prefilter_mem + c * max_period + max_period - N);
+    }
+  }
+  *gain = 0;
+  *pitch = 15;
+  *qgain = 0;
+  return 0;
+}
+
+template <bool Mono> static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
   const int CC = Mono ? 1 : channels;
   std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
@@ -7659,23 +7679,6 @@ template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* 
   bool cancel_pitch = false;
   constexpr auto max_period = celt_max_pitch_period, min_period = celt_min_pitch_period;
   const int overlap = celt_default_overlap;
-  if (st->prefilter_gain == 0 && (!enabled || (complexity < 5 && toneishness <= (.99f)))) {
-    for (int c = 0; c < CC; ++c) {
-      copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-      copy_n_items(in + c * (N + overlap) + N, static_cast<std::size_t>(overlap), celt_encoder_storage(st) + c * overlap);
-      if (N > max_period) {
-        copy_n_items(in + c * (N + overlap) + overlap + N - max_period, static_cast<std::size_t>(max_period),
-                     prefilter_mem + c * max_period);
-      } else {
-        move_n_items(prefilter_mem + c * max_period + N, static_cast<std::size_t>(max_period - N), prefilter_mem + c * max_period);
-        copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), prefilter_mem + c * max_period + max_period - N);
-      }
-    }
-    *gain = 0;
-    *pitch = 15;
-    *qgain = 0;
-    return 0;
-  }
   pre[0] = prefilter_scratch;
   pre[1] = pre[0] + N + max_period;
   for (int c = 0; c < CC; ++c) {
@@ -7892,6 +7895,13 @@ template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* 
   *pitch = pitch_index;
   *qgain = qg;
   return pf_on;
+}
+
+template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
+  const int CC = Mono ? 1 : channels;
+  if (st->prefilter_gain == 0 && (!enabled || (complexity < 5 && toneishness <= (.99f))))
+    return celt_prefilter_passthrough(st, in, prefilter_mem, CC, N, pitch, gain, qgain);
+  return run_prefilter_active_for_channels<Mono>(st, in, prefilter_mem, channels, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
 }
 
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
