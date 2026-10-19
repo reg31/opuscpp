@@ -1,11 +1,11 @@
 {
   "schema": "opuscpp-readme-metric-coverage-v1",
-  "source_commit": "e923cfdc705724473425de65582375c7deb91183",
-  "source_sha256": "85a0763995da5e2e7ff99c787cb05bb49c8d7b5ea90efcbfdcc6ffb844ce6e86",
+  "source_commit": "3b2654e19a48dfe6d955d1d0b4df478e63c04a8e",
+  "source_sha256": "ab48a89a752a0f717d4584602767fa323ea0ba66b814b13574850ac10c7abf46",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
-  "input_manifest_sha256": "e2ff0fb2fe1b47bda90533a3410623dbde2f60f1fe652729ee8c65eb7a5d7ee3",
+  "input_manifest_sha256": "c4dc4c934c67d9f90bf16cbb0bb29413a8dd5852038638fd9e5654e369bbf8ca",
   "completed_phases": [
     "prepare",
     "quality",
@@ -481,7 +481,7 @@
       "start_line": 64,
       "end_line": 74,
       "kind": "table",
-      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.027x | 1.945x | +0.5179 | +0.3285 | 16.684 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 1.088x | 1.389x | +0.1668 | +0.0482 | 24.683 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 1.058x | 1.323x | +0.1913 | +0.0248 | 32.748 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 1.059x | 1.317x | +0.3764 | +0.0331 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.067x | 1.278x | +0.4378 | +0.0306 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.038x | 1.237x | +0.3462 | +0.0143 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 1.005x | 1.307x | +0.2200 | +0.0034 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 0.959x | 1.271x | +0.0739 | +0.0043 | 193.040 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 0.991x | 1.193x | +0.0352 | +0.0051 | 256.908 kbps | 256.737 kbps |",
+      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.028x | 1.943x | +0.5179 | +0.3285 | 16.684 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 1.078x | 1.402x | +0.1668 | +0.0482 | 24.683 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 1.054x | 1.310x | +0.1913 | +0.0248 | 32.748 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 1.064x | 1.282x | +0.3764 | +0.0331 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.073x | 1.280x | +0.4378 | +0.0306 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.042x | 1.263x | +0.3462 | +0.0143 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 1.011x | 1.284x | +0.2200 | +0.0034 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 0.964x | 1.277x | +0.0739 | +0.0043 | 193.040 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 0.971x | 1.209x | +0.0352 | +0.0051 | 256.908 kbps | 256.737 kbps |",
       "source_families": [
         "quality",
         "speed",
@@ -533,7 +533,7 @@
       "start_line": 95,
       "end_line": 100,
       "kind": "table",
-      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,480 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,480 B | -54.3% |\n| Decoder stereo | 17,568 B | 27,088 B | -35.1% |",
+      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,496 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,928 B | -37.3% |\n| Decoder mono | 8,416 B | 18,432 B | -54.3% |\n| Decoder stereo | 17,600 B | 27,088 B | -35.0% |",
       "source_families": [
         "memory"
       ],
@@ -703,7 +703,7 @@
       "start_line": 188,
       "end_line": 198,
       "kind": "table",
-      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.027x | 1.945x | 361x | 351x | 2558x | 1315x |\n| 24&nbsp;kbps | 1.088x | 1.389x | 346x | 318x | 1572x | 1132x |\n| 32&nbsp;kbps | 1.058x | 1.323x | 347x | 328x | 1509x | 1140x |\n| 48&nbsp;kbps | 1.059x | 1.317x | 315x | 297x | 1263x | 959x |\n| 64&nbsp;kbps | 1.067x | 1.278x | 281x | 264x | 1080x | 845x |\n| 96&nbsp;kbps | 1.038x | 1.237x | 221x | 212x | 829x | 670x |\n| 128&nbsp;kbps | 1.005x | 1.307x | 195x | 194x | 757x | 580x |\n| 192&nbsp;kbps | 0.959x | 1.271x | 168x | 175x | 627x | 493x |\n| 256&nbsp;kbps | 0.991x | 1.193x | 164x | 166x | 523x | 438x |",
+      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.028x | 1.943x | 360x | 350x | 2558x | 1316x |\n| 24&nbsp;kbps | 1.078x | 1.402x | 351x | 325x | 1556x | 1110x |\n| 32&nbsp;kbps | 1.054x | 1.310x | 345x | 328x | 1468x | 1121x |\n| 48&nbsp;kbps | 1.064x | 1.282x | 317x | 298x | 1238x | 966x |\n| 64&nbsp;kbps | 1.073x | 1.280x | 284x | 264x | 1090x | 851x |\n| 96&nbsp;kbps | 1.042x | 1.263x | 223x | 214x | 850x | 673x |\n| 128&nbsp;kbps | 1.011x | 1.284x | 196x | 194x | 756x | 589x |\n| 192&nbsp;kbps | 0.964x | 1.277x | 170x | 176x | 637x | 499x |\n| 256&nbsp;kbps | 0.971x | 1.209x | 164x | 169x | 546x | 452x |",
       "source_families": [
         "speed",
         "snapshot"
@@ -835,7 +835,7 @@
       "start_line": 262,
       "end_line": 272,
       "kind": "table",
-      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1897 | +0.1179 | 6.1% |\n| 24&nbsp;kbps | +0.2194 | +0.1258 | 7.2% |\n| 32&nbsp;kbps | +0.2046 | +0.1205 | 5.8% |\n| 48&nbsp;kbps | +0.2182 | +0.1221 | 6.4% |\n| 64&nbsp;kbps | +0.2197 | +0.1245 | 10.3% |\n| 96&nbsp;kbps | +0.2131 | +0.1568 | 5.2% |\n| 128&nbsp;kbps | +0.2125 | +0.1572 | 6.2% |\n| 192&nbsp;kbps | +0.2155 | +0.1584 | 8.0% |\n| 256&nbsp;kbps | +0.2156 | +0.1593 | 5.2% |",
+      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1897 | +0.1179 | 2.0% |\n| 24&nbsp;kbps | +0.2194 | +0.1258 | 6.5% |\n| 32&nbsp;kbps | +0.2046 | +0.1205 | 4.4% |\n| 48&nbsp;kbps | +0.2182 | +0.1221 | -5.4% |\n| 64&nbsp;kbps | +0.2197 | +0.1245 | 4.3% |\n| 96&nbsp;kbps | +0.2131 | +0.1568 | 5.1% |\n| 128&nbsp;kbps | +0.2125 | +0.1572 | 5.4% |\n| 192&nbsp;kbps | +0.2155 | +0.1584 | 8.8% |\n| 256&nbsp;kbps | +0.2156 | +0.1593 | 2.9% |",
       "source_families": [
         "quality",
         "denoiser"
@@ -873,7 +873,7 @@
       "start_line": 287,
       "end_line": 292,
       "kind": "table",
-      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,480 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,480 B | -54.3% |\n| Decoder stereo | 17,568 B | 27,088 B | -35.1% |",
+      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,496 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,928 B | -37.3% |\n| Decoder mono | 8,416 B | 18,432 B | -54.3% |\n| Decoder stereo | 17,600 B | 27,088 B | -35.0% |",
       "source_families": [
         "memory"
       ],
@@ -885,7 +885,7 @@
       "start_line": 300,
       "end_line": 303,
       "kind": "table",
-      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 499,664 B | 0 B | 499,664 B |\n| Android arm64 Clang `-O2` | 481,816 B | 472 B | 482,288 B |",
+      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 499,856 B | 0 B | 499,856 B |\n| Android arm64 Clang `-O2` | 481,856 B | 472 B | 482,328 B |",
       "source_families": [
         "object_size",
         "snapshot"
@@ -922,7 +922,7 @@
       "start_line": 31,
       "end_line": 33,
       "kind": "table",
-      "text": "| Workload | Encode ratios | Decode ratios |\n|---|---:|---:|\n| AUDIO | 0.96x to 1.09x | 1.19x to 1.95x |",
+      "text": "| Workload | Encode ratios | Decode ratios |\n|---|---:|---:|\n| AUDIO | 0.96x to 1.08x | 1.21x to 1.94x |",
       "source_families": [
         "speed"
       ],
@@ -962,7 +962,7 @@
       "start_line": 41,
       "end_line": 50,
       "kind": "table",
-      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 20480 | 20448 | Not exposed |\n| official_encoder_ch1 | 31824 | 31872 | 31668 |\n| current_decoder_ch1 | 8448 | 8304 | Not exposed |\n| official_decoder_ch1 | 18480 | 18560 | 18468 |\n| current_encoder_ch2 | 30656 | 30560 | Not exposed |\n| official_encoder_ch2 | 48880 | 48736 | 48684 |\n| current_decoder_ch2 | 17568 | 16224 | Not exposed |\n| official_decoder_ch2 | 27088 | 27264 | 27236 |",
+      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 20496 | 20448 | Not exposed |\n| official_encoder_ch1 | 31824 | 31872 | 31668 |\n| current_decoder_ch1 | 8416 | 8304 | Not exposed |\n| official_decoder_ch1 | 18432 | 18560 | 18468 |\n| current_encoder_ch2 | 30656 | 30560 | Not exposed |\n| official_encoder_ch2 | 48928 | 48720 | 48684 |\n| current_decoder_ch2 | 17600 | 16240 | Not exposed |\n| official_decoder_ch2 | 27088 | 27264 | 27236 |",
       "source_families": [
         "memory",
         "object_size"
@@ -989,7 +989,7 @@
       "start_line": 58,
       "end_line": 61,
       "kind": "table",
-      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 499664 | 0 | 0 | 499664 |\n| android | 481816 | 472 | 0 | 482288 |",
+      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 499856 | 0 | 0 | 499856 |\n| android | 481856 | 472 | 0 | 482328 |",
       "source_families": [
         "memory",
         "object_size"
@@ -1055,7 +1055,7 @@
       "start_line": 122,
       "end_line": 127,
       "kind": "paragraph",
-      "text": "```text\nmono-mid bytes=76 encode_ms=23.0016 decode_ms=20.8789 checksum=340886119\nmono-high bytes=115 encode_ms=27.5644 decode_ms=20.2472 checksum=2633358364\nstereo-mid bytes=102 encode_ms=100.117 decode_ms=45.7846 checksum=3625126390\nstereo-high bytes=147 encode_ms=126.138 decode_ms=40.8306 checksum=2476207253\n```",
+      "text": "```text\nmono-mid bytes=76 encode_ms=18.7446 decode_ms=16.3038 checksum=340886119\nmono-high bytes=115 encode_ms=20.3411 decode_ms=15.1049 checksum=2633358364\nstereo-mid bytes=102 encode_ms=74.3387 decode_ms=30.436 checksum=3625126390\nstereo-high bytes=147 encode_ms=80.9092 decode_ms=30.9196 checksum=2476207253\n```",
       "source_families": [
         "microbenchmark"
       ]
@@ -1339,7 +1339,7 @@
       "start_line": 3,
       "end_line": 3,
       "kind": "paragraph",
-      "text": "Measured: `e923cfdc705724473425de65582375c7deb91183`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.",
+      "text": "Measured: `3b2654e19a48dfe6d955d1d0b4df478e63c04a8e`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
     }
   ],
@@ -1359,12 +1359,12 @@
   "lpc": {
     "status": "PASS",
     "status_from_current_run": true,
-    "run_id": "codex_native_celt_e923cfdc7057_20261019",
-    "source_sha256": "85a0763995da5e2e7ff99c787cb05bb49c8d7b5ea90efcbfdcc6ffb844ce6e86",
+    "run_id": "codex_native_celt_3b2654e19a48_20261019",
+    "source_sha256": "ab48a89a752a0f717d4584602767fa323ea0ba66b814b13574850ac10c7abf46",
     "test_sha256": "f0243673f876813e8f7ef7b65b5401907fd195c577dddb0e92e39bc485252fe2",
     "adapter_sha256": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
-    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\fe923c\\build\\official_compare_report\\codex_native_celt_e923cfdc7057_20261019\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
-    "matrix_results_sha256": "4c668a94874e044d2be70db6e3ab7d9abb881274939a30fc80104aca7424c094",
+    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f3b265\\build\\official_compare_report\\codex_native_celt_3b2654e19a48_20261019\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
+    "matrix_results_sha256": "468617b0aa1d251d6a52c5c31990c8333f019cb3e80e8ba5e6b23f89f1b6a4d3",
     "stdout": "lpc_case complexity=0 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=24000 frames=200 silk_frames=92 hybrid_frames=0 celt_frames=108\nlpc_case complexity=9 bitrate=32000 frames=200 silk_frames=35 hybrid_frames=0 celt_frames=165\nlpc_case complexity=9 bitrate=48000 frames=200 silk_frames=31 hybrid_frames=0 celt_frames=169\nlpc_case complexity=10 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=10 bitrate=24000 frames=200 silk_frames=92 hybrid_frames=0 celt_frames=108\nlpc_case complexity=10 bitrate=32000 frames=200 silk_frames=35 hybrid_frames=0 celt_frames=165\nlpc_case complexity=10 bitrate=48000 frames=200 silk_frames=31 hybrid_frames=0 celt_frames=169\nlpc_silk_layer_frames=2316\nlpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\nlpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"
   },
   "checks": {
@@ -1373,7 +1373,7 @@
     "project_intro_unchanged": true,
     "documents": {
       "README.md": {
-        "sha256": "971d8e681f64bcfe3f0f52b2cda49ef2defbf34be83204534fbfc819a3f8fe31",
+        "sha256": "bc0db3e09b0f7672cd25567ceea4329dcf87897e10a73589ff22d14d646feb0a",
         "utf8": true,
         "lf_only": true
       },
@@ -1383,12 +1383,12 @@
         "lf_only": true
       },
       "tests/README.md": {
-        "sha256": "6c4f5c442d4213d44d9cd342a6657e84d6f78ed757187b078f12e5dff8990cb9",
+        "sha256": "14a1d6beddb25e0e721036190aa2b1e0b225cde2e88ae9a44fc774bdfb9f9360",
         "utf8": true,
         "lf_only": true
       },
       "tests/metrics/README.md": {
-        "sha256": "d69bed2fe146c4cd0a84db43c1aa95e925a41e2f6e06d67fee87daa16fc2b69f",
+        "sha256": "e7f510d36355c336eb78324d7ecca6849e725308ed6255c6f376657c1e056033",
         "utf8": true,
         "lf_only": true
       }
