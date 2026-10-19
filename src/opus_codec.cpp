@@ -13025,6 +13025,11 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float activity;
   float hp_ener;
   float tonality2[240];
+  constexpr bool stream_tonality_neighbors = sizeof(float) == sizeof(opus_uint32) &&
+                                             std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
+                                             std::numeric_limits<float>::digits == 24 && FLT_EVAL_METHOD == 0;
+  std::array<float, 18> tonality_neighbors{};
+  int tonality_tile_start = 1;
   float midE[8];
   float spec_variability = 0;
   float band_log2[19];
@@ -13121,10 +13126,27 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     A[i] = angle2;
     dA[i] = d_angle2;
     d2A[i] = mod2;
+    if constexpr (stream_tonality_neighbors) {
+      const int produced = i - tonality_tile_start + 1;
+      tonality_neighbors[static_cast<std::size_t>(produced + 1)] = tonality2[i];
+      if (produced == 16 || i == N2 - 1) {
+        for (int output = std::max(2, tonality_tile_start - 1); output < i; ++output) {
+          const auto center = static_cast<std::size_t>(output - tonality_tile_start + 2);
+          const float tt = std::min(tonality_neighbors[center],
+                                    std::max(tonality_neighbors[center - 1], tonality_neighbors[center + 1]));
+          tonality[output] = .9f * std::max(tonality[output], tt - .1f);
+        }
+        tonality_neighbors[0] = tonality_neighbors[static_cast<std::size_t>(produced)];
+        tonality_neighbors[1] = tonality_neighbors[static_cast<std::size_t>(produced + 1)];
+        tonality_tile_start = i + 1;
+      }
+    }
   }
-  for (i = 2; i < N2 - 1; ++i) {
-    float tt = std::min(tonality2[i], std::max(tonality2[i - 1], tonality2[i + 1]));
-    tonality[i] = .9f * std::max(tonality[i], tt - .1f);
+  if constexpr (!stream_tonality_neighbors) {
+    for (i = 2; i < N2 - 1; ++i) {
+      float tt = std::min(tonality2[i], std::max(tonality2[i - 1], tonality2[i + 1]));
+      tonality[i] = .9f * std::max(tonality[i], tt - .1f);
+    }
   }
   frame_tonality = 0;
   max_frame_tonality = 0;
