@@ -3632,7 +3632,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const auto& mode_info = st->classical_leak.out_info;
     if (mode_info.valid) {
       const int mode_voice_ratio = static_cast<int>(std::floor(.5f + 100.f * (1.f - mode_info.music_prob)));
-      mode_voice_weight = mode_voice_ratio * (127 * 127) / 100;
+      mode_voice_weight = voice_weight;
       if (st->application == OPUS_APPLICATION_AUDIO) {
         mode_voice_weight = std::min(mode_voice_weight, 115 * 115);
       }
