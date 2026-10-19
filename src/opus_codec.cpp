@@ -4950,8 +4950,17 @@ static int bitexact_log2tan(int isin, int icos) {
   return (ls - lc) * (1 << 11) + bitexact_log2tan_poly(isin) - bitexact_log2tan_poly(icos);
 }
 
+struct celt_input_spreading_counts {
+  int score{};
+  int bands{};
+  bool valid{};
+};
+
 template <bool Normalise = true, bool CommonSource = false>
-static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM, const float* energy_prefix = nullptr) {
+static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM, const float* energy_prefix = nullptr, celt_input_spreading_counts* spreading_counts = nullptr) {
+  if (spreading_counts != nullptr) {
+    *spreading_counts = {0, 0, Normalise && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits == 24 && FLT_EVAL_METHOD == 0};
+  }
   const opus_int16* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
   const int M = 1 << LM;
@@ -4971,8 +4980,31 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
         const int analysis_prefix = C == 2 ? celt_stereo_analysis_bands : 0;
         if (i < analysis_prefix || i >= start) {
           const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
-          for (int j = 0; j < band_width; ++j) {
-            band[j] *= gain;
+          if (spreading_counts != nullptr && spreading_counts->valid && i >= start && band_width > 8) {
+            std::array<int, 3> below{};
+            opus_uint32 unsafe = 0;
+            const auto energy_bits = std::bit_cast<opus_uint32>(bandE[i + energy_offset]);
+            const bool safe_energy = energy_bits >= 0x29000000U && energy_bits < 0x7f800000U;
+            for (int j = 0; j < band_width; ++j) {
+              band[j] *= gain;
+              const auto bits = std::bit_cast<opus_uint32>(band[j]);
+              const auto magnitude = bits & 0x7fffffffU;
+              const bool safe = safe_energy && (magnitude == 0 || (magnitude >= 0x20000000U && magnitude <= 0x40000000U));
+              unsafe |= static_cast<opus_uint32>(!safe);
+              const auto value = std::bit_cast<float>(bits & (0U - static_cast<opus_uint32>(safe)));
+              const opus_val32 square = value * value;
+              const opus_val32 power = square * band_width;
+              below[0] += power < .25f;
+              below[1] += power < .0625f;
+              below[2] += power < .015625f;
+            }
+            spreading_counts->score += (2 * below[0] >= band_width) + (2 * below[1] >= band_width) + (2 * below[2] >= band_width);
+            ++spreading_counts->bands;
+            spreading_counts->valid = unsafe == 0;
+          } else {
+            for (int j = 0; j < band_width; ++j) {
+              band[j] *= gain;
+            }
           }
         }
       }
@@ -6164,26 +6196,28 @@ static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
 // Rough normalized-power CDF for the existing legal spreading choices (RFC 6716, 5.3.7).
 // These reference-encoder class boundaries are a conditional prior, not a fitted score model.
 [[nodiscard]] static int celt_input_spreading_decision(const celt_norm* X, const opus_int16* eBands,
-                                                       int start, int end, int C, int N, int LM) noexcept {
+                                                       int start, int end, int C, int N, int LM, const celt_input_spreading_counts* precomputed = nullptr) noexcept {
   const int M = 1 << LM;
-  int score = 0;
-  int bands = 0;
-  for (int c = 0; c < C; ++c) {
-    for (int band = start; band < end; ++band) {
-      const int size = M * (eBands[band + 1] - eBands[band]);
-      if (size <= 8)
-        continue;
-      const auto* x = X + c * N + M * eBands[band];
-      std::array<int, 3> below{};
-      for (int j = 0; j < size; ++j) {
-        const opus_val32 square = x[j] * x[j];
-        const opus_val32 power = square * size;
-        below[0] += power < .25f;
-        below[1] += power < .0625f;
-        below[2] += power < .015625f;
+  int score = precomputed != nullptr && precomputed->valid ? precomputed->score : 0;
+  int bands = precomputed != nullptr && precomputed->valid ? precomputed->bands : 0;
+  if (precomputed == nullptr || !precomputed->valid) {
+    for (int c = 0; c < C; ++c) {
+      for (int band = start; band < end; ++band) {
+        const int size = M * (eBands[band + 1] - eBands[band]);
+        if (size <= 8)
+          continue;
+        const auto* x = X + c * N + M * eBands[band];
+        std::array<int, 3> below{};
+        for (int j = 0; j < size; ++j) {
+          const opus_val32 square = x[j] * x[j];
+          const opus_val32 power = square * size;
+          below[0] += power < .25f;
+          below[1] += power < .0625f;
+          below[2] += power < .015625f;
+        }
+        score += (2 * below[0] >= size) + (2 * below[1] >= size) + (2 * below[2] >= size);
+        ++bands;
       }
-      score += (2 * below[0] >= size) + (2 * below[1] >= size) + (2 * below[2] >= size);
-      ++bands;
     }
   }
   if (bands == 0)
@@ -8192,6 +8226,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
   celt_glog* bandLogE2 = bandLogE + nbEBands * CC;
+  celt_input_spreading_counts input_spread_counts;
   std::array<std::array<int, celt_default_nb_ebands>, 5> band_workspace;
   auto& [offsets, tf_res, fine_quant, pulses, fine_priority] = band_workspace;
   std::array<double, celt_default_nb_ebands> requested_boost{};
@@ -8314,12 +8349,12 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       tf_chan = 0;
     }
     if (common_source) {
-      compute_band_energies_and_normalise<true, true>(freq, bandE, bandLogE, start, end, C, LM);
+      compute_band_energies_and_normalise<true, true>(freq, bandE, bandLogE, start, end, C, LM, nullptr, !hybrid && !silence ? &input_spread_counts : nullptr);
       copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
       copy_n_items(bandE, static_cast<std::size_t>(end), bandE + nbEBands);
       copy_n_items(bandLogE, static_cast<std::size_t>(end), bandLogE + nbEBands);
     } else {
-      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, fused_energy ? energy_prefix : nullptr);
+      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, fused_energy ? energy_prefix : nullptr, !hybrid && !silence ? &input_spread_counts : nullptr);
     }
     {
       opus_int32 qr_equiv_rate = equiv_rate;
@@ -8391,7 +8426,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
   const auto noise_covariance = celt_estimate_noise_covariance_parameter(st, bandE, bandLogE, LM, shortBlocks);
-  const int input_spread = !hybrid && !silence ? celt_input_spreading_decision(X, eBands, start, end, common_source ? 1 : C, N, LM) : 2;
+  const int input_spread = !hybrid && !silence ? celt_input_spreading_decision(X, eBands, start, end, common_source ? 1 : C, N, LM, &input_spread_counts) : 2;
   auto* error = bandLogE2;
   for_each_celt_band(st, [&](int index) {
     if (std::fabs(bandLogE[index] - oldBandE[index]) < 2.f) {
