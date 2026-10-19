@@ -18602,19 +18602,46 @@ template <bool Warped>
 static inline auto limit_coefs(std::span<float> coefs, float limit, float lambda = 0.0f) noexcept -> void {
   for (auto iter = 0;; ++iter) {
     float gain{};
+    max_abs_result maximum{-1.0f, 0};
     if constexpr (Warped) {
       for (auto index = static_cast<int>(coefs.size()) - 1; index > 0; --index) {
         coefs[index - 1] -= lambda * coefs[index];
       }
       gain = (1.0f - lambda * lambda) / (1.0f + lambda * coefs.front());
-      for (auto index = std::size_t{}; index < coefs.size(); ++index) {
+      if (iter == 10) {
+        for (auto index = std::size_t{}; index < coefs.size(); ++index)
+          coefs[index] *= gain;
+        return;
+      }
+      const auto update_maximum = [&](std::size_t index) {
+        const auto magnitude = std::fabs(coefs[index]);
+        if (magnitude > maximum.value) {
+          maximum.value = magnitude;
+          maximum.index = static_cast<int>(index);
+        }
+      };
+      auto index = std::size_t{};
+      for (; index + 3 < coefs.size(); index += 4) {
         coefs[index] *= gain;
+        coefs[index + 1] *= gain;
+        coefs[index + 2] *= gain;
+        coefs[index + 3] *= gain;
+        update_maximum(index);
+        update_maximum(index + 1);
+        update_maximum(index + 2);
+        update_maximum(index + 3);
+      }
+      for (; index < coefs.size(); ++index) {
+        coefs[index] *= gain;
+        update_maximum(index);
       }
     }
     if (iter == 10) {
       return;
     }
-    const auto [max_abs, max_index] = max_abs_index(coefs);
+    if constexpr (!Warped)
+      maximum = max_abs_index(coefs);
+    const auto [max_abs, max_index] = maximum;
     if (max_abs <= limit) {
       return;
     }
