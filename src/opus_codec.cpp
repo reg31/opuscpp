@@ -16510,7 +16510,7 @@ static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8
     }
     ind[k] = static_cast<opus_int8>(std::clamp<int>(ind[k], 0, 64 - 1));
     if (k == 0 && conditional == 0) {
-      ind[k] = static_cast<opus_int8>(std::clamp<int>(ind[k], *prev_ind - 4, 64 - 1));
+      ind[k] = static_cast<opus_int8>(std::max<int>(ind[k], *prev_ind - 4));
     } else {
       ind[k] = ind[k] - *prev_ind;
       int double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
