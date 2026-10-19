@@ -7313,15 +7313,36 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   return maxDepth;
 }
 
-static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
+template <bool CaptureR00 = false, bool ReuseR00 = false>
+static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc, opus_val32* r00_prefixes = nullptr) {
   opus_val32 r00 = 0, r01 = 0, r11 = 0, r02 = 0, r12 = 0, r22 = 0;
   if (len <= 2 * delay) {
     return 1;
   }
-  for (int i = 0; i < len - 2 * delay; i++) {
-    r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
-    r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
-    r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
+  if constexpr (ReuseR00) {
+    r00 = *r00_prefixes;
+    for (int i = 0; i < len - 2 * delay; i++) {
+      r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
+      r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
+    }
+  } else if constexpr (CaptureR00) {
+    // Save the actual rounded prefixes while retaining all three reduction orders.
+    int i = 0;
+    for (int slot = 5; slot >= 0; --slot) {
+      const int end = std::max(0, len - (2 << slot));
+      for (; i < end; ++i) {
+        r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
+        r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
+        r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
+      }
+      r00_prefixes[slot] = r00;
+    }
+  } else {
+    for (int i = 0; i < len - 2 * delay; i++) {
+      r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
+      r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
+      r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
+    }
   }
   opus_val32 edge11 = 0, edge22 = 0, edge12 = 0;
   for (int i = 0; i < delay; i++) {
@@ -7371,10 +7392,24 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
     }
     x = x_sum.data();
   }
+#if FLT_EVAL_METHOD == 0
+  std::array<opus_val32, 6> r00_prefixes;
+  int fail = tone_lpc<true>(x, N, delay, lpc.data(), r00_prefixes.data());
+  int prefix_slot = 1;
+#else
   int fail = tone_lpc(x, N, delay, lpc.data());
+#endif
   for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
     delay *= 2;
+#if FLT_EVAL_METHOD == 0
+    if (prefix_slot < static_cast<int>(r00_prefixes.size()))
+      fail = tone_lpc<false, true>(x, N, delay, lpc.data(), &r00_prefixes[prefix_slot]);
+    else
+      fail = tone_lpc(x, N, delay, lpc.data());
+    ++prefix_slot;
+#else
     fail = tone_lpc(x, N, delay, lpc.data());
+#endif
   }
   if (!fail && ((lpc[0]) * (lpc[0])) + (((3.999999)) * (lpc[1])) < 0) {
     *toneishness = -lpc[1];
