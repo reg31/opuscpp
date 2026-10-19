@@ -3421,7 +3421,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (st->classical_leak.analysis_read_pos_bak != -1) {
       classical_leak_get_info(&st->classical_leak, &st->classical_leak.out_info, st->Fs, enc_frame_size);
     }
-    const auto frame_metrics = measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth);
+    // The typed mono int16 whole-packet scan also covers fragment FP flags.
+    // Restricted-lowdelay has no metric consumer when DTX and denoising are off.
+    const bool needs_activity = st->application != OPUS_APPLICATION_RESTRICTED_LOWDELAY || st->channels != 1 ||
+                                params.lsb_depth != 16 || st->use_dtx || st->voice_denoise != nullptr;
+    const auto frame_metrics = needs_activity ? measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth)
+                                              : frame_activity_metrics{};
     const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, enc_frame_size);
     const opus_int32 allocator_target_bits = frame_budget.allocator_bits;
     int tmp_len =
