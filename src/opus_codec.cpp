@@ -8863,6 +8863,32 @@ template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* p
   }
 }
 
+template <typename Sample>
+static void deemphasis_if_equal(celt_sig* const* in, Sample* pcm, int N, int C, int downsample, celt_sig* mem, bool identical_input) {
+  if (identical_input && C == 2 && downsample == 1 && N > 0 && std::memcmp(mem, mem + 1, sizeof(celt_sig)) == 0) {
+    const auto* begin = reinterpret_cast<const std::byte*>(pcm);
+    const auto* end = reinterpret_cast<const std::byte*>(pcm + 2 * N);
+    const auto less = std::less<const std::byte*>{};
+    const auto overlaps = [&](const celt_sig* first, const celt_sig* last) {
+      return less(begin, reinterpret_cast<const std::byte*>(last)) && less(reinterpret_cast<const std::byte*>(first), end);
+    };
+    if (!overlaps(in[0], in[0] + N) && !overlaps(in[1], in[1] + N) && !overlaps(mem, mem + 2)) {
+      celt_sig memory = mem[0];
+      for (int j = 0; j < N; ++j) {
+        const celt_sig sample = in[0][j] + 1e-30f + memory;
+        memory = celt_preemphasis[0] * sample;
+        const Sample output = deemphasis_output<Sample>(sample);
+        pcm[2 * j] = output;
+        pcm[2 * j + 1] = output;
+      }
+      mem[0] = zero_tiny_float_mem(memory);
+      mem[1] = zero_tiny_float_mem(memory);
+      return;
+    }
+  }
+  deemphasis(in, pcm, N, C, downsample, mem);
+}
+
 static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* oldBandE, int start, int effEnd, int C, int CC, int isTransient, int LM, int downsample, int silence) {
   int i, b;
   constexpr int overlap = celt_default_overlap;
@@ -9274,7 +9300,8 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   }
 }
 
-static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
+static bool celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
+  bool identical_output = false;
   const bool zero_gains = st->postfilter_gain_old == 0 && st->postfilter_gain == 0 && target_gain == 0;
   if (!zero_gains) {
     bool same_input = false;
@@ -9300,6 +9327,7 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
     }
     if (same_input) {
       copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
+      identical_output = true;
     }
   }
   const bool retain_previous = !zero_gains && LM == 0;
@@ -9310,6 +9338,7 @@ static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_
   st->postfilter_period = target_period;
   st->postfilter_gain = zero_gains ? opus_val16{0} : target_gain;
   st->postfilter_tapset = target_tapset;
+  return identical_output;
 }
 
 static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size) {
@@ -9667,7 +9696,7 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
     std::fill_n(oldBandE, static_cast<std::size_t>(energy_channels * nbEBands), -(28.f));
   }
   celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, end, C, CC, isTransient, LM, st->downsample, silence);
-  celt_apply_postfilter(st, out_syn.data(), N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
+  const bool identical_postfilter_output = celt_apply_postfilter(st, out_syn.data(), N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
   celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, C == 1 && !silence);
   const celt_glog max_background_increase = std::min(160, st->loss_duration + M) * .001f;
   for (int index = 0; index < CC * nbEBands; ++index) {
@@ -9675,9 +9704,9 @@ OPUSCPP_NOINLINE static int celt_decode_with_ec_body(CeltDecoderInternal* st, co
   }
   st->rng = dec->rng;
   if (pcm16 != nullptr && st->downsample == 1) {
-    deemphasis(out_syn.data(), pcm16, N, CC, st->downsample, st->preemph_memD);
+    deemphasis_if_equal(out_syn.data(), pcm16, N, CC, st->downsample, st->preemph_memD, decoder.raw_offset != 0 && identical_postfilter_output);
   } else {
-    deemphasis(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD);
+    deemphasis_if_equal(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD, decoder.raw_offset != 0 && identical_postfilter_output);
   }
   st->loss_duration = 0;
   st->last_frame_type = 1;
