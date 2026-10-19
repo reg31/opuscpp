@@ -1692,7 +1692,6 @@ struct pitch_window_power {
   opus_val32 terminal;
   bool active = false;
 };
-static opus_val16 remove_doubling_with_power(opus_val16*, int, int*, int, opus_val16, const pitch_window_power&);
 
 struct pitch_fine_correlations {
   const opus_val16* current = nullptr;
@@ -14116,10 +14115,6 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
 
 static opus_val16 remove_doubling(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain) {
   return remove_doubling_impl<false>(x, N, T0, prev_period, prev_gain, nullptr);
-}
-
-static opus_val16 remove_doubling_with_power(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain, const pitch_window_power& power) {
-  return remove_doubling_impl<true>(x, N, T0, prev_period, prev_gain, &power);
 }
 
 static opus_val16 remove_doubling_with_power_and_fine(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain, const pitch_window_power& power, const pitch_fine_correlations& fine) {
