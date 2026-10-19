@@ -3734,17 +3734,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     if (!first && st->mode != opus_mode_celt_only && !st->silk_mode.inWBmodeWithoutVariableLP && st->bandwidth > 1103) {
       st->bandwidth = 1103;
     }
-  } else if (st->Fs >= 48000 && st->bandwidth == 1104 && st->auto_bandwidth == 1105 &&
-             st->silk_mode.inWBmodeWithoutVariableLP) {
-    const auto threshold_slot = static_cast<std::size_t>(2 * (1105 - 1102));
-    int threshold = quality_bandwidth_threshold(voice_weight, music_bandwidth_thresholds_common[threshold_slot],
-                                                voice_bandwidth_thresholds_common[threshold_slot]);
-    const int hysteresis = quality_bandwidth_threshold(voice_weight, music_bandwidth_thresholds_common[threshold_slot + 1],
-                                                       voice_bandwidth_thresholds_common[threshold_slot + 1]);
-    threshold += st->auto_bandwidth >= 1105 ? -hysteresis : hysteresis;
-    if (equiv_rate >= threshold) {
-      st->bandwidth = 1105;
-    }
   }
   if (st->mode != opus_mode_celt_only && bits_to_bitrate_for_frame_rate(max_data_bytes * 8, frame_rate) < 15000) {
     st->bandwidth = std::min(st->bandwidth, 1103);
