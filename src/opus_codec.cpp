@@ -20694,12 +20694,16 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       silk_generate_lbrr(psEnc, lbrr, &sEncCtrl, lbrr_samples, condCoding, lbrr_gain_reduction, protect_quiet_lbrr, prepared,
                          lbrr_original_indices, lbrr_original_last_gain_index, psEnc->sCmn.sNSQ, lbrr_pre_frame_nlsf.data(),
                          use_reconstructed_lbrr_target && lbrr_samples != nsq_samples.data());
+      auto regular_lbrr_indices = psEnc->sCmn.indices;
+      if (regular_lbrr_indices.signalType == 0)
+        regular_lbrr_indices.signalType = 1;
+      const bool regular_lbrr_compatible = psEnc->sCmn.indices.signalType == 2 || (condCoding == 0 && lower.id < 0);
       if (lbrr_samples != nsq_samples.data() && psEnc->sCmn.nFramesPerPacket == 1 && psEnc->sCmn.nb_subfr == 4 &&
-          psEnc->sCmn.indices.signalType == 2 && psEnc->sCmn.dtx_omitted == 0 && lbrr->flags[0] &&
+          regular_lbrr_compatible && psEnc->sCmn.dtx_omitted == 0 && lbrr->flags[0] &&
           !std::equal(lbrr_samples, lbrr_samples + lbrr_fl, lbrr->nsq.xq + lbrr_ltp - lbrr_fl) &&
-          silk_lbrr_frame_cost_less(psEnc->sCmn, psEnc->sCmn.indices, frame_pulses.data(),
+          silk_lbrr_frame_cost_less(psEnc->sCmn, regular_lbrr_indices, frame_pulses.data(),
                                     lbrr->indices[0], lbrr->pulses[0].data())) {
-        lbrr->indices[0] = psEnc->sCmn.indices;
+        lbrr->indices[0] = regular_lbrr_indices;
         std::copy_n(frame_pulses.begin(), lbrr_fl, lbrr->pulses[0].begin());
         silk_copy_nsq_history(lbrr->nsq, nsq_working);
         lbrr->previous_gain_index = psEnc->sShape.LastGainIndex;
