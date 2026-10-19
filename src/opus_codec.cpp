@@ -7648,7 +7648,8 @@ OPUSCPP_NOINLINE static auto celt_prefilter_common_fit_terms(const celt_sig* x, 
   return {cross, power};
 }
 
-static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
+template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
+  const int CC = Mono ? 1 : channels;
   std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
   opus_val16 gain1, pf_threshold;
@@ -7891,6 +7892,12 @@ static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefil
   *pitch = pitch_index;
   *qgain = qg;
   return pf_on;
+}
+
+static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
+  if (CC == 1)
+    return run_prefilter_for_channels<true>(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
+  return run_prefilter_for_channels<false>(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
 }
 
 static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate, int lastCodedBands, int C, int intensity, int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr, bool content_vbr, opus_val16 tf_estimate) {
