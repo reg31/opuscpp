@@ -4290,9 +4290,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
-  const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid ? nominal_target_bits : allocator_target_bits;
-  const int payload_budget_bytes = expanded_range_storage ? std::min(storage_max_data_bytes, max_data_bytes + redundancy_bytes) : max_data_bytes;
-  const int bits_target = std::min(8 * (payload_budget_bytes - redundancy_bytes), silk_target_bits) - 8;
+  const bool transition = expanded_range_storage && redundancy_bytes > 0;
+  const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid || transition ? nominal_target_bits : allocator_target_bits;
+  const int target_capacity_bytes = expanded_range_storage ? std::min(storage_max_data_bytes, max_data_bytes + redundancy_bytes) : max_data_bytes;
+  const int bits_target = std::min(8 * (target_capacity_bytes - redundancy_bytes), silk_target_bits) - 8;
   const opus_int32 allocator_bitrate_bps = bits_to_bitrate_for_frame_rate(allocator_target_bits, frame_rate);
   data += 1;
   ec_enc_init(&enc, data, storage_max_data_bytes - 1);
@@ -4332,7 +4333,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     }
     st->silk_mode.useCBR = !st->use_vbr;
     st->silk_mode.packet_cbr = !st->use_vbr;
-    st->silk_mode.maxBits = (payload_budget_bytes - 1) * 8;
+    st->silk_mode.maxBits = (max_data_bytes - 1) * 8;
     if (redundancy && redundancy_bytes >= 2) {
       st->silk_mode.maxBits -= redundancy_bytes * 8 + 1;
       if (st->mode == opus_mode_hybrid) {
@@ -4423,14 +4424,14 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     stereo_fade(celt_pcm.data(), celt_pcm.data(), g1, g2, frame_size, st->channels, st->Fs);
     st->hybrid_stereo_width_Q14 = st->silk_mode.stereoWidth_Q14;
   }
-  if (st->mode != opus_mode_celt_only && ec_tell(&enc) + 17 + 20 * (st->mode == opus_mode_hybrid) <= 8 * (payload_budget_bytes - 1)) {
+  if (st->mode != opus_mode_celt_only && ec_tell(&enc) + 17 + 20 * (st->mode == opus_mode_hybrid) <= 8 * (max_data_bytes - 1)) {
     if (st->mode == opus_mode_hybrid) {
       ec_enc_bit_logp(&enc, redundancy, 12);
     }
     if (redundancy) {
       ec_enc_bit_logp(&enc, celt_to_silk, 1);
-      const int max_redundancy = st->mode == opus_mode_hybrid ? (payload_budget_bytes - 1) - ((ec_tell(&enc) + 18) >> 3)
-                                                              : (payload_budget_bytes - 1) - ((ec_tell(&enc) + 7) >> 3);
+      const int max_redundancy = st->mode == opus_mode_hybrid ? (max_data_bytes - 1) - ((ec_tell(&enc) + 18) >> 3)
+                                                              : (max_data_bytes - 1) - ((ec_tell(&enc) + 7) >> 3);
       redundancy_bytes = std::min(max_redundancy, redundancy_bytes);
       redundancy_bytes = std::clamp(redundancy_bytes, 2, 257);
       if (st->mode == opus_mode_hybrid) {
@@ -4538,10 +4539,10 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->prev_mode = to_celt ? opus_mode_celt_only : st->mode;
   st->prev_channels = st->stream_channels;
   st->prev_framesize = frame_size;
-  const bool bounded_rate_overflow = expanded_range_storage && enc.error == 0 &&
-                                     ret + 1 + redundancy_bytes <= storage_max_data_bytes &&
-                                     ec_tell(&enc) <= (storage_max_data_bytes - 1 - redundancy_bytes) * 8;
-  if (ec_tell(&enc) > (max_data_bytes - 1) * 8 && !bounded_rate_overflow) {
+  const bool packet_budget_exceeded = expanded_range_storage &&
+                                      (ret + 1 + redundancy_bytes > max_data_bytes ||
+                                       ec_tell(&enc) > (max_data_bytes - 1 - redundancy_bytes) * 8);
+  if (ec_tell(&enc) > (max_data_bytes - 1) * 8 || packet_budget_exceeded) {
     std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
     celt_enc->signal_bw_temporal.reset();
     if (max_data_bytes < 2) {
