@@ -3367,7 +3367,7 @@ struct multiframe_encode_params final {
   opus_int32 equiv_rate, cbr_bytes, target_bits;
 };
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr);
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr, opus_int32 range_storage_bytes = 0);
 [[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params, const vbr_frame_budget& packet_budget) -> opus_int32 {
   const int enc_frame_size = st->mode != opus_mode_silk_only ? st->Fs / 50
                              : frame_size == 2 * st->Fs / 25 ? st->Fs / 25
@@ -3476,14 +3476,22 @@ template <std::size_t Capacity>
   std::array<opus_res, Capacity> stage_buffer_storage;
   auto stage_storage = make_encoder_stage_storage(stage_buffer_storage, st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
+  opus_int32 range_storage_bytes = max_data_bytes;
   if (params.governed_vbr) {
+    const auto physical_bytes = max_data_bytes;
     max_data_bytes = std::min(max_data_bytes, frame_budget.max_bytes);
+    const opus_int64 debt_headroom_bits = std::max<opus_int32>(params.target_bits, 8) +
+                                          std::min<opus_int32>(st->vbr_budget_reservoir_bits, 0);
+    const opus_int64 complete_debt_capacity_bits = static_cast<opus_int64>(max_data_bytes) * 8 +
+                                                   std::max<opus_int64>(0, debt_headroom_bits);
+    range_storage_bytes = static_cast<opus_int32>(
+        std::clamp<opus_int64>(complete_debt_capacity_bits / 8, max_data_bytes, physical_bytes));
   }
   const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, frame_size);
   const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
   auto ret =
       opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, frame_metrics, params.redundancy,
-                               params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx, stage_storage);
+                               params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx, stage_storage, nullptr, range_storage_bytes);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
@@ -4235,7 +4243,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   return denoise_handled;
 }
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames) {
+static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames, opus_int32 range_storage_bytes) {
   if (st->classical_leak.initialized) {
     classical_leak_export(&st->classical_leak, encoder_celt_state(st));
   }
@@ -4247,6 +4255,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   auto celt_pcm = stage_storage.active.subspan(stage_storage.celt_offset);
   auto frame_pcm = stage_storage.active.subspan(stage_storage.history_samples);
   const int max_data_bytes = std::min<opus_int32>(orig_max_data_bytes, 1276);
+  const bool expanded_range_storage = st->mode == opus_mode_silk_only && st->use_vbr && orig_max_data_bytes < 1276 &&
+                                      range_storage_bytes > orig_max_data_bytes;
+  const int storage_max_data_bytes = expanded_range_storage ? std::min<opus_int32>(range_storage_bytes, 1276) : orig_max_data_bytes;
   const int frame_rate = st->Fs / frame_size;
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
@@ -4283,7 +4294,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   const int bits_target = std::min(8 * (max_data_bytes - redundancy_bytes), silk_target_bits) - 8;
   const opus_int32 allocator_bitrate_bps = bits_to_bitrate_for_frame_rate(allocator_target_bits, frame_rate);
   data += 1;
-  ec_enc_init(&enc, data, orig_max_data_bytes - 1);
+  ec_enc_init(&enc, data, storage_max_data_bytes - 1);
   const bool denoise_handled = opus_prepare_frame_highpass(st, silk_enc, pcm, frame_pcm.data(), frame_size, metrics);
   if (st->use_dtx && metrics.energy <= dtx_digital_silence_max_energy && metrics.mono_zero_cross_rate == 0) {
     zero_n_items(frame_pcm.data(), static_cast<std::size_t>(frame_size * st->channels));
@@ -4526,7 +4537,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->prev_mode = to_celt ? opus_mode_celt_only : st->mode;
   st->prev_channels = st->stream_channels;
   st->prev_framesize = frame_size;
-  if (ec_tell(&enc) > (max_data_bytes - 1) * 8) {
+  const bool bounded_rate_overflow = expanded_range_storage && enc.error == 0 && redundancy_bytes == 0 &&
+                                     ret + 1 <= storage_max_data_bytes && ec_tell(&enc) <= (storage_max_data_bytes - 1) * 8;
+  if (ec_tell(&enc) > (max_data_bytes - 1) * 8 && !bounded_rate_overflow) {
     std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
     celt_enc->signal_bw_temporal.reset();
     if (max_data_bytes < 2) {
