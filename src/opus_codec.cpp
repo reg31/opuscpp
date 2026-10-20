@@ -17099,6 +17099,10 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     opus_int32 LPC_pred_Q14, n_AR_Q14, n_LF_Q14, alt_Q10, alt_RD_Q10;
   };
   std::array<lazy_state_context, silk_max_delayed_decision_states> lazy;
+  const bool use_lpc_pair = !FixedPulses && nStatesDelayedDecision == 4 && a_Q12.size() == 16;
+  int pair_first = 0, pair_second = -1, pair_at = -16;
+  const opus_int32* pair_first_lpc = nullptr;
+  const opus_int32* pair_second_lpc = nullptr;
   const auto* x_q10_data = x_Q10.data();
   auto* pulses_data = pulses.data();
   auto* xq_data = xq.data();
@@ -17152,11 +17156,44 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         n_AR_lane = (zero_ar ? silk_nsq_noise_shape_feedback<true, 4, true>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16) : silk_nsq_noise_shape_feedback<true, 4>({psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14}, lane_ar.data(), AR_shp_Q13.data(), shapingLPCOrder, warping_Q16));
       }
     }
+    const int pair_age = i - pair_at;
+    const bool paired_lpc = use_lpc_pair && pair_second >= 0 && pair_age <= 12;
+    if (paired_lpc) {
+      const auto* first_history = pair_first_lpc + i;
+      const auto* second_history = pair_second_lpc + i;
+      const auto group = [&]<int First>(const opus_int32* history) noexcept {
+        return silk_mul_wb(history[-First - 1], a_Q12[First]) +
+               silk_mul_wb(history[-First - 2], a_Q12[First + 1]) +
+               silk_mul_wb(history[-First - 3], a_Q12[First + 2]) +
+               silk_mul_wb(history[-First - 4], a_Q12[First + 3]);
+      };
+      const auto first0 = group.template operator()<0>(first_history);
+      const auto first1 = group.template operator()<4>(first_history);
+      const auto first2 = group.template operator()<8>(first_history);
+      const auto first3 = group.template operator()<12>(first_history);
+      const auto second0 = group.template operator()<0>(second_history);
+      opus_int32 second_prediction;
+      if (pair_age <= 4) {
+        second_prediction = static_cast<opus_int32>(8 + (second0 + first1) + (first2 + first3));
+      } else {
+        const auto second1 = group.template operator()<4>(second_history);
+        if (pair_age <= 8) {
+          second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (first2 + first3));
+        } else {
+          const auto second2 = group.template operator()<8>(second_history);
+          second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (second2 + first3));
+        }
+      }
+      lazy[pair_first].LPC_pred_Q14 = saturating_left_shift<4>(static_cast<opus_int32>(8 + (first0 + first1) + (first2 + first3)));
+      lazy[pair_second].LPC_pred_Q14 = saturating_left_shift<4>(second_prediction);
+    }
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
       psDD->Seed = silk_next_rand_seed(psDD->Seed);
       psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
-      LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
+      LPC_pred_Q14 = paired_lpc && (k == pair_first || k == pair_second)
+                         ? lazy[k].LPC_pred_Q14
+                         : saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
       n_AR_Q14 = use_four_lane_ar ? n_AR_lane[k]
                                   : (warping_Q16 == 0
                                          ? (zero_ar ? silk_nsq_noise_shape_feedback<false, 1, true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder) : silk_nsq_noise_shape_feedback<false>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder))
@@ -17219,6 +17256,13 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       }
     }
     if (RDmin_Q10 < RDmax_Q10) {
+      if (use_lpc_pair) {
+        pair_first = RDmin_ind;
+        pair_second = RDmin_ind == RDmax_ind ? -1 : RDmax_ind;
+        pair_first_lpc = psDelDec[RDmin_ind].sLPC_Q14 + 16;
+        pair_second_lpc = psDelDec[RDmax_ind].sLPC_Q14 + 16;
+        pair_at = i;
+      }
       psSampleState[RDmax_ind].Q_Q10 = lazy[RDmin_ind].alt_Q10;
       psSampleState[RDmax_ind].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
       lazy[RDmax_ind].LPC_pred_Q14 = lazy[RDmin_ind].LPC_pred_Q14;
