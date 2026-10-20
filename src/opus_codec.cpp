@@ -5303,7 +5303,11 @@ struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
 };
 
-static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM, int stereo, int* fill) {
+struct celt_first_theta {
+  int qn, index, angle, imid, iside;
+};
+
+static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM, int stereo, int* fill, const celt_first_theta* first_theta = nullptr) {
   int qn, itheta = 0, itheta_q30 = 0;
   int delta, imid, iside;
   int qalloc, pulse_cap, offset;
@@ -5317,11 +5321,11 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
   const auto* bandE = ctx->bandE;
   pulse_cap = celt_mode()->logN[i] + LM * (1 << 3);
   offset = (pulse_cap >> 1) - (stereo && N == 2 ? 16 : 4);
-  qn = compute_qn(N, *b, offset, pulse_cap, stereo);
+  qn = first_theta != nullptr ? first_theta->qn : compute_qn(N, *b, offset, pulse_cap, stereo);
   if (stereo && i >= intensity) {
     qn = 1;
   }
-  if (encode) {
+  if (encode && first_theta == nullptr) {
     if (stereo && (ctx->theta_round == 1 || ctx->theta_round == -2)) {
       itheta_q30 = ctx->raw_stereo_itheta;
     } else {
@@ -5334,7 +5338,9 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
   tell = ec_tell_frac(ec);
   if (qn != 1) {
     if (encode) {
-      if (!stereo || ctx->theta_round == 0) {
+      if (first_theta != nullptr) {
+        itheta = first_theta->index;
+      } else if (!stereo || ctx->theta_round == 0) {
         if (!stereo && ctx->split_trial != celt_split_trial::nearest) {
           const auto scaled = itheta * static_cast<opus_int32>(qn);
           itheta = (scaled + (ctx->split_trial == celt_split_trial::upper ? 16383 : 0)) >> 14;
@@ -5404,7 +5410,7 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
         ec_dec_update(ec, fl, fl + fs, ft);
       }
     }
-    itheta = celt_quantized_theta_runtime(itheta, qn);
+    itheta = first_theta != nullptr ? first_theta->angle : celt_quantized_theta_runtime(itheta, qn);
     if (encode && stereo) {
       if (itheta == 0) {
         intensity_stereo(X, Y, bandE, i, N);
@@ -5444,8 +5450,8 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
     *fill &= ((1 << B) - 1) << B;
     delta = 16384;
   } else {
-    imid = bitexact_cos(static_cast<opus_int16>(itheta));
-    iside = bitexact_cos(static_cast<opus_int16>(16384 - itheta));
+    imid = first_theta != nullptr ? first_theta->imid : bitexact_cos(static_cast<opus_int16>(itheta));
+    iside = first_theta != nullptr ? first_theta->iside : bitexact_cos(static_cast<opus_int16>(16384 - itheta));
     delta = ((16384 +
               (static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) * static_cast<opus_int16>(bitexact_log2tan(iside, imid)))) >>
              15);
@@ -5689,7 +5695,7 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
   return cm;
 }
 
-static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, celt_norm* lowband_scratch, int fill, celt_theta_feedback* theta_feedback = nullptr) {
+static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, celt_norm* lowband_scratch, int fill, celt_theta_feedback* theta_feedback = nullptr, const celt_first_theta* first_theta = nullptr) {
   if (theta_feedback != nullptr)
     theta_feedback->valid = false;
   ctx->refine_mono = ctx->encode && ctx->i < ctx->intensity;
@@ -5710,7 +5716,7 @@ static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int
     }
   }
   split_ctx split;
-  compute_theta(ctx, &split, X, Y, N, &b, B, B, LM, 1, &fill);
+  compute_theta(ctx, &split, X, Y, N, &b, B, B, LM, 1, &fill, first_theta);
   const auto mid = (1.f / 32768) * split.imid;
   const auto side = (1.f / 32768) * split.iside;
   if (N == 2) {
@@ -6088,6 +6094,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           double theta_target_orthogonal = 0.0;
           double theta_gain_contrast = 0.0;
           std::array<std::array<double, 3>, 2> theta_geometry{};
+          std::array<celt_first_theta, 2> theta_prepared{};
           const auto theta_model_score = [&](bool upper, double correlation_squared) {
             const auto& geometry = theta_geometry[static_cast<std::size_t>(upper)];
             const double determinant = geometry[1] * geometry[1] - geometry[2] * correlation_squared;
@@ -6116,10 +6123,18 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
                 theta_target_orthogonal = std::sqrt(std::max(0.0, 1.0 - theta_target_correlation * theta_target_correlation));
                 for (int upper = 0; upper < 2; ++upper) {
                   const auto angle = celt_quantized_theta_runtime(theta_model_down + upper, theta_model_qn);
-                  const double m = bitexact_cos(static_cast<opus_int16>(angle));
-                  const double s = bitexact_cos(static_cast<opus_int16>(16384 - angle));
+                  const int imid = bitexact_cos(static_cast<opus_int16>(angle));
+                  const int iside = bitexact_cos(static_cast<opus_int16>(16384 - angle));
+                  const double m = imid;
+                  const double s = iside;
                   const double m2 = m * m, s2 = s * s;
                   theta_geometry[static_cast<std::size_t>(upper)] = {m2 - s2, m2 + s2, 4.0 * m2 * s2};
+                  theta_prepared[static_cast<std::size_t>(upper)] = {
+                      theta_model_qn, theta_model_down + upper, angle,
+                      angle == 0 ? 32767 : angle == 16384 ? 0
+                                                          : imid,
+                      angle == 0 ? 0 : angle == 16384 ? 32767
+                                                      : iside};
                 }
                 const double lower_score = theta_model_score(false, 0.0);
                 const double upper_score = theta_model_score(true, 0.0);
@@ -6136,7 +6151,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
           copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
           ctx.theta_round = theta_first_upper ? 1 : prepare_theta ? -2
                                                                   : -1;
-          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm, theta_model_enabled ? &theta_first_feedback : nullptr);
+          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm, theta_model_enabled ? &theta_first_feedback : nullptr, theta_model_enabled ? &theta_prepared[static_cast<std::size_t>(theta_first_upper)] : nullptr);
           bool theta_need_correction = true;
           if (theta_model_enabled && theta_first_feedback.valid) {
             const double first_score = theta_model_score(theta_first_upper, theta_first_feedback.correlation_squared);
