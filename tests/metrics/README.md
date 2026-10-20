@@ -1,12 +1,12 @@
 # Complete production metrics
 
-Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `7a621bdb01006a1d1c00389260ae961ddbe11c2c`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
 | Suite | Cases | Fields | Below official |
 |---|---:|---:|---:|
-| Matrix | 498 | 12 | 678 |
+| Matrix | 498 | 12 | 676 |
 | Publication | 806 | 12 | 710 |
 
 | Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
@@ -19,8 +19,8 @@ Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51b
 | visqol_style | Higher | 57 | 64 |
 | logband_corr | Higher | 57 | 70 |
 | logband_error | Lower | 56 | 55 |
-| celt_quality | Higher | 126 | 139 |
-| celt_masked_error | Lower | 126 | 139 |
+| celt_quality | Higher | 125 | 139 |
+| celt_masked_error | Lower | 125 | 139 |
 | celt_highband_error | Lower | 180 | 188 |
 | stereo_width_error | Lower | 21 | 14 |
 
@@ -30,7 +30,7 @@ Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 1.00x to 1.09x | 1.17x to 1.91x |
+| AUDIO | 0.98x to 1.09x | 1.15x to 1.93x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -41,9 +41,9 @@ Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51b
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20464 | 20432 | Not exposed |
-| official_encoder_ch1 | 31824 | 31888 | 31668 |
+| official_encoder_ch1 | 31824 | 31904 | 31668 |
 | current_decoder_ch1 | 8448 | 8336 | Not exposed |
-| official_decoder_ch1 | 18480 | 18576 | 18468 |
+| official_decoder_ch1 | 18480 | 18560 | 18468 |
 | current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
 | current_decoder_ch2 | 17568 | 16224 | Not exposed |
@@ -57,8 +57,8 @@ Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 514128 | 0 | 0 | 514128 |
-| android | 492360 | 472 | 0 | 492832 |
+| host | 514896 | 0 | 0 | 514896 |
+| android | 492756 | 472 | 0 | 493228 |
 
 [Object-size data](binary_size.csv).
 
@@ -120,10 +120,10 @@ Measured: `3eb63c1da4ab4f23138024f921c3514d1a2d074b`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=23.9836 decode_ms=20.554 checksum=340886119
-mono-high bytes=115 encode_ms=25.6709 decode_ms=17.7196 checksum=2633358364
-stereo-mid bytes=103 encode_ms=68.042 decode_ms=37.7094 checksum=4179984942
-stereo-high bytes=147 encode_ms=64.9917 decode_ms=34.7794 checksum=3681257371
+mono-mid bytes=76 encode_ms=18.2182 decode_ms=15.9123 checksum=340886119
+mono-high bytes=115 encode_ms=20.2864 decode_ms=15.5065 checksum=2633358364
+stereo-mid bytes=103 encode_ms=60.5096 decode_ms=31.2155 checksum=4179984942
+stereo-high bytes=147 encode_ms=58.5102 decode_ms=36.1603 checksum=3681257371
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
