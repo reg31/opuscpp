@@ -14898,12 +14898,12 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
     int band_bits = bits[band] + percoeff * band_width + rem;
     if (band_bits >= std::max(thresh[band], alloc_floor + (1 << 3))) {
       if (encode) {
-        const bool depth_eligible = codedBands > 17;
+        const bool depth_eligible = (band_width << LM) > 1;
         const int depth_threshold = depth_eligible ? (band > signalBandwidth ? 9 : (band < prev ? 7 : 9)) : 0;
         const int retained_bits = std::min(band_bits, cap[band]);
         const int retained_fine = depth_eligible ? celt_base_fine_bits(band, retained_bits, C, LM, *intensity, *intensity <= start ? 0 : *dual_stereo, nullptr) : 0;
         const int funded_shape = depth_eligible ? retained_bits - (C * retained_fine << 3) : band_bits;
-        if (codedBands <= start + 2 || (funded_shape > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || depth_eligible))) {
+        if (codedBands <= start + 2 || (funded_shape > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || codedBands > 17))) {
           ec_enc_bit_logp(ec, 1, 1);
           break;
         }
