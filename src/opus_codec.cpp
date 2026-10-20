@@ -5303,6 +5303,14 @@ struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
 };
 
+[[nodiscard]] static auto celt_theta_model_gains(int angle) -> std::array<int, 2> {
+  if (angle == 0)
+    return {32767, 0};
+  if (angle == 16384)
+    return {0, 32767};
+  return {bitexact_cos(static_cast<opus_int16>(angle)), bitexact_cos(static_cast<opus_int16>(16384 - angle))};
+}
+
 struct celt_first_theta {
   int qn, index, angle, imid, iside;
 };
@@ -6123,18 +6131,14 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
                 theta_target_orthogonal = std::sqrt(std::max(0.0, 1.0 - theta_target_correlation * theta_target_correlation));
                 for (int upper = 0; upper < 2; ++upper) {
                   const auto angle = celt_quantized_theta_runtime(theta_model_down + upper, theta_model_qn);
-                  const int imid = bitexact_cos(static_cast<opus_int16>(angle));
-                  const int iside = bitexact_cos(static_cast<opus_int16>(16384 - angle));
+                  const auto gains = celt_theta_model_gains(angle);
+                  const int imid = gains[0];
+                  const int iside = gains[1];
                   const double m = imid;
                   const double s = iside;
                   const double m2 = m * m, s2 = s * s;
                   theta_geometry[static_cast<std::size_t>(upper)] = {m2 - s2, m2 + s2, 4.0 * m2 * s2};
-                  theta_prepared[static_cast<std::size_t>(upper)] = {
-                      theta_model_qn, theta_model_down + upper, angle,
-                      angle == 0 ? 32767 : angle == 16384 ? 0
-                                                          : imid,
-                      angle == 0 ? 0 : angle == 16384 ? 32767
-                                                      : iside};
+                  theta_prepared[static_cast<std::size_t>(upper)] = {theta_model_qn, theta_model_down + upper, angle, imid, iside};
                 }
                 const double lower_score = theta_model_score(false, 0.0);
                 const double upper_score = theta_model_score(true, 0.0);
