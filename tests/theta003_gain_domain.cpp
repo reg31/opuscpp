@@ -13,9 +13,7 @@ int main() try {
   const int qn = compute_qn(N, initial_budget, (cap >> 1) - 4, cap, 1);
   if (qn != 4)
     throw std::runtime_error("retained5ms-tail qn/domain mismatch");
-  const std::array<std::array<float, 2>, 7> directions{{
-      {1.f, 0.f}, {0.8f, 0.6f}, {0.6f, 0.8f}, {0.f, 1.f},
-      {-0.6f, 0.8f}, {-0.8f, 0.6f}, {-1.f, 0.f}}};
+  const std::array<std::array<float, 2>, 7> directions{{{1.f, 0.f}, {0.8f, 0.6f}, {0.6f, 0.8f}, {0.f, 1.f}, {-0.6f, 0.8f}, {-0.8f, 0.6f}, {-1.f, 0.f}}};
   std::set<int> angles;
   std::set<int> old_endpoint_mismatches;
   int checks = 0;
@@ -70,7 +68,8 @@ int main() try {
                "\"old_raw_endpoint_mismatches\":2,\"new_Q15_and_actual_Q15_scaled_units_equal\":true,\"angles\":[";
   bool comma = false;
   for (const int a : angles) {
-    if (comma) std::cout << ',';
+    if (comma)
+      std::cout << ',';
     std::cout << a;
     comma = true;
   }
