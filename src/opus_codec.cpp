@@ -19375,12 +19375,32 @@ static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const Si
   return first_cost < second_cost;
 }
 
+[[nodiscard]] static auto silk_lbrr_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
+  int next;
+  if (!conditional) {
+    next = std::max<int>(symbol, previous - 16);
+  } else {
+    const int step = symbol - 4;
+    const int threshold = 8 + previous;
+    next = previous + (step > threshold ? 2 * step - threshold : step);
+  }
+  return static_cast<opus_int8>(std::clamp(next, 0, 63));
+}
+
+[[nodiscard]] static auto silk_lbrr_model_gain_index(opus_int32 gain_Q16) noexcept -> opus_int8 {
+  return static_cast<opus_int8>(std::clamp<opus_int64>(
+      ((static_cast<opus_int64>(silk_lin2log(gain_Q16)) - 2090) * 65536 + 1907825 / 2) / 1907825, 0, 63));
+}
+
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
                                const silk_nsq_history& pre_frame_nsq, const opus_int16* pre_frame_nlsf, bool reconstructed_target) {
+  const auto frame = static_cast<std::size_t>(psEnc->sCmn.nFramesEncoded);
+  if (condCoding != 2) {
+    lbrr->previous_gain_index = control->lastGainIndexPrev;
+  }
   if (!protect_quiet && psEnc->sCmn.speech_activity_Q8 <= fixed_q<8>(0.3f)) {
     return;
   }
-  const auto frame = static_cast<std::size_t>(psEnc->sCmn.nFramesEncoded);
   lbrr->flags[frame] = 1;
   lbrr->indices[frame] = original_indices;
   std::array<float, 4> original_gains;
@@ -19389,15 +19409,30 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
   if (indices.signalType == 0) {
     indices.signalType = 1;
   }
+  const bool conditional_lbrr = frame > 0 && lbrr->flags[frame - 1] != 0;
   const silk_nsq_history* starting_history = &lbrr->nsq;
-  if (frame == 0 || lbrr->flags[frame - 1] == 0) {
+  auto model_gain_index = conditional_lbrr ? silk_lbrr_model_gain_index(lbrr->nsq.prev_gain_Q16) : original_last_gain_index;
+  if (!conditional_lbrr) {
     starting_history = &pre_frame_nsq;
-    lbrr->previous_gain_index = original_last_gain_index;
     indices.GainsIndices[0] =
         static_cast<opus_int8>(std::min<int>(indices.GainsIndices[0] + std::max(lbrr->gain_increase - gain_reduction, 2), 63));
   }
+  const auto first_model_index = silk_lbrr_gain_index(model_gain_index, indices.GainsIndices[0], condCoding == 2);
   std::array<opus_int32, 4> gains_Q16;
-  silk_gains_dequant(gains_Q16.data(), indices.GainsIndices, &lbrr->previous_gain_index, condCoding == 2, psEnc->sCmn.nb_subfr);
+  silk_gains_dequant(gains_Q16.data(), indices.GainsIndices, &model_gain_index, condCoding == 2, psEnc->sCmn.nb_subfr);
+  const bool resumed_lbrr = frame > 0 && !conditional_lbrr;
+  if (resumed_lbrr) {
+    indices.GainsIndices[0] = first_model_index;
+  }
+  auto wire_gain_index = silk_lbrr_gain_index(lbrr->previous_gain_index, indices.GainsIndices[0], conditional_lbrr);
+  if (resumed_lbrr && wire_gain_index != first_model_index) {
+    silk_gains_dequant(gains_Q16.data(), indices.GainsIndices, &lbrr->previous_gain_index, false, psEnc->sCmn.nb_subfr);
+  } else {
+    for (int k = 1; k < psEnc->sCmn.nb_subfr; ++k) {
+      wire_gain_index = silk_lbrr_gain_index(wire_gain_index, indices.GainsIndices[k], true);
+    }
+    lbrr->previous_gain_index = wire_gain_index;
+  }
   for (int index = 0; index < psEnc->sCmn.nb_subfr; ++index) {
     control->Gains[index] = gains_Q16[static_cast<std::size_t>(index)] * (1.0f / 65536.0f);
   }
