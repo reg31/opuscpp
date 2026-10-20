@@ -3732,7 +3732,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (!inherited_bandwidth) {
     int bandwidth = select_auto_bandwidth(equiv_rate);
     st->auto_bandwidth = bandwidth;
-    if (frame_metrics.energy == 0 && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
+    // Valid analysis includes delayed samples that current zero PCM does not describe.
+    if (frame_metrics.energy == 0 && !st->classical_leak.out_info.valid && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
         st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
         std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
           return sample == 0;
@@ -14833,10 +14834,31 @@ static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int 
 
 constexpr std::array<unsigned char, 24> LOG2_FRAC_TABLE =
     numeric_blob_array<unsigned char>(R"blob(00080D10131517181A1B1C1D1E1F20202122222324242525)blob");
+// Fine energy is funded before the residual shape uses its allocation.
+static inline int celt_base_fine_bits(int band, int bits, int C, int LM, int intensity, int dual_stereo, int* priority) noexcept {
+  const auto* mode = celt_mode();
+  const int N = (mode->eBands[band + 1] - mode->eBands[band]) << LM;
+  const int den = C * N + (C == 2 && N > 2 && !dual_stereo && band < intensity);
+  const int NClogN = den * (mode->logN[band] + (LM << 3));
+  int offset = (NClogN >> 1) - den * 21;
+  if (N == 2)
+    offset += den << 3 >> 2;
+  if (bits + offset < (den * 2 << 3))
+    offset += NClogN >> 2;
+  else if (bits + offset < (den * 3 << 3))
+    offset += NClogN >> 3;
+  int fine = celt_udiv(std::max(0, bits + offset + (den << 2)), den) >> 3;
+  if (C * fine > (bits >> 3))
+    fine = bits >> (C > 1) >> 3;
+  fine = std::min(fine, 8);
+  if (priority != nullptr)
+    *priority = fine * (den << 3) >= bits + offset;
+  return fine;
+}
+
 static int interp_bits2pulses(int start, int end, int skip_start, const int* bits1, const int* bits2, const int* thresh, const int* cap, opus_int32 total, opus_int32* _balance, int skip_rsv, int* intensity, int intensity_rsv, int* dual_stereo, int dual_stereo_rsv, int* bits, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
   const int alloc_floor = C << 3;
   const int stereo = C > 1;
-  const int logM = LM << 3;
   const auto interpolate = [&]<bool Store>(int fraction) {
     opus_int32 sum = 0;
     bool done = false;
@@ -14885,7 +14907,10 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
       if (encode) {
         const bool depth_eligible = codedBands > 17;
         const int depth_threshold = depth_eligible ? (band > signalBandwidth ? 9 : (band < prev ? 7 : 9)) : 0;
-        if (codedBands <= start + 2 || (band_bits > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || depth_eligible))) {
+        const int retained_bits = std::min(band_bits, cap[band]);
+        const int retained_fine = depth_eligible ? celt_base_fine_bits(band, retained_bits, C, LM, *intensity, *intensity <= start ? 0 : *dual_stereo, nullptr) : 0;
+        const int funded_shape = depth_eligible ? retained_bits - (C * retained_fine << 3) : band_bits;
+        if (codedBands <= start + 2 || (funded_shape > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || depth_eligible))) {
           ec_enc_bit_logp(ec, 1, 1);
           break;
         }
@@ -14943,23 +14968,7 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
     if (N > 1) {
       excess = std::max(bit - cap[band], 0);
       bits[band] = bit - excess;
-      const int den = C * N + (C == 2 && N > 2 && !*dual_stereo && band < *intensity);
-      const int NClogN = den * (celt_mode()->logN[band] + logM);
-      int offset = (NClogN >> 1) - den * 21;
-      if (N == 2) {
-        offset += den << 3 >> 2;
-      }
-      if (bits[band] + offset < den * 2 << 3) {
-        offset += NClogN >> 2;
-      } else if (bits[band] + offset < den * 3 << 3) {
-        offset += NClogN >> 3;
-      }
-      ebits[band] = celt_udiv(std::max(0, bits[band] + offset + (den << 2)), den) >> 3;
-      if (C * ebits[band] > (bits[band] >> 3)) {
-        ebits[band] = bits[band] >> stereo >> 3;
-      }
-      ebits[band] = std::min(ebits[band], 8);
-      fine_priority[band] = ebits[band] * (den << 3) >= bits[band] + offset;
+      ebits[band] = celt_base_fine_bits(band, bits[band], C, LM, *intensity, *dual_stereo, &fine_priority[band]);
       bits[band] -= C * ebits[band] << 3;
     } else {
       excess = std::max(0, bit - (C << 3));
