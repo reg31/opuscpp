@@ -19426,9 +19426,6 @@ static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encod
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 
-static void silk_find_LPC_FLP(silk_encoder_state*, opus_int16[], const float[], float, bool);
-static inline void silk_process_NLSFs_FLP(silk_encoder_state*, float[2][16], opus_int16[16], const opus_int16[16]);
-
 [[nodiscard]] static auto silk_lbrr_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
   int next;
   if (!conditional) {
