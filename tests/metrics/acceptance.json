@@ -4,7 +4,7 @@
     "counts": [
       17,
       18,
-      18,
+      14,
       15
     ],
     "failed_rows": [
@@ -90,6 +90,84 @@
         "key": [
           1,
           20,
+          24000,
+          1,
+          1
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "current": {
+          "fidelity_fec": 0.298844824,
+          "next_fec": 0.261977745,
+          "transition_fec": 0.289972651,
+          "fidelity_ref": 0.228694184,
+          "next_ref": 0.254574706,
+          "transition_ref": 0.188443891,
+          "fidelity_plc": 0.857894164,
+          "self_consistency": 0.234074074,
+          "step_fec": -45.0,
+          "step_ref": -184.0
+        },
+        "official": {
+          "fidelity_fec": 0.680104609,
+          "next_fec": 0.692728199,
+          "transition_fec": 0.286478785,
+          "fidelity_ref": 0.662625406,
+          "next_ref": 0.674010356,
+          "transition_ref": 0.304954609,
+          "fidelity_plc": 0.898602395,
+          "self_consistency": 0.205200526,
+          "step_fec": -338.0,
+          "step_ref": -54.0
+        }
+      },
+      {
+        "key": [
+          2,
+          20,
+          32000,
+          1,
+          0
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "current": {
+          "fidelity_fec": 0.43714888,
+          "next_fec": 0.297663797,
+          "transition_fec": 0.404629591,
+          "fidelity_ref": 0.261097549,
+          "next_ref": 0.247242043,
+          "transition_ref": 0.226296332,
+          "fidelity_plc": 0.883014336,
+          "self_consistency": 0.433761668,
+          "step_fec": -253.0,
+          "step_ref": -145.0
+        },
+        "official": {
+          "fidelity_fec": 0.655200225,
+          "next_fec": 0.699512813,
+          "transition_fec": 0.328470094,
+          "fidelity_ref": 0.740837026,
+          "next_ref": 0.606513713,
+          "transition_ref": 0.422564016,
+          "fidelity_plc": 0.892767677,
+          "self_consistency": 0.351359484,
+          "step_fec": -212.0,
+          "step_ref": -84.0
+        }
+      },
+      {
+        "key": [
+          1,
+          20,
           16000,
           2,
           1
@@ -124,17 +202,95 @@
           "step_fec": -269.0,
           "step_ref": -1025.0
         }
+      },
+      {
+        "key": [
+          1,
+          20,
+          24000,
+          2,
+          1
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "current": {
+          "fidelity_fec": 0.525199271,
+          "next_fec": 0.532509416,
+          "transition_fec": 0.509350141,
+          "fidelity_ref": 0.439466087,
+          "next_ref": 0.48840795,
+          "transition_ref": 0.438552751,
+          "fidelity_plc": 0.916833245,
+          "self_consistency": 0.387761233,
+          "step_fec": -762.0,
+          "step_ref": -651.0
+        },
+        "official": {
+          "fidelity_fec": 0.802790967,
+          "next_fec": 0.684358962,
+          "transition_fec": 0.486687027,
+          "fidelity_ref": 0.749776717,
+          "next_ref": 0.751198817,
+          "transition_ref": 0.47551309,
+          "fidelity_plc": 0.829666861,
+          "self_consistency": 0.384927814,
+          "step_fec": -1298.0,
+          "step_ref": -567.0
+        }
+      },
+      {
+        "key": [
+          2,
+          20,
+          48000,
+          2,
+          1
+        ],
+        "criteria_pass": [
+          true,
+          true,
+          false,
+          true
+        ],
+        "current": {
+          "fidelity_fec": 0.524232314,
+          "next_fec": 0.468030638,
+          "transition_fec": 0.544326812,
+          "fidelity_ref": 0.490589536,
+          "next_ref": 0.51038743,
+          "transition_ref": 0.453243633,
+          "fidelity_plc": 0.858582303,
+          "self_consistency": 0.467176915,
+          "step_fec": -951.0,
+          "step_ref": 440.0
+        },
+        "official": {
+          "fidelity_fec": 0.788928344,
+          "next_fec": 0.787404278,
+          "transition_fec": 0.503490469,
+          "fidelity_ref": 0.789947322,
+          "next_ref": 0.785626099,
+          "transition_ref": 0.475419065,
+          "fidelity_plc": 1.05022455,
+          "self_consistency": 0.464241453,
+          "step_fec": -607.0,
+          "step_ref": 666.5
+        }
       }
     ],
     "exit_code": 1,
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false,
-    "stdout": "FEC source criteria C1/C2/C3/C4: [17, 18, 18, 15] out of 18"
+    "stdout": "FEC source criteria C1/C2/C3/C4: [17, 18, 14, 15] out of 18"
   },
   "standard_interop": {
     "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.677122 wins=17/18 coverage=15/18 official_coverage=15/18 packet_byte_ratio=0.995382",
+    "summary": "fec_summary recovery_error_ratio=0.888704 wins=10/18 coverage=15/18 official_coverage=15/18 packet_byte_ratio=1.0074",
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
