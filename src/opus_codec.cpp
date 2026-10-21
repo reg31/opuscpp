@@ -14406,6 +14406,32 @@ constexpr std::array<std::array<unsigned char, 42>, 8> e_prob_model = numeric_bl
 [[nodiscard]] constexpr auto floor_to_int_reference(opus_val32 value) noexcept -> int {
   return static_cast<int>(std::floor(static_cast<double>(value)));
 }
+[[nodiscard]] constexpr auto floor_to_int_coarse(opus_val32 value) noexcept -> int {
+  if constexpr (!std::numeric_limits<opus_val32>::is_iec559 || std::numeric_limits<opus_val32>::digits != 24 || std::numeric_limits<opus_val32>::max_exponent != 128) {
+    return floor_to_int_reference(value);
+  }
+  const auto bits = std::bit_cast<opus_uint32>(value);
+  const auto exponent = (bits >> 23) & 255u;
+  const bool negative = (bits >> 31) != 0;
+  if (exponent < 127u) {
+    if (exponent == 0 && (bits & 0x7fffffu) != 0) {
+      return floor_to_int_reference(value);
+    }
+    return (bits & 0x7fffffffu) == 0 ? 0 : negative ? -1
+                                                    : 0;
+  }
+  if (exponent < 150u) {
+    const auto mantissa = (bits & 0x7fffffu) | 0x800000u;
+    const auto shift = 150u - exponent;
+    const auto whole = static_cast<int>(mantissa >> shift);
+    const auto fraction = static_cast<int>((mantissa & ((1u << shift) - 1u)) != 0);
+    return negative ? -whole - fraction : whole;
+  }
+  if (exponent < 158u) {
+    return static_cast<int>(value);
+  }
+  return floor_to_int_reference(value);
+}
 
 static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* oldEBands, int start, int end, int C) {
   opus_val32 dist = 0;
@@ -14445,7 +14471,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
           if constexpr (Encode) {
             const celt_glog input_energy = eBands[index];
             const opus_val32 residual = input_energy - coef * old_energy - previous;
-            qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
+            qi = floor_to_int_coarse((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
             const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
             if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
               qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
@@ -14512,7 +14538,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
       if constexpr (Encode) {
         const celt_glog input_energy = eBands[index];
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
-        qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
+        qi = floor_to_int_coarse((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
         if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
