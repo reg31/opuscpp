@@ -1,28 +1,28 @@
 # Complete production metrics
 
-Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `9643f3bb55d2b525c3154380d22721c4c4e48d83`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
 | Suite | Cases | Fields | Below official |
 |---|---:|---:|---:|
-| Matrix | 498 | 12 | 677 |
-| Publication | 806 | 12 | 719 |
+| Matrix | 498 | 12 | 674 |
+| Publication | 806 | 12 | 713 |
 
 | Metric | Better direction | Below official / 498 matrix cases | Below official / 806 publication cases |
 |---|---|---:|---:|
-| snr_db | Higher | 11 | 9 |
+| snr_db | Higher | 10 | 7 |
 | segmental_snr_db | Higher | 12 | 10 |
-| rms_error | Lower | 11 | 9 |
-| mean_abs_error | Lower | 10 | 9 |
+| rms_error | Lower | 10 | 7 |
+| mean_abs_error | Lower | 10 | 8 |
 | pesq_style | Higher | 14 | 9 |
-| visqol_style | Higher | 55 | 62 |
-| logband_corr | Higher | 57 | 69 |
+| visqol_style | Higher | 55 | 61 |
+| logband_corr | Higher | 55 | 67 |
 | logband_error | Lower | 54 | 55 |
-| celt_quality | Higher | 122 | 139 |
-| celt_masked_error | Lower | 122 | 139 |
+| celt_quality | Higher | 123 | 140 |
+| celt_masked_error | Lower | 123 | 140 |
 | celt_highband_error | Lower | 182 | 192 |
-| stereo_width_error | Lower | 27 | 17 |
+| stereo_width_error | Lower | 26 | 17 |
 
 [Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
 
@@ -30,7 +30,7 @@ Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51b
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 1.00x to 1.09x | 1.21x to 1.80x |
+| AUDIO | 0.93x to 1.06x | 1.09x to 1.98x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -40,14 +40,14 @@ Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51b
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20464 | 20448 | Not exposed |
-| official_encoder_ch1 | 31824 | 31888 | 31668 |
-| current_decoder_ch1 | 8448 | 8320 | Not exposed |
-| official_decoder_ch1 | 18480 | 18592 | 18468 |
-| current_encoder_ch2 | 30656 | 30560 | Not exposed |
-| official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17568 | 16208 | Not exposed |
-| official_decoder_ch2 | 27088 | 27264 | 27236 |
+| current_encoder_ch1 | 20416 | 20432 | Not exposed |
+| official_encoder_ch1 | 31872 | 31904 | 31668 |
+| current_decoder_ch1 | 9504 | 8832 | Not exposed |
+| official_decoder_ch1 | 18416 | 18576 | 18468 |
+| current_encoder_ch2 | 30656 | 30576 | Not exposed |
+| official_encoder_ch2 | 48880 | 48704 | 48684 |
+| current_decoder_ch2 | 17648 | 16256 | Not exposed |
+| official_decoder_ch2 | 27168 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +57,8 @@ Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 513916 | 0 | 0 | 513916 |
-| android | 490920 | 472 | 0 | 491392 |
+| host | 526480 | 0 | 0 | 526480 |
+| android | 509836 | 472 | 0 | 510308 |
 
 [Object-size data](binary_size.csv).
 
@@ -68,17 +68,17 @@ Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51b
 |---|---:|
 | Strict source comparison | FAIL |
 | Standard interoperability comparison | FAIL |
-| Scored recovery wins | 10/18 |
+| Scored recovery wins | 17/18 |
 | Maximum recovery-error ratio | 1.514000 |
-| Recovery-error ratio | 0.888704 |
-| Packet-byte ratio | 1.0074 |
+| Recovery-error ratio | 0.677122 |
+| Packet-byte ratio | 0.996672 |
 | Backup coverage: opuscpp | 15/18 |
 | Backup coverage: official | 15/18 |
 | Configurations | 36 |
 | Direction rows | 72 |
 | C1 | 17/18 |
 | C2 | 18/18 |
-| C3 | 14/18 |
+| C3 | 18/18 |
 | C4 | 15/18 |
 
 [FEC direction fields](fec_interop_metrics.csv) · [Source comparisons](fec_source_metrics.json) · [Ratios and raw output](fec_run_metadata.json).
@@ -120,10 +120,10 @@ Measured: `ef48f4e07b6e2c3133a9846c0d63db8a6840dc19`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.7391 decode_ms=16.4231 checksum=340886119
-mono-high bytes=115 encode_ms=20.6172 decode_ms=15.3043 checksum=2633358364
-stereo-mid bytes=103 encode_ms=59.1208 decode_ms=33.2305 checksum=4179984942
-stereo-high bytes=147 encode_ms=55.0195 decode_ms=32.134 checksum=3681257371
+mono-mid bytes=76 encode_ms=19.4012 decode_ms=16.9786 checksum=340886119
+mono-high bytes=115 encode_ms=22.4049 decode_ms=16.524 checksum=2633358364
+stereo-mid bytes=103 encode_ms=66.882 decode_ms=37.7483 checksum=4179984942
+stereo-high bytes=147 encode_ms=56.9868 decode_ms=32.7105 checksum=3681257371
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
