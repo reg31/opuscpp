@@ -14403,34 +14403,53 @@ constexpr std::array<opus_val16, 4> beta_coef = numeric_blob_array<opus_val16>(R
 constexpr opus_val16 beta_intra = 4915 / 32768.;
 constexpr std::array<std::array<unsigned char, 42>, 8> e_prob_model = numeric_blob_matrix<unsigned char, 42>(
     R"blob(487F41814280418040803E80408040805C4E5C4F5C4E5A4F742973287228841A841A9111A10CB00AB10B18B3308A3687368435863885378437843D7246604A584B58574A59425B43643B6C3278287A25612B4E32534E5451584B564A57475A495D4A5D4A6D287224752275228F1191129213A20CA50AB207BD06BE08B10917B236733F66426245634A59475B495B4E5956505C425D40663B673C683C75347B2C8A23851F61264D2D3D5A5D3C692A6B296E2D7426712670267C1A841B88138C149B0E9F109E12AA0DB10ABB08C006AF099F0A15B23B6E47564B5554535B42584957485C4B6248693A6B367334723770388133842896218C1D62234D2A2A7960426C2B6F28752C7B20782477217F2186228B15931798149E199A1AA615AD10B80DB80A960D8B0F16B23F724A5254535C52673E6048604365496B48713776347D3476347537873189279D20911D61214D28)blob");
-[[nodiscard]] constexpr auto floor_to_int_reference(opus_val32 value) noexcept -> int {
-  return static_cast<int>(std::floor(static_cast<double>(value)));
-}
-[[nodiscard]] constexpr auto floor_to_int_coarse(opus_val32 value) noexcept -> int {
+template <bool Fine = false>
+[[nodiscard]] constexpr auto floor_to_int_reference(opus_val32 value, int fine_bits = 0) noexcept -> int {
+  const auto reference_floor = [fine_bits](opus_val32 input) constexpr noexcept -> int {
+    const auto quantized = static_cast<int>(std::floor(static_cast<double>(input)));
+    if constexpr (Fine) {
+      return std::clamp(quantized, 0, (1 << fine_bits) - 1);
+    }
+    return quantized;
+  };
   if constexpr (!std::numeric_limits<opus_val32>::is_iec559 || std::numeric_limits<opus_val32>::digits != 24 || std::numeric_limits<opus_val32>::max_exponent != 128) {
-    return floor_to_int_reference(value);
+    return reference_floor(value);
   }
   const auto bits = std::bit_cast<opus_uint32>(value);
   const auto exponent = (bits >> 23) & 255u;
   const bool negative = (bits >> 31) != 0;
-  if (exponent < 127u) {
-    if (exponent == 0 && (bits & 0x7fffffu) != 0) {
-      return floor_to_int_reference(value);
+  if constexpr (Fine) {
+    if (exponent >= 158u || (exponent == 0 && (bits & 0x7fffffu) != 0)) {
+      return reference_floor(value);
     }
-    return (bits & 0x7fffffffu) == 0 ? 0 : negative ? -1
-                                                    : 0;
-  }
-  if (exponent < 150u) {
+    if (negative || exponent < 127u) {
+      return 0;
+    }
+    if (exponent >= 127u + static_cast<opus_uint32>(fine_bits)) {
+      return (1 << fine_bits) - 1;
+    }
     const auto mantissa = (bits & 0x7fffffu) | 0x800000u;
-    const auto shift = 150u - exponent;
-    const auto whole = static_cast<int>(mantissa >> shift);
-    const auto fraction = static_cast<int>((mantissa & ((1u << shift) - 1u)) != 0);
-    return negative ? -whole - fraction : whole;
+    return static_cast<int>(mantissa >> (150u - exponent));
+  } else {
+    if (exponent < 127u) {
+      if (exponent == 0 && (bits & 0x7fffffu) != 0) {
+        return reference_floor(value);
+      }
+      return (bits & 0x7fffffffu) == 0 ? 0 : negative ? -1
+                                                      : 0;
+    }
+    if (exponent < 150u) {
+      const auto mantissa = (bits & 0x7fffffu) | 0x800000u;
+      const auto shift = 150u - exponent;
+      const auto whole = static_cast<int>(mantissa >> shift);
+      const auto fraction = static_cast<int>((mantissa & ((1u << shift) - 1u)) != 0);
+      return negative ? -whole - fraction : whole;
+    }
+    if (exponent < 158u) {
+      return static_cast<int>(value);
+    }
+    return reference_floor(value);
   }
-  if (exponent < 158u) {
-    return static_cast<int>(value);
-  }
-  return floor_to_int_reference(value);
 }
 
 static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* oldEBands, int start, int end, int C) {
@@ -14471,7 +14490,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
           if constexpr (Encode) {
             const celt_glog input_energy = eBands[index];
             const opus_val32 residual = input_energy - coef * old_energy - previous;
-            qi = floor_to_int_coarse((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
+            qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
             const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
             if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
               qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
@@ -14538,7 +14557,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
       if constexpr (Encode) {
         const celt_glog input_energy = eBands[index];
         const opus_val32 residual = input_energy - coef * old_energy - prev[c];
-        qi = floor_to_int_coarse((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
+        qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
         const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
         if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
@@ -14663,8 +14682,7 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
     for (int c = 0; c < C; ++c) {
       int q2 = 0;
       if constexpr (Encode) {
-        q2 = floor_to_int_reference((error[i + c * celt_default_nb_ebands] * (1 << prev) + .5f) * bins - fine_power_decision_bias[prev + extra_bits]);
-        q2 = std::clamp(q2, 0, bins - 1);
+        q2 = floor_to_int_reference<true>((error[i + c * celt_default_nb_ebands] * (1 << prev) + .5f) * bins - fine_power_decision_bias[prev + extra_bits], extra_bits);
         ec_enc_bits(coder, q2, extra_bits);
       } else {
         q2 = ec_dec_bits(coder, extra_bits);
@@ -14757,7 +14775,7 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
         float offset = 0;
         if (width > 0) {
           const int bins = 1 << width;
-          const int q = std::clamp(floor_to_int_reference((error[index] + .5f) * bins - fine_power_decision_bias[width]), 0, bins - 1);
+          const int q = floor_to_int_reference<true>((error[index] + .5f) * bins - fine_power_decision_bias[width], width);
           offset = (q + .5f) * (1 << (14 - width)) * (1.f / 16384) - .5f;
         }
         return exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
@@ -14820,7 +14838,7 @@ static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, i
         float offset = 0;
         if (width > 0) {
           const int bins = 1 << width;
-          const int q = std::clamp(floor_to_int_reference((error[index] + .5f) * bins - fine_power_decision_bias[width]), 0, bins - 1);
+          const int q = floor_to_int_reference<true>((error[index] + .5f) * bins - fine_power_decision_bias[width], width);
           offset = (q + .5f) * (1 << (14 - width)) * (1.f / 16384) - .5f;
         }
         return exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
