@@ -699,7 +699,7 @@ struct vbr_frame_budget final {
   const opus_int32 available_credit_bits = std::clamp(credit_bits, opus_int32{0}, target_bits * 25);
   const opus_int32 spend_credit_bits = std::min(available_credit_bits, max_spend_bits);
   const opus_int32 allocator_max_bytes = std::max<opus_int32>(2, (target_bits + spend_credit_bits) / 8);
-  // Keep soft allocation separate from already-earned packet admission.
+
   const opus_int32 max_bytes = std::max<opus_int32>(2, (target_bits + available_credit_bits) / 8);
   constexpr opus_int32 packet_rounding_credit_bits = 4 * 8;
   const bool useful_credit = spend_credit_bits > packet_rounding_credit_bits && spend_credit_bits >= max_spend_bits / 4;
@@ -3423,8 +3423,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     if (st->classical_leak.analysis_read_pos_bak != -1) {
       classical_leak_get_info(&st->classical_leak, &st->classical_leak.out_info, st->Fs, enc_frame_size);
     }
-    // The typed mono int16 whole-packet scan also covers fragment FP flags.
-    // Restricted-lowdelay has no metric consumer when DTX and denoising are off.
+
     const bool needs_activity = st->application != OPUS_APPLICATION_RESTRICTED_LOWDELAY || st->channels != 1 ||
                                 params.lsb_depth != 16 || st->use_dtx || st->voice_denoise != nullptr;
     const auto frame_metrics = needs_activity ? measure_frame_activity(frame_pcm, enc_frame_size, st->channels, params.lsb_depth)
@@ -3746,7 +3745,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (!inherited_bandwidth) {
     int bandwidth = select_auto_bandwidth(equiv_rate);
     st->auto_bandwidth = bandwidth;
-    // Valid analysis includes delayed samples that current zero PCM does not describe.
+
     if (frame_metrics.energy == 0 && !st->classical_leak.out_info.valid && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
         st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
         std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
@@ -6388,8 +6387,6 @@ static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
     numeric_blob_matrix<signed char, 8>(R"blob(00FF00FF00FF00FF00FF00FE010001FF00FE00FD020001FF00FE00FD030001FF)blob");
 [[nodiscard]] static auto celt_caps_for(int LM, int C) noexcept -> const std::array<int, celt_default_nb_ebands>&;
 
-// Rough normalized-power CDF for the existing legal spreading choices (RFC 6716, 5.3.7).
-// These reference-encoder class boundaries are a conditional prior, not a fitted score model.
 [[nodiscard]] static int celt_input_spreading_decision(const celt_norm* X, const opus_int16* eBands,
                                                        int start, int end, int C, int N, int LM, const celt_input_spreading_counts* precomputed = nullptr) noexcept {
   const int M = 1 << LM;
@@ -7505,7 +7502,7 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc, op
       r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
     }
   } else if constexpr (CaptureR00) {
-    // Save the actual rounded prefixes while retaining all three reduction orders.
+
     int i = 0;
     for (int slot = 5; slot >= 0; --slot) {
       const int end = std::max(0, len - (2 << slot));
@@ -7980,8 +7977,7 @@ template <bool Mono> static int run_prefilter_active_for_channels(CeltEncoderInt
       std::fenv_t original_environment, held_environment;
       if (std::fegetenv(&original_environment) == 0) {
         if (std::feholdexcept(&held_environment) == 0) {
-          // A shared stereo fit can overshoot one channel. Keep the largest
-          // lower wire gain that meets the same channel acceptance criteria.
+
           for (int trial_qg = qg - 1; trial_qg >= 0; --trial_qg) {
             const opus_val16 trial_gain = .09375f * (trial_qg + 1);
             std::array<opus_val32, 2> trial_after{};
@@ -13629,7 +13625,6 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
   correlation[2] = sum2;
 }
 
-// Keep the shared search in each original typed/FP context; setup and interpolation stay specialized.
 #define OPUSCPP_REMOVE_DOUBLING_SEARCH                                                              \
   for (int group = 2; group <= 15; group += 4) {                                                    \
     std::array<int, 4> periods{}, second_periods{};                                                 \
@@ -14362,7 +14357,7 @@ static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int 
 
 constexpr std::array<unsigned char, 24> LOG2_FRAC_TABLE =
     numeric_blob_array<unsigned char>(R"blob(00080D10131517181A1B1C1D1E1F20202122222324242525)blob");
-// Fine energy is funded before the residual shape uses its allocation.
+
 static inline int celt_base_fine_bits(int band, int bits, int C, int LM, int intensity, int dual_stereo, int* priority) noexcept {
   const auto* mode = celt_mode();
   const int N = (mode->eBands[band + 1] - mode->eBands[band]) << LM;
