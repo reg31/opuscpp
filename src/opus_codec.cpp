@@ -709,8 +709,29 @@ struct vbr_frame_budget final {
   return std::clamp(credit_bits, -std::max<opus_int32>(target_bits, 8), max_credit_bits);
 }
 
+struct funded_lbrr_packet final {
+  opus_int32 available_bits = 0;
+  opus_int32 physical_bits = 0;
+  opus_int32 celt_reserve_bits = 0;
+  opus_int32 prefix_bits = 0;
+  opus_int32 prefix_frac = 0;
+  opus_int32 reserved_bytes = 0;
+  opus_int32 silk_bytes = 0;
+  bool generate = false;
+};
+
+[[nodiscard]] constexpr auto update_hybrid_fec_credit(opus_int32 credit, opus_int32 bytes, opus_int32 target) noexcept -> opus_int32 {
+  if (credit == opus_int32_min)
+    return credit;
+  const opus_int64 next = static_cast<opus_int64>(credit) + target - static_cast<opus_int64>(bytes) * 8;
+  const opus_int64 ceiling = std::max<opus_int64>(static_cast<opus_int64>(target) * 25, 1000);
+  return static_cast<opus_int32>(std::clamp<opus_int64>(next, opus_int32_min, ceiling));
+}
+
+static int hybrid_celt_funding_reserve(int LM, int channels, int end, int nominal_bits) noexcept;
+
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
-static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false);
+static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false, int funded_bytes = 0, int funded_frac = 0);
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
                                       opus_int16* pcm16 = nullptr, bool update_pitch_cache = true);
@@ -962,7 +983,7 @@ static void silk_InitEncoder(void* encState, int channels);
 [[nodiscard]] constexpr auto silk_decoder_get_size() noexcept -> int;
 static void silk_ResetDecoder(void* decState);
 static int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec, opus_res* samplesOut, opus_int32* nSamplesOut);
-static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag);
+static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag, funded_lbrr_packet* funding = nullptr);
 [[nodiscard]] inline auto float2int(float x) noexcept -> opus_int32 {
   return static_cast<opus_int32>(std::lrint(x));
 }
@@ -2636,6 +2657,12 @@ static_assert(std::is_standard_layout_v<OpusEncoder>);
 }
 
 static void reset_vbr_budget(OpusEncoder* st) noexcept {
+  if (st->prev_mode != 0 && encoder_uses_silk(st->application)) {
+    auto* encoder = offset_ptr<silk_encoder>(st, st->silk_enc_offset);
+    if (encoder->lbrr != nullptr)
+      for (auto& channel : encoder->lbrr->channels)
+        channel.enabled |= 4;
+  }
   st->vbr_budget_reservoir_bits = 0;
   st->vbr_target_remainder = 0;
 }
@@ -2663,6 +2690,9 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
   auto* silk_enc = static_cast<silk_encoder*>(encoder_silk_state(st));
   if (silk_enc->lbrr == nullptr) {
     silk_enc->lbrr = static_cast<silk_lbrr_state*>(std::calloc(1, sizeof(silk_lbrr_state)));
+    if (silk_enc->lbrr != nullptr && st->prev_mode != 0)
+      for (auto& channel : silk_enc->lbrr->channels)
+        channel.enabled = 4;
   }
   return silk_enc->lbrr != nullptr;
 }
@@ -3466,6 +3496,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     reset_vbr_budget(st);
   } else if (params.governed_vbr && result > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, result, packet_target_bits);
+  } else if (result > 0 && st->mode == opus_mode_hybrid && st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0) {
+    st->vbr_budget_reservoir_bits = update_hybrid_fec_credit(st->vbr_budget_reservoir_bits, result, packet_target_bits);
   }
   return result < 0 ? -3 : result;
 }
@@ -3496,6 +3528,8 @@ template <std::size_t Capacity>
     reset_vbr_budget(st);
   } else if (params.governed_vbr && ret > 0) {
     st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, params.target_bits);
+  } else if (ret > 0 && st->mode == opus_mode_hybrid && st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0) {
+    st->vbr_budget_reservoir_bits = update_hybrid_fec_credit(st->vbr_budget_reservoir_bits, ret, params.target_bits);
   }
   return ret;
 }
@@ -3856,7 +3890,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
   const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
   const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_silk_only;
-  if (outer_vbr_eligible && governed_vbr != previous_outer_eligible) {
+  if (outer_vbr_eligible && (governed_vbr != previous_outer_eligible || st->mode != st->prev_mode)) {
     reset_vbr_budget(st);
   }
   const opus_int32 requested_frame_bits =
@@ -4289,6 +4323,22 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     refresh_redundancy();
   }
   const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  funded_lbrr_packet funding;
+  const auto* lbrr_state = silk_enc == nullptr ? nullptr : static_cast<silk_encoder*>(silk_enc)->lbrr;
+  const bool known_earned_credit = lbrr_state != nullptr && (lbrr_state->channels[0].enabled & 4) == 0;
+  const bool fundable_hybrid = known_earned_credit && st->mode == opus_mode_hybrid && st->prev_mode == opus_mode_hybrid &&
+                               st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0 &&
+                               st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0 &&
+                               frame_size <= st->Fs / 50 && packet_frames == nullptr && st->silk_mode.inWBmodeWithoutVariableLP &&
+                               !redundancy && !prefill && !nonfinal_frame && !emit_dtx;
+  if (fundable_hybrid) {
+    funding.available_bits = std::max<opus_int32>(0, st->vbr_budget_reservoir_bits);
+    funding.physical_bits = (storage_max_data_bytes - 1) * 8;
+    const int lm = std::bit_width(static_cast<unsigned>(frame_size * (celt_sample_rate / st->Fs) / celt_short_mdct_size)) - 1;
+    funding.celt_reserve_bits = hybrid_celt_funding_reserve(lm, st->stream_channels, bandwidth_to_endband(curr_bandwidth), nominal_target_bits);
+    funding.generate = funding.available_bits > 0 && !st->silk_mode.LBRR_coded;
+  }
+
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
   const bool transition = expanded_range_storage && redundancy_bytes > 0;
   const opus_int32 silk_target_bits = st->mode == opus_mode_hybrid || transition ? nominal_target_bits : allocator_target_bits;
@@ -4373,7 +4423,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       auto& omission = channels[channel].sCmn.dtx_omitted;
       omission = static_cast<opus_int8>((omission & 1) | (emit_dtx ? 2 : 0));
     }
-    if (!silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0))
+    if (!silk_Encode(silk_enc, &st->silk_mode, frame_pcm.data(), frame_size, &enc, &nBytes, 0, fundable_hybrid ? &funding : nullptr))
       return OPUS_ALLOC_FAIL;
     if (st->mode == opus_mode_silk_only) {
       curr_bandwidth = st->silk_mode.internalSampleRate == 8000 ? 1101 : st->silk_mode.internalSampleRate == 12000 ? 1102
@@ -4455,7 +4505,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   if (st->mode == opus_mode_hybrid) {
     celt_enc->silk_info = {st->silk_mode.offset, allocator_bitrate_bps,
-                           bits_to_bitrate_for_frame_rate(static_cast<int>(nBytes) * 8, frame_rate), st->silk_mode.signalType};
+                           bits_to_bitrate_for_frame_rate((static_cast<int>(nBytes) - funding.silk_bytes) * 8, frame_rate), st->silk_mode.signalType};
   }
   if (redundancy && celt_to_silk) {
     configure_redundant_celt();
@@ -4501,7 +4551,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_enc->signal_bw_temporal.reset();
     }
     if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes ||
-        (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255)) < 0) {
+        (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255, funding.reserved_bytes, funding.prefix_frac)) < 0) {
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
       if (ret < 0)
@@ -8421,7 +8471,30 @@ static std::array<double, 2> celt_estimate_noise_covariance_parameter(const Celt
 
 constexpr std::array<celt_glog, 9> celt_coarse_fine_power_rounding{0.3390359525563188f, 0.45751874963942196f, 0.48922334841819398f, 0.497295774761502f, 0.49932331008195074f, 0.49983078784567636f, 0.49995769448057997f, 0.49998942346507441f, 0.49999735585657634f};
 
-OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients) {
+OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, int funded_bytes, int funded_frac) {
+  const int funded_rounding_frac = funded_bytes * 64 - funded_frac;
+  struct byte_budget_coordinates final {
+    ec_enc* coder;
+    int bytes;
+    bool translated;
+    byte_budget_coordinates(ec_enc* value, int amount) : coder(value), bytes(amount), translated(amount != 0) {
+      if (translated)
+        coder->nbits_total -= static_cast<opus_uint32>(bytes * 8);
+    }
+    void restore() noexcept {
+      if (translated) {
+        coder->nbits_total += static_cast<opus_uint32>(bytes * 8);
+        translated = false;
+      }
+    }
+    ~byte_budget_coordinates() {
+      restore();
+    }
+  } paid_coordinates{enc, funded_bytes};
+  nbCompressedBytes -= funded_bytes;
+  const auto shrink_budget = [funded_bytes](ec_enc* coder, int logical_bytes) {
+    ec_enc_shrink(coder, logical_bytes + funded_bytes);
+  };
   const bool signal_bw_main = enc != nullptr;
   frame_size *= st->upsample;
   const opus_int16* eBands = celt_mode()->eBands;
@@ -8478,7 +8551,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     } else if (st->bitrate != -1) {
       nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (static_cast<opus_int32>(st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0)) + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
       if (enc != nullptr)
-        ec_enc_shrink(enc, nbCompressedBytes);
+        shrink_budget(enc, nbCompressedBytes);
     }
     nbAvailableBytes = nbCompressedBytes - nbFilledBytes;
     effectiveBytes = st->vbr && st->bitrate != -1 ? vbr_rate >> (3 + 3) : nbAvailableBytes;
@@ -8494,7 +8567,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       if (max_allowed < nbAvailableBytes) {
         nbCompressedBytes = nbFilledBytes + max_allowed;
         nbAvailableBytes = max_allowed;
-        ec_enc_shrink(enc, nbCompressedBytes);
+        shrink_budget(enc, nbCompressedBytes);
       }
     }
     total_bits = nbCompressedBytes * 8;
@@ -8510,7 +8583,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         effectiveBytes = nbCompressedBytes = std::min(nbCompressedBytes, nbFilledBytes + 2);
         total_bits = nbCompressedBytes * 8;
         nbAvailableBytes = 2;
-        ec_enc_shrink(enc, nbCompressedBytes);
+        shrink_budget(enc, nbCompressedBytes);
       }
       tell = nbCompressedBytes * 8;
       enc->nbits_total += tell - ec_tell(enc);
@@ -8780,9 +8853,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
       tell = ec_tell_frac(enc);
     }
-    int min_allowed = ((tell + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
+    int min_allowed = ((tell + funded_rounding_frac + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3)) + 2;
     if (hybrid) {
-      min_allowed = std::max(min_allowed, (tell0_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
+      min_allowed = std::max(min_allowed, (tell0_frac + funded_rounding_frac + (37 << 3) + total_boost + (1 << (3 + 3)) - 1) >> (3 + 3));
     }
     if (vbr_rate > 0) {
       const int lm_diff = celt_max_lm - LM;
@@ -8813,7 +8886,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           }
         }
       }
-      target += tell;
+      target += tell + funded_rounding_frac;
       nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
       opus_int32 delta = target - vbr_rate;
       if (silence) {
@@ -8832,7 +8905,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         }
       }
       nbCompressedBytes = std::min(nbCompressedBytes, nbAvailableBytes);
-      ec_enc_shrink(enc, nbCompressedBytes);
+      shrink_budget(enc, nbCompressedBytes);
     }
     opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
     anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
@@ -8844,8 +8917,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
                                pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
     if (trim_preview) {
       ec_enc_icdf(&trim_preview_coder, alternate_trim, trim_icdf.data(), 7);
-      if (!trim_preview_coder.error && static_cast<unsigned>(nbCompressedBytes) >= trim_preview_coder.offs + trim_preview_coder.end_offs) {
-        ec_enc_shrink(&trim_preview_coder, nbCompressedBytes);
+      if (!trim_preview_coder.error && static_cast<unsigned>(nbCompressedBytes + funded_bytes) >= trim_preview_coder.offs + trim_preview_coder.end_offs) {
+        shrink_budget(&trim_preview_coder, nbCompressedBytes);
         opus_int32 trial_bits = (nbCompressedBytes * 8 << 3) - static_cast<opus_int32>(ec_tell_frac(&trim_preview_coder)) - 1;
         const int trial_anti = celt_anti_collapse_reserve(isTransient, LM, trial_bits);
         trial_bits -= trial_anti;
@@ -8991,10 +9064,11 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   celt_commit_encoder_band_state(oldBandE, CC, start, end, CC == 2 && C == 1);
   st->consec_transient = isTransient || transient_got_disabled ? st->consec_transient + (st->consec_transient < 2) : 0;
   st->rng = enc->rng;
+  paid_coordinates.restore();
   ec_enc_done(enc);
   if (enc->error)
     return -3;
-  return nbCompressedBytes;
+  return nbCompressedBytes + funded_bytes;
 }
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
@@ -11347,6 +11421,24 @@ static constexpr auto celt_allocation_caps = [] consteval {
 
 [[nodiscard]] static auto celt_caps_for(int LM, int C) noexcept -> const std::array<int, celt_default_nb_ebands>& {
   return celt_allocation_caps[static_cast<std::size_t>(2 * LM + C - 1)];
+}
+
+static int hybrid_celt_funding_reserve(int LM, int channels, int end, int nominal_bits) noexcept {
+  const auto& cap = celt_caps_for(LM, channels);
+  const int bands = end - 17;
+  int boost_frac = 0;
+  int flag_bits = 0;
+  for (int band = 17; band < end; ++band) {
+    const int width = channels * (eband5ms[band + 1] - eband5ms[band]) << LM;
+    const int quantum = std::min(width << 3, std::max(6 << 3, width));
+    const int iterations = (cap[band] + quantum - 1) / quantum;
+    boost_frac += iterations * quantum;
+    flag_bits += iterations + 7;
+  }
+  const int metadata_bits = 3 + 3 + 16 * bands * channels + 6 * bands + 1 + 5 + flag_bits + 7 + 1;
+  const int target_frac = std::max((nominal_bits + 150) * 8, 50 * 8);
+  const int additional_frac = metadata_bits * 8 + std::max(boost_frac + (37 + 16) * 8, target_frac + 32);
+  return ((additional_frac + 63) / 64 + 1) * 8;
 }
 
 namespace {
@@ -18612,10 +18704,11 @@ static void silk_InitEncoder(void* encState, int channels) {
   psEnc->nChannelsInternal = 1;
 }
 
-static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control, ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
+template <bool Price>
+static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control,
+                                     ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
   auto& lbrr = *encoder->lbrr;
   const int frames = states[0].sCmn.nFramesPerPacket;
-  const int start_bits = ec_tell(range_encoder);
   if ((lbrr.frames_per_packet != 0 && lbrr.frames_per_packet != frames) ||
       (lbrr.channels_in_packet != 0 && lbrr.channels_in_packet != control.nChannelsInternal)) {
     for (int channel_index = 0; channel_index < control.nChannelsInternal; ++channel_index)
@@ -18648,10 +18741,60 @@ static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_F
         const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
         auto& state = states[channel_index].sCmn;
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
-        silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
+        if constexpr (Price) {
+          struct entropy_context {
+            int nb_subfr, fs_kHz, ec_prevLagIndex, ec_prevSignalType;
+            const silk_NLSF_CB_struct* psNLSF_CB;
+          } context{state.nb_subfr, state.fs_kHz, state.ec_prevLagIndex, state.ec_prevSignalType, state.psNLSF_CB};
+          auto priced_indices = indices;
+          std::array<opus_int8, silk_max_frame_length + 16> priced_pulses{};
+          std::copy_n(channel.pulses[static_cast<std::size_t>(frame)].data(), state.frame_length, priced_pulses.data());
+          const int type_offset = 2 * priced_indices.signalType + priced_indices.quantOffsetType;
+          ec_enc_icdf(range_encoder, type_offset - 2, silk_type_offset_VAD_iCDF.data(), 8);
+          silk_process_indices<true>(&context, priced_indices, range_encoder, cond_coding);
+          silk_process_pulses<true>(range_encoder, std::span<opus_int8>{priced_pulses.data(), static_cast<std::size_t>((state.frame_length + 15) & ~15)},
+                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length);
+        } else {
+          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
+        }
       }
     }
   }
+}
+
+static bool silk_fund_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control,
+                                   funded_lbrr_packet* funding) {
+  auto& lbrr = *encoder->lbrr;
+  if (funding == nullptr || funding->available_bits <= 0 || states[0].sCmn.nFramesPerPacket != 1 ||
+      lbrr.frames_per_packet != 1 || lbrr.channels_in_packet != control.nChannelsInternal)
+    return false;
+  std::array<unsigned char, 1275> storage{};
+  ec_enc price;
+  ec_enc_init(&price, storage.data(), storage.size());
+  const std::array<opus_uint8, 2> icdf{
+      static_cast<opus_uint8>(256 - (256 >> (2 * control.nChannelsInternal))), 0};
+  ec_enc_icdf(&price, 0, icdf.data(), 8);
+  const int start = ec_tell(&price);
+  const int start_frac = ec_tell_frac(&price);
+  std::array<int, celt_max_channels> flags{};
+  silk_encode_pending_lbrr<true>(encoder, states, control, &price, flags);
+  const int fractional_cost = ec_tell_frac(&price) - start_frac;
+  const int integer_cost = ec_tell(&price) - start;
+  const int bytes = (fractional_cost + 63) / 64;
+  if (price.error || fractional_cost <= 0 || bytes * 8 > funding->available_bits ||
+      bytes * 8 + control.maxBits + funding->celt_reserve_bits > funding->physical_bits)
+    return false;
+  funding->prefix_bits = integer_cost;
+  funding->prefix_frac = fractional_cost;
+  funding->reserved_bytes = bytes;
+  return true;
+}
+
+static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control, ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
+  auto& lbrr = *encoder->lbrr;
+  const int frames = states[0].sCmn.nFramesPerPacket;
+  const int start_bits = ec_tell(range_encoder);
+  silk_encode_pending_lbrr<false>(encoder, states, control, range_encoder, packet_has_lbrr);
   for (auto& channel : lbrr.channels) {
     channel.flags.fill(0);
   }
@@ -20166,7 +20309,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       for (int row = first_prediction; row < 2; ++row)
         silk_bwexpander(prepared.prediction.data() + row * 16, static_cast<std::size_t>(psEnc->sCmn.predictLPCOrder), 63570);
     }
-    const bool lbrr_deferred_generate = (lbrr != nullptr && lbrr->enabled);
+    const bool lbrr_deferred_generate = (lbrr != nullptr && (lbrr->enabled & 3));
     SideInfoIndices lbrr_original_indices;
     std::array<float, 4> lbrr_original_gains;
     float lbrr_original_lambda;
@@ -20436,11 +20579,16 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
   *pnBytesOut = ((ec_tell(psRangeEnc) + 7) >> (3));
 }
 
-static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag) {
+static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag, funded_lbrr_packet* funding) {
   int saved_payload_size_ms = 0, saved_complexity = 0;
   auto* psEnc = static_cast<silk_encoder*>(encState);
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
   const auto& prior_state = state_Fxx[0].sCmn;
+  bool headroom_pending = false;
+  if (psEnc->lbrr != nullptr) {
+    for (int channel = 0; channel < encControl->nChannelsInternal; ++channel)
+      headroom_pending = headroom_pending || (psEnc->lbrr->channels[static_cast<std::size_t>(channel)].enabled & 3) == 2;
+  }
   const bool duration_changed = prior_state.fs_kHz > 0 &&
                                 prior_state.frame_length * prior_state.nFramesPerPacket / prior_state.fs_kHz != encControl->payloadSize_ms;
   std::array<std::array<opus_int16, silk_max_frame_length + 2>, celt_max_channels> input_buffers;
@@ -20516,9 +20664,11 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   if (psEnc->lbrr != nullptr) {
     for (int n = 0; n < encControl->nChannelsInternal; ++n) {
       auto& lbrr = psEnc->lbrr->channels[static_cast<std::size_t>(n)];
-      const int previously_enabled = lbrr.enabled;
-      lbrr.enabled = !prefillFlag && encControl->LBRR_coded;
-      if (lbrr.enabled) {
+      const int previously_enabled = encControl->LBRR_coded ? (lbrr.enabled & 3) == 1 : (lbrr.enabled & 3) == 2;
+      lbrr.enabled = (lbrr.enabled & 4) | (prefillFlag ? 0 : encControl->LBRR_coded                ? 1
+                                                         : funding != nullptr && funding->generate ? 2
+                                                                                                   : 0);
+      if (lbrr.enabled & 3) {
         const int initial_gain = 7;
         const int minimum_gain = initial_gain - 4;
         lbrr.gain_increase =
@@ -20577,9 +20727,15 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       if (state_Fxx[0].sCmn.nFramesEncoded == 0 && !prefillFlag) {
         const std::array<opus_uint8, 2> icdf{
             static_cast<opus_uint8>(256 - (256 >> ((state_Fxx[0].sCmn.nFramesPerPacket + 1) * encControl->nChannelsInternal))), 0};
+        if (psEnc->lbrr != nullptr && headroom_pending && !silk_fund_pending_lbrr(psEnc, state_Fxx, *encControl, funding)) {
+          for (auto& channel : psEnc->lbrr->channels)
+            channel.flags.fill(0);
+        }
         ec_enc_icdf(psRangeEnc, 0, icdf.data(), 8);
         if (psEnc->lbrr != nullptr) {
           coded_prefix_bits = silk_encode_previous_lbrr(psEnc, state_Fxx, *encControl, psRangeEnc, packet_has_lbrr);
+          if (headroom_pending)
+            psEnc->lbrr->average_bits = 0;
         }
       }
       silk_HP_variable_cutoff(state_Fxx);
@@ -20630,7 +20786,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       }
       silk_encode_do_VAD(&state_Fxx[0].sCmn, input_buffers[0].data());
       bool side_worth_protecting = false;
-      if (!prefillFlag && psEnc->lbrr != nullptr && psEnc->lbrr->channels[1].enabled && encControl->nChannelsInternal == 2 &&
+      if (!prefillFlag && psEnc->lbrr != nullptr && (psEnc->lbrr->channels[1].enabled & 3) && encControl->nChannelsInternal == 2 &&
           psEnc->sStereo.mid_only_flags[static_cast<std::size_t>(state0.nFramesEncoded)] == 0) {
         opus_int64 mid_energy = 0, side_energy = 0;
         for (int i = 0; i < state0.frame_length; ++i) {
@@ -20642,7 +20798,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         side_worth_protecting = side_energy * 8 > mid_energy;
       }
       for (int n = 0; n < encControl->nChannelsInternal; ++n) {
-        int maxBits = encControl->maxBits;
+        int maxBits = encControl->maxBits + (funding == nullptr ? 0 : funding->prefix_bits);
         const opus_int32 coded_prefix = std::min<opus_int32>(coded_prefix_bits, encControl->maxBits);
         const opus_int32 normal_capacity = encControl->maxBits - coded_prefix;
         if (tot_blocks == 2 && frame_index == 0) {
@@ -20697,7 +20853,11 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           flags |= packet_has_lbrr[static_cast<std::size_t>(n)];
         }
         ec_enc_patch_initial_bits(psRangeEnc, flags, (state0.nFramesPerPacket + 1) * encControl->nChannelsInternal);
-        psEnc->nBitsExceeded += *nBytesOut * 8;
+        if (funding != nullptr && funding->reserved_bytes > 0) {
+          const int virtual_bytes = (static_cast<int>(ec_tell_frac(psRangeEnc)) - funding->prefix_frac + 63) / 64;
+          funding->silk_bytes = std::max(0, static_cast<int>(*nBytesOut) - virtual_bytes);
+        }
+        psEnc->nBitsExceeded += (*nBytesOut - (funding == nullptr ? 0 : funding->silk_bytes)) * 8;
         psEnc->nBitsExceeded -= static_cast<opus_int32>(encControl->bitRate * encControl->payloadSize_ms / 1000);
         psEnc->nBitsExceeded = std::clamp(psEnc->nBitsExceeded, -10000, 10000);
         const int switch_threshold =
