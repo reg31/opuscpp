@@ -7179,10 +7179,6 @@ static inline int stereo_analysis(const celt_norm* X, int LM, int N0, int intens
   return (band_width + thetas) * sumMS > band_width * sumLR;
 }
 
-static inline int stereo_analysis(const celt_norm* X, int LM, int N0) {
-  return stereo_analysis(X, LM, N0, celt_stereo_analysis_bands);
-}
-
 static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res) {
   const int bands = std::min(celt_stereo_analysis_bands, intensity);
   if (bands == 0)
@@ -14247,6 +14243,7 @@ static double celt_finite_log_cell_marginal(double squared_log_step) {
   return (step * std::cosh(step) - std::sinh(step) - 4 * (half_step * std::cosh(half_step) - std::sinh(half_step))) / (2 * step);
 }
 
+template <bool MaxRelative>
 static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
   constexpr double ln2 = 0.693147180559945309417232121458;
   std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
@@ -14301,85 +14298,35 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
       const double gain0 = gain_for(fine[0]);
       const double gain1 = fine[0] == fine[1] ? gain0 : gain_for(fine[1]);
       const double source = bandE[index];
-      const double difference0 = source - gain0;
-      cost[0] += difference0 * difference0 + source * gain0 * shape_error[0];
-      const double difference1 = source - gain1;
-      cost[1] += difference1 * difference1 + source * gain1 * shape_error[1];
+      if constexpr (MaxRelative) {
+        if (source > 0) {
+          const double ratio0 = gain0 / source;
+          const double ratio1 = gain1 / source;
+          const double difference0 = 1 - ratio0;
+          const double difference1 = 1 - ratio1;
+          cost[0] = std::max(cost[0], difference0 * difference0 + ratio0 * shape_error[0]);
+          cost[1] = std::max(cost[1], difference1 * difference1 + ratio1 * shape_error[1]);
+        } else {
+          cost[0] = std::max(cost[0], gain0 == 0 ? 0. : std::numeric_limits<double>::infinity());
+          cost[1] = std::max(cost[1], gain1 == 0 ? 0. : std::numeric_limits<double>::infinity());
+        }
+      } else {
+        const double difference0 = source - gain0;
+        cost[0] += difference0 * difference0 + source * gain0 * shape_error[0];
+        const double difference1 = source - gain1;
+        cost[1] += difference1 * difference1 + source * gain1 * shape_error[1];
+      }
     }
+  }
+  if constexpr (MaxRelative) {
+    if (cost[0] == cost[1])
+      return celt_fine_phase_cost_pair<false>(start, codedBands, C, LM, intensity, dual_stereo, bandE, oldBandE, error, pulses0, fine_quant0, coder0, pulses1, fine_quant1, coder1);
   }
   return cost;
 }
 
 static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
-  constexpr double ln2 = 0.693147180559945309417232121458;
-  std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
-  std::array<double, 2> cost{};
-  const std::array<const int*, 2> pulses{pulses0, pulses1};
-  for (int band = start; band < codedBands; ++band) {
-    const std::array<int, 2> planned_fine{fine_quant0[band], fine_quant1[band]};
-    const std::array<int, 2> fine{
-        tell[0] + C * planned_fine[0] <= static_cast<int>(coder0->storage * 8) ? planned_fine[0] : 0,
-        tell[1] + C * planned_fine[1] <= static_cast<int>(coder1->storage * 8) ? planned_fine[1] : 0};
-    tell[0] += C * fine[0];
-    tell[1] += C * fine[1];
-    const int N = (celt_mode()->eBands[band + 1] - celt_mode()->eBands[band]) << LM;
-    const int den = C * N + (C == 2 && N > 2 && !dual_stereo && band < intensity);
-    const int shape_dimension = den - C;
-    std::array<double, 2> shape_error{pulses0[band] >= C << 3 ? 0. : 2., pulses1[band] >= C << 3 ? 0. : 2.};
-    if (shape_dimension > 0) {
-      const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
-      int base_offset = (NClogN >> 1) - den * 21;
-      if (N == 2)
-        base_offset += den << 3 >> 2;
-      const auto cell_for = [&](int arm) {
-        const int band_bits = pulses[arm][band] + (C * planned_fine[arm] << 3);
-        int offset = base_offset;
-        if (band_bits + offset < den * 2 << 3)
-          offset += NClogN >> 2;
-        else if (band_bits + offset < den * 3 << 3)
-          offset += NClogN >> 3;
-        return pulses[arm][band] + offset;
-      };
-      const int cell0 = cell_for(0);
-      const bool same_inputs = pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1];
-      const int cell1 = same_inputs ? cell0 : cell_for(1);
-      const bool same_cell = cell0 == cell1;
-      const auto evaluate = [&](int cell) {
-        return static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(cell) / (4 * shape_dimension)));
-      };
-      shape_error[0] = evaluate(cell0);
-      shape_error[1] = same_cell ? shape_error[0] : evaluate(cell1);
-    }
-    for (int channel = 0; channel < C; ++channel) {
-      const int index = channel * celt_default_nb_ebands + band;
-      const auto gain_for = [&](int width) -> double {
-        float offset = 0;
-        if (width > 0) {
-          const int bins = 1 << width;
-          const int q = floor_to_int_reference<true>((error[index] + .5f) * bins - fine_power_decision_bias[width], width);
-          offset = (q + .5f) * (1 << (14 - width)) * (1.f / 16384) - .5f;
-        }
-        return exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
-      };
-      const double gain0 = gain_for(fine[0]);
-      const double gain1 = fine[0] == fine[1] ? gain0 : gain_for(fine[1]);
-      const double source = bandE[index];
-      if (source > 0) {
-        const double ratio0 = gain0 / source;
-        const double ratio1 = gain1 / source;
-        const double difference0 = 1 - ratio0;
-        const double difference1 = 1 - ratio1;
-        cost[0] = std::max(cost[0], difference0 * difference0 + ratio0 * shape_error[0]);
-        cost[1] = std::max(cost[1], difference1 * difference1 + ratio1 * shape_error[1]);
-      } else {
-        cost[0] = std::max(cost[0], gain0 == 0 ? 0. : std::numeric_limits<double>::infinity());
-        cost[1] = std::max(cost[1], gain1 == 0 ? 0. : std::numeric_limits<double>::infinity());
-      }
-    }
-  }
-  if (cost[0] == cost[1])
-    return celt_fine_phase_cost_pair(start, codedBands, C, LM, intensity, dual_stereo, bandE, oldBandE, error, pulses0, fine_quant0, coder0, pulses1, fine_quant1, coder1);
-  return cost;
+  return celt_fine_phase_cost_pair<true>(start, codedBands, C, LM, intensity, dual_stereo, bandE, oldBandE, error, pulses0, fine_quant0, coder0, pulses1, fine_quant1, coder1);
 }
 
 template <bool Encode>
@@ -16218,7 +16165,8 @@ static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 
   return static_cast<int>(align(sizeof(silk_encoder)) + static_cast<std::size_t>(channels) * sizeof(silk_encoder_state_FLP));
 }
 
-static void silk_encode_indices(silk_encoder_state* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
+template <class State>
+static void silk_encode_indices(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
                                 bool lbrr = false) {
   const int type_offset = 2 * indices.signalType + indices.quantOffsetType;
   const bool use_vad_table = lbrr || type_offset >= 2;
@@ -18490,7 +18438,19 @@ static void silk_prepare_analysis_windows_FLP(std::array<float*, Lanes> output, 
   silk_apply_sine_windows_FLP<Lanes>(output, input, slope_part, 2);
 }
 
-static void silk_encode_indices_and_pulses(silk_encoder_state* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr) {
+struct silk_entropy_context {
+  decltype(silk_encoder_state::nb_subfr) nb_subfr;
+  decltype(silk_encoder_state::fs_kHz) fs_kHz;
+  decltype(silk_encoder_state::ec_prevLagIndex) ec_prevLagIndex;
+  decltype(silk_encoder_state::ec_prevSignalType) ec_prevSignalType;
+  decltype(silk_encoder_state::psNLSF_CB) psNLSF_CB;
+  decltype(silk_encoder_state::frame_length) frame_length;
+  explicit silk_entropy_context(const silk_encoder_state& common) noexcept
+      : nb_subfr(common.nb_subfr), fs_kHz(common.fs_kHz), ec_prevLagIndex(common.ec_prevLagIndex), ec_prevSignalType(common.ec_prevSignalType), psNLSF_CB(common.psNLSF_CB), frame_length(common.frame_length) {}
+};
+
+template <class State>
+static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr) {
   silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
   silk_process_pulses<true>(psRangeEnc,
                             std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
@@ -18743,10 +18703,7 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         auto& state = states[channel_index].sCmn;
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
         if constexpr (Price) {
-          struct entropy_context {
-            int nb_subfr, fs_kHz, ec_prevLagIndex, ec_prevSignalType;
-            const silk_NLSF_CB_struct* psNLSF_CB;
-          } context{state.nb_subfr, state.fs_kHz, state.ec_prevLagIndex, state.ec_prevSignalType, state.psNLSF_CB};
+          silk_entropy_context context{state};
           auto priced_indices = indices;
           std::array<opus_int8, silk_max_frame_length + 16> priced_pulses{};
           std::copy_n(channel.pulses[static_cast<std::size_t>(frame)].data(), state.frame_length, priced_pulses.data());
@@ -19069,7 +19026,7 @@ static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], 
 OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
                                                        const opus_int8* first_pulses, const SideInfoIndices& second_indices,
                                                        const opus_int8* second_pulses) {
-  auto state = common;
+  silk_entropy_context state{common};
   std::array<unsigned char, 1275> storage{};
   ec_enc prefix;
   ec_enc_init(&prefix, storage.data(), storage.size());
@@ -20426,7 +20383,6 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
             auto best_range = *psRangeEnc;
             auto best_lag = psEnc->sCmn.ec_prevLagIndex;
             auto best_signal = psEnc->sCmn.ec_prevSignalType;
-            std::memcpy(ec_buf_copy, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
             silk_copy_nsq_history(sNSQ_best, nsq_working);
             const auto reconstruction_error = [&](const auto& state) {
               opus_int64 error = 0;
@@ -20444,7 +20400,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
               const auto tail_offset = psRangeEnc->storage - psRangeEnc->end_offs;
               std::memcpy(innovation_buffer + tail_offset, psRangeEnc->buf + tail_offset, static_cast<std::size_t>(psRangeEnc->end_offs));
             }
-            auto innovation_common = psEnc->sCmn;
+            silk_entropy_context innovation_common{psEnc->sCmn};
             for (int peak = 0; peak < psEnc->sCmn.frame_length; ++peak) {
               if (quantized_pulses[peak] == 0)
                 continue;
@@ -20452,10 +20408,10 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
               innovation_pulses[peak] = quantized_pulses[peak];
               auto innovation_range = sRangeEnc_copy2;
               innovation_range.buf = innovation_buffer;
-              innovation_common.indices = coded_indices;
+              auto innovation_coding_indices = coded_indices;
               innovation_common.ec_prevLagIndex = ec_prevLagIndex_copy;
               innovation_common.ec_prevSignalType = ec_prevSignalType_copy;
-              silk_encode_indices_and_pulses(&innovation_common, innovation_common.indices, &innovation_range, condCoding, innovation_pulses.data(), false);
+              silk_encode_indices_and_pulses(&innovation_common, innovation_coding_indices, &innovation_range, condCoding, innovation_pulses.data(), false);
               if (ec_tell(&innovation_range) > maxBits)
                 continue;
               innovation_indices = coded_indices;
