@@ -17506,7 +17506,8 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
   return *best;
 }
 
-static void silk_process_NLSFs(silk_encoder_state* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16]) {
+template <class State>
+static void silk_process_NLSFs(State* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16]) {
   opus_int16 pNLSF0_temp_Q15[16];
   opus_int16 pNLSFW_QW[16], pNLSFW0_temp_QW[16];
   auto NLSF_mu_Q20 = fixed_q<20>(0.003) + silk_mul_wb(fixed_q<28>(-0.001), psEncC->speech_activity_Q8);
@@ -19039,12 +19040,35 @@ static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encod
   nsq(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared.prediction.data(), prepared.ltp.data(), prepared.shaping.data(), prepared.harmonic.data(), prepared.tilt.data(), prepared.low_frequency.data(), gains.data(), psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), prepared.ltp_scale);
 }
 
-static void silk_find_LPC_FLP(silk_encoder_state*, opus_int16[], const float[], float, bool);
-static inline void silk_process_NLSFs_FLP(silk_encoder_state*, float[2][16], opus_int16[16], const opus_int16[16]);
+struct silk_lpc_model_context {
+  SideInfoIndices indices;
+  decltype(silk_encoder_state::prev_NLSFq_Q15) prev_NLSFq_Q15;
+  decltype(silk_encoder_state::subfr_length) subfr_length;
+  decltype(silk_encoder_state::predictLPCOrder) predictLPCOrder;
+  decltype(silk_encoder_state::Complexity) Complexity;
+  decltype(silk_encoder_state::first_frame_after_reset) first_frame_after_reset;
+  decltype(silk_encoder_state::nb_subfr) nb_subfr;
+  decltype(silk_encoder_state::ltp_mem_length) ltp_mem_length;
+  decltype(silk_encoder_state::speech_activity_Q8) speech_activity_Q8;
+  decltype(silk_encoder_state::NLSF_MSVQ_Survivors) NLSF_MSVQ_Survivors;
+  decltype(silk_encoder_state::psNLSF_CB) psNLSF_CB;
+  explicit silk_lpc_model_context(const silk_encoder_state& common, const SideInfoIndices& model_indices) noexcept
+      : indices(model_indices), subfr_length(common.subfr_length), predictLPCOrder(common.predictLPCOrder), Complexity(common.Complexity), first_frame_after_reset(common.first_frame_after_reset), nb_subfr(common.nb_subfr), ltp_mem_length(common.ltp_mem_length), speech_activity_Q8(common.speech_activity_Q8), NLSF_MSVQ_Survivors(common.NLSF_MSVQ_Survivors), psNLSF_CB(common.psNLSF_CB) {}
+};
 
-static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
-                                      const opus_int8* first_pulses, const SideInfoIndices& second_indices,
-                                      const opus_int8* second_pulses) {
+template <class State>
+static void silk_find_LPC_FLP(State*, opus_int16[], const float[], float, bool);
+template <class State>
+static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], const opus_int16[16]);
+
+#if defined(_MSC_VER)
+#define OPUSCPP_NOINLINE __declspec(noinline)
+#else
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#endif
+OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
+                                                       const opus_int8* first_pulses, const SideInfoIndices& second_indices,
+                                                       const opus_int8* second_pulses) {
   auto state = common;
   std::array<unsigned char, 1275> storage{};
   ec_enc prefix;
@@ -19066,6 +19090,7 @@ static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const Si
   const int second_cost = price(second_indices, second_pulses);
   return first_cost < second_cost;
 }
+#undef OPUSCPP_NOINLINE
 
 [[nodiscard]] static auto silk_lbrr_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
   int next;
@@ -19131,8 +19156,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
   silk_nsq_preparation fitted_prepared{};
   const silk_nsq_preparation* lbrr_prepared = &prepared;
   if (reconstructed_target && indices.signalType != 2) {
-    auto model_state = psEnc->sCmn;
-    model_state.indices = indices;
+    silk_lpc_model_context model_state{psEnc->sCmn, indices};
     std::copy_n(pre_frame_nlsf, 16, model_state.prev_NLSFq_Q15.begin());
     if (frame > 0 && lbrr->flags[frame - 1]) {
       silk_NLSF_decode(model_state.prev_NLSFq_Q15, lbrr->indices[frame - 1].NLSFIndices, model_state.psNLSF_CB);
@@ -19709,7 +19733,8 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
   return static_cast<float>(nrg_f);
 }
 
-static void silk_find_LPC_FLP(silk_encoder_state* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
+template <class State>
+static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
   int k, subfr_length;
   float a[16];
   float res_nrg, res_nrg_2nd, res_nrg_interp;
@@ -19884,7 +19909,8 @@ static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], floa
   }
 }
 
-static inline void silk_process_NLSFs_FLP(silk_encoder_state* psEncC, float PredCoef[2][16], opus_int16 NLSF_Q15[16], const opus_int16 prev_NLSF_Q15[16]) {
+template <class State>
+static inline void silk_process_NLSFs_FLP(State* psEncC, float PredCoef[2][16], opus_int16 NLSF_Q15[16], const opus_int16 prev_NLSF_Q15[16]) {
   opus_int16 PredCoef_Q12[2][16];
   silk_process_NLSFs(psEncC, PredCoef_Q12, NLSF_Q15, prev_NLSF_Q15);
   for (int j = 0; j < 2; j++) {
@@ -20311,14 +20337,12 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     }
     const bool lbrr_deferred_generate = (lbrr != nullptr && (lbrr->enabled & 3));
     SideInfoIndices lbrr_original_indices;
-    std::array<float, 4> lbrr_original_gains;
     float lbrr_original_lambda;
     opus_int8 lbrr_original_last_gain_index;
     bool use_reconstructed_lbrr_target = true;
     if (lbrr_deferred_generate) {
       lbrr_original_indices = psEnc->sCmn.indices;
       lbrr_original_indices.quantOffsetType = static_cast<opus_int8>(redundancy_quant_offset_type);
-      std::copy_n(sEncCtrl.Gains, static_cast<std::size_t>(psEnc->sCmn.nb_subfr), lbrr_original_gains.begin());
       lbrr_original_lambda = sEncCtrl.Lambda;
       if (redundancy_quant_offset_type != psEnc->sCmn.indices.quantOffsetType) {
         const float redundancy_offset =
@@ -20415,7 +20439,11 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
             const auto fallback_error = reconstruction_error(nsq_working);
             auto best_error = fallback_error;
             unsigned char innovation_buffer[1276 * 6];
-            std::memcpy(innovation_buffer, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->storage));
+            std::memcpy(innovation_buffer, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
+            if (psRangeEnc->end_offs != 0) {
+              const auto tail_offset = psRangeEnc->storage - psRangeEnc->end_offs;
+              std::memcpy(innovation_buffer + tail_offset, psRangeEnc->buf + tail_offset, static_cast<std::size_t>(psRangeEnc->end_offs));
+            }
             auto innovation_common = psEnc->sCmn;
             for (int peak = 0; peak < psEnc->sCmn.frame_length; ++peak) {
               if (quantized_pulses[peak] == 0)
@@ -20539,7 +20567,6 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     if (lbrr_deferred_generate) {
       if (receiver_expands_prediction)
         silk_NSQ_prepare_FLP(prepared, psEnc, &sEncCtrl, &psEnc->sCmn.indices);
-      std::copy_n(lbrr_original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), sEncCtrl.Gains);
       sEncCtrl.Lambda = lbrr_original_lambda;
       const opus_int16* lbrr_samples = nsq_samples.data();
       const int lbrr_ltp = psEnc->sCmn.ltp_mem_length;
