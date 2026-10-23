@@ -20719,6 +20719,17 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
           coded_prefix_bits = silk_encode_previous_lbrr(psEnc, state_Fxx, *encControl, psRangeEnc, packet_has_lbrr);
           if (headroom_pending)
             psEnc->lbrr->average_bits = 0;
+          if (funding != nullptr && funding->generate) {
+            for (int channel = 0; channel < encControl->nChannelsInternal; ++channel) {
+              if (!packet_has_lbrr[static_cast<std::size_t>(channel)]) {
+                auto& lbrr_channel = psEnc->lbrr->channels[static_cast<std::size_t>(channel)];
+                if (headroom_pending)
+                  lbrr_channel.gain_increase = 7;
+                const int gain_reduction = state_Fxx[channel].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 ? 2 : 0);
+                lbrr_channel.gain_increase += gain_reduction;
+              }
+            }
+          }
         }
       }
       silk_HP_variable_cutoff(state_Fxx);
