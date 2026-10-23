@@ -11686,8 +11686,12 @@ static constexpr auto pitch512_leaders = pitch512_cycle_leaders();
 static constexpr kiss_fft_state pitch512_state{512, 1.f / 512, pitch512_twiddles.data(), pitch512_permutation.data()};
 template <int M> static void pitch512_radix4(kiss_fft_cpx* data) {
   constexpr int stride = 512 / (4 * M);
-  for (int base = 0; base < 512; base += 4 * M) {
-    for (int j = 0; j < M; ++j) {
+  constexpr bool reuse_twiddles = M <= 8;
+  constexpr int groups = 512 / (4 * M);
+  for (int outer = 0; outer < (reuse_twiddles ? M : groups); ++outer) {
+    for (int inner = 0; inner < (reuse_twiddles ? groups : M); ++inner) {
+      const int j = reuse_twiddles ? outer : inner;
+      const int base = (reuse_twiddles ? inner : outer) * (4 * M);
       auto* output = data + base + j;
       const auto a = complex_multiply(output[M], pitch512_twiddles[j * stride]);
       const auto b = complex_multiply(output[2 * M], pitch512_twiddles[2 * j * stride]);
