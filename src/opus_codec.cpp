@@ -2422,9 +2422,9 @@ static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid
 static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, int total_pulses);
 OPUSCPP_NOINLINE static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type);
 OPUSCPP_NOINLINE static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
-                                                  int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
-                                                  decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
-                                                  decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
+                                                    int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
+                                                    decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
+                                                    decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
 template <bool Encode, typename Pulse, bool ReconstructSigns = true>
 static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length);
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
@@ -15600,9 +15600,9 @@ template <bool Encode> [[nodiscard]] static inline int silk_index_symbol(ec_ctx*
 }
 
 static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
-                                                     int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
-                                                     decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
-                                                     decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
+                                   int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
+                                   decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
+                                   decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
   constexpr bool Encode = true;
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(frame_subframes), 4);
