@@ -2279,7 +2279,7 @@ template <typename SampleAt>
     auto pair_energy = first * first;
     const auto second = static_cast<opus_int32>(sample_at(index + 1));
     pair_energy = wrap_add(pair_energy, second * second);
-    energy = wrap_add(energy, pair_energy >> shft);
+    energy = wrap_add(energy, static_cast<opus_int32>(static_cast<opus_uint32>(pair_energy) >> shft));
   }
   if (even_count != count) {
     const auto tail = static_cast<opus_int32>(sample_at(even_count));
