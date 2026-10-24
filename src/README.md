@@ -14,7 +14,7 @@ The supported API mirrors the commonly used single-stream Opus API. It produces 
 
 Custom Opus is unsupported.
 
-The current full measurement is bound to `8ab28e50ed3c`: 24 RFC 8251 decode checks and 96 encoder interoperability checks passed. FEC recovery quality remains partial; [fresh feature results and limits](../tests/metrics/README.md) retain the failed criteria.
+The current full measurement is bound to `487a5a3f6bfb`: 24/24 RFC 8251 decode checks and 96 encoder interoperability packet-acceptance checks passed. Decoded waveform measurements and feature-quality limits remain separate; [fresh results and failed criteria](../tests/metrics/README.md) retain their actual outcomes.
 
 ## Public constants
 

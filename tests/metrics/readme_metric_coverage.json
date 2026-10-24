@@ -1,11 +1,11 @@
 {
   "schema": "opuscpp-readme-metric-coverage-v1",
-  "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-  "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+  "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+  "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
-  "input_manifest_sha256": "710f7ed3454d2561a9d594a3f70152c531296c2d94f2414594117e8341352a4a",
+  "input_manifest_sha256": "8ae56795e9e52c7ad2463c2dadc461de1b3a3d749f5742461c81ec0bc5dc0e68",
   "completed_phases": [
     "prepare",
     "quality",
@@ -469,6 +469,17 @@
       "start_line": 62,
       "end_line": 62,
       "kind": "paragraph",
+      "text": "The 2026-10-24 full run on `8ab28e50ed3c` wins 14/17 individual encoding medians. The publication table retains 713 below-OFF quality fields; both image totals exceed 350,000 B. The combined goal remains unmet. [All criteria and measured values](tests/metrics/README.md).",
+      "source_families": [
+        "quality"
+      ]
+    },
+    {
+      "readme": "README.md",
+      "section": "Published benchmark snapshot vs official Opus",
+      "start_line": 64,
+      "end_line": 64,
+      "kind": "paragraph",
       "text": "Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).",
       "source_families": [
         "speed",
@@ -478,10 +489,10 @@
     {
       "readme": "README.md",
       "section": "Published benchmark snapshot vs official Opus",
-      "start_line": 64,
-      "end_line": 74,
+      "start_line": 66,
+      "end_line": 76,
       "kind": "table",
-      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.987x | 1.910x | +0.4851 | +0.3098 | 16.736 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 1.085x | 1.325x | +0.0892 | +0.0291 | 24.896 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 1.080x | 1.381x | +0.0942 | +0.0079 | 33.091 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 1.057x | 1.251x | +0.2507 | +0.0316 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.137x | 1.281x | +0.3404 | +0.0287 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.070x | 1.267x | +0.2711 | +0.0123 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 1.095x | 1.248x | +0.1452 | +0.0012 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 1.134x | 1.386x | +0.0665 | +0.0031 | 193.036 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 1.031x | 1.221x | +0.0342 | +0.0046 | 256.816 kbps | 256.737 kbps |",
+      "text": "| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.011x | 1.937x | +0.4851 | +0.3098 | 16.736 kbps | 17.065 kbps |\n| 24&nbsp;kbps | 1.064x | 1.334x | +0.0892 | +0.0291 | 24.896 kbps | 25.229 kbps |\n| 32&nbsp;kbps | 1.025x | 1.339x | +0.0942 | +0.0079 | 33.091 kbps | 33.613 kbps |\n| 48&nbsp;kbps | 1.082x | 1.327x | +0.2507 | +0.0316 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | 1.073x | 1.266x | +0.3404 | +0.0287 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | 1.070x | 1.249x | +0.2711 | +0.0123 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | 1.056x | 1.266x | +0.1452 | +0.0012 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | 1.032x | 1.274x | +0.0665 | +0.0031 | 193.036 kbps | 192.900 kbps |\n| 256&nbsp;kbps | 1.030x | 1.189x | +0.0342 | +0.0046 | 256.816 kbps | 256.737 kbps |",
       "source_families": [
         "quality",
         "speed",
@@ -493,8 +504,8 @@
     {
       "readme": "README.md",
       "section": "Published benchmark snapshot vs official Opus",
-      "start_line": 76,
-      "end_line": 76,
+      "start_line": 78,
+      "end_line": 78,
       "kind": "paragraph",
       "text": "VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):",
       "source_families": [
@@ -504,8 +515,8 @@
     {
       "readme": "README.md",
       "section": "Published benchmark snapshot vs official Opus",
-      "start_line": 78,
-      "end_line": 88,
+      "start_line": 80,
+      "end_line": 90,
       "kind": "table",
       "text": "| Bitrate | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1890 | +0.0305 | 15.336 kbps | 12.072 kbps |\n| 24&nbsp;kbps | +0.1757 | +0.0137 | 24.176 kbps | 24.020 kbps |\n| 32&nbsp;kbps | +0.2060 | +0.0130 | 32.211 kbps | 32.088 kbps |\n| 48&nbsp;kbps | +0.2955 | +0.0071 | 48.391 kbps | 48.409 kbps |\n| 64&nbsp;kbps | +0.4475 | +0.0095 | 64.524 kbps | 64.515 kbps |\n| 96&nbsp;kbps | +0.8611 | +0.0122 | 96.400 kbps | 96.499 kbps |\n| 128&nbsp;kbps | +0.9268 | +0.0065 | 128.400 kbps | 128.489 kbps |\n| 192&nbsp;kbps | +1.1000 | +0.0057 | 192.400 kbps | 192.472 kbps |\n| 256&nbsp;kbps | +1.1016 | +0.0057 | 256.400 kbps | 256.464 kbps |",
       "source_families": [
@@ -517,8 +528,8 @@
     {
       "readme": "README.md",
       "section": "Memory snapshot",
-      "start_line": 93,
-      "end_line": 93,
+      "start_line": 95,
+      "end_line": 95,
       "kind": "paragraph",
       "text": "Memory uses 256 instances per group across three fresh processes with FEC and denoising disabled; values are process-private allocation deltas.",
       "source_families": [
@@ -530,10 +541,10 @@
     {
       "readme": "README.md",
       "section": "Memory snapshot",
-      "start_line": 95,
-      "end_line": 100,
+      "start_line": 97,
+      "end_line": 102,
       "kind": "table",
-      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,480 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,480 B | -54.3% |\n| Decoder stereo | 17,568 B | 27,088 B | -35.1% |",
+      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,528 B | 31,808 B | -35.5% |\n| Encoder stereo | 30,640 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,496 B | -54.3% |\n| Decoder stereo | 17,536 B | 27,120 B | -35.3% |",
       "source_families": [
         "memory"
       ],
@@ -541,9 +552,23 @@
     },
     {
       "readme": "src/README.md",
+      "section": "Compatibility goal",
+      "start_line": 17,
+      "end_line": 17,
+      "kind": "paragraph",
+      "text": "The current full measurement is bound to `8ab28e50ed3c`: 24 RFC 8251 decode checks and 96 encoder interoperability checks passed. FEC recovery quality remains partial; [fresh feature results and limits](../tests/metrics/README.md) retain the failed criteria.",
+      "source_families": [
+        "quality",
+        "fec",
+        "compatibility",
+        "snapshot"
+      ]
+    },
+    {
+      "readme": "src/README.md",
       "section": "Supported encoder CTLs",
-      "start_line": 92,
-      "end_line": 113,
+      "start_line": 94,
+      "end_line": 115,
       "kind": "table",
       "text": "| CTL | Macro | Notes |\n|---|---|---|\n| `OPUS_SET_BITRATE_REQUEST` | `OPUS_SET_BITRATE(x)` | Supports explicit bps, `OPUS_AUTO`, and `OPUS_BITRATE_MAX`. |\n| `OPUS_GET_BITRATE_REQUEST` | `OPUS_GET_BITRATE(&x)` | Returns current effective bitrate. |\n| `OPUS_SET_VBR_REQUEST` | `OPUS_SET_VBR(x)` | `1` for VBR, `0` for CBR-style packet padding; default is VBR on. |\n| `OPUS_GET_VBR_REQUEST` | `OPUS_GET_VBR(&x)` | Returns VBR setting. |\n| `OPUS_SET_INBAND_FEC_REQUEST` | `OPUS_SET_INBAND_FEC(x)` | Accepts `0` (off), `1` (on and may force SILK), or `2` (on without forcing SILK for confidently music-like input); default is `0`. |\n| `OPUS_GET_INBAND_FEC_REQUEST` | `OPUS_GET_INBAND_FEC(&x)` | Returns the in-band FEC setting. |\n| `OPUS_SET_PACKET_LOSS_PERC_REQUEST` | `OPUS_SET_PACKET_LOSS_PERC(x)` | Sets expected packet loss from `0..100`; used to decide when FEC is worthwhile. |\n| `OPUS_GET_PACKET_LOSS_PERC_REQUEST` | `OPUS_GET_PACKET_LOSS_PERC(&x)` | Returns expected packet loss. |\n| `OPUS_SET_DTX_REQUEST` | `OPUS_SET_DTX(x)` | Enables guarded discontinuous transmission; default is off. |\n| `OPUS_GET_DTX_REQUEST` | `OPUS_GET_DTX(&x)` | Returns the DTX setting. |\n| `OPUS_GET_IN_DTX_REQUEST` | `OPUS_GET_IN_DTX(&x)` | Reports whether the encoder is currently suppressing inactive frames. |\n| `OPUS_SET_VBR_CONSTRAINT_REQUEST` | `OPUS_SET_VBR_CONSTRAINT(x)` | Enables/disables constrained VBR; default is constrained VBR on. SILK-only and CELT-only frames use the additional packet-credit budget; hybrid frames use native rate control. Constrained VBR does not impose a universal per-packet ceiling. |\n| `OPUS_GET_VBR_CONSTRAINT_REQUEST` | `OPUS_GET_VBR_CONSTRAINT(&x)` | Returns constrained-VBR setting. |\n| `OPUS_SET_COMPLEXITY_REQUEST` | `OPUS_SET_COMPLEXITY(x)` | Accepts `0..10`; higher values enable more encoder analysis. |\n| `OPUS_GET_COMPLEXITY_REQUEST` | `OPUS_GET_COMPLEXITY(&x)` | Returns effective complexity. |\n| `OPUSCPP_SET_VOICE_DENOISE_REQUEST` | `OPUSCPP_SET_VOICE_DENOISE(x)` | Accepts `0` (off) or `1` (on) for the optional mono-VOIP broadband-noise suppressor; default is `0` and unsupported encoder configurations accept but ignore `1`. |\n| `OPUSCPP_GET_VOICE_DENOISE_REQUEST` | `OPUSCPP_GET_VOICE_DENOISE(&x)` | Returns the voice-denoise setting. |\n| `OPUS_GET_LOOKAHEAD_REQUEST` | `OPUS_GET_LOOKAHEAD(&x)` | Returns codec delay for pre-skip/time alignment: 312 samples at 48 kHz for VOIP/AUDIO and 120 for restricted low delay. |\n| `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |\n| `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets encoder state while preserving encoder configuration CTLs. |",
       "source_families": [
@@ -559,8 +584,8 @@
     {
       "readme": "src/README.md",
       "section": "In-band FEC",
-      "start_line": 132,
-      "end_line": 139,
+      "start_line": 134,
+      "end_line": 141,
       "kind": "paragraph",
       "text": "In-band FEC is optional and disabled by default. When enabled for SILK or hybrid packets, the\nencoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only\npackets cannot carry this redundancy. Its extra encoder state is allocated lazily on first enable\nand released with the encoder. `opuscpp` spends more of the redundancy budget on recoverable\ndetail than official Opus and keeps a mono VOIP stream in a FEC-capable mode through\n32&nbsp;kbps, or stereo through 48&nbsp;kbps, when packet protection is explicitly requested.\nMode `2` keeps confidently music-like input in CELT-only mode rather than forcing SILK solely for FEC; those\nCELT-only packets cannot carry redundancy.",
       "source_families": [
@@ -570,8 +595,8 @@
     {
       "readme": "src/README.md",
       "section": "In-band FEC",
-      "start_line": 148,
-      "end_line": 150,
+      "start_line": 150,
+      "end_line": 152,
       "kind": "paragraph",
       "text": "Recovery requires one packet of delay. If packet `N` is missing and packet `N+1` arrives, decode\n`N+1` first with `decode_fec = 1` to recover `N`, then decode the same packet normally with\n`decode_fec = 0` to obtain `N+1`. If no redundant frame is present, the decoder returns packet-loss concealment output. Recovery metrics and the full packet/configuration coverage are in [`tests/metrics/README.md`](../tests/metrics/README.md).",
       "source_families": [
@@ -582,8 +607,8 @@
     {
       "readme": "src/README.md",
       "section": "Supported decoder CTLs",
-      "start_line": 154,
-      "end_line": 158,
+      "start_line": 156,
+      "end_line": 160,
       "kind": "table",
       "text": "| CTL | Macro | Notes |\n|---|---|---|\n| `OPUS_GET_LAST_PACKET_DURATION_REQUEST` | `OPUS_GET_LAST_PACKET_DURATION(&x)` | Returns last decoded packet duration. |\n| `OPUS_GET_FINAL_RANGE_REQUEST` | `OPUS_GET_FINAL_RANGE(&x)` | Final entropy range for validation/debug. |\n| `OPUS_RESET_STATE` | `OPUS_RESET_STATE` | Resets decoder state. |",
       "source_families": [
@@ -594,9 +619,21 @@
     },
     {
       "readme": "tests/README.md",
+      "section": "Tests and Metrics",
+      "start_line": 5,
+      "end_line": 5,
+      "kind": "paragraph",
+      "text": "The full refresh for `8ab28e50ed3c` uses fresh current and pinned-OFF51bd measurements with the maintained options and release flags. All 17 encoding medians, all quality fields and failed feature criteria are reported in [the complete metrics](metrics/README.md).",
+      "source_families": [
+        "quality",
+        "snapshot"
+      ]
+    },
+    {
+      "readme": "tests/README.md",
       "section": "Option 1 - Run the full conformance and benchmark report in one command (recommended)",
-      "start_line": 43,
-      "end_line": 45,
+      "start_line": 45,
+      "end_line": 47,
       "kind": "paragraph",
       "text": "These one-liners expect Python 3, a C++23 compiler, `git`, and `cmake` to already be installed and\navailable on your PATH. On Windows, add `-Cleanup` if you want the helper workspace removed at the\nend.",
       "source_families": [
@@ -607,8 +644,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 2 - Manual prerequisites",
-      "start_line": 51,
-      "end_line": 55,
+      "start_line": 53,
+      "end_line": 57,
       "kind": "paragraph",
       "text": "- Python 3\n- A C++23 compiler (`g++`, `clang++`, or equivalent)\n- `git`\n- `cmake`\n- either `ninja` or `make`",
       "source_families": [
@@ -618,8 +655,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 1 - Run the setup script (recommended)",
-      "start_line": 80,
-      "end_line": 80,
+      "start_line": 82,
+      "end_line": 82,
       "kind": "paragraph",
       "text": "By default it downloads the RFC 6716 vector bundle. To fetch both the RFC 6716 and RFC 8251 bundles:",
       "source_families": [
@@ -629,8 +666,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 2 - Manual setup",
-      "start_line": 90,
-      "end_line": 93,
+      "start_line": 92,
+      "end_line": 95,
       "kind": "paragraph",
       "text": "1. Obtain the official Opus RFC test vector set.\n2. Build official Opus (upstream `main`) as a static library with intrinsics enabled at `-O2 -DNDEBUG`\n   flags for the public benchmark comparison.\n3. Build the `opuscpp` decoder harness.",
       "source_families": [
@@ -641,8 +678,8 @@
     {
       "readme": "tests/README.md",
       "section": "RFC decode conformance",
-      "start_line": 144,
-      "end_line": 144,
+      "start_line": 146,
+      "end_line": 146,
       "kind": "paragraph",
       "text": "Decode official RFC 6716 vectors updated by RFC 8251 and compare output with reference PCM using `opus_compare`. Vector files are downloaded by `tests/scripts/setup_official_compare.py`.",
       "source_families": [
@@ -652,8 +689,8 @@
     {
       "readme": "tests/README.md",
       "section": "RFC decode conformance",
-      "start_line": 154,
-      "end_line": 154,
+      "start_line": 156,
+      "end_line": 156,
       "kind": "paragraph",
       "text": "Coverage: 24 RFC 8251 updated decode vectors, mono/stereo; final-range checks are supported by the harness.",
       "source_families": [
@@ -663,8 +700,8 @@
     {
       "readme": "tests/README.md",
       "section": "Encode interoperability validation",
-      "start_line": 160,
-      "end_line": 160,
+      "start_line": 162,
+      "end_line": 162,
       "kind": "paragraph",
       "text": "Coverage: 96 generated encode-interoperability cases.",
       "source_families": [
@@ -674,8 +711,8 @@
     {
       "readme": "tests/README.md",
       "section": "Perceptual and memory harness",
-      "start_line": 179,
-      "end_line": 179,
+      "start_line": 181,
+      "end_line": 181,
       "kind": "paragraph",
       "text": "`perceptual_memory_validation.cpp` accepts generated or user-provided 16-bit PCM WAV input and reports quality proxies, effective bitrate, encode time and optional process memory. Quality is delay-aligned and uses per-channel scoring.",
       "source_families": [
@@ -688,8 +725,8 @@
     {
       "readme": "tests/README.md",
       "section": "Speed metrics vs official Opus with x86 intrinsics",
-      "start_line": 186,
-      "end_line": 186,
+      "start_line": 188,
+      "end_line": 188,
       "kind": "paragraph",
       "text": "Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS and nine 60-second stereo runs. Ratios above `1.00x` indicate faster processing.",
       "source_families": [
@@ -700,10 +737,10 @@
     {
       "readme": "tests/README.md",
       "section": "Speed metrics vs official Opus with x86 intrinsics",
-      "start_line": 188,
-      "end_line": 198,
+      "start_line": 190,
+      "end_line": 200,
       "kind": "table",
-      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 0.987x | 1.910x | 346x | 351x | 2320x | 1215x |\n| 24&nbsp;kbps | 1.085x | 1.325x | 340x | 314x | 1484x | 1120x |\n| 32&nbsp;kbps | 1.080x | 1.381x | 334x | 310x | 1497x | 1084x |\n| 48&nbsp;kbps | 1.057x | 1.251x | 319x | 302x | 1177x | 941x |\n| 64&nbsp;kbps | 1.137x | 1.281x | 279x | 246x | 1073x | 838x |\n| 96&nbsp;kbps | 1.070x | 1.267x | 226x | 211x | 839x | 662x |\n| 128&nbsp;kbps | 1.095x | 1.248x | 198x | 181x | 679x | 544x |\n| 192&nbsp;kbps | 1.134x | 1.386x | 167x | 148x | 578x | 417x |\n| 256&nbsp;kbps | 1.031x | 1.221x | 171x | 166x | 536x | 439x |",
+      "text": "| Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |\n|---:|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | 1.011x | 1.937x | 357x | 354x | 2525x | 1304x |\n| 24&nbsp;kbps | 1.064x | 1.334x | 347x | 326x | 1514x | 1135x |\n| 32&nbsp;kbps | 1.025x | 1.339x | 336x | 327x | 1492x | 1115x |\n| 48&nbsp;kbps | 1.082x | 1.327x | 319x | 294x | 1249x | 941x |\n| 64&nbsp;kbps | 1.073x | 1.266x | 284x | 265x | 1070x | 845x |\n| 96&nbsp;kbps | 1.070x | 1.249x | 229x | 214x | 844x | 676x |\n| 128&nbsp;kbps | 1.056x | 1.266x | 203x | 193x | 741x | 585x |\n| 192&nbsp;kbps | 1.032x | 1.274x | 181x | 175x | 624x | 490x |\n| 256&nbsp;kbps | 1.030x | 1.189x | 172x | 167x | 528x | 444x |",
       "source_families": [
         "speed",
         "snapshot"
@@ -713,8 +750,8 @@
     {
       "readme": "tests/README.md",
       "section": "Quality metrics vs official Opus",
-      "start_line": 202,
-      "end_line": 202,
+      "start_line": 204,
+      "end_line": 204,
       "kind": "paragraph",
       "text": "AUDIO quality proxies compare both encoders at complexity10 on the same six-second synthetic music-like input. Deltas are `opuscpp - official`; positive is better. Effective bitrates are measured payload rates from the same validation run; decoding uses the default unfiltered output.",
       "source_families": [
@@ -725,8 +762,8 @@
     {
       "readme": "tests/README.md",
       "section": "Quality metrics vs official Opus",
-      "start_line": 204,
-      "end_line": 214,
+      "start_line": 206,
+      "end_line": 216,
       "kind": "table",
       "text": "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.4851 | +0.3098 | +1.3537 | 16.736 kbps | 17.065 kbps |\n| 24&nbsp;kbps | +0.0892 | +0.0291 | -1.4608 | 24.896 kbps | 25.229 kbps |\n| 32&nbsp;kbps | +0.0942 | +0.0079 | -1.3302 | 33.091 kbps | 33.613 kbps |\n| 48&nbsp;kbps | +0.2507 | +0.0316 | -0.0087 | 48.560 kbps | 48.560 kbps |\n| 64&nbsp;kbps | +0.3404 | +0.0287 | +0.0223 | 64.613 kbps | 64.613 kbps |\n| 96&nbsp;kbps | +0.2711 | +0.0123 | +0.0084 | 96.720 kbps | 96.697 kbps |\n| 128&nbsp;kbps | +0.1452 | +0.0012 | +0.0177 | 128.827 kbps | 128.759 kbps |\n| 192&nbsp;kbps | +0.0665 | +0.0031 | -0.0063 | 193.036 kbps | 192.900 kbps |\n| 256&nbsp;kbps | +0.0342 | +0.0046 | +0.0066 | 256.816 kbps | 256.737 kbps |",
       "source_families": [
@@ -738,8 +775,8 @@
     {
       "readme": "tests/README.md",
       "section": "VOIP quality metrics vs official Opus",
-      "start_line": 220,
-      "end_line": 230,
+      "start_line": 222,
+      "end_line": 232,
       "kind": "table",
       "text": "| Bitrate | PESQ-style delta | ViSQOL-style delta | CELT proxy delta | opuscpp effective bitrate | official Opus effective bitrate |\n|---:|---:|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1890 | +0.0305 | +0.3590 | 15.336 kbps | 12.072 kbps |\n| 24&nbsp;kbps | +0.1757 | +0.0137 | +0.1028 | 24.176 kbps | 24.020 kbps |\n| 32&nbsp;kbps | +0.2060 | +0.0130 | +0.3386 | 32.211 kbps | 32.088 kbps |\n| 48&nbsp;kbps | +0.2955 | +0.0071 | +0.2210 | 48.391 kbps | 48.409 kbps |\n| 64&nbsp;kbps | +0.4475 | +0.0095 | +0.0010 | 64.524 kbps | 64.515 kbps |\n| 96&nbsp;kbps | +0.8611 | +0.0122 | +0.4166 | 96.400 kbps | 96.499 kbps |\n| 128&nbsp;kbps | +0.9268 | +0.0065 | +0.3912 | 128.400 kbps | 128.489 kbps |\n| 192&nbsp;kbps | +1.1000 | +0.0057 | +0.4242 | 192.400 kbps | 192.472 kbps |\n| 256&nbsp;kbps | +1.1016 | +0.0057 | +0.4512 | 256.400 kbps | 256.464 kbps |",
       "source_families": [
@@ -751,8 +788,8 @@
     {
       "readme": "tests/README.md",
       "section": "VOIP quality metrics vs official Opus",
-      "start_line": 232,
-      "end_line": 232,
+      "start_line": 234,
+      "end_line": 234,
       "kind": "paragraph",
       "text": "The voiced/formant fixture uses phase-integrated pitch and breath noise at 30 dB SNR; its complete fields and fixture metadata are in [quality_official_full_precision.csv](metrics/quality_official_full_precision.csv) and [quality_run_metadata.json](metrics/quality_run_metadata.json).",
       "source_families": [
@@ -762,8 +799,8 @@
     {
       "readme": "tests/README.md",
       "section": "Broader content check",
-      "start_line": 238,
-      "end_line": 243,
+      "start_line": 240,
+      "end_line": 245,
       "kind": "table",
       "text": "| Set | Comparisons | Negative PESQ-style | Negative ViSQOL-style | Negative CELT proxy |\n|---:|---:|---:|---:|---:|\n| Broad ladder | 99 | 5 | 8 | 26 |\n| Stereo/content holdouts | 30 | 4 | 7 | 12 |\n| Mono speech recordings | 36 | 0 | 0 | 0 |\n| Retained tonal stress | 9 | 0 | 0 | 0 |",
       "source_families": [
@@ -774,8 +811,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 251,
-      "end_line": 251,
+      "start_line": 253,
+      "end_line": 253,
       "kind": "paragraph",
       "text": "The on/off comparison uses mono speech mixed with sustained 6 dB white noise and is scored against clean speech after codec-delay alignment.",
       "source_families": [
@@ -785,8 +822,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 253,
-      "end_line": 253,
+      "start_line": 255,
+      "end_line": 255,
       "kind": "paragraph",
       "text": "The 15.5/20 kbps cases have PESQ-style gains +0.1742/+0.2060 and ViSQOL-style gains +0.1235/+0.1231. The boundary benchmark passes 25/25 rates.",
       "source_families": [
@@ -797,8 +834,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 255,
-      "end_line": 255,
+      "start_line": 257,
+      "end_line": 257,
       "kind": "paragraph",
       "text": "Across 246 on/off comparisons covering 41 clean/noisy/content conditions at 6 rates, 13 have negative PESQ-style deltas, 28 negative ViSQOL-style deltas, and 30 negative CELT-proxy deltas. All 12 fields, including other losses, are retained in `metrics/voice_denoise_broad.csv`.",
       "source_families": [
@@ -809,8 +846,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 258,
-      "end_line": 258,
+      "start_line": 260,
+      "end_line": 260,
       "kind": "paragraph",
       "text": "Encode overhead includes downstream coding work; timings are medians of nine 60-second runs after one warm-up.",
       "source_families": [
@@ -820,8 +857,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 260,
-      "end_line": 260,
+      "start_line": 262,
+      "end_line": 262,
       "kind": "paragraph",
       "text": "Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configurations.",
       "source_families": [
@@ -832,10 +869,10 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 262,
-      "end_line": 272,
+      "start_line": 264,
+      "end_line": 274,
       "kind": "table",
-      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1846 | +0.1179 | 1.3% |\n| 24&nbsp;kbps | +0.2203 | +0.1204 | 8.7% |\n| 32&nbsp;kbps | +0.2053 | +0.1197 | 5.3% |\n| 48&nbsp;kbps | +0.2158 | +0.1189 | 5.0% |\n| 64&nbsp;kbps | +0.2107 | +0.1306 | 4.5% |\n| 96&nbsp;kbps | +0.2126 | +0.1581 | 5.9% |\n| 128&nbsp;kbps | +0.2129 | +0.1575 | 5.8% |\n| 192&nbsp;kbps | +0.2154 | +0.1583 | 5.9% |\n| 256&nbsp;kbps | +0.2156 | +0.1593 | 4.6% |",
+      "text": "| Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |\n|---:|---:|---:|---:|\n| 16&nbsp;kbps | +0.1846 | +0.1179 | 5.7% |\n| 24&nbsp;kbps | +0.2203 | +0.1204 | 5.4% |\n| 32&nbsp;kbps | +0.2053 | +0.1197 | 4.8% |\n| 48&nbsp;kbps | +0.2158 | +0.1189 | 5.2% |\n| 64&nbsp;kbps | +0.2107 | +0.1306 | 5.6% |\n| 96&nbsp;kbps | +0.2126 | +0.1581 | 6.4% |\n| 128&nbsp;kbps | +0.2129 | +0.1575 | 7.3% |\n| 192&nbsp;kbps | +0.2154 | +0.1583 | 6.0% |\n| 256&nbsp;kbps | +0.2156 | +0.1593 | 0.4% |",
       "source_families": [
         "quality",
         "denoiser"
@@ -845,8 +882,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 276,
-      "end_line": 276,
+      "start_line": 278,
+      "end_line": 278,
       "kind": "paragraph",
       "text": "The state/bounds/reset command covers five sample rates, six frame durations and complexities0,5,10:",
       "source_families": [
@@ -857,8 +894,8 @@
     {
       "readme": "tests/README.md",
       "section": "Memory metrics",
-      "start_line": 285,
-      "end_line": 285,
+      "start_line": 287,
+      "end_line": 287,
       "kind": "paragraph",
       "text": "Memory uses 256 instances across three processes with FEC and denoising disabled; values are private allocation deltas. [Run metadata](metrics/run_metadata.json).",
       "source_families": [
@@ -870,10 +907,10 @@
     {
       "readme": "tests/README.md",
       "section": "Memory metrics",
-      "start_line": 287,
-      "end_line": 292,
+      "start_line": 289,
+      "end_line": 294,
       "kind": "table",
-      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,480 B | 31,824 B | -35.6% |\n| Encoder stereo | 30,656 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,480 B | -54.3% |\n| Decoder stereo | 17,568 B | 27,088 B | -35.1% |",
+      "text": "| State | opuscpp | official Opus | Difference |\n|---:|---:|---:|---:|\n| Encoder mono | 20,528 B | 31,808 B | -35.5% |\n| Encoder stereo | 30,640 B | 48,880 B | -37.3% |\n| Decoder mono | 8,448 B | 18,496 B | -54.3% |\n| Decoder stereo | 17,536 B | 27,120 B | -35.3% |",
       "source_families": [
         "memory"
       ],
@@ -882,10 +919,10 @@
     {
       "readme": "tests/README.md",
       "section": "Binary size",
-      "start_line": 300,
-      "end_line": 303,
+      "start_line": 302,
+      "end_line": 305,
       "kind": "table",
-      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 526,516 B | 0 B | 526,516 B |\n| Android arm64 Clang `-O2` | 509,192 B | 472 B | 509,664 B |",
+      "text": "| Build | Text | Data | Total measured image (text+data+bss) |\n|---:|---:|---:|---:|\n| Host MinGW GCC `-O2` | 519,724 B | 0 B | 519,724 B |\n| Android arm64 Clang `-O2` | 503,132 B | 472 B | 503,604 B |",
       "source_families": [
         "object_size",
         "snapshot"
@@ -922,7 +959,7 @@
       "start_line": 31,
       "end_line": 33,
       "kind": "table",
-      "text": "| Workload | Encode ratios | Decode ratios |\n|---|---:|---:|\n| AUDIO | 0.99x to 1.14x | 1.22x to 1.91x |",
+      "text": "| Workload | Encode ratios | Decode ratios |\n|---|---:|---:|\n| AUDIO | 1.01x to 1.08x | 1.19x to 1.94x |",
       "source_families": [
         "speed"
       ],
@@ -962,7 +999,7 @@
       "start_line": 41,
       "end_line": 50,
       "kind": "table",
-      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 20480 | 20448 | Not exposed |\n| official_encoder_ch1 | 31824 | 31888 | 31668 |\n| current_decoder_ch1 | 8448 | 8336 | Not exposed |\n| official_decoder_ch1 | 18480 | 18592 | 18468 |\n| current_encoder_ch2 | 30656 | 30560 | Not exposed |\n| official_encoder_ch2 | 48880 | 48736 | 48684 |\n| current_decoder_ch2 | 17568 | 16224 | Not exposed |\n| official_decoder_ch2 | 27088 | 27264 | 27236 |",
+      "text": "| State | Private bytes/instance | Working-set bytes/instance | Official API bytes |\n|---|---:|---:|---:|\n| current_encoder_ch1 | 20528 | 20496 | Not exposed |\n| official_encoder_ch1 | 31808 | 31904 | 31668 |\n| current_decoder_ch1 | 8448 | 8304 | Not exposed |\n| official_decoder_ch1 | 18496 | 18576 | 18468 |\n| current_encoder_ch2 | 30640 | 30560 | Not exposed |\n| official_encoder_ch2 | 48880 | 48736 | 48684 |\n| current_decoder_ch2 | 17536 | 16208 | Not exposed |\n| official_decoder_ch2 | 27120 | 27264 | 27236 |",
       "source_families": [
         "memory",
         "object_size"
@@ -989,7 +1026,7 @@
       "start_line": 58,
       "end_line": 61,
       "kind": "table",
-      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 526516 | 0 | 0 | 526516 |\n| android | 509192 | 472 | 0 | 509664 |",
+      "text": "| Object | Text bytes | Data bytes | BSS bytes | Total bytes |\n|---|---:|---:|---:|---:|\n| host | 519724 | 0 | 0 | 519724 |\n| android | 503132 | 472 | 0 | 503604 |",
       "source_families": [
         "memory",
         "object_size"
@@ -1055,7 +1092,7 @@
       "start_line": 122,
       "end_line": 127,
       "kind": "paragraph",
-      "text": "```text\nmono-mid bytes=76 encode_ms=18.2543 decode_ms=17.5646 checksum=340886119\nmono-high bytes=115 encode_ms=21.0097 decode_ms=15.3285 checksum=2633358364\nstereo-mid bytes=103 encode_ms=58.1367 decode_ms=30.5395 checksum=4179984942\nstereo-high bytes=147 encode_ms=52.3995 decode_ms=31.2213 checksum=3681257371\n```",
+      "text": "```text\nmono-mid bytes=76 encode_ms=18.3975 decode_ms=15.8911 checksum=340886119\nmono-high bytes=115 encode_ms=20.3271 decode_ms=14.958 checksum=2633358364\nstereo-mid bytes=103 encode_ms=61.9991 decode_ms=31.2014 checksum=4179984942\nstereo-high bytes=147 encode_ms=54.8113 decode_ms=31.5502 checksum=3681257371\n```",
       "source_families": [
         "microbenchmark"
       ]
@@ -1102,8 +1139,8 @@
     {
       "readme": "README.md",
       "section": "License",
-      "start_line": 108,
-      "end_line": 108,
+      "start_line": 110,
+      "end_line": 110,
       "kind": "paragraph",
       "text": "This project is derived from Opus 1.6.1 (tracked upstream commit [503d81b138d7](https://github.com/xiph/opus/commit/503d81b138d76621aae4b12786e90de48aa8db3a)) and retains the upstream Opus license text in `LICENSE`. The measured comparator is official Opus 1.6.1-81-g51bd2e64, commit [51bd2e649f45](https://github.com/xiph/opus/commit/51bd2e649f4516d103ab9a7f22a768595621e847).",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1111,8 +1148,8 @@
     {
       "readme": "README.md",
       "section": "Real-world use: Melo",
-      "start_line": 116,
-      "end_line": 119,
+      "start_line": 118,
+      "end_line": 121,
       "kind": "paragraph",
       "text": "Available on [Android](https://play.google.com/store/apps/details?id=dands.technologies.melo),\n[Windows](https://storage.googleapis.com/dnstech-release/executables/Melo.exe),\n[iOS](https://apps.apple.com/us/app/melo/id1037721120), and\n[macOS](https://apps.apple.com/us/app/melo/id1037721124?mt=12).",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1129,8 +1166,8 @@
     {
       "readme": "src/README.md",
       "section": "Public constants",
-      "start_line": 43,
-      "end_line": 46,
+      "start_line": 45,
+      "end_line": 48,
       "kind": "paragraph",
       "text": "- `OPUS_FRAME_SIZE_2MS5`\n- `OPUS_FRAME_SIZE_5MS`\n- `OPUS_FRAME_SIZE_10MS`\n- `OPUS_FRAME_SIZE_20MS`",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1138,8 +1175,8 @@
     {
       "readme": "src/README.md",
       "section": "Public functions",
-      "start_line": 52,
-      "end_line": 59,
+      "start_line": 54,
+      "end_line": 61,
       "kind": "paragraph",
       "text": "```cpp\nOpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* error) noexcept;\nvoid opus_encoder_destroy(OpusEncoder* st) noexcept;\nint opus_encoder_ctl(OpusEncoder* st, int request, ...) noexcept;\nint opus_encode(OpusEncoder* st, const int16_t* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;\nint opus_encode(OpusEncoder* st, std::span<const int16_t> pcm, std::span<unsigned char> packet) noexcept;\nint opus_encode_float(OpusEncoder* st, const float* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept;\n```",
       "classification": "build/setup/API example; not measured"
@@ -1147,8 +1184,8 @@
     {
       "readme": "src/README.md",
       "section": "Public functions",
-      "start_line": 61,
-      "end_line": 61,
+      "start_line": 63,
+      "end_line": 63,
       "kind": "paragraph",
       "text": "Float PCM is normally in `[-1, 1]`. Nonfinite samples or excessive input energy return `OPUS_BAD_ARG` before encoding.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1156,8 +1193,8 @@
     {
       "readme": "src/README.md",
       "section": "Public functions",
-      "start_line": 65,
-      "end_line": 72,
+      "start_line": 67,
+      "end_line": 74,
       "kind": "paragraph",
       "text": "```cpp\nOpusDecoder* opus_decoder_create(int Fs, int channels, int* error) noexcept;\nvoid opus_decoder_destroy(OpusDecoder* st) noexcept;\nint opus_decoder_ctl(OpusDecoder* st, int request, ...) noexcept;\nint opus_decode(OpusDecoder* st, const unsigned char* data, int len, int16_t* pcm, int frame_size, int decode_fec) noexcept;\nint opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::span<int16_t> pcm, int decode_fec = 0) noexcept;\nint opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept;\n```",
       "classification": "build/setup/API example; not measured"
@@ -1165,8 +1202,8 @@
     {
       "readme": "src/README.md",
       "section": "Supported encoder CTLs",
-      "start_line": 119,
-      "end_line": 121,
+      "start_line": 121,
+      "end_line": 123,
       "kind": "paragraph",
       "text": "```cpp\nopus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));\n```",
       "classification": "build/setup/API example; not measured"
@@ -1174,8 +1211,8 @@
     {
       "readme": "src/README.md",
       "section": "Supported encoder CTLs",
-      "start_line": 123,
-      "end_line": 126,
+      "start_line": 125,
+      "end_line": 128,
       "kind": "table",
       "text": "| Setting | Recommended use |\n|---:|---|\n| `0` (off) | Clean capture, music, stereo, non-VOIP applications, or external noise suppression. This is the default. |\n| `1` (on) | Mono `OPUS_APPLICATION_VOIP` capture with sustained broadband noise. Stereo and other applications accept but ignore the request, so the getter remains `0`. |",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1183,8 +1220,8 @@
     {
       "readme": "src/README.md",
       "section": "In-band FEC",
-      "start_line": 143,
-      "end_line": 146,
+      "start_line": 145,
+      "end_line": 148,
       "kind": "paragraph",
       "text": "```cpp\nopus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(1));\nopus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(10));\n```",
       "classification": "build/setup/API example; not measured"
@@ -1192,8 +1229,8 @@
     {
       "readme": "tests/README.md",
       "section": "Voice conditioning release regression",
-      "start_line": 7,
-      "end_line": 7,
+      "start_line": 9,
+      "end_line": 9,
       "kind": "paragraph",
       "text": "[`voice_conditioning_release.cpp`](voice_conditioning_release.cpp) checks that provisional and normal cues use the same falling-score envelope, provisional state expires, rumble/DC protection still attacks promptly, and clean input recovers after contamination. Its 133 explicit checks remain active with `-DNDEBUG`; the previous coefficient selection fails 61 checks specific to the provisional fall. The harness includes the implementation and builds on its own:",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1201,8 +1238,8 @@
     {
       "readme": "tests/README.md",
       "section": "Voice conditioning release regression",
-      "start_line": 9,
-      "end_line": 11,
+      "start_line": 11,
+      "end_line": 13,
       "kind": "paragraph",
       "text": "```sh\ng++ -std=c++23 -O2 -DNDEBUG -Isrc tests/voice_conditioning_release.cpp -o voice_conditioning_release_test\n```",
       "classification": "build/setup/API example; not measured"
@@ -1210,8 +1247,8 @@
     {
       "readme": "tests/README.md",
       "section": "NSQ quantization-level regression",
-      "start_line": 15,
-      "end_line": 15,
+      "start_line": 17,
+      "end_line": 17,
       "kind": "paragraph",
       "text": "[`nsq_quant_levels.cpp`](nsq_quant_levels.cpp) checks every clamped residual, all four offset cells and 15 Lambda boundary/extreme values in both zero-pulse modes: 7,495,800 comparisons of all six output fields. It checks lookup bounds before access and passes a null table pointer on the zero-pulse path. The harness includes the implementation and builds on its own:",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1219,8 +1256,8 @@
     {
       "readme": "tests/README.md",
       "section": "NSQ quantization-level regression",
-      "start_line": 17,
-      "end_line": 19,
+      "start_line": 19,
+      "end_line": 21,
       "kind": "paragraph",
       "text": "```sh\ng++ -std=c++23 -O2 -DNDEBUG -Isrc tests/nsq_quant_levels.cpp -o nsq_quant_levels_test\n```",
       "classification": "build/setup/API example; not measured"
@@ -1228,8 +1265,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 1 - Run the full conformance and benchmark report in one command (recommended)",
-      "start_line": 33,
-      "end_line": 35,
+      "start_line": 35,
+      "end_line": 37,
       "kind": "paragraph",
       "text": "```bash\n/bin/sh -c \"$(curl -fsSL https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_full_report.sh)\"\n```",
       "classification": "build/setup/API example; not measured"
@@ -1237,8 +1274,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 1 - Run the full conformance and benchmark report in one command (recommended)",
-      "start_line": 39,
-      "end_line": 41,
+      "start_line": 41,
+      "end_line": 43,
       "kind": "paragraph",
       "text": "```powershell\npowershell -ExecutionPolicy Bypass -Command \"Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/reg31/opuscpp/main/tests/scripts/run_full_report.ps1' -OutFile run_full_report.ps1; ./run_full_report.ps1\"\n```",
       "classification": "build/setup/API example; not measured"
@@ -1246,8 +1283,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 1 - Run the setup script (recommended)",
-      "start_line": 70,
-      "end_line": 72,
+      "start_line": 72,
+      "end_line": 74,
       "kind": "paragraph",
       "text": "```bash\npython3 tests/scripts/setup_official_compare.py --cxx c++\n```",
       "classification": "build/setup/API example; not measured"
@@ -1255,8 +1292,8 @@
     {
       "readme": "tests/README.md",
       "section": "Option 1 - Run the setup script (recommended)",
-      "start_line": 82,
-      "end_line": 84,
+      "start_line": 84,
+      "end_line": 86,
       "kind": "paragraph",
       "text": "```bash\npython3 tests/scripts/setup_official_compare.py --download-vectors both\n```",
       "classification": "build/setup/API example; not measured"
@@ -1264,8 +1301,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional local listening samples",
-      "start_line": 99,
-      "end_line": 101,
+      "start_line": 101,
+      "end_line": 103,
       "kind": "paragraph",
       "text": "```bash\npython3 tests/generate_synthetic_wav.py --out tests/generated_audio\n```",
       "classification": "build/setup/API example; not measured"
@@ -1273,8 +1310,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional local listening samples",
-      "start_line": 105,
-      "end_line": 111,
+      "start_line": 107,
+      "end_line": 113,
       "kind": "paragraph",
       "text": "The mono \"voice-like\" fixture is a voiced formant synthesis: a glottal impulse train with an\naccumulated-phase pitch contour (so the instantaneous pitch stays near the intended 120-140 Hz\nrange) shaped by three formant resonators, then gated by a syllable-rate envelope with breath\nnoise mixed at a controlled 30 dB SNR. It is a deterministic stress fixture, not recorded speech;\nuse a real 48 kHz mono WAV when a speech-representative check is needed. The\nphase-modulated two-tone fixture is still generated as `synthetic_tonal_stress_mono.wav` for\ntonal-stress testing.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1282,8 +1319,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional WER validation for speech-to-text",
-      "start_line": 115,
-      "end_line": 118,
+      "start_line": 117,
+      "end_line": 120,
       "kind": "paragraph",
       "text": "`run_wer_validation.py` is a speech-to-text validation tool for VOIP tuning. It encodes and decodes\n48 kHz PCM16 speech samples, optionally attenuates quiet-talker cases, adds deterministic noise at\nseveral SNR levels, runs an ASR command on the decoded WAVs, then reports WER/CER against the\nreference transcript.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1291,8 +1328,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional WER validation for speech-to-text",
-      "start_line": 122,
-      "end_line": 132,
+      "start_line": 124,
+      "end_line": 134,
       "kind": "paragraph",
       "text": "```bash\npython3 tests/scripts/run_wer_validation.py \\\n    --manifest tests/wer_manifest.json \\\n    --asr-command \"python3 my_asr.py {wav}\" \\\n    --bitrate 16000,24000,32000,48000 \\\n    --application voip \\\n    --gain-db 0,-12,-24 \\\n    --snr-db clean,20,10,5,0 \\\n    --max-average-wer 0.12 \\\n    --max-case-wer 0.30\n```",
       "classification": "build/setup/API example; not measured"
@@ -1300,8 +1337,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional WER validation for speech-to-text",
-      "start_line": 134,
-      "end_line": 140,
+      "start_line": 136,
+      "end_line": 142,
       "kind": "paragraph",
       "text": "The ASR command can be Azure, Whisper, Android Speech, or any local recognizer; it only needs to\nprint the recognized text to stdout. Use `OPUSCPP_ASR_COMMAND` instead of `--asr-command` if you\nprefer environment configuration. Reports are written under `build/wer_validation/`.\n`--gain-db` is applied before encoding and before optional noise injection; use it to validate quiet\nvoice robustness without needing separate low-volume source files.\nFor regression gating, pass `--baseline tests/metrics/wer_results.json --max-wer-regression 0.02`.\nAdd `--update-baseline` only after listening/ASR review confirms the new result is better.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
@@ -1309,8 +1346,8 @@
     {
       "readme": "tests/README.md",
       "section": "RFC decode conformance",
-      "start_line": 148,
-      "end_line": 152,
+      "start_line": 150,
+      "end_line": 154,
       "kind": "paragraph",
       "text": "```bash\nc++ -std=c++23 -O2 -DNDEBUG -I src \\\n    tests/conformance_decode.cpp src/opus_codec.cpp \\\n    -o build/conformance_decode\n```",
       "classification": "build/setup/API example; not measured"
@@ -1318,8 +1355,8 @@
     {
       "readme": "tests/README.md",
       "section": "Focused test commands",
-      "start_line": 166,
-      "end_line": 169,
+      "start_line": 168,
+      "end_line": 171,
       "kind": "paragraph",
       "text": "```sh\nc++ -std=c++23 -O2 -DNDEBUG -DOPUSCPP_ENABLE_TEST_HOOKS -I src \\\n    tests/hybrid_transient_budget.cpp src/opus_codec.cpp -o build/hybrid_transient_budget\n```",
       "classification": "build/setup/API example; not measured"
@@ -1327,8 +1364,8 @@
     {
       "readme": "tests/README.md",
       "section": "Optional speech denoiser",
-      "start_line": 278,
-      "end_line": 281,
+      "start_line": 280,
+      "end_line": 283,
       "kind": "paragraph",
       "text": "```bash\nc++ -std=c++23 -O2 -DNDEBUG tests/voice_denoise_state.cpp -o build/voice_denoise_state\nbuild/voice_denoise_state\n```",
       "classification": "build/setup/API example; not measured"
@@ -1339,7 +1376,7 @@
       "start_line": 3,
       "end_line": 3,
       "kind": "paragraph",
-      "text": "Measured: `8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.",
+      "text": "Measured: `487a5a3f6bfb1bd87779997f793f77618708eaff`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
     }
   ],
@@ -1359,12 +1396,12 @@
   "lpc": {
     "status": "PASS",
     "status_from_current_run": true,
-    "run_id": "post_red_fixes_once",
-    "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+    "run_id": "after_lpc_fit_only_once",
+    "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
     "test_sha256": "f0243673f876813e8f7ef7b65b5401907fd195c577dddb0e92e39bc485252fe2",
     "adapter_sha256": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
-    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
-    "matrix_results_sha256": "c75d6b5c0beef546cbf2f8cc57bcda8c3d01cf0a2b379392801b33c538efa246",
+    "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
+    "matrix_results_sha256": "b914f9f1e95b27f775e1b7dd74e8ba5aba1465462767e77ddc422cd8110b335d",
     "stdout": "lpc_case complexity=0 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=9 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=9 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_case complexity=10 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=10 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=10 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=10 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_silk_layer_frames=2276\nlpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\nlpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"
   },
   "checks": {
@@ -1373,22 +1410,22 @@
     "project_intro_unchanged": true,
     "documents": {
       "README.md": {
-        "sha256": "428d7e808b225b21449642d16a695d71c1d8055edc36051b07eb432a2d9b3c7b",
+        "sha256": "fe6ace4e5d7731b0368558e22e1f20bda82d11e4de1b1d68afc45bf8b03a720d",
         "utf8": true,
         "lf_only": true
       },
       "src/README.md": {
-        "sha256": "a95d5466c216153f29a7a9734e542ad3ceae5fd61d2b4efe51c054a8c9870b2f",
+        "sha256": "368e89458af7f0134f8cc7f9978d32052363c94dea1909ef49a0b9e640d8966b",
         "utf8": true,
         "lf_only": true
       },
       "tests/README.md": {
-        "sha256": "21fe37823a150c6205b93eaac7a79956f0a49152ebc00f73e844455ba67028f1",
+        "sha256": "30289553877f7656a860959e8a13ce5ba58cb5cbd8a42c8a8c1e309943d2a8d2",
         "utf8": true,
         "lf_only": true
       },
       "tests/metrics/README.md": {
-        "sha256": "82445a67866e68bf7d9eaa148b9932e9bfe405347dca3d2d30640541e07d1f56",
+        "sha256": "38784839a025131e1aafb28bd18e006aeecff31178fb28a9fa5ca8d217c20611",
         "utf8": true,
         "lf_only": true
       }
@@ -1452,20 +1489,22 @@
     }
   },
   "current_objective_assessment": {
-    "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-    "encoding17_wins": 14,
+    "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+    "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
+    "encoding17_wins": 15,
     "published_quality_negatives": 713,
+    "matrix_quality_negatives": 674,
     "growth": {
-      "native_absolute_increase_ms": 177.6403,
-      "OFF_absolute_increase_ms": 190.8574,
+      "native_absolute_increase_ms": 180.96599999999998,
+      "OFF_absolute_increase_ms": 189.59490000000002,
       "pass_strict": true,
       "basis": "Same60s stereo AUDIO work, full-precision raw medians; no percentage/ratio substitution"
     },
     "normal_total_image_bytes": {
-      "Host": 526516,
-      "Android": 509664
+      "Host": 519724,
+      "Android": 503604
     },
     "goal_met": false,
-    "source": "Fresh current run; full raw repetitions/quality values retained, no new Native execution."
+    "source": "Fresh one-run raw repetitions and quality values; no new Native execution during document preparation."
   }
 }

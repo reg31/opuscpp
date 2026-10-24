@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-  "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+  "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+  "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\input_manifest.json",
-    "bytes": 24719,
-    "sha256": "710f7ed3454d2561a9d594a3f70152c531296c2d94f2414594117e8341352a4a"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\input_manifest.json",
+    "bytes": 24771,
+    "sha256": "8ae56795e9e52c7ad2463c2dadc461de1b3a3d749f5742461c81ec0bc5dc0e68"
   },
   "fresh_current_values": true,
   "scope": "Current maintained long-packet wire/rate/recovery and matched60ms caller observations",
@@ -67,20 +67,20 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.804592",
-            "current_encode_ms": "122.179700",
-            "official_encode_ms": "98.304800",
+            "encode_speedx": "0.861331",
+            "current_encode_ms": "124.049000",
+            "official_encode_ms": "106.847200",
             "opuscpp_effective_kbps": "22.352381",
             "official_effective_kbps": "19.952976",
-            "decode_speedx": "1.256035",
-            "current_decode_ms": "7.497400",
-            "official_decode_ms": "9.417000"
+            "decode_speedx": "1.307925",
+            "current_decode_ms": "8.076000",
+            "official_decode_ms": "10.562800"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_hazel.csv",
-          "bytes": 240,
-          "sha256": "39d2f54cc030974aa175d0f6bd099f67d09eede0c41079c327e08f10ff96fe0e"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\fec60_hazel.csv",
+          "bytes": 242,
+          "sha256": "d4d4c2f42c25816ae7a3f90a2a3ee3b19ae15dbbe3c035f99ac0149e02542b63"
         }
       },
       {
@@ -98,39 +98,39 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.769613",
-            "current_encode_ms": "108.954800",
-            "official_encode_ms": "83.853000",
+            "encode_speedx": "0.775637",
+            "current_encode_ms": "107.459900",
+            "official_encode_ms": "83.349900",
             "opuscpp_effective_kbps": "20.736054",
             "official_effective_kbps": "19.123129",
-            "decode_speedx": "1.192790",
-            "current_decode_ms": "6.820900",
-            "official_decode_ms": "8.135900"
+            "decode_speedx": "1.256549",
+            "current_decode_ms": "6.451000",
+            "official_decode_ms": "8.106000"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_david.csv",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\fec60_david.csv",
           "bytes": 240,
-          "sha256": "8c3556fd89e31cb42997b20a0d8ec17d06ec4c3dd213350e287fdf7a5cea2d3d"
+          "sha256": "c9e9f9c41e917d0b885ba8725f0c56af0a8137ac51daf1973a7156d332bbd488"
         }
       }
     ]
   },
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\logs\\metric_fec_vs_official.stdout.txt",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\logs\\metric_fec_vs_official.stdout.txt",
       "bytes": 16965,
       "sha256": "5158f19fbda70ac420b2e667545a78d368d22e40398f4703312b9c73dc24f8e7"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_hazel.csv",
-      "bytes": 240,
-      "sha256": "39d2f54cc030974aa175d0f6bd099f67d09eede0c41079c327e08f10ff96fe0e"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\fec60_hazel.csv",
+      "bytes": 242,
+      "sha256": "d4d4c2f42c25816ae7a3f90a2a3ee3b19ae15dbbe3c035f99ac0149e02542b63"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_david.csv",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\fec60_david.csv",
       "bytes": 240,
-      "sha256": "8c3556fd89e31cb42997b20a0d8ec17d06ec4c3dd213350e287fdf7a5cea2d3d"
+      "sha256": "c9e9f9c41e917d0b885ba8725f0c56af0a8137ac51daf1973a7156d332bbd488"
     }
   ],
   "limits": "Only long-duration interop rows actually emitted by the maintained test and the60ms callers are reported; absent durations remain unmeasured here. Internal per-subframe credit law and old corpus/layout experiments are not remeasured or claimed qualified by these observations.",

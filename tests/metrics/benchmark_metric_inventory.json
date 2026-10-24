@@ -1,6 +1,6 @@
 {
-  "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-  "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+  "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+  "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "parity_rows": 498,
@@ -22,47 +22,47 @@
   "all_quality_metrics_present": true,
   "files": {
     "acceptance.json": "01a793dc3fdee69ce0c5525da6ea8bd427732c6393da42d586a62d4cc48f33b6",
-    "binary_size.csv": "3b5b4f235ffae3a5c7aeaa8bad5dd7ec8868ed117213a4bd1596cb1a43c52c93",
-    "celt_native_budget_checkpoint.json": "28f9b9b96e9ad20fa7730d326bbb0ba7efeb1e629a57aeeafe46b7000e03200a",
-    "compatibility_validation.json": "bff49e6edf6957db7223e60acb500b1dd53fe6522f31e161cfce50d05af41a09",
-    "decode_speed_vs_official.csv": "3897e55caf4a98480d9ec35d0c35bc38293e86a43b0f6f5bb0995e40c008d6e1",
-    "dtx_acceptance.json": "67b04940e45b900d4c6656ec55ea469c93120b39ee5cc066c5a05e47488d4b8c",
+    "binary_size.csv": "0fca110fa0d2b102ede52768f889be1c2b93541b5fb905a680cc96222bd13010",
+    "celt_native_budget_checkpoint.json": "9279454ac75445e4059fc706732250df7fe350b0a37f995565aa50bce65fca8a",
+    "compatibility_validation.json": "f7e0a7e57850b3ed8685be09dd2900077761fb88d827475e74e0850199d193af",
+    "decode_speed_vs_official.csv": "bce16318b59abcb083989d73208adca95fc678960d3e27a99b47203228541ec0",
+    "dtx_acceptance.json": "71a74c007f03b0c709d2f88caf814e487731e1be9ed6dec37416e10db7beb55f",
     "dtx_metrics.csv": "dc16e0ee0d85c490509827d45df192f94abc1103d66cacd8f105e4352b8b2a72",
-    "encoder_retained_storage_checkpoint.json": "3dba8c012c4fa05383938005fb6aef5a3afa81c0bfab6c5f2ff2cb4d81ce575f",
-    "encode_speed_vs_official.csv": "46f290355272a8d2fc8556f79bfba2466664d2158edcc1a4a01123469760e52a",
+    "encoder_retained_storage_checkpoint.json": "57a5f4f2c8ddbbde3e9d8aee2a06659f842341de9e6d0cccf5781c71b376d679",
+    "encode_speed_vs_official.csv": "8d24d649082cff48ff081cf06620227aa380954433ef4bef8b95b6ff4adb41e3",
     "fec_interop_metrics.csv": "4eaca3d731a6b2df251d55b6b19a092b0dbdea0649e6288320686ddd0272f4f4",
-    "fec_run_metadata.json": "bb05b525e6ffe7d9abb67e9a424c3a23f102df50e8c5cff5f5d7cb0483c5b8f2",
-    "fec_source_metrics.json": "31ccdf9a9c897ac6d86ed0b54ed875b4f0062673de2eaf854ce9b4aaac920082",
-    "fec_validated_checkpoint.json": "b5c510f85daffc25fd1dcb52b9a476c2aa02e4026f435540733e8a25d6603ba3",
-    "lpc_analysis_known_failure.json": "ae9ac63e4f4d6f1687f8044bd735e8e8b10c124afdab6fb1671d8329611ef80b",
-    "memory_vs_official.csv": "3190b99d24c3717d3b86a5d9d6e7d04bc4bb5ae7e8c65b6fec1ac7e5242baff0",
-    "mode_balance_metrics.json": "2e47e4b86438548327f652a5eacb08ca9bcabd46762327142be87d53ce8ba3e1",
-    "multiframe_budget_checkpoint.json": "bbaff718bf0a19b5bd363336e1f4e0ee6174de2d3dc5651a37814b3fd259c801",
-    "postfilter_pcm16_path.csv": "b73f625e944ea0a95b63cd99a2c1da195690f02463880f81186993f3c27ef1cf",
+    "fec_run_metadata.json": "2736ed6f79e7f98db83451fb6ba982c1db3c8b084fa23b500b46bd765e4b1c9c",
+    "fec_source_metrics.json": "91617a195604e36942d964d073a3e8ce22b4f83fbe632c61b27ac20aade4b11d",
+    "fec_validated_checkpoint.json": "14e9dc29b735cca34d28332e459de5bec409cd50daea169d1a7dd38d0f0afa42",
+    "lpc_analysis_known_failure.json": "93ee91d32de7400806701b799baecd6c8203cb7b9baaeb7529040d7467468d9a",
+    "memory_vs_official.csv": "4d5920678cdfe329742df4fef62069dee974fefbd711f430212ad47fa6dd0941",
+    "mode_balance_metrics.json": "d26ab25b698f92d1173514ad74946831ea7e3c220e4b9e893213933890b00a6a",
+    "multiframe_budget_checkpoint.json": "82c66eedefcc24b400c70d493a43f78a1b90b0995e6671c07f528147f6f4e603",
+    "postfilter_pcm16_path.csv": "77d94085f27c99bbc2bd29e6bcdeb221a53748c5a0d96b9b8518def053a1b269",
     "postfilter_quality_voip.csv": "7ee73c89f5b6fe6c1876e636bf8b97ebfbe79653e0406998ea2751af3406b244",
-    "production_quality_matrix.csv": "75bd3675f4bb97b844d74961b7dcd3d19ee7701a9d21512d50c0d02b5e77b84b",
+    "production_quality_matrix.csv": "415fc870dab1edd7f87eec603fe773c4fa3dcdf7638f0cde948fbe45923d8414",
     "production_quality_published.csv": "9c40862945cf12c7dd2dbe85e43a72bba05e6bd46bdf908b6841d6174c1bfa3e",
     "quality_broad.csv": "49a515d5f00806bb0ce9812e7bc32bf82e4ccdff734b116278743b5f43a1b980",
     "quality_official_full_precision.csv": "89731872de69798e8f983172c20daae9cfe31b8b3403c71fe8208fce063f577b",
-    "quality_run_metadata.json": "e7d40c347e2b628b23fb9e0a485930e28960cec68de017afa126b44b8b604b1f",
+    "quality_run_metadata.json": "37d29f5f9a4760d3962a2ef363db28f0b356a997fdb3db23765ecdae56adf5d1",
     "quality_vs_official.csv": "ced196b5e3baa2c3da3b5324c972babba60de0467908c3e73bd5140913f59ae4",
     "quality_vs_official_voip.csv": "0a755ec124e13386d921901991225bb1a7c4c06f6f08dfdf2b81e0b7d957283c",
     "README.md": {
-      "bytes": 6673,
-      "sha256": "428d7e808b225b21449642d16a695d71c1d8055edc36051b07eb432a2d9b3c7b",
-      "git_blob_sha1": "34db1da27dfbe2fc8a69a091d68ba42d3815ebb9"
+      "bytes": 5321,
+      "sha256": "38784839a025131e1aafb28bd18e006aeecff31178fb28a9fa5ca8d217c20611",
+      "git_blob_sha1": "5f67dfcce3652927f3372290d20669bc8f63e9bb"
     },
-    "readme_metric_coverage.json": "9a67a23cf449f9834d3d026b83e347c0c7073b986988e75265772a516690e406",
-    "run_metadata.json": "7d7a40475e2b2525d67c9c426a1a655379e53d5cb04eda796362f5f186e7f70b",
-    "speed_run_metadata.json": "6192794c1b1f90a285dc8162555ff5dd46b5d176a67081f628184f559df2082b",
-    "speed_vs_official_intrinsics_60s.csv": "0e11fe8ab512df46eb7dce5546d82a829c9e1ebb5e13a9074fd314722158a6e8",
+    "readme_metric_coverage.json": "e94aa24d510270b1215384c6eb6ccd0731228a6322779b201fa9165127d972d9",
+    "run_metadata.json": "b1e44a95fb98d84fc63643ce4d47730839806308735a2988855d21b67fe9d5aa",
+    "speed_run_metadata.json": "c424e5099e744ec60868bb3499576529ad9dc03486af259774dec17915051fde",
+    "speed_vs_official_intrinsics_60s.csv": "f0fc7bfa58fc9f88d393def3811ce8f9dcf4b652e3577b32be8bc6efb08a1f37",
     "standard_fec_acceptance.json": "c462ec303c4b21ededc1654e264a026ee5959c90e11d32537fed88424b9afa99",
     "voice_denoise_boundary.csv": "fa2b6dc22f2b71e1b9235e61b3f46031b73af0f308dadc2c90f1f0972e6e50a9",
     "voice_denoise_broad.csv": "ae1fc20b15623949ec0872748ba8545c069be6df0a8a8dee84be73ee9409376b",
-    "voice_denoise_provenance.json": "cde12c647d77be238e49e006f6106c5ce7e916750405cd28d2a5890fe1754ba9",
-    "voice_denoise_quality_voip.csv": "a7b739d52dda7f6f21cae3fbfec0a5c477f5f3dacd0cd5b5e1ca13c383b1e4c2",
-    "voice_denoise_timing.csv": "18e7dd6fb4f9788df9e851742a2012d7999e48ff317b914b412f6fc8a8615e89",
-    "voice_speed_vs_official.csv": "c070a764e0963e7c0f9d3742b2cf87305b6f742bbd03dd64432e041acaf880d9"
+    "voice_denoise_provenance.json": "9b3428f22137c39850557dcd05ffdbc2ed83f3f19cc9edcc24f80653b6e97f04",
+    "voice_denoise_quality_voip.csv": "01b549c19e333f2e94db4ff85748f09063dd81aa73c74b5363ac7f7ee28cad7f",
+    "voice_denoise_timing.csv": "dadac7c64e7314cedf3329bc085bf262a548e2a69174c0bd98a5d5d1f33169c4",
+    "voice_speed_vs_official.csv": "7e6855c744fe0a77e522a618c84803d5dd1b90e737c5d3be95e6460a62a55bbe"
   },
   "unavailable": [
     "WER",
@@ -77,40 +77,42 @@
   "current_checkpoint_views": {
     "encoder_retained_storage_checkpoint.json": {
       "fresh_current": true,
-      "sha256": "039c6312e43f3842b4a456245eb248e2c5df699c0ec04165cfcbbc0cb35d5751",
+      "sha256": "57a5f4f2c8ddbbde3e9d8aee2a06659f842341de9e6d0cccf5781c71b376d679",
       "historical_data_retagged": false
     },
     "celt_native_budget_checkpoint.json": {
       "fresh_current": true,
-      "sha256": "27cac8eca6b075a53f33c4cc27480c3fbac3acc2afb73d770bbc041b295d1b20",
+      "sha256": "9279454ac75445e4059fc706732250df7fe350b0a37f995565aa50bce65fca8a",
       "historical_data_retagged": false
     },
     "multiframe_budget_checkpoint.json": {
       "fresh_current": true,
-      "sha256": "f48c3c255041ecda0b0160c26b62431c94571ded298b976240e252fbe32e150b",
+      "sha256": "82c66eedefcc24b400c70d493a43f78a1b90b0995e6671c07f528147f6f4e603",
       "historical_data_retagged": false
     },
     "fec_validated_checkpoint.json": {
       "fresh_current": true,
-      "sha256": "4ea02d849e660b8c7310acc767398c8e46d76752bd1c09bbc7d846a454f4b794",
+      "sha256": "14e9dc29b735cca34d28332e459de5bec409cd50daea169d1a7dd38d0f0afa42",
       "historical_data_retagged": false
     }
   },
   "current_objective_assessment": {
-    "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-    "encoding17_wins": 14,
+    "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+    "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
+    "encoding17_wins": 15,
     "published_quality_negatives": 713,
+    "matrix_quality_negatives": 674,
     "growth": {
-      "native_absolute_increase_ms": 177.6403,
-      "OFF_absolute_increase_ms": 190.8574,
+      "native_absolute_increase_ms": 180.96599999999998,
+      "OFF_absolute_increase_ms": 189.59490000000002,
       "pass_strict": true,
       "basis": "Same60s stereo AUDIO work, full-precision raw medians; no percentage/ratio substitution"
     },
     "normal_total_image_bytes": {
-      "Host": 526516,
-      "Android": 509664
+      "Host": 519724,
+      "Android": 503604
     },
     "goal_met": false,
-    "source": "Fresh current run; full raw repetitions/quality values retained, no new Native execution."
+    "source": "Fresh one-run raw repetitions and quality values; no new Native execution during document preparation."
   }
 }

@@ -1,21 +1,21 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-  "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+  "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+  "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\input_manifest.json",
-    "bytes": 24719,
-    "sha256": "710f7ed3454d2561a9d594a3f70152c531296c2d94f2414594117e8341352a4a"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\input_manifest.json",
+    "bytes": 24771,
+    "sha256": "8ae56795e9e52c7ad2463c2dadc461de1b3a3d749f5742461c81ec0bc5dc0e68"
   },
   "fresh_current_values": true,
   "scope": "Current observed packet-mode/rate/decoded-quality budget outcomes",
   "measures": {
     "mode_balance": {
-      "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
-      "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+      "source_commit": "487a5a3f6bfb1bd87779997f793f77618708eaff",
+      "source_sha256": "bfa69c57387718aba59d9d24d400aad3ef1847e12f0fa3894ccee957d9aefbaf",
       "stdout": "speech_like,silk_pct=0.0,hybrid_pct=88.0,celt_pct=12.0\nharmonic_music,silk_pct=0.0,hybrid_pct=5.7,celt_pct=94.3\n"
     },
     "quality_namespaces": {
@@ -26,22 +26,22 @@
   },
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\quality.json",
-      "bytes": 919344,
-      "sha256": "8186e687b411a68db5278b095b6b71716d668f56fec23b5cb32170f415ff6166"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\quality.json",
+      "bytes": 919371,
+      "sha256": "59b3189c5428e89cd194815887384ce9e45d20dfdcc1066ca1d7cd133e03628e"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\quality_extra.json",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\quality_extra.json",
       "bytes": 3,
       "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\published_quality.json",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\published_quality.json",
       "bytes": 1100769,
       "sha256": "64f7f910234fd3bcec5d2b9180d0e95826636857171aaa7b31f77149b0e871ef"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\logs\\metric_detector.stdout.txt",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_lpc_fit_only_20261024\\checkout\\build\\official_compare_report\\after_lpc_fit_only_once\\logs\\metric_detector.stdout.txt",
       "bytes": 112,
       "sha256": "c24809ad68c729dcf10e487790732047f0eabbfc837988aa8c058018d60baef3"
     }
