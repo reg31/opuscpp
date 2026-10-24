@@ -19856,8 +19856,13 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
   return static_cast<float>(nrg_f);
 }
 
+#if defined(_MSC_VER)
+#define OPUSCPP_NOINLINE __declspec(noinline)
+#else
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#endif
 template <class State>
-static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
+OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
   int k, subfr_length;
   float a[16];
   float res_nrg, res_nrg_2nd, res_nrg_interp;
@@ -19901,6 +19906,7 @@ static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float 
     silk_A2NLSF_FLP(NLSF_Q15, a, psEncC->predictLPCOrder);
   }
 }
+#undef OPUSCPP_NOINLINE
 
 static void silk_corrVector_FLP(const std::span<const float> x, const std::span<const float> t, std::span<float> Xt) {
   const auto order = Xt.size();
@@ -20120,7 +20126,10 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     silk_A2NLSF_FLP(NLSF_Q15, prediction, psEnc->sCmn.predictLPCOrder);
     psEnc->sCmn.indices.NLSFInterpCoef_Q2 = 4;
   } else {
-    silk_find_LPC_FLP(&psEnc->sCmn, NLSF_Q15, LPC_in_pre, minInvGain, known_finite);
+    silk_lpc_model_context model_state(psEnc->sCmn, psEnc->sCmn.indices);
+    model_state.prev_NLSFq_Q15 = psEnc->sCmn.prev_NLSFq_Q15;
+    silk_find_LPC_FLP(&model_state, NLSF_Q15, LPC_in_pre, minInvGain, known_finite);
+    psEnc->sCmn.indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
   }
   silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
   if (select_coded_interpolation) {
