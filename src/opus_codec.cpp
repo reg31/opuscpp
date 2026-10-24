@@ -2420,7 +2420,7 @@ static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid
   decode_only_mid = ec_dec_icdf(psRangeDec, silk_stereo_only_code_mid_iCDF.data(), 8);
 }
 static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, int total_pulses);
-OPUSCPP_NOINLINE static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type);
+static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type);
 OPUSCPP_NOINLINE static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
                                                     int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
                                                     decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
@@ -15959,8 +15959,13 @@ static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int*
   }
 }
 
-template <bool ReconstructSigns = true>
-static void silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding, std::span<opus_int16> pulses) {
+#if defined(_MSC_VER)
+__declspec(noinline)
+#else
+[[gnu::noinline]]
+#endif
+static void
+silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding, std::span<opus_int16> pulses, bool reconstruct_signs = true) {
   const bool vad = decode_LBRR || psDec->VAD_flags[FrameIndex];
   const int type_offset =
       ec_dec_icdf(psRangeDec, vad ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8) + 2 * vad;
@@ -15974,7 +15979,11 @@ static void silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, i
   const auto decoded_pulses = pulses.first(static_cast<std::size_t>(block_count * 16));
   auto sums = std::span{pulse_sums}.first(static_cast<std::size_t>(block_count));
   silk_decode_pulse_magnitudes(psRangeDec, decoded_pulses.data(), sums.data(), block_count, signal_type);
-  silk_process_signs<false, ec_ctx, std::span<opus_int16>, ReconstructSigns>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
+  if (reconstruct_signs) {
+    silk_process_signs<false, ec_ctx, std::span<opus_int16>, true>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
+  } else {
+    silk_process_signs<false, ec_ctx, std::span<opus_int16>, false>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
+  }
 }
 
 static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
@@ -16181,7 +16190,7 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
               }
             }
             condCoding = i > 0 && channel_state[n]->LBRR_flags[i - 1] ? 2 : 0;
-            silk_decode_symbols<false>(channel_state[n], psRangeDec, i, 1, condCoding, pulses);
+            silk_decode_symbols(channel_state[n], psRangeDec, i, 1, condCoding, pulses, false);
           }
         }
       }
