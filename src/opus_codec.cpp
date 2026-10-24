@@ -2167,7 +2167,15 @@ static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMi
       NLSF_Q15[I] = NLSF_Q15[I - 1] + NDeltaMin_Q15[I];
     }
   }
-  std::sort(NLSF_Q15, NLSF_Q15 + L);
+  for (int i = 1; i < L; ++i) {
+    const auto value = NLSF_Q15[i];
+    int position = i;
+    while (position > 0 && NLSF_Q15[position - 1] > value) {
+      NLSF_Q15[position] = NLSF_Q15[position - 1];
+      --position;
+    }
+    NLSF_Q15[position] = value;
+  }
   NLSF_Q15[0] = std::max(NLSF_Q15[0], NDeltaMin_Q15[0]);
   for (i = 1; i < L; i++) {
     NLSF_Q15[i] = std::max(NLSF_Q15[i], saturate_int16_from_int32(static_cast<opus_int32>(NLSF_Q15[i - 1]) + NDeltaMin_Q15[i]));
