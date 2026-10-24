@@ -1,9 +1,9 @@
 {
   "counts": [
-    17,
     18,
     18,
-    15
+    18,
+    16
   ],
   "rows": [
     {
@@ -16,7 +16,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -41,7 +41,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -81,7 +81,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -106,7 +106,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -146,7 +146,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -171,7 +171,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -211,7 +211,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -236,7 +236,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -276,7 +276,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -301,7 +301,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -341,7 +341,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -366,7 +366,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -406,7 +406,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -431,7 +431,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -471,7 +471,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -479,7 +479,7 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=40,43,42,38,40,37,36,41,37,33,37,33,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.799315657 next_ref=0.268937922 fidelity_fec=0.949547904 fidelity_ref=0.254626704 fidelity_plc=0.949547904 transition_fec=0.932129340 transition_ref=0.227502066 step_fec=-73.000 step_ref=-124.000 self_consistency=0.951637461\n",
+        "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=40,43,42,38,40,37,36,41,37,33,37,47,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.799315657 next_ref=0.268937922 fidelity_fec=0.949547904 fidelity_ref=0.254626704 fidelity_plc=0.949547904 transition_fec=0.932129340 transition_ref=0.227502066 step_fec=-73.000 step_ref=-124.000 self_consistency=0.951637461\n",
         "stderr": "",
         "fields": {
           "fidelity_fec": 0.949547904,
@@ -496,7 +496,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -536,7 +536,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -561,7 +561,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -601,7 +601,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -626,7 +626,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -666,7 +666,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -691,7 +691,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -731,7 +731,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -756,7 +756,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -796,7 +796,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -821,7 +821,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -861,7 +861,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -869,24 +869,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=40,43,42,35,40,34,36,37,36,37,57,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.820650328 next_ref=0.556590946 fidelity_fec=1.010644132 fidelity_ref=0.518315657 fidelity_plc=1.010644132 transition_fec=0.489519779 transition_ref=0.444361983 step_fec=-786.000 step_ref=-498.000 self_consistency=1.021186151\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=40,43,42,35,40,34,36,37,36,54,38,35,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.563605731 next_ref=0.557799114 fidelity_fec=0.728661402 fidelity_ref=0.518315657 fidelity_plc=1.010644132 transition_fec=0.609911481 transition_ref=0.444385551 step_fec=225.000 step_ref=-498.000 self_consistency=0.658567519\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 1.010644132,
-          "next_fec": 0.820650328,
-          "transition_fec": 0.489519779,
+          "fidelity_fec": 0.728661402,
+          "next_fec": 0.563605731,
+          "transition_fec": 0.609911481,
           "fidelity_ref": 0.518315657,
-          "next_ref": 0.556590946,
-          "transition_ref": 0.444361983,
+          "next_ref": 0.557799114,
+          "transition_ref": 0.444385551,
           "fidelity_plc": 1.010644132,
-          "self_consistency": 1.021186151,
-          "step_fec": -786.0,
+          "self_consistency": 0.658567519,
+          "step_fec": 225.0,
           "step_ref": -498.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -910,10 +910,10 @@
         }
       },
       "criteria_pass": [
-        false,
         true,
         true,
-        false
+        true,
+        true
       ]
     },
     {
@@ -926,7 +926,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -951,7 +951,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -991,7 +991,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -1016,7 +1016,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -1056,7 +1056,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -1081,7 +1081,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -1121,7 +1121,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -1146,7 +1146,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\f1700a\\build\\official_compare_report\\codex_native_celt_1700ab90613e_20261022\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec_source_official.exe",
           "2",
           "20",
           "48000",

@@ -1,108 +1,146 @@
 {
-  "scope": "priority production fix: equal-per-subframe multiframe budget on frozen c2f02393 (blob f5907b4)",
-  "diff": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_fixed.diff",
-    "sha256": "fca3b1c3b4811a49fb790fff750d8cdba83787c403ce7a8f60b507d6fac06ec6",
-    "line_old": "opus_int32 curr_max = std::min(max_len_sum - tot_size, frame_max_bytes);",
-    "line_new": "opus_int32 curr_max = std::min(max_len_sum - tot_size, std::min(max_len_sum / nb_frames, frame_max_bytes));",
-    "official_anchor": "tests/external/official_opus/src/opus_encoder.c:1785 curr_max = IMIN(bitrate_to_bits(...)/8, max_len_sum/nb_frames); then 1795 IMIN(max_len_sum-tot_size, curr_max)"
+  "schema": "opuscpp.current_full_checkpoint.v1",
+  "source_commit": "8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6",
+  "source_sha256": "86a606d5646f40d5275942d88ae52d46ca7dcc004ffa8a48b72352ad238843b2",
+  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+  "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
+  "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
+  "input_manifest": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\input_manifest.json",
+    "bytes": 24719,
+    "sha256": "710f7ed3454d2561a9d594a3f70152c531296c2d94f2414594117e8341352a4a"
   },
-  "sources": {
-    "snapshot_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_snapshot.cpp",
-    "snapshot_sha256": "8fa716b2a65be1d9371014420c77d0b7621f10e39a048f5a473a4beea3542cc8",
-    "fixed_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\opus_codec_fixed.cpp",
-    "fixed_sha256": "a93da9ab1ff6e89b69b8f9ac01454b16d500d65af10072da832d8998161f320b",
-    "observer_fixed_sha256": "54e580852defce6ff666b4faff173ab10641b5e93de62733dda585003ece3065",
-    "production_commit": "c2f02393997d7ae94d7352c991cc760cd540a2a4",
-    "production_blob": "f5907b4176e11b3645a79bdb58137563c5fe139c"
-  },
-  "corpus": {
-    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_corpus_20261002_181225\\corpus_report.json",
-    "report_sha256": "446d781201388f47dfd85d24257a7240d51a628a33d20e72ebb12c312f09b3a3",
-    "before_stdout": "frames=8000 within_instance_internal_rate_changes=48 coded_channel_changes=380 encode_errors=12 decode_errors=0",
-    "after_stdout": "frames=8000 within_instance_internal_rate_changes=48 coded_channel_changes=380 encode_errors=0 decode_errors=0",
-    "before_records_sha": "c4373b149ba6671981e0dbcbccd1bb6875c886ab8adcb40b6e4e8f408393a4b7",
-    "after_records_sha": "91df2df5866af87224ae20abfaa7b1048d3a98302d34bdc167c9cad1dbea66ec",
-    "before_transitions_sha": "fd291fd129c4f7025869780289e0e8548df0f48fb8f3ead45c93c4aa152bc2d1",
-    "after_transitions_sha": "0bf5cacc5989052d25b982bd94d6f76daec39f50d4e59d35e761e2a9ceb064d9",
-    "control_stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\non_silk_35\\ring_error_control.stderr.txt",
-    "control_stderr_sha256": "b055c8e09867266c28b6538d4545ed0f645f97166f392e275de2ce9f35ff32bf",
-    "fixed_stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_corpus_20261002_181225\\obs_fixed.stderr.txt",
-    "fixed_stderr_sha256": "97e193644a0f9310c8f70f0de095522ec9be6e7f043b678cf88122954971ef49"
-  },
-  "focused": {
-    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_focused_20261002_181727\\focused_report.json",
-    "sha256": "961e1750c598fd7ffe407bedf923768b9eaf4e7284300c991457c8bdfea75649",
-    "snapshot_summary": {
-      "cases": "3680",
-      "single_ok": "480",
-      "single_bound": "480",
-      "multi_ok": "3200",
-      "enc_err": "0",
-      "dec_cur_err": "0",
-      "dec_off_err": "0",
-      "range_err": "0",
-      "bound_err": "0",
-      "toc_cfg_err": "0"
-    },
-    "fixed_summary": {
-      "cases": "3680",
-      "single_ok": "480",
-      "single_bound": "480",
-      "multi_ok": "3200",
-      "enc_err": "0",
-      "dec_cur_err": "0",
-      "dec_off_err": "0",
-      "range_err": "0",
-      "bound_err": "0",
-      "toc_cfg_err": "0"
-    },
-    "single_frame_packet_identity": true
-  },
-  "tests": {
-    "report": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\encoder_memory_cpp23_20261002\\private-validation\\ring_budget_fix_20261002\\run_tests_20261002_181837\\tests_report.json",
-    "sha256": "52d12e8ba6cf15f5618cbebfeddd3147b73b3d3098b1460eac21ee72b273e51e",
-    "fec_summary": "fec_summary recovery_error_ratio=0.504119 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.993345",
-    "packet_duration": "packet_duration_behavior=PASS",
-    "fec_rows_changed_only_2ch_40_60ms_vbr0": true
-  },
-  "remaining_risks": [
-    "Behavior change is intended for multiframe (>=40ms) packets only; single-frame 10/20ms packets are byte-identical (480/480).",
-    "FEC interop rows for 2ch 40/60ms vbr=0 change packet content at equal packet_bytes; aggregate gate summary unchanged and both tests exit 0.",
-    "No full 498 quality/benchmark refresh performed; no throughput measurement.",
-    "Bounded 3680-case focused sweep uses fresh-state encoders; the mixed-duration corpus is the regression witness for the 12 fixed errors."
-  ],
-  "root_integration": {
-    "parent_commit": "790901478c42d5af2d677482868a4f46f6096ff0",
-    "source_sha256_git_normalized": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
-    "source_git_blob_sha1": "8d6d7a1128deb2e203fb479c60a5c51b6c597740",
-    "test": "tests/packet_duration_behavior.cpp",
-    "test_sha256_git_normalized": "71605dbde7bc5e837dceabeed094e142596ce1d1757f2adaac85635ff28965ad",
-    "flags": [
-      "-std=c++23",
-      "-O2",
-      "-DNDEBUG",
-      "-Wall",
-      "-Wextra",
-      "-Wpedantic"
+  "fresh_current_values": true,
+  "scope": "Current maintained long-packet wire/rate/recovery and matched60ms caller observations",
+  "measures": {
+    "long_packet_interop_raw_lines": [
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.46911 recovery_error=0.249719 plc_error=1.63522 packet_bytes=1436 packet_hash=114114168",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166",
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=3.42908 recovery_error=0.0897232 plc_error=0.973737 packet_bytes=2136 packet_hash=1269743056",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.384134 recovery_error=1.74785 plc_error=1.9195 packet_bytes=1920 packet_hash=2159864871",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.848675 recovery_error=0.964035 plc_error=1.03945 packet_bytes=2880 packet_hash=1076871242",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.66824 recovery_error=1.19039 plc_error=1.46698 packet_bytes=2574 packet_hash=39205180",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.22665 recovery_error=0.926682 plc_error=0.997673 packet_bytes=3890 packet_hash=2108435659",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508",
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.68156 recovery_error=0.467746 plc_error=1.33073 packet_bytes=1439 packet_hash=2907665226",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229",
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=3.12945 recovery_error=0.104094 plc_error=0.983903 packet_bytes=2138 packet_hash=77233911",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.616673 recovery_error=1.23696 plc_error=1.5078 packet_bytes=1920 packet_hash=3155915509",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.05047 recovery_error=0.906773 plc_error=0.958849 packet_bytes=2880 packet_hash=246669730",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.668939 recovery_error=1.13949 plc_error=1.3791 packet_bytes=2568 packet_hash=1402144045",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.822324 recovery_error=0.930309 plc_error=0.987386 packet_bytes=3867 packet_hash=1210328798",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521",
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.4398 recovery_error=0.639437 plc_error=1.39462 packet_bytes=1439 packet_hash=5369761",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461",
+      "fec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.59799 recovery_error=0.21097 plc_error=1.03058 packet_bytes=2139 packet_hash=519177985",
+      "fec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=3.40166e-05 continuation_error=0 fec_plc_difference=0.903059 recovery_error=1.06486 plc_error=1.13244 packet_bytes=1920 packet_hash=587685207",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.619657 recovery_error=1.04803 plc_error=1.11678 packet_bytes=2880 packet_hash=4060812782",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.852626 recovery_error=1.01322 plc_error=1.07474 packet_bytes=2586 packet_hash=3901523768",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921",
+      "fec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.688787 recovery_error=0.94959 plc_error=1.00761 packet_bytes=3911 packet_hash=3692488795",
+      "fec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914"
     ],
-    "compiler": "C:/Qt/Tools/mingw64/bin/g++.exe",
-    "command": "g++ -std=c++23 -O2 -DNDEBUG -Wall -Wextra -Wpedantic -I src tests/packet_duration_behavior.cpp src/opus_codec.cpp -o build/root_packet_duration_budget_fix.exe",
-    "result": "packet_duration_behavior=PASS",
-    "exit_code": 0,
-    "executable_sha256": "d08607e8206e4a4d12b6f5ed114189d9a851b289e7b59b10be415dab293660df",
-    "regression_scope": "One public-API 16kHz mono sequence, 323 packets, with the previously failing 100ms frame322; checks duration, capacity and decoded sample count.",
-    "parent_regression_result": "Private standalone equivalent fails frame322 with OPUS_INTERNAL_ERROR (-3) on parent c2; passes on the isolated fix. The integrated existing test additionally passed on the storage-updated source."
+    "fec60_callers": [
+      {
+        "sample": "hazel",
+        "frame_samples": 2880,
+        "input": {
+          "wav": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\hazel.wav",
+          "wav_sha256": "b9483d7532ea7905ec024130df4250e88f58fbb6df6ec82e5ebde972a4baed0e",
+          "pcm_sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+          "frames": 224,
+          "seconds": 13.44,
+          "frame_samples": 2880,
+          "repetitions": 9
+        },
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.804592",
+            "current_encode_ms": "122.179700",
+            "official_encode_ms": "98.304800",
+            "opuscpp_effective_kbps": "22.352381",
+            "official_effective_kbps": "19.952976",
+            "decode_speedx": "1.256035",
+            "current_decode_ms": "7.497400",
+            "official_decode_ms": "9.417000"
+          }
+        ],
+        "raw": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_hazel.csv",
+          "bytes": 240,
+          "sha256": "39d2f54cc030974aa175d0f6bd099f67d09eede0c41079c327e08f10ff96fe0e"
+        }
+      },
+      {
+        "sample": "david",
+        "frame_samples": 2880,
+        "input": {
+          "wav": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\tier_quality\\selector_holdout\\david.wav",
+          "wav_sha256": "e6b1303da26847c3fecdc7b3a7395e5403cda6b67253cc3888ab2d8813cc6cb0",
+          "pcm_sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+          "frames": 196,
+          "seconds": 11.76,
+          "frame_samples": 2880,
+          "repetitions": 9
+        },
+        "rows": [
+          {
+            "bitrate": "24000",
+            "encode_speedx": "0.769613",
+            "current_encode_ms": "108.954800",
+            "official_encode_ms": "83.853000",
+            "opuscpp_effective_kbps": "20.736054",
+            "official_effective_kbps": "19.123129",
+            "decode_speedx": "1.192790",
+            "current_decode_ms": "6.820900",
+            "official_decode_ms": "8.135900"
+          }
+        ],
+        "raw": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_david.csv",
+          "bytes": 240,
+          "sha256": "8c3556fd89e31cb42997b20a0d8ec17d06ec4c3dd213350e287fdf7a5cea2d3d"
+        }
+      }
+    ]
   },
-  "invalid_preliminary_harness_runs": {
-    "run_focused_20261002_181415": "Compile/API argument mismatch; not validation evidence.",
-    "run_focused_20261002_181430": "PCM16-scale values passed to float API; all3680 attempts rejected. Invalid test input, not a codec result."
+  "raw_current_run": [
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\logs\\metric_fec_vs_official.stdout.txt",
+      "bytes": 16965,
+      "sha256": "5158f19fbda70ac420b2e667545a78d368d22e40398f4703312b9c73dc24f8e7"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_hazel.csv",
+      "bytes": 240,
+      "sha256": "39d2f54cc030974aa175d0f6bd099f67d09eede0c41079c327e08f10ff96fe0e"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_post_red_fixes_20261024\\checkout\\build\\official_compare_report\\post_red_fixes_once\\fec60_david.csv",
+      "bytes": 240,
+      "sha256": "8c3556fd89e31cb42997b20a0d8ec17d06ec4c3dd213350e287fdf7a5cea2d3d"
+    }
+  ],
+  "limits": "Only long-duration interop rows actually emitted by the maintained test and the60ms callers are reported; absent durations remain unmeasured here. Internal per-subframe credit law and old corpus/layout experiments are not remeasured or claimed qualified by these observations.",
+  "historical_record": {
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\lpc_oracle_publication_20261005\\tests\\metrics\\multiframe_budget_checkpoint.json",
+    "bytes": 7351,
+    "sha256": "bbaff718bf0a19b5bd363336e1f4e0ee6174de2d3dc5651a37814b3fd259c801",
+    "exists": true,
+    "git_commit": "191732731a0be5f2e94b9bc57446cd4573608a10",
+    "git_path": "tests/metrics/multiframe_budget_checkpoint.json"
   },
-  "test_only_recovery": {
-    "commit": "767d7c9134ebbe6c138432d1a7d49ee02c822a86",
-    "test_git_normalized_sha256": "5c586c5bf810cbad204847a7f0c1a57a282ebbc4e49da7c3fe596a538d37754c",
-    "codec_source_commit": "c019647331f67b772fbad9ea1e597a12ac4a89e9",
-    "codec_source_sha256": "f8dcafb38d21f2ec90ec20143f48eda79b64e25340c7fa407b9ad0bb830ddf3f",
-    "integrated_test_result": "PASS"
-  }
+  "historical_record_not_replayed_or_retagged": true
 }

@@ -1,6 +1,17 @@
 # Complete production metrics
 
-Measured: `1700ab90613ea7fc5ac242074796e0b0e62db1cf`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `8ab28e50ed3cb3d1338be6f745e85d65a5e3a6a6`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+
+## Current objective
+
+| Criterion | Fresh result | Status |
+|---|---|---|
+| Every individual encoding median strictly faster than OFF | 14/17 | FAIL |
+| Smaller 16-to-256 kbps absolute encoding-time increase | 177.6403 ms vs OFF 190.8574 ms | PASS |
+| Every published quality delta nonnegative | 713 negative fields | FAIL |
+| Each normal image at most 350,000 B, including text+data+bss | Host 526,516 B; Android 509,664 B | FAIL |
+
+The goal is unmet. Slower encoding medians: AUDIO 16 kbps (0.987122x), Hazel FEC60 24 kbps (0.804592x), David FEC60 24 kbps (0.769613x). These are maintained elapsed-time medians, not process-CPU measurements. All raw repetitions and adverse tails are retained. All 12 quality values in both namespaces are unchanged from the prior complete full (source `1700ab90613e`); this is not a quality-parity claim. The growth comparison uses the same 60-second stereo AUDIO workload and full-precision raw medians.
 
 ## Quality
 
@@ -24,30 +35,30 @@ Measured: `1700ab90613ea7fc5ac242074796e0b0e62db1cf`; pinned official Opus: `51b
 | celt_highband_error | Lower | 182 | 192 |
 | stereo_width_error | Lower | 26 | 17 |
 
-[Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
+[Matrix](production_quality_matrix.csv) Â· [Publication](production_quality_published.csv) Â· [Headline controls](quality_official_full_precision.csv) Â· [Denoising](voice_denoise_broad.csv) Â· [Boundary rates](voice_denoise_boundary.csv).
 
 ## Speed and processing costs
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.99x to 1.08x | 1.17x to 1.91x |
+| AUDIO | 0.99x to 1.14x | 1.22x to 1.91x |
 
-[Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
+[Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) Â· [Encode](encode_speed_vs_official.csv) Â· [Decode](decode_speed_vs_official.csv) Â· [Speech and FEC60 data](voice_speed_vs_official.csv).
 
-[PCM16 processing](postfilter_pcm16_path.csv) · [Postfilter quality](postfilter_quality_voip.csv) · [Denoiser timing](voice_denoise_timing.csv) · [Raw timing samples](run_metadata.json).
+[PCM16 processing](postfilter_pcm16_path.csv) Â· [Postfilter quality](postfilter_quality_voip.csv) Â· [Denoiser timing](voice_denoise_timing.csv) Â· [Raw timing samples](run_metadata.json).
 
 ## Memory and object size
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20416 | 20432 | Not exposed |
-| official_encoder_ch1 | 31872 | 31904 | 31668 |
-| current_decoder_ch1 | 9504 | 8832 | Not exposed |
-| official_decoder_ch1 | 18416 | 18576 | 18468 |
-| current_encoder_ch2 | 30656 | 30576 | Not exposed |
-| official_encoder_ch2 | 48880 | 48704 | 48684 |
-| current_decoder_ch2 | 17648 | 16256 | Not exposed |
-| official_decoder_ch2 | 27168 | 27264 | 27236 |
+| current_encoder_ch1 | 20480 | 20448 | Not exposed |
+| official_encoder_ch1 | 31824 | 31888 | 31668 |
+| current_decoder_ch1 | 8448 | 8336 | Not exposed |
+| official_decoder_ch1 | 18480 | 18592 | 18468 |
+| current_encoder_ch2 | 30656 | 30560 | Not exposed |
+| official_encoder_ch2 | 48880 | 48736 | 48684 |
+| current_decoder_ch2 | 17568 | 16224 | Not exposed |
+| official_decoder_ch2 | 27088 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -57,8 +68,8 @@ Measured: `1700ab90613ea7fc5ac242074796e0b0e62db1cf`; pinned official Opus: `51b
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 529800 | 0 | 0 | 529800 |
-| android | 514696 | 472 | 0 | 515168 |
+| host | 526516 | 0 | 0 | 526516 |
+| android | 509192 | 472 | 0 | 509664 |
 
 [Object-size data](binary_size.csv).
 
@@ -70,18 +81,18 @@ Measured: `1700ab90613ea7fc5ac242074796e0b0e62db1cf`; pinned official Opus: `51b
 | Standard interoperability comparison | FAIL |
 | Scored recovery wins | 17/18 |
 | Maximum recovery-error ratio | 1.514000 |
-| Recovery-error ratio | 0.677122 |
-| Packet-byte ratio | 0.996672 |
-| Backup coverage: opuscpp | 15/18 |
+| Recovery-error ratio | 0.62938 |
+| Packet-byte ratio | 0.997487 |
+| Backup coverage: opuscpp | 16/18 |
 | Backup coverage: official | 15/18 |
 | Configurations | 36 |
 | Direction rows | 72 |
-| C1 | 17/18 |
+| C1 | 18/18 |
 | C2 | 18/18 |
 | C3 | 18/18 |
-| C4 | 15/18 |
+| C4 | 16/18 |
 
-[FEC direction fields](fec_interop_metrics.csv) · [Source comparisons](fec_source_metrics.json) · [Ratios and raw output](fec_run_metadata.json).
+[FEC direction fields](fec_interop_metrics.csv) Â· [Source comparisons](fec_source_metrics.json) Â· [Ratios and raw output](fec_run_metadata.json).
 
 | DTX field | Value |
 |---|---:|
@@ -120,10 +131,10 @@ Measured: `1700ab90613ea7fc5ac242074796e0b0e62db1cf`; pinned official Opus: `51b
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.4138 decode_ms=16.0328 checksum=340886119
-mono-high bytes=115 encode_ms=22.0703 decode_ms=16.124 checksum=2633358364
-stereo-mid bytes=103 encode_ms=58.7675 decode_ms=30.9902 checksum=4179984942
-stereo-high bytes=147 encode_ms=53.9687 decode_ms=31.6566 checksum=3681257371
+mono-mid bytes=76 encode_ms=18.2543 decode_ms=17.5646 checksum=340886119
+mono-high bytes=115 encode_ms=21.0097 decode_ms=15.3285 checksum=2633358364
+stereo-mid bytes=103 encode_ms=58.1367 decode_ms=30.5395 checksum=4179984942
+stereo-high bytes=147 encode_ms=52.3995 decode_ms=31.2213 checksum=3681257371
 ```
 
-[Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
+[Metric coverage](readme_metric_coverage.json) Â· [Artifact hashes](benchmark_metric_inventory.json).
