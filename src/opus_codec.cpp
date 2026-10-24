@@ -356,7 +356,14 @@ static opus_uint32 ec_tell_frac(const ec_ctx* _this) {
 static void ec_enc_init(ec_enc* _this, unsigned char* _buf, opus_uint32 _size);
 static void ec_encode(ec_enc* _this, unsigned _fl, unsigned _fh, unsigned _ft);
 static void ec_enc_bit_logp(ec_enc* _this, int _val, unsigned _logp);
-static void ec_enc_icdf(ec_enc* _this, int _s, const unsigned char* _icdf, unsigned _ftb);
+#if defined(__aarch64__) && defined(__clang__)
+#if __has_attribute(preserve_all)
+__attribute__((preserve_all)) static void ec_enc_normalize(ec_enc* _this);
+OPUSCPP_NOINLINE __attribute__((preserve_all))
+#endif
+#endif
+static void
+ec_enc_icdf(ec_enc* _this, int _s, const unsigned char* _icdf, unsigned _ftb);
 static void ec_enc_uint(ec_enc* _this, opus_uint32 _fl, opus_uint32 _ft);
 static void ec_enc_bits(ec_enc* _this, opus_uint32 _fl, unsigned _ftb);
 static void ec_enc_shrink(ec_enc* _this, opus_uint32 _size);
