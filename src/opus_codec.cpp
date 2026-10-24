@@ -15537,21 +15537,23 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         }
       }
       auto* pred_lag_ptr = &sLTP_Q15[sLTP_buf_idx - lag + 5 / 2];
-      silk_decode_lpc_subframe_q14(sLPC_Q14, [&](int i) noexcept {
+      for (int i = 0; i < state.subfr_length; ++i) {
         const opus_int32 LTP_pred_Q13 = silk_ltp_prediction_5tap(pred_lag_ptr, B_Q14);
         ++pred_lag_ptr;
         const auto residual = wrap_add(decode_excitation(subframe_offset + i), wrap_shift_left(LTP_pred_Q13, 1));
         sLTP_Q15[sLTP_buf_idx] = wrap_shift_left(residual, 1);
         ++sLTP_buf_idx;
-        return residual;
-      },
-                                   pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
+        sLPC_Q14[16 + i] = residual;
+      }
     } else {
-      silk_decode_lpc_subframe_q14(sLPC_Q14, [&](int i) noexcept {
-        return decode_excitation(subframe_offset + i);
-      },
-                                   pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
+      for (int i = 0; i < state.subfr_length; ++i) {
+        sLPC_Q14[16 + i] = decode_excitation(subframe_offset + i);
+      }
     }
+    silk_decode_lpc_subframe_q14(sLPC_Q14, [&](int i) noexcept {
+      return sLPC_Q14[16 + i];
+    },
+                                 pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
     std::memcpy(k + 1 < state.nb_subfr ? sLPC_Q14 : state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     pxq += state.subfr_length;
   }
