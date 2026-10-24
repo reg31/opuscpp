@@ -4893,13 +4893,14 @@ static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned 
   const int count = packet_frames->nb_frames;
   const auto frame_count = static_cast<std::size_t>(count);
   const auto frame_lengths = std::span<const opus_int16>{packet_frames->len}.first(frame_count);
-  bool vbr = false;
+  const bool vbr = std::ranges::any_of(frame_lengths, [first = frame_lengths.front()](auto length) {
+    return length != first;
+  });
   opus_int32 payload_size = 0;
-  opus_int32 length_bytes = 0;
+  opus_int32 length_bytes = count;
   for (const auto length : frame_lengths) {
     payload_size += length;
-    vbr |= length != frame_lengths.front();
-    length_bytes += 1 + (length >= 252);
+    length_bytes += length >= 252;
   }
   const bool compact = !pad || maxlen == payload_size + 1 + (count == 2 && vbr ? 1 + (frame_lengths.front() >= 252) : 0);
   const int code = compact ? (count == 1 ? 0 : count == 2 ? (vbr ? 2 : 1)
