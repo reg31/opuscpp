@@ -10428,8 +10428,8 @@ static void kf_bfly4_m1(kiss_fft_cpx* output, int count) {
 static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
   const int m2 = 2 * m, m3 = 3 * m;
   for (int j = 0; j < m; ++j) {
-    auto* output = Fout + j;
-    for (int i = 0; i < 15; ++i, output += 4 * m) {
+    for (int i = 0; i < 15; ++i) {
+      auto* output = Fout + j + i * 4 * m;
       const auto scratch0 = complex_multiply(output[m], st->twiddles[j * fstride]);
       const auto scratch1 = complex_multiply(output[m2], st->twiddles[2 * j * fstride]);
       const auto scratch2 = complex_multiply(output[m3], st->twiddles[3 * j * fstride]);
@@ -10454,8 +10454,8 @@ static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_st
   const size_t m2 = 2 * m;
   const kiss_twiddle_cpx epi3 = st->twiddles[fstride * m];
   for (size_t index = 0; index < static_cast<size_t>(m); ++index) {
-    auto* output = Fout + index;
-    for (int i = 0; i < 5; ++i, output += 3 * m) {
+    for (int i = 0; i < 5; ++i) {
+      auto* output = Fout + index + i * 3 * m;
       const auto scratch1 = complex_multiply(output[m], st->twiddles[index * fstride]);
       const auto scratch2 = complex_multiply(output[m2], st->twiddles[2 * index * fstride]);
       const auto scratch3 = complex_add(scratch1, scratch2);
@@ -11029,6 +11029,13 @@ static float* stockham_forward_soa(float* data, float* scratch, const kiss_fft_s
 
 static void fft_impl(const kiss_fft_state* st, kiss_fft_cpx* fout) {
   switch (st->nfft) {
+  case 480:
+    kf_bfly4_m1(fout, 120);
+    kf_bfly2(fout, 60);
+    kf_bfly4(fout, 15, st, 8);
+    kf_bfly3(fout, 5, st, 32);
+    kf_bfly5(fout, 1, st, 96);
+    break;
   case 240:
     kf_bfly4_m1(fout, 60);
     kf_bfly4(fout, 30, st, 4);
