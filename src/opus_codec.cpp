@@ -21081,6 +21081,7 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
 }
 
 [[nodiscard]] auto dispatch_encoder_control(OpusEncoder* st, int request, va_list& ap) noexcept -> int {
+  opus_int32 value;
   switch (request) {
   case OPUS_SET_BITRATE_REQUEST: {
     auto value = va_arg(ap, opus_int32);
@@ -21094,7 +21095,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_BITRATE_REQUEST:
-    return ctl_write_value(ap, user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 400, 1276));
+    value = user_bitrate_to_bitrate(st, st->prev_framesize ? st->Fs / st->prev_framesize : 400, 1276);
+    break;
   case OPUS_SET_VBR_REQUEST:
   case OPUS_SET_VBR_CONSTRAINT_REQUEST: {
     if (const auto error = ctl_read_bounded<1>(ap, request == OPUS_SET_VBR_REQUEST ? st->use_vbr : st->vbr_constraint); error != OPUS_OK) {
@@ -21104,7 +21106,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_VBR_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->use_vbr));
+    value = static_cast<opus_int32>(st->use_vbr);
+    break;
   case OPUS_SET_DTX_REQUEST: {
     if (const auto error = ctl_read_bounded<1>(ap, st->use_dtx); error != OPUS_OK) {
       return error;
@@ -21114,7 +21117,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_DTX_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->use_dtx));
+    value = static_cast<opus_int32>(st->use_dtx);
+    break;
   case OPUSCPP_SET_VOICE_DENOISE_REQUEST: {
     const auto value = va_arg(ap, opus_int32);
     if (value < 0 || value > 1) {
@@ -21139,7 +21143,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
   case OPUSCPP_GET_VOICE_DENOISE_REQUEST:
     return ctl_write_value(ap, static_cast<opus_int32>(st->voice_denoise != nullptr));
   case OPUS_GET_VBR_CONSTRAINT_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->vbr_constraint));
+    value = static_cast<opus_int32>(st->vbr_constraint);
+    break;
   case OPUS_SET_COMPLEXITY_REQUEST: {
     if (const auto error = ctl_read_bounded<10>(ap, st->silk_mode.complexity); error != OPUS_OK) {
       return error;
@@ -21148,7 +21153,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_COMPLEXITY_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.complexity));
+    value = static_cast<opus_int32>(st->silk_mode.complexity);
+    break;
   case OPUS_SET_INBAND_FEC_REQUEST: {
     const auto value = va_arg(ap, opus_int32);
     if (value < 0 || value > 2) {
@@ -21164,7 +21170,8 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_INBAND_FEC_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.useInBandFEC));
+    value = static_cast<opus_int32>(st->silk_mode.useInBandFEC);
+    break;
   case OPUS_SET_PACKET_LOSS_PERC_REQUEST: {
     if (const auto error = ctl_read_bounded<100>(ap, st->silk_mode.packetLossPercentage); error != OPUS_OK) {
       return error;
@@ -21173,19 +21180,23 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     return OPUS_OK;
   }
   case OPUS_GET_PACKET_LOSS_PERC_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->silk_mode.packetLossPercentage));
+    value = static_cast<opus_int32>(st->silk_mode.packetLossPercentage);
+    break;
   case OPUS_GET_LOOKAHEAD_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(st->Fs / 400 + encoder_delay_compensation(st)));
+    value = static_cast<opus_int32>(st->Fs / 400 + encoder_delay_compensation(st));
+    break;
   case OPUS_GET_FINAL_RANGE_REQUEST:
     return ctl_write_value(ap, st->rangeFinal);
   case OPUS_GET_IN_DTX_REQUEST:
-    return ctl_write_value(ap, static_cast<opus_int32>(encoder_is_in_dtx(st)));
+    value = static_cast<opus_int32>(encoder_is_in_dtx(st));
+    break;
   case OPUS_RESET_STATE:
     reset_ref_encoder_state(st, encoder_celt_state(st));
     return OPUS_OK;
   default:
     return OPUS_UNIMPLEMENTED;
   }
+  return ctl_write_value(ap, value);
 }
 
 [[nodiscard]] auto dispatch_decoder_control(OpusDecoder* st, int request, va_list& ap) noexcept -> int {
