@@ -3688,7 +3688,6 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     const auto& mode_info = st->classical_leak.out_info;
     if (mode_info.valid) {
       const int mode_voice_ratio = static_cast<int>(std::floor(.5f + 100.f * (1.f - mode_info.music_prob)));
-      mode_voice_weight = voice_weight;
       if (st->application == OPUS_APPLICATION_AUDIO) {
         mode_voice_weight = std::min(mode_voice_weight, 115 * 115);
       }
@@ -8134,7 +8133,7 @@ struct celt_input_metrics {
                                                                   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2});
   static_assert(inv_table.size() == 128);
   std::array<float, (celt_max_frame_samples + celt_default_overlap) / 2> tmp;
-  int is_transient = 0;
+  int is_transient;
   opus_int32 mask_metric = 0;
   const int len2 = len / 2;
   const float forward_decay = allow_weak_transients ? .03125f : .0625f;
@@ -8530,19 +8529,19 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   if (CC == 2 && C == 1)
     for (int band = 0; band < nbEBands; ++band)
       oldBandE[band] = std::max(oldBandE[band], oldBandE[band + nbEBands]);
-  opus_int32 tell = 0, tell0_frac = 0, vbr_rate = 0, equiv_rate = 0, total_bits = 0, tot_boost = 0;
-  int nbAvailableBytes = 0, effectiveBytes = 0;
-  opus_val32 toneishness = 0, temporal_vbr = 0, maxDepth = 0;
-  opus_val16 tone_frequency = 0;
+  opus_int32 tell, tell0_frac, vbr_rate = 0, equiv_rate, total_bits, tot_boost;
+  int nbAvailableBytes, effectiveBytes;
+  opus_val32 toneishness = 0, temporal_vbr, maxDepth;
+  opus_val16 tone_frequency;
   celt_prefilter_result prefilter{};
-  int silence = 0, isTransient = 0, transient_enabled = 0, transient_got_disabled = 0, shortBlocks = 0;
+  int silence, isTransient = 0, transient_enabled, transient_got_disabled, shortBlocks;
   opus_val16 tf_estimate = 0;
   int tf_chan = 0;
   bool weak_transient = false;
-  bool input_release = false;
-  bool common_source = false;
-  bool enable_tf_analysis = false;
-  bool preserve_hybrid_tf_time_support = false;
+  bool input_release;
+  bool common_source;
+  bool enable_tf_analysis;
+  bool preserve_hybrid_tf_time_support;
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
@@ -13178,7 +13177,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   relativeE = 0;
   frame_loudness = 0;
   {
-    float E = 0;
+    float E;
     float X1r, X2r;
     X1r = 2 * out[(0)];
     X2r = 2 * out[N + (0)];
@@ -14177,7 +14176,7 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> old_intra;
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> err_intra{};
   std::array<unsigned char, 1275> intra_bytes;
-  int badness1 = 0;
+  int badness1;
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
     badness1 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, old_intra.data(), budget, tell,
@@ -18959,7 +18958,7 @@ static void silk_encode_do_VAD(silk_encoder_state* psEncC, const opus_int16* inp
   X[0] -= psSilk_VAD->HPstate;
   psSilk_VAD->HPstate = HPstateTmp;
   std::array<opus_int32, 4> Xnrg;
-  opus_int32 sumSquared = 0;
+  opus_int32 sumSquared;
   for (int b = 0; b < 4; b++) {
     decimated_framelength = ((psEncC->frame_length) >> (std::min(4 - b, 4 - 1)));
     const int dec_subframe_length = ((decimated_framelength) >> (2));
@@ -20745,7 +20744,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
 }
 
 static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag, funded_lbrr_packet* funding) {
-  int saved_payload_size_ms = 0, saved_complexity = 0;
+  int saved_payload_size_ms, saved_complexity;
   auto* psEnc = static_cast<silk_encoder*>(encState);
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
   const auto& prior_state = state_Fxx[0].sCmn;
