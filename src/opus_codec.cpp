@@ -7849,8 +7849,7 @@ static int celt_prefilter_passthrough(CeltEncoderInternal* st, celt_sig* in, cel
   return 0;
 }
 
-template <bool Mono> static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
-  const int CC = Mono ? 1 : channels;
+static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
   std::array<celt_sig*, celt_max_channels> pre{};
   int pitch_index;
   opus_val16 gain1, pf_threshold;
@@ -7887,8 +7886,13 @@ template <bool Mono> static int run_prefilter_active_for_channels(CeltEncoderInt
     pitch_fine_correlations fine_correlations;
     pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index, &shared_power, &fine_correlations);
     pitch_index = max_period - pitch_index;
-    gain1 = shared_power.active ? remove_doubling_with_power_and_fine(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain, shared_power, fine_correlations)
-                                : remove_doubling(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
+    if (shared_power.active) {
+      auto* volatile evaluate = &remove_doubling_with_power_and_fine;
+      gain1 = evaluate(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain, shared_power, fine_correlations);
+    } else {
+      auto* volatile evaluate = &remove_doubling;
+      gain1 = evaluate(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
+    }
     if (pitch_index > max_period - (2)) {
       pitch_index = max_period - (2);
     }
@@ -8081,7 +8085,7 @@ template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* 
   const int CC = Mono ? 1 : channels;
   if (st->prefilter_gain == 0 && (!enabled || (complexity < 5 && toneishness <= (.99f))))
     return celt_prefilter_passthrough(st, in, prefilter_mem, CC, N, pitch, gain, qgain);
-  return run_prefilter_active_for_channels<Mono>(st, in, prefilter_mem, channels, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
+  return run_prefilter_active_for_channels(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
 }
 
 static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
