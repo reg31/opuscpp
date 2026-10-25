@@ -372,6 +372,13 @@ static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
 
+#if defined(__aarch64__) && defined(__clang__)
+#if __has_attribute(preserve_all)
+__attribute__((preserve_all)) static void ec_dec_normalize_if_needed(ec_dec* _this);
+OPUSCPP_NOINLINE __attribute__((preserve_all)) static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
+#endif
+#endif
+
 static void ec_dec_normalize_if_needed(ec_dec* _this) {
   while (_this->rng <= ec_code_bot) {
     _this->nbits_total += (8);
