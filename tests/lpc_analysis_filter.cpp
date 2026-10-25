@@ -1,4 +1,6 @@
 #include <array>
+#include <cerrno>
+#include <cfenv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -106,9 +108,87 @@ static bool check_public_packets(const std::filesystem::path& root) {
   return true;
 }
 
+static bool check_celt_iir_helpers() {
+  const int incoming_errno = errno;
+  const int incoming_exceptions = std::fetestexcept(FE_ALL_EXCEPT);
+  const int incoming_rounding = std::fegetround();
+  std::fenv_t incoming_env;
+  if (std::feholdexcept(&incoming_env) != 0) {
+    errno = incoming_errno;
+    return false;
+  }
+  const auto finish = [&](bool passed) {
+    const bool restored = std::fesetenv(&incoming_env) == 0;
+    const bool matching = std::fetestexcept(FE_ALL_EXCEPT) == incoming_exceptions && std::fegetround() == incoming_rounding;
+    errno = incoming_errno;
+    return passed && restored && matching;
+  };
+  std::cout << "celt_iir_incoming_env exceptions=" << incoming_exceptions << " rounding=" << incoming_rounding
+            << " errno=" << incoming_errno << '\n';
+  for (int samples : {240, 360, 600, 1080}) {
+    std::array<float, celt_max_frame_samples + celt_default_overlap> pcm{}, expected_pcm{};
+    std::array<float, celt_lpc_order> denominator{}, memory{};
+    denominator[0] = -.5f;
+    memory[0] = .25f;
+    for (int i = 0; i < samples; ++i)
+      pcm[i] = static_cast<float>(i % 17 - 8) * .125f;
+    const auto original = pcm;
+    if (std::feclearexcept(FE_ALL_EXCEPT) != 0 || std::feraiseexcept(FE_DIVBYZERO) != 0)
+      return finish(false);
+    std::fenv_t case_env;
+    if (std::fegetenv(&case_env) != 0)
+      return finish(false);
+    const int expected_rounding = std::fegetround();
+    errno = E2BIG;
+    const float energy = celt_iir(pcm.data(), denominator.data(), pcm.data(), samples, memory.data());
+    const int actual_errno = errno;
+    const int actual_exceptions = std::fetestexcept(FE_ALL_EXCEPT);
+    const int actual_rounding = std::fegetround();
+    if (std::fesetenv(&case_env) != 0)
+      return finish(false);
+    errno = E2BIG;
+    float previous = .25f;
+    float expected_energy = 0;
+    for (int i = 0; i < samples; ++i) {
+      const float expected = original[i] + .5f * previous;
+      expected_pcm[i] = expected;
+      // Round each square before the next sample-order addition, as in production.
+      const volatile float square = expected * expected;
+      expected_energy += square;
+      previous = expected;
+    }
+    const int expected_errno = errno;
+    const int expected_exceptions = std::fetestexcept(FE_ALL_EXCEPT);
+    const int reference_rounding = std::fegetround();
+    const auto energy_bits = std::bit_cast<opus_uint32>(energy);
+    const auto expected_energy_bits = std::bit_cast<opus_uint32>(expected_energy);
+    std::cout << "celt_iir_case samples=" << samples << " energy_bits=" << energy_bits
+              << " expected_energy_bits=" << expected_energy_bits << " exceptions=" << actual_exceptions
+              << " expected_exceptions=" << expected_exceptions << " errno=" << actual_errno
+              << " expected_errno=" << expected_errno << " rounding=" << actual_rounding
+              << " expected_rounding=" << expected_rounding << '\n';
+    for (int i = 0; i < samples; ++i) {
+      if (pcm[i] != expected_pcm[i]) {
+        std::cerr << "CELT IIR mismatch length=" << samples << " sample=" << i << '\n';
+        return finish(false);
+      }
+    }
+    if (energy_bits != expected_energy_bits || actual_exceptions != expected_exceptions ||
+        (actual_exceptions & FE_DIVBYZERO) == 0 || actual_errno != E2BIG || expected_errno != E2BIG ||
+        actual_rounding != expected_rounding || reference_rounding != expected_rounding) {
+      std::cerr << "CELT IIR energy/ENV mismatch length=" << samples << '\n';
+      return finish(false);
+    }
+  }
+  std::cout << "celt_iir_helper_checks=PASS cases=4 samples=2280 (original in-place lengths; exact outputs/energy; FENV/errno/rounding/sticky flags)\n";
+  return finish(true);
+}
+
 int main(int argc, char** argv) {
   if (argc != 2)
     return 1;
+  if (std::string(argv[1]) == "--celt-iir-only")
+    return check_celt_iir_helpers() ? 0 : 1;
   const bool packets_ok = check_public_packets(argv[1]);
   if (!packets_ok)
     std::cerr << "Public oracle packet/range gate failed\n";
@@ -194,25 +274,8 @@ int main(int argc, char** argv) {
       }
     }
   }
-  for (int samples : {240, 360, 600, 1080}) {
-    std::array<float, celt_max_frame_samples + celt_default_overlap> pcm{};
-    std::array<float, celt_lpc_order> denominator{}, memory{};
-    denominator[0] = -.5f;
-    memory[0] = .25f;
-    for (int i = 0; i < samples; ++i)
-      pcm[i] = static_cast<float>(i % 17 - 8) * .125f;
-    const auto original = pcm;
-    celt_iir(pcm.data(), denominator.data(), pcm.data(), samples, memory.data());
-    float previous = .25f;
-    for (int i = 0; i < samples; ++i) {
-      const float expected = original[i] + .5f * previous;
-      if (pcm[i] != expected) {
-        std::cerr << "CELT IIR mismatch length=" << samples << " sample=" << i << '\n';
-        return 1;
-      }
-      previous = expected;
-    }
-  }
+  if (!check_celt_iir_helpers())
+    return 1;
   std::cout << "lpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\n";
   if (!packets_ok)
     return 1;

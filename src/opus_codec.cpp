@@ -9338,7 +9338,7 @@ static std::array<opus_val32, 2> celt_fir_c(const opus_val16* x, const opus_val1
   return energy;
 }
 
-template <bool AccumulateEnergy = false, typename Source>
+template <typename Source>
 static opus_val32 celt_iir(Source&& _x, const opus_val16* den, opus_val32* _y, int N, opus_val16* mem) {
   const auto input = [&](int index) noexcept -> opus_val32 {
     if constexpr (std::is_invocable_r_v<opus_val32, Source&, int>) {
@@ -9380,11 +9380,9 @@ static opus_val32 celt_iir(Source&& _x, const opus_val16* den, opus_val32* _y, i
     sum[3] = ((sum[3]) + static_cast<opus_val32>(history[celt_lpc_order]) * static_cast<opus_val32>(den[2]));
     history[celt_lpc_order + 3] = -(sum[3]);
     _y[i + 3] = sum[3];
-    if constexpr (AccumulateEnergy) {
-      for (int lane = 0; lane < 4; ++lane) {
-        const auto sample = _y[i + lane];
-        reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
-      }
+    for (int lane = 0; lane < 4; ++lane) {
+      const auto sample = _y[i + lane];
+      reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
     }
     copy_n_items(history + celt_lpc_order, 4, history);
     pos += 4;
@@ -9399,10 +9397,8 @@ static opus_val32 celt_iir(Source&& _x, const opus_val16* den, opus_val32* _y, i
     }
     history[celt_lpc_order] = (sum);
     _y[i] = sum;
-    if constexpr (AccumulateEnergy) {
-      const auto sample = _y[i];
-      reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
-    }
+    const auto sample = _y[i];
+    reconstruction_energy += static_cast<opus_val32>(sample) * static_cast<opus_val32>(sample);
     history[0] = history[celt_lpc_order];
     if (++pos == celt_lpc_order)
       pos = 0;
@@ -9729,7 +9725,7 @@ static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, 
     lpc_mem[i] = buf[history_size - N - 1 - i];
   }
   {
-    const opus_val32 S2 = celt_iir<true>(excitation, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
+    const opus_val32 S2 = celt_iir(excitation, lpc, buf + history_size - N, extrapolation_len, lpc_mem.data());
     if (!(S1 > 0.2f * S2)) {
       zero_n_items(buf + history_size - N, static_cast<std::size_t>(extrapolation_len));
     } else if (S1 < S2) {
