@@ -5482,14 +5482,14 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
       } else
         itheta = ec_dec_uint(ec, qn + 1);
     } else {
-      int fs = 1, ft;
+      int fs, ft;
       ft = ((qn >> 1) + 1) * ((qn >> 1) + 1);
       if (encode) {
         fs = itheta <= (qn >> 1) ? itheta + 1 : qn + 1 - itheta;
         const int fl = itheta <= (qn >> 1) ? itheta * (itheta + 1) >> 1 : ft - ((qn + 1 - itheta) * (qn + 2 - itheta) >> 1);
         ec_encode(ec, fl, fl + fs, ft);
       } else {
-        int fl = 0;
+        int fl;
         int fm = ec_decode(ec, ft);
         if (fm < ((qn >> 1) * ((qn >> 1) + 1) >> 1)) {
           itheta = static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(fm) + 1) - 1) >> 1);
