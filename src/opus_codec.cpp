@@ -15429,16 +15429,28 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   std::fill_n(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
 }
 
+#if defined(__aarch64__)
+static void silk_stereo_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* samples, int length);
+#endif
+
 static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
   int energy_shift;
   opus_int32 energy;
   const auto length = static_cast<int>(frame.size());
   auto* psPLC = &psDec->sPLC;
   if (psDec->lossCnt) {
+#if defined(__aarch64__)
+    silk_stereo_sum_sqr_shift(&psPLC->conc_energy, &psPLC->conc_energy_shift, frame.data(), length);
+#else
     silk_sum_sqr_shift(&psPLC->conc_energy, &psPLC->conc_energy_shift, frame.data(), length);
+#endif
     psPLC->last_frame_lost = 1;
   } else if (psDec->sPLC.last_frame_lost) {
+#if defined(__aarch64__)
+    silk_stereo_sum_sqr_shift(&energy, &energy_shift, frame.data(), length);
+#else
     silk_sum_sqr_shift(&energy, &energy_shift, frame.data(), length);
+#endif
     if (energy_shift > psPLC->conc_energy_shift) {
       psPLC->conc_energy = ((psPLC->conc_energy) >> (energy_shift - psPLC->conc_energy_shift));
     } else if (energy_shift < psPLC->conc_energy_shift) {
