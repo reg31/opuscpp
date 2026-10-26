@@ -270,6 +270,26 @@ template <int Order>
   return prediction_q10;
 }
 
+#if defined(__aarch64__)
+template <bool AddOutput = false, typename Source, bool StorePCM = true>
+  requires std::is_invocable_r_v<opus_int32, Source&, int>
+static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16, const bool store_pcm = true) noexcept {
+  for (int i = 0; i < length; ++i) {
+    const auto pred_Q10 = order16 ? silk_lpc_prediction_q10_fixed<16>(sLPC_Q14 + 16 + i, A_Q12)
+                                  : silk_lpc_prediction_q10_fixed<10>(sLPC_Q14 + 16 + i, A_Q12);
+    sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
+    if constexpr (StorePCM) {
+      if (store_pcm) {
+        auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
+        if constexpr (AddOutput) {
+          sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
+        }
+        pxq[i] = sample;
+      }
+    }
+  }
+}
+#else
 template <bool AddOutput = false, typename Source, bool StorePCM = true>
   requires std::is_invocable_r_v<opus_int32, Source&, int>
 static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
@@ -292,6 +312,7 @@ static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& s
     synthesize.template operator()<10>();
   }
 }
+#endif
 
 [[nodiscard]] static auto silk_lpc_prediction_q10(const opus_int32* history_end, const opus_int16* coefficients, const int order) noexcept -> opus_int32 {
   return order == 10 ? silk_lpc_prediction_q10_fixed<10>(history_end, coefficients)
@@ -15284,11 +15305,15 @@ static void silk_CNG(silk_decoder_state* psDec, silk_decoder_control* psDecCtrl,
       const int index = (psCNG->rand_seed >> 24) & exc_mask;
       return silk_read_excitation(psCNG->CNG_exc_low[index], psCNG->CNG_exc_high[index]);
     };
+#if defined(__aarch64__)
+    silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10, gain_Q10 != 0);
+#else
     if (gain_Q10 == 0) {
       silk_decode_lpc_subframe_q14<true, decltype(source)&, false>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
     } else {
       silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
     }
+#endif
     std::memcpy(psCNG->CNG_synth_state, &CNG_sig_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
   } else {
     std::memset(psCNG->CNG_synth_state, 0, static_cast<std::size_t>(psDec->LPC_order * sizeof(opus_int32)));
