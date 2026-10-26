@@ -13866,6 +13866,47 @@ static opus_val16 remove_doubling_original(opus_val16* x, int N, int* T0_, int p
   return pg;
 }
 
+#if defined(__aarch64__) && defined(__SIZEOF_FLOAT__) && __SIZEOF_FLOAT__ == 4 && FLT_EVAL_METHOD == 0 && FLT_RADIX == 2 && FLT_MANT_DIG == 24
+static opus_val16 remove_doubling_tail(opus_val32 yy, opus_val32 xy, opus_val32 xx, opus_val16 prev_gain, opus_val16* x, int N, int starting_period, int prev_period, const opus_val32* yy_lookup, const pitch_fine_correlations* fine, int* T0_) {
+  constexpr int maxperiod = celt_max_pitch_period / 2;
+  constexpr int minperiod = celt_min_pitch_period / 2;
+  constexpr int minperiod0 = celt_min_pitch_period;
+  std::array<opus_val32, 3> xcorr;
+  int offset;
+  int T = starting_period;
+  const int T0 = T;
+  const bool finite_interpolation = ((std::bit_cast<opus_uint32>(xx) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(yy) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(prev_gain) & 0x7f800000U) != 0x7f800000U);
+  yy = yy_lookup[T0];
+  opus_val32 best_xy = xy;
+  opus_val32 best_yy = yy;
+  opus_val16 g = compute_pitch_gain(xy, xx, yy);
+  const opus_val16 g0 = g;
+  OPUSCPP_REMOVE_DOUBLING_SEARCH
+  const bool reused_interpolation = finite_interpolation &&
+                                    pitch_fine_correlation_lookup(fine, x, N, T - 1, xcorr[0]) &&
+                                    pitch_fine_correlation_lookup(fine, x, N, T, xcorr[1]) &&
+                                    pitch_fine_correlation_lookup(fine, x, N, T + 1, xcorr[2]);
+  if (!reused_interpolation) {
+    if (finite_interpolation) {
+      celt_pitch_interpolation3(x, T, N, xcorr);
+    } else {
+      for (int k = 0; k < 3; ++k)
+        xcorr[static_cast<std::size_t>(k)] = celt_inner_prod_c(x, x - (T + k - 1), N);
+    }
+  }
+  if ((xcorr[2] - xcorr[0]) > (((.7f)) * (xcorr[1] - xcorr[0]))) {
+    offset = 1;
+  } else if ((xcorr[0] - xcorr[2]) > (((.7f)) * (xcorr[1] - xcorr[2])))
+    offset = -1;
+  else
+    offset = 0;
+  *T0_ = 2 * T + offset;
+  if (*T0_ < minperiod0) {
+    *T0_ = minperiod0;
+  }
+  return pg;
+}
+#endif
 template <bool SharedPower>
 static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain, const pitch_window_power* power, const pitch_fine_correlations* fine = nullptr) {
   if (FLT_EVAL_METHOD != 0 || !std::numeric_limits<float>::is_iec559 || std::numeric_limits<float>::digits != 24 ||
@@ -13907,6 +13948,9 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
     }
     yy_lookup = energy_storage.data();
   }
+#if defined(__aarch64__) && defined(__SIZEOF_FLOAT__) && __SIZEOF_FLOAT__ == 4 && FLT_EVAL_METHOD == 0 && FLT_RADIX == 2 && FLT_MANT_DIG == 24
+  return remove_doubling_tail(yy, xy, xx, prev_gain, x, N, T0, prev_period, yy_lookup, fine, T0_);
+#endif
   const bool finite_interpolation = ((std::bit_cast<opus_uint32>(xx) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(yy) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(prev_gain) & 0x7f800000U) != 0x7f800000U);
   yy = yy_lookup[T0];
   opus_val32 best_xy = xy;
