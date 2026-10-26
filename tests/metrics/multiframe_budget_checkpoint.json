@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "609707f895447fafad589ed02c4e6f6ad707df14",
-  "source_sha256": "2dc3357bd1b0b0de96e52fe71ecc683e36404b5bd4cd8d6eb21316ea41255902",
+  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
+  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\input_manifest.json",
-    "bytes": 24719,
-    "sha256": "9bbbd5f5d48d6bc7d0c891f852670f6008d1f065680bfff912574eb5582ab2cb"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\input_manifest.json",
+    "bytes": 24648,
+    "sha256": "d856eb52d3d1b7b2f211c5dd7416b90029f50b5efbe63522d0798cdae7110e82"
   },
   "fresh_current_values": true,
   "scope": "Current maintained long-packet wire/rate/recovery and matched60ms caller observations",
@@ -67,20 +67,20 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.814831",
-            "current_encode_ms": "121.066700",
-            "official_encode_ms": "98.648900",
+            "encode_speedx": "0.799825",
+            "current_encode_ms": "138.856700",
+            "official_encode_ms": "111.061100",
             "opuscpp_effective_kbps": "22.352381",
             "official_effective_kbps": "19.952976",
-            "decode_speedx": "1.249237",
-            "current_decode_ms": "7.506500",
-            "official_decode_ms": "9.377400"
+            "decode_speedx": "1.277558",
+            "current_decode_ms": "8.080100",
+            "official_decode_ms": "10.322800"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\fec60_hazel.csv",
-          "bytes": 240,
-          "sha256": "fe1a6bd92f612363e60dd19e8987250f04160f11acf410ee98b2783c4f54a715"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_hazel.csv",
+          "bytes": 242,
+          "sha256": "2a8275538d9afe85faaa811129ccebba8753fd4a3c8eb90d4dcc619d7159addc"
         }
       },
       {
@@ -98,39 +98,39 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.772288",
-            "current_encode_ms": "107.440500",
-            "official_encode_ms": "82.975000",
+            "encode_speedx": "0.756725",
+            "current_encode_ms": "112.315500",
+            "official_encode_ms": "84.991900",
             "opuscpp_effective_kbps": "20.736054",
             "official_effective_kbps": "19.123129",
-            "decode_speedx": "1.241715",
-            "current_decode_ms": "6.503100",
-            "official_decode_ms": "8.075000"
+            "decode_speedx": "1.257950",
+            "current_decode_ms": "6.650900",
+            "official_decode_ms": "8.366500"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\fec60_david.csv",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_david.csv",
           "bytes": 240,
-          "sha256": "87d18d3f5a7e57f087b5e93d8c445c7d6778ba7260024c5262862740d4737baa"
+          "sha256": "69ed77cfcbd15d072486fe949de69df65bc7b5be7c76b56a274205546a5b64fd"
         }
       }
     ]
   },
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\logs\\metric_fec_vs_official.stdout.txt",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\metric_fec_vs_official.stdout.txt",
       "bytes": 16965,
       "sha256": "5158f19fbda70ac420b2e667545a78d368d22e40398f4703312b9c73dc24f8e7"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\fec60_hazel.csv",
-      "bytes": 240,
-      "sha256": "fe1a6bd92f612363e60dd19e8987250f04160f11acf410ee98b2783c4f54a715"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_hazel.csv",
+      "bytes": 242,
+      "sha256": "2a8275538d9afe85faaa811129ccebba8753fd4a3c8eb90d4dcc619d7159addc"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\fec60_david.csv",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_david.csv",
       "bytes": 240,
-      "sha256": "87d18d3f5a7e57f087b5e93d8c445c7d6778ba7260024c5262862740d4737baa"
+      "sha256": "69ed77cfcbd15d072486fe949de69df65bc7b5be7c76b56a274205546a5b64fd"
     }
   ],
   "limits": "Only long-duration interop rows actually emitted by the maintained test and the60ms callers are reported; absent durations remain unmeasured here. Internal per-subframe credit law and old corpus/layout experiments are not remeasured or claimed qualified by these observations.",

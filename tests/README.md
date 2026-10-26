@@ -183,21 +183,21 @@ recorded in [run metadata](metrics/run_metadata.json).
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-Measured codec: `609707f895447fafad589ed02c4e6f6ad707df14`; Source/header and all raw results are bound in the metrics metadata.
+Measured codec: `7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f`; Source/header and all raw results are bound in the metrics metadata.
 
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS and nine 60-second stereo runs. Ratios above `1.00x` indicate faster processing.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 1.007x | 1.896x | 357x | 355x | 2472x | 1304x |
-| 24&nbsp;kbps | 1.063x | 1.332x | 343x | 323x | 1518x | 1139x |
-| 32&nbsp;kbps | 1.023x | 1.323x | 331x | 323x | 1499x | 1133x |
-| 48&nbsp;kbps | 1.081x | 1.266x | 318x | 294x | 1204x | 951x |
-| 64&nbsp;kbps | 1.057x | 1.135x | 266x | 252x | 925x | 815x |
-| 96&nbsp;kbps | 1.101x | 1.297x | 230x | 209x | 849x | 654x |
-| 128&nbsp;kbps | 1.034x | 1.293x | 199x | 193x | 743x | 575x |
-| 192&nbsp;kbps | 1.106x | 1.349x | 181x | 163x | 622x | 461x |
-| 256&nbsp;kbps | 1.033x | 1.192x | 173x | 168x | 534x | 448x |
+| 16&nbsp;kbps | 1.014x | 1.970x | 242x | 238x | 1703x | 864x |
+| 24&nbsp;kbps | 1.085x | 1.335x | 232x | 214x | 1036x | 776x |
+| 32&nbsp;kbps | 1.070x | 1.346x | 227x | 212x | 1026x | 762x |
+| 48&nbsp;kbps | 0.994x | 1.235x | 198x | 200x | 809x | 655x |
+| 64&nbsp;kbps | 1.109x | 1.269x | 195x | 176x | 726x | 572x |
+| 96&nbsp;kbps | 1.101x | 1.257x | 155x | 141x | 559x | 445x |
+| 128&nbsp;kbps | 1.067x | 1.321x | 138x | 129x | 503x | 381x |
+| 192&nbsp;kbps | 1.003x | 1.265x | 119x | 118x | 422x | 334x |
+| 256&nbsp;kbps | 1.026x | 1.200x | 116x | 113x | 362x | 302x |
 
 ## Quality metrics vs official Opus
 
@@ -263,15 +263,15 @@ Optional denoiser state: 68 bytes; state/bounds/reset coverage: 90 configuration
 
 | Bitrate | PESQ-style gain | ViSQOL-style gain | Encode overhead |
 |---:|---:|---:|---:|
-| 16&nbsp;kbps | +0.1846 | +0.1179 | 6.3% |
-| 24&nbsp;kbps | +0.2203 | +0.1204 | 6.2% |
-| 32&nbsp;kbps | +0.2053 | +0.1197 | 5.0% |
-| 48&nbsp;kbps | +0.2158 | +0.1189 | 4.5% |
-| 64&nbsp;kbps | +0.2107 | +0.1306 | 4.5% |
-| 96&nbsp;kbps | +0.2126 | +0.1581 | 6.1% |
-| 128&nbsp;kbps | +0.2129 | +0.1575 | 4.4% |
-| 192&nbsp;kbps | +0.2154 | +0.1583 | 6.7% |
-| 256&nbsp;kbps | +0.2156 | +0.1593 | 6.0% |
+| 16&nbsp;kbps | +0.1846 | +0.1179 | 5.9% |
+| 24&nbsp;kbps | +0.2203 | +0.1204 | 7.2% |
+| 32&nbsp;kbps | +0.2053 | +0.1197 | 6.0% |
+| 48&nbsp;kbps | +0.2158 | +0.1189 | 1.1% |
+| 64&nbsp;kbps | +0.2107 | +0.1306 | 5.7% |
+| 96&nbsp;kbps | +0.2126 | +0.1581 | 5.3% |
+| 128&nbsp;kbps | +0.2129 | +0.1575 | -7.7% |
+| 192&nbsp;kbps | +0.2154 | +0.1583 | 5.7% |
+| 256&nbsp;kbps | +0.2156 | +0.1593 | 6.4% |
 
 Sources: `metrics/voice_denoise_quality_voip.csv`, `metrics/voice_denoise_timing.csv`, `metrics/voice_denoise_boundary.csv`, and `metrics/voice_denoise_provenance.json`.
 
@@ -288,10 +288,10 @@ Memory uses 256 instances across three processes with FEC and denoising disabled
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 20,496 B | 31,824 B | -35.6% |
-| Encoder stereo | 30,640 B | 48,880 B | -37.3% |
-| Decoder mono | 8,464 B | 18,480 B | -54.2% |
-| Decoder stereo | 17,520 B | 27,136 B | -35.4% |
+| Encoder mono | 20,512 B | 31,824 B | -35.5% |
+| Encoder stereo | 30,656 B | 48,880 B | -37.3% |
+| Decoder mono | 8,432 B | 18,496 B | -54.4% |
+| Decoder stereo | 17,520 B | 27,120 B | -35.4% |
 
 Source CSV:
 
@@ -302,4 +302,4 @@ Source CSV:
 | Build | Text | Data | Total measured image (text+data+bss) |
 |---:|---:|---:|---:|
 | Host MinGW GCC `-O2` | 516,536 B | 0 B | 516,536 B |
-| Android arm64 Clang `-O2` | 491,636 B | 472 B | 492,108 B |
+| Android arm64 Clang `-O2` | 482,556 B | 472 B | 483,028 B |

@@ -1,17 +1,19 @@
 # Complete production metrics
 
-Measured: `609707f895447fafad589ed02c4e6f6ad707df14`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Current objective
 
 | Criterion | Fresh result | Status |
 |---|---|---|
-| Every individual encoding median strictly faster than OFF | 14/17 | FAIL |
-| Smaller 16-to-256 kbps absolute encoding-time increase | 178.7234 ms vs OFF 188.8838 ms | PASS |
+| Every individual encoding median strictly faster than OFF | 13/17 | FAIL |
+| Smaller 16-to-256 kbps absolute encoding-time increase | 269.9269 ms vs OFF 279.7226 ms | PASS |
 | Every published quality delta nonnegative | 713 negative fields | FAIL |
-| Each normal image at most 350,000 B, including text+data+bss | Host 516,536 B; Android 492,108 B | FAIL |
+| Each normal image at most 350,000 B, including text+data+bss | Host 516,536 B; Android 483,028 B | FAIL |
 
-The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.995027x), Hazel FEC60 24 kbps (0.814831x), David FEC60 24 kbps (0.772288x). These are maintained elapsed-time medians, not process-CPU measurements. All raw repetitions, orders and adverse tails are retained. All 12 quality values in both namespaces were freshly measured and equal the prior complete full (Source `487a5a3f6bfb`); this is not a quality-parity claim. The growth comparison uses the same 60-second stereo AUDIO workload and full-precision raw medians.
+The combined goal is unmet. Slower encoding medians: AUDIO 48 kbps (0.994102x), voice_hazel 64 kbps (0.993301x), Hazel FEC60 24 kbps (0.799825x), David FEC60 24 kbps (0.756725x). These are maintained elapsed-time medians, not process-CPU measurements. All raw repetitions, orders and adverse tails are retained. All 12 quality values in both namespaces were freshly measured and equal the prior complete full (Source `609707f89544`); this is not a quality-parity claim. The growth comparison uses the same 60-second stereo AUDIO workload and full-precision raw medians.
+
+Runtime factory getter evidence covers the quality image and all 17 headline timing paths for complexity, VBR/CVBR, bitrate, FEC/loss and effective current denoiser. The retained optional/denoiser timing drivers did not record encoder getters. Their elapsed values are fresh, while their intended encoder option states remain UNKNOWN and unqualified; no later getter, rebuild or rerun is used to replace this missing evidence. Application request 4001 is unsupported by the current public API. Additional unrecorded DTX/signal properties are not inferred as runtime observations.
 
 ## Quality
 
@@ -41,7 +43,7 @@ The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.9950
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 1.01x to 1.11x | 1.14x to 1.90x |
+| AUDIO | 0.99x to 1.11x | 1.20x to 1.97x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -51,14 +53,14 @@ The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.9950
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20496 | 20688 | Not exposed |
+| current_encoder_ch1 | 20512 | 20688 | Not exposed |
 | official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 8464 | 8304 | Not exposed |
-| official_decoder_ch1 | 18480 | 18560 | 18468 |
-| current_encoder_ch2 | 30640 | 30560 | Not exposed |
+| current_decoder_ch1 | 8432 | 8304 | Not exposed |
+| official_decoder_ch1 | 18496 | 18560 | 18468 |
+| current_encoder_ch2 | 30656 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
 | current_decoder_ch2 | 17520 | 16224 | Not exposed |
-| official_decoder_ch2 | 27136 | 27264 | 27236 |
+| official_decoder_ch2 | 27120 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -69,7 +71,7 @@ The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.9950
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
 | host | 516536 | 0 | 0 | 516536 |
-| android | 491636 | 472 | 0 | 492108 |
+| android | 482556 | 472 | 0 | 483028 |
 
 [Object-size data](binary_size.csv).
 
@@ -131,10 +133,10 @@ The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.9950
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.137 decode_ms=15.5165 checksum=340886119
-mono-high bytes=115 encode_ms=20.3571 decode_ms=14.9062 checksum=2633358364
-stereo-mid bytes=103 encode_ms=57.8846 decode_ms=30.4558 checksum=4179984942
-stereo-high bytes=147 encode_ms=52.6897 decode_ms=31.0333 checksum=3681257371
+mono-mid bytes=76 encode_ms=19.5228 decode_ms=16.5865 checksum=340886119
+mono-high bytes=115 encode_ms=21.6703 decode_ms=15.3645 checksum=2633358364
+stereo-mid bytes=103 encode_ms=59.785 decode_ms=31.1143 checksum=4179984942
+stereo-high bytes=147 encode_ms=54.3017 decode_ms=31.3922 checksum=3681257371
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).

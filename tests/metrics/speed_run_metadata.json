@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout",
-  "source_commit": "609707f895447fafad589ed02c4e6f6ad707df14",
-  "source_blob": "cc758a6aedbbf8c92d95d1409162bbed11b99e9b",
-  "source_sha256": "2dc3357bd1b0b0de96e52fe71ecc683e36404b5bd4cd8d6eb21316ea41255902",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout",
+  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
+  "source_blob": "353b6b7a99c916e789b8707674a07aba48df3183",
+  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "609707f895447fafad589ed02c4e6f6ad707df14",
+  "tests_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -66,14 +66,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\build\\official_compare_report\\latest_609707f_once\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests"
   ],
   "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
   "quality_driver_sha256": "9354b7d52bfc7941f2039e85df7a5c3cec640371736e7fba73f5afaab1159c19",
   "quality_driver_diff_sha256": "57274a6443cd3d62fcfbbf444e3c07d437c3f0e6263d63df89ea13be45f11002",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "eed1bc61920bc15782bfcaeb6b95c0ffc34b87e2cf01f24236e1ac4c1da0ff63",
+  "quality_binary_sha256": "ad630509d40bb3e7f66af7d17db08463543fba81c975867abf64acfa73821844",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -86,7 +86,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\checkout\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "31b5b04f7f1ca2e0038387c37abf17fc11674e6c34e076092f22b84d95504619",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -97,7 +97,7 @@
     "synthetic_voice_like_mono.wav": "dc1221df06fd4959e44116769217003c6887b02e528f25c1a7d7d1ef11446246",
     "synthetic_voice_like_mono_noisy.wav": "5b6bce7fa215e3029a7735325478ccd54c628648faf2cbf9122d9f7ea088be88"
   },
-  "executor": "/root/encoding_contract_shard08_20261023",
+  "executor": "/root/full_benchmark_7b_20261026",
   "sanitizers": false,
   "metrics_only": true,
   "quality_negative_fields": 674,
@@ -110,23 +110,23 @@
   ],
   "standard_fec_acceptance": "FAIL",
   "measurement_date": "2026-10-26",
-  "completed_utc": "2026-10-26T00:19:17.269588+00:00",
+  "completed_utc": "2026-10-26T16:01:54.724886+00:00",
   "root_runner_sha256": "fa411728bcb2ea56a2ce32b8cf9c391d4796c5fd168549a85e6550327d56cd86",
-  "phase_runner_sha256": "5e8af4f69b5674c165693deecd4f5b799f55b7bca5a10a05fe6f9e2dae91c6fa",
-  "input_manifest_sha256": "9bbbd5f5d48d6bc7d0c891f852670f6008d1f065680bfff912574eb5582ab2cb",
+  "phase_runner_sha256": "fe62ed22097bf5b39a8a07c64f49a929aaf6a6075d1f06e65aba58f256c555e2",
+  "input_manifest_sha256": "d856eb52d3d1b7b2f211c5dd7416b90029f50b5efbe63522d0798cdae7110e82",
   "maintained_method_executor_label": "Codex root",
   "Root_role": "Assign/release, review measured merits, publish Git and pointer only. Root did not execute the benchmark.",
   "actual_owner_launch_receipt": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_latest_609707f_20261026\\ACTUAL_LAUNCH_RECEIPT.json",
-    "bytes": 7357,
-    "sha256": "d5f11a1254496265673f21f6c51891eb4e319b1106d48a9afd34be7aa2b44f9c"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\ACTUAL_LAUNCH_RECEIPT.json",
+    "bytes": 7307,
+    "sha256": "b91a5e986b6c303842e69c0df50f4e44f092c7a0795d83f38a86b5ce49a0f7c7"
   },
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
   "official_reference_qualification_sha256": "82c9514377434480f121cf4ea8fb2a61509f893b145f63394e30f0363320ffa4",
   "harness_sha256": "d7539edfe9114d213a31883682ef797f12decbe9816a57638a7cccf33023837a",
-  "binary_sha256": "c3062e2128c14701e43683ea7310bcca2fe9c66bdd9e60d05c3efd97208cad77",
+  "binary_sha256": "b3ea6d1cad0491527505f594e172ee8734a60fb67460d2a04022517d7578a2c2",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,
@@ -136,8 +136,368 @@
   "priority": "above_normal",
   "isolated": false,
   "decoder_packets": "Same official packets for both decoders",
-  "human_restart_history": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_after_iir_cleanup_20261025\\HUMAN_SUPERSEDED_CORRECTION.json",
-  "prior_5b_measurements_reused": 0,
+  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\ROOT_ASSIGNMENT.json",
+  "prior_609_measurements_reused": 0,
   "successful_measurements_repeated": 0,
-  "runtime_factory_getter_scope": "Fresh quality and all17 timing factory paths: actual current/OFF complexity,CVBR,VBR,bitrate,FEC,loss and current effectiveDN, after setters and before frame1. DN eligibility is VOIP+mono; requested flag is not assumed effective."
+  "runtime_factory_getter_scope": "Fresh quality and all17 timing factory paths: actual current/OFF complexity,CVBR,VBR,bitrate,FEC,loss and current effectiveDN, after setters and before frame1. DN eligibility is VOIP+mono; requested flag is not assumed effective.",
+  "runtime_option_evidence": {
+    "status": "FRESH_RETAINED_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_GAPS",
+    "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
+    "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+    "all_declared_runtime_option_states_proved": false,
+    "guarded_factory_properties": [
+      "complexity",
+      "CVBR",
+      "VBR",
+      "bitrate",
+      "FEC",
+      "packet_loss",
+      "current_effective_denoiser"
+    ],
+    "guarded_families": {
+      "quality/current": 2840,
+      "quality/official": 2840,
+      "fec60/current": 20,
+      "fec60/official": 20,
+      "speed/current": 90,
+      "speed/official": 90,
+      "voice/current": 60,
+      "voice/official": 60
+    },
+    "observed_values": {
+      "quality/current": {
+        "complexity": [
+          9,
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          15000,
+          15500,
+          15900,
+          16000,
+          16100,
+          16500,
+          17000,
+          18000,
+          20000,
+          22000,
+          23000,
+          23500,
+          23900,
+          24000,
+          24100,
+          24500,
+          25000,
+          28000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ],
+        "denoise": [
+          0,
+          1
+        ]
+      },
+      "quality/official": {
+        "complexity": [
+          9,
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          15000,
+          15500,
+          15900,
+          16000,
+          16100,
+          16500,
+          17000,
+          18000,
+          20000,
+          22000,
+          23000,
+          23500,
+          23900,
+          24000,
+          24100,
+          24500,
+          25000,
+          28000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ]
+      },
+      "fec60/current": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          24000
+        ],
+        "fec": [
+          1
+        ],
+        "loss": [
+          15
+        ],
+        "denoise": [
+          0
+        ]
+      },
+      "fec60/official": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          24000
+        ],
+        "fec": [
+          1
+        ],
+        "loss": [
+          15
+        ]
+      },
+      "speed/current": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          16000,
+          24000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ],
+        "denoise": [
+          0
+        ]
+      },
+      "speed/official": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          16000,
+          24000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ]
+      },
+      "voice/current": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          16000,
+          32000,
+          64000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ],
+        "denoise": [
+          0
+        ]
+      },
+      "voice/official": {
+        "complexity": [
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
+        "bitrate": [
+          16000,
+          32000,
+          64000
+        ],
+        "fec": [
+          0
+        ],
+        "loss": [
+          0
+        ]
+      }
+    },
+    "mandatory17_timing_logs": [
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_speed.stderr.txt",
+        "bytes": 23865,
+        "sha256": "4da420e998c0218cf17013330e736658e2e7addd5155b2a147076136707ce1e0"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_hazel.stderr.txt",
+        "bytes": 7802,
+        "sha256": "5f478af2a32322f261d75238ac98b0a7054e1bb0aac35c97669a83f716b253ed"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_david.stderr.txt",
+        "bytes": 7785,
+        "sha256": "d47fc438a97a2c0cc03c121d60f9697e8206eeeacd84729a1b32cecf19179131"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_hazel.stderr.txt",
+        "bytes": 2621,
+        "sha256": "275bdfaeff0c0ecf634939f14a1a2392e5115e24ecde0074f16a5d6760724b77"
+      },
+      {
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_david.stderr.txt",
+        "bytes": 2659,
+        "sha256": "d25c03c24ec088546a0ed18783a6f1f44a92fe85e24777c6960b3890e036d7d6"
+      }
+    ],
+    "quality_scope": "Fresh498 matrix plus806 published rows use the guarded full-precision quality image. Actual configured properties above were checked outside timed regions after setters and before frame1.",
+    "denoiser_contract": "Effective current denoiser is requested && VOIP && physical mono; AUDIO or stereo legitimately reports0.",
+    "unsupported_application_getter": "Request4001 is not supported by this current public source/header. Create-call source arguments are retained; runtime application getter remains UNKNOWN.",
+    "additional_factory_properties": "The generic guarded factory does not record a DTX or signal getter. No runtime observation of those additional properties is invented; retain per-test source or any independent emitted getter evidence.",
+    "optional_encoder_setup_gaps": [
+      {
+        "family": "optional",
+        "original_driver": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\optional_driver.cpp",
+          "bytes": 5595,
+          "sha256": "331fbfffd32083cf7c5e8c6ed36277e97e49b402db4eabbf78b6e68ed06c7767"
+        },
+        "original_stderr": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_optional.stderr.txt",
+          "bytes": 38,
+          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+        },
+        "shared_included_factory": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 47608,
+          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+        },
+        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
+        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
+        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "decoder_postfilter_getter": "Present before decode timing in optional driver; actual applied levels are retained in optional.csv."
+      },
+      {
+        "family": "denoise_timing",
+        "original_driver": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\denoise_timing_driver.cpp",
+          "bytes": 2662,
+          "sha256": "43e48de4a737165f592c92e304612b4115095dd5d7ed7669081802483bf4afd0"
+        },
+        "original_stderr": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_denoise_timing.stderr.txt",
+          "bytes": 38,
+          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+        },
+        "shared_included_factory": {
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 47608,
+          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+        },
+        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
+        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
+        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "decoder_postfilter_getter": "Not a decoder workload"
+      }
+    ],
+    "other_maintained_tests": "Original source/getter assertions and actual outputs are retained per test. No generic all-options proof is inferred for an image without corresponding runtime evidence.",
+    "no_late_getter_rebuild_replacement_or_retime": true,
+    "measured_values_and_original_identity_unchanged": true,
+    "decision": "Retain the fresh raw values and exact gap. Do not score unobserved intended-option states as qualified benchmark proof. Root alone decides publication of the disclosed facts; no goal or setup waiver.",
+    "original_method": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\source_supported_option_getters.py",
+      "bytes": 2678,
+      "sha256": "0f54e99f7b026946018a24aeb68de03a185fcc3483b16b4feb1ed19d25d3e13c"
+    },
+    "complete_original_log_index": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\RUNTIME_OPTION_SCOPE.json",
+      "sha256": "620369f27788b19dac53a4dc0efa7d1c72b3a765fdd70b91285c4a89d1d1e504"
+    }
+  }
 }
