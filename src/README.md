@@ -14,8 +14,6 @@ The supported API mirrors the commonly used single-stream Opus API. It produces 
 
 Custom Opus is unsupported.
 
-The current full measurement is bound to `487a5a3f6bfb`: 24/24 RFC 8251 decode checks and 96 encoder interoperability packet-acceptance checks passed. Decoded waveform measurements and feature-quality limits remain separate; [fresh results and failed criteria](../tests/metrics/README.md) retain their actual outcomes.
-
 ## Public constants
 
 Error/status constants:
@@ -130,6 +128,8 @@ opus_encoder_ctl(encoder, OPUSCPP_SET_VOICE_DENOISE(1));
 Denoiser comparisons and boundary coverage are listed in [`tests/metrics/README.md`](../tests/metrics/README.md).
 
 ## In-band FEC
+
+Measured codec: `609707f895447fafad589ed02c4e6f6ad707df14`; Source/header and all raw results are bound in the metrics metadata.
 
 In-band FEC is optional and disabled by default. When enabled for SILK or hybrid packets, the
 encoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only

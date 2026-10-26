@@ -1,17 +1,17 @@
 # Complete production metrics
 
-Measured: `487a5a3f6bfb1bd87779997f793f77618708eaff`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `609707f895447fafad589ed02c4e6f6ad707df14`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Current objective
 
 | Criterion | Fresh result | Status |
 |---|---|---|
-| Every individual encoding median strictly faster than OFF | 15/17 | FAIL |
-| Smaller 16-to-256 kbps absolute encoding-time increase | 180.9660 ms vs OFF 189.5949 ms | PASS |
+| Every individual encoding median strictly faster than OFF | 14/17 | FAIL |
+| Smaller 16-to-256 kbps absolute encoding-time increase | 178.7234 ms vs OFF 188.8838 ms | PASS |
 | Every published quality delta nonnegative | 713 negative fields | FAIL |
-| Each normal image at most 350,000 B, including text+data+bss | Host 519,724 B; Android 503,604 B | FAIL |
+| Each normal image at most 350,000 B, including text+data+bss | Host 516,536 B; Android 492,108 B | FAIL |
 
-The combined goal is unmet. Slower encoding medians: Hazel FEC60 24 kbps (0.861331x), David FEC60 24 kbps (0.775637x). These are maintained elapsed-time medians, not process-CPU measurements. All raw repetitions, orders and adverse tails are retained. All 12 quality values in both namespaces are unchanged from the prior complete full (Source `8ab28e50ed3c`); this is not a quality-parity claim. The growth comparison uses the same 60-second stereo AUDIO workload and full-precision raw medians.
+The combined goal is unmet. Slower encoding medians: voice_hazel 64 kbps (0.995027x), Hazel FEC60 24 kbps (0.814831x), David FEC60 24 kbps (0.772288x). These are maintained elapsed-time medians, not process-CPU measurements. All raw repetitions, orders and adverse tails are retained. All 12 quality values in both namespaces were freshly measured and equal the prior complete full (Source `487a5a3f6bfb`); this is not a quality-parity claim. The growth comparison uses the same 60-second stereo AUDIO workload and full-precision raw medians.
 
 ## Quality
 
@@ -41,7 +41,7 @@ The combined goal is unmet. Slower encoding medians: Hazel FEC60 24 kbps (0.8613
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 1.01x to 1.08x | 1.19x to 1.94x |
+| AUDIO | 1.01x to 1.11x | 1.14x to 1.90x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -51,14 +51,14 @@ The combined goal is unmet. Slower encoding medians: Hazel FEC60 24 kbps (0.8613
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20528 | 20496 | Not exposed |
-| official_encoder_ch1 | 31808 | 31904 | 31668 |
-| current_decoder_ch1 | 8448 | 8304 | Not exposed |
-| official_decoder_ch1 | 18496 | 18576 | 18468 |
+| current_encoder_ch1 | 20496 | 20688 | Not exposed |
+| official_encoder_ch1 | 31824 | 31904 | 31668 |
+| current_decoder_ch1 | 8464 | 8304 | Not exposed |
+| official_decoder_ch1 | 18480 | 18560 | 18468 |
 | current_encoder_ch2 | 30640 | 30560 | Not exposed |
 | official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17536 | 16208 | Not exposed |
-| official_decoder_ch2 | 27120 | 27264 | 27236 |
+| current_decoder_ch2 | 17520 | 16224 | Not exposed |
+| official_decoder_ch2 | 27136 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -68,8 +68,8 @@ The combined goal is unmet. Slower encoding medians: Hazel FEC60 24 kbps (0.8613
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 519724 | 0 | 0 | 519724 |
-| android | 503132 | 472 | 0 | 503604 |
+| host | 516536 | 0 | 0 | 516536 |
+| android | 491636 | 472 | 0 | 492108 |
 
 [Object-size data](binary_size.csv).
 
@@ -131,10 +131,10 @@ The combined goal is unmet. Slower encoding medians: Hazel FEC60 24 kbps (0.8613
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=18.3975 decode_ms=15.8911 checksum=340886119
-mono-high bytes=115 encode_ms=20.3271 decode_ms=14.958 checksum=2633358364
-stereo-mid bytes=103 encode_ms=61.9991 decode_ms=31.2014 checksum=4179984942
-stereo-high bytes=147 encode_ms=54.8113 decode_ms=31.5502 checksum=3681257371
+mono-mid bytes=76 encode_ms=18.137 decode_ms=15.5165 checksum=340886119
+mono-high bytes=115 encode_ms=20.3571 decode_ms=14.9062 checksum=2633358364
+stereo-mid bytes=103 encode_ms=57.8846 decode_ms=30.4558 checksum=4179984942
+stereo-high bytes=147 encode_ms=52.6897 decode_ms=31.0333 checksum=3681257371
 ```
 
 [Metric coverage](readme_metric_coverage.json) · [Artifact hashes](benchmark_metric_inventory.json).
