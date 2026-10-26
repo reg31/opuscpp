@@ -300,6 +300,17 @@ struct result final {
   return {.label = path.stem().string(), .channels = channels, .samples = std::move(samples)};
 }
 
+[[nodiscard]] auto require_current_encoder_option(curr_OpusEncoder* encoder, int request, int expected, const char* name) -> int {
+  int observed = -1;
+  const int status = curr_opus_encoder_ctl(encoder, request, &observed);
+  if (status != OPUS_OK || observed != expected) {
+    std::cerr << "ACTUAL_FACTORY_GETTER_ERROR,perceptual,current,property=" << name << ",expected=" << expected << ",actual=" << observed
+              << ",status=" << status << '\n';
+    throw std::runtime_error(std::string{"actual current encoder option: "} + name);
+  }
+  return observed;
+}
+
 [[nodiscard]] auto make_current_encoder(int channels, int bitrate, int application, bool voice_denoise = false, int complexity = 10) -> state_handle {
   int error = OPUS_OK;
   auto encoder = state_handle{curr_opus_encoder_create(sample_rate, channels, application, &error), [](void* ptr) {
@@ -321,6 +332,21 @@ struct result final {
       curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(encoder.get()), opuscpp_set_voice_denoise_request, 1) != OPUS_OK) {
     throw std::runtime_error("current voice denoise failed");
   }
+  auto* current = static_cast<curr_OpusEncoder*>(encoder.get());
+  const int expected_denoise = voice_denoise && application == OPUS_APPLICATION_VOIP && channels == 1 ? 1 : 0;
+  const int observed_complexity = require_current_encoder_option(current, 4011, complexity, "complexity");
+  const int observed_cvbr = require_current_encoder_option(current, 4021, 1, "cvbr");
+  const int observed_vbr = require_current_encoder_option(current, 4007, 1, "vbr");
+  const int observed_bitrate = require_current_encoder_option(current, 4003, bitrate, "bitrate");
+  const int observed_fec = require_current_encoder_option(current, OPUS_GET_INBAND_FEC_REQUEST, 0, "fec");
+  const int observed_loss = require_current_encoder_option(current, OPUS_GET_PACKET_LOSS_PERC_REQUEST, 0, "loss");
+  const int observed_dtx = require_current_encoder_option(current, 4017, 0, "dtx");
+  const int observed_denoise = require_current_encoder_option(current, opuscpp_get_voice_denoise_request, expected_denoise, "denoise");
+  std::cerr << "ACTUAL_FACTORY_GETTERS,perceptual,current,requested_application=" << application << ",application_getter=UNKNOWN,channels=" << channels
+            << ",sample_rate=" << sample_rate << ",requested_bitrate=" << bitrate << ",bitrate=" << observed_bitrate << ",requested_complexity=" << complexity
+            << ",complexity=" << observed_complexity << ",cvbr=" << observed_cvbr << ",vbr=" << observed_vbr << ",fec=" << observed_fec << ",loss=" << observed_loss
+            << ",dtx=" << observed_dtx << ",requested_denoise=" << voice_denoise << ",expected_effective_denoise=" << expected_denoise
+            << ",denoise=" << observed_denoise << ",signal=UNKNOWN\n";
   return encoder;
 }
 
