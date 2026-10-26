@@ -1053,6 +1053,11 @@ struct silk_resampler_state_struct {
 }
 
 static void silk_resampler_init(silk_resampler_state_struct* S, opus_int32 Fs_Hz_in, opus_int32 Fs_Hz_out, int forEnc);
+#if defined(__aarch64__)
+namespace {
+OPUSCPP_NOINLINE static auto resample_symmetric_fir_body(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16, std::size_t HalfOrder) noexcept -> opus_int16*;
+}
+#endif
 static void silk_resampler(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
 static void silk_ana_filt_bank_1(const opus_int16* in, opus_int32 S[2], opus_int16* outL, opus_int16* outH, const opus_int32 N);
 static int silk_sigm_Q15(int in_Q5);
@@ -18169,6 +18174,41 @@ template <std::size_t HalfOrder>
   return acc;
 }
 
+#if defined(__aarch64__)
+static auto resample_symmetric_fir_body(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16, std::size_t HalfOrder) noexcept -> opus_int16* {
+  for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16;) {
+    const opus_int32 next_index_Q16 = index_Q16 + index_increment_Q16;
+    const bool has_second = next_index_Q16 < max_index_Q16;
+    const auto first = std::span<const opus_int32>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
+    const auto second = has_second ? std::span<const opus_int32>{buffer + (next_index_Q16 >> 16), 2 * HalfOrder} : std::span<const opus_int32>{};
+    opus_int32 first_acc = 0, second_acc = 0;
+    for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
+      const auto coefficient = coefficients[tap];
+      const auto first_sum = static_cast<opus_int32>(first[tap] + first[2 * HalfOrder - 1 - tap]);
+      if (has_second) {
+        const auto second_sum = static_cast<opus_int32>(second[tap] + second[2 * HalfOrder - 1 - tap]);
+        first_acc = silk_mla_wb(first_acc, first_sum, coefficient);
+        second_acc = silk_mla_wb(second_acc, second_sum, coefficient);
+      } else {
+        first_acc = silk_mla_wb(first_acc, first_sum, coefficient);
+      }
+    }
+    *out++ = rounded_rshift_to_int16<6>(first_acc);
+    if (!has_second) {
+      break;
+    }
+    *out++ = rounded_rshift_to_int16<6>(second_acc);
+    index_Q16 = next_index_Q16 + index_increment_Q16;
+  }
+  return out;
+}
+
+template <std::size_t HalfOrder>
+static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
+  static_assert(HalfOrder > 0);
+  return resample_symmetric_fir_body(out, buffer, coefficients, max_index_Q16, index_increment_Q16, HalfOrder);
+}
+#else
 template <std::size_t HalfOrder>
 static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
   opus_int32 index_Q16 = 0;
@@ -18197,6 +18237,7 @@ static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, co
   }
   return out;
 }
+#endif
 }
 
 static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Order, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
