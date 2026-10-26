@@ -2439,6 +2439,7 @@ static void silk_PLC_Reset(silk_decoder_state* psDec) {
   psDec->sPLC.subfr_length = 20;
   psDec->sPLC.nb_subfr = 2;
 }
+OPUSCPP_NOINLINE static opus_int32 silk_stereo_shifted_sum_sqr(const opus_int16* samples, int length, int shift, opus_int32 initial);
 static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length);
 static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix);
 static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag);
@@ -18343,11 +18344,29 @@ struct silk_stereo_prediction {
   opus_int32 predictor_Q13, ratio_Q14, current_mid_Q0, current_residual_Q0;
 };
 
+static opus_int32 silk_stereo_shifted_sum_sqr(const opus_int16* samples, int length, int shift, opus_int32 initial) {
+  return silk_shifted_sum_sqr(std::span<const opus_int16>{samples, static_cast<std::size_t>(length)}, shift, initial);
+}
+
+static void silk_stereo_sum_sqr_shift(opus_int32* energy, int* shift, const opus_int16* samples, int length) {
+  const auto initial_shift = 31 - silk_CLZ32(length);
+  auto nrg = silk_stereo_shifted_sum_sqr(samples, length, initial_shift, length);
+  const auto shft = std::max(0, initial_shift + 3 - silk_CLZ32(nrg));
+  nrg = shft == initial_shift ? wrap_subtract(nrg, length) : silk_stereo_shifted_sum_sqr(samples, length, shft, 0);
+  *shift = shft;
+  *energy = nrg;
+}
+
 static silk_stereo_prediction silk_stereo_find_predictor(const opus_int16 x[], const opus_int16 y[], std::span<opus_int32, 2> mid_res_amp_Q0, int length, int smooth_coef_Q16) {
   int scale, scale1, scale2;
   opus_int32 nrgx, nrgy, corr, pred_Q13, pred2_Q10;
+#if defined(__aarch64__)
+  silk_stereo_sum_sqr_shift(&nrgx, &scale1, x, length);
+  silk_stereo_sum_sqr_shift(&nrgy, &scale2, y, length);
+#else
   silk_sum_sqr_shift(&nrgx, &scale1, x, length);
   silk_sum_sqr_shift(&nrgy, &scale2, y, length);
+#endif
   const bool zero_mid_energy = nrgx == 0;
   scale = std::max(scale1, scale2);
   scale = scale + (scale & 1);
