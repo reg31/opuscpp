@@ -643,6 +643,9 @@ static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept 
 }
 
 struct CeltEncoderInternal;
+#if FLT_EVAL_METHOD == 0 && defined(__aarch64__)
+OPUSCPP_NOINLINE static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows, int cols, int col_stride, const float* x);
+#endif
 static void classical_leak_reset(classical_leak_state* s);
 static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth, const opus_int16* pcm16 = nullptr);
 static void classical_leak_get_info(classical_leak_state* s, classical_leak_info* info_out, int Fs, int len);
