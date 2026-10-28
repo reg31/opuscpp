@@ -12,13 +12,17 @@ inline constexpr int OPUS_APPLICATION_AUDIO = 2049;
 inline constexpr int OPUS_APPLICATION_RESTRICTED_LOWDELAY = 2051;
 
 inline constexpr int OPUS_SET_BITRATE_REQUEST = 4002;
+inline constexpr int OPUS_GET_BITRATE_REQUEST = 4003;
 inline constexpr int OPUS_SET_VBR_REQUEST = 4006;
+inline constexpr int OPUS_GET_VBR_REQUEST = 4007;
 inline constexpr int OPUS_SET_COMPLEXITY_REQUEST = 4010;
+inline constexpr int OPUS_GET_COMPLEXITY_REQUEST = 4011;
 inline constexpr int OPUS_SET_INBAND_FEC_REQUEST = 4012;
 inline constexpr int OPUS_GET_INBAND_FEC_REQUEST = 4013;
 inline constexpr int OPUS_SET_PACKET_LOSS_PERC_REQUEST = 4014;
 inline constexpr int OPUS_GET_PACKET_LOSS_PERC_REQUEST = 4015;
 inline constexpr int OPUS_SET_DTX_REQUEST = 4016;
+inline constexpr int OPUS_GET_DTX_REQUEST = 4017;
 inline constexpr int OPUS_GET_LOOKAHEAD_REQUEST = 4027;
 inline constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
 
