@@ -3948,8 +3948,18 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     reset_encoder_silk_state(st);
   }
   const bool outer_vbr_eligible = st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0;
-  const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only;
-  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_silk_only;
+  const auto activity_rate_scale = 48000.f / st->Fs;
+  const bool native_audio_silk = outer_vbr_eligible && st->mode == opus_mode_silk_only &&
+                                 st->application == OPUS_APPLICATION_AUDIO && !st->use_dtx && st->silk_mode.useInBandFEC == 0 &&
+                                 st->bitrate_bps >= 12000 * st->channels && frame_metrics.energy >= .03f &&
+                                 frame_metrics.energy < .1f && frame_metrics.mono_diff_ratio >= .0015f &&
+                                 frame_metrics.mono_diff_ratio < .002f * activity_rate_scale * activity_rate_scale;
+  if (native_audio_silk) {
+    st->vbr_budget_reservoir_bits = 0;
+    st->vbr_target_remainder = 0;
+  }
+  const bool governed_vbr = outer_vbr_eligible && st->mode == opus_mode_silk_only && !native_audio_silk;
+  const bool previous_outer_eligible = outer_vbr_eligible && st->prev_mode == opus_mode_silk_only && !native_audio_silk;
   if (outer_vbr_eligible && (governed_vbr != previous_outer_eligible || st->mode != st->prev_mode)) {
     reset_vbr_budget(st);
   }
