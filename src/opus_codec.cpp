@@ -854,7 +854,6 @@ struct CeltModeInternal {
   mdct_lookup mdct;
   const opus_int16* cache_index;
   const unsigned char* cache_bits;
-  const unsigned char* cache_caps;
 };
 
 [[nodiscard]] static constexpr int ref_opus_packet_get_bandwidth(const unsigned char* data);
@@ -13706,8 +13705,7 @@ static constexpr CeltModeInternal mode48000_960_120 = {
     mdct_lookup{
         1920, {&fft_state48000_960_0, &fft_state48000_960_1, &fft_state48000_960_2, &fft_state48000_960_3}, celt_tables.mdct_trig.data()},
     cache_index50.data(),
-    cache_bits50.data(),
-    cache_caps50.data()};
+    cache_bits50.data()};
 [[nodiscard]] static constexpr auto celt_mode() noexcept -> const CeltModeInternal* {
   return &mode48000_960_120;
 }
