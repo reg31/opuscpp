@@ -23,6 +23,8 @@ inline constexpr int OPUS_SET_PACKET_LOSS_PERC_REQUEST = 4014;
 inline constexpr int OPUS_GET_PACKET_LOSS_PERC_REQUEST = 4015;
 inline constexpr int OPUS_SET_DTX_REQUEST = 4016;
 inline constexpr int OPUS_GET_DTX_REQUEST = 4017;
+inline constexpr int OPUS_SET_VBR_CONSTRAINT_REQUEST = 4020;
+inline constexpr int OPUS_GET_VBR_CONSTRAINT_REQUEST = 4021;
 inline constexpr int OPUS_GET_LOOKAHEAD_REQUEST = 4027;
 inline constexpr int OPUS_GET_FINAL_RANGE_REQUEST = 4031;
 

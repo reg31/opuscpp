@@ -173,19 +173,25 @@ auto make_current_encoder(int channels, int bitrate, std::string_view lane, std:
   const auto actual_complexity = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_COMPLEXITY_REQUEST);
   const auto actual_vbr = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_VBR_REQUEST);
   const auto actual_fec = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_INBAND_FEC_REQUEST);
+  const auto actual_loss = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_PACKET_LOSS_PERC_REQUEST);
   const auto actual_dtx = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_DTX_REQUEST);
+  const auto actual_cvbr = read_control(enc.get(), curr_opus_encoder_ctl, OPUS_GET_VBR_CONSTRAINT_REQUEST);
   const auto actual_denoise = read_control(enc.get(), curr_opus_encoder_ctl, opuscpp_get_voice_denoise_request);
   record_control(lane, instance, "bitrate", actual_bitrate);
   record_control(lane, instance, "complexity", actual_complexity);
   record_control(lane, instance, "vbr", actual_vbr);
   record_control(lane, instance, "fec", actual_fec);
+  record_control(lane, instance, "loss", actual_loss);
   record_control(lane, instance, "dtx", actual_dtx);
+  record_control(lane, instance, "cvbr", actual_cvbr);
   record_control(lane, instance, "denoise", actual_denoise);
   require_control(actual_bitrate, bitrate, "current bitrate");
   require_control(actual_complexity, 10, "current complexity");
   require_control(actual_vbr, 1, "current VBR");
   require_control(actual_fec, 0, "current FEC");
+  require_control(actual_loss, 0, "current packet loss");
   require_control(actual_dtx, 0, "current DTX");
+  require_control(actual_cvbr, 1, "current constrained VBR");
   require_control(actual_denoise, 0, "current voice denoise");
   return enc;
 }
@@ -210,17 +216,23 @@ auto make_official_encoder(int channels, int bitrate, std::string_view lane, std
   const auto actual_complexity = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_COMPLEXITY_REQUEST);
   const auto actual_vbr = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_VBR_REQUEST);
   const auto actual_fec = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_INBAND_FEC_REQUEST);
+  const auto actual_loss = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_PACKET_LOSS_PERC_REQUEST);
   const auto actual_dtx = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_DTX_REQUEST);
+  const auto actual_cvbr = read_control(enc.get(), opus_encoder_ctl, OPUS_GET_VBR_CONSTRAINT_REQUEST);
   record_control(lane, instance, "bitrate", actual_bitrate);
   record_control(lane, instance, "complexity", actual_complexity);
   record_control(lane, instance, "vbr", actual_vbr);
   record_control(lane, instance, "fec", actual_fec);
+  record_control(lane, instance, "loss", actual_loss);
   record_control(lane, instance, "dtx", actual_dtx);
+  record_control(lane, instance, "cvbr", actual_cvbr);
   require_control(actual_bitrate, bitrate, "official bitrate");
   require_control(actual_complexity, 10, "official complexity");
   require_control(actual_vbr, 1, "official VBR");
   require_control(actual_fec, 0, "official FEC");
+  require_control(actual_loss, 0, "official packet loss");
   require_control(actual_dtx, 0, "official DTX");
+  require_control(actual_cvbr, 1, "official constrained VBR");
   return enc;
 }
 
