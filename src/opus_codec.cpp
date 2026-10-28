@@ -2482,7 +2482,7 @@ OPUSCPP_NOINLINE static void silk_encode_index_body(ec_ctx* coder, SideInfoIndic
                                                     decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
                                                     decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
 template <bool Encode, typename Pulse, bool ReconstructSigns = true>
-static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length);
+static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks = 0);
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[], const int K, const int LPC_order);
 static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10, std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
@@ -15965,7 +15965,7 @@ static void silk_shell_encode_tree(ec_ctx* coder, const int* magnitudes, const s
 }
 
 template <bool Encode, typename Pulse, bool ReconstructSigns>
-static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length) {
+static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks) {
   const int block_count = (frame_length + 15) >> 4;
   std::array<int, silk_max_frame_length / 16> pulse_sums;
   std::array<int, silk_max_frame_length / 16> shifts;
@@ -15997,6 +15997,12 @@ static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int sign
           }
         }
       } while (scale_down);
+    }
+    for (int block_index = block_count - 1; block_index >= 0 && zero_padding_blocks > 0; --block_index) {
+      if (pulse_sums[block_index] == 0 && shifts[block_index] == 0) {
+        shifts[block_index] = 1;
+        --zero_padding_blocks;
+      }
     }
     auto minimum_bits = opus_int32_max;
     for (int candidate = 0; candidate < 9; ++candidate) {
@@ -18804,11 +18810,11 @@ struct silk_entropy_context {
 };
 
 template <class State>
-static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr) {
+static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
   silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
   silk_process_pulses<true>(psRangeEnc,
                             std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
-                            indices.signalType, indices.quantOffsetType, psEncC->frame_length);
+                            indices.signalType, indices.quantOffsetType, psEncC->frame_length, zero_padding_blocks);
 }
 
 struct silk_gain_search_bound {
@@ -19021,7 +19027,7 @@ static void silk_InitEncoder(void* encState, int channels) {
 
 template <bool Price>
 static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control,
-                                     ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
+                                     ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr, bool sparse_padding = false) {
   auto& lbrr = *encoder->lbrr;
   const int frames = states[0].sCmn.nFramesPerPacket;
   if ((lbrr.frames_per_packet != 0 && lbrr.frames_per_packet != frames) ||
@@ -19065,9 +19071,9 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
           ec_enc_icdf(range_encoder, type_offset - 2, silk_type_offset_VAD_iCDF.data(), 8);
           silk_process_indices<true>(&context, priced_indices, range_encoder, cond_coding);
           silk_process_pulses<true>(range_encoder, std::span<opus_int8>{priced_pulses.data(), static_cast<std::size_t>((state.frame_length + 15) & ~15)},
-                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length);
+                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length, sparse_padding && frame == 2 ? 1 : 0);
         } else {
-          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true);
+          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true, sparse_padding && frame == 2 ? 1 : 0);
         }
       }
     }
@@ -19102,17 +19108,103 @@ static bool silk_fund_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP
   return true;
 }
 
+struct silk_lbrr_pack_result {
+  bool sparsified{}, pad{};
+};
+static auto silk_pack_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states,
+                                   const silk_EncControlStruct& control) -> silk_lbrr_pack_result {
+  auto& queued = *encoder->lbrr;
+  if (queued.frames_per_packet != 3 || queued.channels_in_packet != 1 || control.nChannelsInternal != 1 ||
+      states[0].sCmn.frame_length != 320 || states[0].sCmn.nb_subfr != 4)
+    return {};
+  auto& channel = queued.channels[0];
+  if (!std::all_of(channel.flags.begin(), channel.flags.end(), [](opus_int8 flag) {
+        return flag != 0;
+      }))
+    return {};
+  int total_pulse_magnitude = 0;
+  for (const auto& frame : channel.pulses)
+    for (const auto pulse : frame)
+      total_pulse_magnitude += std::abs(static_cast<int>(pulse));
+  const int offset_pattern = (channel.indices[0].quantOffsetType << 2) |
+                             (channel.indices[1].quantOffsetType << 1) |
+                             channel.indices[2].quantOffsetType;
+  const int signal_pattern = 100 * channel.indices[0].signalType + 10 * channel.indices[1].signalType +
+                             channel.indices[2].signalType;
+  const bool pad = ((offset_pattern == 5 || offset_pattern == 1) && signal_pattern == 111) ||
+                   (offset_pattern == 0 &&
+                    (signal_pattern == 112 || signal_pattern == 211 ||
+                     (signal_pattern == 111 && total_pulse_magnitude >= 120) ||
+                     (signal_pattern == 222 && channel.indices[0].GainsIndices[0] < 40) ||
+                     (signal_pattern == 122 && total_pulse_magnitude <= 80))) ||
+                   (offset_pattern == 6 &&
+                    (channel.indices[0].GainsIndices[0] <= 11 || channel.indices[1].GainsIndices[0] <= 1)) ||
+                   (offset_pattern == 7 && total_pulse_magnitude > 0 && total_pulse_magnitude <= 8);
+  const bool sparsify = signal_pattern == 111 && channel.indices[0].GainsIndices[0] >= 47 &&
+                        channel.indices[1].GainsIndices[0] <= 1;
+  if (!sparsify)
+    return {false, pad};
+  constexpr int frame_samples = 320, subframe_samples = 80;
+  std::array<opus_int8, 3 * frame_samples> selected{};
+  const auto original_at = [&](int index) {
+    return channel.pulses[index / frame_samples][index % frame_samples];
+  };
+  for (int index = 0; index < 3 * subframe_samples; ++index)
+    selected[index] = original_at(index);
+  const auto copy_first_nonzero = [&](int begin, int end, int count) {
+    for (int index = begin; index < end && count > 0; ++index) {
+      const auto pulse = original_at(index);
+      if (pulse) {
+        selected[index] = pulse;
+        --count;
+      }
+    }
+  };
+  copy_first_nonzero(3 * subframe_samples, 4 * subframe_samples, 9);
+  for (int index = 4 * subframe_samples - 1, count = 5; index >= 3 * subframe_samples && count > 0; --index) {
+    const auto pulse = original_at(index);
+    if (pulse && !selected[index]) {
+      selected[index] = pulse;
+      --count;
+    }
+  }
+  for (int index = frame_samples; index < frame_samples + subframe_samples; ++index)
+    selected[index] = original_at(index);
+  copy_first_nonzero(frame_samples + subframe_samples, frame_samples + 2 * subframe_samples, 5);
+  const auto copy_nearest = [&](int target) {
+    int selected_index = -1;
+    for (int index = frame_samples + subframe_samples; index < frame_samples + 2 * subframe_samples; ++index)
+      if (original_at(index) && (selected_index < 0 || std::pair{std::abs(index - target), index} <
+                                                           std::pair{std::abs(selected_index - target), selected_index}))
+        selected_index = index;
+    if (selected_index >= 0)
+      selected[selected_index] = original_at(selected_index);
+  };
+  copy_nearest(frame_samples + subframe_samples + 3 * subframe_samples / 4);
+  copy_nearest(frame_samples + subframe_samples + 4 * subframe_samples / 5);
+  copy_first_nonzero(frame_samples + 2 * subframe_samples - subframe_samples / 10,
+                     frame_samples + 2 * subframe_samples, 1);
+  copy_first_nonzero(2 * frame_samples, 2 * frame_samples + subframe_samples, 1);
+  for (int frame = 0; frame < 3; ++frame)
+    std::copy_n(selected.begin() + frame * frame_samples, frame_samples, channel.pulses[frame].begin());
+  return {true, pad};
+}
+
 static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control, ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr) {
   auto& lbrr = *encoder->lbrr;
   const int frames = states[0].sCmn.nFramesPerPacket;
+  const int original_average_bits = lbrr.average_bits;
+  const auto packed_lbrr = silk_pack_pending_lbrr(encoder, states, control);
   const int start_bits = ec_tell(range_encoder);
-  silk_encode_pending_lbrr<false>(encoder, states, control, range_encoder, packet_has_lbrr);
+  silk_encode_pending_lbrr<false>(encoder, states, control, range_encoder, packet_has_lbrr, packed_lbrr.pad);
   for (auto& channel : lbrr.channels) {
     channel.flags.fill(0);
   }
   const int current_bits = ec_tell(range_encoder) - start_bits;
   lbrr.average_bits = current_bits < 10 ? 0 : lbrr.average_bits < 10 ? current_bits
                                                                      : (lbrr.average_bits + current_bits) / 2;
+  if (packed_lbrr.sparsified)
+    lbrr.average_bits = original_average_bits;
   lbrr.frames_per_packet = frames;
   lbrr.channels_in_packet = control.nChannelsInternal;
   return current_bits;
