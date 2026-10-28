@@ -19063,7 +19063,8 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
         auto& state = states[channel_index].sCmn;
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
-        const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1 : 0;
+        const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1
+                                                                                                                : 0;
         if constexpr (Price) {
           silk_entropy_context context{state};
           auto priced_indices = indices;
