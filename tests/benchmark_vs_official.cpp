@@ -108,7 +108,8 @@ void record_environment(std::string_view label, std::uint64_t instance) {
 #endif
   environment_records.push_back({label, instance, round, exceptions, saved_errno
 #ifdef _MSC_VER
-                                 , control, status
+                                 ,
+                                 control, status
 #endif
   });
   std::fesetenv(&environment);
