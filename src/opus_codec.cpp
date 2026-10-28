@@ -760,6 +760,7 @@ struct funded_lbrr_packet final {
   opus_int32 reserved_bytes = 0;
   opus_int32 silk_bytes = 0;
   bool generate = false;
+  bool supplemental = false;
 };
 
 [[nodiscard]] constexpr auto update_hybrid_fec_credit(opus_int32 credit, opus_int32 bytes, opus_int32 target) noexcept -> opus_int32 {
@@ -4391,11 +4392,13 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
                                frame_size <= st->Fs / 50 && packet_frames == nullptr && st->silk_mode.inWBmodeWithoutVariableLP &&
                                !redundancy && !prefill && !nonfinal_frame && !emit_dtx;
   if (fundable_hybrid) {
-    funding.available_bits = std::max<opus_int32>(0, st->vbr_budget_reservoir_bits);
+    const auto earned_bits = std::max<opus_int32>(0, st->vbr_budget_reservoir_bits);
+    funding.available_bits = earned_bits > 0 ? earned_bits : 288;
+    funding.supplemental = earned_bits == 0;
     funding.physical_bits = (storage_max_data_bytes - 1) * 8;
     const int lm = std::bit_width(static_cast<unsigned>(frame_size * (celt_sample_rate / st->Fs) / celt_short_mdct_size)) - 1;
     funding.celt_reserve_bits = hybrid_celt_funding_reserve(lm, st->stream_channels, bandwidth_to_endband(curr_bandwidth), nominal_target_bits);
-    funding.generate = funding.available_bits > 0 && !st->silk_mode.LBRR_coded;
+    funding.generate = !st->silk_mode.LBRR_coded;
   }
 
   allocator_target_bits = allocator_target_bits > 0 ? allocator_target_bits : nominal_target_bits;
@@ -19060,6 +19063,7 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         const int cond_coding = frame > 0 && channel.flags[static_cast<std::size_t>(frame - 1)] ? 2 : 0;
         auto& state = states[channel_index].sCmn;
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
+        const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1 : 0;
         if constexpr (Price) {
           silk_entropy_context context{state};
           auto priced_indices = indices;
@@ -19069,9 +19073,11 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
           ec_enc_icdf(range_encoder, type_offset - 2, silk_type_offset_VAD_iCDF.data(), 8);
           silk_process_indices<true>(&context, priced_indices, range_encoder, cond_coding);
           silk_process_pulses<true>(range_encoder, std::span<opus_int8>{priced_pulses.data(), static_cast<std::size_t>((state.frame_length + 15) & ~15)},
-                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length, sparse_padding && frame == 2 ? 1 : 0);
+                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length, zero_padding_blocks);
         } else {
-          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding, channel.pulses[static_cast<std::size_t>(frame)].data(), true, sparse_padding && frame == 2 ? 1 : 0);
+          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding,
+                                         channel.pulses[static_cast<std::size_t>(frame)].data(), true,
+                                         zero_padding_blocks);
         }
       }
     }
@@ -19513,6 +19519,11 @@ OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state&
 static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
                                const silk_nsq_history& pre_frame_nsq, const opus_int16* pre_frame_nlsf, bool reconstructed_target) {
   const auto frame = static_cast<std::size_t>(psEnc->sCmn.nFramesEncoded);
+  if (lbrr->enabled & 8) {
+    const int lag_delta = control->pitchL[psEnc->sCmn.nb_subfr - 1] - psEnc->sCmn.prevLag;
+    if (original_indices.signalType != 2 || psEnc->sCmn.prevSignalType != 2 || std::abs(lag_delta) <= 11)
+      return;
+  }
   if (condCoding != 2) {
     lbrr->previous_gain_index = control->lastGainIndexPrev;
   }
@@ -20821,7 +20832,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
           silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working,
                                      frame_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
           use_reconstructed_lbrr_target = false;
-          if (lbrr_deferred_generate) {
+          if (lbrr_deferred_generate && !(lbrr->enabled & 8)) {
             auto innovation_control = sEncCtrl;
             for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe)
               innovation_control.Gains[subframe] = replay_gains[subframe] / 65536.f;
@@ -21103,7 +21114,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
       const int previously_enabled = encControl->LBRR_coded ? (lbrr.enabled & 3) == 1 : (lbrr.enabled & 3) == 2;
       lbrr.enabled = (lbrr.enabled & 4) | (prefillFlag ? 0 : encControl->LBRR_coded                ? 1
                                                          : funding != nullptr && funding->generate ? 2
-                                                                                                   : 0);
+                                                                                                   : 0) |
+                     (funding != nullptr && funding->generate && funding->supplemental ? 8 : 0);
       if (lbrr.enabled & 3) {
         const int initial_gain = 7;
         const int minimum_gain = initial_gain - 4;
