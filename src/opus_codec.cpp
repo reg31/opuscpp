@@ -15604,6 +15604,7 @@ static void silk_reset_decoder(silk_decoder_state* psDec) {
   silk_PLC_Reset(psDec);
 }
 
+template <bool StoreState = true>
 static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& control, opus_int16 xq[], const opus_int16 pulses[((5 * 4) * 16)]) {
   std::array<opus_int16, silk_max_ltp_mem_length> ltp_storage;
   std::array<opus_int32, silk_max_ltp_buffer_length> ltp_q15_storage;
@@ -15614,6 +15615,7 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
   const opus_int32 offset_Q10 = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType];
   const bool NLSF_interpolation_flag = state.indices.NLSFInterpCoef_Q2 < 1 << 2;
   auto rand_seed = static_cast<opus_int32>(state.indices.Seed);
+  auto previous_gain_Q16 = state.prev_gain_Q16;
   const auto decode_excitation = [&](int index) noexcept {
     rand_seed = silk_next_rand_seed(rand_seed);
     auto excitation = wrap_shift_left(pulses[index], 14);
@@ -15628,8 +15630,10 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
       excitation = -excitation;
     }
     const auto compact = excitation >> 6;
-    state.exc_low[index] = static_cast<opus_uint16>(compact);
-    state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
+    if constexpr (StoreState) {
+      state.exc_low[index] = static_cast<opus_uint16>(compact);
+      state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
+    }
     rand_seed = wrap_add(rand_seed, pulses[index]);
     return excitation;
   };
@@ -15643,13 +15647,13 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
     int signalType = state.indices.signalType;
     const opus_int32 Gain_Q10 = ((control.Gains_Q16[k]) >> (6));
     opus_int32 gain_adj_Q16 = opus_int32{1} << 16;
-    if (control.Gains_Q16[k] != state.prev_gain_Q16) {
-      gain_adj_Q16 = silk_DIV32_varQ(state.prev_gain_Q16, control.Gains_Q16[k], 16);
+    if (control.Gains_Q16[k] != previous_gain_Q16) {
+      gain_adj_Q16 = silk_DIV32_varQ(previous_gain_Q16, control.Gains_Q16[k], 16);
       for (int state_index = 0; state_index < 16; ++state_index) {
         sLPC_Q14[state_index] = multiply_q16(gain_adj_Q16, sLPC_Q14[state_index]);
       }
     }
-    state.prev_gain_Q16 = control.Gains_Q16[k];
+    previous_gain_Q16 = control.Gains_Q16[k];
     if (state.lossCnt && state.prevSignalType == 2 && state.indices.signalType != 2 && k < 4 / 2) {
       zero_n_items(B_Q14, 5);
       B_Q14[5 / 2] = 1 << 12;
@@ -15707,9 +15711,15 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
       return sLPC_Q14[16 + i];
     },
                                  pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
-    std::memcpy(k + 1 < state.nb_subfr ? sLPC_Q14 : state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+    if (k + 1 < state.nb_subfr) {
+      std::memcpy(sLPC_Q14, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+    } else if constexpr (StoreState) {
+      std::memcpy(state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
+    }
     pxq += state.subfr_length;
   }
+  if constexpr (StoreState)
+    state.prev_gain_Q16 = previous_gain_Q16;
 }
 
 static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_control& control, int condCoding) {
@@ -16437,6 +16447,56 @@ struct silk_nsq_preparation {
   std::array<opus_int32, 4> low_frequency;
   std::array<int, 4> tilt, harmonic;
   int ltp_scale;
+};
+
+class silk_decoder_replay {
+public:
+  template <int History, int Lpc>
+    requires(History >= silk_max_ltp_mem_length && Lpc >= 16)
+  silk_decoder_replay(const silk_encoder_state& encoder, const silk_encoder_control_FLP& encoder_control,
+                      const silk_nsq_storage<History, Lpc>& history, const SideInfoIndices& indices,
+                      const silk_nsq_preparation& prepared,
+                      const opus_int32 gains_Q16[4]) noexcept
+      : frame_length_(encoder.frame_length) {
+    initial_.prev_gain_Q16 = history.prev_gain_Q16;
+    initial_.indices = indices;
+    initial_.ltp_mem_length = static_cast<opus_uint16>(encoder.ltp_mem_length);
+    initial_.frame_length = static_cast<opus_uint16>(encoder.frame_length);
+    initial_.subfr_length = static_cast<opus_uint8>(encoder.subfr_length);
+    initial_.nb_subfr = static_cast<opus_uint8>(encoder.nb_subfr);
+    initial_.LPC_order = static_cast<opus_uint8>(encoder.predictLPCOrder);
+    initial_.prevSignalType = static_cast<opus_uint8>(encoder.prevSignalType);
+    initial_.lagPrev = static_cast<opus_uint16>(history.lagPrev);
+    std::copy_n(history.xq, encoder.ltp_mem_length, initial_.outBuf);
+    std::copy_n(history.sLPC_Q14, 16, initial_.sLPC_Q14_buf);
+    std::copy_n(gains_Q16, encoder.nb_subfr, control_.Gains_Q16);
+    std::copy_n(prepared.prediction.data() + 16, 16, control_.PredCoef_Q12[1]);
+    std::copy_n(indices.NLSFInterpCoef_Q2 == 4 ? prepared.prediction.data() + 16 : prepared.prediction.data(), 16,
+                control_.PredCoef_Q12[0]);
+    std::copy(prepared.ltp.begin(), prepared.ltp.end(), control_.LTPCoef_Q14);
+    std::copy_n(encoder_control.pitchL, encoder.nb_subfr, control_.pitchL);
+    control_.LTP_scale_Q14 = prepared.ltp_scale;
+  }
+
+  [[nodiscard]] auto reconstruction_error(std::span<const opus_int8> pulses,
+                                          std::span<const opus_int16> target) noexcept -> opus_int64 {
+    auto control = control_;
+    for (int index = 0; index < frame_length_; ++index)
+      widened_pulses_[static_cast<std::size_t>(index)] = pulses[static_cast<std::size_t>(index)];
+    silk_decode_core<false>(initial_, control, decoded_.data(), widened_pulses_.data());
+    opus_int64 error = 0;
+    for (int index = 0; index < frame_length_; ++index) {
+      const opus_int64 difference = target[static_cast<std::size_t>(index)] - decoded_[static_cast<std::size_t>(index)];
+      error += difference * difference;
+    }
+    return error;
+  }
+
+private:
+  silk_decoder_state initial_{};
+  silk_decoder_control control_{};
+  std::array<opus_int16, silk_max_frame_length> widened_pulses_{}, decoded_{};
+  int frame_length_;
 };
 
 struct silk_pitch_analysis_result {
@@ -20853,6 +20913,8 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
             silk_NSQ_wrapper_FLP(psEnc, &innovation_control, &innovation_indices, &innovation_nsq, innovation_pulses.data(), nsq_samples.data(), prepared);
             const auto quantized_pulses = innovation_pulses;
             const auto coded_indices = innovation_indices;
+            silk_decoder_replay decoder_replay{psEnc->sCmn, innovation_control, psEnc->sCmn.sNSQ, coded_indices,
+                                               prepared, replay_gains.data()};
             auto best_pulses = frame_pulses;
             auto best_indices = psEnc->sCmn.indices;
             auto best_range = *psRangeEnc;
@@ -20890,9 +20952,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
               if (ec_tell(&innovation_range) > maxBits)
                 continue;
               innovation_indices = coded_indices;
-              silk_restore_nsq_working_state(innovation_nsq, psEnc->sCmn.sNSQ);
-              silk_NSQ_wrapper_FLP<true>(psEnc, &innovation_control, &innovation_indices, &innovation_nsq, innovation_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
-              const auto error = reconstruction_error(innovation_nsq);
+              const auto error = decoder_replay.reconstruction_error(innovation_pulses, nsq_samples);
               if (error < best_error) {
                 best_error = error;
                 best_pulses = innovation_pulses;
@@ -20901,10 +20961,15 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
                 best_lag = innovation_common.ec_prevLagIndex;
                 best_signal = innovation_common.ec_prevSignalType;
                 std::memcpy(ec_buf_copy, innovation_buffer, static_cast<std::size_t>(innovation_range.offs));
-                silk_copy_nsq_history(sNSQ_best, innovation_nsq);
               }
             }
             if (best_error < fallback_error) {
+              innovation_indices = best_indices;
+              silk_restore_nsq_working_state(innovation_nsq, psEnc->sCmn.sNSQ);
+              silk_NSQ_wrapper_FLP<true>(psEnc, &innovation_control, &innovation_indices, &innovation_nsq,
+                                         best_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
+              best_indices = innovation_indices;
+              silk_copy_nsq_history(sNSQ_best, innovation_nsq);
               auto* output = psRangeEnc->buf;
               *psRangeEnc = best_range;
               psRangeEnc->buf = output;
