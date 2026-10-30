@@ -9890,7 +9890,9 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
     celt_slide_decode_history(st, decoder, C, N);
-    const celt_glog decay = loss_duration == 0 ? 1.5f : .5f;
+    auto decay = static_cast<celt_glog>((1 << LM) * .0625f);
+    if (st->last_frame_type != 2)
+      decay += std::max<celt_glog>(1.f, std::min(160, loss_duration) * .0625f);
     for (int c = 0; c < C; ++c) {
       for (int i = start; i < end; i++) {
         oldBandE[c * nbEBands + i] = std::max(backgroundLogE[c * nbEBands + i], oldBandE[c * nbEBands + i] - decay);
