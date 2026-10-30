@@ -1,7 +1,7 @@
 fec_interop,channels,duration_ms,vbr,profile,decoder_error,continuation_error,fec_plc_difference,recovery_error,plc_error,packet_bytes,packet_hash
 opuscpp_to_official,1,10,1,0,0,0,0.211311,0.0913993,0.227923,354,2717473380
 official_to_opuscpp,1,10,1,0,0,0,0.205145,0.135318,0.224148,372,1324389596
-opuscpp_to_official,1,20,1,0,0.0212436,0.0272451,0,0.596833,0.596833,529,3638622437
+opuscpp_to_official,1,20,1,0,0,0,0.697684,0.119747,0.596967,595,569800843
 official_to_opuscpp,1,20,1,0,0.0186432,0.0268084,0,0.39421,0.39421,536,3350711441
 opuscpp_to_official,1,20,1,0,0,0,0.817171,0,0.593557,714,4231260784
 official_to_opuscpp,1,20,1,0,0,0,0.784571,0.142381,0.563075,784,1163433600

@@ -1,13 +1,13 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout",
-  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-  "source_blob": "353b6b7a99c916e789b8707674a07aba48df3183",
-  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028",
+  "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+  "source_blob": "edd7e956470257d626e1098965ee5dfe8475d813",
+  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
+  "tests_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
   "tests_sha256": {
-    "tests/benchmark_vs_official.cpp": "4f463af5817ea320aeb26ceb3edad6e8a8111670d525d7f9365b02a3e1e4f14c",
+    "tests/benchmark_vs_official.cpp": "8ac278f7f9897c2d8a5a33f7b9b60cdba70734d7a6e16a0ed5e1de04b7b75214",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
     "tests/celt_empty_channel.cpp": "4396489035de31f0dbcfde2583b462ad3521d1ea9a2776de7385f97aef6f0a9a",
     "tests/celt_energy_decode.cpp": "225ae313f73fe6690022c6005c35da17021879cedfed9c07e0c1e2e6ca4db55f",
@@ -31,11 +31,11 @@
     "tests/nsq_quant_levels.cpp": "b4cf3afbe93dbbab9cc2fa083e92364c8b8b6345c8f7558b49a3aff4371c168e",
     "tests/nsq_shaping_feedback.cpp": "7d3013c6e66e4137127e2d0080ead1e9978a0beeb69c6004e947a0865a9c6715",
     "tests/official_encode_validation.cpp": "286539fdd81d9e66cca94f13188b775ef0fb1bc868c880ed5d31a98aab0d67c1",
-    "tests/official_opus_abi.h": "5f6493d2b3e8f4647d6f09399022703a4497beac1c1b682c5e69acc427909852",
+    "tests/official_opus_abi.h": "6e783c0e55483cda2f73982b93ea7028279d5c156e8ae668f46d472aec3e00a9",
     "tests/optional_processing_benchmark.cpp": "09f2e7f3944fca4b141aef0e9589bbc0fb0abbc86353060b4089720de10c1718",
     "tests/packet_duration_behavior.cpp": "71605dbde7bc5e837dceabeed094e142596ce1d1757f2adaac85635ff28965ad",
     "tests/perceptual_alignment.cpp": "4852383b1caf41242c7528913e4a6160ce3307c9b6dace429ca23c80d6c5bf9a",
-    "tests/perceptual_memory_validation.cpp": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
+    "tests/perceptual_memory_validation.cpp": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
     "tests/postfilter_bypass.cpp": "8710f468a28e73f0317edf56e9cfeb0f3662bbd646f9488eb94b816435b27f71",
     "tests/quant_all_bands_microbench.cpp": "2bb30a6878f159089edf556434db326e570236f9f8cb9d179fe699513b1d913f",
     "tests/rfc_silk_concealment_range.cpp": "b659c6db65926c0741b1838844b5938e5cde03ce870f1352748061de5304aab6",
@@ -66,14 +66,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests"
   ],
-  "quality_driver_parent_sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408",
-  "quality_driver_sha256": "9354b7d52bfc7941f2039e85df7a5c3cec640371736e7fba73f5afaab1159c19",
-  "quality_driver_diff_sha256": "57274a6443cd3d62fcfbbf444e3c07d437c3f0e6263d63df89ea13be45f11002",
+  "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
+  "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
+  "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "ad630509d40bb3e7f66af7d17db08463543fba81c975867abf64acfa73821844",
+  "quality_binary_sha256": "73ae67bc43c36acd009beceda402d06eb49b151b1057155751e2b16052add830",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -86,7 +86,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "31b5b04f7f1ca2e0038387c37abf17fc11674e6c34e076092f22b84d95504619",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -100,33 +100,36 @@
   "executor": "/root/full_benchmark_7b_20261026",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 674,
+  "quality_negative_fields": 672,
   "acceptance_status": "failed_known_fec_criterion",
   "acceptance_counts": [
     18,
     18,
     18,
-    16
+    17
   ],
   "standard_fec_acceptance": "FAIL",
-  "measurement_date": "2026-10-26",
-  "completed_utc": "2026-10-26T16:01:54.724886+00:00",
-  "root_runner_sha256": "fa411728bcb2ea56a2ce32b8cf9c391d4796c5fd168549a85e6550327d56cd86",
-  "phase_runner_sha256": "fe62ed22097bf5b39a8a07c64f49a929aaf6a6075d1f06e65aba58f256c555e2",
-  "input_manifest_sha256": "d856eb52d3d1b7b2f211c5dd7416b90029f50b5efbe63522d0798cdae7110e82",
-  "maintained_method_executor_label": "Codex root",
-  "Root_role": "Assign/release, review measured merits, publish Git and pointer only. Root did not execute the benchmark.",
+  "measurement_date": "2026-10-30",
+  "completed_utc": "2026-10-30T10:12:12.270305+00:00",
+  "root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
+  "phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
+  "input_manifest_sha256": "c48f881e740ff0506cfe0076e0a92aea22fcb8f98971b6e5632e6b1ee2ba89ce",
+  "resume_provenance_sha256": "14f9b342921ff008bee7694077507d5cf6807b469f7f721bfe280f547286ab85",
+  "pre_resume_root_runner_sha256": "fa411728bcb2ea56a2ce32b8cf9c391d4796c5fd168549a85e6550327d56cd86",
+  "pre_resume_phase_runner_sha256": "fe62ed22097bf5b39a8a07c64f49a929aaf6a6075d1f06e65aba58f256c555e2",
+  "maintained_method_executor_label": "/root/full_benchmark_9bf",
+  "Root_role": "Assignment/release, measured-merits review and public Git/pointer publication only.",
   "actual_owner_launch_receipt": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\ACTUAL_LAUNCH_RECEIPT.json",
-    "bytes": 7307,
-    "sha256": "b91a5e986b6c303842e69c0df50f4e44f092c7a0795d83f38a86b5ce49a0f7c7"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\ACTUAL_LAUNCH_RECEIPT.json",
+    "bytes": 1892,
+    "sha256": "47b6d255371c776760acd8835dcfe50987f592b9d088389efc9701572f808645"
   },
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
   "official_reference_qualification_sha256": "82c9514377434480f121cf4ea8fb2a61509f893b145f63394e30f0363320ffa4",
-  "harness_sha256": "d7539edfe9114d213a31883682ef797f12decbe9816a57638a7cccf33023837a",
-  "binary_sha256": "b3ea6d1cad0491527505f594e172ee8734a60fb67460d2a04022517d7578a2c2",
+  "harness_sha256": "0ac75bd94f53bb548fdc00d2ab7d307b628f37ff1381570d3717a0a1e60f2dcf",
+  "binary_sha256": "49b7df63ddecf4e4791668591cf0ea34b08c628b0be4f82287e030ed39e594f9",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,
@@ -136,14 +139,14 @@
   "priority": "above_normal",
   "isolated": false,
   "decoder_packets": "Same official packets for both decoders",
-  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\ROOT_ASSIGNMENT.json",
+  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\ROOT_ASSIGNMENT.json",
   "prior_609_measurements_reused": 0,
   "successful_measurements_repeated": 0,
-  "runtime_factory_getter_scope": "Fresh quality and all17 timing factory paths: actual current/OFF complexity,CVBR,VBR,bitrate,FEC,loss and current effectiveDN, after setters and before frame1. DN eligibility is VOIP+mono; requested flag is not assumed effective.",
+  "runtime_factory_getter_scope": "Fresh quality, all17 timing, optional and denoiser timing factory paths: source-authored benchmark-v2 current getters plus private OFF guards after setters and before frame1. Unsupported application/signal getters remain UNKNOWN; DN eligibility is VOIP+mono.",
   "runtime_option_evidence": {
-    "status": "FRESH_RETAINED_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_GAPS",
-    "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-    "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+    "status": "FRESH_BENCHMARK_V2_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_UNSUPPORTED_PROPERTIES",
+    "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+    "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
     "all_declared_runtime_option_states_proved": false,
     "guarded_factory_properties": [
       "complexity",
@@ -155,7 +158,7 @@
       "current_effective_denoiser"
     ],
     "guarded_families": {
-      "quality/current": 2840,
+      "quality/current": 3249,
       "quality/official": 2840,
       "fec60/current": 20,
       "fec60/official": 20,
@@ -166,15 +169,46 @@
     },
     "observed_values": {
       "quality/current": {
-        "complexity": [
-          9,
-          10
+        "requested_application": [
+          2048,
+          2049
         ],
-        "cvbr": [
-          1
+        "application_getter": [
+          "UNKNOWN"
         ],
-        "vbr": [
-          1
+        "channels": [
+          1,
+          2
+        ],
+        "sample_rate": [
+          48000
+        ],
+        "requested_bitrate": [
+          15000,
+          15500,
+          15900,
+          16000,
+          16100,
+          16500,
+          17000,
+          18000,
+          20000,
+          22000,
+          23000,
+          23500,
+          23900,
+          24000,
+          24100,
+          24500,
+          25000,
+          28000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
         ],
         "bitrate": [
           15000,
@@ -203,15 +237,43 @@
           192000,
           256000
         ],
+        "requested_complexity": [
+          9,
+          10
+        ],
+        "complexity": [
+          9,
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
         "fec": [
           0
         ],
         "loss": [
           0
         ],
+        "dtx": [
+          0
+        ],
+        "requested_denoise": [
+          0,
+          1
+        ],
+        "expected_effective_denoise": [
+          0,
+          1
+        ],
         "denoise": [
           0,
           1
+        ],
+        "signal": [
+          "UNKNOWN"
         ]
       },
       "quality/official": {
@@ -411,93 +473,96 @@
     },
     "mandatory17_timing_logs": [
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_speed.stderr.txt",
-        "bytes": 23865,
-        "sha256": "4da420e998c0218cf17013330e736658e2e7addd5155b2a147076136707ce1e0"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_speed.stderr.txt",
+        "bytes": 151076,
+        "sha256": "550fff2eb7bf269ac9ac5b66dc23e13110f04f5e6bf087358cfb78f93630a81e"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_hazel.stderr.txt",
-        "bytes": 7802,
-        "sha256": "5f478af2a32322f261d75238ac98b0a7054e1bb0aac35c97669a83f716b253ed"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_voice_hazel.stderr.txt",
+        "bytes": 7727,
+        "sha256": "4659a24e8799a75d96f24370d2e0ca25063da46e32ab1104988c16baf699d2fe"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_david.stderr.txt",
-        "bytes": 7785,
-        "sha256": "d47fc438a97a2c0cc03c121d60f9697e8206eeeacd84729a1b32cecf19179131"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_voice_david.stderr.txt",
+        "bytes": 7744,
+        "sha256": "f892ea4a5cab2464a9106cf40f93a2da641ee5ad8f1ec4e068c70765d7a4ebc4"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_hazel.stderr.txt",
-        "bytes": 2621,
-        "sha256": "275bdfaeff0c0ecf634939f14a1a2392e5115e24ecde0074f16a5d6760724b77"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_fec60_hazel.stderr.txt",
+        "bytes": 2675,
+        "sha256": "a5da3c07f02ea0a9b0bf33045687d457a9cb389d303eeefc67966fe4f33545dc"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_david.stderr.txt",
-        "bytes": 2659,
-        "sha256": "d25c03c24ec088546a0ed18783a6f1f44a92fe85e24777c6960b3890e036d7d6"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_fec60_david.stderr.txt",
+        "bytes": 2685,
+        "sha256": "2d4d53850024752bf4324c5a2157c1bed36e4c81ed83ae0d31cd9a21ed13f79d"
       }
     ],
     "quality_scope": "Fresh498 matrix plus806 published rows use the guarded full-precision quality image. Actual configured properties above were checked outside timed regions after setters and before frame1.",
     "denoiser_contract": "Effective current denoiser is requested && VOIP && physical mono; AUDIO or stereo legitimately reports0.",
     "unsupported_application_getter": "Request4001 is not supported by this current public source/header. Create-call source arguments are retained; runtime application getter remains UNKNOWN.",
-    "additional_factory_properties": "The generic guarded factory does not record a DTX or signal getter. No runtime observation of those additional properties is invented; retain per-test source or any independent emitted getter evidence.",
-    "optional_encoder_setup_gaps": [
+    "additional_factory_properties": "The current benchmark-v2 quality/optional source records DTX; application and signal getters remain explicitly UNKNOWN because they are unsupported. Private timing adapters record the exposed common options without inventing unsupported values.",
+    "optional_encoder_runtime_evidence": [
       {
         "family": "optional",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\optional_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\optional_driver.cpp",
           "bytes": 5595,
           "sha256": "331fbfffd32083cf7c5e8c6ed36277e97e49b402db4eabbf78b6e68ed06c7767"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_optional.stderr.txt",
-          "bytes": 38,
-          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_optional.stderr.txt",
+          "bytes": 58187,
+          "sha256": "6f84514801c0af6f339bf447175b9e22cf344fa7aa7f552ce1075931c4ba1963"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 47608,
-          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 49855,
+          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
-        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
-        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
-        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
+        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
+        "actual_getter_records": 189,
+        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
         "decoder_postfilter_getter": "Present before decode timing in optional driver; actual applied levels are retained in optional.csv."
       },
       {
         "family": "denoise_timing",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\denoise_timing_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\denoise_timing_driver.cpp",
           "bytes": 2662,
           "sha256": "43e48de4a737165f592c92e304612b4115095dd5d7ed7669081802483bf4afd0"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_denoise_timing.stderr.txt",
-          "bytes": 38,
-          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_denoise_timing.stderr.txt",
+          "bytes": 67698,
+          "sha256": "0b43763fe539595c654ba1801f3951d40a2775e928a8d771a21b0c7be32443f2"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 47608,
-          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 49855,
+          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
-        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
-        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
-        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
+        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
+        "actual_getter_records": 220,
+        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
         "decoder_postfilter_getter": "Not a decoder workload"
       }
     ],
+    "optional_encoder_setup_gaps": [],
     "other_maintained_tests": "Original source/getter assertions and actual outputs are retained per test. No generic all-options proof is inferred for an image without corresponding runtime evidence.",
     "no_late_getter_rebuild_replacement_or_retime": true,
     "measured_values_and_original_identity_unchanged": true,
     "decision": "Retain the fresh raw values and exact gap. Do not score unobserved intended-option states as qualified benchmark proof. Root alone decides publication of the disclosed facts; no goal or setup waiver.",
     "original_method": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\source_supported_option_getters.py",
-      "bytes": 2678,
-      "sha256": "0f54e99f7b026946018a24aeb68de03a185fcc3483b16b4feb1ed19d25d3e13c"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\source_supported_option_getters.py",
+      "bytes": 3025,
+      "sha256": "03aa0275364df121e6e0517af1038b9052d7bbf8df91cf8af58b33fe1f1b6f18"
     },
     "complete_original_log_index": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\RUNTIME_OPTION_SCOPE.json",
-      "sha256": "620369f27788b19dac53a4dc0efa7d1c72b3a765fdd70b91285c4a89d1d1e504"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\RUNTIME_OPTION_SCOPE.json",
+      "sha256": "c950fcd51c9c2a9fde68c45bd1fb2ec0ec3633d9369b7a8f1c6e5e14821ca20f"
     }
   }
 }

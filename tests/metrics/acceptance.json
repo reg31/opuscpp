@@ -5,48 +5,9 @@
       18,
       18,
       18,
-      16
+      17
     ],
     "failed_rows": [
-      {
-        "key": [
-          1,
-          20,
-          16000,
-          0,
-          1
-        ],
-        "criteria_pass": [
-          true,
-          true,
-          true,
-          false
-        ],
-        "current": {
-          "fidelity_fec": 0.617814746,
-          "next_fec": 0.773120654,
-          "transition_fec": 0.530104688,
-          "fidelity_ref": 0.170940334,
-          "next_ref": 0.174560957,
-          "transition_ref": 0.148780857,
-          "fidelity_plc": 0.617814746,
-          "self_consistency": 0.596832636,
-          "step_fec": -291.0,
-          "step_ref": 9.0
-        },
-        "official": {
-          "fidelity_fec": 0.738268655,
-          "next_fec": 0.96740496,
-          "transition_fec": 0.8000232,
-          "fidelity_ref": 0.651415492,
-          "next_ref": 0.648971154,
-          "transition_ref": 0.239399895,
-          "fidelity_plc": 0.738268655,
-          "self_consistency": 0.394210135,
-          "step_fec": -259.0,
-          "step_ref": -271.0
-        }
-      },
       {
         "key": [
           1,
@@ -91,11 +52,11 @@
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false,
-    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 16] out of 18"
+    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 17] out of 18"
   },
   "standard_interop": {
     "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.62938 wins=17/18 coverage=16/18 official_coverage=15/18 packet_byte_ratio=0.997487",
+    "summary": "fec_summary recovery_error_ratio=0.566567 wins=18/18 coverage=17/18 official_coverage=15/18 packet_byte_ratio=1.00197",
     "acceptance": "FAIL",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false

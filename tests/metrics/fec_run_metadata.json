@@ -1,10 +1,10 @@
 {
-  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+  "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "strict_ratios": [
     0.675443,
-    1.514,
+    0.303764,
     0.0,
     0.903303,
     0.129416,
@@ -23,29 +23,29 @@
     0.901596
   ],
   "summary": {
-    "recovery_error_ratio": "0.62938",
-    "wins": "17/18",
-    "coverage": "16/18",
+    "recovery_error_ratio": "0.566567",
+    "wins": "18/18",
+    "coverage": "17/18",
     "official_coverage": "15/18",
-    "packet_byte_ratio": "0.997487"
+    "packet_byte_ratio": "1.00197"
   },
   "source_counts": [
     18,
     18,
     18,
-    16
+    17
   ],
   "direction_rows": 72,
   "aggregate_scope": "Full expanded 36 configurations; 72 direction rows. Summary recovery/byte ratios and coverage apply to the scored 18-case 10/20ms subset, not all expanded configurations; source criteria are separate.",
-  "stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.211311 recovery_error=0.0913993 plc_error=0.227923 packet_bytes=354 packet_hash=2717473380\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.675443\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0212436 continuation_error=0.0272451 fec_plc_difference=0 recovery_error=0.596833 plc_error=0.596833 packet_bytes=529 packet_hash=3638622437\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=1.514\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.817171 recovery_error=0 plc_error=0.593557 packet_bytes=714 packet_hash=4231260784\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.755975 recovery_error=0.140603 plc_error=0.589372 packet_bytes=1040 packet_hash=831509365\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.903303\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.46911 recovery_error=0.249719 plc_error=1.63522 packet_bytes=1436 packet_hash=114114168\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=3.42908 recovery_error=0.0897232 plc_error=0.973737 packet_bytes=2136 packet_hash=1269743056\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.00488 recovery_error=0.0481696 plc_error=0.634583 packet_bytes=960 packet_hash=2087907575\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.129416\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.769694 recovery_error=0.142101 plc_error=0.620253 packet_bytes=1528 packet_hash=180420115\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.808104\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.384134 recovery_error=1.74785 plc_error=1.9195 packet_bytes=1920 packet_hash=2159864871\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.848675 recovery_error=0.964035 plc_error=1.03945 packet_bytes=2880 packet_hash=1076871242\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.66824 recovery_error=1.19039 plc_error=1.46698 packet_bytes=2574 packet_hash=39205180\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.22665 recovery_error=0.926682 plc_error=0.997673 packet_bytes=3890 packet_hash=2108435659\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.20441 recovery_error=0.100548 plc_error=0.782643 packet_bytes=356 packet_hash=2174262592\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.398957\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.951637 plc_error=0.951637 packet_bytes=471 packet_hash=3806838166\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.987481\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.45587 recovery_error=0.11751 plc_error=0.843764 packet_bytes=711 packet_hash=3152597001\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.572657\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.25972 recovery_error=0.189549 plc_error=0.730822 packet_bytes=935 packet_hash=1726913179\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.748706\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.68156 recovery_error=0.467746 plc_error=1.33073 packet_bytes=1439 packet_hash=2907665226\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=3.12945 recovery_error=0.104094 plc_error=0.983903 packet_bytes=2138 packet_hash=77233911\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.68398 recovery_error=0.22373 plc_error=1.0757 packet_bytes=960 packet_hash=3834184197\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.636755\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.53344 recovery_error=0.256874 plc_error=0.922164 packet_bytes=1367 packet_hash=152945669\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.840872\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.616673 recovery_error=1.23696 plc_error=1.5078 packet_bytes=1920 packet_hash=3155915509\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.05047 recovery_error=0.906773 plc_error=0.958849 packet_bytes=2880 packet_hash=246669730\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.668939 recovery_error=1.13949 plc_error=1.3791 packet_bytes=2568 packet_hash=1402144045\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.822324 recovery_error=0.930309 plc_error=0.987386 packet_bytes=3867 packet_hash=1210328798\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.08583 recovery_error=0.203735 plc_error=1.26396 packet_bytes=356 packet_hash=2979224429\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.521234\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.53866 recovery_error=0.658568 plc_error=1.02119 packet_bytes=470 packet_hash=3647234448\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.504031\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.15567 recovery_error=0 plc_error=1.07524 packet_bytes=714 packet_hash=3812824015\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.04233 recovery_error=0.364825 plc_error=0.997942 packet_bytes=919 packet_hash=1599646241\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.845208\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.4398 recovery_error=0.639437 plc_error=1.39462 packet_bytes=1439 packet_hash=5369761\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.59799 recovery_error=0.21097 plc_error=1.03058 packet_bytes=2139 packet_hash=519177985\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.50161 recovery_error=0.275722 plc_error=1.00739 packet_bytes=960 packet_hash=1586555488\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.302823\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.08056 recovery_error=0.418558 plc_error=1.06225 packet_bytes=1344 packet_hash=2267811747\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.901596\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=3.40166e-05 continuation_error=0 fec_plc_difference=0.903059 recovery_error=1.06486 plc_error=1.13244 packet_bytes=1920 packet_hash=587685207\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.619657 recovery_error=1.04803 plc_error=1.11678 packet_bytes=2880 packet_hash=4060812782\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.852626 recovery_error=1.01322 plc_error=1.07474 packet_bytes=2586 packet_hash=3901523768\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.688787 recovery_error=0.94959 plc_error=1.00761 packet_bytes=3911 packet_hash=3692488795\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nfec_summary recovery_error_ratio=0.62938 wins=17/18 coverage=16/18 official_coverage=15/18 packet_byte_ratio=0.997487\n",
-  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\ROOT_ASSIGNMENT.json",
+  "stdout": "fec_quiet_packet_validation=PASS (silent startup, speech/silence and bitrate transitions, official decoder entropy ranges)\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.211311 recovery_error=0.0913993 plc_error=0.227923 packet_bytes=354 packet_hash=2717473380\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.205145 recovery_error=0.135318 plc_error=0.224148 packet_bytes=372 packet_hash=1324389596\nfec_quality_ratio_opuscpp_vs_official=0.675443\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.697684 recovery_error=0.119747 plc_error=0.596967 packet_bytes=595 packet_hash=569800843\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0.0186432 continuation_error=0.0268084 fec_plc_difference=0 recovery_error=0.39421 plc_error=0.39421 packet_bytes=536 packet_hash=3350711441\nfec_quality_ratio_opuscpp_vs_official=0.303764\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.817171 recovery_error=0 plc_error=0.593557 packet_bytes=714 packet_hash=4231260784\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.784571 recovery_error=0.142381 plc_error=0.563075 packet_bytes=784 packet_hash=1163433600\nfec_quality_ratio_opuscpp_vs_official=0\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.755975 recovery_error=0.140603 plc_error=0.589372 packet_bytes=1040 packet_hash=831509365\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.809627 recovery_error=0.155654 plc_error=0.604963 packet_bytes=1045 packet_hash=1629674417\nfec_quality_ratio_opuscpp_vs_official=0.903303\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.46911 recovery_error=0.249719 plc_error=1.63522 packet_bytes=1436 packet_hash=114114168\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.92494 plc_error=0.92494 packet_bytes=1531 packet_hash=3924694166\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=3.42908 recovery_error=0.0897232 plc_error=0.973737 packet_bytes=2136 packet_hash=1269743056\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=4.7039 recovery_error=0.205409 plc_error=1.00674 packet_bytes=2385 packet_hash=388587422\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.00488 recovery_error=0.0481696 plc_error=0.634583 packet_bytes=960 packet_hash=2087907575\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=0 decoder_error=7.48855e-06 continuation_error=0 fec_plc_difference=0.558616 recovery_error=0.372208 plc_error=0.430651 packet_bytes=960 packet_hash=2809601673\nfec_quality_ratio_opuscpp_vs_official=0.129416\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.769694 recovery_error=0.142101 plc_error=0.620253 packet_bytes=1528 packet_hash=180420115\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.577497 recovery_error=0.175844 plc_error=0.430018 packet_bytes=1458 packet_hash=1512200190\nfec_quality_ratio_opuscpp_vs_official=0.808104\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.384134 recovery_error=1.74785 plc_error=1.9195 packet_bytes=1920 packet_hash=2159864871\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=0 decoder_error=0 continuation_error=2.44987e-05 fec_plc_difference=0.0352956 recovery_error=1.23912 plc_error=1.23932 packet_bytes=1920 packet_hash=1072333892\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.848675 recovery_error=0.964035 plc_error=1.03945 packet_bytes=2880 packet_hash=1076871242\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.999116 recovery_error=0.997726 plc_error=1.04132 packet_bytes=2880 packet_hash=1151446590\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0.66824 recovery_error=1.19039 plc_error=1.46698 packet_bytes=2574 packet_hash=39205180\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.21571 plc_error=1.21571 packet_bytes=2170 packet_hash=1763800708\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.22665 recovery_error=0.926682 plc_error=0.997673 packet_bytes=3890 packet_hash=2108435659\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=0 decoder_error=0 continuation_error=0 fec_plc_difference=1.30215 recovery_error=0.959635 plc_error=1.0433 packet_bytes=3271 packet_hash=854065508\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.20441 recovery_error=0.100548 plc_error=0.782643 packet_bytes=356 packet_hash=2174262592\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.89641 recovery_error=0.252028 plc_error=1.30545 packet_bytes=352 packet_hash=3480715193\nfec_quality_ratio_opuscpp_vs_official=0.398957\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.951637 plc_error=0.951637 packet_bytes=471 packet_hash=3806838166\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=0.963702 plc_error=0.963702 packet_bytes=455 packet_hash=1212346763\nfec_quality_ratio_opuscpp_vs_official=0.987481\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.45587 recovery_error=0.11751 plc_error=0.843764 packet_bytes=711 packet_hash=3152597001\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.23828 recovery_error=0.205201 plc_error=0.773119 packet_bytes=717 packet_hash=3784289538\nfec_quality_ratio_opuscpp_vs_official=0.572657\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.25972 recovery_error=0.189549 plc_error=0.730822 packet_bytes=935 packet_hash=1726913179\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.60603 recovery_error=0.253168 plc_error=1.11962 packet_bytes=922 packet_hash=1300010798\nfec_quality_ratio_opuscpp_vs_official=0.748706\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.68156 recovery_error=0.467746 plc_error=1.33073 packet_bytes=1439 packet_hash=2907665226\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.31792 plc_error=1.31792 packet_bytes=1439 packet_hash=2364538229\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=3.12945 recovery_error=0.104094 plc_error=0.983903 packet_bytes=2138 packet_hash=77233911\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=4.24257 recovery_error=0.225036 plc_error=0.968894 packet_bytes=2268 packet_hash=1086936650\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.68398 recovery_error=0.22373 plc_error=1.0757 packet_bytes=960 packet_hash=3834184197\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.6109 recovery_error=0.351359 plc_error=0.888535 packet_bytes=960 packet_hash=1461312841\nfec_quality_ratio_opuscpp_vs_official=0.636755\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.53344 recovery_error=0.256874 plc_error=0.922164 packet_bytes=1367 packet_hash=152945669\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.32706 recovery_error=0.305485 plc_error=0.768328 packet_bytes=1386 packet_hash=2497701838\nfec_quality_ratio_opuscpp_vs_official=0.840872\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.616673 recovery_error=1.23696 plc_error=1.5078 packet_bytes=1920 packet_hash=3155915509\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.25563 plc_error=1.25563 packet_bytes=1920 packet_hash=1856102685\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.05047 recovery_error=0.906773 plc_error=0.958849 packet_bytes=2880 packet_hash=246669730\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.2527 recovery_error=0.961128 plc_error=0.94681 packet_bytes=2880 packet_hash=3847613618\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.668939 recovery_error=1.13949 plc_error=1.3791 packet_bytes=2568 packet_hash=1402144045\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.10372 plc_error=1.10372 packet_bytes=2242 packet_hash=3726648296\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=0.822324 recovery_error=0.930309 plc_error=0.987386 packet_bytes=3867 packet_hash=1210328798\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=1 decoder_error=0 continuation_error=0 fec_plc_difference=1.26334 recovery_error=1.06617 plc_error=1.06037 packet_bytes=3332 packet_hash=841396521\nfec_interop=opuscpp_to_official channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.08583 recovery_error=0.203735 plc_error=1.26396 packet_bytes=356 packet_hash=2979224429\nfec_interop=official_to_opuscpp channels=1 duration_ms=10 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.42088 recovery_error=0.390871 plc_error=1.35837 packet_bytes=355 packet_hash=4150343682\nfec_quality_ratio_opuscpp_vs_official=0.521234\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.53866 recovery_error=0.658568 plc_error=1.02119 packet_bytes=470 packet_hash=3647234448\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0 recovery_error=1.3066 plc_error=1.3066 packet_bytes=450 packet_hash=3300984284\nfec_quality_ratio_opuscpp_vs_official=0.504031\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.15567 recovery_error=0 plc_error=1.07524 packet_bytes=714 packet_hash=3812824015\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.38405 recovery_error=0.384928 plc_error=0.91166 packet_bytes=704 packet_hash=2479386608\nfec_quality_ratio_opuscpp_vs_official=0\nfec_interop=opuscpp_to_official channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.04233 recovery_error=0.364825 plc_error=0.997942 packet_bytes=919 packet_hash=1599646241\nfec_interop=official_to_opuscpp channels=1 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.32619 recovery_error=0.431639 plc_error=0.978261 packet_bytes=944 packet_hash=747387683\nfec_quality_ratio_opuscpp_vs_official=0.845208\nfec_interop=opuscpp_to_official channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.4398 recovery_error=0.639437 plc_error=1.39462 packet_bytes=1439 packet_hash=5369761\nfec_interop=official_to_opuscpp channels=1 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.1447 recovery_error=1.07428 plc_error=1.08708 packet_bytes=1575 packet_hash=997291461\nfec_interop=opuscpp_to_official channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.59799 recovery_error=0.21097 plc_error=1.03058 packet_bytes=2139 packet_hash=519177985\nfec_interop=official_to_opuscpp channels=1 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=2.77879 recovery_error=0.395711 plc_error=1.04518 packet_bytes=2357 packet_hash=892054109\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.50161 recovery_error=0.275722 plc_error=1.00739 packet_bytes=960 packet_hash=1586555488\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=0 profile=2 decoder_error=9.50748e-06 continuation_error=0 fec_plc_difference=1.76858 recovery_error=0.910507 plc_error=0.941432 packet_bytes=960 packet_hash=4186063651\nfec_quality_ratio_opuscpp_vs_official=0.302823\nfec_interop=opuscpp_to_official channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=1.08056 recovery_error=0.418558 plc_error=1.06225 packet_bytes=1344 packet_hash=2267811747\nfec_interop=official_to_opuscpp channels=2 duration_ms=20 vbr=1 profile=2 decoder_error=0 continuation_error=1.0643e-05 fec_plc_difference=1.37663 recovery_error=0.464241 plc_error=1.22988 packet_bytes=1365 packet_hash=3875186059\nfec_quality_ratio_opuscpp_vs_official=0.901596\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=3.40166e-05 continuation_error=0 fec_plc_difference=0.903059 recovery_error=1.06486 plc_error=1.13244 packet_bytes=1920 packet_hash=587685207\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.853 recovery_error=1.49306 plc_error=1.6166 packet_bytes=1920 packet_hash=1293452873\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.619657 recovery_error=1.04803 plc_error=1.11678 packet_bytes=2880 packet_hash=4060812782\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=0 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.637888 recovery_error=1.13296 plc_error=1.1874 packet_bytes=2880 packet_hash=2967788143\nfec_interop=opuscpp_to_official channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.852626 recovery_error=1.01322 plc_error=1.07474 packet_bytes=2586 packet_hash=3901523768\nfec_interop=official_to_opuscpp channels=2 duration_ms=40 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.783478 recovery_error=1.32386 plc_error=1.33769 packet_bytes=2137 packet_hash=3590897921\nfec_interop=opuscpp_to_official channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=0 fec_plc_difference=0.688787 recovery_error=0.94959 plc_error=1.00761 packet_bytes=3911 packet_hash=3692488795\nfec_interop=official_to_opuscpp channels=2 duration_ms=60 vbr=1 profile=2 decoder_error=0 continuation_error=7.13752e-06 fec_plc_difference=0.75349 recovery_error=1.10799 plc_error=1.16167 packet_bytes=3231 packet_hash=2102507914\nfec_summary recovery_error_ratio=0.566567 wins=18/18 coverage=17/18 official_coverage=15/18 packet_byte_ratio=1.00197\n",
+  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\ROOT_ASSIGNMENT.json",
   "prior_609_measurements_reused": 0,
   "successful_measurements_repeated": 0,
-  "runtime_factory_getter_scope": "Fresh quality and all17 timing factory paths: actual current/OFF complexity,CVBR,VBR,bitrate,FEC,loss and current effectiveDN, after setters and before frame1. DN eligibility is VOIP+mono; requested flag is not assumed effective.",
+  "runtime_factory_getter_scope": "Fresh quality, all17 timing, optional and denoiser timing factory paths: source-authored benchmark-v2 current getters plus private OFF guards after setters and before frame1. Unsupported application/signal getters remain UNKNOWN; DN eligibility is VOIP+mono.",
   "runtime_option_evidence": {
-    "status": "FRESH_RETAINED_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_GAPS",
-    "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-    "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+    "status": "FRESH_BENCHMARK_V2_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_UNSUPPORTED_PROPERTIES",
+    "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+    "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
     "all_declared_runtime_option_states_proved": false,
     "guarded_factory_properties": [
       "complexity",
@@ -57,7 +57,7 @@
       "current_effective_denoiser"
     ],
     "guarded_families": {
-      "quality/current": 2840,
+      "quality/current": 3249,
       "quality/official": 2840,
       "fec60/current": 20,
       "fec60/official": 20,
@@ -68,15 +68,46 @@
     },
     "observed_values": {
       "quality/current": {
-        "complexity": [
-          9,
-          10
+        "requested_application": [
+          2048,
+          2049
         ],
-        "cvbr": [
-          1
+        "application_getter": [
+          "UNKNOWN"
         ],
-        "vbr": [
-          1
+        "channels": [
+          1,
+          2
+        ],
+        "sample_rate": [
+          48000
+        ],
+        "requested_bitrate": [
+          15000,
+          15500,
+          15900,
+          16000,
+          16100,
+          16500,
+          17000,
+          18000,
+          20000,
+          22000,
+          23000,
+          23500,
+          23900,
+          24000,
+          24100,
+          24500,
+          25000,
+          28000,
+          32000,
+          48000,
+          64000,
+          96000,
+          128000,
+          192000,
+          256000
         ],
         "bitrate": [
           15000,
@@ -105,15 +136,43 @@
           192000,
           256000
         ],
+        "requested_complexity": [
+          9,
+          10
+        ],
+        "complexity": [
+          9,
+          10
+        ],
+        "cvbr": [
+          1
+        ],
+        "vbr": [
+          1
+        ],
         "fec": [
           0
         ],
         "loss": [
           0
         ],
+        "dtx": [
+          0
+        ],
+        "requested_denoise": [
+          0,
+          1
+        ],
+        "expected_effective_denoise": [
+          0,
+          1
+        ],
         "denoise": [
           0,
           1
+        ],
+        "signal": [
+          "UNKNOWN"
         ]
       },
       "quality/official": {
@@ -313,93 +372,96 @@
     },
     "mandatory17_timing_logs": [
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_speed.stderr.txt",
-        "bytes": 23865,
-        "sha256": "4da420e998c0218cf17013330e736658e2e7addd5155b2a147076136707ce1e0"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_speed.stderr.txt",
+        "bytes": 151076,
+        "sha256": "550fff2eb7bf269ac9ac5b66dc23e13110f04f5e6bf087358cfb78f93630a81e"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_hazel.stderr.txt",
-        "bytes": 7802,
-        "sha256": "5f478af2a32322f261d75238ac98b0a7054e1bb0aac35c97669a83f716b253ed"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_voice_hazel.stderr.txt",
+        "bytes": 7727,
+        "sha256": "4659a24e8799a75d96f24370d2e0ca25063da46e32ab1104988c16baf699d2fe"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_voice_david.stderr.txt",
-        "bytes": 7785,
-        "sha256": "d47fc438a97a2c0cc03c121d60f9697e8206eeeacd84729a1b32cecf19179131"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_voice_david.stderr.txt",
+        "bytes": 7744,
+        "sha256": "f892ea4a5cab2464a9106cf40f93a2da641ee5ad8f1ec4e068c70765d7a4ebc4"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_hazel.stderr.txt",
-        "bytes": 2621,
-        "sha256": "275bdfaeff0c0ecf634939f14a1a2392e5115e24ecde0074f16a5d6760724b77"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_fec60_hazel.stderr.txt",
+        "bytes": 2675,
+        "sha256": "a5da3c07f02ea0a9b0bf33045687d457a9cb389d303eeefc67966fe4f33545dc"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_fec60_david.stderr.txt",
-        "bytes": 2659,
-        "sha256": "d25c03c24ec088546a0ed18783a6f1f44a92fe85e24777c6960b3890e036d7d6"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_fec60_david.stderr.txt",
+        "bytes": 2685,
+        "sha256": "2d4d53850024752bf4324c5a2157c1bed36e4c81ed83ae0d31cd9a21ed13f79d"
       }
     ],
     "quality_scope": "Fresh498 matrix plus806 published rows use the guarded full-precision quality image. Actual configured properties above were checked outside timed regions after setters and before frame1.",
     "denoiser_contract": "Effective current denoiser is requested && VOIP && physical mono; AUDIO or stereo legitimately reports0.",
     "unsupported_application_getter": "Request4001 is not supported by this current public source/header. Create-call source arguments are retained; runtime application getter remains UNKNOWN.",
-    "additional_factory_properties": "The generic guarded factory does not record a DTX or signal getter. No runtime observation of those additional properties is invented; retain per-test source or any independent emitted getter evidence.",
-    "optional_encoder_setup_gaps": [
+    "additional_factory_properties": "The current benchmark-v2 quality/optional source records DTX; application and signal getters remain explicitly UNKNOWN because they are unsupported. Private timing adapters record the exposed common options without inventing unsupported values.",
+    "optional_encoder_runtime_evidence": [
       {
         "family": "optional",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\optional_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\optional_driver.cpp",
           "bytes": 5595,
           "sha256": "331fbfffd32083cf7c5e8c6ed36277e97e49b402db4eabbf78b6e68ed06c7767"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_optional.stderr.txt",
-          "bytes": 38,
-          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_optional.stderr.txt",
+          "bytes": 58187,
+          "sha256": "6f84514801c0af6f339bf447175b9e22cf344fa7aa7f552ce1075931c4ba1963"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 47608,
-          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 49855,
+          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
-        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
-        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
-        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
+        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
+        "actual_getter_records": 189,
+        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
         "decoder_postfilter_getter": "Present before decode timing in optional driver; actual applied levels are retained in optional.csv."
       },
       {
         "family": "denoise_timing",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\denoise_timing_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\denoise_timing_driver.cpp",
           "bytes": 2662,
           "sha256": "43e48de4a737165f592c92e304612b4115095dd5d7ed7669081802483bf4afd0"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\timing_denoise_timing.stderr.txt",
-          "bytes": 38,
-          "sha256": "5719c72aba36d43b7bd1a82de2c5bb8cb98a666cb978496c817f257db43af69a"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\timing_denoise_timing.stderr.txt",
+          "bytes": 67698,
+          "sha256": "0b43763fe539595c654ba1801f3951d40a2775e928a8d771a21b0c7be32443f2"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 47608,
-          "sha256": "a1e0dd361a2081a4b17548ff7f8e9b7ad27c16ccc7e4bfa7691e5e291cb16408"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\tests\\perceptual_memory_validation.cpp",
+          "bytes": 49855,
+          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
-        "encoder_option_runtime_getters": "NOT_RECORDED_IN_RETAINED_MAINTAINED_DRIVER",
-        "intended_option_claim": "UNKNOWN_UNQUALIFIED",
-        "raw_elapsed_values": "Freshly executed and retained; not proof that every declared encoder option was effective.",
+        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
+        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
+        "actual_getter_records": 220,
+        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
         "decoder_postfilter_getter": "Not a decoder workload"
       }
     ],
+    "optional_encoder_setup_gaps": [],
     "other_maintained_tests": "Original source/getter assertions and actual outputs are retained per test. No generic all-options proof is inferred for an image without corresponding runtime evidence.",
     "no_late_getter_rebuild_replacement_or_retime": true,
     "measured_values_and_original_identity_unchanged": true,
     "decision": "Retain the fresh raw values and exact gap. Do not score unobserved intended-option states as qualified benchmark proof. Root alone decides publication of the disclosed facts; no goal or setup waiver.",
     "original_method": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\source_supported_option_getters.py",
-      "bytes": 2678,
-      "sha256": "0f54e99f7b026946018a24aeb68de03a185fcc3483b16b4feb1ed19d25d3e13c"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\source_supported_option_getters.py",
+      "bytes": 3025,
+      "sha256": "03aa0275364df121e6e0517af1038b9052d7bbf8df91cf8af58b33fe1f1b6f18"
     },
     "complete_original_log_index": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\RUNTIME_OPTION_SCOPE.json",
-      "sha256": "620369f27788b19dac53a4dc0efa7d1c72b3a765fdd70b91285c4a89d1d1e504"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9bf0bc5_20261030\\RUNTIME_OPTION_SCOPE.json",
+      "sha256": "c950fcd51c9c2a9fde68c45bd1fb2ec0ec3633d9369b7a8f1c6e5e14821ca20f"
     }
   },
   "maintained_method_executor_label": null,

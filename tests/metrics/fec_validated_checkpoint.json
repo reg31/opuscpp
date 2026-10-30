@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+  "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\input_manifest.json",
-    "bytes": 24648,
-    "sha256": "d856eb52d3d1b7b2f211c5dd7416b90029f50b5efbe63522d0798cdae7110e82"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\input_manifest.json",
+    "bytes": 24626,
+    "sha256": "c48f881e740ff0506cfe0076e0a92aea22fcb8f98971b6e5632e6b1ee2ba89ce"
   },
   "fresh_current_values": true,
   "scope": "Fresh maintained standard18 and strict18FEC results under the pinnedOFF51bd comparator",
@@ -20,48 +20,9 @@
           18,
           18,
           18,
-          16
+          17
         ],
         "failed_rows": [
-          {
-            "key": [
-              1,
-              20,
-              16000,
-              0,
-              1
-            ],
-            "criteria_pass": [
-              true,
-              true,
-              true,
-              false
-            ],
-            "current": {
-              "fidelity_fec": 0.617814746,
-              "next_fec": 0.773120654,
-              "transition_fec": 0.530104688,
-              "fidelity_ref": 0.170940334,
-              "next_ref": 0.174560957,
-              "transition_ref": 0.148780857,
-              "fidelity_plc": 0.617814746,
-              "self_consistency": 0.596832636,
-              "step_fec": -291.0,
-              "step_ref": 9.0
-            },
-            "official": {
-              "fidelity_fec": 0.738268655,
-              "next_fec": 0.96740496,
-              "transition_fec": 0.8000232,
-              "fidelity_ref": 0.651415492,
-              "next_ref": 0.648971154,
-              "transition_ref": 0.239399895,
-              "fidelity_plc": 0.738268655,
-              "self_consistency": 0.394210135,
-              "step_fec": -259.0,
-              "step_ref": -271.0
-            }
-          },
           {
             "key": [
               1,
@@ -106,11 +67,11 @@
         "acceptance": "FAIL",
         "failure_is_non_gating_for_measurement_completion": true,
         "waiver": false,
-        "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 16] out of 18"
+        "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 17] out of 18"
       },
       "standard_interop": {
         "exit_code": 1,
-        "summary": "fec_summary recovery_error_ratio=0.62938 wins=17/18 coverage=16/18 official_coverage=15/18 packet_byte_ratio=0.997487",
+        "summary": "fec_summary recovery_error_ratio=0.566567 wins=18/18 coverage=17/18 official_coverage=15/18 packet_byte_ratio=1.00197",
         "acceptance": "FAIL",
         "failure_is_non_gating_for_measurement_completion": true,
         "waiver": false
@@ -123,7 +84,7 @@
         18,
         18,
         18,
-        16
+        17
       ],
       "rows": [
         {
@@ -136,7 +97,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "10",
               "24000",
@@ -161,7 +122,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "10",
               "24000",
@@ -201,7 +162,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "16000",
@@ -209,24 +170,24 @@
               "1"
             ],
             "exit": 0,
-            "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=44,38,48,43,40,45,51,50,43,43,45,39,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.773120654 next_ref=0.174560957 fidelity_fec=0.617814746 fidelity_ref=0.170940334 fidelity_plc=0.617814746 transition_fec=0.530104688 transition_ref=0.148780857 step_fec=-291.000 step_ref=9.000 self_consistency=0.596832636\n",
+            "stdout": "pkt_toc=68,68,68,68,68,68,68,68,68,68,68,68,\npkt_bytes=44,38,48,43,40,45,51,50,73,79,45,39,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.225097379 next_ref=0.172701926 fidelity_fec=0.211612028 fidelity_ref=0.170753233 fidelity_plc=0.617814746 transition_fec=0.171560430 transition_ref=0.150753459 step_fec=-203.000 step_ref=-123.000 self_consistency=0.119746780\n",
             "stderr": "",
             "fields": {
-              "fidelity_fec": 0.617814746,
-              "next_fec": 0.773120654,
-              "transition_fec": 0.530104688,
-              "fidelity_ref": 0.170940334,
-              "next_ref": 0.174560957,
-              "transition_ref": 0.148780857,
+              "fidelity_fec": 0.211612028,
+              "next_fec": 0.225097379,
+              "transition_fec": 0.17156043,
+              "fidelity_ref": 0.170753233,
+              "next_ref": 0.172701926,
+              "transition_ref": 0.150753459,
               "fidelity_plc": 0.617814746,
-              "self_consistency": 0.596832636,
-              "step_fec": -291.0,
-              "step_ref": 9.0
+              "self_consistency": 0.11974678,
+              "step_fec": -203.0,
+              "step_ref": -123.0
             }
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "16000",
@@ -253,7 +214,7 @@
             true,
             true,
             true,
-            false
+            true
           ]
         },
         {
@@ -266,7 +227,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "24000",
@@ -291,7 +252,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "24000",
@@ -331,7 +292,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "32000",
@@ -356,7 +317,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "32000",
@@ -396,7 +357,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "32000",
@@ -421,7 +382,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "32000",
@@ -461,7 +422,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "48000",
@@ -486,7 +447,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "48000",
@@ -526,7 +487,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "10",
               "24000",
@@ -551,7 +512,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "10",
               "24000",
@@ -591,7 +552,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "16000",
@@ -616,7 +577,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "16000",
@@ -656,7 +617,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "24000",
@@ -681,7 +642,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "24000",
@@ -721,7 +682,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "32000",
@@ -746,7 +707,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "32000",
@@ -786,7 +747,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "32000",
@@ -811,7 +772,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "32000",
@@ -851,7 +812,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "48000",
@@ -876,7 +837,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "48000",
@@ -916,7 +877,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "10",
               "24000",
@@ -941,7 +902,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "10",
               "24000",
@@ -981,7 +942,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "16000",
@@ -1006,7 +967,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "16000",
@@ -1046,7 +1007,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "24000",
@@ -1071,7 +1032,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "24000",
@@ -1111,7 +1072,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "1",
               "20",
               "32000",
@@ -1136,7 +1097,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "1",
               "20",
               "32000",
@@ -1176,7 +1137,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "32000",
@@ -1201,7 +1162,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "32000",
@@ -1241,7 +1202,7 @@
           ],
           "current": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_quality.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_quality.exe",
               "2",
               "20",
               "48000",
@@ -1266,7 +1227,7 @@
           },
           "official": {
             "command": [
-              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source_official.exe",
+              "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source_official.exe",
               "2",
               "20",
               "48000",
@@ -1300,7 +1261,7 @@
     },
     "standard": {
       "exit_code": 1,
-      "summary": "fec_summary recovery_error_ratio=0.62938 wins=17/18 coverage=16/18 official_coverage=15/18 packet_byte_ratio=0.997487",
+      "summary": "fec_summary recovery_error_ratio=0.566567 wins=18/18 coverage=17/18 official_coverage=15/18 packet_byte_ratio=1.00197",
       "acceptance": "FAIL",
       "failure_is_non_gating_for_measurement_completion": true,
       "waiver": false
@@ -1308,19 +1269,19 @@
   },
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\acceptance.json",
-      "bytes": 2711,
-      "sha256": "01a793dc3fdee69ce0c5525da6ea8bd427732c6393da42d586a62d4cc48f33b6"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\acceptance.json",
+      "bytes": 1695,
+      "sha256": "be38e53943340c75ca624a289cfbfe093cbb1957f43fc63267e47abcf2d620ab"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec_source.json",
-      "bytes": 51504,
-      "sha256": "2421072cb1cba702e8a685bc08376638390022fd8452bffb3de6d8121cde88a0"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec_source.json",
+      "bytes": 51471,
+      "sha256": "8d4d1f8b7f2ab796e715551595b1b39200feee68068149ca2710b64a3d015ea4"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\metric_fec_vs_official.stdout.txt",
-      "bytes": 16965,
-      "sha256": "5158f19fbda70ac420b2e667545a78d368d22e40398f4703312b9c73dc24f8e7"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\metric_fec_vs_official.stdout.txt",
+      "bytes": 16958,
+      "sha256": "609ab372d33ecdd0806f9e4b99005d03acdfd621c5c735fc0b0c1d57a8dbb918"
     }
   ],
   "limits": "All failed criteria remain failed. Passing interop or recovery-vsPLC difference alone does not prove per-frame internalLBRR consumption; historicalOFF503 data remains historical.",

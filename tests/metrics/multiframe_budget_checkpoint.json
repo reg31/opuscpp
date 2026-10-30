@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "7b4fbf3e28fbaaac165909d2cbd4e6d24d56113f",
-  "source_sha256": "a5b3c8d12f4b367cdbf8ed889c82e06c502464fdea40d1a13bd412b7ea1fa883",
+  "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\input_manifest.json",
-    "bytes": 24648,
-    "sha256": "d856eb52d3d1b7b2f211c5dd7416b90029f50b5efbe63522d0798cdae7110e82"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\input_manifest.json",
+    "bytes": 24626,
+    "sha256": "c48f881e740ff0506cfe0076e0a92aea22fcb8f98971b6e5632e6b1ee2ba89ce"
   },
   "fresh_current_values": true,
   "scope": "Current maintained long-packet wire/rate/recovery and matched60ms caller observations",
@@ -67,20 +67,20 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.799825",
-            "current_encode_ms": "138.856700",
-            "official_encode_ms": "111.061100",
-            "opuscpp_effective_kbps": "22.352381",
+            "encode_speedx": "0.802396",
+            "current_encode_ms": "120.987500",
+            "official_encode_ms": "97.079900",
+            "opuscpp_effective_kbps": "22.483333",
             "official_effective_kbps": "19.952976",
-            "decode_speedx": "1.277558",
-            "current_decode_ms": "8.080100",
-            "official_decode_ms": "10.322800"
+            "decode_speedx": "1.241510",
+            "current_decode_ms": "7.544600",
+            "official_decode_ms": "9.366700"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_hazel.csv",
-          "bytes": 242,
-          "sha256": "2a8275538d9afe85faaa811129ccebba8753fd4a3c8eb90d4dcc619d7159addc"
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec60_hazel.csv",
+          "bytes": 240,
+          "sha256": "deeb8f848ed9cb5e3aacb9fa85bc1b0141a65680eb36da454bcf3278bbce5d39"
         }
       },
       {
@@ -98,39 +98,39 @@
         "rows": [
           {
             "bitrate": "24000",
-            "encode_speedx": "0.756725",
-            "current_encode_ms": "112.315500",
-            "official_encode_ms": "84.991900",
-            "opuscpp_effective_kbps": "20.736054",
+            "encode_speedx": "0.783743",
+            "current_encode_ms": "106.747800",
+            "official_encode_ms": "83.662800",
+            "opuscpp_effective_kbps": "21.158503",
             "official_effective_kbps": "19.123129",
-            "decode_speedx": "1.257950",
-            "current_decode_ms": "6.650900",
-            "official_decode_ms": "8.366500"
+            "decode_speedx": "1.250609",
+            "current_decode_ms": "6.488200",
+            "official_decode_ms": "8.114200"
           }
         ],
         "raw": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_david.csv",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec60_david.csv",
           "bytes": 240,
-          "sha256": "69ed77cfcbd15d072486fe949de69df65bc7b5be7c76b56a274205546a5b64fd"
+          "sha256": "f7fcb120bbecb1789ca128b0de2a5791c723b5a0cb58c3af408631c7fe9a2d40"
         }
       }
     ]
   },
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\logs\\metric_fec_vs_official.stdout.txt",
-      "bytes": 16965,
-      "sha256": "5158f19fbda70ac420b2e667545a78d368d22e40398f4703312b9c73dc24f8e7"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\logs\\metric_fec_vs_official.stdout.txt",
+      "bytes": 16958,
+      "sha256": "609ab372d33ecdd0806f9e4b99005d03acdfd621c5c735fc0b0c1d57a8dbb918"
     },
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_hazel.csv",
-      "bytes": 242,
-      "sha256": "2a8275538d9afe85faaa811129ccebba8753fd4a3c8eb90d4dcc619d7159addc"
-    },
-    {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\fec60_david.csv",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec60_hazel.csv",
       "bytes": 240,
-      "sha256": "69ed77cfcbd15d072486fe949de69df65bc7b5be7c76b56a274205546a5b64fd"
+      "sha256": "deeb8f848ed9cb5e3aacb9fa85bc1b0141a65680eb36da454bcf3278bbce5d39"
+    },
+    {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\fec60_david.csv",
+      "bytes": 240,
+      "sha256": "f7fcb120bbecb1789ca128b0de2a5791c723b5a0cb58c3af408631c7fe9a2d40"
     }
   ],
   "limits": "Only long-duration interop rows actually emitted by the maintained test and the60ms callers are reported; absent durations remain unmeasured here. Internal per-subframe credit law and old corpus/layout experiments are not remeasured or claimed qualified by these observations.",

@@ -8,7 +8,7 @@
   "gate_stdout_sha256": "f82d9055e4e3b819cf4c1d7d7807e71eec2445cb5aae5ade8b1a79add11a89fd",
   "reporting_stdout_sha256": "f82d9055e4e3b819cf4c1d7d7807e71eec2445cb5aae5ade8b1a79add11a89fd",
   "both_outputs_byte_identical": true,
-  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_7b4fbf3_20261026\\checkout\\build\\official_compare_report\\fresh7b4fbf3_once\\dtx_reporting.cpp",
+  "reporting_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\dtx_reporting.cpp",
   "waiver": false,
   "failure_is_non_gating_for_measurement_completion": true
 }
