@@ -21162,9 +21162,21 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         right[n] = FLOAT2INT16(samplesIn[2 * n + 1]);
       }
     } else if (stereo_input) {
+      const auto saturate_input = [](float scaled) noexcept {
+        scaled = scaled > -32768.f ? scaled : -32768.f;
+        scaled = scaled < 32767.f ? scaled : 32767.f;
+        return pcm_float2int(scaled);
+      };
       for (int n = 0; n < nSamplesFromInput; ++n) {
-        const float mean = std::midpoint(samplesIn[2 * n] * 32768.f, samplesIn[2 * n + 1] * 32768.f);
-        buf[n] = static_cast<opus_int16>(pcm_float2int(std::clamp(mean, -32768.f, 32767.f)));
+        const float left = samplesIn[2 * n] * 32768.f;
+        const float right = samplesIn[2 * n + 1] * 32768.f;
+        if (left >= -32768.f && left <= 32767.f && right >= -32768.f && right <= 32767.f) {
+          const float mean = std::midpoint(left, right);
+          buf[n] = static_cast<opus_int16>(pcm_float2int(std::clamp(mean, -32768.f, 32767.f)));
+        } else {
+          const int sum = saturate_input(left) + saturate_input(right);
+          buf[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
+        }
       }
     } else {
       celt_float2int16_c(samplesIn, buf, static_cast<std::size_t>(nSamplesFromInput));
