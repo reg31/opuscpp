@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "9bf0bc5d28678924b702844b01b5e9697529d92c",
+  "source_commit": "501b8f0a33271008a5c282a04edec07e4f58b5bd",
   "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\input_manifest.json",
-    "bytes": 24626,
-    "sha256": "c48f881e740ff0506cfe0076e0a92aea22fcb8f98971b6e5632e6b1ee2ba89ce"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\input_manifest.json",
+    "bytes": 24656,
+    "sha256": "003099784ea843533004f2ee36a91d985adb28a4ebf4f5323217aa5e0d4f95a8"
   },
   "fresh_current_values": true,
   "scope": "Current full retained/process/API memory observations",
@@ -52,21 +52,21 @@
     {
       "label": "current_decoder_ch2",
       "private_per_instance": 17568.0,
-      "working_set_per_instance": 16224.0,
+      "working_set_per_instance": 16208.0,
       "official_api_state_bytes": ""
     },
     {
       "label": "official_decoder_ch2",
-      "private_per_instance": 27104.0,
+      "private_per_instance": 27088.0,
       "working_set_per_instance": 27264.0,
       "official_api_state_bytes": "27236"
     }
   ],
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\root_harness_v2_publish_20261028\\build\\official_compare_report\\full9bf0bc5_once_20261030\\memory.json",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\memory.json",
       "bytes": 1289,
-      "sha256": "c2bbae390a0f83a82dd54f95392c33db0053b9264c1f0bf0090cd6f4af97af65"
+      "sha256": "90226874fe1486724656e7a798e4e94247365f6d08a613bcdef817514d31e9c7"
     }
   ],
   "limits": "Fresh maintained memory workload only; this does not rerun or reattribute historical private layout experiments or prove a particular field deletion caused the measured total.",
