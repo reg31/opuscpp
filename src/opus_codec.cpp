@@ -17012,11 +17012,8 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         lane_ar[(index) * 4 + (state)] = psDelDec[state].sAR2_Q14[index];
     }
   }
-  std::array<silk_nsq_sample_state, silk_max_delayed_decision_states> psSampleState;
-  struct lazy_state_context {
-    opus_int32 LPC_pred_Q14, n_AR_Q14, n_LF_Q14, alt_Q10, alt_RD_Q10;
-  };
-  std::array<lazy_state_context, silk_max_delayed_decision_states> lazy;
+  std::array<opus_int32, silk_max_delayed_decision_states> selected_levels, selected_costs;
+  std::array<opus_int32, silk_max_delayed_decision_states> lpc_predictions, ar_feedback, lf_feedback, alternate_levels, alternate_costs;
   const bool use_lpc_pair = !FixedPulses && nStatesDelayedDecision == 4 && a_Q12.size() == 16;
   int pair_first = 0, pair_second = -1, pair_at = -16;
   const opus_int32* pair_first_lpc = nullptr;
@@ -17102,15 +17099,15 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
           second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (second2 + first3));
         }
       }
-      lazy[pair_first].LPC_pred_Q14 = saturating_left_shift<4>(static_cast<opus_int32>(8 + (first0 + first1) + (first2 + first3)));
-      lazy[pair_second].LPC_pred_Q14 = saturating_left_shift<4>(second_prediction);
+      lpc_predictions[pair_first] = saturating_left_shift<4>(static_cast<opus_int32>(8 + (first0 + first1) + (first2 + first3)));
+      lpc_predictions[pair_second] = saturating_left_shift<4>(second_prediction);
     }
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
       psDD->Seed = silk_next_rand_seed(psDD->Seed);
       psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
       LPC_pred_Q14 = paired_lpc && (k == pair_first || k == pair_second)
-                         ? lazy[k].LPC_pred_Q14
+                         ? lpc_predictions[k]
                          : saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
       n_AR_Q14 = use_four_lane_ar ? n_AR_lane[k]
                                   : (warping_Q16 == 0
@@ -17126,50 +17123,52 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       tmp1 = saturating_subtract_int32(tmp2, tmp1);
       tmp1 = rounded_rshift<4>(tmp1);
       r_Q10 = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
-      lazy[k] = {LPC_pred_Q14, n_AR_Q14, n_LF_Q14, r_Q10, psDD->RD_Q10};
+      lpc_predictions[k] = LPC_pred_Q14;
+      ar_feedback[k] = n_AR_Q14;
+      lf_feedback[k] = n_LF_Q14;
+      alternate_levels[k] = r_Q10;
+      alternate_costs[k] = psDD->RD_Q10;
     }
     for (k = 0; k < nStatesDelayedDecision; ++k) {
-      auto& context = lazy[k];
-      auto& sample_state = psSampleState[k];
-      const auto candidates = silk_quantize_candidate_pair<FixedPulses>(context.alt_Q10, Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
+      const auto candidates = silk_quantize_candidate_pair<FixedPulses>(alternate_levels[k], Lambda_Q10, offset_Q10, levels, FixedPulses ? pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
       const auto candidate0 = static_cast<opus_int32>((candidates.rate1_Q20 + candidates.dist1_Q20) >> 10);
       const auto candidate1 = static_cast<opus_int32>((candidates.rate2_Q20 + candidates.dist2_Q20) >> 10);
       const auto first_is_q0 = candidate0 < candidate1;
-      sample_state.Q_Q10 = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
-      sample_state.RD_Q10 = context.alt_RD_Q10 + (first_is_q0 ? candidate0 : candidate1);
-      context.alt_Q10 = first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10;
-      context.alt_RD_Q10 += first_is_q0 ? candidate1 : candidate0;
+      selected_levels[k] = first_is_q0 ? candidates.q1_Q10 : candidates.q2_Q10;
+      selected_costs[k] = alternate_costs[k] + (first_is_q0 ? candidate0 : candidate1);
+      alternate_levels[k] = first_is_q0 ? candidates.q2_Q10 : candidates.q1_Q10;
+      alternate_costs[k] += first_is_q0 ? candidate1 : candidate0;
     }
     *smpl_buf_idx = silk_decision_ring_dec(*smpl_buf_idx);
     last_smple_idx = silk_decision_ring_add(*smpl_buf_idx, decisionDelay);
-    RDmin_Q10 = psSampleState[0].RD_Q10;
+    RDmin_Q10 = selected_costs[0];
     Winner_ind = 0;
     for (k = 1; k < nStatesDelayedDecision; k++) {
-      if (psSampleState[k].RD_Q10 < RDmin_Q10) {
-        RDmin_Q10 = psSampleState[k].RD_Q10;
+      if (selected_costs[k] < RDmin_Q10) {
+        RDmin_Q10 = selected_costs[k];
         Winner_ind = k;
       }
     }
     Winner_rand_state = psDelDec[Winner_ind].RandState[last_smple_idx];
     if (psDelDec[0].RandState[last_smple_idx] != Winner_rand_state) {
-      psSampleState[0].RD_Q10 = ((psSampleState[0].RD_Q10) + (0x7FFFFFFF >> 4));
-      lazy[0].alt_RD_Q10 = ((lazy[0].alt_RD_Q10) + (0x7FFFFFFF >> 4));
+      selected_costs[0] = ((selected_costs[0]) + (0x7FFFFFFF >> 4));
+      alternate_costs[0] = ((alternate_costs[0]) + (0x7FFFFFFF >> 4));
     }
-    RDmax_Q10 = psSampleState[0].RD_Q10;
-    RDmin_Q10 = lazy[0].alt_RD_Q10;
+    RDmax_Q10 = selected_costs[0];
+    RDmin_Q10 = alternate_costs[0];
     RDmax_ind = 0;
     RDmin_ind = 0;
     for (k = 1; k < nStatesDelayedDecision; k++) {
       if (psDelDec[k].RandState[last_smple_idx] != Winner_rand_state) {
-        psSampleState[k].RD_Q10 = ((psSampleState[k].RD_Q10) + (0x7FFFFFFF >> 4));
-        lazy[k].alt_RD_Q10 = ((lazy[k].alt_RD_Q10) + (0x7FFFFFFF >> 4));
+        selected_costs[k] = ((selected_costs[k]) + (0x7FFFFFFF >> 4));
+        alternate_costs[k] = ((alternate_costs[k]) + (0x7FFFFFFF >> 4));
       }
-      if (psSampleState[k].RD_Q10 > RDmax_Q10) {
-        RDmax_Q10 = psSampleState[k].RD_Q10;
+      if (selected_costs[k] > RDmax_Q10) {
+        RDmax_Q10 = selected_costs[k];
         RDmax_ind = k;
       }
-      if (lazy[k].alt_RD_Q10 < RDmin_Q10) {
-        RDmin_Q10 = lazy[k].alt_RD_Q10;
+      if (alternate_costs[k] < RDmin_Q10) {
+        RDmin_Q10 = alternate_costs[k];
         RDmin_ind = k;
       }
     }
@@ -17181,11 +17180,11 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
         pair_second_lpc = psDelDec[RDmax_ind].sLPC_Q14 + 16;
         pair_at = i;
       }
-      psSampleState[RDmax_ind].Q_Q10 = lazy[RDmin_ind].alt_Q10;
-      psSampleState[RDmax_ind].RD_Q10 = lazy[RDmin_ind].alt_RD_Q10;
-      lazy[RDmax_ind].LPC_pred_Q14 = lazy[RDmin_ind].LPC_pred_Q14;
-      lazy[RDmax_ind].n_AR_Q14 = lazy[RDmin_ind].n_AR_Q14;
-      lazy[RDmax_ind].n_LF_Q14 = lazy[RDmin_ind].n_LF_Q14;
+      selected_levels[RDmax_ind] = alternate_levels[RDmin_ind];
+      selected_costs[RDmax_ind] = alternate_costs[RDmin_ind];
+      lpc_predictions[RDmax_ind] = lpc_predictions[RDmin_ind];
+      ar_feedback[RDmax_ind] = ar_feedback[RDmin_ind];
+      lf_feedback[RDmax_ind] = lf_feedback[RDmin_ind];
       if constexpr (DeferredAR)
         deferred->tails[RDmax_ind] = deferred->tails[RDmin_ind];
       const auto offset = static_cast<std::size_t>(i) * sizeof(opus_int32);
@@ -17218,9 +17217,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     NSQ->sLTP_buf_idx++;
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
-      const auto& sample_state = psSampleState[k];
-      const auto sample = silk_nsq_build_sample(sample_state.Q_Q10, psDD->Seed, LTP_pred_Q14, lazy[k].LPC_pred_Q14,
-                                                input_Q10, lazy[k].n_AR_Q14, lazy[k].n_LF_Q14);
+
+      const auto sample = silk_nsq_build_sample(selected_levels[k], psDD->Seed, LTP_pred_Q14, lpc_predictions[k],
+                                                input_Q10, ar_feedback[k], lf_feedback[k]);
       if constexpr (DeferredAR) {
         const int node = 4 * (deferred->sample_offset + i) + k;
         deferred->nodes[node] = {deferred->tails[k], sample.Diff_Q14};
@@ -17230,12 +17229,12 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       psDD->Diff_Q14 = sample.Diff_Q14;
       psDD->sLPC_Q14[16 + i] = sample.xq_Q14;
       psDD->Xq_Q14[*smpl_buf_idx] = sample.xq_Q14;
-      psDD->Q_Q10[*smpl_buf_idx] = sample_state.Q_Q10;
+      psDD->Q_Q10[*smpl_buf_idx] = selected_levels[k];
       psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(sample.LPC_exc_Q14, 1);
       psDD->Shape_Q14[*smpl_buf_idx] = sample.sLTP_shp_Q14;
-      psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(sample_state.Q_Q10));
+      psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(selected_levels[k]));
       psDD->RandState[*smpl_buf_idx] = psDD->Seed;
-      psDD->RD_Q10 = sample_state.RD_Q10;
+      psDD->RD_Q10 = selected_costs[k];
     }
     delayedGain_Q10_data[*smpl_buf_idx] = Gain_Q10;
   }
