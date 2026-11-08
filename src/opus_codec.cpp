@@ -1,5 +1,13 @@
 #include "opus_codec.h"
 #include <functional>
+#if defined(_WIN32) && defined(__x86_64__) && defined(__GNUC__)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <immintrin.h>
+#endif
+
 
 #include <algorithm>
 #include <array>
@@ -16797,6 +16805,35 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
   return gain_adj_Q16;
 }
 
+#if defined(_WIN32) && defined(__x86_64__) && defined(__GNUC__)
+[[gnu::target("avx2")]]
+static auto silk_nsq_lpc16_avx2(const opus_int32* history_end, const opus_int16* coefficients) noexcept -> opus_int32 {
+  std::array<opus_uint32, 4> groups;
+  for (int block = 0; block < 2; ++block) {
+    auto history = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(history_end - 8 * (block + 1)));
+    history = _mm256_permute4x64_epi64(_mm256_shuffle_epi32(history, 0x1b), 0x4e);
+    const auto coef = _mm256_cvtepi16_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(coefficients + 8 * block)));
+    const auto even = _mm256_srli_epi64(_mm256_mul_epi32(history, coef), 16);
+    const auto odd = _mm256_srli_epi64(_mm256_mul_epi32(_mm256_srli_epi64(history, 32), _mm256_srli_epi64(coef, 32)), 16);
+    const auto terms = _mm256_blend_epi32(even, _mm256_slli_epi64(odd, 32), 0xaa);
+    auto sums = _mm256_add_epi32(terms, _mm256_srli_si256(terms, 4));
+    sums = _mm256_add_epi32(sums, _mm256_srli_si256(terms, 8));
+    sums = _mm256_add_epi32(sums, _mm256_srli_si256(terms, 12));
+    groups[2 * block] = static_cast<opus_uint32>(_mm_cvtsi128_si32(_mm256_castsi256_si128(sums)));
+    groups[2 * block + 1] = static_cast<opus_uint32>(_mm_cvtsi128_si32(_mm256_extracti128_si256(sums, 1)));
+  }
+  return std::bit_cast<opus_int32>(opus_uint32{8} + (groups[0] + groups[1]) + (groups[2] + groups[3]));
+}
+#endif
+
+static auto silk_nsq_lpc_prediction_q10(const opus_int32* history_end, const opus_int16* coefficients, int order) noexcept -> opus_int32 {
+#if defined(_WIN32) && defined(__x86_64__) && defined(__GNUC__)
+  if (order == 16 && IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE))
+    return silk_nsq_lpc16_avx2(history_end, coefficients);
+#endif
+  return silk_lpc_prediction_q10(history_end, coefficients, order);
+}
+
 template <bool FixedPulses>
 static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_sc_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10) {
   int i;
@@ -17108,7 +17145,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       psLPC_Q14 = &psDD->sLPC_Q14[16 - 1 + i];
       LPC_pred_Q14 = paired_lpc && (k == pair_first || k == pair_second)
                          ? lpc_predictions[k]
-                         : saturating_left_shift<4>(silk_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
+                         : saturating_left_shift<4>(silk_nsq_lpc_prediction_q10(psLPC_Q14 + 1, a_Q12.data(), static_cast<int>(a_Q12.size())));
       n_AR_Q14 = use_four_lane_ar ? n_AR_lane[k]
                                   : (warping_Q16 == 0
                                          ? (zero_ar ? silk_nsq_noise_shape_feedback<false, 1, true>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder) : silk_nsq_noise_shape_feedback<false>(psDD->Diff_Q14, psDD->sAR2_Q14, AR_shp_Q13.data(), shapingLPCOrder))
