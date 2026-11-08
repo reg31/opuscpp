@@ -8,7 +8,6 @@
 #include <immintrin.h>
 #endif
 
-
 #include <algorithm>
 #include <array>
 #include <bit>
