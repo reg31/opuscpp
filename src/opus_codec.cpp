@@ -3401,6 +3401,7 @@ struct encoder_stage_storage {
 }
 
 [[nodiscard]] static auto encode_low_rate_packet(OpusEncoder* st, const int frame_size, const opus_int32 out_data_bytes, opus_int32 max_data_bytes, unsigned char* data) -> opus_int32 {
+  encoder_celt_state(st)->prefilter_history_valid = false;
   int tocmode = st->mode;
   int frame_rate = st->Fs / frame_size;
   int bw = st->bandwidth == 0 ? 1101 : st->bandwidth, packet_code = 0, num_multiframes = 0;
@@ -4366,6 +4367,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->rangeFinal = 0;
   void* silk_enc = encoder_uses_silk(st->application) ? encoder_silk_state(st) : nullptr;
   auto* celt_enc = encoder_celt_state(st);
+  const bool celt_history_ready = celt_enc->prefilter_history_valid;
+  bool celt_history_current = false;
   if (st->mode == opus_mode_silk_only || skip_celt_for_dtx) {
     std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
     celt_enc->signal_bw_temporal.reset();
@@ -4503,6 +4506,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     } else
       st->silk_mode.opusCanSwitch = st->silk_mode.switchReady && !nonfinal_frame;
     if (nBytes == 0) {
+      celt_enc->prefilter_history_valid = false;
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
       stage_storage.finish_frame(st);
@@ -4607,7 +4611,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
                               nominal_target_bits >= 8 * (30 + 5 * celt_lm);
       celt_enc->bitrate = std::min<opus_int32>(allocator_bitrate_bps, 750000 * celt_enc->channels);
     }
-    if (st->mode != st->prev_mode && st->prev_mode > 0 && encoder_uses_silk(st->application)) {
+    const bool encode_celt_frame = !skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes;
+    if ((st->mode != st->prev_mode || (encode_celt_frame && !celt_history_ready)) &&
+        st->prev_mode > 0 && encoder_uses_silk(st->application)) {
       unsigned char dummy[2];
       if (!redundancy || !celt_to_silk) {
         celt_encoder_reset_state(celt_enc);
@@ -4632,6 +4638,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       move_n_items(data + nb_compr_bytes, static_cast<std::size_t>(redundancy_bytes), data + ret);
       nb_compr_bytes = ret + redundancy_bytes;
     }
+    celt_history_current = encode_celt_frame;
     st->rangeFinal = celt_enc->rng;
   } else {
     st->rangeFinal = enc.rng;
@@ -4654,6 +4661,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       return -3;
     }
     redundant_rng = celt_enc->rng;
+    celt_history_current = true;
   }
   data--;
   data[0] = gen_toc(st->mode, frame_rate, curr_bandwidth, st->stream_channels);
@@ -4673,9 +4681,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     data[1] = 0;
     ret = 1;
     st->rangeFinal = 0;
+    if (st->mode == opus_mode_silk_only)
+      celt_history_current = false;
   } else if (st->mode == opus_mode_silk_only && !redundancy) {
     for (; ret > 2 && data[ret] == 0; --ret) {}
   }
+  celt_enc->prefilter_history_valid = celt_history_current;
   ret += 1 + redundancy_bytes;
   if (packet_frames != nullptr) {
     packet_frames->frames[packet_frames->nb_frames] = data + 1;
