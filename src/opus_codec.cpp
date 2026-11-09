@@ -18835,7 +18835,7 @@ void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
 
 template <std::size_t Lanes>
   requires(Lanes == 1 || Lanes == 4)
-static void silk_apply_sine_windows_FLP(std::array<float*, Lanes> output, std::array<const float*, Lanes> input,
+static void silk_apply_sine_windows_FLP(const std::array<float*, Lanes>& output, const std::array<const float*, Lanes>& input,
                                         const int length, const int win_type) {
   const float freq = 3.1415926536f / (length + 1);
   const float c = 2.0f - freq * freq;
