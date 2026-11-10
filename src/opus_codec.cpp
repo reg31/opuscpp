@@ -16878,7 +16878,9 @@ static void silk_noise_shape_quantizer(silk_nsq_state* NSQ, int signalType, cons
 
 struct NSQ_del_dec_struct {
   opus_int32 sLPC_Q14[(5 * 16) + 16];
-  opus_int32 RandState[40]{}, Q_Q10[40], Xq_Q14[40], Pred_Q15[40], Shape_Q14[40];
+  opus_int32 RandState[40]{};
+  opus_int8 pulses_Q0[40];
+  opus_int32 Xq_Q14[40], Pred_Q15[40], Shape_Q14[40];
   opus_int32 sAR2_Q14[24], LF_AR_Q14, Diff_Q14, Seed, SeedInit, RD_Q10;
 };
 
@@ -17225,7 +17227,7 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     psDD = &psDelDec[Winner_ind];
     if (subfr > 0 || i >= decisionDelay) {
       const auto output_index = static_cast<std::size_t>(subfr > 0 ? i : i - decisionDelay);
-      pulses_data[output_index] = delayed_pulse_from_q10(psDD->Q_Q10[last_smple_idx]);
+      pulses_data[output_index] = psDD->pulses_Q0[last_smple_idx];
       xq_data[output_index] = scale_and_saturate_q14<8>(psDD->Xq_Q14[last_smple_idx], delayedGain_Q10_data[last_smple_idx]);
       NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay] = psDD->Shape_Q14[last_smple_idx];
       sLTP_Q15_data[NSQ->sLTP_buf_idx - decisionDelay] = psDD->Pred_Q15[last_smple_idx];
@@ -17247,10 +17249,11 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       psDD->Diff_Q14 = sample.Diff_Q14;
       psDD->sLPC_Q14[16 + i] = sample.xq_Q14;
       psDD->Xq_Q14[*smpl_buf_idx] = sample.xq_Q14;
-      psDD->Q_Q10[*smpl_buf_idx] = selected_levels[k];
+      const auto coded_pulse = rounded_rshift<10>(selected_levels[k]);
+      psDD->pulses_Q0[*smpl_buf_idx] = static_cast<opus_int8>(coded_pulse);
       psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(sample.LPC_exc_Q14, 1);
       psDD->Shape_Q14[*smpl_buf_idx] = sample.sLTP_shp_Q14;
-      psDD->Seed = wrap_add(psDD->Seed, rounded_rshift<10>(selected_levels[k]));
+      psDD->Seed = wrap_add(psDD->Seed, coded_pulse);
       psDD->RandState[*smpl_buf_idx] = psDD->Seed;
       psDD->RD_Q10 = selected_costs[k];
     }
@@ -17394,7 +17397,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
             int last_smple_idx = silk_decision_ring_add(smpl_buf_idx, decisionDelay);
             for (int i = 0; i < decisionDelay; ++i) {
               last_smple_idx = silk_decision_ring_dec(last_smple_idx);
-              pulses[i - decisionDelay] = delayed_pulse_from_q10(psDD->Q_Q10[last_smple_idx]);
+              pulses[i - decisionDelay] = psDD->pulses_Q0[last_smple_idx];
               pxq[i - decisionDelay] = scale_and_saturate_q14<14>(psDD->Xq_Q14[last_smple_idx], Gains_Q16[1]);
               NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay + i] = psDD->Shape_Q14[last_smple_idx];
             }
@@ -17447,7 +17450,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     const opus_int32 Gain_Q10 = Gains_Q16[psEncC->nb_subfr - 1] >> 6;
     for (int i = 0; i < decisionDelay; ++i) {
       last_smple_idx = silk_decision_ring_dec(last_smple_idx);
-      pulses[i - decisionDelay] = delayed_pulse_from_q10(psDD->Q_Q10[last_smple_idx]);
+      pulses[i - decisionDelay] = psDD->pulses_Q0[last_smple_idx];
       pxq[i - decisionDelay] = scale_and_saturate_q14<8>(psDD->Xq_Q14[last_smple_idx], Gain_Q10);
       NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay + i] = psDD->Shape_Q14[last_smple_idx];
     }
