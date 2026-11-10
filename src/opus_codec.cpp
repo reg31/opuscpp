@@ -17454,28 +17454,28 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     std::memcpy(NSQ->sLPC_Q14, &psDD->sLPC_Q14[psEncC->subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     if constexpr (DeferredAR) {
       if constexpr (KeepARHistory) {
-      std::array<opus_int32, silk_max_frame_length> differences;
-      int node = deferred->tails[Winner_ind];
-      for (int sample = psEncC->frame_length; sample-- > 0;) {
-        differences[sample] = deferred->differences[node];
-        node = deferred->parents[node];
-      }
-      opus_int32 previous_difference = NSQ->sDiff_shp_Q14;
-      int sample = 0;
-      for (int subframe = 0; subframe < psEncC->nb_subfr; ++subframe) {
-        const auto gain_adjustment = deferred->gains[subframe];
-        if (gain_adjustment != (opus_int32{1} << 16)) {
-          scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adjustment);
-          previous_difference = multiply_q16(gain_adjustment, previous_difference);
+        std::array<opus_int32, silk_max_frame_length> differences;
+        int node = deferred->tails[Winner_ind];
+        for (int sample = psEncC->frame_length; sample-- > 0;) {
+          differences[sample] = deferred->differences[node];
+          node = deferred->parents[node];
         }
-        for (int index = 0; index < psEncC->subfr_length; ++index, ++sample) {
-          if (psEncC->warping_Q16 == 0)
-            static_cast<void>(silk_nsq_noise_shape_feedback<false, 1, true>(previous_difference, NSQ->sAR2_Q14, AR_Q13, psEncC->shapingLPCOrder));
-          else
-            static_cast<void>(silk_nsq_noise_shape_feedback<true, 1, true>(previous_difference, NSQ->sAR2_Q14, AR_Q13, psEncC->shapingLPCOrder, psEncC->warping_Q16));
-          previous_difference = differences[sample];
+        opus_int32 previous_difference = NSQ->sDiff_shp_Q14;
+        int sample = 0;
+        for (int subframe = 0; subframe < psEncC->nb_subfr; ++subframe) {
+          const auto gain_adjustment = deferred->gains[subframe];
+          if (gain_adjustment != (opus_int32{1} << 16)) {
+            scale_q16_buffer(NSQ->sAR2_Q14, 24, gain_adjustment);
+            previous_difference = multiply_q16(gain_adjustment, previous_difference);
+          }
+          for (int index = 0; index < psEncC->subfr_length; ++index, ++sample) {
+            if (psEncC->warping_Q16 == 0)
+              static_cast<void>(silk_nsq_noise_shape_feedback<false, 1, true>(previous_difference, NSQ->sAR2_Q14, AR_Q13, psEncC->shapingLPCOrder));
+            else
+              static_cast<void>(silk_nsq_noise_shape_feedback<true, 1, true>(previous_difference, NSQ->sAR2_Q14, AR_Q13, psEncC->shapingLPCOrder, psEncC->warping_Q16));
+            previous_difference = differences[sample];
+          }
         }
-      }
       }
     } else {
       std::memcpy(NSQ->sAR2_Q14, psDD->sAR2_Q14, static_cast<std::size_t>(sizeof(psDD->sAR2_Q14)));
@@ -19533,7 +19533,7 @@ static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encod
       gains[subframe] = float2int(psEncCtrl->Gains[subframe] * 65536.0f);
     }
   }
-  const auto nsq = [] (const silk_encoder_state& common) {
+  const auto nsq = [](const silk_encoder_state& common) {
     if constexpr (KeepARHistory)
       return common.nStatesDelayedDecision > 1 || common.warping_Q16 > 0 ? &silk_NSQ<true, FixedPulses> : &silk_NSQ<false, FixedPulses>;
     else {
