@@ -17206,9 +17206,10 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
       lf_feedback[RDmax_ind] = lf_feedback[RDmin_ind];
       if constexpr (DeferredAR && KeepARHistory)
         deferred->tails[RDmax_ind] = deferred->tails[RDmin_ind];
-      const auto offset = static_cast<std::size_t>(i) * sizeof(opus_int32);
+      const auto ring_offset = offsetof(NSQ_del_dec_struct, RandState);
       const auto copy_end = use_four_lane_ar ? offsetof(NSQ_del_dec_struct, sAR2_Q14) : offsetof(NSQ_del_dec_struct, LF_AR_Q14);
-      std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + offset, copy_end - offset);
+      std::memcpy(psDelDec[RDmax_ind].sLPC_Q14 + i, psDelDec[RDmin_ind].sLPC_Q14 + i, 16 * sizeof(opus_int32));
+      std::memcpy(reinterpret_cast<std::byte*>(&psDelDec[RDmax_ind]) + ring_offset, reinterpret_cast<const std::byte*>(&psDelDec[RDmin_ind]) + ring_offset, copy_end - ring_offset);
       psDelDec[RDmax_ind].Seed = psDelDec[RDmin_ind].Seed;
       psDelDec[RDmax_ind].SeedInit = psDelDec[RDmin_ind].SeedInit;
       if (use_four_lane_ar && !DeferredAR) {
@@ -17366,7 +17367,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
   const int LSF_interpolation_flag = psIndices->NLSFInterpCoef_Q2 != 4;
   const auto ltp_frame_storage = static_cast<std::size_t>(psEncC->ltp_mem_length + psEncC->frame_length);
   std::array<opus_int32, silk_max_ltp_buffer_length> ltp_q15_buffer;
-  std::array<opus_int16, silk_max_ltp_buffer_length> ltp_buffer;
+  std::array<opus_int16, silk_max_ltp_mem_length> ltp_buffer;
   auto* sLTP_Q15_storage = ltp_q15_buffer.data();
   auto* sLTP_storage = ltp_buffer.data();
   auto* sLTP = sLTP_storage;
@@ -17413,7 +17414,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     }
     if constexpr (Delayed) {
       const auto gain_adjustment = silk_nsq_del_dec_scale_states<DeferredAR>(psEncC, NSQ, delayed_states, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
-                                                                             {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)}, {sLTP_storage, ltp_frame_storage},
+                                                                             {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)}, std::span{ltp_buffer}.first(static_cast<std::size_t>(psEncC->ltp_mem_length)),
                                                                              {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14, {Gains_Q16, 4}, {pitchL, 4},
                                                                              psIndices->signalType, decisionDelay);
       if constexpr (DeferredAR && KeepARHistory)
@@ -17429,7 +17430,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     } else {
       static_cast<void>(silk_nsq_scale_common<true>(psEncC, NSQ, {x16, static_cast<std::size_t>(psEncC->subfr_length)},
                                                     {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
-                                                    {sLTP_storage, ltp_frame_storage}, {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
+                                                    std::span{ltp_buffer}.first(static_cast<std::size_t>(psEncC->ltp_mem_length)), {sLTP_Q15_storage, ltp_frame_storage}, k, LTP_scale_Q14,
                                                     {Gains_Q16, 4}, {pitchL, 4}, psIndices->signalType, NSQ->sLTP_buf_idx));
       silk_noise_shape_quantizer<FixedPulses>(NSQ, psIndices->signalType, levels, {x_sc_Q10_storage, static_cast<std::size_t>(psEncC->subfr_length)},
                                               {pulses, static_cast<std::size_t>(psEncC->subfr_length)},
