@@ -2607,7 +2607,7 @@ struct silk_sample_history {
   }
 };
 static_assert(sizeof(silk_sample_suffix) == 656);
-static_assert(sizeof(silk_sample_history) == 832);
+static_assert(sizeof(silk_sample_history) == 824 + sizeof(silk_sample_suffix*));
 
 struct silk_encoder_state_FLP {
   silk_encoder_state sCmn;
