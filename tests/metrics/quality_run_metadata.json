@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo",
-  "source_commit": "501b8f0a33271008a5c282a04edec07e4f58b5bd",
-  "source_blob": "edd7e956470257d626e1098965ee5dfe8475d813",
-  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo",
+  "source_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
+  "source_blob": "b5c0fc149dc987e66d066c7e6439928d4989d3ad",
+  "source_sha256": "0ffbc1ceba26fe120c06982e51b4fad2bb064d0b4e698061cfa98b4679f2cbad",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "501b8f0a33271008a5c282a04edec07e4f58b5bd",
+  "tests_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
   "tests_sha256": {
     "tests/benchmark_vs_official.cpp": "8ac278f7f9897c2d8a5a33f7b9b60cdba70734d7a6e16a0ed5e1de04b7b75214",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
@@ -66,14 +66,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "af903cd54d8ae481fba91f1050fa9e4b50cb6c22cc4a1e05a9a1a23ccf851b05",
+  "quality_binary_sha256": "06044f15415861debfac1ae5ff108b2a250ee6bac3e06c3a79d89cdb3cec5597",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -86,7 +86,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "31b5b04f7f1ca2e0038387c37abf17fc11674e6c34e076092f22b84d95504619",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -100,7 +100,7 @@
   "executor": "/root/binary_encoder_recovered_20261026",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 672,
+  "quality_negative_fields": 675,
   "acceptance_status": "failed_known_fec_criterion",
   "acceptance_counts": [
     18,
@@ -109,17 +109,17 @@
     17
   ],
   "standard_fec_acceptance": "FAIL",
-  "measurement_date": "2026-11-07",
-  "completed_utc": "2026-11-07T21:52:47.068237+00:00",
+  "measurement_date": "2026-11-11",
+  "completed_utc": "2026-11-11T10:42:06.401272+00:00",
   "root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
   "phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
-  "input_manifest_sha256": "003099784ea843533004f2ee36a91d985adb28a4ebf4f5323217aa5e0d4f95a8",
+  "input_manifest_sha256": "d3327aea2d320f8a97d3fb29cc8f7e271cacb65773c9df86c76811d47475454c",
   "maintained_method_executor_label": "Codex root",
   "Root_role": "Assign/release, review measured merits, publish Git and pointer only. Root did not execute the benchmark.",
   "actual_owner_launch_receipt": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\ACTUAL_LAUNCH_RECEIPT.json",
-    "bytes": 1475,
-    "sha256": "28f0ccfec16e0cae2b010fac71b14368aa93f340a79950762122924ad36f3368"
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\ACTUAL_LAUNCH_RECEIPT.json",
+    "bytes": 1476,
+    "sha256": "b348cae8fbb208103a145db8c2b4820da1b6de549ee5ff24be9a7478d8dacf5c"
   },
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
@@ -165,18 +165,18 @@
     "logband_error": 54,
     "celt_quality": 122,
     "celt_masked_error": 122,
-    "celt_highband_error": 182,
+    "celt_highband_error": 185,
     "stereo_width_error": 26
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
-  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\ROOT_ASSIGNMENT.json",
+  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\ROOT_ASSIGNMENT.json",
   "prior_full_measurements_reused_as_current": 0,
   "successful_measurements_repeated": 0,
   "runtime_factory_getter_scope": "Fresh quality, all17 timing, optional and denoiser timing factory paths: source-authored benchmark-v2 current getters plus private OFF guards after setters and before frame1. Unsupported application/signal getters remain UNKNOWN; DN eligibility is VOIP+mono.",
   "runtime_option_evidence": {
     "status": "FRESH_BENCHMARK_V2_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_UNSUPPORTED_PROPERTIES",
-    "source_commit": "501b8f0a33271008a5c282a04edec07e4f58b5bd",
-    "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
+    "source_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
+    "source_sha256": "0ffbc1ceba26fe120c06982e51b4fad2bb064d0b4e698061cfa98b4679f2cbad",
     "all_declared_runtime_option_states_proved": false,
     "guarded_factory_properties": [
       "complexity",
@@ -503,29 +503,29 @@
     },
     "mandatory17_timing_logs": [
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_speed.stderr.txt",
-        "bytes": 151001,
-        "sha256": "371a15e12b7e24a0b25b91507c6dae69963b0931e8df619d4f060064fc56574e"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_speed.stderr.txt",
+        "bytes": 151168,
+        "sha256": "ae53266399af074a33c96ce803f86f0b67c6406a889665560df158157bb58a9f"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_voice_hazel.stderr.txt",
-        "bytes": 7770,
-        "sha256": "b66a36e665410c5ab3f266a3dc7b1e7c9913c3b238b294e1c758aa31a65d770e"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_voice_hazel.stderr.txt",
+        "bytes": 7872,
+        "sha256": "b9741f4ee98df6adf141f9b4f997e3d6b5f796ebd7c8e8384e435c2f2eb28df7"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_voice_david.stderr.txt",
-        "bytes": 7892,
-        "sha256": "3a8c5d5cad46f9f6148ea7e3b70131fabc14bf2aea8c9854a5114d57a2bab303"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_voice_david.stderr.txt",
+        "bytes": 7774,
+        "sha256": "66e372ae10bac7638d3d5efaa23a3f315c226d04b6a4fca9403010147d07b099"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_fec60_hazel.stderr.txt",
-        "bytes": 2633,
-        "sha256": "b95726d720a24043f0c5b52b29c45f6a27f6dbc3bd8abd9a4cba8722b30d6c90"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_fec60_hazel.stderr.txt",
+        "bytes": 2576,
+        "sha256": "97eae8890a1e1bb678e11f8ebefd86a874d0a866bf200c2afffc23a8498a833d"
       },
       {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_fec60_david.stderr.txt",
-        "bytes": 2707,
-        "sha256": "3c2bfa2e1a5bf733b6ee7565684128db2fe9c3b44f99889937dc260866176c56"
+        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_fec60_david.stderr.txt",
+        "bytes": 2697,
+        "sha256": "aebd1d2d3b1bf3343144fea7e507fcabfad2424038f3f4d53478a60187b8f6ba"
       }
     ],
     "quality_scope": "Fresh498 matrix plus806 published rows use the guarded full-precision quality image. Actual configured properties above were checked outside timed regions after setters and before frame1.",
@@ -536,17 +536,17 @@
       {
         "family": "optional",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\tests\\optional_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\optional_driver.cpp",
           "bytes": 5595,
           "sha256": "331fbfffd32083cf7c5e8c6ed36277e97e49b402db4eabbf78b6e68ed06c7767"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_optional.stderr.txt",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_optional.stderr.txt",
           "bytes": 58187,
           "sha256": "6f84514801c0af6f339bf447175b9e22cf344fa7aa7f552ce1075931c4ba1963"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\tests\\perceptual_memory_validation.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\perceptual_memory_validation.cpp",
           "bytes": 49855,
           "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
@@ -559,17 +559,17 @@
       {
         "family": "denoise_timing",
         "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\tests\\denoise_timing_driver.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\denoise_timing_driver.cpp",
           "bytes": 2662,
           "sha256": "43e48de4a737165f592c92e304612b4115095dd5d7ed7669081802483bf4afd0"
         },
         "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\logs\\timing_denoise_timing.stderr.txt",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_denoise_timing.stderr.txt",
           "bytes": 67698,
           "sha256": "0b43763fe539595c654ba1801f3951d40a2775e928a8d771a21b0c7be32443f2"
         },
         "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\tests\\perceptual_memory_validation.cpp",
+          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\perceptual_memory_validation.cpp",
           "bytes": 49855,
           "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
         },
@@ -586,13 +586,13 @@
     "measured_values_and_original_identity_unchanged": true,
     "decision": "Retain the fresh raw values and exact gap. Do not score unobserved intended-option states as qualified benchmark proof. Root alone decides publication of the disclosed facts; no goal or setup waiver.",
     "original_method": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\source_supported_option_getters.py",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\source_supported_option_getters.py",
       "bytes": 3025,
       "sha256": "03aa0275364df121e6e0517af1038b9052d7bbf8df91cf8af58b33fe1f1b6f18"
     },
     "complete_original_log_index": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\RUNTIME_OPTION_SCOPE.json",
-      "sha256": "93153ceb0ac83e511e47e3485f189a97854beb2e2abc79c80bebf145ecebdedd"
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\RUNTIME_OPTION_SCOPE.json",
+      "sha256": "89ca5dd8530e250fc86392787643c4cb699ba3ec7671dcbec573bd0eb052d8d5"
     }
   }
 }

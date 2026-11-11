@@ -1,14 +1,14 @@
 {
   "schema": "opuscpp.current_full_checkpoint.v1",
-  "source_commit": "501b8f0a33271008a5c282a04edec07e4f58b5bd",
-  "source_sha256": "85cd34120e302182fb61bfff32f3bc6274a5cb9ee01476107df059035c98b82b",
+  "source_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
+  "source_sha256": "0ffbc1ceba26fe120c06982e51b4fad2bb064d0b4e698061cfa98b4679f2cbad",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
   "input_manifest": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\input_manifest.json",
+    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\input_manifest.json",
     "bytes": 24656,
-    "sha256": "003099784ea843533004f2ee36a91d985adb28a4ebf4f5323217aa5e0d4f95a8"
+    "sha256": "d3327aea2d320f8a97d3fb29cc8f7e271cacb65773c9df86c76811d47475454c"
   },
   "fresh_current_values": true,
   "scope": "Current full retained/process/API memory observations",
@@ -22,19 +22,19 @@
     {
       "label": "official_encoder_ch1",
       "private_per_instance": 31824.0,
-      "working_set_per_instance": 31888.0,
+      "working_set_per_instance": 31872.0,
       "official_api_state_bytes": "31668"
     },
     {
       "label": "current_decoder_ch1",
-      "private_per_instance": 8448.0,
-      "working_set_per_instance": 8336.0,
+      "private_per_instance": 8464.0,
+      "working_set_per_instance": 8304.0,
       "official_api_state_bytes": ""
     },
     {
       "label": "official_decoder_ch1",
-      "private_per_instance": 18480.0,
-      "working_set_per_instance": 18560.0,
+      "private_per_instance": 18448.0,
+      "working_set_per_instance": 18544.0,
       "official_api_state_bytes": "18468"
     },
     {
@@ -51,22 +51,22 @@
     },
     {
       "label": "current_decoder_ch2",
-      "private_per_instance": 17568.0,
-      "working_set_per_instance": 16208.0,
+      "private_per_instance": 17584.0,
+      "working_set_per_instance": 16224.0,
       "official_api_state_bytes": ""
     },
     {
       "label": "official_decoder_ch2",
-      "private_per_instance": 27088.0,
+      "private_per_instance": 27120.0,
       "working_set_per_instance": 27264.0,
       "official_api_state_bytes": "27236"
     }
   ],
   "raw_current_run": [
     {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_501b8f0_20261107\\repo\\build\\official_compare_report\\full501b8f0_once_20261107\\memory.json",
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\memory.json",
       "bytes": 1289,
-      "sha256": "90226874fe1486724656e7a798e4e94247365f6d08a613bcdef817514d31e9c7"
+      "sha256": "b32ee988fc440c685ec278c22a23d88dd57f6819b34adc6d4ebcef554f85c750"
     }
   ],
   "limits": "Fresh maintained memory workload only; this does not rerun or reattribute historical private layout experiments or prove a particular field deletion caused the measured total.",
