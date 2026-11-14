@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-11-14T12:53:30.293565+00:00",
+  "metrics": {
+    "snr_db": "higher",
+    "segmental_snr_db": "higher",
+    "rms_error": "lower",
+    "mean_abs_error": "lower",
+    "pesq_style": "higher",
+    "visqol_style": "higher",
+    "logband_corr": "higher",
+    "logband_error": "lower",
+    "celt_quality": "higher",
+    "celt_masked_error": "lower",
+    "celt_highband_error": "lower",
+    "stereo_width_error": "lower"
+  },
+  "configuration_count": 1304,
+  "quality_tolerance_algorithm": "Per exact configuration/metric max-min of official lane values from3 independent official-only invocations. Paired second official lane is retained as an independent within-run self check.",
+  "zero_spread": "Zero tolerance; no invented epsilon.",
+  "nonquality_fields": {
+    "avg_packet_bytes": "Rate accounting",
+    "packets": "Coverage/frame count",
+    "encode_ms": "Historical wall-clock diagnostic, not a new CPU speed measure or quality tolerance.",
+    "effective_payload_kbps": "Rate qualification"
+  },
+  "ancillary_scope": "Existing FEC standard18/strict18, DTX, wire/state/ENV and conformance remain required separate predicates; core quality roster contains all498+806 maintained configurations.",
+  "latest_goal": {
+    "path": "C:\\Users\\regis\\.codex\\attachments\\e16a0916-3484-40d9-9b96-8017de68a5e6\\goal-objective.md",
+    "bytes": 5211,
+    "sha256": "852a3ca82b1c4330eec5e2497b7b9c46480c413821b5e227864d6a9f98033b3e"
+  }
+}

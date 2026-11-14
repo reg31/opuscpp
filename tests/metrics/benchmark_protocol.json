@@ -1,0 +1,97 @@
+{
+  "schema": "opuscpp-portable-scalar-benchmark-protocol-v2",
+  "immutable_rules": {
+    "portable": "C++23 compiler auto-vectorization only; no architecture code or intrinsics.",
+    "compatibility": "Official decoder plus opus_compare-equivalent conformance.",
+    "rate": "Identical PCM and harness; same actual bitrate within1% pairwise. Aim for unchanged nominal targets; never credit fewer bits or padding."
+  },
+  "compiler": {
+    "our_language": "-std=c++23",
+    "official_C_language": "-std=gnu99",
+    "shared_applicable_flags": [
+      "-O2",
+      "-DNDEBUG"
+    ],
+    "suite": "MinGW GCC16.2.0",
+    "math_ISA_flags": [],
+    "normal_parent_argv_proof": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\compile_curr.cmd.json",
+      "bytes": 2070,
+      "sha256": "4748ac09f74a5ebd90a133aea6d13891b573f3a86486c41b18d055652aaf547f"
+    },
+    "official_actual_commands": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\baseline_protocol_20261114\\scalar_reference\\build_scalar\\compile_commands.json",
+      "bytes": 129759,
+      "sha256": "f596aa3e0851bd67e89be4ed2553727d023aae39af6a78560b9a2b0296da5225"
+    },
+    "official_no_intrinsics_ASM_RTCD": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\baseline_protocol_20261114\\scalar_reference\\SCALAR_COMPILE_COMMAND_QUALIFICATION.json",
+      "bytes": 1132,
+      "sha256": "13dd28ab61c878a91b795baa4092f35a6241959efac18aa97c408b14187d94e3"
+    }
+  },
+  "gating_reference": "Pinned official51bd built from Source with same compiler suite/applicable flags/machine and0 architecture sources/ISA flags/RTCD definitions; normal auto-vectorization retained.",
+  "informational_reference": {
+    "library": {
+      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\libopus.a",
+      "bytes": 700812,
+      "sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215"
+    },
+    "scope": "Stock SIMD official; report separately, do not gate."
+  },
+  "CPU_clock": {
+    "API": "GetThreadTimes(GetCurrentThread)",
+    "value": "kernel+user FILETIME ticks",
+    "raw_unit": "100ns",
+    "total_ms": "raw_ticks*0.0001",
+    "normalized_ms_per_clip": "total_ms/equal_batch_count",
+    "resolution": "OS accounting may be tick-granular; official-only precision pilots are retained, unscored."
+  },
+  "pinning": "Verify process affinity mask1, current thread affinity mask1 and actual processor group; ABOVE_NORMAL priority; same machine/group/core for paired runs. Never pause peers.",
+  "precision_pilot": {
+    "lane": "Official only after Root config/protocol commit",
+    "minimum_OFF_total_CPU_ms": 2000,
+    "target_OFF_total_CPU_ms": 2250,
+    "initial_batch_count": 1,
+    "maximum_batch_count": 512,
+    "update": "If observed_ms is zero, double N. Otherwise if under2000ms, N=max(N+1,ceil(N*2250/observed_ms)); cap512 and report blocker if minimum cannot be attained. Retain every pilot. First N reaching minimum becomes one common batch count for both codecs.",
+    "freeze": "Numeric counts, encoder states, frames/calls/samples, no resets/flush, input/source/harness identities saved before FIRST timing scope. No per-codec normalization or loop count change."
+  },
+  "timing_runs": {
+    "per_codec_per_config": 15,
+    "interleave": "Pair codecs for each case, alternate first codec each repetition, rotate case order between repetitions.",
+    "state": "Precreate fresh independent encoder states for each clip outside CPU clock; equal batch count and exact same complete PCM clip both codecs.",
+    "timed_work": "Same whole encode loop and return checks/packet-byte accumulation; packet capacity1500B; no allocation/getters/logging/decode/hash/flush/reset inside clock.",
+    "precision_failure": "Keep raw result and flag; never discard for favorable median. Freeze any necessary complete retrial as a new scope.",
+    "under5percent": "Any CPU delta under5% requires at least one full independent matched15-per-codec retrial before accepting or rejecting; retain both series."
+  },
+  "speed_gate": "Per-config unrounded median current encode CPU strictly below scalar official; all17 must pass. Equality fails.",
+  "scaling_gate": "AUDIO256k median CPU minus AUDIO16k median CPU strictly below scalar official absolute difference; relative growth is report-only.",
+  "quality": {
+    "coverage": "All498 matrix+806 published configurations, plus existing FEC standard18/strict18, DTX, RAW/denoiser/state/continuation/ENV/rate/wire predicates. No cuts.",
+    "metric_roster": "benchmark_quality_metrics.json",
+    "tolerance": "Per exact configuration/metric max-min across3 official-only independent self invocations, frozen before ours scoring; zero variance gives zero tolerance.",
+    "scoring": "Preserve every raw field, prior-relative decline and failure; no metric majority, incompatible averaging or hidden losses."
+  },
+  "size_gate": {
+    "status": "FROZEN_BY_ROOT",
+    "goal": "Binary size strictly below350000 bytes; each patch reports stripped size.",
+    "artifacts": [
+      "Normal public full-codec Host COFF opus_codec.o",
+      "Normal public full-codec Android ELF opus_codec.o"
+    ],
+    "source_scope": "Whole Source269 encoder+decoder/public C ABI; no namespace-prefix alias build or function/feature subset.",
+    "strip_recipe": "Matching GNU/LLVM strip --strip-unneeded -o distinct_output.o normal_public_input.o; retain relocations and all externally defined public symbols.",
+    "measurement": "Actual stripped file byte length, separately per normal Host/Android target; old allocated text/data/BSS totals remain historical separate quantities.",
+    "proof": "Compare public defined symbols before/after and complete compiler/image flags; link stripped object with unchanged normal toolchain and real API caller. Link-check driver is excluded from object size.",
+    "forbidden": "No tiny test executable, omitted decoder/features, GC/LTO/Os/native/new flags, or allocated-section total relabeled as file bytes."
+  },
+  "provenance": "BEFORE_FIRST per image/scope binds exact Source/header/objects/library/input/cwd/options/compiler/version/full argv/flags/harness and original clocks. Later rebuilds cannot rescue chronology.",
+  "execution": "One outer SHARED nonnested process lease; persist exact owned controller/child PIDs and command/started/completed receipts.",
+  "authority": "Root commits and publishes; this protocol is a new baseline epoch, not a retag of historical measurements.",
+  "latest_goal": {
+    "path": "C:\\Users\\regis\\.codex\\attachments\\e16a0916-3484-40d9-9b96-8017de68a5e6\\goal-objective.md",
+    "bytes": 5211,
+    "sha256": "852a3ca82b1c4330eec5e2497b7b9c46480c413821b5e227864d6a9f98033b3e"
+  }
+}
