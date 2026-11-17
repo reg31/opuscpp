@@ -13,7 +13,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 0.001426431824269652,
+    "mean_abs_error": 0.001076955610902404,
+    "logband_error": 0.005902132467517928,
+    "celt_masked_error": 0.007896013244769153,
+    "celt_highband_error": 0.0003616144882698911,
+    "stereo_width_error": 0.006962835286383952
+   }
   },
   {
    "id": "audio_24000",
@@ -26,7 +40,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.3103812012368792,
+    "seg_snr_db": 0.30774486588792627,
+    "pesq_style": 0.02326807373942419,
+    "visqol_style": 0.005492770103574074,
+    "logband_corr": 0.0012151590955844505,
+    "celt_quality": 0.10346993639166158,
+    "rms_error": 0.002024783236074676,
+    "mean_abs_error": 0.0014356409005373966,
+    "logband_error": 0.00518348626578391,
+    "celt_masked_error": 0.08419761538541648,
+    "celt_highband_error": 0.020427333941064166,
+    "stereo_width_error": 0.0023311176397518285
+   }
   },
   {
    "id": "audio_32000",
@@ -39,7 +67,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.46418160469572456,
+    "seg_snr_db": 0.36773491891143806,
+    "pesq_style": 0.028069440321690564,
+    "visqol_style": 0.007078916029396254,
+    "logband_corr": 0.0011224820413473502,
+    "celt_quality": 0.15284288871157514,
+    "rms_error": 0.001508676983846477,
+    "mean_abs_error": 0.0009368304645648445,
+    "logband_error": 0.006255677609100785,
+    "celt_masked_error": 0.12320215247543453,
+    "celt_highband_error": 0.0017255866934935437,
+    "stereo_width_error": 0.0007460113941638244
+   }
   },
   {
    "id": "audio_48000",
@@ -52,7 +94,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.23083700181840072,
+    "seg_snr_db": 0.20323917105589828,
+    "pesq_style": 0.01492048850906258,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 0.0003579278055769672,
+    "mean_abs_error": 0.0002649253480007073,
+    "logband_error": 0.001688901543153154,
+    "celt_masked_error": 0.0012587396592979583,
+    "celt_highband_error": 2.1340367963105524e-05,
+    "stereo_width_error": 0.00022998475184490483
+   }
   },
   {
    "id": "audio_64000",
@@ -65,7 +121,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.12828571176981285,
+    "seg_snr_db": 0.13521219757993208,
+    "pesq_style": 0.01013119769908144,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.08087552983258206,
+    "rms_error": 0.00015606967853807815,
+    "mean_abs_error": 0.00012280006544339306,
+    "logband_error": 0.0025758757909626617,
+    "celt_masked_error": 0.06478887817655077,
+    "celt_highband_error": 1.5503347103464776e-05,
+    "stereo_width_error": 0.00010323740842376437
+   }
   },
   {
    "id": "audio_96000",
@@ -78,7 +148,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.228069570686948,
+    "seg_snr_db": 0.2577278829200367,
+    "pesq_style": 0.0188513538159647,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 0.00017605983864444306,
+    "mean_abs_error": 0.00012879510179212086,
+    "logband_error": 0.0015409295773208542,
+    "celt_masked_error": 0.011108531825894191,
+    "celt_highband_error": 2.9408646079511732e-08,
+    "stereo_width_error": 0.00016559551613584342
+   }
   },
   {
    "id": "audio_128000",
@@ -91,7 +175,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.22107175532394052,
+    "seg_snr_db": 0.23281491303254143,
+    "pesq_style": 0.017350797913000093,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 0.0001364375362829847,
+    "mean_abs_error": 0.00010305531778137533,
+    "logband_error": 0.0002775835005510571,
+    "celt_masked_error": 0.006166076473830676,
+    "celt_highband_error": 2.3082293996257996e-08,
+    "stereo_width_error": 2.8847491178668176e-05
+   }
   },
   {
    "id": "audio_192000",
@@ -104,7 +202,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.12496380747937508,
+    "seg_snr_db": 0.09598568279676556,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 5.63416115261714e-05,
+    "mean_abs_error": 4.179850373126157e-05,
+    "logband_error": 0.0001795227495728289,
+    "celt_masked_error": 0.0002719740873749534,
+    "celt_highband_error": 1.3392782018352705e-08,
+    "stereo_width_error": 6.721560290986594e-05
+   }
   },
   {
    "id": "audio_256000",
@@ -117,7 +229,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "audio_music_60s_stereo.pcm",
-   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0",
+   "min_delta": {
+    "snr_db": 0.17567402809372368,
+    "seg_snr_db": 0.06534861505807044,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.05,
+    "rms_error": 6.905233442991345e-05,
+    "mean_abs_error": 4.718023152310187e-05,
+    "logband_error": 0.0006628528955800739,
+    "celt_masked_error": 0.001844527665738595,
+    "celt_highband_error": 3.4363162470578504e-08,
+    "stereo_width_error": 3.123261270876693e-05
+   }
   },
   {
    "id": "hazel_voice_16000",
@@ -130,7 +256,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "hazel_voice.pcm",
-   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.07613064089481103,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.13469700963236164,
+    "rms_error": 0.0005695974243651685,
+    "mean_abs_error": 0.0003077085855298537,
+    "logband_error": 0.0017817919603262677,
+    "celt_masked_error": 0.10846093768559073,
+    "celt_highband_error": 0.022067815449121703,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "hazel_voice_32000",
@@ -143,7 +283,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "hazel_voice.pcm",
-   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.07154347387657367,
+    "rms_error": 0.0005597236201744651,
+    "mean_abs_error": 0.00029797542364725765,
+    "logband_error": 0.0021007204116815087,
+    "celt_masked_error": 0.05760367320026072,
+    "celt_highband_error": 0.010908940773536435,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "hazel_voice_64000",
@@ -156,7 +310,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "hazel_voice.pcm",
-   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.2476694600723306,
+    "rms_error": 0.0005314970864127265,
+    "mean_abs_error": 0.0002788109483665604,
+    "logband_error": 0.0008402629832801461,
+    "celt_masked_error": 0.19928926992435225,
+    "celt_highband_error": 0.03388525234081885,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "hazel_fec60_24000",
@@ -169,7 +337,21 @@
    "loss": 15,
    "frame": 2880,
    "pcm": "hazel_fec60.pcm",
-   "sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96"
+   "sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.1150475768150443,
+    "rms_error": 0.0005640205280473253,
+    "mean_abs_error": 0.0003033425065260085,
+    "logband_error": 0.0030146500879615627,
+    "celt_masked_error": 0.09261329199151169,
+    "celt_highband_error": 0.0017263355623877708,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "david_voice_16000",
@@ -182,7 +364,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "david_voice.pcm",
-   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+   "min_delta": {
+    "snr_db": 0.0698846997570417,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.4015978729009362,
+    "rms_error": 0.0004917463147689157,
+    "mean_abs_error": 0.0002479425967195102,
+    "logband_error": 0.0008719302591890881,
+    "celt_masked_error": 0.3293542965938432,
+    "celt_highband_error": 0.010529701672778728,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "david_voice_32000",
@@ -195,7 +391,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "david_voice.pcm",
-   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.19452531444727583,
+    "rms_error": 0.0004763407665195474,
+    "mean_abs_error": 0.00023404409323801685,
+    "logband_error": 0.0024624516904099003,
+    "celt_masked_error": 0.16002178812575618,
+    "celt_highband_error": 0.0014418469540312606,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "david_voice_64000",
@@ -208,7 +418,21 @@
    "loss": 0,
    "frame": 960,
    "pcm": "david_voice.pcm",
-   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3",
+   "min_delta": {
+    "snr_db": 0.05,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.11747804452585342,
+    "rms_error": 0.00044631005125456787,
+    "mean_abs_error": 0.00021363591319402324,
+    "logband_error": 0.0015114116552688572,
+    "celt_masked_error": 0.09651917288149114,
+    "celt_highband_error": 0.0008958379074547945,
+    "stereo_width_error": 0.0
+   }
   },
   {
    "id": "david_fec60_24000",
@@ -221,7 +445,21 @@
    "loss": 15,
    "frame": 2880,
    "pcm": "david_fec60.pcm",
-   "sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6"
+   "sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6",
+   "min_delta": {
+    "snr_db": 0.11252753691193362,
+    "seg_snr_db": 0.05,
+    "pesq_style": 0.01,
+    "visqol_style": 0.005,
+    "logband_corr": 0.001,
+    "celt_quality": 0.32520485969018864,
+    "rms_error": 0.0006356650017663168,
+    "mean_abs_error": 0.0003043215831661436,
+    "logband_error": 0.003956616039992922,
+    "celt_masked_error": 0.26654842058372363,
+    "celt_highband_error": 0.0009492873118405465,
+    "stereo_width_error": 0.0
+   }
   }
  ],
  "scaling_pairs": [
@@ -232,56 +470,57 @@
  ],
  "metrics": {
   "snr_db": {
-   "direction": "higher",
-   "min_delta": null
+   "direction": "higher"
   },
   "seg_snr_db": {
-   "direction": "higher",
-   "min_delta": null
+   "direction": "higher"
   },
   "pesq_style": {
    "direction": "higher",
-   "max": 4.5,
-   "min_delta": null
+   "max": 4.5
   },
   "visqol_style": {
    "direction": "higher",
-   "max": 5.0,
-   "min_delta": null
+   "max": 5.0
   },
   "logband_corr": {
    "direction": "higher",
-   "max": 1.0,
-   "min_delta": null
+   "max": 1.0
   },
   "celt_quality": {
    "direction": "higher",
-   "max": 100,
-   "min_delta": null
+   "max": 100
   },
   "rms_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   },
   "mean_abs_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   },
   "logband_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   },
   "celt_masked_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   },
   "celt_highband_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   },
   "stereo_width_error": {
    "direction": "lower",
-   "min_delta": null
+   "min": 0.0
   }
+ },
+ "min_delta_rule": {
+  "frozen_utc": "2026-11-17",
+  "rule": "Per config and metric: max(base, 2 x |official(1.01 x target) - official(target)|). Base: snr_db/seg_snr_db 0.05 dB, pesq_style 0.01, visqol_style 0.005, logband_corr 0.001, celt_quality 0.05; error metrics 1% of official. Values are absolute, computed from official at the pin. Raise only; recomputed on pin bump.",
+  "rationale": "Official is deterministic (3-run spread 0), so variance gives no floor. The +1% bits sensitivity is the binding constraint: a win must exceed twice what 1% extra rate buys official in that config. A pair is saturated when official is within min_delta of the metric bound (max for scores, 0 for errors); saturated pairs must match official, all others must strictly beat official + min_delta.",
+  "evidence": "tests/metrics/bench17_min_delta_evidence.md; build/bench/plus1pct.json",
+  "choice": "Per-config rule selected by the user on 2026-11-17."
  }
 }

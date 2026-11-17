@@ -25,3 +25,6 @@ __pycache__/
 
 # Downloaded official Opus sources and RFC vectors
 /tests/external/
+
+# Agent worktrees
+/.claude/

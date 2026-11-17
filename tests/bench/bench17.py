@@ -157,18 +157,16 @@ def latest(kind):
     return files[-1]
 
 
-def judge(name, cur, off, spec):
-    md = spec.get("min_delta")
+def judge(name, cur, off, spec, md):
     higher = spec["direction"] == "higher"
-    mx = spec.get("max")
     if md is None:
         return "unset", None
-    saturated = higher and mx is not None and off >= mx - md
+    bound = spec.get("max") if higher else spec.get("min")
+    saturated = bound is not None and abs(bound - off) <= md
+    thr = off if saturated else (off + md if higher else off - md)
     if saturated:
-        thr = off
-    else:
-        thr = off + md if higher else off - md
-    return thr, (cur >= thr if higher else cur <= thr)
+        return thr, (cur >= thr if higher else cur <= thr)
+    return thr, (cur > thr if higher else cur < thr)
 
 
 def cmd_report(a):
@@ -190,7 +188,7 @@ def cmd_report(a):
             e["metrics"] = {}
             all_pass, unset = True, False
             for name, spec in manifest["metrics"].items():
-                thr, ok = judge(name, cur[name], off[name], spec)
+                thr, ok = judge(name, cur[name], off[name], spec, c.get("min_delta", {}).get(name))
                 e["metrics"][name] = {"current": cur[name], "official": off[name], "threshold": thr, "pass": ok}
                 if ok is None:
                     unset = True
