@@ -171,7 +171,8 @@ def judge(name, cur, off, spec, md):
 
 def cmd_report(a):
     manifest = load_manifest()
-    time_path, qual_path = latest("time"), latest("quality")
+    time_path = Path(a.time) if a.time else latest("time")
+    qual_path = Path(a.quality) if a.quality else latest("quality")
     tdata, qdata = json.loads(time_path.read_text()), json.loads(qual_path.read_text())
     stripped = BUILD / "public.stripped.o"
     stripped_bytes = stripped.stat().st_size if stripped.exists() else None
@@ -247,6 +248,8 @@ def main():
     t.add_argument("--batch", type=int, default=0, help="encoders per run; default 8 for stereo clips, 30 for mono (GetThreadTimes ticks at 15.6 ms)")
     t.set_defaults(fn=cmd_time)
     r = sub.add_parser("report")
+    r.add_argument("--time")
+    r.add_argument("--quality")
     r.set_defaults(fn=cmd_report)
     a = p.parse_args()
     a.fn(a)

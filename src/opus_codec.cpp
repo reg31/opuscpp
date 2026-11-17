@@ -2644,6 +2644,8 @@ struct OpusEncoder {
   int encoder_buffer, use_dtx;
   opus_int32 bitrate_bps;
   opus_int32 vbr_budget_reservoir_bits;
+  opus_int32 rate_servo_bits;
+  opus_int32 rate_servo_frames;
   opus_int16 stream_channels;
   opus_int16 hybrid_stereo_width_Q14;
   opus_uint16 vbr_target_remainder;
@@ -2675,6 +2677,16 @@ static_assert(std::is_standard_layout_v<OpusEncoder>);
   const auto numerator = static_cast<opus_int64>(st->bitrate_bps) * frame_size + st->vbr_target_remainder;
   st->vbr_target_remainder = static_cast<opus_uint16>(numerator % st->Fs);
   return static_cast<opus_int32>(numerator / st->Fs);
+}
+
+[[nodiscard]] static auto rate_servo_enabled(const OpusEncoder* st) noexcept -> bool {
+  return st->application == OPUS_APPLICATION_VOIP && st->use_vbr && st->user_bitrate_bps > 0;
+}
+
+static void update_rate_servo(OpusEncoder* st, opus_int32 packet_bytes, opus_int32 target_bits) noexcept {
+  if (rate_servo_enabled(st) && packet_bytes > 2 && st->mode != opus_mode_silk_only) {
+    st->rate_servo_bits = std::clamp(st->rate_servo_bits + target_bits - packet_bytes * 8, -25 * target_bits, 25 * target_bits);
+  }
 }
 
 static void reset_vbr_budget(OpusEncoder* st) noexcept {
@@ -3444,6 +3456,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   const opus_int32 max_len_sum = repacketize_len - (max_header_bytes - nb_frames);
   opus_int32 local_credit_bits = st->vbr_budget_reservoir_bits;
+  st->rate_servo_frames = nb_frames;
   opus_int32 remaining_target_bits = packet_target_bits;
   std::array<unsigned char, opus_max_multiframe_packet_bytes> packet_storage;
   auto* curr_data = packet_storage.data();
@@ -3516,6 +3529,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     return result;
   }
   result = write_packet_frames(&packet_frames, data, repacketize_len, !st->use_vbr && dtx_count != nb_frames);
+  update_rate_servo(st, encoder_is_in_dtx(st) ? 0 : result, packet_target_bits);
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
   } else if (params.governed_vbr && result > 0) {
@@ -3544,10 +3558,12 @@ template <std::size_t Capacity>
   }
   const bool emit_dtx = st->use_dtx && should_emit_dtx(st, frame_metrics, frame_size);
   const opus_int32 allocator_target_bits = params.governed_vbr ? frame_budget.allocator_bits : 0;
+  st->rate_servo_frames = 1;
   auto ret =
       opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, frame_metrics, params.redundancy,
                                params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx, stage_storage, nullptr, range_storage_bytes);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
+  update_rate_servo(st, encoder_is_in_dtx(st) ? 0 : ret, params.target_bits);
   if (encoder_is_in_dtx(st)) {
     reset_vbr_budget(st);
   } else if (params.governed_vbr && ret > 0) {
@@ -4357,7 +4373,11 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   if (redundancy) {
     refresh_redundancy();
   }
-  const opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
+  if (rate_servo_enabled(st) && st->mode != opus_mode_silk_only) {
+    nominal_target_bits += std::clamp(st->rate_servo_bits / (16 * std::max(st->rate_servo_frames, 1)), -nominal_target_bits / 4,
+                                      nominal_target_bits / 2);
+  }
   funded_lbrr_packet funding;
   const auto* lbrr_state = silk_enc == nullptr ? nullptr : static_cast<silk_encoder*>(silk_enc)->lbrr;
   const bool known_earned_credit = lbrr_state != nullptr && (lbrr_state->channels[0].enabled & 4) == 0;
@@ -21383,6 +21403,7 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
     }
     st->user_bitrate_bps = value;
     reset_vbr_budget(st);
+    st->rate_servo_bits = 0;
     return OPUS_OK;
   }
   case OPUS_GET_BITRATE_REQUEST:
@@ -21394,6 +21415,7 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
       return error;
     }
     reset_vbr_budget(st);
+    st->rate_servo_bits = 0;
     return OPUS_OK;
   }
   case OPUS_GET_VBR_REQUEST:
