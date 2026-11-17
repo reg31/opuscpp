@@ -8810,8 +8810,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   bool tf_basis_reselected = false;
   std::array<opus_int8, celt_max_channels> noise_source_support{-1, -1};
   const opus_int32 trim_payload_bitrate = vbr_header_bits != 0 && vbr_rate > 0
-      ? (vbr_rate >> LM) * 50
-      : st->bitrate;
+                                              ? (vbr_rate >> LM) * 50
+                                              : st->bitrate;
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
