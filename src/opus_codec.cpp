@@ -366,9 +366,7 @@ static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
 
-#if defined(__GNUC__) && !defined(__clang__)
 OPUSCPP_NOINLINE static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
-#endif
 
 static void ec_dec_normalize_if_needed(ec_dec* _this) {
   while (_this->rng <= ec_code_bot) {
@@ -17376,6 +17374,11 @@ static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, co
                                             : pulses.size() == 8 ? silk_shell_code_table2
                                                                  : silk_shell_code_table3;
   const auto left = silk_index_symbol<false>(coder, 0, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
+  if (pulses.size() == 2) {
+    pulses[0] = static_cast<opus_int16>(left);
+    pulses[1] = static_cast<opus_int16>(total_pulses - left);
+    return;
+  }
   silk_shell_code_node(coder, pulses.first(half), left);
   silk_shell_code_node(coder, pulses.last(half), total_pulses - left);
 }
