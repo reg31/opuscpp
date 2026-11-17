@@ -640,7 +640,6 @@ struct CeltEncoderInternal {
   opus_uint8 channels, stream_channels, complexity, upsample, start, end;
   bool prefilter_history_valid = false;
   opus_int32 bitrate, midrate_quality_boost_bps;
-  opus_uint8 vbr_header_bits = 0;
   bool vbr, constrained_vbr;
   opus_uint8 lsb_depth, loss_rate;
   bool prediction_disabled, audio_application, stereo_policy_celt;
@@ -738,7 +737,7 @@ struct funded_lbrr_packet final {
 static int hybrid_celt_funding_reserve(int LM, int channels, int end, int nominal_bits) noexcept;
 
 static void celt_encoder_init(CeltEncoderInternal* st, opus_int32 sampling_rate, int channels);
-static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false, int funded_bytes = 0, int funded_frac = 0);
+static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients = false, int funded_bytes = 0, int funded_frac = 0, int vbr_header_bits = 0);
 static void celt_encoder_reset_state(CeltEncoderInternal* st);
 static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec,
                                       opus_int16* pcm16 = nullptr, bool update_pitch_cache = true);
@@ -4559,7 +4558,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   celt_enc->start = st->mode == opus_mode_celt_only ? 0 : 17;
   celt_enc->content_vbr = false;
-  celt_enc->vbr_header_bits = 0;
   if (st->mode != opus_mode_silk_only) {
     celt_enc->vbr = st->use_vbr;
     if (st->mode == opus_mode_hybrid) {
@@ -4576,7 +4574,6 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_enc->content_vbr = st->application == OPUS_APPLICATION_AUDIO && st->bandwidth == 1105 && st->bitrate_bps < 56000 &&
                               nominal_target_bits >= 8 * (30 + 5 * celt_lm);
       celt_enc->bitrate = std::min<opus_int32>(allocator_bitrate_bps, 750000 * celt_enc->channels);
-      celt_enc->vbr_header_bits = packet_frames == nullptr ? 8 : 0;
     }
     const bool encode_celt_frame = !skip_celt_for_dtx && ec_tell(&enc) <= 8 * nb_compr_bytes;
     if ((st->mode != st->prev_mode || (encode_celt_frame && !celt_history_ready)) &&
@@ -4595,8 +4592,9 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
     }
+    const int vbr_header_bits = st->mode == opus_mode_celt_only && packet_frames == nullptr ? 8 : 0;
     if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes ||
-        (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255, funding.reserved_bytes, funding.prefix_frac)) < 0) {
+        (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255, funding.reserved_bytes, funding.prefix_frac, vbr_header_bits)) < 0) {
       std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
       celt_enc->signal_bw_temporal.reset();
       if (ret < 0)
@@ -8522,7 +8520,7 @@ static std::array<double, 2> celt_estimate_noise_covariance_parameter(const Celt
 
 constexpr std::array<celt_glog, 9> celt_coarse_fine_power_rounding{0.3390359525563188f, 0.45751874963942196f, 0.48922334841819398f, 0.497295774761502f, 0.49932331008195074f, 0.49983078784567636f, 0.49995769448057997f, 0.49998942346507441f, 0.49999735585657634f};
 
-OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, int funded_bytes, int funded_frac) {
+OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int frame_size, unsigned char* compressed, int nbCompressedBytes, ec_enc* enc, bool protect_transients, int funded_bytes, int funded_frac, int vbr_header_bits) {
   const int funded_rounding_frac = funded_bytes * 64 - funded_frac;
   struct byte_budget_coordinates final {
     ec_enc* coder;
@@ -8599,7 +8597,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     nbCompressedBytes = std::min(nbCompressedBytes, 1275);
     if (st->vbr && st->bitrate != -1) {
       const opus_int32 frame_bits = bitrate_to_bits(st->bitrate, celt_sample_rate, frame_size);
-      vbr_rate = std::max(frame_bits - st->vbr_header_bits, frame_bits / 2) << 3;
+      vbr_rate = std::max(frame_bits - vbr_header_bits, frame_bits / 2) << 3;
     } else if (st->bitrate != -1) {
       nbCompressedBytes = std::max(2, std::min(nbCompressedBytes, (static_cast<opus_int32>(st->bitrate * frame_size + (tell > 1 ? tell * celt_sample_rate : 0)) + 4 * celt_sample_rate) / (8 * celt_sample_rate)));
       if (enc != nullptr)
