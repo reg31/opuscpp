@@ -21,7 +21,7 @@ import wave
 
 OFFICIAL_OPUS_REPO = "https://github.com/xiph/opus.git"
 OFFICIAL_OPUS_TAG = "main"
-OFFICIAL_OPUS_COMMIT = "51bd2e649f4516d103ab9a7f22a768595621e847"
+OFFICIAL_OPUS_COMMIT = "f1afc4222aff7c5456d27581ec618ae64158fbe1"
 RFC6716_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors.tar.gz"
 RFC8251_VECTORS_URL = "https://opus-codec.org/static/testvectors/opus_testvectors-rfc8251.tar.gz"
 BITRATES = (16000, 24000, 32000, 48000, 64000, 96000, 128000, 192000, 256000)
@@ -1132,8 +1132,8 @@ def main() -> int:
 
     repo_root = pathlib.Path(__file__).resolve().parents[2]
     external_root = repo_root / "tests" / "external"
-    official_repo_dir = external_root / "official_opus_51bd2e649f45"
-    official_build_dir = repo_root / "build" / "official_opus_51bd2e649f45_o2_intrinsics_mingw"
+    official_repo_dir = external_root / f"official_opus_{OFFICIAL_OPUS_COMMIT[:12]}"
+    official_build_dir = repo_root / "build" / f"official_opus_{OFFICIAL_OPUS_COMMIT[:12]}_o2_intrinsics_mingw"
     harness_build_dir = repo_root / "build" / "conformance_decode"
     report_dir = repo_root / "build" / "official_compare_report"
     vector_root = external_root / "testvectors"
