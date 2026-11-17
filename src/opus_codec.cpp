@@ -3805,7 +3805,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     int bandwidth = select_auto_bandwidth(equiv_rate);
     st->auto_bandwidth = bandwidth;
 
-    if (frame_metrics.energy == 0 && !st->classical_leak.out_info.valid && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
+    if (frame_metrics.energy == 0 && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
         st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
         std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
           return sample == 0;
@@ -18612,7 +18612,7 @@ void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x
     silk_stereo_quant_pred(std::span<opus_int32, 2>{pred_Q13}, ix);
   } else if (preserve_stereo != silk_preserve_stereo_force &&
              ((prev_speech_act_Q8 < 32 && total_rate_bps > 20000 && total_rate_bps < 28000) ||
-              8 * total_rate_bps < (was_mid_only ? 13 : 11) * min_mid_rate_bps ||
+              8 * total_rate_bps < (was_mid_only ? 13 : 12) * min_mid_rate_bps ||
               residual_is_small())) {
     quantize_smoothed_pred();
     reset_side_prediction();
