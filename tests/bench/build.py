@@ -38,9 +38,10 @@ def main():
     for name, source in GATES.items():
         if name not in a.targets:
             continue
-        for lane, extra in (("current", []), ("official", ["-DUSE_OFFICIAL_ENCODER"])):
+        lanes = (("", []),) if name == "bench17" else (("_current", []), ("_official", ["-DUSE_OFFICIAL_ENCODER"]))
+        for lane, extra in lanes:
             run([CXX, *FLAGS, *extra, f"-I{a.src}", f"-I{ROOT / 'tests'}", ROOT / source, obj, a.official,
-                 "-o", a.out / f"{name}_{lane}.exe"])
+                 "-o", a.out / f"{name}{lane}.exe"])
     return 0
 
 

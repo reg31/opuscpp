@@ -1,0 +1,287 @@
+{
+ "schema": "opuscpp-bench17-v1",
+ "upstream_pin": "f1afc4222aff7c5456d27581ec618ae64158fbe1",
+ "cases": [
+  {
+   "id": "audio_16000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 16000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_24000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 24000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_32000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 32000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_48000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 48000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_64000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 64000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_96000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 96000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_128000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 128000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_192000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 192000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "audio_256000",
+   "application": "audio",
+   "channels": 2,
+   "bitrate": 256000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "audio_music_60s_stereo.pcm",
+   "sha256": "e4be95d7efc4c1bb91bbc11600268cd7d5aea9c7d9648b1abfe362cba1d0cae0"
+  },
+  {
+   "id": "hazel_voice_16000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 16000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "hazel_voice.pcm",
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+  },
+  {
+   "id": "hazel_voice_32000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 32000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "hazel_voice.pcm",
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+  },
+  {
+   "id": "hazel_voice_64000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 64000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "hazel_voice.pcm",
+   "sha256": "ed0a3c0e322b0e56e00dcc3ce2c979f836015de1e674450dec57250b082c619d"
+  },
+  {
+   "id": "hazel_fec60_24000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 24000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 1,
+   "loss": 15,
+   "frame": 2880,
+   "pcm": "hazel_fec60.pcm",
+   "sha256": "0cced3652be3f8d09bc3c79f8b77c0fd49ff345210f52133a2e91103f8b07c96"
+  },
+  {
+   "id": "david_voice_16000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 16000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "david_voice.pcm",
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+  },
+  {
+   "id": "david_voice_32000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 32000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "david_voice.pcm",
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+  },
+  {
+   "id": "david_voice_64000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 64000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 0,
+   "loss": 0,
+   "frame": 960,
+   "pcm": "david_voice.pcm",
+   "sha256": "9c2871206a3ffedca365f09061b2d6f5ab37117b83b7daea1678b7b2140e32a3"
+  },
+  {
+   "id": "david_fec60_24000",
+   "application": "voip",
+   "channels": 1,
+   "bitrate": 24000,
+   "complexity": 10,
+   "vbr": 1,
+   "fec": 1,
+   "loss": 15,
+   "frame": 2880,
+   "pcm": "david_fec60.pcm",
+   "sha256": "15a822a6dc1d444c752d8e04af7967a2f1817d46f2b647a1a3c2f1c465c666a6"
+  }
+ ],
+ "scaling_pairs": [
+  [
+   "audio_16000",
+   "audio_256000"
+  ]
+ ],
+ "metrics": {
+  "snr_db": {
+   "direction": "higher",
+   "min_delta": null
+  },
+  "seg_snr_db": {
+   "direction": "higher",
+   "min_delta": null
+  },
+  "pesq_style": {
+   "direction": "higher",
+   "max": 4.5,
+   "min_delta": null
+  },
+  "visqol_style": {
+   "direction": "higher",
+   "max": 5.0,
+   "min_delta": null
+  },
+  "logband_corr": {
+   "direction": "higher",
+   "max": 1.0,
+   "min_delta": null
+  },
+  "celt_quality": {
+   "direction": "higher",
+   "max": 100,
+   "min_delta": null
+  },
+  "rms_error": {
+   "direction": "lower",
+   "min_delta": null
+  },
+  "mean_abs_error": {
+   "direction": "lower",
+   "min_delta": null
+  },
+  "logband_error": {
+   "direction": "lower",
+   "min_delta": null
+  },
+  "celt_masked_error": {
+   "direction": "lower",
+   "min_delta": null
+  },
+  "celt_highband_error": {
+   "direction": "lower",
+   "min_delta": null
+  },
+  "stereo_width_error": {
+   "direction": "lower",
+   "min_delta": null
+  }
+ }
+}
