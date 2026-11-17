@@ -389,19 +389,35 @@ struct codec_api final {
 };
 
 const codec_api official_api{
-    [](int channels, int application, int* error) -> void* { return opus_encoder_create(sample_rate, channels, application, error); },
-    [](void* st) { opus_encoder_destroy(static_cast<OpusEncoder*>(st)); },
-    [](void* st, int request, int value) { return opus_encoder_ctl(static_cast<OpusEncoder*>(st), request, value); },
-    [](void* st, int request, int* value) { return opus_encoder_ctl(static_cast<OpusEncoder*>(st), request, value); },
+    [](int channels, int application, int* error) -> void* {
+      return opus_encoder_create(sample_rate, channels, application, error);
+    },
+    [](void* st) {
+      opus_encoder_destroy(static_cast<OpusEncoder*>(st));
+    },
+    [](void* st, int request, int value) {
+      return opus_encoder_ctl(static_cast<OpusEncoder*>(st), request, value);
+    },
+    [](void* st, int request, int* value) {
+      return opus_encoder_ctl(static_cast<OpusEncoder*>(st), request, value);
+    },
     [](void* st, const std::int16_t* pcm, int frame, unsigned char* data, int max_bytes) {
       return opus_encode(static_cast<OpusEncoder*>(st), pcm, frame, data, max_bytes);
     }};
 
 const codec_api current_api{
-    [](int channels, int application, int* error) -> void* { return curr_opus_encoder_create(sample_rate, channels, application, error); },
-    [](void* st) { curr_opus_encoder_destroy(static_cast<curr_OpusEncoder*>(st)); },
-    [](void* st, int request, int value) { return curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(st), request, value); },
-    [](void* st, int request, int* value) { return curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(st), request, value); },
+    [](int channels, int application, int* error) -> void* {
+      return curr_opus_encoder_create(sample_rate, channels, application, error);
+    },
+    [](void* st) {
+      curr_opus_encoder_destroy(static_cast<curr_OpusEncoder*>(st));
+    },
+    [](void* st, int request, int value) {
+      return curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(st), request, value);
+    },
+    [](void* st, int request, int* value) {
+      return curr_opus_encoder_ctl(static_cast<curr_OpusEncoder*>(st), request, value);
+    },
     [](void* st, const std::int16_t* pcm, int frame, unsigned char* data, int max_bytes) {
       return curr_opus_encode(static_cast<curr_OpusEncoder*>(st), pcm, frame, data, max_bytes);
     }};
@@ -482,7 +498,9 @@ void expect_get(const codec_api& api, void* st, int request, int expected, const
   if (!GetThreadTimes(GetCurrentThread(), &created, &exited, &kernel, &user)) {
     fail("GetThreadTimes failed");
   }
-  const auto to_100ns = [](const FILETIME& t) { return (static_cast<std::uint64_t>(t.dwHighDateTime) << 32) | t.dwLowDateTime; };
+  const auto to_100ns = [](const FILETIME& t) {
+    return (static_cast<std::uint64_t>(t.dwHighDateTime) << 32) | t.dwLowDateTime;
+  };
   return static_cast<double>(to_100ns(kernel) + to_100ns(user)) * 1e-7;
 #else
   timespec ts;
@@ -598,17 +616,17 @@ void run_quality(const config& cfg) {
   std::printf("{\"actual_bitrate_bps\": %.3f, \"packets\": %llu, \"bytes\": %llu, \"final_range\": %u", static_cast<double>(bytes) * 8.0 / clip_seconds,
               static_cast<unsigned long long>(packets), static_cast<unsigned long long>(bytes), final_range);
   const std::array<std::pair<const char*, double>, 12> metrics{{{"snr_db", snr_db(score)},
-                                                               {"seg_snr_db", seg_snr_db(score)},
-                                                               {"rms_error", rms_error(score)},
-                                                               {"mean_abs_error", mean_abs_error(score)},
-                                                               {"pesq_style", pesq_style(score)},
-                                                               {"visqol_style", visqol_style(score)},
-                                                               {"logband_corr", log_corr(score)},
-                                                               {"logband_error", log_error(score)},
-                                                               {"celt_quality", celt_quality(score)},
-                                                               {"celt_masked_error", celt_masked_error(score)},
-                                                               {"celt_highband_error", celt_highband_error(score)},
-                                                               {"stereo_width_error", stereo_width_error(score)}}};
+                                                                {"seg_snr_db", seg_snr_db(score)},
+                                                                {"rms_error", rms_error(score)},
+                                                                {"mean_abs_error", mean_abs_error(score)},
+                                                                {"pesq_style", pesq_style(score)},
+                                                                {"visqol_style", visqol_style(score)},
+                                                                {"logband_corr", log_corr(score)},
+                                                                {"logband_error", log_error(score)},
+                                                                {"celt_quality", celt_quality(score)},
+                                                                {"celt_masked_error", celt_masked_error(score)},
+                                                                {"celt_highband_error", celt_highband_error(score)},
+                                                                {"stereo_width_error", stereo_width_error(score)}}};
   for (const auto& [name, value] : metrics) {
     std::printf(", \"%s\": %.17g", name, value);
   }
@@ -664,7 +682,7 @@ void run_quality(const config& cfg) {
   return cfg;
 }
 
-}  // namespace
+} // namespace
 
 int main(int argc, char** argv) {
   try {

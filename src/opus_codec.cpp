@@ -366,7 +366,6 @@ static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
 
-
 #if defined(__GNUC__) && !defined(__clang__)
 OPUSCPP_NOINLINE static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
 #endif
@@ -15447,7 +15446,6 @@ static void silk_PLC_conceal(silk_decoder_state* psDec, silk_decoder_control* ps
   psPLC->randScale_Q14 = rand_scale_Q14;
   std::fill_n(psDecCtrl->pitchL, static_cast<std::size_t>(4), lag);
 }
-
 
 static void silk_PLC_glue_frames(silk_decoder_state* psDec, std::span<opus_int16> frame) {
   int energy_shift;
