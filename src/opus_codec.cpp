@@ -8357,7 +8357,7 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   return temporal_vbr;
 }
 
-[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, int channels) noexcept -> int {
+[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, opus_int32 high_rate_bitrate) noexcept -> int {
   if (hybrid) {
     return st->high_z_tonal_Q7 > 64 ? std::clamp(alloc_trim - 4, 0, 10) : alloc_trim;
   }
@@ -8374,9 +8374,9 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
     const int bandwidth_boost = missing_bands > 0 ? (spectral_budget < 1200 ? std::min(7, 2 * missing_bands) : 7) : 0;
     alloc_trim = std::clamp(alloc_trim + bandwidth_boost, 0, 10);
   }
-  if (channels == 2 && st->bitrate >= 56000 && st->bitrate < 80000) {
+  if (st->stream_channels == 2 && high_rate_bitrate >= 56000 && high_rate_bitrate < 80000) {
     alloc_trim = std::clamp(alloc_trim + (st->high_z_tonal_Q7 > 64 ? -1 : 1), 0, 10);
-  } else if (st->bitrate >= 80000 && st->bitrate < 112000) {
+  } else if (high_rate_bitrate >= 80000 && high_rate_bitrate < 112000) {
     alloc_trim = std::clamp(alloc_trim + 2, 0, 10);
   }
   return alloc_trim;
@@ -8795,7 +8795,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   const int energy_stage_available = nbAvailableBytes;
   const int energy_stage_total_bits = total_bits;
   const auto energy_stage_tell = tell;
-  std::array<unsigned char, 1275> energy_stage_buffer;
+  constexpr auto live_band_floats = 3 * celt_max_channels * celt_default_nb_ebands;
+  auto energy_stage_buffer = std::as_writable_bytes(std::span{input_storage}.subspan<live_band_floats>()).first<1275>();
   std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> energy_stage_old{}, energy_rounding{};
   std::copy_n(oldBandE, C * nbEBands, energy_stage_old.data());
@@ -8808,6 +8809,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   int tf_basis_dual_stereo = analyzed_dual_stereo;
   bool tf_basis_reselected = false;
   std::array<opus_int8, celt_max_channels> noise_source_support{-1, -1};
+  const opus_int32 trim_payload_bitrate = vbr_header_bits != 0 && vbr_rate > 0
+      ? (vbr_rate >> LM) * 50
+      : st->bitrate;
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -8886,8 +8890,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       } else {
         alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
       }
-      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, C);
-      alternate_trim = celt_adjust_alloc_trim(alternate_trim, st, hybrid, C);
+      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, trim_payload_bitrate);
+      alternate_trim = celt_adjust_alloc_trim(alternate_trim, st, hybrid, trim_payload_bitrate);
       if (!hybrid && C == 2) {
         alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
         alternate_trim = celt_balance_lowrate_stereo_trim(alternate_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
