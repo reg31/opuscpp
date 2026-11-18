@@ -12959,17 +12959,15 @@ static float classical_leak_downmix_resample_generic(classical_leak_state* s, co
   if (exact_pcm16_format && pcm16 != nullptr) {
     for (int j = 0; j < subframe; ++j) {
       float y = static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels]);
-      for (int c = 1; c < channels; ++c) {
-        y += static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels + c]);
-      }
+      if (channels == 2)
+        y += static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels + 1]);
       tmp[j] = y;
     }
   } else {
     for (int j = 0; j < subframe; ++j) {
       float y = static_cast<float>(pcm[static_cast<std::size_t>(j + offset) * channels]) * 32768.f;
-      for (int c = 1; c < channels; ++c) {
-        y += static_cast<float>(pcm[static_cast<std::size_t>(j + offset) * channels + c]) * 32768.f;
-      }
+      if (channels == 2)
+        y += static_cast<float>(pcm[static_cast<std::size_t>(j + offset) * channels + 1]) * 32768.f;
       if (y < -65536.f)
         y = -65536.f;
       if (y > 65536.f)
