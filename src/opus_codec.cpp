@@ -1499,17 +1499,12 @@ static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_in
     smooth_fade(pcm + st->channels * (frame_size - F2_5), redundant_audio + st->channels * F2_5, pcm + st->channels * (frame_size - F2_5),
                 F2_5, st->channels, st->Fs);
   }
-  if (redundancy && celt_to_silk && (st->prev_mode != opus_mode_silk_only || st->prev_redundancy)) {
-    copy_n_items(redundant_audio, static_cast<std::size_t>(F2_5 * st->channels), pcm);
-    smooth_fade(redundant_audio + st->channels * F2_5, pcm + st->channels * F2_5, pcm + st->channels * F2_5, F2_5, st->channels, st->Fs);
-  }
-  if (pcm_transition != nullptr) {
-    if (audiosize >= F5) {
-      copy_n_items(pcm_transition, static_cast<std::size_t>(st->channels * F2_5), pcm);
-      smooth_fade(pcm_transition + st->channels * F2_5, pcm + st->channels * F2_5, pcm + st->channels * F2_5, F2_5, st->channels, st->Fs);
-    } else {
-      smooth_fade(pcm_transition, pcm, pcm, F2_5, st->channels, st->Fs);
-    }
+  if ((redundancy && celt_to_silk && (st->prev_mode != opus_mode_silk_only || st->prev_redundancy)) ||
+      (pcm_transition != nullptr && audiosize >= F5)) {
+    copy_n_items(auxiliary_storage.data(), static_cast<std::size_t>(st->channels * F2_5), pcm);
+    smooth_fade(auxiliary_storage.data() + st->channels * F2_5, pcm + st->channels * F2_5, pcm + st->channels * F2_5, F2_5, st->channels, st->Fs);
+  } else if (pcm_transition != nullptr) {
+    smooth_fade(pcm_transition, pcm, pcm, F2_5, st->channels, st->Fs);
   }
   if (len <= 1) {
     st->rangeFinal = 0;
