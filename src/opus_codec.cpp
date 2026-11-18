@@ -4894,14 +4894,29 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
   }
 }
 
-template <std::size_t Capacity>
-static opus_int32 encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes) {
-  const auto sample_count = static_cast<std::size_t>(frame_size * st->channels);
-  std::array<opus_res, Capacity> input_storage;
+#if !defined(__clang__)
+OPUSCPP_NOINLINE
+#endif
+static inline void convert_encoder_pcm16(const opus_int16* pcm, opus_res* input_storage, std::size_t sample_count) {
   for (std::size_t index = 0; index < sample_count; ++index) {
     input_storage[index] = pcm[index] * (1.0f / 32768.0f);
   }
-  return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false, pcm);
+}
+
+#if defined(__clang__)
+OPUSCPP_NOINLINE
+#endif
+static inline opus_int32 encode_pcm16_converted(OpusEncoder* st, opus_res* input_storage, int frame_size, unsigned char* data,
+                                               opus_int32 max_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm) {
+  const auto sample_count = static_cast<std::size_t>(frame_size * st->channels);
+  convert_encoder_pcm16(pcm, input_storage, sample_count);
+  return encode_native(st, input_storage, frame_size, data, max_data_bytes, lsb_depth, float_api, pcm);
+}
+
+template <std::size_t Capacity>
+static opus_int32 encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes) {
+  std::array<opus_res, Capacity> input_storage;
+  return encode_pcm16_converted(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false, pcm);
 }
 
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
