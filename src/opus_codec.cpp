@@ -16894,6 +16894,45 @@ struct silk_deferred_zero_ar {
 static_assert(sizeof(silk_deferred_zero_ar) ==
               (sizeof(opus_int16) + sizeof(opus_int32)) * silk_max_frame_length * 4 + sizeof(int) * 5 + sizeof(opus_int32) * 4);
 
+struct silk_nsq_lpc_pair {
+  opus_int32 first;
+  opus_int32 second;
+};
+
+#if defined(_MSC_VER)
+__declspec(noinline)
+#else
+[[gnu::noinline]]
+#endif
+static auto silk_nsq_lpc_predict_pair(const opus_int32* first_history, const opus_int32* second_history,
+                                      const opus_int16* a_Q12, int pair_age) noexcept -> silk_nsq_lpc_pair {
+  const auto group = [&]<int First>(const opus_int32* history) noexcept {
+    return silk_mul_wb(history[-First - 1], a_Q12[First]) +
+           silk_mul_wb(history[-First - 2], a_Q12[First + 1]) +
+           silk_mul_wb(history[-First - 3], a_Q12[First + 2]) +
+           silk_mul_wb(history[-First - 4], a_Q12[First + 3]);
+  };
+  const auto first0 = group.template operator()<0>(first_history);
+  const auto first1 = group.template operator()<4>(first_history);
+  const auto first2 = group.template operator()<8>(first_history);
+  const auto first3 = group.template operator()<12>(first_history);
+  const auto second0 = group.template operator()<0>(second_history);
+  opus_int32 second_prediction;
+  if (pair_age <= 4) {
+    second_prediction = static_cast<opus_int32>(8 + (second0 + first1) + (first2 + first3));
+  } else {
+    const auto second1 = group.template operator()<4>(second_history);
+    if (pair_age <= 8) {
+      second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (first2 + first3));
+    } else {
+      const auto second2 = group.template operator()<8>(second_history);
+      second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (second2 + first3));
+    }
+  }
+  return {saturating_left_shift<4>(static_cast<opus_int32>(8 + (first0 + first1) + (first2 + first3))),
+          saturating_left_shift<4>(second_prediction)};
+}
+
 template <bool FixedPulses, bool DeferredAR = false, bool KeepARHistory = true>
 static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NSQ_del_dec_struct> psDelDec, int signalType, const silk_nsq_quant_level_pair* levels, std::span<const opus_int32> x_Q10, std::span<opus_int8> pulses, std::span<opus_int16> xq, std::span<opus_int32> sLTP_Q15, std::span<opus_int32> delayedGain_Q10, std::span<const opus_int16> a_Q12, std::span<const opus_int16> b_Q14, std::span<const opus_int16> AR_shp_Q13, int lag, opus_int32 HarmShapeFIRPacked_Q14, int Tilt_Q14, opus_int32 LF_shp_Q14, opus_int32 Gain_Q16, int Lambda_Q10, int offset_Q10, int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool first_subframe, silk_deferred_zero_ar* deferred = nullptr) {
   int i, k, Winner_ind, RDmin_ind, RDmax_ind, last_smple_idx;
@@ -16997,31 +17036,9 @@ static void silk_noise_shape_quantizer_del_dec(silk_nsq_state* NSQ, std::span<NS
     if (paired_lpc) {
       const auto* first_history = pair_first_lpc + i;
       const auto* second_history = pair_second_lpc + i;
-      const auto group = [&]<int First>(const opus_int32* history) noexcept {
-        return silk_mul_wb(history[-First - 1], a_Q12[First]) +
-               silk_mul_wb(history[-First - 2], a_Q12[First + 1]) +
-               silk_mul_wb(history[-First - 3], a_Q12[First + 2]) +
-               silk_mul_wb(history[-First - 4], a_Q12[First + 3]);
-      };
-      const auto first0 = group.template operator()<0>(first_history);
-      const auto first1 = group.template operator()<4>(first_history);
-      const auto first2 = group.template operator()<8>(first_history);
-      const auto first3 = group.template operator()<12>(first_history);
-      const auto second0 = group.template operator()<0>(second_history);
-      opus_int32 second_prediction;
-      if (pair_age <= 4) {
-        second_prediction = static_cast<opus_int32>(8 + (second0 + first1) + (first2 + first3));
-      } else {
-        const auto second1 = group.template operator()<4>(second_history);
-        if (pair_age <= 8) {
-          second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (first2 + first3));
-        } else {
-          const auto second2 = group.template operator()<8>(second_history);
-          second_prediction = static_cast<opus_int32>(8 + (second0 + second1) + (second2 + first3));
-        }
-      }
-      lpc_predictions[pair_first] = saturating_left_shift<4>(static_cast<opus_int32>(8 + (first0 + first1) + (first2 + first3)));
-      lpc_predictions[pair_second] = saturating_left_shift<4>(second_prediction);
+      const auto prediction = silk_nsq_lpc_predict_pair(first_history, second_history, a_Q12.data(), pair_age);
+      lpc_predictions[pair_first] = prediction.first;
+      lpc_predictions[pair_second] = prediction.second;
     }
     for (k = 0; k < nStatesDelayedDecision; k++) {
       psDD = &psDelDec[k];
