@@ -10193,7 +10193,6 @@ static bool fill_celt_pvq_u_fast_rows() noexcept {
   return true;
 }
 
-
 [[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
   std::array<const opus_uint32*, celt_pvq_fast_row_count> rows{};
   for (std::size_t row = 0; row < rows.size(); ++row) {
