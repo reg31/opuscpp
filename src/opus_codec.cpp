@@ -3005,6 +3005,9 @@ static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int fr
           static_cast<opus_val32>(zero_crossings) / std::max(1, frame_size - 1), predictability, shape_match};
 }
 
+#if defined(__clang__)
+OPUSCPP_NOINLINE
+#endif
 static int compute_silk_rate_for_hybrid(int rate, int bandwidth, int vbr, int channels, bool fec) {
   rate /= channels;
 
