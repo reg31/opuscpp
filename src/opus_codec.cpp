@@ -515,8 +515,8 @@ struct SignalBwTemporal {
   static constexpr std::int32_t bootstrap_samples = 2880;
   static constexpr std::int32_t window_samples = 5760;
 
-  std::int32_t active_samples{};
-  std::int32_t last_frame_samples{};
+  std::uint16_t active_samples{};
+  std::uint16_t last_frame_samples{};
   std::int32_t remaining[tracked_bands]{};
 
   void reset() noexcept {
@@ -552,8 +552,8 @@ struct SignalBwTemporal {
     if (active_samples >= bootstrap_samples)
       active_samples = bootstrap_samples;
     else
-      active_samples = std::min(active_samples + n, bootstrap_samples);
-    last_frame_samples = n;
+      active_samples = static_cast<std::uint16_t>(std::min(static_cast<std::int32_t>(active_samples) + n, bootstrap_samples));
+    last_frame_samples = static_cast<std::uint16_t>(n);
     return expanded;
   }
 };
