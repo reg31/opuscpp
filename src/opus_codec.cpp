@@ -8194,7 +8194,7 @@ struct celt_input_metrics {
 };
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
-                                                 bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
+                                                 bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness, int threshold) {
   static constexpr auto inv_table = std::to_array<unsigned char>({255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25,
                                                                   23, 22, 21, 20, 19, 18, 17, 16, 16, 15, 15, 14, 13, 13, 12, 12,
                                                                   12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 9, 9, 9, 8, 8,
@@ -8259,7 +8259,7 @@ struct celt_input_metrics {
       mask_metric = unmask;
     }
   }
-  is_transient = mask_metric > 200;
+  is_transient = mask_metric > threshold;
   if (toneishness > .98f && tone_freq < .026f) {
     is_transient = 0;
     mask_metric = 0;
@@ -8681,7 +8681,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     if (!silence && LM > 0 && st->complexity >= 1) {
       const bool allow_weak_transients = hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2;
       isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
-                                            toneishness);
+                                            toneishness, hybrid && !allow_weak_transients ? 60 : 200);
     }
     const bool prefilter_history_valid = st->prefilter_history_valid;
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
