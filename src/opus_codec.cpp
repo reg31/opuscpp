@@ -1850,8 +1850,7 @@ constexpr std::array<opus_uint8, 32> silk_LTP_gain_vq_2_gain =
 
 constexpr std::array<opus_uint8, 320> silk_NLSF_CB1_NB_MB_Q8 = numeric_blob_array<opus_uint8>(
     R"blob(0C233C536C849DB4CEE40F20374D657D97AFC9E1132A42597289A2B8D1E60C193248617893ACC8DF1A2C455A72879FB4CDE10D1635506A829CB4CDE40F192C405A738EA8C4DE13183E52647891A8BED6161F324F677897AACBE3151D2D416A7C96ABC4E01E314B61798EA5BAD1E5131934465D748FA6C0DB1A223E4B617691A7C2D9192138465B718FA5C4DF15223348617591ABC4DE141D32435A7590A8C5DD161F30425F7592A8C4DE1821334D74869EB4C8E0151C46576A7C95AAC2D91A213540537598ADCCE11B22415F6C819BAED2E1141A486371839AB0C8DB222B3D4E5D729BB1CDE5171D36617C8AA3B3D1E51E26385976819EB2C8E7151D313F556F8EA3C1DE1B304D67859EB3C4D7E81D2F4A637C97B0C6DCED212A3D4C5D799BAECFE11D355770889AAABCD0E3181E34548396A6BACBE52530405468769CB1C9E6)blob");
-constexpr std::array<opus_int16, 320> silk_NLSF_CB1_Wght_Q9 = numeric_blob_array<opus_int16>(
-    R"blob(0B51090A090A090A08EF08EF090A08FC091708EF0B480A14095A093F090A08E208E208E208E2089209B709240924090A090A090A09240924093F09320C900ACE09240924090A08E208AD089F08D50892099C09AA093F095A095A095A095A093F0967090A0D970BF0084F089F08E208E208E208EF090A08D50CD20C450A14095A08C708AD089F08920892084210000F0508AD0A3C0A3C0967090A095A093F081A0C6A0CAC093F08AD09F909820924090A087708AD0D0A0DA00AA6089208D5099C0932093F089F0835093209740917093F095A097409740974099C093F0EC30E2D098209DF093F08E208E208FC089F08000CB60C990A990B1E098F091708FC08FC08E2084F0CBF0CE40AC10AF6098F08D508D508C7084F08350B390BA50A49093F09670932089208C708C708420C990C7D0A490A1408E2088508C708AD08AD085D0C6A0CEE0AB4096708E208E208E208EF089208420C450CC8099C080D08EF09C4093F09B7098208850DB30CD2090A0A8C0A5709AA093F095A0924084F0D5F0DCF0BDE0BF008FC079E08AD08E208E208E20D4C0D2608270A7F0B390932097408E209AA09EC0EB00DA0079E0A640B5109DF095A093F099C08D50BD40CC80AB40B480AB4086A084F08EF08BA08C70E6F0E4907E907B10A640A8C0A1409C40917093F0C870D550932081A0B480B48092409B708C708770D0A0D260B1E0ADC0917086A08E208EF0842080D091708FC088508770885093F0A490A8C0A8C09F90967098208AD08D508AD08AD092409740A2F0A8C0BDE0CAC0AF60B4809AA081A08FC090A0932094C08AD086A084F08EF09C40AE90AE90A3C0A14093F0E5C0E8108BA072E08850AC10AA60A7109D1089F0AE90C580AA609F90B1E09D10885095A08AD0885)blob");
+std::array<opus_int16, 320> silk_NLSF_CB1_Wght_Q9;
 constexpr std::array<opus_uint8, 64> silk_NLSF_CB1_iCDF_NB_MB = numeric_blob_array<opus_uint8>(
     R"blob(D4B294816C6055524F4D3D3B39383331302D2A29282624221F1E150C0A030100FFF5F4ECE9E1D9CBBEB0AFA195887D72665B51473C342B231C1413120C0B0500)blob");
 constexpr std::array<opus_uint8, 160> silk_NLSF_CB2_SELECT_NB_MB = numeric_blob_array<opus_uint8>(
@@ -1864,14 +1863,27 @@ constexpr std::array<opus_uint8, 18> silk_NLSF_PRED_NB_MB_Q8 =
     numeric_blob_array<opus_uint8>(R"blob(B38A8C9497959997A37443523B5C4864595C)blob");
 constexpr std::array<opus_int16, 11> silk_NLSF_DELTA_MIN_NB_MB_Q15 =
     numeric_blob_array<opus_int16>(R"blob(00FA00030006000300030003000400030003000301CD)blob");
+template <std::size_t Count> static bool silk_fill_nlsf_weights(std::array<opus_int16, Count>& weights, const auto& cb1_q8, const int order) {
+  for (std::size_t vector = 0; vector < Count / static_cast<std::size_t>(order); ++vector) {
+    std::array<opus_int16, 16> nlsf;
+    for (int i = 0; i < order; ++i) {
+      nlsf[static_cast<std::size_t>(i)] = static_cast<opus_int16>(cb1_q8[vector * static_cast<std::size_t>(order) + static_cast<std::size_t>(i)] << 7);
+    }
+    auto* const out = weights.data() + vector * static_cast<std::size_t>(order);
+    silk_NLSF_VQ_weights_laroia(out, nlsf.data(), order);
+    for (int i = 0; i < order; ++i) {
+      out[i] = static_cast<opus_int16>(silk_SQRT_APPROX(static_cast<opus_int32>(out[i]) << 16));
+    }
+  }
+  return true;
+}
 constinit const silk_NLSF_CB_struct silk_NLSF_CB_NB_MB =
     make_silk_nlsf_cb(32, 10, fixed_q<16>(0.18), fixed_q<6>(1.0 / 0.18), silk_NLSF_CB1_NB_MB_Q8, silk_NLSF_CB1_Wght_Q9,
                       silk_NLSF_CB1_iCDF_NB_MB, silk_NLSF_PRED_NB_MB_Q8, silk_NLSF_CB2_SELECT_NB_MB, silk_NLSF_CB2_iCDF_NB_MB,
                       silk_NLSF_CB2_BITS_NB_MB_Q5, silk_NLSF_DELTA_MIN_NB_MB_Q15);
 constexpr std::array<opus_uint8, 512> silk_NLSF_CB1_WB_Q8 = numeric_blob_array<opus_uint8>(
     R"blob(07172636455564748393A2B2C1D0DFEF0D192937455362707F8E9DABBBCBDCEC0F1522333D4E5C6A7E8898A7B9CDE1F00A1524323F4F5F6E7E8D9DADBDCDDDED111425333B4E596B7B8696A4B8CDE0F00A0F203343516070818E9EADBDCCDCEC08152533414F62717E8A9BA8B3C0D1DA0C0F22373F4E576C768394A7B9CBDBEC10132024384F5B6C76889AABBACCDCED0B1C2B3A4A5969788796A5B4C4D3E2F10610212E3C4B5C6B7B899CA9B9C7D6E10B131E2C394A5969798798A9BACADAEA0C131D2E39475864788494A5B6C7D8E91117232E384D5C6A7B8698A7B9CCDEED0E112D353F4B596B738497ABBCCEDDF009101D283847586777899AABBDCDDEED10132430394C5769768496A7B9CADAEC0C111D3647515E687E8895A4B6C9DDED0F1C2F3E4F6173818E9BA8B4C2D0DFEE080E1E2D3E4E5E6F7F8F9FAFC0CFDFEF111E313E4F5C6B778491A0AEBECCDCEB0E13242D3D4C5B6C798A9AACBDCDDEEE0C121F2D3C4C5B6B7B8A9AABBBCCDDEC0D111F2B35465367728395A7B9CBDCED1116232A3A4E5D6E7D8B9BAABCCEE0F0080F2232435363738392A2B2C1D1E0EF0D10294249565F6F808996A3B7CEE1F1111925343F4B5C66778490A0AFBFD4E7131F31415364758593A1AEBBC8D5E3F2121F34445867757E8A95A3B1C0CFDFEF101D2F3D4C5A6A778593A1B0C1D1E0F00F1523323D4956616E77818DAFC6DAED)blob");
-constexpr std::array<opus_int16, 512> silk_NLSF_CB1_WB_Wght_Q9 = numeric_blob_array<opus_int16>(
-    R"blob(0E490B6D0B6D0B6D0B6D0B6D0B6D0B6D0B6D0B6D0B6D0B6D0B930B930B6D0B1E0C900C0D0B9C0BF00BF00BC20BC20BC20B930B930BC20B9C0B480B1E0B1E0AA60F500FAE0BA50C870C870B760BF00B1E0C320CAC0B6D0B1E0A3C09F90ADC0B6D0DBC0C7D0BC20C1F0BCB0B480B6D0B6D0B6D0B6D0B480B480B480B480B480AC113BE13BE0B760DF50D390BF00C0D0AE90C580C580B9C0B1E09D109EC0AC10B48114C10350A8C0AC10B9C0BC20B6D0B1E0BA50BCB0B6D0B6D0B6D0B6D0B480AA60E240BCB0B9C0BF00BF00B390AF60BF00C900BE70BA50CDB0CDB0BA50CEE0BAF146B139609EC0D0A0DC60D390C7D0C160D300BA50A8C0A570A7F0AE90B1E0A7113D914361207114C099C0B510BE70C870C610A7F0AB40B480B1E0AE90B1E0A8C0C320B480B930B6D0B6D0B6D0B6D0B930B930B930B930B6D0B6D0B930B930B93106A0C870BA50C1F0BC20B480B480B6D0B9C0B390B640BCB0B9C0BC20C7D0B390EB00EB00CAC0C1F0BA50B480B6D0B480B9C0B760AE90AE90B1E0B480B480A640F0E0FAE0C870C320CAC0B760BE70B930B930C0D0B1E0AE90AE90AE90AE90A140F050FF00D1D0DBC0C160AB40BC20B760C320C0D0B1E0B1E0A570A570B1E0AF6141B131E0C990F050D710C610B510D550D7B0A8C0A140A710AB40B1E0AF60AC1100D0ECD0CDB0C580B6D0B480B480B6D0AE90AB40AE90AB40AE90B1E0B480AF613D913BE0BE70DD90CAC0BF00C0D0B800C1F0B510AB40AB40AB40B1E0AE90A3C10D510D50B2C09DF0C870D300D300C030C030D300BF00B1E0A570A140AA60AC10BF00B640AF60B480AB40A7F0B510C1F0C4E0C4E0C900C610BF00BC20B930B1E11170F2A0B6D0B480B1E0B480B1E0B1E0B480B480B480B1E0B480B6D0B480B1E0BA50B640B640BA50BA50BF00C320C900C4E0BF00BC20B9C0B9C0B9C0B6D0AB4108510350CEE0D130B6D0B930B480BA50BA50B1E0AE90AB40B1E0B1E0B1E0AE90FF00FAE0C1F0BC20B6D0B6D0B6D0B480B6D0B6D0B1E0B1E0B1E0AE90B480ADC120711DF0C610D710C870BA50B510BDE0C320AB40A7F0A7F0A7F0AB40AE90A8C103510AD0ECD0E490AA60ADC0B480B480BC20B9C0B6D0B1E0A7F0A7F0AE90B4810770DE20AC10B1E0B1E0B480B480B480B6D0B6D0B480B6D0B6D0B6D0B930B481436133908D50D680ECD0D970D130B1E0CEE0D970C4E0B51099C09B70AC10B6D0D7B0E650C320C7D0D1D0BE70C870C870BA50C900C0D0B6D0B6D0A7F09EC09820BA50BC20AE90AE90AB40AE90B1E0B9C0BF00C1F0C4E0C4E0C4E0C1F0BC20BC20B800B390A7F0AA60ADC0BC20D680DD90D1D0CAC0BF00BC20B930B6D0B480B1E0BCB0B800B510BC20BC20B9C0BCB0C1F0BF00BF00BC20B480B1E0B6D0B6D0B480F500F7F0BC20C7D0D1D0C900CDB0CDB0D970E780D710AA60885099C0A140A2F)blob");
+std::array<opus_int16, 512> silk_NLSF_CB1_WB_Wght_Q9;
 constexpr std::array<opus_uint8, 64> silk_NLSF_CB1_iCDF_WB = numeric_blob_array<opus_uint8>(
     R"blob(E1CCC9B8B7AF9E9A99877773716E6D63625F4F443432302D2B201F1B120A0300FFFBEBE6D4C9C4B6A7A6A3978A7C6E685A4E4C4645392D2218150B0605040300)blob");
 constexpr std::array<opus_uint8, 256> silk_NLSF_CB2_SELECT_WB = numeric_blob_array<opus_uint8>(
@@ -5047,23 +5059,6 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM);
 static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth);
 
-constexpr int celt_bits2pulses_lut_lm_count = 4;
-constexpr int celt_bits2pulses_lut_rows = celt_bits2pulses_lut_lm_count * celt_default_nb_ebands;
-constexpr int celt_bits2pulses_lut_entries = 4424;
-
-struct celt_bits2pulses_lut_table {
-  struct range {
-    opus_uint16 begin;
-    opus_uint16 length;
-  };
-  std::array<range, celt_bits2pulses_lut_rows> ranges{};
-  std::array<opus_uint8, celt_bits2pulses_lut_entries> values{};
-};
-
-namespace {
-extern constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut;
-}
-
 [[nodiscard]] constexpr auto celt_bits2pulses_search(const unsigned char* cache, int bits) noexcept -> int {
   int lo = 0;
   int hi = cache[0];
@@ -5088,14 +5083,7 @@ struct celt_pulse_budget {
 
 [[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept -> celt_pulse_budget {
   ++lm;
-  int pulses;
-  if (bits >= 0 && lm > 0 && lm <= celt_bits2pulses_lut_lm_count) {
-    const auto row = static_cast<std::size_t>((lm - 1) * celt_default_nb_ebands + band);
-    const auto range = celt_bits2pulses_lut.ranges[row];
-    pulses = static_cast<unsigned>(bits) < range.length ? celt_bits2pulses_lut.values[range.begin + static_cast<unsigned>(bits)] : cache[0];
-  } else {
-    pulses = celt_bits2pulses_search(cache, bits);
-  }
+  const int pulses = celt_bits2pulses_search(cache, bits);
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
 
@@ -10183,8 +10171,10 @@ static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_r
 static constexpr auto celt_pvq_fast_row_offsets_storage = make_celt_pvq_fast_row_offsets();
 static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_storage.back();
 
-[[nodiscard]] consteval auto make_celt_pvq_u_fast_rows() noexcept {
-  std::array<opus_uint32, celt_pvq_fast_data_count> rows{};
+static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows_storage;
+
+static bool fill_celt_pvq_u_fast_rows() noexcept {
+  auto& rows = celt_pvq_u_fast_rows_storage;
   const auto get = [&](std::size_t row, std::size_t column) {
     if (row > column) {
       std::swap(row, column);
@@ -10200,10 +10190,9 @@ static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_stora
                                                    : get(row_index - 1, column) + rows[offset + column - 1] + get(row_index - 1, column - 1);
     }
   }
-  return rows;
+  return true;
 }
 
-static constexpr auto celt_pvq_u_fast_rows_storage = make_celt_pvq_u_fast_rows();
 
 [[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
   std::array<const opus_uint32*, celt_pvq_fast_row_count> rows{};
@@ -11558,51 +11547,6 @@ static int hybrid_celt_funding_reserve(int LM, int channels, int end, int nomina
 }
 
 namespace {
-[[nodiscard]] consteval auto make_celt_bits2pulses_lut() noexcept -> celt_bits2pulses_lut_table {
-  celt_bits2pulses_lut_table table{};
-  std::size_t entry = 0;
-  int row = 0;
-  for (int lm = 1; lm <= celt_bits2pulses_lut_lm_count; ++lm) {
-    for (int band = 0; band < celt_default_nb_ebands; ++band, ++row) {
-      const auto cache_offset = cache_index50[static_cast<std::size_t>(lm * celt_default_nb_ebands + band)];
-      const auto max_pulse = cache_bits50[static_cast<std::size_t>(cache_offset)];
-      const auto count = cache_bits50[static_cast<std::size_t>(cache_offset + max_pulse)] + 2;
-      std::array<opus_uint8, 257> row_values{};
-      int upper = 1;
-      for (int bits = 0; bits < count; ++bits) {
-        const int target = bits - 1;
-        while (upper < max_pulse && cache_bits50[static_cast<std::size_t>(cache_offset + upper)] < target) {
-          ++upper;
-        }
-        const int lower = upper - 1;
-        const int lower_value = lower == 0 ? -1 : cache_bits50[static_cast<std::size_t>(cache_offset + lower)];
-        const int upper_value = cache_bits50[static_cast<std::size_t>(cache_offset + upper)];
-        row_values[static_cast<std::size_t>(bits)] = static_cast<opus_uint8>(target - lower_value <= upper_value - target ? lower : upper);
-      }
-      int previous = 0;
-      for (; previous < row; ++previous) {
-        const auto range = table.ranges[static_cast<std::size_t>(previous)];
-        if (range.length != count)
-          continue;
-        int bits = 0;
-        for (; bits < count && row_values[static_cast<std::size_t>(bits)] == table.values[range.begin + static_cast<std::size_t>(bits)]; ++bits) {
-        }
-        if (bits == count)
-          break;
-      }
-      if (previous < row) {
-        table.ranges[static_cast<std::size_t>(row)] = table.ranges[static_cast<std::size_t>(previous)];
-      } else {
-        table.ranges[static_cast<std::size_t>(row)] = {static_cast<opus_uint16>(entry), static_cast<opus_uint16>(count)};
-        for (int bits = 0; bits < count; ++bits)
-          table.values[entry++] = row_values[static_cast<std::size_t>(bits)];
-      }
-    }
-  }
-  return table;
-}
-
-constinit const celt_bits2pulses_lut_table celt_bits2pulses_lut = make_celt_bits2pulses_lut();
 }
 
 struct celt_generated_tables {
@@ -11616,7 +11560,8 @@ struct celt_generated_tables {
   std::array<std::array<celt_coef, 2>, 120> comb_fade;
 };
 
-consteval auto celt_sine(double angle) noexcept -> double {
+constexpr auto celt_sine(double angle) noexcept -> double {
+#pragma STDC FP_CONTRACT OFF
   constexpr double pi = 3.14159265358979323846264338327950288;
   constexpr double two_pi = 2.0 * pi;
   while (angle > pi) {
@@ -11640,7 +11585,8 @@ consteval auto celt_sine(double angle) noexcept -> double {
   return result;
 }
 
-consteval auto celt_cosine(double angle) noexcept -> double {
+constexpr auto celt_cosine(double angle) noexcept -> double {
+#pragma STDC FP_CONTRACT OFF
   constexpr double half_pi = 1.57079632679489661923132169163975144;
   return celt_sine(half_pi + angle);
 }
@@ -11669,7 +11615,8 @@ template <std::size_t Size, int... Factors> consteval auto make_fft_bitrev() noe
   return values;
 }
 
-consteval auto make_celt_tables() noexcept -> celt_generated_tables {
+auto make_celt_tables() noexcept -> celt_generated_tables {
+#pragma STDC FP_CONTRACT OFF
   constexpr double pi = 3.14159265358979323846264338327950288;
   celt_generated_tables tables{};
   for (std::size_t index = 0; index < tables.fft_twiddles.size(); ++index) {
@@ -11699,7 +11646,7 @@ consteval auto make_celt_tables() noexcept -> celt_generated_tables {
   return tables;
 }
 
-static constexpr celt_generated_tables celt_tables = make_celt_tables();
+static celt_generated_tables celt_tables;
 
 template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
   const auto before = std::less<const float*>{};
@@ -11724,7 +11671,7 @@ static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
 
-static consteval auto make_pitch512_twiddles() noexcept -> std::array<kiss_twiddle_cpx, 512> {
+static auto make_pitch512_twiddles() noexcept -> std::array<kiss_twiddle_cpx, 512> {
   constexpr std::array<float, 129> quarter{
       0x1p+0f, 0x1.fff622p-1f, 0x1.ffd886p-1f, 0x1.ffa72ep-1f,
       0x1.ff621ep-1f, 0x1.ff0956p-1f, 0x1.fe9cdap-1f, 0x1.fe1cbp-1f,
@@ -11771,17 +11718,18 @@ static consteval auto make_pitch512_twiddles() noexcept -> std::array<kiss_twidd
   values[0].i = values[128].r = values[256].i = values[384].r = 0.f;
   return values;
 }
-static constexpr auto pitch512_twiddles = make_pitch512_twiddles();
+static std::array<kiss_twiddle_cpx, 512> pitch512_twiddles;
 
-consteval auto pitch512_bitrev() {
+constexpr auto pitch512_bitrev() {
   std::array<opus_int16, 512> p{};
   for (int n = 0; n < 512; ++n)
     p[n] = static_cast<opus_int16>(((n & 3) << 7) + ((n & 12) << 3) + ((n & 48) >> 1) + ((n & 192) >> 5) + ((n & 256) >> 8));
   return p;
 }
-static constexpr auto pitch512_permutation = pitch512_bitrev();
+static std::array<opus_int16, 512> pitch512_permutation;
 consteval auto pitch512_cycle_leaders() {
-  constexpr auto count = [] {
+  constexpr auto pitch512_permutation = pitch512_bitrev();
+  constexpr auto count = [&] {
     int result = 0;
     for (int start = 0; start < 512; ++start) {
       int position = pitch512_permutation[start];
@@ -13891,58 +13839,13 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
   best_xy = std::max(0.f, best_xy);                                                                 \
   const opus_val16 pg = std::min(g, best_yy <= best_xy ? 1.0f : static_cast<float>(best_xy) / (best_yy + 1));
 
-static opus_val16 remove_doubling_original(opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain) {
-  constexpr int maxperiod = celt_max_pitch_period / 2;
-  constexpr int minperiod = celt_min_pitch_period / 2;
-  constexpr int minperiod0 = celt_min_pitch_period;
-  opus_val32 xy, xx;
-  std::array<opus_val32, 3> xcorr;
-  int offset;
-  *T0_ /= 2;
-  prev_period /= 2;
-  N /= 2;
-  x += maxperiod;
-  if (*T0_ >= maxperiod) {
-    *T0_ = maxperiod - 1;
-  }
-  int T = *T0_;
-  const int T0 = T;
-  std::array<opus_val32, celt_max_pitch_period / 2 + 1> yy_lookup;
-  dual_inner_prod_c(x, x, x - T0, N, xx, xy);
-  yy_lookup[0] = xx;
-  opus_val32 yy = xx;
-  for (int i = 1; i <= maxperiod; i++) {
-    yy = yy + (static_cast<opus_val32>(x[-i]) * static_cast<opus_val32>(x[-i])) -
-         (static_cast<opus_val32>(x[N - i]) * static_cast<opus_val32>(x[N - i]));
-    yy_lookup[i] = std::max(0.f, yy);
-  }
-  yy = yy_lookup[T0];
-  opus_val32 best_xy = xy;
-  opus_val32 best_yy = yy;
-  opus_val16 g = compute_pitch_gain(xy, xx, yy);
-  const opus_val16 g0 = g;
-  OPUSCPP_REMOVE_DOUBLING_SEARCH
-  for (int k = 0; k < 3; k++) {
-    xcorr[static_cast<std::size_t>(k)] = celt_inner_prod_c(x, x - (T + k - 1), N);
-  }
-  if ((xcorr[2] - xcorr[0]) > (((.7f)) * (xcorr[1] - xcorr[0]))) {
-    offset = 1;
-  } else if ((xcorr[0] - xcorr[2]) > (((.7f)) * (xcorr[1] - xcorr[2])))
-    offset = -1;
-  else
-    offset = 0;
-  *T0_ = 2 * T + offset;
-  if (*T0_ < minperiod0) {
-    *T0_ = minperiod0;
-  }
-  return pg;
-}
-
-template <bool SharedPower>
 static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain, const pitch_window_power* power, const pitch_fine_correlations* fine = nullptr) {
-  if (FLT_EVAL_METHOD != 0 || !std::numeric_limits<float>::is_iec559 || std::numeric_limits<float>::digits != 24 ||
-      N < 0 || N > celt_max_frame_samples || *T0_ < celt_min_pitch_period)
-    return remove_doubling_original(x, N, T0_, prev_period, prev_gain);
+  const bool strict = FLT_EVAL_METHOD != 0 || !std::numeric_limits<float>::is_iec559 || std::numeric_limits<float>::digits != 24 ||
+                      N < 0 || N > celt_max_frame_samples || *T0_ < celt_min_pitch_period;
+  if (strict) {
+    power = nullptr;
+    fine = nullptr;
+  }
 
   constexpr int maxperiod = celt_max_pitch_period / 2;
   constexpr int minperiod = celt_min_pitch_period / 2;
@@ -13959,10 +13862,10 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
   }
   int T = *T0_;
   const int T0 = T;
-  std::array<opus_val32, SharedPower ? 0 : celt_max_pitch_period / 2 + 1> energy_storage;
+  std::array<opus_val32, celt_max_pitch_period / 2 + 1> energy_storage;
   const opus_val32* yy_lookup;
   opus_val32 yy;
-  if constexpr (SharedPower) {
+  if (power != nullptr) {
     xx = power->lookup[0];
     if (!pitch_fine_correlation_lookup(fine, x, N, T0, xy))
       xy = celt_inner_prod_c(x, x - T0, N);
@@ -13979,7 +13882,7 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
     }
     yy_lookup = energy_storage.data();
   }
-  const bool finite_interpolation = ((std::bit_cast<opus_uint32>(xx) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(yy) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(prev_gain) & 0x7f800000U) != 0x7f800000U);
+  const bool finite_interpolation = !strict && ((std::bit_cast<opus_uint32>(xx) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(yy) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(prev_gain) & 0x7f800000U) != 0x7f800000U);
   yy = yy_lookup[T0];
   opus_val32 best_xy = xy;
   opus_val32 best_yy = yy;
@@ -14014,11 +13917,11 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
 #undef OPUSCPP_REMOVE_DOUBLING_SEARCH
 
 static opus_val16 remove_doubling(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain) {
-  return remove_doubling_impl<false>(x, N, T0, prev_period, prev_gain, nullptr);
+  return remove_doubling_impl(x, N, T0, prev_period, prev_gain, nullptr);
 }
 
 static opus_val16 remove_doubling_with_power_and_fine(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain, const pitch_window_power& power, const pitch_fine_correlations& fine) {
-  return remove_doubling_impl<true>(x, N, T0, prev_period, prev_gain, &power, &fine);
+  return remove_doubling_impl(x, N, T0, prev_period, prev_gain, &power, &fine);
 }
 
 namespace {
@@ -21418,8 +21321,22 @@ void assign_error(int* error, int value) noexcept {
   }
 }
 
+static void init_derived_tables() noexcept {
+  static const bool ready = [] {
+    silk_fill_nlsf_weights(silk_NLSF_CB1_Wght_Q9, silk_NLSF_CB1_NB_MB_Q8, 10);
+    silk_fill_nlsf_weights(silk_NLSF_CB1_WB_Wght_Q9, silk_NLSF_CB1_WB_Q8, 16);
+    fill_celt_pvq_u_fast_rows();
+    celt_tables = make_celt_tables();
+    pitch512_twiddles = make_pitch512_twiddles();
+    pitch512_permutation = pitch512_bitrev();
+    return true;
+  }();
+  static_cast<void>(ready);
+}
+
 template <bool Encoder>
 [[nodiscard]] auto create_codec_state(int Fs, int channels, int application, int* error) noexcept -> std::conditional_t<Encoder, OpusEncoder, OpusDecoder>* {
+  init_derived_tables();
   const bool supported_application =
       application == OPUS_APPLICATION_VOIP || application == OPUS_APPLICATION_AUDIO || application == OPUS_APPLICATION_RESTRICTED_LOWDELAY;
   if (!is_supported_sample_rate(Fs) || !is_supported_channel_count(channels) || (Encoder && !supported_application)) {
