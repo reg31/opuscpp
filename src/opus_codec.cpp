@@ -19714,6 +19714,21 @@ static double silk_energy_FLP(const float* data, int dataSize) {
   return silk_inner_product_FLP_c(data, data, dataSize);
 }
 
+#if defined(_MSC_VER)
+#define OPUSCPP_NOINLINE __declspec(noinline)
+#else
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#endif
+
+constexpr int silk_pitch_8k_subframe_samples = 5 * 8;
+
+#if defined(__clang__)
+OPUSCPP_NOINLINE
+#endif
+static inline double silk_pitch_energy_40_FLP(const float* data) {
+  return silk_energy_FLP(data, silk_pitch_8k_subframe_samples);
+}
+
 static auto silk_pitch_search_stage3(const float frame[], const int lag, const int min_lag, const int max_lag, const int sf_length, const int nb_subfr, const int complexity) -> std::array<int, 2> {
   constexpr int lag_span = 5;
   const int start_lag = std::max(lag - 2, min_lag);
@@ -19790,7 +19805,7 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
     const int frame_length = (20 + 5 * nb_subfr) * Fs_kHz;
     const int frame_length_4kHz = (20 + 5 * nb_subfr) * 4;
     const int frame_length_8kHz = (20 + 5 * nb_subfr) * 8;
-    constexpr int sf_length_4kHz = 20, sf_length_8kHz = 40;
+    constexpr int sf_length_4kHz = 20, sf_length_8kHz = silk_pitch_8k_subframe_samples;
     std::array<float, 40 * 8> frame_8kHz;
     std::array<opus_int16, 40 * silk_max_fs_kHz> resample_workspace;
     auto* candidate_map = resample_workspace.data();
@@ -19807,7 +19822,7 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
       celt_pitch_xcorr_c(target_4k, target_4k - max_lag_4kHz, coarse_cross_correlations.data(), sf_length_8kHz,
                          max_lag_4kHz - min_lag_4kHz + 1);
       auto cross_corr = static_cast<double>(coarse_cross_correlations[max_lag_4kHz - min_lag_4kHz]);
-      auto normalizer = silk_energy_FLP(target_4k, sf_length_8kHz) + silk_energy_FLP(basis, sf_length_8kHz) + sf_length_8kHz * 4000.0f;
+      auto normalizer = silk_pitch_energy_40_FLP(target_4k) + silk_pitch_energy_40_FLP(basis) + sf_length_8kHz * 4000.0f;
       lag_correlations[min_lag_4kHz] += static_cast<float>(2 * cross_corr / normalizer);
       for (int d = min_lag_4kHz + 1; d <= max_lag_4kHz; ++d) {
         --basis;
@@ -19858,13 +19873,13 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
     zero_n_items(lag_correlations.data(), lag_correlations.size());
     auto* target_8k = Fs_kHz == 8 ? &frame[(4 * 5) * 8] : &frame_8kHz[(4 * 5) * 8];
     for (int k = 0; k < nb_subfr; ++k) {
-      const double target_energy = silk_energy_FLP(target_8k, sf_length_8kHz) + 1.0;
+      const double target_energy = silk_pitch_energy_40_FLP(target_8k) + 1.0;
       for (int j = 0; j < expanded_count; ++j) {
         const int d = candidate_map[j];
         const auto* basis = target_8k - d;
         const double cross_corr = silk_inner_product_FLP_c(basis, target_8k, sf_length_8kHz);
         if (cross_corr > 0.0f) {
-          const double basis_energy = silk_energy_FLP(basis, sf_length_8kHz);
+          const double basis_energy = silk_pitch_energy_40_FLP(basis);
           lag_correlations[k * pitch_stage2_cols + d] = static_cast<float>(2 * cross_corr / (basis_energy + target_energy));
         }
       }
@@ -20120,11 +20135,6 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
   return static_cast<float>(nrg_f);
 }
 
-#if defined(_MSC_VER)
-#define OPUSCPP_NOINLINE __declspec(noinline)
-#else
-#define OPUSCPP_NOINLINE [[gnu::noinline]]
-#endif
 template <class State>
 OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
   int k, subfr_length;
