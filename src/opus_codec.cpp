@@ -11738,10 +11738,14 @@ static void fill_pitch512_twiddles(std::array<kiss_twiddle_cpx, 512>& values) no
 }
 static std::array<kiss_twiddle_cpx, 512> pitch512_twiddles;
 
+constexpr auto pitch512_bitrev_index(int n) noexcept -> opus_int16 {
+  return static_cast<opus_int16>(((n & 3) << 7) + ((n & 12) << 3) + ((n & 48) >> 1) + ((n & 192) >> 5) + ((n & 256) >> 8));
+}
+
 constexpr auto pitch512_bitrev() {
   std::array<opus_int16, 512> p{};
   for (int n = 0; n < 512; ++n)
-    p[n] = static_cast<opus_int16>(((n & 3) << 7) + ((n & 12) << 3) + ((n & 48) >> 1) + ((n & 192) >> 5) + ((n & 256) >> 8));
+    p[n] = pitch512_bitrev_index(n);
   return p;
 }
 static std::array<opus_int16, 512> pitch512_permutation;
@@ -21295,6 +21299,11 @@ void assign_error(int* error, int value) noexcept {
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
 
+OPUSCPP_NOINLINE static void fill_pitch512_permutation() noexcept {
+  for (int n = 0; n < 512; ++n)
+    pitch512_permutation[n] = pitch512_bitrev_index(n);
+}
+
 OPUSCPP_NOINLINE static bool initialize_derived_tables_once() noexcept {
   if (!fill_celt_tables(celt_tables)) {
     return false;
@@ -21307,7 +21316,7 @@ OPUSCPP_NOINLINE static bool initialize_derived_tables_once() noexcept {
   silk_fill_nlsf_weights(silk_NLSF_CB1_WB_Wght_Q9, silk_NLSF_CB1_WB_Q8, 16);
   fill_celt_pvq_u_fast_rows();
   fill_pitch512_twiddles(pitch512_twiddles);
-  pitch512_permutation = pitch512_bitrev();
+  fill_pitch512_permutation();
   return true;
 }
 
