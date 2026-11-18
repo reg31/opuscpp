@@ -198,9 +198,7 @@ def cmd_report(a):
             e["quality_pass"] = "unset" if unset and all_pass else all_pass
             target = c["bitrate"]
             floor = 0.99 * min(target, off["actual_bitrate_bps"])
-            ceil = 1.01 * target
-            if off["actual_bitrate_bps"] > target:
-                ceil = min(ceil, off["actual_bitrate_bps"])
+            ceil = float("inf") if c["vbr"] else target
             e.update(official_actual_bps=off["actual_bitrate_bps"], current_actual_bps=cur["actual_bitrate_bps"],
                      utilization_official=off["actual_bitrate_bps"] / target, utilization_current=cur["actual_bitrate_bps"] / target,
                      window_floor_bps=floor, window_ceiling_bps=ceil, window_pass=floor <= cur["actual_bitrate_bps"] <= ceil)

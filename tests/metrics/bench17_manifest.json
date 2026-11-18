@@ -522,5 +522,11 @@
   "rationale": "Official is deterministic (3-run spread 0), so variance gives no floor. The +1% bits sensitivity is the binding constraint: a win must exceed twice what 1% extra rate buys official in that config. A pair is saturated when official is within min_delta of the metric bound (max for scores, 0 for errors); saturated pairs must match official, all others must strictly beat official + min_delta.",
   "evidence": "tests/metrics/bench17_min_delta_evidence.md; build/bench/plus1pct.json",
   "choice": "Per-config rule selected by the user on 2026-11-17."
+ },
+ "rate_window": {
+  "floor": "0.99 x min(target, official actual)",
+  "ceiling": "target for CBR; none for VBR/CVBR",
+  "changed_utc": "2026-11-18",
+  "reason": "User dropped the 1.01 x target VBR ceiling; spending above official is checked by the matched-rate regress gate (bench17.py matched/regress)."
  }
 }
