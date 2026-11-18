@@ -4907,7 +4907,7 @@ static inline void convert_encoder_pcm16(const opus_int16* pcm, opus_res* input_
 OPUSCPP_NOINLINE
 #endif
 static inline opus_int32 encode_pcm16_converted(OpusEncoder* st, opus_res* input_storage, int frame_size, unsigned char* data,
-                                               opus_int32 max_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm) {
+                                                opus_int32 max_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm) {
   const auto sample_count = static_cast<std::size_t>(frame_size * st->channels);
   convert_encoder_pcm16(pcm, input_storage, sample_count);
   return encode_native(st, input_storage, frame_size, data, max_data_bytes, lsb_depth, float_api, pcm);
