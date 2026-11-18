@@ -16904,8 +16904,9 @@ __declspec(noinline)
 #else
 [[gnu::noinline]]
 #endif
-static auto silk_nsq_lpc_predict_pair(const opus_int32* first_history, const opus_int32* second_history,
-                                      const opus_int16* a_Q12, int pair_age) noexcept -> silk_nsq_lpc_pair {
+static auto
+silk_nsq_lpc_predict_pair(const opus_int32* first_history, const opus_int32* second_history,
+                          const opus_int16* a_Q12, int pair_age) noexcept -> silk_nsq_lpc_pair {
   const auto group = [&]<int First>(const opus_int32* history) noexcept {
     return silk_mul_wb(history[-First - 1], a_Q12[First]) +
            silk_mul_wb(history[-First - 2], a_Q12[First + 1]) +
