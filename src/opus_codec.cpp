@@ -15,7 +15,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <memory>
@@ -602,7 +601,6 @@ struct classical_leak_state {
   float Etracker;
   float lowECount;
   int count;
-  static constexpr int analysis_offset = 0;
   opus_uint8 write_pos;
   opus_uint8 read_pos;
   opus_uint8 read_subframe;
