@@ -2637,14 +2637,14 @@ struct OpusEncoder {
   classical_leak_state classical_leak;
   opus_uint16 celt_enc_offset, silk_enc_offset;
   silk_EncControlStruct silk_mode;
-  int application, channels, delay_compensation;
+  int application, channels;
+  opus_int16 delay_compensation, encoder_buffer;
   opus_int32 Fs;
   int use_vbr, vbr_constraint;
   opus_int32 user_bitrate_bps;
-  int encoder_buffer, use_dtx;
+  int use_dtx;
   opus_int32 bitrate_bps;
   opus_int32 vbr_budget_reservoir_bits;
-  opus_int32 rate_servo_bits;
   opus_int32 rate_servo_frames;
   opus_int16 stream_channels;
   opus_int16 hybrid_stereo_width_Q14;
@@ -2660,6 +2660,7 @@ struct OpusEncoder {
   int preprocess_filter_state;
   StereoWidthState width_mem;
   opus_val32 peak_signal_energy;
+  opus_int32 rate_servo_bits;
   std::array<voice_conditioning_channel, 2> conditioning;
   opus_uint32 rangeFinal;
   int nb_no_activity_ms_Q1;
