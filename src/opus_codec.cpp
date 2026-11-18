@@ -17796,39 +17796,53 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
   return *best;
 }
 
-template <class State>
-static void silk_process_NLSFs(State* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16]) {
+#if defined(_MSC_VER)
+__declspec(noinline)
+#else
+[[gnu::noinline]]
+#endif
+static void silk_process_NLSFs_common(SideInfoIndices& indices, opus_int16 PredCoef_Q12[2][16],
+                                     opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16],
+                                     int NLSF_mu_Q20, int predictLPCOrder, int Complexity,
+                                     const silk_NLSF_CB_struct* psNLSF_CB, int NLSF_MSVQ_Survivors) {
   opus_int16 pNLSF0_temp_Q15[16];
   opus_int16 pNLSFW_QW[16], pNLSFW0_temp_QW[16];
+  silk_NLSF_VQ_weights_laroia(pNLSFW_QW, pNLSF_Q15, predictLPCOrder);
+  const auto doInterpolate = Complexity >= 4 && indices.NLSFInterpCoef_Q2 < 4;
+  if (doInterpolate) {
+    silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     std::span<const opus_int16>{prev_NLSFq_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     std::span<const opus_int16>{pNLSF_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     indices.NLSFInterpCoef_Q2);
+    silk_NLSF_VQ_weights_laroia(pNLSFW0_temp_QW, pNLSF0_temp_Q15, predictLPCOrder);
+    const auto i_sqr_Q15 = wrap_shift_left(indices.NLSFInterpCoef_Q2 * indices.NLSFInterpCoef_Q2, 11);
+    for (int i = 0; i < predictLPCOrder; ++i) {
+      pNLSFW_QW[i] = (pNLSFW_QW[i] >> 1) + silk_mul_i16_shift<16>(pNLSFW0_temp_QW[i], i_sqr_Q15);
+    }
+  }
+  silk_NLSF_encode(std::span<opus_int8, 17>{indices.NLSFIndices}, std::span<opus_int16, 16>{pNLSF_Q15, 16}, psNLSF_CB,
+                   pNLSFW_QW, NLSF_mu_Q20, NLSF_MSVQ_Survivors, indices.signalType);
+  silk_NLSF2A(PredCoef_Q12[1], pNLSF_Q15, predictLPCOrder);
+  if (doInterpolate) {
+    silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     std::span<const opus_int16>{prev_NLSFq_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     std::span<const opus_int16>{pNLSF_Q15, static_cast<std::size_t>(predictLPCOrder)},
+                     indices.NLSFInterpCoef_Q2);
+    silk_NLSF2A(PredCoef_Q12[0], pNLSF0_temp_Q15, predictLPCOrder);
+  } else {
+    std::memcpy(PredCoef_Q12[0], PredCoef_Q12[1], static_cast<std::size_t>(predictLPCOrder * sizeof(opus_int16)));
+  }
+}
+
+template <class State>
+static void silk_process_NLSFs(State* psEncC, opus_int16 PredCoef_Q12[2][16], opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16]) {
   auto NLSF_mu_Q20 = fixed_q<20>(0.003) + silk_mul_wb(fixed_q<28>(-0.001), psEncC->speech_activity_Q8);
   if (psEncC->nb_subfr == 2) {
     NLSF_mu_Q20 = ((NLSF_mu_Q20) + (((NLSF_mu_Q20)) >> ((1))));
   }
-  silk_NLSF_VQ_weights_laroia(pNLSFW_QW, pNLSF_Q15, psEncC->predictLPCOrder);
-  const auto doInterpolate = psEncC->Complexity >= 4 && psEncC->indices.NLSFInterpCoef_Q2 < 4;
-  if (doInterpolate) {
-    silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     std::span<const opus_int16>{prev_NLSFq_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     std::span<const opus_int16>{pNLSF_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     psEncC->indices.NLSFInterpCoef_Q2);
-    silk_NLSF_VQ_weights_laroia(pNLSFW0_temp_QW, pNLSF0_temp_Q15, psEncC->predictLPCOrder);
-    const auto i_sqr_Q15 = wrap_shift_left(psEncC->indices.NLSFInterpCoef_Q2 * psEncC->indices.NLSFInterpCoef_Q2, 11);
-    for (int i = 0; i < psEncC->predictLPCOrder; ++i) {
-      pNLSFW_QW[i] = (pNLSFW_QW[i] >> 1) + silk_mul_i16_shift<16>(pNLSFW0_temp_QW[i], i_sqr_Q15);
-    }
-  }
-  silk_NLSF_encode(std::span<opus_int8, 17>{psEncC->indices.NLSFIndices}, std::span<opus_int16, 16>{pNLSF_Q15, 16}, psEncC->psNLSF_CB,
-                   pNLSFW_QW, NLSF_mu_Q20, psEncC->NLSF_MSVQ_Survivors, psEncC->indices.signalType);
-  silk_NLSF2A(PredCoef_Q12[1], pNLSF_Q15, psEncC->predictLPCOrder);
-  if (doInterpolate) {
-    silk_interpolate(std::span<opus_int16>{pNLSF0_temp_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     std::span<const opus_int16>{prev_NLSFq_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     std::span<const opus_int16>{pNLSF_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)},
-                     psEncC->indices.NLSFInterpCoef_Q2);
-    silk_NLSF2A(PredCoef_Q12[0], pNLSF0_temp_Q15, psEncC->predictLPCOrder);
-  } else {
-    std::memcpy(PredCoef_Q12[0], PredCoef_Q12[1], static_cast<std::size_t>(psEncC->predictLPCOrder * sizeof(opus_int16)));
-  }
+  silk_process_NLSFs_common(psEncC->indices, PredCoef_Q12, pNLSF_Q15, prev_NLSFq_Q15,
+                           NLSF_mu_Q20, psEncC->predictLPCOrder, psEncC->Complexity,
+                           psEncC->psNLSF_CB, psEncC->NLSF_MSVQ_Survivors);
 }
 
 constexpr std::array<unsigned char, 117 - 10> silk_TargetRate_NB_21 = numeric_blob_array<unsigned char>(
