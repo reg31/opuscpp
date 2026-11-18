@@ -9065,7 +9065,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     tell = energy_stage_tell;
   }
 
-  std::array<float, celt_max_channels * celt_default_nb_ebands> source_error_offset{};
+  constexpr auto snapshot_floats = (decltype(energy_stage_buffer)::extent + sizeof(celt_sig) - 1) / sizeof(celt_sig);
+  auto source_error_offset = std::span{input_storage}.subspan<live_band_floats + snapshot_floats, celt_max_channels * celt_default_nb_ebands>();
+  std::ranges::fill(source_error_offset, 0.f);
   if (spread_decision == 3 && shortBlocks == 0) {
     for (int channel = 0; channel < C; ++channel) {
       if (!std::isfinite(noise_covariance[channel]) ||
