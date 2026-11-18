@@ -9025,9 +9025,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           int trial_dual = allocation_dual;
           opus_int32 trial_balance;
           std::array<int, celt_default_nb_ebands> trial_pulses{}, trial_fine{}, trial_priority{};
-          std::memcpy(trial_pulses.data(), pulses.data(), sizeof(int) * celt_default_nb_ebands);
-          std::memcpy(trial_fine.data(), fine_quant.data(), sizeof(int) * celt_default_nb_ebands);
-          std::memcpy(trial_priority.data(), fine_priority.data(), sizeof(int) * celt_default_nb_ebands);
           const int trial_coded = clt_compute_allocation(start, end, offsets.data(), cap.data(), alternate_trim, &trial_intensity, &trial_dual, trial_bits, &trial_balance, trial_pulses.data(), trial_fine.data(), trial_priority.data(), C, LM, &trim_preview_coder, 1, st->lastCodedBands, signal_bandwidth);
           const bool same_basis = trial_coded == codedBands && trial_intensity == st->intensity && trial_dual == dual_stereo;
           bool same_uncoded = true;
