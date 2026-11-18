@@ -1525,7 +1525,7 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
     return opus_decode_fast_unavailable;
   }
   if (len == 0 || data == nullptr) {
-conceal_packet:
+  conceal_packet:
     int pcm_count = 0;
     for (; pcm_count < frame_size;) {
       int ret = opus_decode_frame(st, nullptr, 0, pcm + pcm_count * st->channels, frame_size - pcm_count, 0);
@@ -1540,11 +1540,13 @@ conceal_packet:
     return -1;
   }
   const bool packet_hybrid = !packet_celt && (toc & 0x60) == 0x60;
-  const int packet_mode = packet_celt ? opus_mode_celt_only : packet_hybrid ? opus_mode_hybrid : opus_mode_silk_only;
+  const int packet_mode = packet_celt ? opus_mode_celt_only : packet_hybrid ? opus_mode_hybrid
+                                                                            : opus_mode_silk_only;
   const int packet_bandwidth = ref_opus_packet_get_bandwidth(&toc);
   const int duration_code = (toc >> 3) & 3;
-  const int frame_units = packet_celt ? 1 << duration_code : packet_hybrid ? 4 << (duration_code & 1)
-                                                                        : duration_code == 3 ? 24 : 4 << duration_code;
+  const int frame_units = packet_celt ? 1 << duration_code : packet_hybrid    ? 4 << (duration_code & 1)
+                                                         : duration_code == 3 ? 24
+                                                                              : 4 << duration_code;
   const int packet_frame_size = frame_units * (st->Fs / 400);
   const int packet_stream_channels = (toc & 0x4) != 0 ? 2 : 1;
   std::array<opus_int16, 48> frame_lengths;
