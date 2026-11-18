@@ -14590,19 +14590,20 @@ static int clt_compute_allocation(int start, int end, const int* offsets, const 
   }
   std::array<std::array<int, celt_default_nb_ebands>, 4> allocation_workspace;
   auto& [bits1, bits2, thresh, trim_offset] = allocation_workspace;
+  auto& band_channel_width = bits1;
   for (int band = start; band < end; ++band) {
     const auto band_width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
     const auto channel_min_bits = C << 3;
     const auto band_min_bits = ((3 * band_width) << LM << 3) >> 4;
     thresh[band] = std::max(channel_min_bits, band_min_bits);
-    trim_offset[band] = C * band_width * (alloc_trim - 5 - LM) * (end - band - 1) * (1 << (LM + 3)) >> 6;
+    band_channel_width[band] = C * band_width;
+    trim_offset[band] = band_channel_width[band] * (alloc_trim - 5 - LM) * (end - band - 1) * (1 << (LM + 3)) >> 6;
     if ((band_width << LM) == 1) {
       trim_offset[band] -= channel_min_bits;
     }
   }
   const auto vector_bits = [&](int vector, int band, bool add_offset) {
-    const int width = celt_mode()->eBands[band + 1] - celt_mode()->eBands[band];
-    int value = C * width * celt_mode()->allocVectors[vector * len + band] << LM >> 2;
+    int value = band_channel_width[band] * celt_mode()->allocVectors[vector * len + band] << LM >> 2;
     if (value > 0) {
       value = std::max(0, value + trim_offset[band]);
     }
