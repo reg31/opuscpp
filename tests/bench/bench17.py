@@ -232,6 +232,58 @@ def cmd_report(a):
     write_outputs("report", data, rows, "\n".join(md) + "\n")
 
 
+def cmd_matched(a):
+    manifest = load_manifest()
+    cases = select(manifest, a.cases)
+    inputs = Path(a.inputs)
+    verify_inputs(cases, inputs)
+    out = {}
+    for c in cases:
+        off = invoke("quality", "official", c, inputs, a.exe)
+        goal, request, best = off["actual_bitrate_bps"], c["bitrate"], None
+        for _ in range(8):
+            cur = invoke("quality", "current", dict(c, bitrate=request), inputs, a.exe)
+            err = cur["actual_bitrate_bps"] / goal - 1
+            if best is None or abs(err) < abs(best[2]):
+                best = (request, cur, err)
+            if abs(err) <= a.tolerance:
+                break
+            request = max(500, round(request / (1 + err)))
+        out[c["id"]] = {"official": off, "current": best[1], "current_request_bps": best[0], "rate_error": best[2]}
+        print(f"{c['id']}: request={best[0]} rate_error={best[2]:+.4f}")
+    write_outputs("matched", {"upstream_pin": manifest["upstream_pin"], "tolerance": a.tolerance, "cases": out}, [])
+
+
+def below_fields(case, metrics):
+    out = {}
+    for name, spec in metrics.items():
+        signed = case["current"][name] - case["official"][name]
+        signed = signed if spec["direction"] == "higher" else -signed
+        if signed < 0:
+            out[name] = signed
+    return out
+
+
+def cmd_regress(a):
+    metrics = load_manifest()["metrics"]
+    base = json.loads(Path(a.base).read_text())["cases"]
+    cand = json.loads(Path(a.cand).read_text())["cases"]
+    newly, worse, rate = {}, {}, {}
+    for cid, c in cand.items():
+        b = below_fields(base[cid], metrics)
+        for name, v in below_fields(c, metrics).items():
+            if name not in b:
+                newly.setdefault(cid, {})[name] = v
+            elif v < b[name]:
+                worse.setdefault(cid, {})[name] = (b[name], v)
+        if abs(c["rate_error"]) > a.tolerance:
+            rate[cid] = c["rate_error"]
+    nb = sum(len(below_fields(c, metrics)) for c in base.values())
+    nc = sum(len(below_fields(c, metrics)) for c in cand.values())
+    print(json.dumps({"below_fields_base": nb, "below_fields_cand": nc, "newly_below": newly, "worsened_below": worse, "unmatched_rate": rate}, indent=1))
+    sys.exit(1 if newly or worse or rate else 0)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--inputs", default=str(INPUTS))
@@ -251,6 +303,15 @@ def main():
     r.add_argument("--time")
     r.add_argument("--quality")
     r.set_defaults(fn=cmd_report)
+    m = sub.add_parser("matched")
+    m.add_argument("--cases")
+    m.add_argument("--tolerance", type=float, default=0.005)
+    m.set_defaults(fn=cmd_matched)
+    g = sub.add_parser("regress")
+    g.add_argument("--base", required=True)
+    g.add_argument("--cand", required=True)
+    g.add_argument("--tolerance", type=float, default=0.005)
+    g.set_defaults(fn=cmd_regress)
     a = p.parse_args()
     a.fn(a)
 
