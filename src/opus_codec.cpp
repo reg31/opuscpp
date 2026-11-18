@@ -19393,7 +19393,6 @@ OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state&
   const int second_cost = price(second_indices, second_pulses);
   return first_cost < second_cost;
 }
-#undef OPUSCPP_NOINLINE
 
 [[nodiscard]] static auto silk_lbrr_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
   int next;
@@ -19657,12 +19656,6 @@ static void silk_k2a_FLP(float* A, const float* rc, opus_int32 order) {
 static double silk_energy_FLP(const float* data, int dataSize) {
   return silk_inner_product_FLP_c(data, data, dataSize);
 }
-
-#if defined(_MSC_VER)
-#define OPUSCPP_NOINLINE __declspec(noinline)
-#else
-#define OPUSCPP_NOINLINE [[gnu::noinline]]
-#endif
 
 constexpr int silk_pitch_8k_subframe_samples = 5 * 8;
 
