@@ -263,16 +263,21 @@ def below_fields(case, metrics):
 
 
 def cmd_regress(a):
-    metrics = load_manifest()["metrics"]
+    manifest = load_manifest()
+    metrics = manifest["metrics"]
+    deltas = {c["id"]: c["min_delta"] for c in manifest["cases"]}
     base = json.loads(Path(a.base).read_text())["cases"]
     cand = json.loads(Path(a.cand).read_text())["cases"]
     newly, worse, rate = {}, {}, {}
     for cid, c in cand.items():
         b = below_fields(base[cid], metrics)
         for name, v in below_fields(c, metrics).items():
+            moved = v - b.get(name, 0.0)
+            if moved > -deltas[cid][name]:
+                continue
             if name not in b:
                 newly.setdefault(cid, {})[name] = v
-            elif v < b[name]:
+            else:
                 worse.setdefault(cid, {})[name] = (b[name], v)
         if abs(c["rate_error"]) > a.tolerance:
             rate[cid] = c["rate_error"]
