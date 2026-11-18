@@ -5083,8 +5083,7 @@ struct celt_pulse_budget {
   int bits;
 };
 
-[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int band, int lm, int bits) noexcept -> celt_pulse_budget {
-  ++lm;
+[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int bits) noexcept -> celt_pulse_budget {
   const int pulses = celt_bits2pulses_search(cache, bits);
   return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
 }
@@ -5697,7 +5696,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
       cm |= quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill, child_cache);
     }
   } else {
-    const auto pulse_budget = compute_celt_pulse_budget(cache, i, LM, b);
+    const auto pulse_budget = compute_celt_pulse_budget(cache, b);
     q = pulse_budget.pulses;
     curr_bits = pulse_budget.bits;
     ctx->remaining_bits -= curr_bits;
