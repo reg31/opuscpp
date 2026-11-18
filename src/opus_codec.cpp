@@ -650,6 +650,7 @@ struct CeltEncoderInternal {
   SILKInfo silk_info;
   opus_val32 preemph_memE[2];
   opus_int32 vbr_reservoir, vbr_drift, vbr_offset, vbr_count;
+  float vbr_drift_resid;
   opus_val32 overlap_max;
   opus_val16 stereo_saving;
   int intensity;
@@ -7543,7 +7544,11 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       }
     }
     apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
-    if (effectiveBytes > 320) {
+    if (st->channels == 2 && st->bitrate >= 40000 && st->constrained_vbr && !isTransient && effectiveBytes > 60) {
+      const auto boost = std::min<celt_glog>(4.f, 2e-2f * (effectiveBytes - 60));
+      for (i = 0; i < std::min(4, end); ++i)
+        follower[i] += boost;
+    } else if (effectiveBytes > 320) {
       follower[0] += std::min<celt_glog>(1.5f, 1e-3f * (effectiveBytes - 320));
     }
     for (i = start; i < end; i++) {
@@ -8980,8 +8985,16 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         }
       }
       target += tell + funded_rounding_frac;
+      const opus_int32 raw_target = target;
+      const bool stereo_music = !hybrid && st->channels == 2 && st->bitrate >= 40000 && st->constrained_vbr;
+      if (stereo_music) {
+        target -= std::max<opus_int32>(0, st->vbr_reservoir) >> 2;
+      }
+      if (stereo_music && isTransient && tf_estimate > .9f) {
+        target += target >> 1;
+      }
       nbAvailableBytes = std::min(nbCompressedBytes, std::max(min_allowed, (target + (1 << (3 + 2))) >> (3 + 3)));
-      opus_int32 delta = target - vbr_rate;
+      opus_int32 delta = raw_target - vbr_rate;
       if (silence) {
         nbAvailableBytes = 2;
         delta = 0;
@@ -8989,7 +9002,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       const opus_val16 alpha = st->vbr_count < 970 ? 1.f / (++st->vbr_count + 20) : .001f;
       if (st->constrained_vbr) {
         st->vbr_reservoir += (nbAvailableBytes << (3 + 3)) - vbr_rate;
-        st->vbr_drift += static_cast<opus_int32>((alpha) * ((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift));
+        const float drift_step = alpha * static_cast<float>((delta * (1 << lm_diff)) - st->vbr_offset - st->vbr_drift) + st->vbr_drift_resid;
+        const auto drift_whole = static_cast<opus_int32>(drift_step);
+        st->vbr_drift += drift_whole;
+        st->vbr_drift_resid = stereo_music ? drift_step - static_cast<float>(drift_whole) : 0.f;
         st->vbr_offset = -st->vbr_drift;
         if (st->vbr_reservoir < 0) {
           const int adjust = (-st->vbr_reservoir) / (8 << 3);
