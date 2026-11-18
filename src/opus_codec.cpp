@@ -17801,10 +17801,11 @@ __declspec(noinline)
 #else
 [[gnu::noinline]]
 #endif
-static void silk_process_NLSFs_common(SideInfoIndices& indices, opus_int16 PredCoef_Q12[2][16],
-                                     opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16],
-                                     int NLSF_mu_Q20, int predictLPCOrder, int Complexity,
-                                     const silk_NLSF_CB_struct* psNLSF_CB, int NLSF_MSVQ_Survivors) {
+static void
+silk_process_NLSFs_common(SideInfoIndices& indices, opus_int16 PredCoef_Q12[2][16],
+                          opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16],
+                          int NLSF_mu_Q20, int predictLPCOrder, int Complexity,
+                          const silk_NLSF_CB_struct* psNLSF_CB, int NLSF_MSVQ_Survivors) {
   opus_int16 pNLSF0_temp_Q15[16];
   opus_int16 pNLSFW_QW[16], pNLSFW0_temp_QW[16];
   silk_NLSF_VQ_weights_laroia(pNLSFW_QW, pNLSF_Q15, predictLPCOrder);
@@ -17841,8 +17842,8 @@ static void silk_process_NLSFs(State* psEncC, opus_int16 PredCoef_Q12[2][16], op
     NLSF_mu_Q20 = ((NLSF_mu_Q20) + (((NLSF_mu_Q20)) >> ((1))));
   }
   silk_process_NLSFs_common(psEncC->indices, PredCoef_Q12, pNLSF_Q15, prev_NLSFq_Q15,
-                           NLSF_mu_Q20, psEncC->predictLPCOrder, psEncC->Complexity,
-                           psEncC->psNLSF_CB, psEncC->NLSF_MSVQ_Survivors);
+                            NLSF_mu_Q20, psEncC->predictLPCOrder, psEncC->Complexity,
+                            psEncC->psNLSF_CB, psEncC->NLSF_MSVQ_Survivors);
 }
 
 constexpr std::array<unsigned char, 117 - 10> silk_TargetRate_NB_21 = numeric_blob_array<unsigned char>(
