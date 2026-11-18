@@ -1624,12 +1624,16 @@ static int decode_native(OpusDecoder* st, const unsigned char* data, opus_int32 
   return nb_samples;
 }
 
+OPUSCPP_NOINLINE static void convert_decoder_pcm16(const float* input, opus_int16* output, std::size_t count) {
+  celt_float2int16_c(input, output, count);
+}
+
 template <std::size_t Capacity>
 static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size, int decode_fec) {
   std::array<opus_res, Capacity> output;
   const int ret = decode_native(st, data, len, output.data(), frame_size, decode_fec);
   if (ret > 0) {
-    celt_float2int16_c(output.data(), pcm, static_cast<std::size_t>(ret * st->channels));
+    convert_decoder_pcm16(output.data(), pcm, static_cast<std::size_t>(ret * st->channels));
   }
   return ret;
 }
