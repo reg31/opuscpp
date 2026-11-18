@@ -4381,7 +4381,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   }
   opus_int32 nominal_target_bits = bitrate_to_bits_for_frame_rate(st->bitrate_bps, frame_rate);
   if (rate_servo_enabled(st) && st->mode != opus_mode_silk_only) {
-    nominal_target_bits += std::clamp(st->rate_servo_bits / (16 * std::max(st->rate_servo_frames, 1)), -nominal_target_bits / 4,
+    nominal_target_bits += std::clamp(st->rate_servo_bits / (256 * std::max(st->rate_servo_frames, 1)), -nominal_target_bits / 4,
                                       nominal_target_bits / 2);
   }
   funded_lbrr_packet funding;
