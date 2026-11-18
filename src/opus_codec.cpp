@@ -4671,20 +4671,24 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   st->prev_mode = to_celt ? opus_mode_celt_only : st->mode;
   st->prev_channels = st->stream_channels;
   st->prev_framesize = frame_size;
-  const bool packet_budget_exceeded = expanded_range_storage &&
-                                      (ret + 1 + redundancy_bytes > max_data_bytes ||
-                                       ec_tell(&enc) > (max_data_bytes - 1 - redundancy_bytes) * 8);
-  if (ec_tell(&enc) > (max_data_bytes - 1) * 8 || packet_budget_exceeded) {
-    std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-    celt_enc->signal_bw_temporal.reset();
-    if (max_data_bytes < 2) {
-      return -2;
+  const int body_cap = max_data_bytes - 1;
+  const int tell_bits = ec_tell(&enc);
+  if (tell_bits > body_cap * 8) {
+    if (expanded_range_storage && !st->use_dtx && body_cap >= 3 && tell_bits == body_cap * 8 + 1 && enc.error == 0 &&
+        enc.offs == static_cast<opus_uint32>(body_cap)) {
+      ret = body_cap;
+    } else {
+      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+      celt_enc->signal_bw_temporal.reset();
+      if (max_data_bytes < 2) {
+        return -2;
+      }
+      data[1] = 0;
+      ret = 1;
+      st->rangeFinal = 0;
+      if (st->mode == opus_mode_silk_only)
+        celt_history_current = false;
     }
-    data[1] = 0;
-    ret = 1;
-    st->rangeFinal = 0;
-    if (st->mode == opus_mode_silk_only)
-      celt_history_current = false;
   } else if (st->mode == opus_mode_silk_only && !redundancy) {
     for (; ret > 2 && data[ret] == 0; --ret) {}
   }
