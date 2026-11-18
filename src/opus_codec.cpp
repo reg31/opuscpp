@@ -11591,60 +11591,80 @@ constexpr auto celt_cosine(double angle) noexcept -> double {
   return celt_sine(half_pi + angle);
 }
 
-template <std::size_t Size, std::size_t FactorCount>
-consteval void fill_fft_bitrev(std::array<opus_int16, Size>& values, int output, std::size_t index, std::size_t stride, const std::array<int, FactorCount>& factors, std::size_t level, int remaining) noexcept {
-  const int radix = factors[level];
-  const int next_remaining = remaining / radix;
-  if (next_remaining == 1) {
-    for (int digit = 0; digit < radix; ++digit) {
-      values[index + static_cast<std::size_t>(digit) * stride] = static_cast<opus_int16>(output + digit);
+template <unsigned... Factors>
+consteval auto pack_fft_bitrev_factors() noexcept -> unsigned {
+  static_assert(sizeof...(Factors) * 3 <= std::numeric_limits<unsigned>::digits);
+  static_assert(((Factors >= 2 && Factors <= 7) && ...));
+  unsigned packed = 0;
+  unsigned shift = 0;
+  for (const unsigned factor : std::array{Factors...}) {
+    packed |= factor << shift;
+    shift += 3;
+  }
+  return packed;
+}
+
+#if defined(_MSC_VER)
+#define OPUSCPP_NOINLINE __declspec(noinline)
+#else
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#endif
+
+OPUSCPP_NOINLINE static void fill_fft_bitrev(opus_int16* values, int length, unsigned factors) noexcept {
+  for (int output = 0; output < length; ++output) {
+    int remaining = length;
+    int digits = output;
+    int stride = 1;
+    int index = 0;
+    for (unsigned packed = factors; packed != 0; packed >>= 3) {
+      const int radix = static_cast<int>(packed & 7u);
+      remaining /= radix;
+      index += (digits / remaining) * stride;
+      digits %= remaining;
+      stride *= radix;
     }
-    return;
-  }
-  for (int digit = 0; digit < radix; ++digit) {
-    fill_fft_bitrev(values, output, index, stride * static_cast<std::size_t>(radix), factors, level + 1, next_remaining);
-    index += stride;
-    output += next_remaining;
+    values[index] = static_cast<opus_int16>(output);
   }
 }
 
-template <std::size_t Size, int... Factors> consteval auto make_fft_bitrev() noexcept -> std::array<opus_int16, Size> {
-  constexpr std::array factors{Factors...};
-  std::array<opus_int16, Size> values{};
-  fill_fft_bitrev(values, 0, 0, 1, factors, 0, static_cast<int>(Size));
-  return values;
-}
-
-auto make_celt_tables() noexcept -> celt_generated_tables {
+OPUSCPP_NOINLINE static bool fill_celt_tables(celt_generated_tables& tables) noexcept {
 #pragma STDC FP_CONTRACT OFF
-  constexpr double pi = 3.14159265358979323846264338327950288;
-  celt_generated_tables tables{};
-  for (std::size_t index = 0; index < tables.fft_twiddles.size(); ++index) {
-    const double phase = -2.0 * pi * static_cast<double>(index) / 480.0;
-    tables.fft_twiddles[index] = {static_cast<float>(celt_cosine(phase)), static_cast<float>(celt_sine(phase))};
+  const int saved_errno = errno;
+  std::fenv_t caller_environment;
+  if (std::fegetenv(&caller_environment) != 0) {
+    errno = saved_errno;
+    return false;
   }
-  tables.fft_twiddles[0].i = -0.0f;
-  tables.fft_twiddles[120].r = 6.123234262925839e-17f;
-  tables.fft_twiddles[240].i = -1.2246468525851679e-16f;
-  tables.fft_twiddles[360].r = -1.8369701465288538e-16f;
-  std::size_t offset = 0;
-  for (int size = 1920; size >= 240; size >>= 1) {
-    for (int index = 0; index < size / 2; ++index) {
-      tables.mdct_trig[offset++] = static_cast<float>(celt_cosine(2.0 * pi * (static_cast<double>(index) + .125) / size));
+  const bool default_environment = std::fesetenv(FE_DFL_ENV) == 0 && std::fesetround(FE_TONEAREST) == 0;
+  if (default_environment) {
+    constexpr double pi = 3.14159265358979323846264338327950288;
+    for (std::size_t index = 0; index < tables.fft_twiddles.size(); ++index) {
+      const double phase = -2.0 * pi * static_cast<double>(index) / 480.0;
+      tables.fft_twiddles[index] = {static_cast<float>(celt_cosine(phase)), static_cast<float>(celt_sine(phase))};
+    }
+    tables.fft_twiddles[0].i = -0.0f;
+    tables.fft_twiddles[120].r = 6.123234262925839e-17f;
+    tables.fft_twiddles[240].i = -1.2246468525851679e-16f;
+    tables.fft_twiddles[360].r = -1.8369701465288538e-16f;
+    std::size_t offset = 0;
+    for (int size = 1920; size >= 240; size >>= 1) {
+      for (int index = 0; index < size / 2; ++index) {
+        tables.mdct_trig[offset++] = static_cast<float>(celt_cosine(2.0 * pi * (static_cast<double>(index) + .125) / size));
+      }
+    }
+    for (std::size_t index = 0; index < tables.window.size(); ++index) {
+      const double inner = celt_sine(.5 * pi * (static_cast<double>(index) + .5) / tables.window.size());
+      tables.window[index] = static_cast<float>(celt_sine(.5 * pi * inner * inner));
+      const celt_coef f = tables.window[index] * tables.window[index];
+      tables.comb_fade[index] = {f, 1.0f - f};
     }
   }
-  tables.fft_bitrev_480 = make_fft_bitrev<480, 5, 3, 4, 2, 4>();
-  tables.fft_bitrev_240 = make_fft_bitrev<240, 5, 3, 4, 4>();
-  tables.fft_bitrev_120 = make_fft_bitrev<120, 5, 3, 2, 4>();
-  tables.fft_bitrev_60 = make_fft_bitrev<60, 5, 3, 4>();
-  for (std::size_t index = 0; index < tables.window.size(); ++index) {
-    const double inner = celt_sine(.5 * pi * (static_cast<double>(index) + .5) / tables.window.size());
-    tables.window[index] = static_cast<float>(celt_sine(.5 * pi * inner * inner));
-    const celt_coef f = tables.window[index] * tables.window[index];
-    tables.comb_fade[index] = {f, 1.0f - f};
-  }
-  return tables;
+  const bool restored = std::fesetenv(&caller_environment) == 0;
+  errno = saved_errno;
+  return default_environment && restored;
 }
+
+#undef OPUSCPP_NOINLINE
 
 static celt_generated_tables celt_tables;
 
@@ -11671,8 +11691,8 @@ static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables
 static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
 static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
 
-static auto make_pitch512_twiddles() noexcept -> std::array<kiss_twiddle_cpx, 512> {
-  constexpr std::array<float, 129> quarter{
+static void fill_pitch512_twiddles(std::array<kiss_twiddle_cpx, 512>& values) noexcept {
+  static constexpr std::array<float, 129> quarter{
       0x1p+0f, 0x1.fff622p-1f, 0x1.ffd886p-1f, 0x1.ffa72ep-1f,
       0x1.ff621ep-1f, 0x1.ff0956p-1f, 0x1.fe9cdap-1f, 0x1.fe1cbp-1f,
       0x1.fd88dap-1f, 0x1.fce16p-1f, 0x1.fc2648p-1f, 0x1.fb5798p-1f,
@@ -11706,7 +11726,6 @@ static auto make_pitch512_twiddles() noexcept -> std::array<kiss_twiddle_cpx, 51
       0x1.917a6cp-4f, 0x1.5f6dp-4f, 0x1.2d520ap-4f, 0x1.f656e8p-5f,
       0x1.91f66p-5f, 0x1.2d8658p-5f, 0x1.92156p-6f, 0x1.921d2p-7f,
       0x0p+0f};
-  std::array<kiss_twiddle_cpx, 512> values{};
   for (std::size_t index = 0; index < 128; ++index) {
     const auto real = quarter[index];
     const auto imaginary = quarter[128 - index];
@@ -11716,7 +11735,6 @@ static auto make_pitch512_twiddles() noexcept -> std::array<kiss_twiddle_cpx, 51
     values[384 + index] = {imaginary, real};
   }
   values[0].i = values[128].r = values[256].i = values[384].r = 0.f;
-  return values;
 }
 static std::array<kiss_twiddle_cpx, 512> pitch512_twiddles;
 
@@ -21321,26 +21339,45 @@ void assign_error(int* error, int value) noexcept {
   }
 }
 
-static void init_derived_tables() noexcept {
-  static const bool ready = [] {
-    silk_fill_nlsf_weights(silk_NLSF_CB1_Wght_Q9, silk_NLSF_CB1_NB_MB_Q8, 10);
-    silk_fill_nlsf_weights(silk_NLSF_CB1_WB_Wght_Q9, silk_NLSF_CB1_WB_Q8, 16);
-    fill_celt_pvq_u_fast_rows();
-    celt_tables = make_celt_tables();
-    pitch512_twiddles = make_pitch512_twiddles();
-    pitch512_permutation = pitch512_bitrev();
-    return true;
-  }();
-  static_cast<void>(ready);
+#if defined(_MSC_VER)
+#define OPUSCPP_NOINLINE __declspec(noinline)
+#else
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#endif
+
+OPUSCPP_NOINLINE static bool initialize_derived_tables_once() noexcept {
+  if (!fill_celt_tables(celt_tables)) {
+    return false;
+  }
+  fill_fft_bitrev(celt_tables.fft_bitrev_480.data(), 480, pack_fft_bitrev_factors<5, 3, 4, 2, 4>());
+  fill_fft_bitrev(celt_tables.fft_bitrev_240.data(), 240, pack_fft_bitrev_factors<5, 3, 4, 4>());
+  fill_fft_bitrev(celt_tables.fft_bitrev_120.data(), 120, pack_fft_bitrev_factors<5, 3, 2, 4>());
+  fill_fft_bitrev(celt_tables.fft_bitrev_60.data(), 60, pack_fft_bitrev_factors<5, 3, 4>());
+  silk_fill_nlsf_weights(silk_NLSF_CB1_Wght_Q9, silk_NLSF_CB1_NB_MB_Q8, 10);
+  silk_fill_nlsf_weights(silk_NLSF_CB1_WB_Wght_Q9, silk_NLSF_CB1_WB_Q8, 16);
+  fill_celt_pvq_u_fast_rows();
+  fill_pitch512_twiddles(pitch512_twiddles);
+  pitch512_permutation = pitch512_bitrev();
+  return true;
+}
+
+#undef OPUSCPP_NOINLINE
+
+static inline bool init_derived_tables() noexcept {
+  static const bool ready = initialize_derived_tables_once();
+  return ready;
 }
 
 template <bool Encoder>
 [[nodiscard]] auto create_codec_state(int Fs, int channels, int application, int* error) noexcept -> std::conditional_t<Encoder, OpusEncoder, OpusDecoder>* {
-  init_derived_tables();
   const bool supported_application =
       application == OPUS_APPLICATION_VOIP || application == OPUS_APPLICATION_AUDIO || application == OPUS_APPLICATION_RESTRICTED_LOWDELAY;
   if (!is_supported_sample_rate(Fs) || !is_supported_channel_count(channels) || (Encoder && !supported_application)) {
     assign_error(error, OPUS_BAD_ARG);
+    return nullptr;
+  }
+  if (!init_derived_tables()) {
+    assign_error(error, OPUS_INTERNAL_ERROR);
     return nullptr;
   }
   const int state_size = [&] {
