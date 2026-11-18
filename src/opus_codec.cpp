@@ -3354,14 +3354,15 @@ static inline void apply_voice_denoise_companion(VoiceDenoiseState& state, opus_
 namespace {
 struct encoder_stage_storage {
   std::span<opus_res> active;
-  std::size_t history_samples, celt_offset;
+  int history_samples, celt_offset;
 
   auto prime_from_encoder(const OpusEncoder* st) noexcept -> void {
-    copy_n_items(offset_ptr<opus_res>(st, align(sizeof(OpusEncoder))), history_samples, active.data());
+    copy_n_items(offset_ptr<opus_res>(st, align(sizeof(OpusEncoder))), static_cast<std::size_t>(history_samples), active.data());
   }
   auto finish_frame(OpusEncoder* st) noexcept -> void {
     if (history_samples != 0) {
-      copy_n_items(active.data() + active.size() - history_samples, history_samples, encoder_delay_buffer(st));
+      const auto history = static_cast<std::size_t>(history_samples);
+      copy_n_items(active.data() + active.size() - history, history, encoder_delay_buffer(st));
     }
   }
 };
@@ -3369,8 +3370,8 @@ struct encoder_stage_storage {
 [[nodiscard]] inline auto make_encoder_stage_storage(std::span<opus_res> storage, const OpusEncoder* st, const int total_buffer, const int frame_size) noexcept -> encoder_stage_storage {
   const auto window_samples = static_cast<std::size_t>((st->encoder_buffer + frame_size) * st->channels);
   return {storage.first(window_samples),
-          static_cast<std::size_t>(st->encoder_buffer * st->channels),
-          static_cast<std::size_t>((st->encoder_buffer - total_buffer) * st->channels)};
+          st->encoder_buffer * st->channels,
+          (st->encoder_buffer - total_buffer) * st->channels};
 }
 }
 
@@ -4335,8 +4336,8 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   opus_int32 nBytes = 0;
   ec_enc enc;
   opus_uint32 redundant_rng = 0;
-  auto celt_pcm = stage_storage.active.subspan(stage_storage.celt_offset);
-  auto frame_pcm = stage_storage.active.subspan(stage_storage.history_samples);
+  auto celt_pcm = stage_storage.active.subspan(static_cast<std::size_t>(stage_storage.celt_offset));
+  auto frame_pcm = stage_storage.active.subspan(static_cast<std::size_t>(stage_storage.history_samples));
   const int max_data_bytes = std::min<opus_int32>(orig_max_data_bytes, 1276);
   const bool expanded_range_storage = st->mode == opus_mode_silk_only && st->use_vbr && orig_max_data_bytes < 1276 &&
                                       range_storage_bytes > orig_max_data_bytes;
@@ -4601,7 +4602,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
         celt_encoder_reset_state(celt_enc);
       }
       const auto transition_prefill = stage_storage.active.subspan(
-          stage_storage.celt_offset - static_cast<std::size_t>(st->Fs / 400 * st->channels),
+          static_cast<std::size_t>(stage_storage.celt_offset) - static_cast<std::size_t>(st->Fs / 400 * st->channels),
           static_cast<std::size_t>(st->channels * st->Fs / 400));
       celt_encode_with_ec(celt_enc, transition_prefill.data(), st->Fs / 400, dummy, 2, nullptr);
       celt_enc->prediction_disabled = true;
