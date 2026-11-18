@@ -16109,18 +16109,21 @@ int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag,
   opus_int32 nSamplesOutDec = 0;
   std::array<opus_int32, 2> MS_pred_Q13{};
   silk_decoder* psDec = static_cast<silk_decoder*>(decState);
-  auto* mid_state = silk_ensure_decoder_channel(psDec->channel_state);
-  if (mid_state == nullptr)
-    return -1;
-  if ((decControl->nChannelsInternal == 2 || psDec->nChannelsInternal == 2 || decControl->nChannelsAPI == 2) &&
-      silk_ensure_decoder_channel(psDec->side_channel_state, decControl->nChannelsInternal > psDec->nChannelsInternal && decControl->nChannelsInternal == 2) == nullptr)
-    return -1;
-  auto& mid = *mid_state;
+  for (int channel = 0; channel < 2; ++channel) {
+    const bool side = channel == 1;
+    if (side && decControl->nChannelsInternal != 2 && psDec->nChannelsInternal != 2 && decControl->nChannelsAPI != 2)
+      break;
+    auto*& slot = side ? psDec->side_channel_state : psDec->channel_state;
+    const bool reset = side && decControl->nChannelsInternal > psDec->nChannelsInternal && decControl->nChannelsInternal == 2;
+    if (silk_ensure_decoder_channel(slot, reset) == nullptr)
+      return -1;
+  }
+  auto& mid = *psDec->channel_state;
   std::array<silk_decoder_state*, 2> channel_state{&mid, psDec->side_channel_state};
   if (newPacketFlag) {
-    for (int n = 0; n < decControl->nChannelsInternal; ++n) {
-      channel_state[n]->nFramesDecoded = 0;
-    }
+    mid.nFramesDecoded = 0;
+    if (decControl->nChannelsInternal == 2)
+      channel_state[1]->nFramesDecoded = 0;
   }
   const int stereo_to_mono =
       decControl->nChannelsInternal == 1 && psDec->nChannelsInternal == 2 && (decControl->internalSampleRate == 1000 * mid.fs_kHz);
