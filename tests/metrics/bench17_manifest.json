@@ -521,7 +521,8 @@
   "rule": "Per config and metric: max(base, 2 x |official(1.01 x target) - official(target)|). Base: snr_db/seg_snr_db 0.05 dB, pesq_style 0.01, visqol_style 0.005, logband_corr 0.001, celt_quality 0.05; error metrics 1% of official. Values are absolute, computed from official at the pin. Raise only; recomputed on pin bump.",
   "rationale": "Official is deterministic (3-run spread 0), so variance gives no floor. The +1% bits sensitivity is the binding constraint: a win must exceed twice what 1% extra rate buys official in that config. A pair is saturated when official is within min_delta of the metric bound (max for scores, 0 for errors); saturated pairs must match official, all others must strictly beat official + min_delta.",
   "evidence": "tests/metrics/bench17_min_delta_evidence.md; build/bench/plus1pct.json",
-  "choice": "Per-config rule selected by the user on 2026-11-17."
+  "choice": "Per-config rule selected by the user on 2026-11-17.",
+  "saturation": "A bounded pair is saturated when |bound - official| <= 2 x min_delta (official + min_delta would land within min_delta of the bound); saturated pairs must match official. Added 2026-11-18 by user decision after audio_128000 celt_quality needed 99.9992 of a 100 maximum."
  },
  "rate_window": {
   "floor": "0.99 x min(target, official actual)",

@@ -162,7 +162,7 @@ def judge(name, cur, off, spec, md):
     if md is None:
         return "unset", None
     bound = spec.get("max") if higher else spec.get("min")
-    saturated = bound is not None and abs(bound - off) <= md
+    saturated = bound is not None and abs(bound - off) <= 2 * md
     thr = off if saturated else (off + md if higher else off - md)
     if saturated:
         return thr, (cur >= thr if higher else cur <= thr)
