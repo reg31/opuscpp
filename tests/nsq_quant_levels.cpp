@@ -66,8 +66,8 @@ int main() {
               }
               max_index = std::max(max_index, idx);
             }
-            const silk_nsq_candidate_pair a = kz ? silk_quantize_candidate_pair<true>(residual, Lambda, offset, nullptr)
-                                                 : silk_quantize_candidate_pair<false>(residual, Lambda, offset, silk_nsq_quant_levels[row][col].data());
+            const silk_nsq_candidate_pair a = kz ? silk_quantize_candidate_pair(true, residual, Lambda, offset, nullptr)
+                                                 : silk_quantize_candidate_pair(false, residual, Lambda, offset, silk_nsq_quant_levels[row][col].data());
             const silk_nsq_candidate_pair b = kz ? ref_pair<true>(residual, Lambda, offset) : ref_pair<false>(residual, Lambda, offset);
             ++cases;
             if (a.q1_Q10 != b.q1_Q10 || a.q2_Q10 != b.q2_Q10 || a.dist1_Q20 != b.dist1_Q20 || a.dist2_Q20 != b.dist2_Q20 ||
