@@ -8840,6 +8840,14 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   std::array<int, celt_default_nb_ebands> energy_stage_tf{}, energy_stage_offsets{};
   std::copy_n(tf_res.data(), end, energy_stage_tf.data());
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
+  const auto restore_energy_stage = [&]() __attribute__((noinline)) {
+    *st = energy_stage_state;
+    *enc = energy_stage_coder;
+    std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
+    std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
+    std::copy_n(energy_stage_tf.data(), end, tf_res.data());
+    std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+  };
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
   stereo_tf_basis_choice tf_basis_choice;
@@ -8889,12 +8897,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), lambda, X, N, LM, tf_estimate, tf_chan,
                                   importance.data(), tf_basis_dual_stereo == 0 ? analyzed_intensity : 0,
                                   st->complexity >= 8 ? bandE : nullptr, analyzed_intensity, tf_metric.data(), analyzed_intensity);
-          *st = energy_stage_state;
-          *enc = energy_stage_coder;
-          std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-          std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
-          std::copy_n(energy_stage_tf.data(), end, tf_res.data());
-          std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+          restore_energy_stage();
           nbCompressedBytes = energy_stage_bytes;
           nbAvailableBytes = energy_stage_available;
           total_bits = energy_stage_total_bits;
@@ -9077,12 +9080,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     }
     if (!energy_needs_refinement)
       break;
-    *st = energy_stage_state;
-    *enc = energy_stage_coder;
-    std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
-    std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
-    std::copy_n(energy_stage_tf.data(), end, tf_res.data());
-    std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+    restore_energy_stage();
     nbCompressedBytes = energy_stage_bytes;
     nbAvailableBytes = energy_stage_available;
     total_bits = energy_stage_total_bits;
