@@ -22,7 +22,7 @@ static int check_support(int fs_khz, int subframes, int changed_sample, bool joi
     if (changed_sample < samples + 5)
       energy_units += 1;
   }
-  std::array<float, 100> covariance{};
+  std::array<float, 4 * silk_ltp_matrix_values> covariance{};
   std::array<float, 20> cross{};
   std::array<int, 4> lags{};
   lags.fill(4 * fs_khz);
@@ -30,7 +30,7 @@ static int check_support(int fs_khz, int subframes, int changed_sample, bool joi
   const float inverse_energy = 1.0f / static_cast<float>(64 * energy_units);
   const float expected_covariance = static_cast<float>(64 * samples) * inverse_energy;
   const float expected_cross = static_cast<float>(64 * cross_units) * inverse_energy;
-  for (int i = 0; i < 25; ++i) {
+  for (int i = 0; i < silk_ltp_matrix_values; ++i) {
     if (covariance[i] != expected_covariance) {
       std::fprintf(stderr, "fs=%d subframes=%d sample=%d joint=%d covariance[%d]=%.9g expected=%.9g\n",
                    fs_khz, subframes, changed_sample, joint_support, i, covariance[i], expected_covariance);
@@ -47,9 +47,53 @@ static int check_support(int fs_khz, int subframes, int changed_sample, bool joi
   return 0;
 }
 
+static int check_packed_order() {
+  constexpr int length = 40;
+  constexpr int pitch = 48;
+  std::array<float, 160> signal;
+  for (int i = 0; i < static_cast<int>(signal.size()); ++i)
+    signal[i] = static_cast<float>((i * i + 3 * i) % 23 - 11);
+  const auto* residual = signal.data() + 56;
+  const auto* delayed = residual - pitch + 2;
+  const std::array lags{pitch, pitch, 0, 0};
+  std::array<float, 2 * 15> matrix;
+  std::array<float, 2 * 5> cross;
+  silk_find_LTP_FLP(matrix.data(), cross.data(), residual, lags.data(), length, 2);
+  for (int subframe = 0; subframe < 2; ++subframe) {
+    const int start = subframe * length;
+    float target_energy = 0.0f;
+    for (int i = 0; i < length + 5; ++i)
+      target_energy += residual[start + i] * residual[start + i];
+    auto dot = [&](int row, int column) {
+      float product = 0.0f;
+      for (int i = start; i < start + length; ++i)
+        product += delayed[i - row] * delayed[i - column];
+      return product;
+    };
+    const float scale = 1.0f / std::max(target_energy, 0.015f * (dot(0, 0) + dot(4, 4)) + 1.0f);
+    int slot = subframe * 15;
+    for (int row = 0; row < 5; ++row) {
+      for (int column = row; column < 5; ++column) {
+        if (matrix[slot++] != dot(row, column) * scale) {
+          std::fprintf(stderr, "packed matrix mismatch in subframe %d at (%d,%d)\n", subframe, row, column);
+          return 1;
+        }
+      }
+      float product = 0.0f;
+      for (int i = start; i < start + length; ++i)
+        product += delayed[i - row] * residual[i];
+      if (cross[subframe * 5 + row] != product * scale) {
+        std::fprintf(stderr, "cross vector mismatch in subframe %d at %d\n", subframe, row);
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
 int main() {
-  int failures = 0;
-  int cases = 0;
+  int failures = check_packed_order();
+  int cases = 1;
   for (const int fs_khz : {8, 12, 16}) {
     const int samples = 5 * fs_khz;
     for (const int subframes : {2, 4}) {

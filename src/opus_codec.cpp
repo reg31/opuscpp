@@ -2457,6 +2457,12 @@ OPUSCPP_NOINLINE static void silk_encode_index_body(ec_ctx* coder, SideInfoIndic
                                                     decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
 template <bool Encode, typename Pulse, bool ReconstructSigns = true>
 static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks = 0);
+constexpr int silk_ltp_order = 5;
+constexpr int silk_ltp_matrix_values = silk_ltp_order * (silk_ltp_order + 1) / 2;
+constexpr int silk_ltp_row_offset(int row) noexcept {
+  return row * (2 * silk_ltp_order + 1 - row) / 2;
+}
+
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[], const int K, const int LPC_order);
 static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10, std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
@@ -17417,7 +17423,7 @@ static int silk_control_audio_bandwidth(silk_encoder_state* psEncC, silk_EncCont
   return orig_kHz;
 }
 
-static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * 5 * 5], const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr) {
+static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, int* pred_gain_dB_Q7, const opus_int32 XX_Q17[4 * silk_ltp_matrix_values], const opus_int32 xX_Q17[4 * 5], const int subfr_len, const int nb_subfr) {
   opus_uint8 temp_idx[4];
   opus_int32 res_nrg_Q15_subfr, res_nrg_Q15, rate_dist_Q7_subfr, rate_dist_Q7, min_rate_dist_Q7;
   opus_int32 sum_log_gain_tmp_Q7, best_sum_log_gain_Q7, max_gain_Q7;
@@ -17447,7 +17453,7 @@ static void silk_quant_LTP_gains(opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4
                           : ((rate_dist_Q7) + (rate_dist_Q7_subfr)));
       const opus_int32 log_gain_delta_Q7 = silk_lin2log(gain_safety + gain_Q7) - (7 << 7);
       sum_log_gain_tmp_Q7 = std::max(0, sum_log_gain_tmp_Q7 + log_gain_delta_Q7);
-      XX_Q17_ptr += 5 * 5;
+      XX_Q17_ptr += silk_ltp_matrix_values;
       xX_Q17_ptr += 5;
     }
     if (rate_dist_Q7 <= min_rate_dist_Q7) {
@@ -17483,11 +17489,12 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
     const auto penalty = wrap_shift_left(std::max(gain_tmp_Q7 - max_gain_Q7, 0), 11);
     auto sum1_Q15 = fixed_q<15>(1.001);
     const auto accumulate_row = [&]<int row>() {
+      const auto* matrix_row = XX_Q17 + silk_ltp_row_offset(row);
       auto sum2_Q24 = neg_xX_Q24[static_cast<std::size_t>(row)];
-      for (int column = row + 1; column < 5; ++column) {
-        sum2_Q24 = wrap_add(sum2_Q24, XX_Q17[row * 5 + column] * cb_row_Q7[column]);
+      for (int column = row + 1; column < silk_ltp_order; ++column) {
+        sum2_Q24 = wrap_add(sum2_Q24, matrix_row[column - row] * cb_row_Q7[column]);
       }
-      sum2_Q24 = wrap_add(wrap_shift_left(sum2_Q24, 1), XX_Q17[row * 5 + row] * cb_row_Q7[row]);
+      sum2_Q24 = wrap_add(wrap_shift_left(sum2_Q24, 1), matrix_row[0] * cb_row_Q7[row]);
       sum1_Q15 = silk_mla_wb(sum1_Q15, sum2_Q24, cb_row_Q7[row]);
     };
     accumulate_row.template operator()<0>();
@@ -20127,65 +20134,39 @@ OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q1
 }
 #undef OPUSCPP_NOINLINE
 
-static void silk_corrVector_FLP(const std::span<const float> x, const std::span<const float> t, std::span<float> Xt) {
-  const auto order = Xt.size();
-  for (auto lag = std::size_t{}; lag < order; ++lag) {
-    const auto offset = order - lag - 1;
-    Xt[lag] = static_cast<float>(silk_inner_product_FLP_c(x.data() + offset, t.data(), static_cast<int>(t.size())));
-  }
-}
-
-static void silk_corrMatrix_FLP(const std::span<const float> x, const int L, std::span<float> XX) {
-  constexpr int Order = 5;
-  auto xx = [XX](const int row, const int column) mutable -> float& {
-    return XX[static_cast<std::size_t>(row * Order + column)];
-  };
-  const auto last = static_cast<std::size_t>(Order - 1);
-  double energy = silk_energy_FLP(x.data() + last, L);
-  xx(0, 0) = static_cast<float>(energy);
-  for (int j = 1; j < Order; ++j) {
-    energy += x[last - static_cast<std::size_t>(j)] * x[last - static_cast<std::size_t>(j)] -
-              x[last + static_cast<std::size_t>(L - j)] * x[last + static_cast<std::size_t>(L - j)];
-    xx(j, j) = static_cast<float>(energy);
-  }
-  for (int lag = 1; lag < Order; ++lag) {
-    energy = silk_inner_product_FLP_c(x.data() + last, x.data() + last - static_cast<std::size_t>(lag), L);
-    xx(lag, 0) = static_cast<float>(energy);
-    xx(0, lag) = static_cast<float>(energy);
-    for (int j = 1; j < (Order - lag); ++j) {
-      const auto left = last - static_cast<std::size_t>(j);
-      const auto right = left - static_cast<std::size_t>(lag);
-      const auto tail = last + static_cast<std::size_t>(L - j);
-      energy += x[left] * x[right] - x[tail] * x[tail - static_cast<std::size_t>(lag)];
-      xx(lag + j, j) = static_cast<float>(energy);
-      xx(j, lag + j) = static_cast<float>(energy);
-    }
-  }
-}
-
 static void silk_scale_copy_vector_FLP(float* data_out, const float* data_in, float gain, int dataSize) {
   const auto count = static_cast<std::size_t>(dataSize > 0 ? dataSize : 0);
   for (auto index = std::size_t{}; index < count; ++index)
     data_out[index] = data_in[index] * gain;
 }
 
-static void silk_find_LTP_FLP(float XX[4 * 5 * 5], float xX[4 * 5], const float r_ptr[], const int lag[4], const int subfr_length, const int nb_subfr) {
-  auto* xX_ptr = xX;
-  auto* XX_ptr = XX;
-  for (int k = 0; k < nb_subfr; ++k) {
-    const auto* lag_ptr = r_ptr - (lag[k] + 5 / 2);
-    silk_corrMatrix_FLP(std::span<const float>{lag_ptr, static_cast<std::size_t>(subfr_length + 4)}, subfr_length,
-                        std::span<float>{XX_ptr, static_cast<std::size_t>(25)});
-    silk_corrVector_FLP(std::span<const float>{lag_ptr, static_cast<std::size_t>(subfr_length + 4)},
-                        std::span<const float>{r_ptr, static_cast<std::size_t>(subfr_length)},
-                        std::span<float>{xX_ptr, static_cast<std::size_t>(5)});
-    const float xx = static_cast<float>(silk_energy_FLP(r_ptr, subfr_length + 5));
-    const float temp = 1.0f / std::max(xx, 0.015f * (XX_ptr[0] + XX_ptr[24]) + 1.0f);
-    silk_scale_copy_vector_FLP(XX_ptr, XX_ptr, temp, 5 * 5);
-    silk_scale_copy_vector_FLP(xX_ptr, xX_ptr, temp, 5);
-    r_ptr += subfr_length;
-    XX_ptr += 5 * 5;
-    xX_ptr += 5;
+static void silk_find_LTP_FLP(float XX[4 * silk_ltp_matrix_values], float xX[4 * silk_ltp_order], const float residual[],
+                              const int pitch[4], const int length, const int subframes) {
+  for (int subframe = 0; subframe < subframes; ++subframe) {
+    const auto* center = residual - pitch[subframe] + silk_ltp_order / 2;
+    double diagonal = silk_energy_FLP(center, length);
+    XX[0] = static_cast<float>(diagonal);
+    for (int row = 1; row < silk_ltp_order; ++row) {
+      diagonal += center[-row] * center[-row] - center[length - row] * center[length - row];
+      XX[silk_ltp_row_offset(row)] = static_cast<float>(diagonal);
+    }
+    for (int lag = 1; lag < silk_ltp_order; ++lag) {
+      double product = silk_inner_product_FLP_c(center, center - lag, length);
+      XX[lag] = static_cast<float>(product);
+      for (int row = 1; row + lag < silk_ltp_order; ++row) {
+        product += center[-row] * center[-row - lag] - center[length - row] * center[length - row - lag];
+        XX[silk_ltp_row_offset(row) + lag] = static_cast<float>(product);
+      }
+    }
+    for (int row = 0; row < silk_ltp_order; ++row)
+      xX[row] = static_cast<float>(silk_inner_product_FLP_c(center - row, residual, length));
+    const float energy = static_cast<float>(silk_energy_FLP(residual, length + silk_ltp_order));
+    const float scale = 1.0f / std::max(energy, 0.015f * (XX[0] + XX[silk_ltp_matrix_values - 1]) + 1.0f);
+    silk_scale_copy_vector_FLP(XX, XX, scale, silk_ltp_matrix_values);
+    silk_scale_copy_vector_FLP(xX, xX, scale, silk_ltp_order);
+    residual += length;
+    XX += silk_ltp_matrix_values;
+    xX += silk_ltp_order;
   }
 }
 
@@ -20268,10 +20249,10 @@ static inline void silk_process_NLSFs_FLP(State* psEncC, float PredCoef[2][16], 
   }
 }
 
-static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * 5 * 5], const float xX[4 * 5], const int subfr_len, const int nb_subfr) {
+static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 * 5], opus_uint8 cbk_index[4], opus_uint8* periodicity_index, opus_int32* sum_log_gain_Q7, float* pred_gain_dB, const float XX[4 * silk_ltp_matrix_values], const float xX[4 * 5], const int subfr_len, const int nb_subfr) {
   int pred_gain_dB_Q7;
-  opus_int32 XX_Q17[4 * 5 * 5], xX_Q17[4 * 5];
-  for (int index = 0; index < nb_subfr * 5 * 5; ++index) {
+  opus_int32 XX_Q17[4 * silk_ltp_matrix_values], xX_Q17[4 * 5];
+  for (int index = 0; index < nb_subfr * silk_ltp_matrix_values; ++index) {
     XX_Q17[index] = float2int(XX[index] * 131072.0f);
   }
   for (int index = 0; index < nb_subfr * 5; ++index) {
@@ -20305,7 +20286,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   std::array<float, 4 * (silk_max_subfr_length + silk_nlsf_max_order)> lpc_input_storage;
   auto* LPC_in_pre = lpc_input_storage.data();
   auto* XXLTP = LPC_in_pre;
-  auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * 5 * 5;
+  auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * silk_ltp_matrix_values;
   float minInvGain;
   for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
@@ -20691,6 +20672,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
     float lbrr_original_lambda;
     opus_int8 lbrr_original_last_gain_index;
     bool use_reconstructed_lbrr_target = true;
+    bool keep_zero_history = false;
     if (lbrr_deferred_generate) {
       lbrr_original_indices = psEnc->sCmn.indices;
       lbrr_original_indices.quantOffsetType = static_cast<opus_int8>(redundancy_quant_offset_type);
@@ -20743,101 +20725,97 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         silk_encode_indices_and_pulses(&psEnc->sCmn, psEnc->sCmn.indices, psRangeEnc, condCoding, frame_pulses.data(), false);
         nBits = ec_tell(psRangeEnc);
         if (iter == max_iterations && lower.id < 0 && nBits > maxBits) {
+          auto& common = psEnc->sCmn;
+          const int samples = common.frame_length;
           *psRangeEnc = sRangeEnc_copy2;
-          psEnc->sShape.LastGainIndex = sEncCtrl.lastGainIndexPrev;
-          std::fill_n(psEnc->sCmn.indices.GainsIndices, static_cast<std::size_t>(psEnc->sCmn.nb_subfr), static_cast<opus_int8>(4));
-          if (condCoding != 2) {
-            psEnc->sCmn.indices.GainsIndices[0] = sEncCtrl.lastGainIndexPrev;
-          }
-          psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
-          psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
-          zero_n_items(frame_pulses.data(), static_cast<std::size_t>(psEnc->sCmn.frame_length));
-          silk_encode_indices_and_pulses(&psEnc->sCmn, psEnc->sCmn.indices, psRangeEnc, condCoding, frame_pulses.data(), false);
+          auto& gain_index = psEnc->sShape.LastGainIndex;
+          gain_index = sEncCtrl.lastGainIndexPrev;
+          auto* gain_indices = common.indices.GainsIndices;
+          std::fill_n(gain_indices, static_cast<std::size_t>(common.nb_subfr), opus_int8{4});
+          if (condCoding != 2)
+            gain_indices[0] = gain_index;
+          common.ec_prevLagIndex = ec_prevLagIndex_copy;
+          common.ec_prevSignalType = ec_prevSignalType_copy;
+          zero_n_items(frame_pulses.data(), static_cast<std::size_t>(samples));
+          silk_encode_indices_and_pulses(&common, common.indices, psRangeEnc, condCoding, frame_pulses.data(), false);
           nBits = ec_tell(psRangeEnc);
-          std::array<opus_int32, 4> replay_gains{};
-          auto previous_gain_index = static_cast<opus_int8>(sEncCtrl.lastGainIndexPrev);
-          silk_gains_dequant(replay_gains.data(), psEnc->sCmn.indices.GainsIndices, &previous_gain_index,
-                             condCoding == 2, psEnc->sCmn.nb_subfr);
-          silk_restore_nsq_working_state(nsq_working, psEnc->sCmn.sNSQ);
-          silk_NSQ_wrapper_FLP<true>(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working,
-                                     frame_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
+
+          std::array<opus_int32, 4> zero_gains{};
+          auto previous_gain = gain_index;
+          silk_gains_dequant(zero_gains.data(), gain_indices, &previous_gain, condCoding == 2, common.nb_subfr);
+          const auto replay = [&](const silk_encoder_control_FLP& control, SideInfoIndices& indices) {
+            silk_restore_nsq_working_state(nsq_working, common.sNSQ);
+            silk_NSQ_wrapper_FLP<true>(psEnc, &control, &indices, &nsq_working, frame_pulses.data(), nsq_samples.data(), prepared, zero_gains.data());
+          };
+          replay(sEncCtrl, common.indices);
           use_reconstructed_lbrr_target = false;
           if (lbrr_deferred_generate && !(lbrr->enabled & 8)) {
-            auto innovation_control = sEncCtrl;
-            for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe)
-              innovation_control.Gains[subframe] = replay_gains[subframe] / 65536.f;
-            auto innovation_indices = psEnc->sCmn.indices;
-            auto innovation_nsq = silk_nsq_working_state(psEnc->sCmn.sNSQ);
-            std::array<opus_int8, silk_max_frame_length> innovation_pulses{};
-            silk_NSQ_wrapper_FLP(psEnc, &innovation_control, &innovation_indices, &innovation_nsq, innovation_pulses.data(), nsq_samples.data(), prepared);
-            const auto quantized_pulses = innovation_pulses;
-            const auto coded_indices = innovation_indices;
-            silk_decoder_replay decoder_replay{psEnc->sCmn, innovation_control, psEnc->sCmn.sNSQ, coded_indices,
-                                               prepared, replay_gains.data()};
-            auto best_pulses = frame_pulses;
-            auto best_indices = psEnc->sCmn.indices;
-            auto best_range = *psRangeEnc;
-            auto best_lag = psEnc->sCmn.ec_prevLagIndex;
-            auto best_signal = psEnc->sCmn.ec_prevSignalType;
+            auto scoring_control = sEncCtrl;
+            for (int subframe = 0; subframe < common.nb_subfr; ++subframe)
+              scoring_control.Gains[subframe] = zero_gains[subframe] / 65536.f;
+            const auto* fallback_pcm = nsq_working.xq + common.ltp_mem_length - samples;
+            opus_int64 best_error = 0;
+            for (int i = 0; i < samples; ++i) {
+              const opus_int64 delta = nsq_samples[i] - fallback_pcm[i];
+              best_error += delta * delta;
+            }
             silk_copy_nsq_history(sNSQ_best, nsq_working);
-            const auto reconstruction_error = [&](const auto& state) {
-              opus_int64 error = 0;
-              for (int sample = 0; sample < psEnc->sCmn.frame_length; ++sample) {
-                const opus_int64 delta = nsq_samples[sample] - state.xq[psEnc->sCmn.ltp_mem_length - psEnc->sCmn.frame_length + sample];
-                error += delta * delta;
-              }
-              return error;
-            };
-            const auto fallback_error = reconstruction_error(nsq_working);
-            auto best_error = fallback_error;
-            unsigned char innovation_buffer[1276 * 6];
-            std::memcpy(innovation_buffer, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
+            keep_zero_history = true;
+            silk_restore_nsq_working_state(nsq_working, common.sNSQ);
+            auto innovation_indices = common.indices;
+            std::array<opus_int8, silk_max_frame_length> proposed{};
+            silk_NSQ_wrapper_FLP(psEnc, &scoring_control, &innovation_indices, &nsq_working, proposed.data(), nsq_samples.data(), prepared);
+            silk_decoder_replay decoder{common, scoring_control, common.sNSQ, innovation_indices, prepared, zero_gains.data()};
+
+            unsigned char probe_bytes[1276 * 6];
+            std::memcpy(probe_bytes, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
             if (psRangeEnc->end_offs != 0) {
-              const auto tail_offset = psRangeEnc->storage - psRangeEnc->end_offs;
-              std::memcpy(innovation_buffer + tail_offset, psRangeEnc->buf + tail_offset, static_cast<std::size_t>(psRangeEnc->end_offs));
+              const auto tail = psRangeEnc->storage - psRangeEnc->end_offs;
+              std::memcpy(probe_bytes + tail, psRangeEnc->buf + tail, static_cast<std::size_t>(psRangeEnc->end_offs));
             }
-            silk_entropy_context innovation_common{psEnc->sCmn};
-            for (int peak = 0; peak < psEnc->sCmn.frame_length; ++peak) {
-              if (quantized_pulses[peak] == 0)
+            silk_entropy_context probe_context{common};
+            int active_peak = -1, selected_peak = -1;
+            ec_enc selected_range;
+            decltype(common.ec_prevLagIndex) selected_lag{};
+            decltype(common.ec_prevSignalType) selected_signal{};
+            std::array<opus_int8, silk_max_frame_length> probe_pulses{};
+            for (int peak = 0; peak < samples; ++peak) {
+              const auto pulse = proposed[peak];
+              if (pulse == 0)
                 continue;
-              std::fill(innovation_pulses.begin(), innovation_pulses.end(), opus_int8{0});
-              innovation_pulses[peak] = quantized_pulses[peak];
-              auto innovation_range = sRangeEnc_copy2;
-              innovation_range.buf = innovation_buffer;
-              auto innovation_coding_indices = coded_indices;
-              innovation_common.ec_prevLagIndex = ec_prevLagIndex_copy;
-              innovation_common.ec_prevSignalType = ec_prevSignalType_copy;
-              silk_encode_indices_and_pulses(&innovation_common, innovation_coding_indices, &innovation_range, condCoding, innovation_pulses.data(), false);
-              if (ec_tell(&innovation_range) > maxBits)
-                continue;
-              innovation_indices = coded_indices;
-              const auto error = decoder_replay.reconstruction_error(innovation_pulses, nsq_samples);
-              if (error < best_error) {
-                best_error = error;
-                best_pulses = innovation_pulses;
-                best_indices = innovation_indices;
-                best_range = innovation_range;
-                best_lag = innovation_common.ec_prevLagIndex;
-                best_signal = innovation_common.ec_prevSignalType;
-                std::memcpy(ec_buf_copy, innovation_buffer, static_cast<std::size_t>(innovation_range.offs));
+              if (active_peak >= 0)
+                probe_pulses[active_peak] = 0;
+              probe_pulses[peak] = pulse;
+              active_peak = peak;
+              auto probe_range = sRangeEnc_copy2;
+              probe_range.buf = probe_bytes;
+              auto probe_indices = innovation_indices;
+              probe_context.ec_prevLagIndex = ec_prevLagIndex_copy;
+              probe_context.ec_prevSignalType = ec_prevSignalType_copy;
+              silk_encode_indices_and_pulses(&probe_context, probe_indices, &probe_range, condCoding, probe_pulses.data(), false);
+              if (ec_tell(&probe_range) <= maxBits) {
+                const auto error = decoder.reconstruction_error(probe_pulses, nsq_samples);
+                if (error < best_error) {
+                  best_error = error;
+                  selected_peak = peak;
+                  selected_range = probe_range;
+                  selected_lag = probe_context.ec_prevLagIndex;
+                  selected_signal = probe_context.ec_prevSignalType;
+                  std::memcpy(ec_buf_copy, probe_bytes, static_cast<std::size_t>(probe_range.offs));
+                }
               }
             }
-            if (best_error < fallback_error) {
-              innovation_indices = best_indices;
-              silk_restore_nsq_working_state(innovation_nsq, psEnc->sCmn.sNSQ);
-              silk_NSQ_wrapper_FLP<true>(psEnc, &innovation_control, &innovation_indices, &innovation_nsq,
-                                         best_pulses.data(), nsq_samples.data(), prepared, replay_gains.data());
-              best_indices = innovation_indices;
-              silk_copy_nsq_history(sNSQ_best, innovation_nsq);
+            if (selected_peak >= 0) {
+              frame_pulses[selected_peak] = proposed[selected_peak];
+              replay(scoring_control, innovation_indices);
               auto* output = psRangeEnc->buf;
-              *psRangeEnc = best_range;
+              *psRangeEnc = selected_range;
               psRangeEnc->buf = output;
               std::memcpy(output, ec_buf_copy, static_cast<std::size_t>(psRangeEnc->offs));
-              psEnc->sCmn.indices = best_indices;
-              psEnc->sCmn.ec_prevLagIndex = best_lag;
-              psEnc->sCmn.ec_prevSignalType = best_signal;
-              frame_pulses = best_pulses;
-              silk_copy_nsq_history(nsq_working, sNSQ_best);
+              common.indices = innovation_indices;
+              common.ec_prevLagIndex = selected_lag;
+              common.ec_prevSignalType = selected_signal;
+              keep_zero_history = false;
               use_reconstructed_lbrr_target = true;
               nBits = ec_tell(psRangeEnc);
             }
@@ -20947,7 +20925,10 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         lbrr->previous_gain_index = psEnc->sShape.LastGainIndex;
       }
     }
-    silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
+    if (keep_zero_history)
+      silk_copy_nsq_history(psEnc->sCmn.sNSQ, sNSQ_best);
+    else
+      silk_copy_nsq_history(psEnc->sCmn.sNSQ, nsq_working);
     psEnc->sCmn.dtx_omitted = static_cast<opus_int8>((psEnc->sCmn.dtx_omitted & 2) | (psEnc->sCmn.dtx_omitted >> 1));
   }
   psEnc->x_buf.commit(input_buffer + 1, frame, history);
