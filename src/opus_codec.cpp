@@ -20460,7 +20460,7 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
     }
     psEnc->sCmn.indices.quantOffsetType = energy_variation > 0.6f * (nSegs - 1) ? 0 : 1;
   }
-  strength = (psEnc->sCmn.nFramesPerPacket == 1 && psEnc->sCmn.SNR_dB_Q7 < 20 * 128 ? 5.5e-4f : 1e-3f) * psEncCtrl->predGain;
+  strength = (psEnc->sCmn.nFramesPerPacket == 1 && psEnc->sCmn.SNR_dB_Q7 < 20 * 128 ? (psEnc->sCmn.nChannelsInternal == 2 ? 2.25e-4f : 5.5e-4f) : 1e-3f) * psEncCtrl->predGain;
   BWExp = 0.94f / (1.0f + strength * strength);
   warping = static_cast<float>(psEnc->sCmn.warping_Q16) / 65536.0f + 0.01f * psEncCtrl->coding_quality;
   gain_mult = silk_pow_reference(2.0f, -0.16f * SNR_adj_dB);

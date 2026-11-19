@@ -529,5 +529,10 @@
   "ceiling": "target for CBR; none for VBR/CVBR",
   "changed_utc": "2026-11-18",
   "reason": "User dropped the 1.01 x target VBR ceiling; spending above official is checked by the matched-rate regress gate (bench17.py matched/regress)."
+ },
+ "size_target": {
+  "stripped_host_bytes_below": 400000,
+  "changed_utc": "2026-11-19",
+  "reason": "User set the cap to 400,000 B after the measured floor with every size lever was ~400 KB; size work paused in favour of quality and speed optimization."
  }
 }
