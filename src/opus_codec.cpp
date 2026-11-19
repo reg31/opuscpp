@@ -6889,7 +6889,7 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
 }
 
 static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
-                                                     celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
+                             celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
   opus_val32 L1 = 0, side_L1 = 0;
   const int pairs = N0 >> 1;
   if (stride == 1) {
@@ -14226,7 +14226,6 @@ static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, i
   return cost;
 }
 
-
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C) {
   for (int prio = 0; prio < 2; ++prio) {
@@ -16345,7 +16344,9 @@ static_assert(sizeof(silk_nsq_quant_levels) == 1984);
 [[nodiscard]] static inline auto silk_quantize_candidate_pair(bool fixed, opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
                                                               const silk_nsq_quant_level_pair* levels, int fixed_pulse = 0) noexcept -> silk_nsq_candidate_pair {
   if (fixed) {
-    const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80 : 0) + offset_Q10;
+    const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80
+                                                                                     : 0) +
+                       offset_Q10;
     return {q_Q10, q_Q10, 0, 0, 0, 0};
   }
   const opus_int32 q1_Q10 = residual_q10 - offset_Q10;
@@ -16379,7 +16380,9 @@ static void scale_q16_buffer(opus_int32* data, const int count, const opus_int32
 }
 
 static auto silk_nsq_noise_shape_feedback(opus_int32 diff, opus_int32* state, const opus_int16* coefficients, int order, int warping_Q16 = 0) noexcept -> opus_int32 {
-  const auto warp = [&](opus_int32 delta) noexcept { return silk_mul_wb(delta, static_cast<opus_int16>(warping_Q16)); };
+  const auto warp = [&](opus_int32 delta) noexcept {
+    return silk_mul_wb(delta, static_cast<opus_int16>(warping_Q16));
+  };
   auto even = wrap_add(diff, warp(state[0]));
   auto odd = wrap_add(state[0], warp(wrap_subtract(state[1], even)));
   state[0] = even;
@@ -16521,7 +16524,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
                                    int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay) {
   auto* NSQ = b.NSQ;
   const int ar_order = b.ar_order;
-  const bool zero_ar = std::all_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) { return c == 0; });
+  const bool zero_ar = std::all_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
+    return c == 0;
+  });
   const bool skip_ar = zero_ar && !keep_ar;
   bool use_float = N == 4 && !b.fixed && !zero_ar;
   const int original_errno = errno;
@@ -16767,7 +16772,10 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
       lag = pitchL[k];
       if ((k & (3 - (LSF_interpolation_flag << 1))) == 0) {
         if (delayed && k == 2) {
-          const int Winner_ind = static_cast<int>(std::min_element(psDelDec.begin(), psDelDec.begin() + N, [](const auto& l, const auto& r) { return l.RD_Q10 < r.RD_Q10; }) - psDelDec.begin());
+          const int Winner_ind = static_cast<int>(std::min_element(psDelDec.begin(), psDelDec.begin() + N, [](const auto& l, const auto& r) {
+                                                    return l.RD_Q10 < r.RD_Q10;
+                                                  }) -
+                                                  psDelDec.begin());
           for (int i = 0; i < N; ++i)
             if (i != Winner_ind)
               psDelDec[i].RD_Q10 += (0x7FFFFFFF >> 4);
@@ -16823,7 +16831,10 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     pxq += subfr_length;
   }
   if (delayed) {
-    const int Winner_ind = static_cast<int>(std::min_element(psDelDec.begin(), psDelDec.begin() + N, [](const auto& l, const auto& r) { return l.RD_Q10 < r.RD_Q10; }) - psDelDec.begin());
+    const int Winner_ind = static_cast<int>(std::min_element(psDelDec.begin(), psDelDec.begin() + N, [](const auto& l, const auto& r) {
+                                              return l.RD_Q10 < r.RD_Q10;
+                                            }) -
+                                            psDelDec.begin());
     const auto* psDD = &psDelDec[Winner_ind];
     psIndices->Seed = psDD->SeedInit;
     int last_smple_idx = (smpl_buf_idx + decisionDelay) % 40;

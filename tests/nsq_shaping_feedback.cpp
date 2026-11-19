@@ -2,7 +2,9 @@
 #include <cstdio>
 
 static opus_int32 reference_feedback(opus_int32 diff, opus_int32* data, const opus_int16* coefficients, int order, int warping_q16) {
-  const auto smlawb = [](opus_int32 a, opus_int32 b, opus_int32 c) { return wrap_add(a, silk_mul_wb(b, c)); };
+  const auto smlawb = [](opus_int32 a, opus_int32 b, opus_int32 c) {
+    return wrap_add(a, silk_mul_wb(b, c));
+  };
   opus_int32 tmp2 = smlawb(diff, data[0], warping_q16);
   opus_int32 tmp1 = smlawb(data[0], wrap_subtract(data[1], tmp2), warping_q16);
   data[0] = tmp2;
