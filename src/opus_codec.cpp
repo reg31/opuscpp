@@ -18429,7 +18429,7 @@ static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LP
 }
 
 OPUSCPP_MINSIZE OPUSCPP_SMALL static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr,
-                                    const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
+                                                                  const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
   std::array<double, silk_nlsf_max_order> C_first_row;
   std::array<double, silk_nlsf_max_order> C_last_row;
   std::array<double, silk_nlsf_max_order + 1> CAf;
@@ -18712,7 +18712,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
     silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
-                                                psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
+                                 psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
     auto* x_ptr = x - psEnc->sCmn.predictLPCOrder;
     auto* x_pre_ptr = LPC_in_pre;
