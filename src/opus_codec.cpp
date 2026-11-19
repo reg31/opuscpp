@@ -8826,6 +8826,11 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       bandLogE[index] -= 0.25f * energyError[index];
     }
   });
+  if (hybrid && shortBlocks != 0 && effectiveBytes >= 45) {
+    for (int c = 0; c < C; ++c) {
+      bandLogE[c * nbEBands + start] += .16f;
+    }
+  }
   const auto energy_stage_state = *st;
   const ec_enc energy_stage_coder = *enc;
   const int energy_stage_bytes = nbCompressedBytes;
