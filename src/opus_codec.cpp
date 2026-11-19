@@ -24,6 +24,17 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(__clang__)
+#define OPUSCPP_MINSIZE [[clang::minsize]]
+#else
+#define OPUSCPP_MINSIZE
+#endif
+#if defined(__GNUC__) && !defined(__clang__)
+#define OPUSCPP_SMALL [[gnu::optimize("Os")]]
+#else
+#define OPUSCPP_SMALL
+#endif
+
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
 #else
@@ -16308,7 +16319,7 @@ __declspec(noinline)
 #else
 [[gnu::noinline]]
 #endif
-static void
+OPUSCPP_MINSIZE OPUSCPP_SMALL static void
 silk_process_NLSFs_common(SideInfoIndices& indices, opus_int16 PredCoef_Q12[2][16],
                           opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16],
                           int NLSF_mu_Q20, int predictLPCOrder, int Complexity,
@@ -17326,78 +17337,6 @@ struct silk_gain_search_bound {
 };
 
 namespace {
-static bool silk_lpc_values_finite(std::span<const float> values) noexcept {
-  if constexpr (sizeof(float) == sizeof(std::uint32_t)) {
-    for (float value : values) {
-      if ((std::bit_cast<std::uint32_t>(value) & 0x7f800000U) == 0x7f800000U)
-        return false;
-    }
-    return true;
-  }
-  return false;
-}
-
-template <std::size_t Order, std::size_t Outputs>
-static void silk_lpc_analysis_filter_finite(std::array<float*, Outputs> residual,
-                                            std::array<std::span<const float, Order>, Outputs> coefficients,
-                                            std::span<const float> signal) noexcept {
-  int index = static_cast<int>(coefficients[0].size()), length = static_cast<int>(signal.size());
-  for (; index < length - 3; index += 4) {
-    const auto* history = signal.data() + index - 1;
-    std::array<std::array<float, 4>, Outputs> prediction{};
-    for (std::size_t tap = 0; tap < coefficients[0].size(); ++tap) {
-      for (int lane = 0; lane < 4; ++lane) {
-        const float value = history[-static_cast<int>(tap) + lane];
-        for (std::size_t output = 0; output < Outputs; ++output)
-          prediction[output][lane] += value * coefficients[output][tap];
-      }
-    }
-    for (int lane = 0; lane < 4; ++lane) {
-      for (std::size_t output = 0; output < Outputs; ++output)
-        residual[output][index + lane] = history[1 + lane] - prediction[output][lane];
-    }
-  }
-  for (; index < length; ++index) {
-    const auto* history = signal.data() + index - 1;
-    std::array<float, Outputs> prediction{};
-    for (std::size_t tap = 0; tap < coefficients[0].size(); ++tap) {
-      const float value = history[-static_cast<int>(tap)];
-      for (std::size_t output = 0; output < Outputs; ++output)
-        prediction[output] += value * coefficients[output][tap];
-    }
-    for (std::size_t output = 0; output < Outputs; ++output)
-      residual[output][index] = history[1] - prediction[output];
-  }
-}
-
-template <std::size_t Order>
-  requires(Order > 0)
-auto silk_lpc_analysis_filter_impl(std::span<float> residual, std::span<const float, Order> pred_coef, std::span<const float> signal, bool known_finite = false) noexcept -> void {
-  int index = static_cast<int>(pred_coef.size()), n = static_cast<int>(signal.size());
-  if constexpr (sizeof(float) == sizeof(std::uint32_t) && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::digits == 24) {
-    if constexpr (std::bit_cast<std::uint32_t>(1.f) == 0x3f800000U && std::bit_cast<std::uint32_t>(-0.f) == 0x80000000U && std::bit_cast<std::uint32_t>(std::numeric_limits<float>::infinity()) == 0x7f800000U) {
-      const auto less = std::less<const float*>{};
-      if (!pred_coef.empty() && pred_coef.size() < signal.size() && signal.size() <= static_cast<std::size_t>(std::numeric_limits<int>::max()) &&
-          !(less(residual.data(), signal.data() + signal.size()) && less(signal.data(), residual.data() + residual.size())) &&
-          !(less(residual.data(), pred_coef.data() + pred_coef.size()) && less(pred_coef.data(), residual.data() + residual.size()))) {
-        const bool finite = known_finite || (silk_lpc_values_finite(pred_coef) && silk_lpc_values_finite(signal));
-        if (finite) {
-          silk_lpc_analysis_filter_finite<Order, 1>({residual.data()}, {pred_coef}, signal);
-          return;
-        }
-      }
-    }
-  }
-  for (; index < n; ++index) {
-    const auto* history = signal.data() + index - 1;
-    auto prediction = 0.0f;
-    for (std::size_t tap = 0; tap < pred_coef.size(); ++tap) {
-      prediction += history[-static_cast<int>(tap)] * pred_coef[tap];
-    }
-    residual[index] = history[1] - prediction;
-  }
-}
-
 struct max_abs_result {
   float value;
   int index;
@@ -17718,7 +17657,7 @@ static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_encoder_state_F
   return current_bits;
 }
 
-static void silk_encode_do_VAD(silk_encoder_state* psEncC, const opus_int16* input_buffer) {
+OPUSCPP_MINSIZE OPUSCPP_SMALL static void silk_encode_do_VAD(silk_encoder_state* psEncC, const opus_int16* input_buffer) {
   auto* psSilk_VAD = &psEncC->sVAD;
   const auto* pIn = input_buffer + 1;
   const int decimated_framelength1 = ((psEncC->frame_length) >> (1));
@@ -17959,7 +17898,7 @@ struct silk_lpc_model_context {
 };
 
 template <class State>
-static void silk_find_LPC_FLP(State*, opus_int16[], const float[], float, bool);
+static void silk_find_LPC_FLP(State*, opus_int16[], const float[], float);
 template <class State>
 static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], const opus_int16[16]);
 
@@ -18092,7 +18031,7 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     }
     const float minimum_inverse_gain = model_state.first_frame_after_reset ? 1.f / 1e2f : (1.f / 1e4f) / (0.25f + 0.75f * control->coding_quality);
     opus_int16 fitted_nlsf[16]{};
-    silk_find_LPC_FLP(&model_state, fitted_nlsf, model_input.data(), minimum_inverse_gain, false);
+    silk_find_LPC_FLP(&model_state, fitted_nlsf, model_input.data(), minimum_inverse_gain);
     if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
                   std::numeric_limits<float>::digits >= 16 && std::numeric_limits<float>::min_exponent <= -11 &&
                   std::numeric_limits<float>::max_exponent >= 16) {
@@ -18131,17 +18070,25 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     std::copy_n(original_gains.begin(), static_cast<std::size_t>(psEnc->sCmn.nb_subfr), control->Gains);
 }
 
-static void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], const float s[], const int length, const int Order, bool known_finite = false) {
-  auto residual = std::span<float>{r_LPC, static_cast<std::size_t>(length)};
-  auto signal = std::span<const float>{s, static_cast<std::size_t>(length)};
-  if (Order == 10) {
-    silk_lpc_analysis_filter_impl<10>(residual, std::span<const float, 10>{PredCoef, 10}, signal, known_finite);
-  } else if (Order == 16) {
-    silk_lpc_analysis_filter_impl<16>(residual, std::span<const float, 16>{PredCoef, 16}, signal, known_finite);
-  } else {
-    silk_lpc_analysis_filter_impl(residual, std::span<const float>{PredCoef, static_cast<std::size_t>(Order)}, signal, known_finite);
+static void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], const float s[], const int length, const int Order) {
+  int i = Order;
+  for (; i + 3 < length; i += 4) {
+    float p[4]{};
+    for (int t = 0; t < Order; ++t) {
+      const float* h = s + i - 1 - t;
+      for (int l = 0; l < 4; ++l)
+        p[l] += h[l] * PredCoef[t];
+    }
+    for (int l = 0; l < 4; ++l)
+      r_LPC[i + l] = s[i + l] - p[l];
   }
-  std::fill_n(residual.data(), static_cast<std::size_t>(Order), 0.0f);
+  for (; i < length; ++i) {
+    float p = 0.0f;
+    for (int t = 0; t < Order; ++t)
+      p += s[i - 1 - t] * PredCoef[t];
+    r_LPC[i] = s[i] - p;
+  }
+  std::fill_n(r_LPC, Order, 0.0f);
 }
 
 static double silk_inner_product_FLP_c(const float* data1, const float* data2, int dataSize) {
@@ -18157,87 +18104,10 @@ static double silk_inner_product_FLP_c(const float* data1, const float* data2, i
   return result;
 }
 
-static std::array<double, 4> silk_inner_product_FLP_c_four_lags(const float* inputData, int inputDataSize, int firstLag) {
-  std::array<double, 4> results{};
-  const int shortestSize = inputDataSize > firstLag + 3 ? inputDataSize - (firstLag + 3) : 0;
-  const int commonEnd = shortestSize - shortestSize % 4;
-  const auto* lagData = inputData + firstLag;
-  for (int i = 0; i < commonEnd; i += 4) {
-    results[0] += inputData[i] * static_cast<double>(lagData[i]) +
-                  inputData[i + 1] * static_cast<double>(lagData[i + 1]) +
-                  inputData[i + 2] * static_cast<double>(lagData[i + 2]) +
-                  inputData[i + 3] * static_cast<double>(lagData[i + 3]);
-    results[1] += inputData[i] * static_cast<double>(lagData[i + 1]) +
-                  inputData[i + 1] * static_cast<double>(lagData[i + 2]) +
-                  inputData[i + 2] * static_cast<double>(lagData[i + 3]) +
-                  inputData[i + 3] * static_cast<double>(lagData[i + 4]);
-    results[2] += inputData[i] * static_cast<double>(lagData[i + 2]) +
-                  inputData[i + 1] * static_cast<double>(lagData[i + 3]) +
-                  inputData[i + 2] * static_cast<double>(lagData[i + 4]) +
-                  inputData[i + 3] * static_cast<double>(lagData[i + 5]);
-    results[3] += inputData[i] * static_cast<double>(lagData[i + 3]) +
-                  inputData[i + 1] * static_cast<double>(lagData[i + 4]) +
-                  inputData[i + 2] * static_cast<double>(lagData[i + 5]) +
-                  inputData[i + 3] * static_cast<double>(lagData[i + 6]);
-  }
-  for (int lane = 0; lane < 4; ++lane) {
-    int i = commonEnd;
-    const int dataSize = inputDataSize - (firstLag + lane);
-    auto& result = results[static_cast<std::size_t>(lane)];
-    for (; i < dataSize - 3; i += 4) {
-      result += inputData[i] * static_cast<double>(lagData[i + lane]) +
-                inputData[i + 1] * static_cast<double>(lagData[i + 1 + lane]) +
-                inputData[i + 2] * static_cast<double>(lagData[i + 2 + lane]) +
-                inputData[i + 3] * static_cast<double>(lagData[i + 3 + lane]);
-    }
-    for (; i < dataSize; ++i) {
-      result += inputData[i] * static_cast<double>(lagData[i + lane]);
-    }
-  }
-  return results;
-}
-
-template <bool Capture>
-static void silk_burg_accumulate_first_row(double* C_first_row, double* captured_row, const float* x_ptr, int subfr_length,
-                                           int D) {
-  int firstLag = 1;
-  for (; firstLag + 3 <= D; firstLag += 4) {
-    const auto row_dots = silk_inner_product_FLP_c_four_lags(x_ptr, subfr_length, firstLag);
-    for (int lane = 0; lane < 4; ++lane) {
-      const auto index = firstLag + lane - 1;
-      C_first_row[index] += row_dots[static_cast<std::size_t>(lane)];
-      if constexpr (Capture)
-        captured_row[index] += row_dots[static_cast<std::size_t>(lane)];
-    }
-  }
-  for (; firstLag <= D; ++firstLag) {
-    const auto index = firstLag - 1;
-    const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + firstLag, subfr_length - firstLag);
-    C_first_row[index] += row_dot;
-    if constexpr (Capture)
-      captured_row[index] += row_dot;
-  }
-}
-
 static void silk_autocorrelation_FLP(float* results, const float* inputData, int inputDataSize, int correlationCount) {
-  if (correlationCount > inputDataSize) {
-    correlationCount = inputDataSize;
-  }
-  int lag = 0;
-  if (correlationCount > 0) {
-    const auto less = std::less<const float*>{};
-    const auto overlaps = less(results, inputData + inputDataSize) && less(inputData, results + correlationCount);
-    if (!overlaps) {
-      for (; lag + 3 < correlationCount; lag += 4) {
-        const auto dots = silk_inner_product_FLP_c_four_lags(inputData, inputDataSize, lag);
-        for (int lane = 0; lane < 4; ++lane)
-          results[lag + lane] = static_cast<float>(dots[lane]);
-      }
-    }
-  }
-  for (; lag < correlationCount; ++lag) {
+  correlationCount = std::min(correlationCount, inputDataSize);
+  for (int lag = 0; lag < correlationCount; ++lag)
     results[lag] = static_cast<float>(silk_inner_product_FLP_c(inputData, inputData + lag, inputDataSize - lag));
-  }
 }
 
 static void silk_k2a_FLP(float* A, const float* rc, opus_int32 order) {
@@ -18558,7 +18428,7 @@ static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LP
   }
 }
 
-static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr,
+OPUSCPP_MINSIZE OPUSCPP_SMALL static float silk_burg_modified_FLP(float A[], const float x[], const float minInvGain, const int subfr_length, const int nb_subfr,
                                     const int D, const double* reused_C_first_row, double* captured_last_two_C_first_row) {
   std::array<double, silk_nlsf_max_order> C_first_row;
   std::array<double, silk_nlsf_max_order> C_last_row;
@@ -18573,10 +18443,11 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
     for (int s = 0; s < nb_subfr; ++s) {
       const auto* x_ptr = x + s * subfr_length;
       const bool capture_row = captured_last_two_C_first_row != nullptr && s >= nb_subfr - 2;
-      if (capture_row) {
-        silk_burg_accumulate_first_row<true>(C_first_row.data(), captured_last_two_C_first_row, x_ptr, subfr_length, D);
-      } else {
-        silk_burg_accumulate_first_row<false>(C_first_row.data(), nullptr, x_ptr, subfr_length, D);
+      for (int lag = 1; lag <= D; ++lag) {
+        const double row_dot = silk_inner_product_FLP_c(x_ptr, x_ptr + lag, subfr_length - lag);
+        C_first_row[lag - 1] += row_dot;
+        if (capture_row)
+          captured_last_two_C_first_row[lag - 1] += row_dot;
       }
     }
   }
@@ -18672,7 +18543,7 @@ static float silk_burg_modified_FLP(float A[], const float x[], const float minI
 }
 
 template <class State>
-OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain, bool known_finite) {
+OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q15[], const float x[], const float minInvGain) {
   int k, subfr_length;
   float a[16];
   float res_nrg, res_nrg_2nd, res_nrg_interp;
@@ -18699,7 +18570,7 @@ OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus_int16 NLSF_Q1
                        std::span<const opus_int16>{psEncC->prev_NLSFq_Q15.data(), static_cast<std::size_t>(psEncC->predictLPCOrder)},
                        std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(psEncC->predictLPCOrder)}, k);
       silk_NLSF2A_FLP(a_tmp, NLSF0_Q15, psEncC->predictLPCOrder);
-      silk_LPC_analysis_filter_FLP(LPC_res, a_tmp, x, 2 * subfr_length, psEncC->predictLPCOrder, known_finite);
+      silk_LPC_analysis_filter_FLP(LPC_res, a_tmp, x, 2 * subfr_length, psEncC->predictLPCOrder);
       res_nrg_interp =
           static_cast<float>(silk_energy_FLP(LPC_res + psEncC->predictLPCOrder, subfr_length - psEncC->predictLPCOrder) +
                              silk_energy_FLP(LPC_res + psEncC->predictLPCOrder + subfr_length, subfr_length - psEncC->predictLPCOrder));
@@ -18754,45 +18625,20 @@ static void silk_find_LTP_FLP(float XX[4 * silk_ltp_matrix_values], float xX[4 *
   }
 }
 
-static bool silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length) {
-  auto* x_ptr = x;
-  auto* LTP_res_ptr = LTP_res;
-  bool all_finite = nb_subfr >= 2;
+static void silk_LTP_analysis_filter_FLP(float* LTP_res, const float* x, const float B[5 * 4], const int pitchL[4], const float invGains[4], const int subfr_length, const int nb_subfr, const int pre_length) {
+  const int length = subfr_length + pre_length;
   for (int k = 0; k < nb_subfr; ++k) {
     const auto* b = B + k * 5;
-    const auto* x_lag_ptr = x_ptr - pitchL[k];
-    const float inv_gain = invGains[k];
-    const int length = subfr_length + pre_length;
-    int i = 0;
-    for (; i + 3 < length; i += 4) {
-      std::array<float, 4> residual{x_ptr[i], x_ptr[i + 1], x_ptr[i + 2], x_ptr[i + 3]};
-      const auto apply_tap = [&]<int Tap>() {
-        for (int lane = 0; lane < 4; ++lane)
-          residual[lane] -= b[Tap] * x_lag_ptr[i + lane + 5 / 2 - Tap];
-      };
-      apply_tap.template operator()<0>();
-      apply_tap.template operator()<1>();
-      apply_tap.template operator()<2>();
-      apply_tap.template operator()<3>();
-      apply_tap.template operator()<4>();
-      for (int lane = 0; lane < 4; ++lane)
-        LTP_res_ptr[i + lane] = residual[lane] * inv_gain;
-      all_finite = all_finite && silk_lpc_values_finite({LTP_res_ptr + i, 4});
+    const auto* x_lag_ptr = x - pitchL[k];
+    for (int i = 0; i < length; ++i) {
+      auto residual = x[i];
+      for (int j = 0; j < 5; ++j)
+        residual -= b[j] * x_lag_ptr[i + 5 / 2 - j];
+      LTP_res[i] = residual * invGains[k];
     }
-    x_lag_ptr += i;
-    for (; i < length; ++i) {
-      auto residual = x_ptr[i];
-      for (int j = 0; j < 5; ++j) {
-        residual -= b[j] * x_lag_ptr[5 / 2 - j];
-      }
-      LTP_res_ptr[i] = residual * inv_gain;
-      all_finite = all_finite && silk_lpc_values_finite({LTP_res_ptr + i, 1});
-      x_lag_ptr++;
-    }
-    LTP_res_ptr += length;
-    x_ptr += subfr_length;
+    LTP_res += length;
+    x += subfr_length;
   }
-  return all_finite;
 }
 
 static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding) {
@@ -18811,12 +18657,12 @@ static void silk_LTP_scale_ctrl_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_
   }
 }
 
-static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length, const int nb_subfr, const int LPC_order, bool known_finite) {
+static inline void silk_residual_energy_FLP(float nrgs[4], const float x[], float a[2][16], const float gains[], const int subfr_length, const int nb_subfr, const int LPC_order) {
   float LPC_res[(((5 * 4) * 16) + 4 * 16) / 2];
   auto* LPC_res_ptr = LPC_res + LPC_order;
   const int shift = LPC_order + subfr_length;
   for (int offset = 0; offset < (nb_subfr == 4 ? 4 : 2); offset += 2) {
-    silk_LPC_analysis_filter_FLP(LPC_res, a[offset / 2], x + offset * shift, 2 * shift, LPC_order, known_finite);
+    silk_LPC_analysis_filter_FLP(LPC_res, a[offset / 2], x + offset * shift, 2 * shift, LPC_order);
     nrgs[offset] = static_cast<float>(gains[offset] * gains[offset] * silk_energy_FLP(LPC_res_ptr + 0 * shift, subfr_length));
     nrgs[offset + 1] = static_cast<float>(gains[offset + 1] * gains[offset + 1] * silk_energy_FLP(LPC_res_ptr + 1 * shift, subfr_length));
   }
@@ -18849,21 +18695,6 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
   *pred_gain_dB = static_cast<float>(pred_gain_dB_Q7) * (1.0f / 128.0f);
 }
 
-static void silk_LPC_analysis_filter_pair_FLP(float* residual0, float* residual1, const float* coefficients0,
-                                              const float* coefficients1, const float* signal, int length, int order) {
-  const auto filter = [&]<int Order>() {
-    silk_lpc_analysis_filter_finite<Order, 2>({residual0, residual1},
-                                              {std::span<const float, Order>{coefficients0, Order}, std::span<const float, Order>{coefficients1, Order}},
-                                              {signal, static_cast<std::size_t>(length)});
-    std::fill_n(residual0, Order, 0.f);
-    std::fill_n(residual1, Order, 0.f);
-  };
-  if (order == 10)
-    filter.template operator()<10>();
-  else
-    filter.template operator()<16>();
-}
-
 static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
@@ -18875,13 +18706,12 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
   }
-  bool known_finite;
   if (psEnc->sCmn.indices.signalType == 2) {
     silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, LTPCoef_Q14, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
-    known_finite = silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
+    silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
                                                 psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
     auto* x_ptr = x - psEnc->sCmn.predictLPCOrder;
@@ -18894,7 +18724,6 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     zero_n_items(psEncCtrl->LTPCoef, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * 5));
     psEncCtrl->LTPredCodGain = 0.0f;
     psEnc->sCmn.sum_log_gain_Q7 = 0;
-    known_finite = psEnc->sCmn.nb_subfr >= 2 && silk_lpc_values_finite({LPC_in_pre, static_cast<std::size_t>(psEnc->sCmn.nb_subfr * (psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder))});
   }
   if (psEnc->sCmn.first_frame_after_reset) {
     minInvGain = 1.0f / 1e2f;
@@ -18902,7 +18731,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     minInvGain = static_cast<float>(std::pow(2, psEncCtrl->LTPredCodGain / 3)) / 1e4f;
     minInvGain /= 0.25f + 0.75f * psEncCtrl->coding_quality;
   }
-  const bool select_coded_interpolation = known_finite && psEnc->sCmn.Complexity >= 4 && !psEnc->sCmn.first_frame_after_reset && psEnc->sCmn.nb_subfr == 4;
+  const bool select_coded_interpolation = psEnc->sCmn.Complexity >= 4 && !psEnc->sCmn.first_frame_after_reset && psEnc->sCmn.nb_subfr == 4;
   if (select_coded_interpolation) {
     float prediction[16]{};
     silk_burg_modified_FLP(prediction, LPC_in_pre, minInvGain, psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder,
@@ -18912,7 +18741,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
   } else {
     silk_lpc_model_context model_state(psEnc->sCmn, psEnc->sCmn.indices);
     model_state.prev_NLSFq_Q15 = psEnc->sCmn.prev_NLSFq_Q15;
-    silk_find_LPC_FLP(&model_state, NLSF_Q15, LPC_in_pre, minInvGain, known_finite);
+    silk_find_LPC_FLP(&model_state, NLSF_Q15, LPC_in_pre, minInvGain);
     psEnc->sCmn.indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
   }
   silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
@@ -18922,7 +18751,7 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     float prediction[2][16]{}, residual[2][(((5 * 4) * 16) + 4 * 16) / 2]{};
     const int order = psEnc->sCmn.predictLPCOrder;
     const int shift = order + psEnc->sCmn.subfr_length;
-    silk_LPC_analysis_filter_FLP(residual[0], psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order, true);
+    silk_LPC_analysis_filter_FLP(residual[0], psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order);
     selected_energy = {silk_energy_FLP(residual[0] + order, psEnc->sCmn.subfr_length),
                        silk_energy_FLP(residual[0] + order + shift, psEnc->sCmn.subfr_length)};
     double best_energy = selected_energy[0] + selected_energy[1];
@@ -18933,7 +18762,8 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
                          std::span<const opus_int16>{NLSF_Q15, static_cast<std::size_t>(order)}, k - lane);
         silk_NLSF2A_FLP(prediction[lane], interpolated, order);
       }
-      silk_LPC_analysis_filter_pair_FLP(residual[0], residual[1], prediction[0], prediction[1], LPC_in_pre, 2 * shift, order);
+      for (int lane = 0; lane < 2; ++lane)
+        silk_LPC_analysis_filter_FLP(residual[lane], prediction[lane], LPC_in_pre, 2 * shift, order);
       for (int lane = 0; lane < 2; ++lane) {
         const std::array<double, 2> subframe_energy{silk_energy_FLP(residual[lane] + order, psEnc->sCmn.subfr_length),
                                                     silk_energy_FLP(residual[lane] + order + shift, psEnc->sCmn.subfr_length)};
@@ -18949,10 +18779,10 @@ static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder
     for (int index = 0; index < 2; ++index)
       psEncCtrl->ResNrg[index] = static_cast<float>(psEncCtrl->Gains[index] * psEncCtrl->Gains[index] * selected_energy[index]);
     silk_residual_energy_FLP(psEncCtrl->ResNrg + 2, LPC_in_pre + 2 * shift, psEncCtrl->PredCoef + 1, psEncCtrl->Gains + 2,
-                             psEnc->sCmn.subfr_length, 2, order, true);
+                             psEnc->sCmn.subfr_length, 2, order);
   } else {
     silk_residual_energy_FLP(psEncCtrl->ResNrg, LPC_in_pre, psEncCtrl->PredCoef, psEncCtrl->Gains, psEnc->sCmn.subfr_length,
-                             psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, known_finite);
+                             psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   }
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
 }
@@ -19110,25 +18940,15 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
 }
 
 static bool silk_zero_offset_floor_exceeds_residual(const silk_encoder_state& state, const silk_encoder_control_FLP& control) noexcept {
-  const int saved_errno = errno;
-  std::fenv_t original_environment, held_environment;
-  bool prefer_low_offset = false;
-  if (std::fegetenv(&original_environment) == 0) {
-    if (std::feholdexcept(&held_environment) == 0) {
-      const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
-      double zero_excitation_power = 0.0, residual_power = 0.0;
-      for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
-        const double zero_excitation = static_cast<double>(control.Gains[subframe]) * offset;
-        zero_excitation_power += zero_excitation * zero_excitation;
-        residual_power += static_cast<double>(control.ResNrg[subframe]) / state.subfr_length;
-      }
-      prefer_low_offset = std::isfinite(zero_excitation_power) && std::isfinite(residual_power) &&
-                          residual_power >= 0.0 && zero_excitation_power > residual_power;
-    }
-    std::fesetenv(&original_environment);
+  const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
+  double zero_excitation_power = 0.0, residual_power = 0.0;
+  for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
+    const double zero_excitation = static_cast<double>(control.Gains[subframe]) * offset;
+    zero_excitation_power += zero_excitation * zero_excitation;
+    residual_power += static_cast<double>(control.ResNrg[subframe]) / state.subfr_length;
   }
-  errno = saved_errno;
-  return prefer_low_offset;
+  return std::isfinite(zero_excitation_power) && std::isfinite(residual_power) && residual_power >= 0.0 &&
+         zero_excitation_power > residual_power;
 }
 
 static void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding, opus_int32* quantized_gains = nullptr) {
@@ -19187,7 +19007,7 @@ static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, const silk_enco
   prepared.ltp_scale = psIndices->signalType == 2 ? silk_LTPScales_table_Q14[psIndices->LTP_scaleIndex] : 0;
 }
 
-static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
+OPUSCPP_MINSIZE OPUSCPP_SMALL static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
   silk_encoder_control_FLP sEncCtrl;
   const auto lbrr_pre_frame_nlsf = psEnc->sCmn.prev_NLSFq_Q15;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
@@ -19526,7 +19346,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
   *pnBytesOut = ((ec_tell(psRangeEnc) + 7) >> (3));
 }
 
-static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag, funded_lbrr_packet* funding) {
+OPUSCPP_MINSIZE OPUSCPP_SMALL static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const opus_res* samplesIn, int nSamplesIn, ec_enc* psRangeEnc, opus_int32* nBytesOut, const int prefillFlag, funded_lbrr_packet* funding) {
   int saved_payload_size_ms, saved_complexity;
   auto* psEnc = static_cast<silk_encoder*>(encState);
   auto* state_Fxx = silk_encoder_channel_states(psEnc);
