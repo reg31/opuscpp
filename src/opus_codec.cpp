@@ -475,7 +475,6 @@ struct kiss_twiddle_cpx {
   float i;
 };
 
-
 struct SILKInfo {
   int offset, bitrateBps, actualSilkBps, signalType;
 };
@@ -9147,9 +9146,9 @@ template <typename Sample>
     auto* freq1 = X + N;
     denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
     for (b = 0; b < B; b++) {
-        clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
-        clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
-      }
+      clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
+      clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
+    }
   } else {
     denormalise_bands<1>({X}, {X}, {oldBandE}, start, effEnd, M, downsample, silence);
     if (CC != C) {
@@ -10311,7 +10310,6 @@ void ec_enc_done(ec_enc* _this) {
   }
 }
 
-
 static unsigned ec_laplace_get_freq1(unsigned fs0, int decay) {
   const auto ft = 32768 - 2 * 16 - fs0;
   return ft * static_cast<opus_int32>(16384 - decay) >> 15;
@@ -10383,7 +10381,6 @@ static int ec_laplace_decode(ec_dec* dec, unsigned fs, int decay) {
   ec_dec_update(dec, fl, std::min(fl + fs, static_cast<unsigned>(32768)), 32768);
   return val;
 }
-
 
 constexpr std::array<opus_int16, 22> eband5ms =
     numeric_blob_array<opus_int16>(R"blob(000000010002000300040005000600070008000A000C000E001000140018001C002200280030003C004E0064)blob");
@@ -10475,13 +10472,11 @@ constexpr auto celt_cosine(double angle) noexcept -> double {
   return celt_sine(half_pi + angle);
 }
 
-
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
 #else
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
-
 
 [[gnu::cold]] OPUSCPP_NOINLINE static bool fill_celt_tables(celt_generated_tables& tables) noexcept {
 #pragma STDC FP_CONTRACT OFF
@@ -10520,7 +10515,6 @@ constexpr auto celt_cosine(double angle) noexcept -> double {
 
 static celt_generated_tables celt_tables;
 
-
 [[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>* {
   return celt_tables.comb_fade.data();
 }
@@ -10540,8 +10534,12 @@ template <int R, int L, bool LP>
   float* const yr = y + yi;
   float* const ym = y + total + yi;
   for (int u = 0; u < L; ++u) {
-    const auto ar = [&](int k) { return xr[u + k * xs]; };
-    const auto ai = [&](int k) { return xm[u + k * xs]; };
+    const auto ar = [&](int k) {
+      return xr[u + k * xs];
+    };
+    const auto ai = [&](int k) {
+      return xm[u + k * xs];
+    };
     float cr[R], ci[R];
     if constexpr (R == 2) {
       cr[0] = ar(0) + ar(1);
@@ -10763,8 +10761,6 @@ static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch
   clt_mdct_backward_overlap_c(out0, window, overlap);
   clt_mdct_backward_overlap_c(out1, window, overlap);
 }
-
-
 
 static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
