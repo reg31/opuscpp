@@ -77,7 +77,7 @@ void run_case(const char* name, bool policy, bool saturated, float prime_level, 
   float tf_estimate = 0;
   int tf_chan = 0;
   bool weak = false;
-  const int detected = celt_transient_analysis(pcm.data(), kLen, 1, &tf_estimate, &tf_chan, false, &weak, -1.0f, 0.0f);
+  const int detected = celt_transient_analysis(pcm.data(), kLen, 1, &tf_estimate, &tf_chan, false, &weak, -1.0f, 0.0f, 200);
 
   auto* celt_dec = decoder_celt_state(dec.get());
   std::array<celt_sig, celt_max_channels*(celt_decode_buffer_size + celt_default_overlap)> decoder_workspace;

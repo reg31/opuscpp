@@ -5148,8 +5148,7 @@ struct celt_input_spreading_counts {
   bool valid{};
 };
 
-template <bool Normalise = true, bool CommonSource = false>
-static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM, const float* energy_prefix = nullptr, celt_input_spreading_counts* spreading_counts = nullptr) {
+static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, celt_glog* bandLogE, int start, int end, int C, int LM, const float* energy_prefix, celt_input_spreading_counts* spreading_counts, bool Normalise, bool CommonSource) {
   if (spreading_counts != nullptr) {
     *spreading_counts = {0, 0, Normalise && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits == 24 && FLT_EVAL_METHOD == 0};
   }
@@ -5168,7 +5167,7 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
       const opus_val32 sum = 1e-27f + (energy_prefix != nullptr && std::isfinite(prefix) ? prefix : celt_inner_prod_c(band, band, band_width));
       bandE[i + energy_offset] = std::sqrt(sum);
       bandLogE[i + energy_offset] = std::log2(bandE[i + energy_offset]) - eMeans[i];
-      if constexpr (Normalise) {
+      if (Normalise) {
         const int analysis_prefix = C == 2 ? celt_stereo_analysis_bands : 0;
         if (i < analysis_prefix || i >= start) {
           const opus_val16 gain = 1.f / (1e-27f + bandE[i + energy_offset]);
@@ -6592,7 +6591,7 @@ static void celt_commit_encoder_band_state(celt_glog* old_band, int channels, in
 }
 
 template <bool Encode>
-static inline auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost) -> opus_int32 {
+[[gnu::noinline]] static auto process_celt_dynalloc(ec_ctx* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost) -> opus_int32 {
   int dynalloc_logp = 6;
   total_bits <<= 3;
   total_boost = 0;
@@ -6889,7 +6888,7 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
   return L1;
 }
 
-template <bool Coupled> static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
+static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
                                                      celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
   opus_val32 L1 = 0, side_L1 = 0;
   const int pairs = N0 >> 1;
@@ -6904,7 +6903,7 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
       output[base + 1] = difference;
       L1 += std::fabs(sum);
       L1 += std::fabs(difference);
-      if constexpr (Coupled) {
+      if (side_input != nullptr) {
         const opus_val32 side_first = .70710678f * side_input[base];
         const opus_val32 side_second = .70710678f * side_input[base + 1];
         const opus_val32 side_sum = side_first + side_second;
@@ -6923,7 +6922,7 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
         const opus_val32 second = .70710678f * input[base + stride + offset];
         output[base + offset] = first + second;
         output[base + stride + offset] = first - second;
-        if constexpr (Coupled) {
+        if (side_input != nullptr) {
           const opus_val32 side_first = .70710678f * side_input[base + offset];
           const opus_val32 side_second = .70710678f * side_input[base + stride + offset];
           side_output[base + offset] = side_first + side_second;
@@ -6932,7 +6931,7 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
       }
       for (int offset = 0; offset < 2 * stride; ++offset) {
         L1 += std::fabs(output[base + offset]);
-        if constexpr (Coupled)
+        if (side_input != nullptr)
           side_L1 += std::fabs(side_output[base + offset]);
       }
     }
@@ -6940,13 +6939,13 @@ template <bool Coupled> static double haar_l1_metric(celt_norm* output, const ce
   for (int index = 2 * pairs * stride; index < N0 * stride; ++index) {
     output[index] = input[index];
     L1 += std::fabs(output[index]);
-    if constexpr (Coupled) {
+    if (side_input != nullptr) {
       side_output[index] = side_input[index];
       side_L1 += std::fabs(side_output[index]);
     }
   }
   L1 += LM * bias * L1;
-  if constexpr (Coupled) {
+  if (side_input != nullptr) {
     side_L1 += LM * bias * side_L1;
     return L1 == 0 || side_L1 == 0 ? static_cast<double>(L1) + side_L1 : static_cast<double>(L1) * side_L1;
   }
@@ -7024,8 +7023,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     best_L1 = L1;
     record_legal_cost(0, L1);
     if (isTransient && !narrow && (!legal_metric || (legal_levels & 1u) != 0)) {
-      L1 = coupled ? haar_l1_metric<true>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias, tmp_side_1.data(), tmp_side.data())
-                   : haar_l1_metric<false>(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias);
+      L1 = haar_l1_metric(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias, tmp_side_1.data(), coupled ? tmp_side.data() : nullptr);
       record_legal_cost(-1, L1);
       if (L1 < best_L1) {
         best_L1 = L1;
@@ -7036,8 +7034,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
       if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
-        L1 = coupled ? haar_l1_metric<true>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), tmp_side.data())
-                     : haar_l1_metric<false>(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias);
+        L1 = haar_l1_metric(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), coupled ? tmp_side.data() : nullptr);
         record_legal_cost(k + 1, L1);
         if (L1 < best_L1) {
           best_L1 = L1;
@@ -7226,34 +7223,6 @@ static inline opus_val16 alloc_trim_analysis_value(const celt_norm* X, const cel
   return trim;
 }
 
-static inline int alloc_trim_analysis(const celt_norm* X, const celt_glog* bandLogE, int end, int LM, int C, int N0, opus_val16* stereo_saving, int intensity, opus_int32 equiv_rate, opus_val16 tf_estimate) {
-  const auto trim = alloc_trim_analysis_value(X, bandLogE, end, LM, C, N0, stereo_saving, intensity, equiv_rate, tf_estimate);
-  return std::clamp(static_cast<int>(std::floor(.5f + trim)), 0, 10);
-}
-
-static inline int stereo_analysis(const celt_norm* X, int LM, int N0, int intensity) {
-  const int analysis_bands = std::min(celt_stereo_analysis_bands, intensity);
-  if (analysis_bands == 0)
-    return 0;
-  opus_val32 sumLR = 1e-15f, sumMS = 1e-15f;
-  const auto* eBands = celt_mode()->eBands;
-  for (int i = 0; i < analysis_bands; ++i) {
-    for (int j = eBands[i] << LM; j < eBands[i + 1] << LM; ++j) {
-      const opus_val32 left = X[j];
-      const opus_val32 right = X[N0 + j];
-      sumLR += std::fabs(left) + std::fabs(right);
-      sumMS += std::fabs(left + right) + std::fabs(left - right);
-    }
-  }
-  sumMS *= 0.707107f;
-  int thetas = analysis_bands;
-  if (LM <= 1) {
-    thetas -= std::min(8, analysis_bands);
-  }
-  const int band_width = eBands[analysis_bands] << (LM + 1);
-  return (band_width + thetas) * sumMS > band_width * sumLR;
-}
-
 static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res) {
   const int bands = std::min(celt_stereo_analysis_bands, intensity);
   if (bands == 0)
@@ -7416,8 +7385,7 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
     std::fill_n(requested_boost, nbEBands, 0.);
   celt_glog maxDepth = -(31.9f);
   const bool analyze_followers = effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement;
-  const bool fuse_producers = analyze_followers && !common_follower_source;
-  if (!fuse_producers) {
+  {
     for (i = 0; i < end; i++) {
       noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
       maxDepth = std::max(maxDepth, bandLogE[i] - noise_floor[i]);
@@ -7455,18 +7423,8 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         }
       }
       f = follower.data() + c * nbEBands;
-      if (fuse_producers) {
-        if (c == 0)
-          noise_floor[0] = celt_noise_floor_base[0] + (9 - st->lsb_depth);
-        maxDepth = std::max(maxDepth, bandLogE[c * nbEBands] - noise_floor[0]);
-      }
       f[0] = bandLogE3[0];
       for (i = 1; i < end; i++) {
-        if (fuse_producers) {
-          if (c == 0)
-            noise_floor[i] = celt_noise_floor_base[i] + (9 - st->lsb_depth);
-          maxDepth = std::max(maxDepth, bandLogE[c * nbEBands + i] - noise_floor[i]);
-        }
         if (bandLogE3[i] > bandLogE3[i - 1] + (.5f)) {
           last = i;
         }
@@ -7584,36 +7542,15 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   return maxDepth;
 }
 
-template <bool CaptureR00 = false, bool ReuseR00 = false>
-static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc, opus_val32* r00_prefixes = nullptr) {
+static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   opus_val32 r00 = 0, r01 = 0, r11 = 0, r02 = 0, r12 = 0, r22 = 0;
   if (len <= 2 * delay) {
     return 1;
   }
-  if constexpr (ReuseR00) {
-    r00 = *r00_prefixes;
-    for (int i = 0; i < len - 2 * delay; i++) {
-      r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
-      r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
-    }
-  } else if constexpr (CaptureR00) {
-
-    int i = 0;
-    for (int slot = 5; slot >= 0; --slot) {
-      const int end = std::max(0, len - (2 << slot));
-      for (; i < end; ++i) {
-        r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
-        r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
-        r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
-      }
-      r00_prefixes[slot] = r00;
-    }
-  } else {
-    for (int i = 0; i < len - 2 * delay; i++) {
-      r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
-      r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
-      r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
-    }
+  for (int i = 0; i < len - 2 * delay; i++) {
+    r00 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i]));
+    r01 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + delay]));
+    r02 += (static_cast<opus_val32>(x[i]) * static_cast<opus_val32>(x[i + 2 * delay]));
   }
   opus_val32 edge11 = 0, edge22 = 0, edge12 = 0;
   for (int i = 0; i < delay; i++) {
@@ -7663,24 +7600,10 @@ static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val
     }
     x = x_sum.data();
   }
-#if FLT_EVAL_METHOD == 0
-  std::array<opus_val32, 6> r00_prefixes;
-  int fail = tone_lpc<true>(x, N, delay, lpc.data(), r00_prefixes.data());
-  int prefix_slot = 1;
-#else
   int fail = tone_lpc(x, N, delay, lpc.data());
-#endif
   for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
     delay *= 2;
-#if FLT_EVAL_METHOD == 0
-    if (prefix_slot < static_cast<int>(r00_prefixes.size()))
-      fail = tone_lpc<false, true>(x, N, delay, lpc.data(), &r00_prefixes[prefix_slot]);
-    else
-      fail = tone_lpc(x, N, delay, lpc.data());
-    ++prefix_slot;
-#else
     fail = tone_lpc(x, N, delay, lpc.data());
-#endif
   }
   if (!fail && ((lpc[0]) * (lpc[0])) + (((3.999999)) * (lpc[1])) < 0) {
     *toneishness = -lpc[1];
@@ -7850,33 +7773,6 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
   *pitch = 2 * best_pitch[0] - offset;
 }
 
-OPUSCPP_NOINLINE static auto celt_prefilter_common_fit_terms(const celt_sig* x, int N, int pitch_index, int previous_period, opus_val16 previous_gain) -> std::array<double, 2> {
-  double cross = 0, power = 0;
-  constexpr int overlap = celt_default_overlap;
-  const auto& taps = comb_filter_tapset_gains[0];
-  const auto* window = celt_mode()->window;
-  std::array<std::array<double, 2>, celt_max_frame_samples> terms;
-  for (int i = 0; i < N; ++i) {
-    const double fade = i < overlap ? static_cast<double>(window[i]) * window[i] : 1;
-    double target = x[i];
-    if (i < overlap && previous_gain != 0) {
-      target -= (1 - fade) * previous_gain *
-                (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
-    }
-    const double predictor = fade * (taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
-    const double cross_term = target * predictor;
-    const double power_term = predictor * predictor;
-    cross += cross_term;
-    power += power_term;
-    terms[i] = {cross_term, power_term};
-  }
-  for (int i = 0; i < N; ++i) {
-    cross += terms[i][0];
-    power += terms[i][1];
-  }
-  return {cross, power};
-}
-
 static int celt_prefilter_passthrough(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain) {
   constexpr auto max_period = celt_max_pitch_period;
   const int overlap = celt_default_overlap;
@@ -7950,39 +7846,20 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
       const auto* window = celt_mode()->window;
       const int previous_period = std::max<int>(st->prefilter_period, 15);
       common_input = std::memcmp(pre[0], pre[1], static_cast<std::size_t>(N + max_period) * sizeof(celt_sig)) == 0;
-      if (common_input) {
-        const auto moments = celt_prefilter_common_fit_terms(pre[0] + max_period, N, pitch_index, previous_period, st->prefilter_gain);
-        cross = moments[0];
-        power = moments[1];
-      } else {
-        const int overlap_end = std::min(N, overlap);
-        for (int c = 0; c < CC; ++c) {
-          const auto* x = pre[c] + max_period;
-          for (int i = 0; i < overlap_end; ++i) {
-            const double fade = static_cast<double>(window[i]) * window[i];
-            double target = x[i];
-            double previous_prediction = 0;
-            bool reuse_previous = false;
-            if (st->prefilter_gain != 0) {
-              if constexpr (FLT_EVAL_METHOD == 0) {
-                target -= (1 - fade) * st->prefilter_gain *
-                          (previous_prediction = taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
-                reuse_previous = pitch_index == previous_period;
-              } else {
-                target -= (1 - fade) * st->prefilter_gain *
-                          (taps[0] * static_cast<double>(x[i - previous_period]) + taps[1] * (static_cast<double>(x[i - previous_period - 1]) + x[i - previous_period + 1]) + taps[2] * (static_cast<double>(x[i - previous_period - 2]) + x[i - previous_period + 2]));
-              }
-            }
-            const double predictor = fade * (reuse_previous ? previous_prediction : taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]));
-            cross += target * predictor;
-            power += predictor * predictor;
-          }
-          for (int i = overlap; i < N; ++i) {
-            const double target = x[i];
-            const double predictor = taps[0] * static_cast<double>(x[i - pitch_index]) + taps[1] * (static_cast<double>(x[i - pitch_index - 1]) + x[i - pitch_index + 1]) + taps[2] * (static_cast<double>(x[i - pitch_index - 2]) + x[i - pitch_index + 2]);
-            cross += target * predictor;
-            power += predictor * predictor;
-          }
+      for (int c = 0; c < CC; ++c) {
+        const auto* x = pre[c] + max_period;
+        const auto predict = [&](int i, int lag) {
+          return taps[0] * static_cast<double>(x[i - lag]) + taps[1] * (static_cast<double>(x[i - lag - 1]) + x[i - lag + 1]) + taps[2] * (static_cast<double>(x[i - lag - 2]) + x[i - lag + 2]);
+        };
+        for (int i = 0; i < N; ++i) {
+          const bool fading = i < overlap;
+          const double fade = fading ? static_cast<double>(window[i]) * window[i] : 1;
+          double target = x[i];
+          if (fading && st->prefilter_gain != 0)
+            target -= (1 - fade) * st->prefilter_gain * predict(i, previous_period);
+          const double predictor = fade * predict(i, pitch_index);
+          cross += target * predictor;
+          power += predictor * predictor;
         }
       }
       if (power > 0 && std::isfinite(cross / power)) {
@@ -8032,26 +7909,13 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
     gain1 = (0.09375f) * (qg + 1);
     pf_on = 1;
   }
-  if (common_input) {
+  for (int c = 0; c < CC; ++c) {
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
-    copy_n_items(celt_encoder_storage(st), static_cast<std::size_t>(overlap), in);
-    comb_filter(in + overlap, pre[0] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0, 0, overlap);
+    copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
+    comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0,
+                0, overlap);
     for (int i = 0; i < N; ++i) {
-      output_abs_sum[0] += std::abs(in[overlap + i]);
-    }
-    st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
-    copy_n_items(celt_encoder_storage(st) + overlap, static_cast<std::size_t>(overlap), in + (N + overlap));
-    copy_n_items(in + overlap, static_cast<std::size_t>(N), in + (N + overlap) + overlap);
-    output_abs_sum[1] = output_abs_sum[0];
-  } else {
-    for (int c = 0; c < CC; ++c) {
-      st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
-      copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
-      comb_filter(in + c * (N + overlap) + overlap, pre[c] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -gain1, 0,
-                  0, overlap);
-      for (int i = 0; i < N; ++i) {
-        output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
-      }
+      output_abs_sum[c] += std::abs(in[c * (N + overlap) + overlap + i]);
     }
   }
   if (CC == 2) {
@@ -8713,7 +8577,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       if (common_source) {
         copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
       }
-      compute_band_energies_and_normalise<false>(freq, second_mdct_bandE, second_mdct_bandLogE, start, end, C, LM);
+      compute_band_energies_and_normalise(freq, second_mdct_bandE, second_mdct_bandLogE, start, end, C, LM, nullptr, nullptr, false, false);
       for (int c = 0; c < C; ++c) {
         for (int i = 0; i < end; ++i) {
           second_mdct_bandLogE[c * nbEBands + i] += 0.5f * LM;
@@ -8737,12 +8601,12 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       tf_chan = 0;
     }
     if (common_source) {
-      compute_band_energies_and_normalise<true, true>(freq, bandE, bandLogE, start, end, C, LM, nullptr, !hybrid && !silence ? &input_spread_counts : nullptr);
+      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, nullptr, !hybrid && !silence ? &input_spread_counts : nullptr, true, true);
       copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
       copy_n_items(bandE, static_cast<std::size_t>(end), bandE + nbEBands);
       copy_n_items(bandLogE, static_cast<std::size_t>(end), bandLogE + nbEBands);
     } else {
-      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, fused_energy ? energy_prefix : nullptr, !hybrid && !silence ? &input_spread_counts : nullptr);
+      compute_band_energies_and_normalise(freq, bandE, bandLogE, start, end, C, LM, fused_energy ? energy_prefix : nullptr, !hybrid && !silence ? &input_spread_counts : nullptr, true, false);
     }
     {
       opus_int32 qr_equiv_rate = equiv_rate;
@@ -8795,7 +8659,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
                                                                          stereo_intensity_table.hysteresis, st->intensity),
                                                      start, end)
                                         : 0;
-  const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis(X, LM, N, analyzed_intensity) : 0;
+  const std::array<int, celt_default_nb_ebands> no_tf_change{};
+  const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis_tf(X, LM, N, analyzed_intensity, 0, no_tf_change.data()) : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
   std::array<int, celt_default_nb_ebands> tf_metric;
   int tf_select = 0;
@@ -8857,6 +8722,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   const opus_int32 trim_payload_bitrate = vbr_header_bits != 0 && vbr_rate > 0
                                               ? (vbr_rate >> LM) * 50
                                               : st->bitrate;
+  const auto allocate_bands = [&](int trim, int* intensity, int* dual, opus_int32 bits_budget, opus_int32* balance_out, int* pulses_out, int* fine_out, int* priority_out, ec_enc* coder) __attribute__((noinline)) {
+    return clt_compute_allocation(start, end, offsets.data(), cap.data(), trim, intensity, dual, bits_budget, balance_out, pulses_out, fine_out, priority_out, C, LM, coder, 1, st->lastCodedBands, signal_bandwidth);
+  };
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
                         &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
@@ -8921,14 +8789,14 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     if (tell + (6 << 3) <= total_bits - total_boost) {
       if (start > 0) {
         st->stereo_saving = 0;
-      } else if (C == 2 && !silence) {
+      } else {
         const auto value = alloc_trim_analysis_value(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
         alloc_trim = std::clamp(static_cast<int>(std::floor(.5f + value)), 0, 10);
-        const int lower = std::clamp(static_cast<int>(std::floor(value)), 0, 10);
-        const int upper = std::clamp(static_cast<int>(std::ceil(value)), 0, 10);
-        alternate_trim = alloc_trim == lower ? upper : lower;
-      } else {
-        alloc_trim = alloc_trim_analysis(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
+        if (C == 2 && !silence) {
+          const int lower = std::clamp(static_cast<int>(std::floor(value)), 0, 10);
+          const int upper = std::clamp(static_cast<int>(std::ceil(value)), 0, 10);
+          alternate_trim = alloc_trim == lower ? upper : lower;
+        }
       }
       alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, trim_payload_bitrate);
       alternate_trim = celt_adjust_alloc_trim(alternate_trim, st, hybrid, trim_payload_bitrate);
@@ -9016,8 +8884,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     const int allocation_intensity = st->intensity;
     const int allocation_dual = dual_stereo;
     codedBands =
-        clt_compute_allocation(start, end, offsets.data(), cap.data(), alloc_trim, &st->intensity, &dual_stereo, bits, &balance,
-                               pulses.data(), fine_quant.data(), fine_priority.data(), C, LM, enc, 1, st->lastCodedBands, signal_bandwidth);
+        allocate_bands(alloc_trim, &st->intensity, &dual_stereo, bits, &balance, pulses.data(), fine_quant.data(), fine_priority.data(), enc);
     if (trim_preview) {
       ec_enc_icdf(&trim_preview_coder, alternate_trim, trim_icdf.data(), 7);
       if (!trim_preview_coder.error && static_cast<unsigned>(nbCompressedBytes + funded_bytes) >= trim_preview_coder.offs + trim_preview_coder.end_offs) {
@@ -9030,7 +8897,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
           int trial_dual = allocation_dual;
           opus_int32 trial_balance;
           std::array<int, celt_default_nb_ebands> trial_pulses{}, trial_fine{}, trial_priority{};
-          const int trial_coded = clt_compute_allocation(start, end, offsets.data(), cap.data(), alternate_trim, &trial_intensity, &trial_dual, trial_bits, &trial_balance, trial_pulses.data(), trial_fine.data(), trial_priority.data(), C, LM, &trim_preview_coder, 1, st->lastCodedBands, signal_bandwidth);
+          const int trial_coded = allocate_bands(alternate_trim, &trial_intensity, &trial_dual, trial_bits, &trial_balance, trial_pulses.data(), trial_fine.data(), trial_priority.data(), &trim_preview_coder);
           const bool same_basis = trial_coded == codedBands && trial_intensity == st->intensity && trial_dual == dual_stereo;
           bool same_uncoded = true;
           for (int band = codedBands; band < end; ++band)
@@ -9109,6 +8976,11 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
+  const auto quantise_bands = [&](celt_norm* Y, mono_fold_plan* mono_plan, c2_consumer_plan* c2_plan) __attribute__((noinline)) {
+    quant_all_bands(1, start, end, X, Y, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+                    0, oldBandE, mono_plan, false, c2_plan);
+  };
   if (C == 1) {
     const auto saved_coder = *enc;
     const auto saved_seed = st->rng;
@@ -9123,9 +8995,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         copy_n_items(X + N, static_cast<std::size_t>(N), X);
       }
       mono_fold_plan plan{protect_mask};
-      quant_all_bands(1, start, end, X, nullptr, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                      st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                      0, oldBandE, &plan);
+      quantise_bands(nullptr, &plan, nullptr);
       const unsigned needed = plan.changed_mask & plan.used_mask;
       if (needed == 0)
         break;
@@ -9133,13 +9003,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     }
   } else if (shortBlocks > 1 && !dual_stereo) {
     c2_consumer_plan plan;
-    quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                    0, oldBandE, nullptr, false, &plan);
+    quantise_bands(X + N, nullptr, &plan);
   } else {
-    quant_all_bands(1, start, end, X, X + N, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                    0, oldBandE);
+    quantise_bands(X + N, nullptr, nullptr);
   }
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
@@ -14284,11 +14150,10 @@ static double celt_finite_log_cell_marginal(double squared_log_step) {
   return (step * std::cosh(step) - std::sinh(step) - 4 * (half_step * std::cosh(half_step) - std::sinh(half_step))) / (2 * step);
 }
 
-template <bool MaxRelative>
-static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
+static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
   constexpr double ln2 = 0.693147180559945309417232121458;
   std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
-  std::array<double, 2> cost{};
+  std::array<double, 2> cost{}, sum_cost{};
   const std::array<const int*, 2> pulses{pulses0, pulses1};
   for (int band = start; band < codedBands; ++band) {
     const std::array<int, 2> planned_fine{fine_quant0[band], fine_quant1[band]};
@@ -14339,36 +14204,28 @@ static std::array<double, 2> celt_fine_phase_cost_pair(int start, int codedBands
       const double gain0 = gain_for(fine[0]);
       const double gain1 = fine[0] == fine[1] ? gain0 : gain_for(fine[1]);
       const double source = bandE[index];
-      if constexpr (MaxRelative) {
-        if (source > 0) {
-          const double ratio0 = gain0 / source;
-          const double ratio1 = gain1 / source;
-          const double difference0 = 1 - ratio0;
-          const double difference1 = 1 - ratio1;
-          cost[0] = std::max(cost[0], difference0 * difference0 + ratio0 * shape_error[0]);
-          cost[1] = std::max(cost[1], difference1 * difference1 + ratio1 * shape_error[1]);
-        } else {
-          cost[0] = std::max(cost[0], gain0 == 0 ? 0. : std::numeric_limits<double>::infinity());
-          cost[1] = std::max(cost[1], gain1 == 0 ? 0. : std::numeric_limits<double>::infinity());
-        }
+      if (source > 0) {
+        const double ratio0 = gain0 / source;
+        const double ratio1 = gain1 / source;
+        const double difference0 = 1 - ratio0;
+        const double difference1 = 1 - ratio1;
+        cost[0] = std::max(cost[0], difference0 * difference0 + ratio0 * shape_error[0]);
+        cost[1] = std::max(cost[1], difference1 * difference1 + ratio1 * shape_error[1]);
       } else {
-        const double difference0 = source - gain0;
-        cost[0] += difference0 * difference0 + source * gain0 * shape_error[0];
-        const double difference1 = source - gain1;
-        cost[1] += difference1 * difference1 + source * gain1 * shape_error[1];
+        cost[0] = std::max(cost[0], gain0 == 0 ? 0. : std::numeric_limits<double>::infinity());
+        cost[1] = std::max(cost[1], gain1 == 0 ? 0. : std::numeric_limits<double>::infinity());
       }
+      const double sum_difference0 = source - gain0;
+      sum_cost[0] += sum_difference0 * sum_difference0 + source * gain0 * shape_error[0];
+      const double sum_difference1 = source - gain1;
+      sum_cost[1] += sum_difference1 * sum_difference1 + source * gain1 * shape_error[1];
     }
   }
-  if constexpr (MaxRelative) {
-    if (cost[0] == cost[1])
-      return celt_fine_phase_cost_pair<false>(start, codedBands, C, LM, intensity, dual_stereo, bandE, oldBandE, error, pulses0, fine_quant0, coder0, pulses1, fine_quant1, coder1);
-  }
+  if (cost[0] == cost[1])
+    return sum_cost;
   return cost;
 }
 
-static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
-  return celt_fine_phase_cost_pair<true>(start, codedBands, C, LM, intensity, dual_stereo, bandE, oldBandE, error, pulses0, fine_quant0, coder0, pulses1, fine_quant1, coder1);
-}
 
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C) {
