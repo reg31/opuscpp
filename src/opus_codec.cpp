@@ -21134,7 +21134,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
                 auto& lbrr_channel = psEnc->lbrr->channels[static_cast<std::size_t>(channel)];
                 if (headroom_pending)
                   lbrr_channel.gain_increase = 7;
-                const int gain_reduction = state_Fxx[channel].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 ? 2 : 0);
+                const int gain_reduction = state_Fxx[channel].sCmn.nb_subfr == 2 ? 1 : (encControl->nChannelsInternal == 1 ? (state_Fxx[channel].sCmn.nFramesPerPacket == 3 ? -2 : 2) : 0);
                 lbrr_channel.gain_increase += gain_reduction;
               }
             }
@@ -21207,7 +21207,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
         if (tot_blocks == 2 && frame_index == 0) {
           maxBits = coded_prefix + normal_capacity * 3 / 5;
         } else if (tot_blocks == 3 && frame_index < 2)
-          maxBits = coded_prefix + normal_capacity * (frame_index == 0 ? 2 : 3) / (frame_index == 0 ? 5 : 4);
+          maxBits = coded_prefix + normal_capacity * (frame_index + 1) / 3;
         int useCBR = encControl->useCBR && frame_index == tot_blocks - 1;
         const opus_int32 channelRate_bps = stereo_coding ? MStargetRates_bps[n] : TargetRate_bps;
         if (encControl->nChannelsInternal == 2 && n == 0 && MStargetRates_bps[1] > 0) {
@@ -21237,7 +21237,7 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
               state_Fxx[n].sCmn.nb_subfr == 2
                   ? 1
                   : (encControl->nChannelsInternal == 1
-                         ? 2
+                         ? (state_Fxx[n].sCmn.nFramesPerPacket == 3 ? -2 : 2)
                          : (side_coded && n == 0 && !encControl->packet_cbr ? 0 : (encControl->packet_cbr ? 2 : 0)));
           silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction,
                                 n == 0 || (n == 1 && side_worth_protecting), input_buffers[n].data());
