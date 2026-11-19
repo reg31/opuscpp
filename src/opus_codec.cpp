@@ -470,34 +470,11 @@ static opus_uint32 ec_dec_uint(ec_dec* _this, opus_uint32 _ft) {
   ec_dec_update(_this, s, s + 1, static_cast<unsigned>(_ft));
   return s;
 }
-struct kiss_fft_cpx {
-  float r;
-  float i;
-};
-
 struct kiss_twiddle_cpx {
   float r;
   float i;
 };
 
-[[nodiscard]] constexpr auto complex_add(kiss_fft_cpx lhs, kiss_fft_cpx rhs) noexcept -> kiss_fft_cpx {
-  return {lhs.r + rhs.r, lhs.i + rhs.i};
-}
-
-[[nodiscard]] constexpr auto complex_subtract(kiss_fft_cpx lhs, kiss_fft_cpx rhs) noexcept -> kiss_fft_cpx {
-  return {lhs.r - rhs.r, lhs.i - rhs.i};
-}
-
-[[nodiscard]] constexpr auto complex_multiply(kiss_fft_cpx lhs, kiss_twiddle_cpx rhs) noexcept -> kiss_fft_cpx {
-  return {lhs.r * rhs.r - lhs.i * rhs.i, lhs.r * rhs.i + lhs.i * rhs.r};
-}
-
-struct kiss_fft_state {
-  int nfft;
-  celt_coef scale;
-  const kiss_twiddle_cpx* twiddles;
-  const opus_int16* bitrev;
-};
 
 struct SILKInfo {
   int offset, bitrateBps, actualSilkBps, signalType;
@@ -798,15 +775,13 @@ constexpr std::array<opus_val16, 16> celt_anti_collapse_thresh_by_depth = numeri
     R"blob(3F0000003EEAC0C73ED744FD3EC5672A3EB504F33EA5FED73E9837F03E8B95C23E8000003E6AC0C73E5744FD3E45672A3E3504F33E25FED73E1837F03E0B95C2)blob");
 struct mdct_lookup {
   int n;
-  const kiss_fft_state* kfft[4];
   const float* trig;
 };
 
-static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr);
+static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* scratch);
 static void clt_mdct_forward_energy_prefix(float*, float*, float*, float*, int);
 static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
 static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride);
-static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* l, float* in0, float* in1, float* out0, float* out1, const celt_coef* window, int overlap);
 struct CeltModeInternal {
   const opus_int16* eBands;
   const unsigned char* allocVectors;
@@ -9171,10 +9146,7 @@ template <typename Sample>
   if (CC == C && C == 2) {
     auto* freq1 = X + N;
     denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
-    if (shift == 0) {
-      clt_mdct_backward_stereo_20ms_c(&celt_mode()->mdct, X, freq1, out_syn[0], out_syn[1], celt_mode()->window, overlap);
-    } else
-      for (b = 0; b < B; b++) {
+    for (b = 0; b < B; b++) {
         clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
         clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
       }
@@ -10339,682 +10311,6 @@ void ec_enc_done(ec_enc* _this) {
   }
 }
 
-static void kf_bfly2_step(kiss_fft_cpx* Fout) {
-  constexpr celt_coef tw = 0.7071067812f;
-  auto* Fout2 = Fout + 4;
-  auto t = Fout2[0];
-  Fout2[0] = complex_subtract(Fout[0], t);
-  Fout[0] = complex_add(Fout[0], t);
-  t.r = (Fout2[1].r + Fout2[1].i) * tw;
-  t.i = (Fout2[1].i - Fout2[1].r) * tw;
-  Fout2[1] = complex_subtract(Fout[1], t);
-  Fout[1] = complex_add(Fout[1], t);
-  t.r = Fout2[2].i;
-  t.i = -Fout2[2].r;
-  Fout2[2] = complex_subtract(Fout[2], t);
-  Fout[2] = complex_add(Fout[2], t);
-  t.r = (Fout2[3].i - Fout2[3].r) * tw;
-  t.i = -(Fout2[3].i + Fout2[3].r) * tw;
-  Fout2[3] = complex_subtract(Fout[3], t);
-  Fout[3] = complex_add(Fout[3], t);
-}
-
-static void kf_bfly2(kiss_fft_cpx* Fout, int N) {
-  for (int i = 0; i < N; ++i) {
-    kf_bfly2_step(Fout);
-    Fout += 8;
-  }
-}
-
-static void kf_bfly4_m1_step(kiss_fft_cpx* Fout) {
-  const auto scratch0 = complex_subtract(Fout[0], Fout[2]);
-  Fout[0] = complex_add(Fout[0], Fout[2]);
-  auto scratch1 = complex_add(Fout[1], Fout[3]);
-  Fout[2] = complex_subtract(Fout[0], scratch1);
-  Fout[0] = complex_add(Fout[0], scratch1);
-  scratch1 = complex_subtract(Fout[1], Fout[3]);
-  Fout[1].r = scratch0.r + scratch1.i;
-  Fout[1].i = scratch0.i - scratch1.r;
-  Fout[3].r = scratch0.r - scratch1.i;
-  Fout[3].i = scratch0.i + scratch1.r;
-}
-
-static void kf_bfly4_m1(kiss_fft_cpx* output, int count) {
-  for (int i = 0; i < count; ++i, output += 4) {
-    kf_bfly4_m1_step(output);
-  }
-}
-
-static void kf_bfly4(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
-  const int m2 = 2 * m, m3 = 3 * m;
-  for (int j = 0; j < m; ++j) {
-    for (int i = 0; i < 15; ++i) {
-      auto* output = Fout + j + i * 4 * m;
-      const auto scratch0 = complex_multiply(output[m], st->twiddles[j * fstride]);
-      const auto scratch1 = complex_multiply(output[m2], st->twiddles[2 * j * fstride]);
-      const auto scratch2 = complex_multiply(output[m3], st->twiddles[3 * j * fstride]);
-      const auto scratch5 = complex_subtract(*output, scratch1);
-      output->r += scratch1.r;
-      output->i += scratch1.i;
-      const auto scratch3 = complex_add(scratch0, scratch2);
-      const auto scratch4 = complex_subtract(scratch0, scratch2);
-      output[m2].r = output->r - scratch3.r;
-      output[m2].i = output->i - scratch3.i;
-      output->r += scratch3.r;
-      output->i += scratch3.i;
-      output[m].r = scratch5.r + scratch4.i;
-      output[m].i = scratch5.i - scratch4.r;
-      output[m3].r = scratch5.r - scratch4.i;
-      output[m3].i = scratch5.i + scratch4.r;
-    }
-  }
-}
-
-static void kf_bfly3(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
-  const size_t m2 = 2 * m;
-  const kiss_twiddle_cpx epi3 = st->twiddles[fstride * m];
-  for (size_t index = 0; index < static_cast<size_t>(m); ++index) {
-    for (int i = 0; i < 5; ++i) {
-      auto* output = Fout + index + i * 3 * m;
-      const auto scratch1 = complex_multiply(output[m], st->twiddles[index * fstride]);
-      const auto scratch2 = complex_multiply(output[m2], st->twiddles[2 * index * fstride]);
-      const auto scratch3 = complex_add(scratch1, scratch2);
-      auto scratch0 = complex_subtract(scratch1, scratch2);
-      output[m].r = output->r - scratch3.r * .5f;
-      output[m].i = output->i - scratch3.i * .5f;
-      scratch0.r *= epi3.i;
-      scratch0.i *= epi3.i;
-      output->r += scratch3.r;
-      output->i += scratch3.i;
-      output[m2].r = output[m].r + scratch0.i;
-      output[m2].i = output[m].i - scratch0.r;
-      output[m].r -= scratch0.i;
-      output[m].i += scratch0.r;
-    }
-  }
-}
-
-static void kf_bfly5(kiss_fft_cpx* Fout, const size_t fstride, const kiss_fft_state* st, int m) {
-  std::array<kiss_fft_cpx, 13> scratch;
-  const kiss_twiddle_cpx ya = st->twiddles[fstride * m];
-  const kiss_twiddle_cpx yb = st->twiddles[fstride * 2 * m];
-  const kiss_twiddle_cpx* tw = st->twiddles;
-  for (int u = 0; u < m; ++u) {
-    scratch[0] = Fout[u];
-    scratch[1] = complex_multiply(Fout[m + u], tw[u * fstride]);
-    scratch[2] = complex_multiply(Fout[2 * m + u], tw[2 * u * fstride]);
-    scratch[3] = complex_multiply(Fout[3 * m + u], tw[3 * u * fstride]);
-    scratch[4] = complex_multiply(Fout[4 * m + u], tw[4 * u * fstride]);
-    scratch[7] = complex_add(scratch[1], scratch[4]);
-    scratch[10] = complex_subtract(scratch[1], scratch[4]);
-    scratch[8] = complex_add(scratch[2], scratch[3]);
-    scratch[9] = complex_subtract(scratch[2], scratch[3]);
-    Fout[u] = complex_add(scratch[0], complex_add(scratch[7], scratch[8]));
-    scratch[5] = {scratch[0].r + (scratch[7].r * ya.r + scratch[8].r * yb.r), scratch[0].i + (scratch[7].i * ya.r + scratch[8].i * yb.r)};
-    scratch[6] = {scratch[10].i * ya.i + scratch[9].i * yb.i, -(scratch[10].r * ya.i + scratch[9].r * yb.i)};
-    Fout[m + u] = complex_subtract(scratch[5], scratch[6]);
-    Fout[4 * m + u] = complex_add(scratch[5], scratch[6]);
-    scratch[11] = {scratch[0].r + (scratch[7].r * yb.r + scratch[8].r * ya.r), scratch[0].i + (scratch[7].i * yb.r + scratch[8].i * ya.r)};
-    scratch[12] = {scratch[9].i * ya.i - scratch[10].i * yb.i, scratch[10].r * yb.i - scratch[9].r * ya.i};
-    Fout[2 * m + u] = complex_add(scratch[11], scratch[12]);
-    Fout[3 * m + u] = complex_subtract(scratch[11], scratch[12]);
-  }
-}
-
-namespace {
-
-constexpr std::array<opus_uint8, 15> pfa_fft15_input_permutation{2, 10, 5, 12, 7, 0, 14, 9, 4, 11, 1, 6, 13, 8, 3};
-constexpr std::array<opus_uint8, 32> pfa_split_radix_permutation{0, 16, 8, 24, 4, 20, 28, 12, 2, 18, 10, 26, 30, 14, 6, 22,
-                                                                 1, 17, 9, 25, 5, 21, 29, 13, 31, 15, 7, 23, 3, 19, 27, 11};
-constexpr std::array<float, 9> pfa_fft32_cosines{1.0f, 0.980785251f, 0.923879504f, 0.831469595f, 0.707106769f,
-                                                 0.555570245f, 0.382683426f, 0.195090324f, 0.0f};
-
-consteval auto make_pfa_input_map_480() noexcept -> std::array<opus_uint16, 480> {
-  std::array<opus_uint16, 480> map{};
-  int block = 0;
-  int position = 0;
-  for (auto& destination : map) {
-    destination = static_cast<opus_uint16>(15 * block + pfa_fft15_input_permutation[position]);
-    block = (block + 15) & 31;
-    if (++position == 15) {
-      position = 0;
-    }
-  }
-  return map;
-}
-
-constexpr auto pfa_input_map_480 = make_pfa_input_map_480();
-
-void pfa_butterfly(float& difference, float& sum, float left, float right) noexcept {
-  difference = left - right;
-  sum = left + right;
-}
-
-void pfa_split_radix_butterflies(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float t1, float t2, float t5, float t6) noexcept {
-  const float r0 = a0.r;
-  const float i0 = a0.i;
-  const float r1 = a1.r;
-  const float i1 = a1.i;
-  float t3, t4;
-  pfa_butterfly(t3, t5, t5, t1);
-  pfa_butterfly(a2.r, a0.r, r0, t5);
-  pfa_butterfly(a3.i, a1.i, i1, t3);
-  pfa_butterfly(t4, t6, t2, t6);
-  pfa_butterfly(a3.r, a1.r, r1, t4);
-  pfa_butterfly(a2.i, a0.i, i0, t6);
-}
-
-void pfa_split_radix_transform(kiss_fft_cpx& a0, kiss_fft_cpx& a1, kiss_fft_cpx& a2, kiss_fft_cpx& a3, float real, float imaginary) noexcept {
-  const float t1 = a2.r * real + a2.i * imaginary;
-  const float t2 = a2.i * real - a2.r * imaginary;
-  const float t5 = a3.r * real - a3.i * imaginary;
-  const float t6 = a3.r * imaginary + a3.i * real;
-  pfa_split_radix_butterflies(a0, a1, a2, a3, t1, t2, t5, t6);
-}
-
-void pfa_fft4(kiss_fft_cpx* values) noexcept {
-  float t1, t2, t3, t4, t5, t6, t7, t8;
-  pfa_butterfly(t3, t1, values[0].r, values[1].r);
-  pfa_butterfly(t8, t6, values[3].r, values[2].r);
-  pfa_butterfly(values[2].r, values[0].r, t1, t6);
-  pfa_butterfly(t4, t2, values[0].i, values[1].i);
-  pfa_butterfly(t7, t5, values[2].i, values[3].i);
-  pfa_butterfly(values[3].i, values[1].i, t4, t8);
-  pfa_butterfly(values[3].r, values[1].r, t3, t7);
-  pfa_butterfly(values[2].i, values[0].i, t2, t5);
-}
-
-void pfa_fft8(kiss_fft_cpx* values) noexcept {
-  pfa_fft4(values);
-  const float t1 = values[4].r + values[5].r;
-  values[5].r = values[4].r - values[5].r;
-  const float t2 = values[4].i + values[5].i;
-  values[5].i = values[4].i - values[5].i;
-  const float t5 = values[6].r + values[7].r;
-  values[7].r = values[6].r - values[7].r;
-  const float t6 = values[6].i + values[7].i;
-  values[7].i = values[6].i - values[7].i;
-  pfa_split_radix_butterflies(values[0], values[2], values[4], values[6], t1, t2, t5, t6);
-  pfa_split_radix_transform(values[1], values[3], values[5], values[7], pfa_fft32_cosines[4], pfa_fft32_cosines[4]);
-}
-
-void pfa_fft16(kiss_fft_cpx* values) noexcept {
-  pfa_fft8(values);
-  pfa_fft4(values + 8);
-  pfa_fft4(values + 12);
-  pfa_split_radix_butterflies(values[0], values[4], values[8], values[12], values[8].r, values[8].i, values[12].r, values[12].i);
-  pfa_split_radix_transform(values[2], values[6], values[10], values[14], pfa_fft32_cosines[4], pfa_fft32_cosines[4]);
-  pfa_split_radix_transform(values[1], values[5], values[9], values[13], pfa_fft32_cosines[2], pfa_fft32_cosines[6]);
-  pfa_split_radix_transform(values[3], values[7], values[11], values[15], pfa_fft32_cosines[6], pfa_fft32_cosines[2]);
-}
-
-void pfa_fft32(kiss_fft_cpx* values) noexcept {
-  pfa_fft16(values);
-  pfa_fft8(values + 16);
-  pfa_fft8(values + 24);
-  for (int index = 0; index < 4; ++index) {
-    const int offset = 2 * index;
-    pfa_split_radix_transform(values[offset], values[8 + offset], values[16 + offset], values[24 + offset], pfa_fft32_cosines[offset],
-                              pfa_fft32_cosines[8 - offset]);
-    pfa_split_radix_transform(values[offset + 1], values[9 + offset], values[17 + offset], values[25 + offset],
-                              pfa_fft32_cosines[offset + 1], pfa_fft32_cosines[7 - offset]);
-  }
-}
-
-void pfa_fft3(const kiss_fft_cpx& in0, const kiss_fft_cpx& in1, const kiss_fft_cpx& in2, kiss_fft_cpx& out0, kiss_fft_cpx& out1, kiss_fft_cpx& out2) noexcept {
-  constexpr float sine = 0.866025388f;
-  const float sum_r = in1.r + in2.r;
-  const float difference_r = in1.r - in2.r;
-  const float sum_i = in1.i + in2.i;
-  const float difference_i = in1.i - in2.i;
-  out0 = {in0.r + sum_r, in0.i + sum_i};
-  const float cross_r = difference_i * sine;
-  const float cross_i = difference_r * sine;
-  const float base_r = in0.r - 0.5f * sum_r;
-  const float base_i = in0.i - 0.5f * sum_i;
-  out1 = {base_r + cross_r, base_i - cross_i};
-  out2 = {base_r - cross_r, base_i + cross_i};
-}
-
-constexpr std::array<opus_uint8, 15> pfa_fft15_output_indices{0, 3, 6, 9, 12, 5, 8, 11, 14, 2, 10, 13, 1, 4, 7};
-
-void pfa_fft5(const kiss_fft_cpx* input, kiss_fft_cpx* output, const opus_uint8* indices) noexcept {
-  constexpr float cos_2pi_5 = 0.309017003f;
-  constexpr float cos_4pi_5 = 0.809016994f;
-  constexpr float sin_2pi_5 = 0.951056540f;
-  constexpr float sin_4pi_5 = 0.587785252f;
-  const float difference14_r = input[1].r - input[4].r;
-  const float sum14_r = input[1].r + input[4].r;
-  const float difference14_i = input[1].i - input[4].i;
-  const float sum14_i = input[1].i + input[4].i;
-  const float difference23_r = input[2].r - input[3].r;
-  const float sum23_r = input[2].r + input[3].r;
-  const float difference23_i = input[2].i - input[3].i;
-  const float sum23_i = input[2].i + input[3].i;
-  const float t4_r = sum14_r * cos_2pi_5 - sum23_r * cos_4pi_5;
-  const float t0_r = sum23_r * cos_2pi_5 - sum14_r * cos_4pi_5;
-  const float t4_i = sum14_i * cos_2pi_5 - sum23_i * cos_4pi_5;
-  const float t0_i = sum23_i * cos_2pi_5 - sum14_i * cos_4pi_5;
-  const float t5_r = difference14_i * sin_2pi_5 + difference23_i * sin_4pi_5;
-  const float t1_r = difference14_i * sin_4pi_5 - difference23_i * sin_2pi_5;
-  const float t5_i = -(difference14_r * sin_2pi_5 + difference23_r * sin_4pi_5);
-  const float t1_i = difference23_r * sin_2pi_5 - difference14_r * sin_4pi_5;
-  output[static_cast<int>(indices[0]) * 32] = {input[0].r + sum14_r + sum23_r, input[0].i + sum14_i + sum23_i};
-  output[static_cast<int>(indices[1]) * 32] = {input[0].r + t4_r + t5_r, input[0].i + t4_i + t5_i};
-  output[static_cast<int>(indices[2]) * 32] = {input[0].r + t0_r + t1_r, input[0].i + t0_i + t1_i};
-  output[static_cast<int>(indices[3]) * 32] = {input[0].r + t0_r - t1_r, input[0].i + t0_i - t1_i};
-  output[static_cast<int>(indices[4]) * 32] = {input[0].r + t4_r - t5_r, input[0].i + t4_i - t5_i};
-}
-
-void pfa_fft15(const kiss_fft_cpx* input, kiss_fft_cpx* output) noexcept {
-  std::array<kiss_fft_cpx, 15> temporary;
-  pfa_fft3(input[2], input[0], input[1], temporary[0], temporary[5], temporary[10]);
-  pfa_fft3(input[13], input[5], input[9], temporary[1], temporary[6], temporary[11]);
-  pfa_fft3(input[11], input[3], input[7], temporary[2], temporary[7], temporary[12]);
-  pfa_fft3(input[14], input[6], input[10], temporary[3], temporary[8], temporary[13]);
-  pfa_fft3(input[12], input[4], input[8], temporary[4], temporary[9], temporary[14]);
-  pfa_fft5(temporary.data(), output, pfa_fft15_output_indices.data());
-  pfa_fft5(temporary.data() + 5, output, pfa_fft15_output_indices.data() + 5);
-  pfa_fft5(temporary.data() + 10, output, pfa_fft15_output_indices.data() + 10);
-}
-
-}
-
-template <int N, int Radix, int M> consteval bool stockham_stage_indices_valid() {
-  static_assert(N % (Radix * M) == 0);
-  std::array<bool, N> read{};
-  std::array<bool, N> written{};
-  for (int group = 0; group < N / (Radix * M); ++group) {
-    for (int k = 0; k < M; ++k) {
-      for (int p = 0; p < Radix; ++p) {
-        const int input = group * M + k + p * (N / Radix);
-        const int output = group * Radix * M + k + p * M;
-        const int twiddle = p * k * (480 / (Radix * M));
-        if (input < 0 || input >= N || output < 0 || output >= N || twiddle > 380 || read[input] || written[output])
-          return false;
-        read[input] = written[output] = true;
-      }
-    }
-  }
-  return true;
-}
-
-static_assert(stockham_stage_indices_valid<480, 4, 1>());
-static_assert(stockham_stage_indices_valid<480, 2, 4>());
-static_assert(stockham_stage_indices_valid<480, 4, 8>());
-static_assert(stockham_stage_indices_valid<480, 3, 32>());
-static_assert(stockham_stage_indices_valid<480, 5, 96>());
-
-template <int N, int Radix, int M> struct stockham_layout {
-  int groups;
-  std::array<int, Radix> input;
-  std::array<int, Radix> output;
-  std::array<int, Radix> twiddle;
-};
-
-template <int N, int Radix, int M> consteval auto stockham_make_layout() {
-  static_assert(stockham_stage_indices_valid<N, Radix, M>());
-  stockham_layout<N, Radix, M> layout{N / (Radix * M), {}, {}, {}};
-  for (int lane = 0; lane < Radix; ++lane) {
-    layout.input[lane] = lane * (N / Radix);
-    layout.output[lane] = lane * M;
-    layout.twiddle[lane] = lane * (480 / (Radix * M));
-  }
-  return layout;
-}
-
-template <int N, int Radix, int M, bool ScaleInput = false> static void stockham_stage_soa(const float* input, float* output, const kiss_fft_state* st) {
-  constexpr auto layout = stockham_make_layout<N, Radix, M>();
-  if constexpr (Radix == 2 && M == 4) {
-    constexpr celt_coef tw = 0.7071067812f;
-    for (int group = 0; group < layout.groups; ++group) {
-      const auto* source = input + group * M;
-      auto* destination = output + group * Radix * M;
-      const auto store = [&]<int Lane>(int k, const kiss_fft_cpx& value) {
-        destination[(k + layout.output[Lane])] = value.r;
-        destination[(N + k + layout.output[Lane])] = value.i;
-      };
-      [&]<std::size_t... K>(std::index_sequence<K...>) {
-        ([&] {
-          const kiss_fft_cpx a{source[(K)], source[(N + K)]};
-          const kiss_fft_cpx b{source[(K + layout.input[1])], source[(N + K + layout.input[1])]};
-          kiss_fft_cpx t;
-          if constexpr (K == 0)
-            t = b;
-          else if constexpr (K == 1)
-            t = {(b.r + b.i) * tw, (b.i - b.r) * tw};
-          else if constexpr (K == 2)
-            t = {b.i, -b.r};
-          else
-            t = {(b.i - b.r) * tw, -(b.i + b.r) * tw};
-          store.template operator()<1>(K, complex_subtract(a, t));
-          store.template operator()<0>(K, complex_add(a, t));
-        }(),
-         ...);
-      }(std::make_index_sequence<M>{});
-    }
-  } else {
-    for (int group = 0; group < layout.groups; ++group) {
-      const auto* source = input + group * M;
-      auto* destination = output + group * Radix * M;
-      const auto store = [&]<int Lane>(int k, const kiss_fft_cpx& value) {
-        destination[(k + layout.output[Lane])] = value.r;
-        destination[(N + k + layout.output[Lane])] = value.i;
-      };
-      for (int k = 0; k < M; ++k) {
-        const kiss_fft_cpx zero = [&] {
-          if constexpr (ScaleInput)
-            return kiss_fft_cpx{source[(k)] * st->scale, source[(N + k)] * st->scale};
-          else
-            return kiss_fft_cpx{source[(k)], source[(N + k)]};
-        }();
-        const auto load = [&]<int Lane>() {
-          const kiss_fft_cpx value = [&] {
-            if constexpr (ScaleInput)
-              return kiss_fft_cpx{source[(k + layout.input[Lane])] * st->scale, source[(N + k + layout.input[Lane])] * st->scale};
-            else
-              return kiss_fft_cpx{source[(k + layout.input[Lane])], source[(N + k + layout.input[Lane])]};
-          }();
-          if constexpr (M == 1)
-            return value;
-          else
-            return complex_multiply(value, st->twiddles[k * layout.twiddle[Lane]]);
-        };
-        const auto one = load.template operator()<1>();
-        const auto two = load.template operator()<2>();
-        if constexpr (Radix == 4) {
-          const auto three = load.template operator()<3>();
-          const auto difference02 = complex_subtract(zero, two);
-          const auto sum02 = complex_add(zero, two);
-          const auto sum13 = complex_add(one, three);
-          const auto difference13 = complex_subtract(one, three);
-          store.template operator()<2>(k, complex_subtract(sum02, sum13));
-          store.template operator()<0>(k, complex_add(sum02, sum13));
-          store.template operator()<1>(k, {difference02.r + difference13.i, difference02.i - difference13.r});
-          store.template operator()<3>(k, {difference02.r - difference13.i, difference02.i + difference13.r});
-        } else if constexpr (Radix == 3) {
-          const auto sum = complex_add(one, two);
-          auto difference = complex_subtract(one, two);
-          const kiss_fft_cpx base{zero.r - sum.r * .5f, zero.i - sum.i * .5f};
-          difference.r *= st->twiddles[160].i;
-          difference.i *= st->twiddles[160].i;
-          store.template operator()<0>(k, complex_add(zero, sum));
-          store.template operator()<1>(k, {base.r - difference.i, base.i + difference.r});
-          store.template operator()<2>(k, {base.r + difference.i, base.i - difference.r});
-        } else {
-          static_assert(Radix == 5);
-          const auto three = load.template operator()<3>();
-          const auto four = load.template operator()<4>();
-          const auto sum14 = complex_add(one, four);
-          const auto difference14 = complex_subtract(one, four);
-          const auto sum23 = complex_add(two, three);
-          const auto difference23 = complex_subtract(two, three);
-          const auto ya = st->twiddles[96], yb = st->twiddles[192];
-          const kiss_fft_cpx base1{zero.r + (sum14.r * ya.r + sum23.r * yb.r), zero.i + (sum14.i * ya.r + sum23.i * yb.r)};
-          const kiss_fft_cpx cross1{difference14.i * ya.i + difference23.i * yb.i, -(difference14.r * ya.i + difference23.r * yb.i)};
-          const kiss_fft_cpx base2{zero.r + (sum14.r * yb.r + sum23.r * ya.r), zero.i + (sum14.i * yb.r + sum23.i * ya.r)};
-          const kiss_fft_cpx cross2{difference23.i * ya.i - difference14.i * yb.i, difference14.r * yb.i - difference23.r * ya.i};
-          store.template operator()<0>(k, complex_add(zero, complex_add(sum14, sum23)));
-          store.template operator()<1>(k, complex_subtract(base1, cross1));
-          store.template operator()<4>(k, complex_add(base1, cross1));
-          store.template operator()<2>(k, complex_add(base2, cross2));
-          store.template operator()<3>(k, complex_subtract(base2, cross2));
-        }
-      }
-    }
-  }
-}
-
-template <int Radix, int M> consteval bool stockham_tensor_indices_valid() {
-  constexpr int groups = 480 / (Radix * M);
-  std::array<bool, 480> read{}, written{};
-  for (int k = 0; k < M; ++k)
-    for (int group = 0; group < groups; ++group)
-      for (int lane = 0; lane < Radix; ++lane) {
-        const int input = k * Radix * groups + group + lane * groups;
-        const int output = (k + lane * M) * groups + group;
-        if (input < 0 || input >= 480 || output < 0 || output >= 480 || read[input] || written[output])
-          return false;
-        read[input] = written[output] = true;
-      }
-  return true;
-}
-
-template <int Radix, int M, bool ScaleInput = false>
-static void stockham_stage_tensor480(const float* input, float* output, const kiss_fft_state* st) {
-  static_assert(stockham_tensor_indices_valid<Radix, M>());
-  constexpr int groups = 480 / (Radix * M);
-  constexpr auto layout = stockham_make_layout<480, Radix, M>();
-  if constexpr (Radix == 2) {
-    static_assert(M == 4);
-    constexpr celt_coef tw = 0.7071067812f;
-    [&]<std::size_t... K>(std::index_sequence<K...>) {
-      ([&] {
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC ivdep
-#endif
-        for (int group = 0; group < groups; ++group) {
-          const int index = K * 2 * groups + group;
-          const kiss_fft_cpx a{input[index], input[480 + index]};
-          const kiss_fft_cpx b{input[index + groups], input[480 + index + groups]};
-          const auto t = [&] {
-            if constexpr (K == 0)
-              return b;
-            else if constexpr (K == 1)
-              return kiss_fft_cpx{(b.r + b.i) * tw, (b.i - b.r) * tw};
-            else if constexpr (K == 2)
-              return kiss_fft_cpx{b.i, -b.r};
-            else
-              return kiss_fft_cpx{(b.i - b.r) * tw, -(b.i + b.r) * tw};
-          }();
-          const auto store = [&]<int Lane>(const kiss_fft_cpx& value) {
-            const int target = (K + Lane * M) * groups + group;
-            output[target] = value.r;
-            output[480 + target] = value.i;
-          };
-          store.template operator()<1>(complex_subtract(a, t));
-          store.template operator()<0>(complex_add(a, t));
-        }
-      }(),
-       ...);
-    }(std::make_index_sequence<4>{});
-  } else if constexpr (!ScaleInput && Radix == 5 && M == 96) {
-    for (int block = 0; block < M; block += 4) {
-      for (int offset = 0; offset < 4; offset += 2) {
-        std::array<kiss_fft_cpx, 2> zero, one, two, three, four;
-        for (int lane = 0; lane < 2; ++lane) {
-          const int k = block + offset + lane;
-          const int index = 5 * block + offset + lane;
-          zero[lane] = {input[index], input[480 + index]};
-          const auto load = [&]<int Lane>() {
-            return complex_multiply({input[index + 4 * Lane], input[480 + index + 4 * Lane]}, st->twiddles[k * Lane]);
-          };
-          one[lane] = load.template operator()<1>();
-          two[lane] = load.template operator()<2>();
-          three[lane] = load.template operator()<3>();
-          four[lane] = load.template operator()<4>();
-        }
-        const auto consume = [&]<int ValueLane>() {
-          const int k = block + offset + ValueLane;
-          const auto sum14 = complex_add(one[ValueLane], four[ValueLane]);
-          const auto difference14 = complex_subtract(one[ValueLane], four[ValueLane]);
-          const auto sum23 = complex_add(two[ValueLane], three[ValueLane]);
-          const auto difference23 = complex_subtract(two[ValueLane], three[ValueLane]);
-          const auto ya = st->twiddles[96], yb = st->twiddles[192];
-          const kiss_fft_cpx base1{zero[ValueLane].r + (sum14.r * ya.r + sum23.r * yb.r), zero[ValueLane].i + (sum14.i * ya.r + sum23.i * yb.r)};
-          const kiss_fft_cpx cross1{difference14.i * ya.i + difference23.i * yb.i, -(difference14.r * ya.i + difference23.r * yb.i)};
-          const kiss_fft_cpx base2{zero[ValueLane].r + (sum14.r * yb.r + sum23.r * ya.r), zero[ValueLane].i + (sum14.i * yb.r + sum23.i * ya.r)};
-          const kiss_fft_cpx cross2{difference23.i * ya.i - difference14.i * yb.i, difference14.r * yb.i - difference23.r * ya.i};
-          const auto store = [&]<int Lane>(const kiss_fft_cpx& value) {
-            output[k + Lane * M] = value.r;
-            output[480 + k + Lane * M] = value.i;
-          };
-          store.template operator()<0>(complex_add(zero[ValueLane], complex_add(sum14, sum23)));
-          store.template operator()<1>(complex_subtract(base1, cross1));
-          store.template operator()<4>(complex_add(base1, cross1));
-          store.template operator()<2>(complex_add(base2, cross2));
-          store.template operator()<3>(complex_subtract(base2, cross2));
-        };
-        consume.template operator()<0>();
-        consume.template operator()<1>();
-      }
-    }
-  } else {
-    for (int k = 0; k < M; ++k) {
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC ivdep
-#endif
-      for (int group = 0; group < groups; ++group) {
-        const int source_index = k * Radix * groups + group;
-        const auto store = [&]<int Lane>(int, const kiss_fft_cpx& value) {
-          const int target = [&] {
-            if constexpr (!ScaleInput && Radix == 3 && M == 32) {
-              const int j = k + Lane * M;
-              return (j / 4) * 20 + group * 4 + j % 4;
-            } else
-              return (k + Lane * M) * groups + group;
-          }();
-          output[target] = value.r;
-          output[480 + target] = value.i;
-        };
-        const kiss_fft_cpx zero = [&] {
-          if constexpr (ScaleInput)
-            return kiss_fft_cpx{input[source_index] * st->scale, input[480 + source_index] * st->scale};
-          else
-            return kiss_fft_cpx{input[source_index], input[480 + source_index]};
-        }();
-        const auto load = [&]<int Lane>() {
-          const kiss_fft_cpx value = [&] {
-            if constexpr (ScaleInput)
-              return kiss_fft_cpx{input[source_index + Lane * groups] * st->scale, input[480 + source_index + Lane * groups] * st->scale};
-            else
-              return kiss_fft_cpx{input[source_index + Lane * groups], input[480 + source_index + Lane * groups]};
-          }();
-          if constexpr (M == 1)
-            return value;
-          else
-            return complex_multiply(value, st->twiddles[k * layout.twiddle[Lane]]);
-        };
-        const auto one = load.template operator()<1>();
-        const auto two = load.template operator()<2>();
-        if constexpr (Radix == 4) {
-          const auto three = load.template operator()<3>();
-          const auto difference02 = complex_subtract(zero, two);
-          const auto sum02 = complex_add(zero, two);
-          const auto sum13 = complex_add(one, three);
-          const auto difference13 = complex_subtract(one, three);
-          store.template operator()<2>(k, complex_subtract(sum02, sum13));
-          store.template operator()<0>(k, complex_add(sum02, sum13));
-          store.template operator()<1>(k, {difference02.r + difference13.i, difference02.i - difference13.r});
-          store.template operator()<3>(k, {difference02.r - difference13.i, difference02.i + difference13.r});
-        } else if constexpr (Radix == 3) {
-          const auto sum = complex_add(one, two);
-          auto difference = complex_subtract(one, two);
-          const kiss_fft_cpx base{zero.r - sum.r * .5f, zero.i - sum.i * .5f};
-          difference.r *= st->twiddles[160].i;
-          difference.i *= st->twiddles[160].i;
-          store.template operator()<0>(k, complex_add(zero, sum));
-          store.template operator()<1>(k, {base.r - difference.i, base.i + difference.r});
-          store.template operator()<2>(k, {base.r + difference.i, base.i - difference.r});
-        } else {
-          static_assert(Radix == 5);
-          const auto three = load.template operator()<3>();
-          const auto four = load.template operator()<4>();
-          const auto sum14 = complex_add(one, four);
-          const auto difference14 = complex_subtract(one, four);
-          const auto sum23 = complex_add(two, three);
-          const auto difference23 = complex_subtract(two, three);
-          const auto ya = st->twiddles[96], yb = st->twiddles[192];
-          const kiss_fft_cpx base1{zero.r + (sum14.r * ya.r + sum23.r * yb.r), zero.i + (sum14.i * ya.r + sum23.i * yb.r)};
-          const kiss_fft_cpx cross1{difference14.i * ya.i + difference23.i * yb.i, -(difference14.r * ya.i + difference23.r * yb.i)};
-          const kiss_fft_cpx base2{zero.r + (sum14.r * yb.r + sum23.r * ya.r), zero.i + (sum14.i * yb.r + sum23.i * ya.r)};
-          const kiss_fft_cpx cross2{difference23.i * ya.i - difference14.i * yb.i, difference14.r * yb.i - difference23.r * ya.i};
-          store.template operator()<0>(k, complex_add(zero, complex_add(sum14, sum23)));
-          store.template operator()<1>(k, complex_subtract(base1, cross1));
-          store.template operator()<4>(k, complex_add(base1, cross1));
-          store.template operator()<2>(k, complex_add(base2, cross2));
-          store.template operator()<3>(k, complex_subtract(base2, cross2));
-        }
-      }
-    }
-  }
-}
-
-template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st);
-
-template <int N, bool ScaleInput = true> static float* stockham_scaled_soa(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
-  if constexpr (N == 480)
-    if (auto* result = stockham_tensor480<ScaleInput>(input, data, scratch, st))
-      return result;
-
-  stockham_stage_soa<N, 4, 1, ScaleInput>(input, scratch, st);
-  if constexpr (N == 60) {
-    stockham_stage_soa<N, 3, 4>(scratch, data, st);
-    stockham_stage_soa<N, 5, 12>(data, scratch, st);
-    return scratch;
-  } else if constexpr (N == 120) {
-    stockham_stage_soa<N, 2, 4>(scratch, data, st);
-    stockham_stage_soa<N, 3, 8>(data, scratch, st);
-    stockham_stage_soa<N, 5, 24>(scratch, data, st);
-    return data;
-  } else if constexpr (N == 240) {
-    stockham_stage_soa<N, 4, 4>(scratch, data, st);
-    stockham_stage_soa<N, 3, 16>(data, scratch, st);
-    stockham_stage_soa<N, 5, 48>(scratch, data, st);
-    return data;
-  } else {
-    static_assert(N == 480);
-    stockham_stage_soa<N, 2, 4>(scratch, data, st);
-    stockham_stage_soa<N, 4, 8>(data, scratch, st);
-    stockham_stage_soa<N, 3, 32>(scratch, data, st);
-    stockham_stage_soa<N, 5, 96>(data, scratch, st);
-    return scratch;
-  }
-}
-
-static float* stockham_forward_soa(float* data, float* scratch, const kiss_fft_state* st) {
-  switch (st->nfft) {
-  case 60:
-    return stockham_scaled_soa<60, false>(data, data, scratch, st);
-  case 120:
-    return stockham_scaled_soa<120, false>(data, data, scratch, st);
-  case 240:
-    return stockham_scaled_soa<240, false>(data, data, scratch, st);
-  case 480:
-    return stockham_scaled_soa<480, false>(data, data, scratch, st);
-  default:
-    return nullptr;
-  }
-}
-
-static void fft_impl(const kiss_fft_state* st, kiss_fft_cpx* fout) {
-  switch (st->nfft) {
-  case 480:
-    kf_bfly4_m1(fout, 120);
-    kf_bfly2(fout, 60);
-    kf_bfly4(fout, 15, st, 8);
-    kf_bfly3(fout, 5, st, 32);
-    kf_bfly5(fout, 1, st, 96);
-    break;
-  case 240:
-    kf_bfly4_m1(fout, 60);
-    kf_bfly4(fout, 30, st, 4);
-    kf_bfly3(fout, 10, st, 16);
-    kf_bfly5(fout, 2, st, 48);
-    break;
-  case 120:
-    kf_bfly4_m1(fout, 30);
-    kf_bfly2(fout, 15);
-    kf_bfly3(fout, 20, st, 8);
-    kf_bfly5(fout, 4, st, 24);
-    break;
-  default:
-    kf_bfly4_m1(fout, 15);
-    kf_bfly3(fout, 40, st, 4);
-    kf_bfly5(fout, 8, st, 12);
-    break;
-  }
-}
 
 static unsigned ec_laplace_get_freq1(unsigned fs0, int decay) {
   const auto ft = 32768 - 2 * 16 - fs0;
@@ -11088,277 +10384,6 @@ static int ec_laplace_decode(ec_dec* dec, unsigned fs, int decay) {
   return val;
 }
 
-template <bool Fixed20ms, bool Stockham480 = false, bool CallerScratch = false, bool EnergyPrefix = false>
-static void clt_mdct_forward_transform(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch = nullptr, float* energy_prefix = nullptr, int energy_prefix_end = celt_default_nb_ebands) {
-  static_assert(!CallerScratch || Stockham480);
-  static_assert(!EnergyPrefix || (Fixed20ms && Stockham480 && CallerScratch));
-  const auto* st = l->kfft[Fixed20ms ? 0 : shift];
-  const auto scale = st->scale;
-  const int N = Fixed20ms ? 1920 : l->n >> shift;
-  const float* trig = Fixed20ms ? l->trig : l->trig + l->n - N;
-  const int N2 = N >> 1;
-  const int N4 = N >> 2;
-  std::array<kiss_fft_cpx, CallerScratch || Stockham480 ? 0 : celt_max_frame_samples / 2> fft_storage;
-  std::array<float, !Stockham480 || (CallerScratch && Fixed20ms) ? 0 : CallerScratch ? celt_max_frame_samples / 2
-                                                                                     : celt_max_frame_samples>
-      stockham_storage;
-  auto* f2 = Stockham480 ? nullptr : Fixed20ms ? reinterpret_cast<kiss_fft_cpx*>(out)
-                                               : fft_storage.data();
-  auto* stockham_input = Fixed20ms ? out : CallerScratch ? forward_scratch
-                                                         : stockham_storage.data();
-  const auto prerotate = [&](int i, float re, float im) {
-    const auto t0 = trig[i], t1 = trig[N4 + i];
-    if constexpr (Stockham480) {
-      stockham_input[i] = (re * t0 - im * t1) * scale;
-      stockham_input[N4 + i] = (im * t0 + re * t1) * scale;
-    } else {
-      f2[st->bitrev[i]] = {(re * t0 - im * t1) * scale, (im * t0 + re * t1) * scale};
-    }
-  };
-  const int overlap_quarters = (overlap + 3) >> 2;
-  int i = 0;
-  for (; i < overlap_quarters; ++i) {
-    const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
-    const float re = in[left + N2] * window[(overlap >> 1) - 1 - 2 * i] + in[right] * window[left];
-    const float im = in[left] * window[left] - in[right - N2] * window[(overlap >> 1) - 1 - 2 * i];
-    prerotate(i, re, im);
-  }
-  for (; i < N4 - overlap_quarters; ++i) {
-    const float re = in[N2 - 1 + (overlap >> 1) - 2 * i];
-    const float im = in[(overlap >> 1) + 2 * i];
-    prerotate(i, re, im);
-  }
-  for (; i < N4; ++i) {
-    const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
-    const int window_left = 2 * (i - (N4 - overlap_quarters)), window_right = overlap - 1 - window_left;
-    const float re = -in[left - N2] * window[window_left] + in[right] * window[window_right];
-    const float im = in[left] * window[window_right] + in[right + N2] * window[window_left];
-    prerotate(i, re, im);
-  }
-  auto* transformed = out;
-  if constexpr (Stockham480) {
-    auto* scratch = CallerScratch ? (Fixed20ms ? forward_scratch : stockham_storage.data()) : Fixed20ms ? stockham_storage.data()
-                                                                                                        : stockham_input + N2;
-    if constexpr (Fixed20ms)
-      transformed = stockham_scaled_soa<480, false>(stockham_input, stockham_input, scratch, st);
-    else
-      transformed = stockham_forward_soa(stockham_input, scratch, st);
-  } else {
-    fft_impl(st, f2);
-  }
-  if constexpr (Fixed20ms) {
-    int energy_band = 0;
-    if constexpr (EnergyPrefix)
-      zero_n_items(energy_prefix, static_cast<std::size_t>(celt_default_nb_ebands));
-    for (int i = 0; i < N4 / 2; ++i) {
-      const int mirror = N4 - 1 - i;
-      const auto low = Stockham480 ? kiss_fft_cpx{transformed[i], transformed[N4 + i]} : f2[i];
-      const auto high = Stockham480 ? kiss_fft_cpx{transformed[mirror], transformed[N4 + mirror]} : f2[mirror];
-      const auto low_t0 = trig[i], low_t1 = trig[N4 + i];
-      const auto high_t0 = trig[mirror], high_t1 = trig[N4 + mirror];
-      out[2 * i] = low.i * low_t1 - low.r * low_t0;
-      out[N2 - 1 - 2 * i] = low.r * low_t1 + low.i * low_t0;
-      out[2 * mirror] = high.i * high_t1 - high.r * high_t0;
-      out[N2 - 1 - 2 * mirror] = high.r * high_t1 + high.i * high_t0;
-      if constexpr (EnergyPrefix) {
-        if (2 * i >= 8 * celt_mode()->eBands[energy_band + 1])
-          ++energy_band;
-        const auto even = out[2 * i], odd = out[2 * i + 1];
-        if (energy_band < energy_prefix_end) {
-          energy_prefix[energy_band] += even * even;
-          energy_prefix[energy_band] += odd * odd;
-        }
-      }
-    }
-  } else {
-    for (int i = 0; i < N4; ++i) {
-      const auto t0 = trig[i], t1 = trig[N4 + i];
-      const auto value = Stockham480 ? kiss_fft_cpx{transformed[i], transformed[N4 + i]} : f2[i];
-      out[2 * stride * i] = value.i * t1 - value.r * t0;
-      out[stride * (N2 - 1 - 2 * i)] = value.r * t1 + value.i * t0;
-    }
-  }
-}
-
-static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* forward_scratch) {
-  const auto before = std::less<const float*>{};
-  if (shift == 0 && stride == 1 && l->n == 1920 &&
-      (!before(in, out + 960) || !before(out, in + 960 + overlap))) {
-    if (l->kfft[0]->nfft == 480) {
-      if (forward_scratch != nullptr)
-        clt_mdct_forward_transform<true, true, true>(l, in, out, window, overlap, 0, 1, forward_scratch);
-      else
-        clt_mdct_forward_transform<true, true>(l, in, out, window, overlap, 0, 1);
-      return;
-    }
-    clt_mdct_forward_transform<true>(l, in, out, window, overlap, 0, 1);
-  } else {
-    const int nfft = l->kfft[shift]->nfft;
-    if ((nfft == 60 || nfft == 120 || nfft == 240) && (l->n >> shift) == 4 * nfft && std::fegetround() == FE_TONEAREST) {
-      if (forward_scratch != nullptr)
-        clt_mdct_forward_transform<false, true, true>(l, in, out, window, overlap, shift, stride, forward_scratch);
-      else
-        clt_mdct_forward_transform<false, true>(l, in, out, window, overlap, shift, stride);
-    } else
-      clt_mdct_forward_transform<false>(l, in, out, window, overlap, shift, stride);
-  }
-}
-
-static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch, float* prefix, int end) {
-  const auto* mode = celt_mode();
-  clt_mdct_forward_transform<true, true, true, true>(&mode->mdct, in, out, mode->window, celt_default_overlap, 0, 1, scratch, prefix, end);
-}
-
-template <std::size_t Channels, typename Index, bool NaturalFloat = false>
-static inline void clt_mdct_backward_prerotate(std::array<const float*, Channels> input, std::array<std::conditional_t<NaturalFloat, float, kiss_fft_cpx>*, Channels> work,
-                                               const float* trig, int length, int stride, const Index* mapping) {
-  const int half = length / 2;
-  int index = 0;
-  for (; index < length / 12; ++index) {
-    const float t0 = trig[index], t1 = trig[half + index];
-    const int mapped = NaturalFloat ? index : mapping[index];
-    for (std::size_t channel = 0; channel < Channels; ++channel) {
-      const float x1 = input[channel][2 * index * stride];
-      if constexpr (NaturalFloat) {
-        work[channel][mapped] = x1 * t0 - (-0.0f);
-        work[channel][half + mapped] = 0.0f + x1 * t1;
-      } else {
-        work[channel][mapped] = {x1 * t0 - (-0.0f), 0.0f + x1 * t1};
-      }
-    }
-  }
-  const int middle_end = 5 * length / 12;
-  for (; index < middle_end; ++index) {
-    const float t0 = trig[index], t1 = trig[half + index];
-    const int mapped = NaturalFloat ? index : mapping[index];
-    for (std::size_t channel = 0; channel < Channels; ++channel) {
-      const float x1 = input[channel][2 * index * stride];
-      const float x2 = input[channel][(length - 1 - 2 * index) * stride];
-      if constexpr (NaturalFloat) {
-        work[channel][mapped] = x1 * t0 - x2 * t1;
-        work[channel][half + mapped] = x2 * t0 + x1 * t1;
-      } else {
-        work[channel][mapped] = {x1 * t0 - x2 * t1, x2 * t0 + x1 * t1};
-      }
-    }
-  }
-  for (; index < half; ++index) {
-    const float t0 = trig[index], t1 = trig[half + index];
-    const int mapped = NaturalFloat ? index : mapping[index];
-    for (std::size_t channel = 0; channel < Channels; ++channel) {
-      const float x2 = input[channel][(length - 1 - 2 * index) * stride];
-      if constexpr (NaturalFloat) {
-        work[channel][mapped] = 0.0f - x2 * t1;
-        work[channel][half + mapped] = x2 * t0 + (-0.0f);
-      } else {
-        work[channel][mapped] = {0.0f - x2 * t1, x2 * t0 + (-0.0f)};
-      }
-    }
-  }
-}
-
-template <bool Fixed20ms, bool StockhamShort = false>
-static void clt_mdct_backward_transform(const mdct_lookup* lookup, float* input, float* output, int overlap, int shift = 0,
-                                        int stride = 1) {
-  static_assert(!StockhamShort || !Fixed20ms);
-  std::array<float, StockhamShort ? celt_max_frame_samples / 2 : 0> stockham_scratch;
-  const int N = Fixed20ms ? 1920 : lookup->n >> shift;
-  const float* trig = lookup->trig + (Fixed20ms ? 0 : lookup->n - N);
-  const int N2 = N >> 1;
-  const int N4 = N >> 2;
-  auto* work = reinterpret_cast<kiss_fft_cpx*>(output + (overlap >> 1));
-  auto* transformed = reinterpret_cast<kiss_fft_cpx*>(Fixed20ms ? input : output + (overlap >> 1));
-  float* stockham_result = nullptr;
-  if constexpr (StockhamShort) {
-    auto* bank = output + (overlap >> 1);
-    const auto* fft_state = lookup->kfft[shift];
-    auto* initial = N4 == 60 ? bank : stockham_scratch.data();
-    auto* other = N4 == 60 ? stockham_scratch.data() : bank;
-    clt_mdct_backward_prerotate<1, opus_int16, true>({input}, {initial}, trig, N2, stride, nullptr);
-    stockham_result = stockham_forward_soa(initial, other, fft_state);
-  } else if constexpr (Fixed20ms) {
-    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, 1, pfa_input_map_480.data());
-    for (int index = 0; index < 32; ++index) {
-      pfa_fft15(work + 15 * pfa_split_radix_permutation[index], transformed + index);
-    }
-    for (int row = 0; row < 15; ++row) {
-      pfa_fft32(transformed + 32 * row);
-    }
-  } else {
-    const auto* fft_state = lookup->kfft[shift];
-    clt_mdct_backward_prerotate<1>({input}, {work}, trig, N2, stride, fft_state->bitrev);
-    fft_impl(fft_state, work);
-  }
-  float* yp0 = output + (overlap >> 1);
-  float* yp1 = yp0 + N2 - 2;
-  int position = 0;
-  for (int i = 0; i < (N4 + 1) >> 1; ++i) {
-    const auto first = StockhamShort ? kiss_fft_cpx{stockham_result[i], stockham_result[N4 + i]}
-                                     : transformed[Fixed20ms ? 32 * position + (i & 31) : i];
-    const int mirror = N4 - i - 1;
-    const auto last = StockhamShort ? kiss_fft_cpx{stockham_result[mirror], stockham_result[N4 + mirror]}
-                                    : transformed[Fixed20ms ? 32 * (14 - position) + ((31 - i) & 31) : mirror];
-    float t0 = trig[i];
-    float t1 = trig[N4 + i];
-    yp0[0] = first.i * t0 + first.r * t1;
-    yp1[1] = first.i * t1 - first.r * t0;
-    t0 = trig[N4 - i - 1];
-    t1 = trig[N2 - i - 1];
-    yp1[0] = last.i * t0 + last.r * t1;
-    yp0[1] = last.i * t1 - last.r * t0;
-    yp0 += 2;
-    yp1 -= 2;
-    if constexpr (Fixed20ms) {
-      if (++position == 15) {
-        position = 0;
-      }
-    }
-  }
-}
-
-[[gnu::cold]] static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride) {
-  if (shift == 0 && stride == 1 && l->n == 1920) {
-    clt_mdct_backward_transform<true>(l, in, out, overlap, 0, 1);
-  } else {
-    const int nfft = l->kfft[shift]->nfft;
-    const int samples = (l->n >> shift) / 2;
-    const auto before = std::less<const float*>{};
-    if ((nfft == 60 || nfft == 120 || nfft == 240) && samples == 2 * nfft && stride > 0 && std::fegetround() == FE_TONEAREST &&
-        (!before(in, out + samples + overlap) || !before(out, in + (samples - 1) * stride + 1)))
-      clt_mdct_backward_transform<false, true>(l, in, out, overlap, shift, stride);
-    else
-      clt_mdct_backward_transform<false>(l, in, out, overlap, shift, stride);
-  }
-}
-
-[[gnu::cold]] static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int overlap) {
-  for (int i = 0; i < overlap / 2; ++i) {
-    const int mirror = overlap - 1 - i;
-    const float low = out[i], high = out[mirror], a = window[i], b = window[mirror];
-    out[i] = low * b - high * a;
-    out[mirror] = low * a + high * b;
-  }
-}
-
-[[gnu::cold]] static void clt_mdct_backward_stereo_20ms_c(const mdct_lookup* lookup, float* input0, float* input1, float* output0, float* output1, const celt_coef* window, int overlap) {
-  clt_mdct_backward_transform<true>(lookup, input0, output0, overlap, 0, 1);
-  clt_mdct_backward_transform<true>(lookup, input1, output1, overlap, 0, 1);
-  clt_mdct_backward_overlap_c(output0, window, overlap);
-  clt_mdct_backward_overlap_c(output1, window, overlap);
-}
-
-[[gnu::cold]] static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
-  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride);
-  clt_mdct_backward_overlap_c(out, window, overlap);
-}
-
-[[gnu::cold]] static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride) {
-  const int N = l->n >> shift;
-  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride);
-  copy_n_items(out0 + (overlap >> 1), static_cast<std::size_t>(N >> 1), out1 + (overlap >> 1));
-  clt_mdct_backward_overlap_c(out0, window, overlap);
-  clt_mdct_backward_overlap_c(out1, window, overlap);
-}
 
 constexpr std::array<opus_int16, 22> eband5ms =
     numeric_blob_array<opus_int16>(R"blob(000000010002000300040005000600070008000A000C000E001000140018001C002200280030003C004E0064)blob");
@@ -11413,12 +10438,8 @@ namespace {
 }
 
 struct celt_generated_tables {
-  std::array<kiss_twiddle_cpx, 381> fft_twiddles;
+  std::array<kiss_twiddle_cpx, 480> fft_twiddles;
   std::array<celt_coef, 1800> mdct_trig;
-  std::array<opus_int16, 480> fft_bitrev_480;
-  std::array<opus_int16, 240> fft_bitrev_240;
-  std::array<opus_int16, 120> fft_bitrev_120;
-  std::array<opus_int16, 60> fft_bitrev_60;
   std::array<celt_coef, 120> window;
   std::array<std::array<celt_coef, 2>, 120> comb_fade;
 };
@@ -11454,18 +10475,6 @@ constexpr auto celt_cosine(double angle) noexcept -> double {
   return celt_sine(half_pi + angle);
 }
 
-template <unsigned... Factors>
-consteval auto pack_fft_bitrev_factors() noexcept -> unsigned {
-  static_assert(sizeof...(Factors) * 3 <= std::numeric_limits<unsigned>::digits);
-  static_assert(((Factors >= 2 && Factors <= 7) && ...));
-  unsigned packed = 0;
-  unsigned shift = 0;
-  for (const unsigned factor : std::array{Factors...}) {
-    packed |= factor << shift;
-    shift += 3;
-  }
-  return packed;
-}
 
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
@@ -11473,22 +10482,6 @@ consteval auto pack_fft_bitrev_factors() noexcept -> unsigned {
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
 
-[[gnu::cold]] OPUSCPP_NOINLINE static void fill_fft_bitrev(opus_int16* values, int length, unsigned factors) noexcept {
-  for (int output = 0; output < length; ++output) {
-    int remaining = length;
-    int digits = output;
-    int stride = 1;
-    int index = 0;
-    for (unsigned packed = factors; packed != 0; packed >>= 3) {
-      const int radix = static_cast<int>(packed & 7u);
-      remaining /= radix;
-      index += (digits / remaining) * stride;
-      digits %= remaining;
-      stride *= radix;
-    }
-    values[index] = static_cast<opus_int16>(output);
-  }
-}
 
 [[gnu::cold]] OPUSCPP_NOINLINE static bool fill_celt_tables(celt_generated_tables& tables) noexcept {
 #pragma STDC FP_CONTRACT OFF
@@ -11505,10 +10498,6 @@ consteval auto pack_fft_bitrev_factors() noexcept -> unsigned {
       const double phase = -2.0 * pi * static_cast<double>(index) / 480.0;
       tables.fft_twiddles[index] = {static_cast<float>(celt_cosine(phase)), static_cast<float>(celt_sine(phase))};
     }
-    tables.fft_twiddles[0].i = -0.0f;
-    tables.fft_twiddles[120].r = 6.123234262925839e-17f;
-    tables.fft_twiddles[240].i = -1.2246468525851679e-16f;
-    tables.fft_twiddles[360].r = -1.8369701465288538e-16f;
     std::size_t offset = 0;
     for (int size = 1920; size >= 240; size >>= 1) {
       for (int index = 0; index < size / 2; ++index) {
@@ -11531,151 +10520,252 @@ consteval auto pack_fft_bitrev_factors() noexcept -> unsigned {
 
 static celt_generated_tables celt_tables;
 
-template <bool ScaleInput> static float* stockham_tensor480(const float* input, float* data, float* scratch, const kiss_fft_state* st) {
-  const auto before = std::less<const float*>{};
-  if (FLT_EVAL_METHOD != 0 || std::fegetround() != FE_TONEAREST || st->twiddles != celt_tables.fft_twiddles.data() ||
-      (before(data, scratch + 960) && before(scratch, data + 960)) ||
-      (before(input, scratch + 960) && before(scratch, input + 960)))
-    return nullptr;
-  stockham_stage_tensor480<4, 1, ScaleInput>(input, scratch, st);
-  stockham_stage_tensor480<2, 4>(scratch, data, st);
-  stockham_stage_tensor480<4, 8>(data, scratch, st);
-  stockham_stage_tensor480<3, 32>(scratch, data, st);
-  stockham_stage_tensor480<5, 96>(data, scratch, st);
-  return scratch;
-}
 
 [[nodiscard]] static constexpr auto celt_comb_fade() noexcept -> const std::array<celt_coef, 2>* {
   return celt_tables.comb_fade.data();
 }
 
-static constexpr kiss_fft_state fft_state48000_960_0{480, 1.f / 480, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_480.data()};
-static constexpr kiss_fft_state fft_state48000_960_1{240, 1.f / 240, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_240.data()};
-static constexpr kiss_fft_state fft_state48000_960_2{120, 1.f / 120, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_120.data()};
-static constexpr kiss_fft_state fft_state48000_960_3{60, 1.f / 60, celt_tables.fft_twiddles.data(), celt_tables.fft_bitrev_60.data()};
-
-[[gnu::cold]] static void fill_pitch512_twiddles(std::array<kiss_twiddle_cpx, 512>& values) noexcept {
-  static constexpr std::array<float, 129> quarter{
-      0x1p+0f, 0x1.fff622p-1f, 0x1.ffd886p-1f, 0x1.ffa72ep-1f,
-      0x1.ff621ep-1f, 0x1.ff0956p-1f, 0x1.fe9cdap-1f, 0x1.fe1cbp-1f,
-      0x1.fd88dap-1f, 0x1.fce16p-1f, 0x1.fc2648p-1f, 0x1.fb5798p-1f,
-      0x1.fa7558p-1f, 0x1.f97f92p-1f, 0x1.f8765p-1f, 0x1.f7599ap-1f,
-      0x1.f6297cp-1f, 0x1.f4e604p-1f, 0x1.f38f3ap-1f, 0x1.f2253p-1f,
-      0x1.f0a7fp-1f, 0x1.ef178ap-1f, 0x1.ed740ep-1f, 0x1.ebbd8cp-1f,
-      0x1.e9f416p-1f, 0x1.e817bap-1f, 0x1.e6288ep-1f, 0x1.e426a4p-1f,
-      0x1.e2121p-1f, 0x1.dfeae6p-1f, 0x1.ddb13cp-1f, 0x1.db6526p-1f,
-      0x1.d906bcp-1f, 0x1.d69618p-1f, 0x1.d4134ep-1f, 0x1.d17e78p-1f,
-      0x1.ced7bp-1f, 0x1.cc1f1p-1f, 0x1.c954b2p-1f, 0x1.c678b4p-1f,
-      0x1.c38b3p-1f, 0x1.c08c42p-1f, 0x1.bd7c0ap-1f, 0x1.ba5aa6p-1f,
-      0x1.b72834p-1f, 0x1.b3e4d4p-1f, 0x1.b090a6p-1f, 0x1.ad2bcap-1f,
-      0x1.a9b662p-1f, 0x1.a63092p-1f, 0x1.a29a7ap-1f, 0x1.9ef43ep-1f,
-      0x1.9b3e04p-1f, 0x1.9777fp-1f, 0x1.93a224p-1f, 0x1.8fbccap-1f,
-      0x1.8bc806p-1f, 0x1.87c4p-1f, 0x1.83b0ep-1f, 0x1.7f8ecep-1f,
-      0x1.7b5df2p-1f, 0x1.771e76p-1f, 0x1.72d084p-1f, 0x1.6e7446p-1f,
-      0x1.6a09e6p-1f, 0x1.659192p-1f, 0x1.610b76p-1f, 0x1.5c77bcp-1f,
-      0x1.57d694p-1f, 0x1.53282ap-1f, 0x1.4e6cacp-1f, 0x1.49a44ap-1f,
-      0x1.44cf32p-1f, 0x1.3fed96p-1f, 0x1.3affa2p-1f, 0x1.36058cp-1f,
-      0x1.30ff8p-1f, 0x1.2bedb2p-1f, 0x1.26d054p-1f, 0x1.21a79ap-1f,
-      0x1.1c73b4p-1f, 0x1.1734d6p-1f, 0x1.11eb36p-1f, 0x1.0c9704p-1f,
-      0x1.07387ap-1f, 0x1.01cfc8p-1f, 0x1.f8ba4ep-2f, 0x1.edc196p-2f,
-      0x1.e2b5d4p-2f, 0x1.d79776p-2f, 0x1.cc66eap-2f, 0x1.c1249ep-2f,
-      0x1.b5d1p-2f, 0x1.aa6c82p-2f, 0x1.9ef794p-2f, 0x1.9372a6p-2f,
-      0x1.87de2ap-2f, 0x1.7c3a94p-2f, 0x1.708854p-2f, 0x1.64c7dep-2f,
-      0x1.58f9a8p-2f, 0x1.4d1e24p-2f, 0x1.4135cap-2f, 0x1.35410cp-2f,
-      0x1.294062p-2f, 0x1.1d3444p-2f, 0x1.111d26p-2f, 0x1.04fb8p-2f,
-      0x1.f19f98p-3f, 0x1.d934fep-3f, 0x1.c0b826p-3f, 0x1.a82a02p-3f,
-      0x1.8f8b84p-3f, 0x1.76dd9ep-3f, 0x1.5e2144p-3f, 0x1.45576cp-3f,
-      0x1.2c8106p-3f, 0x1.139f0cp-3f, 0x1.f564e6p-4f, 0x1.c3785cp-4f,
-      0x1.917a6cp-4f, 0x1.5f6dp-4f, 0x1.2d520ap-4f, 0x1.f656e8p-5f,
-      0x1.91f66p-5f, 0x1.2d8658p-5f, 0x1.92156p-6f, 0x1.921d2p-7f,
-      0x0p+0f};
-  for (std::size_t index = 0; index < 128; ++index) {
-    const auto real = quarter[index];
-    const auto imaginary = quarter[128 - index];
-    values[index] = {real, -imaginary};
-    values[128 + index] = {-imaginary, -real};
-    values[256 + index] = {-real, imaginary};
-    values[384 + index] = {imaginary, real};
-  }
-  values[0].i = values[128].r = values[256].i = values[384].r = 0.f;
-}
-static std::array<kiss_twiddle_cpx, 512> pitch512_twiddles;
-
-constexpr auto pitch512_bitrev_index(int n) noexcept -> opus_int16 {
-  return static_cast<opus_int16>(((n & 3) << 7) + ((n & 12) << 3) + ((n & 48) >> 1) + ((n & 192) >> 5) + ((n & 256) >> 8));
-}
-
-constexpr auto pitch512_bitrev() {
-  std::array<opus_int16, 512> p{};
-  for (int n = 0; n < 512; ++n)
-    p[n] = pitch512_bitrev_index(n);
-  return p;
-}
-static std::array<opus_int16, 512> pitch512_permutation;
-consteval auto pitch512_cycle_leaders() {
-  constexpr auto pitch512_permutation = pitch512_bitrev();
-  constexpr auto count = [&] {
-    int result = 0;
-    for (int start = 0; start < 512; ++start) {
-      int position = pitch512_permutation[start];
-      while (position > start)
-        position = pitch512_permutation[position];
-      result += position == start;
+template <int R, int L, bool LP>
+[[gnu::always_inline]] static inline void fft_block(const float* __restrict x, float* __restrict y, int total, int xi, int xs, int yi, int ys, int ysu,
+                                                    const kiss_twiddle_cpx* tw, int p, int ts) {
+  float wr[R], wi[R];
+  if constexpr (!LP) {
+    for (int j = 0; j < R; ++j) {
+      wr[j] = tw[j * p * ts].r;
+      wi[j] = tw[j * p * ts].i;
     }
-    return result;
-  }();
-  std::array<opus_int16, count> leaders{};
-  int index = 0;
-  for (int start = 0; start < 512; ++start) {
-    int position = pitch512_permutation[start];
-    while (position > start)
-      position = pitch512_permutation[position];
-    if (position == start)
-      leaders[index++] = static_cast<opus_int16>(start);
   }
-  return leaders;
-}
-static constexpr auto pitch512_leaders = pitch512_cycle_leaders();
-static constexpr kiss_fft_state pitch512_state{512, 1.f / 512, pitch512_twiddles.data(), pitch512_permutation.data()};
-template <int M> static void pitch512_radix4(kiss_fft_cpx* data) {
-  constexpr int stride = 512 / (4 * M);
-  constexpr bool reuse_twiddles = M <= 8;
-  constexpr int groups = 512 / (4 * M);
-  for (int outer = 0; outer < (reuse_twiddles ? M : groups); ++outer) {
-    for (int inner = 0; inner < (reuse_twiddles ? groups : M); ++inner) {
-      const int j = reuse_twiddles ? outer : inner;
-      const int base = (reuse_twiddles ? inner : outer) * (4 * M);
-      auto* output = data + base + j;
-      const auto a = complex_multiply(output[M], pitch512_twiddles[j * stride]);
-      const auto b = complex_multiply(output[2 * M], pitch512_twiddles[2 * j * stride]);
-      const auto c = complex_multiply(output[3 * M], pitch512_twiddles[3 * j * stride]);
-      const auto difference = complex_subtract(output[0], b);
-      output[0].r += b.r;
-      output[0].i += b.i;
-      const auto sum = complex_add(a, c);
-      const auto turn = complex_subtract(a, c);
-      output[2 * M].r = output[0].r - sum.r;
-      output[2 * M].i = output[0].i - sum.i;
-      output[0].r += sum.r;
-      output[0].i += sum.i;
-      output[M].r = difference.r + turn.i;
-      output[M].i = difference.i - turn.r;
-      output[3 * M].r = difference.r - turn.i;
-      output[3 * M].i = difference.i + turn.r;
+  const float* const xr = x + xi;
+  const float* const xm = x + total + xi;
+  float* const yr = y + yi;
+  float* const ym = y + total + yi;
+  for (int u = 0; u < L; ++u) {
+    const auto ar = [&](int k) { return xr[u + k * xs]; };
+    const auto ai = [&](int k) { return xm[u + k * xs]; };
+    float cr[R], ci[R];
+    if constexpr (R == 2) {
+      cr[0] = ar(0) + ar(1);
+      ci[0] = ai(0) + ai(1);
+      cr[1] = ar(0) - ar(1);
+      ci[1] = ai(0) - ai(1);
+    } else if constexpr (R == 3) {
+      constexpr float s3 = 0.8660254037844386f;
+      const float sr = ar(1) + ar(2), si = ai(1) + ai(2);
+      const float dr = (ar(1) - ar(2)) * s3, di = (ai(1) - ai(2)) * s3;
+      const float mr = ar(0) - .5f * sr, mi = ai(0) - .5f * si;
+      cr[0] = ar(0) + sr;
+      ci[0] = ai(0) + si;
+      cr[1] = mr + di;
+      ci[1] = mi - dr;
+      cr[2] = mr - di;
+      ci[2] = mi + dr;
+    } else if constexpr (R == 4) {
+      const float t0r = ar(0) + ar(2), t0i = ai(0) + ai(2), t1r = ar(0) - ar(2), t1i = ai(0) - ai(2);
+      const float t2r = ar(1) + ar(3), t2i = ai(1) + ai(3), t3r = ar(1) - ar(3), t3i = ai(1) - ai(3);
+      cr[0] = t0r + t2r;
+      ci[0] = t0i + t2i;
+      cr[2] = t0r - t2r;
+      ci[2] = t0i - t2i;
+      cr[1] = t1r + t3i;
+      ci[1] = t1i - t3r;
+      cr[3] = t1r - t3i;
+      ci[3] = t1i + t3r;
+    } else {
+      constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
+      const float s14r = ar(1) + ar(4), s14i = ai(1) + ai(4), d14r = ar(1) - ar(4), d14i = ai(1) - ai(4);
+      const float s23r = ar(2) + ar(3), s23i = ai(2) + ai(3), d23r = ar(2) - ar(3), d23i = ai(2) - ai(3);
+      cr[0] = ar(0) + s14r + s23r;
+      ci[0] = ai(0) + s14i + s23i;
+      const float e1r = ar(0) + c1 * s14r + c2 * s23r, e1i = ai(0) + c1 * s14i + c2 * s23i;
+      const float f1r = s1 * d14r + s2 * d23r, f1i = s1 * d14i + s2 * d23i;
+      const float e2r = ar(0) + c2 * s14r + c1 * s23r, e2i = ai(0) + c2 * s14i + c1 * s23i;
+      const float f2r = s2 * d14r - s1 * d23r, f2i = s2 * d14i - s1 * d23i;
+      cr[1] = e1r + f1i;
+      ci[1] = e1i - f1r;
+      cr[4] = e1r - f1i;
+      ci[4] = e1i + f1r;
+      cr[2] = e2r + f2i;
+      ci[2] = e2i - f2r;
+      cr[3] = e2r - f2i;
+      ci[3] = e2i + f2r;
+    }
+    yr[u * ysu] = cr[0];
+    ym[u * ysu] = ci[0];
+    for (int j = 1; j < R; ++j) {
+      if constexpr (R == 5) {
+        yr[u * ysu + j * ys] = cr[j];
+        ym[u * ysu + j * ys] = ci[j];
+      } else {
+        float tr, ti;
+        if constexpr (LP) {
+          tr = tw[(p + u) * j * ts].r;
+          ti = tw[(p + u) * j * ts].i;
+        } else {
+          tr = wr[j];
+          ti = wi[j];
+        }
+        yr[u * ysu + j * ys] = cr[j] * tr - ci[j] * ti;
+        ym[u * ysu + j * ys] = cr[j] * ti + ci[j] * tr;
+      }
     }
   }
 }
-static void pitch_fft512(kiss_fft_cpx* data) {
-  for (int k = 0; k < 512; k += 2) {
-    const auto a = data[k], b = data[k + 1];
-    data[k] = complex_add(a, b);
-    data[k + 1] = complex_subtract(a, b);
+
+template <int R>
+[[gnu::noinline]] static void fft_stage(const float* __restrict x, float* __restrict y, int total, int m, int s, int ts) {
+  const auto* tw = celt_tables.fft_twiddles.data();
+  if (s == 1) {
+    int p = 0;
+    if (m % 4 == 0) {
+      for (; p < m; p += 4) {
+        fft_block<R, 4, true>(x, y, total, p, m, R * p, 1, R, tw, p, ts);
+      }
+    }
+    for (; p < m; ++p) {
+      fft_block<R, 1, false>(x, y, total, p, m, R * p, 1, 0, tw, p, ts);
+    }
+    return;
   }
-  pitch512_radix4<2>(data);
-  pitch512_radix4<8>(data);
-  pitch512_radix4<32>(data);
-  pitch512_radix4<128>(data);
+  for (int p = 0; p < m; ++p) {
+    for (int q = 0; q < s; q += 4) {
+      fft_block<R, 4, false>(x, y, total, q + s * p, s * m, q + s * R * p, s, 1, tw, p, ts);
+    }
+  }
 }
+
+static constexpr unsigned char fft_radices[4][6] = {{4, 2, 4, 3, 5, 0}, {4, 4, 3, 5, 0, 0}, {4, 2, 3, 5, 0, 0}, {4, 3, 5, 0, 0, 0}};
+
+[[nodiscard]] static float* fft_input(float* work, float* scratch, int shift) {
+  return shift == 1 || shift == 2 ? scratch : work;
+}
+
+static float* celt_fft(float* a, float* b, int shift) {
+  const int total = 480 >> shift;
+  int n = total, s = 1;
+  for (const unsigned char* r = fft_radices[shift]; *r; ++r) {
+    const int m = n / *r;
+    switch (*r) {
+    case 2:
+      fft_stage<2>(a, b, total, m, s, 480 / n);
+      break;
+    case 3:
+      fft_stage<3>(a, b, total, m, s, 480 / n);
+      break;
+    case 4:
+      fft_stage<4>(a, b, total, m, s, 480 / n);
+      break;
+    default:
+      fft_stage<5>(a, b, total, m, s, 480 / n);
+      break;
+    }
+    std::swap(a, b);
+    n = m;
+    s *= *r;
+  }
+  return a;
+}
+
+static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* scratch) {
+  const int N = l->n >> shift, N2 = N >> 1, N4 = N >> 2;
+  const float* trig = l->trig + l->n - N;
+  const float scale = 1.f / static_cast<float>(N4);
+  float* work = stride == 1 ? out : scratch + N2;
+  float* first = fft_input(work, scratch, shift);
+  const auto prerotate = [&](int i, float re, float im) {
+    const float t0 = trig[i], t1 = trig[N4 + i];
+    first[i] = (re * t0 - im * t1) * scale;
+    first[N4 + i] = (im * t0 + re * t1) * scale;
+  };
+  const int overlap_quarters = (overlap + 3) >> 2;
+  int i = 0;
+  for (; i < overlap_quarters; ++i) {
+    const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
+    prerotate(i, in[left + N2] * window[(overlap >> 1) - 1 - 2 * i] + in[right] * window[left],
+              in[left] * window[left] - in[right - N2] * window[(overlap >> 1) - 1 - 2 * i]);
+  }
+  for (; i < N4 - overlap_quarters; ++i) {
+    prerotate(i, in[N2 - 1 + (overlap >> 1) - 2 * i], in[(overlap >> 1) + 2 * i]);
+  }
+  for (; i < N4; ++i) {
+    const int left = (overlap >> 1) + 2 * i, right = N2 - 1 + (overlap >> 1) - 2 * i;
+    const int window_left = 2 * (i - (N4 - overlap_quarters)), window_right = overlap - 1 - window_left;
+    prerotate(i, -in[left - N2] * window[window_left] + in[right] * window[window_right],
+              in[left] * window[window_right] + in[right + N2] * window[window_left]);
+  }
+  const float* res = celt_fft(first, first == work ? scratch : work, shift);
+  for (i = 0; i < N4; ++i) {
+    const float t0 = trig[i], t1 = trig[N4 + i];
+    out[2 * stride * i] = res[N4 + i] * t1 - res[i] * t0;
+    out[stride * (N2 - 1 - 2 * i)] = res[i] * t1 + res[N4 + i] * t0;
+  }
+}
+
+static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch, float* prefix, int end) {
+  const auto* mode = celt_mode();
+  clt_mdct_forward_c(&mode->mdct, in, out, mode->window, celt_default_overlap, 0, 1, scratch);
+  zero_n_items(prefix, static_cast<std::size_t>(celt_default_nb_ebands));
+  int band = 0;
+  for (int i = 0; i < 240; ++i) {
+    if (2 * i >= 8 * mode->eBands[band + 1])
+      ++band;
+    if (band < end) {
+      prefix[band] += out[2 * i] * out[2 * i];
+      prefix[band] += out[2 * i + 1] * out[2 * i + 1];
+    }
+  }
+}
+
+[[gnu::cold]] static void clt_mdct_backward_transform_c(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride) {
+  const int N = l->n >> shift, N2 = N >> 1, N4 = N >> 2;
+  const float* trig = l->trig + l->n - N;
+  float scratch[celt_max_frame_samples];
+  float* work = out + (overlap >> 1);
+  float* first = fft_input(work, scratch, shift);
+  for (int i = 0; i < N4; ++i) {
+    const float x1 = in[2 * i * stride], x2 = in[(N2 - 1 - 2 * i) * stride];
+    const float t0 = trig[i], t1 = trig[N4 + i];
+    first[i] = x1 * t0 - x2 * t1;
+    first[N4 + i] = x2 * t0 + x1 * t1;
+  }
+  const float* res = celt_fft(first, first == work ? scratch : work, shift);
+  float* yp0 = work;
+  float* yp1 = yp0 + N2 - 2;
+  for (int i = 0; i < (N4 + 1) >> 1; ++i) {
+    const int mirror = N4 - i - 1;
+    const float fr = res[i], fi = res[N4 + i], lr = res[mirror], li = res[N4 + mirror];
+    yp0[0] = fi * trig[i] + fr * trig[N4 + i];
+    yp1[1] = fi * trig[N4 + i] - fr * trig[i];
+    yp1[0] = li * trig[mirror] + lr * trig[N2 - i - 1];
+    yp0[1] = li * trig[N2 - i - 1] - lr * trig[mirror];
+    yp0 += 2;
+    yp1 -= 2;
+  }
+}
+
+[[gnu::cold]] static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int overlap) {
+  for (int i = 0; i < overlap / 2; ++i) {
+    const int mirror = overlap - 1 - i;
+    const float low = out[i], high = out[mirror], a = window[i], b = window[mirror];
+    out[i] = low * b - high * a;
+    out[mirror] = low * a + high * b;
+  }
+}
+
+[[gnu::cold]] static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
+  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride);
+  clt_mdct_backward_overlap_c(out, window, overlap);
+}
+
+[[gnu::cold]] static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride) {
+  const int N = l->n >> shift;
+  clt_mdct_backward_transform_c(l, in, out0, overlap, shift, stride);
+  copy_n_items(out0 + (overlap >> 1), static_cast<std::size_t>(N >> 1), out1 + (overlap >> 1));
+  clt_mdct_backward_overlap_c(out0, window, overlap);
+  clt_mdct_backward_overlap_c(out1, window, overlap);
+}
+
+
+
 static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
                                 std::span<const opus_val16, celt_max_pitch_period / 2> y,
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
@@ -11728,41 +10818,34 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
     return false;
   }
 
-  std::array<kiss_fft_cpx, 512> transformed;
-  const auto* state = &pitch512_state;
-  for (int i = 0; i < 512; ++i)
-    transformed[state->bitrev[i]] = {i < 240 ? x[i] * factor_x : 0.f, i < 480 ? y[i] * factor_y : 0.f};
-  pitch_fft512(transformed.data());
-
-  const auto scale = state->scale;
-  transformed[0] = {transformed[0].r * transformed[0].i * scale, 0.f};
-  transformed[256] = {transformed[256].r * transformed[256].i * scale, 0.f};
-  for (int k = 1; k < 256; ++k) {
-    const auto a = transformed[k];
-    const auto b = transformed[512 - k];
-    const float xr = .5f * (a.r + b.r);
-    const float xi = .5f * (a.i - b.i);
-    const float yr = .5f * (a.i + b.i);
-    const float yi = .5f * (b.r - a.r);
+  std::array<float, 960> spectrum, product;
+  for (int i = 0; i < 480; ++i) {
+    spectrum[i] = i < 240 ? x[i] * factor_x : 0.f;
+    spectrum[480 + i] = y[i] * factor_y;
+  }
+  const float* freq = celt_fft(spectrum.data(), product.data(), 0);
+  const float scale = 1.f / 480;
+  spectrum[0] = freq[0] * freq[480] * scale;
+  spectrum[480] = 0.f;
+  spectrum[240] = freq[240] * freq[720] * scale;
+  spectrum[720] = 0.f;
+  for (int k = 1; k < 240; ++k) {
+    const float ar = freq[k], ai = freq[480 + k], br = freq[480 - k], bi = freq[960 - k];
+    const float xr = .5f * (ar + br);
+    const float xi = .5f * (ai - bi);
+    const float yr = .5f * (ai + bi);
+    const float yi = .5f * (br - ar);
     const float real = (xr * yr + xi * yi) * scale;
     const float imaginary = (xr * yi - xi * yr) * scale;
-    transformed[k] = {real, -imaginary};
-    transformed[512 - k] = {real, imaginary};
+    spectrum[k] = real;
+    spectrum[480 + k] = -imaginary;
+    spectrum[480 - k] = real;
+    spectrum[960 - k] = imaginary;
   }
-
-  for (const int start : pitch512_leaders) {
-    auto value = transformed[start];
-    int position = start;
-    do {
-      const int next = state->bitrev[position];
-      std::swap(value, transformed[next]);
-      position = next;
-    } while (position != start);
-  }
-  pitch_fft512(transformed.data());
+  float* res = celt_fft(spectrum.data(), product.data(), 0);
 
   for (int lag = 0; lag < 240; ++lag) {
-    const auto bits = magnitude(transformed[lag].r);
+    const auto bits = magnitude(res[lag]);
     const int exponent = static_cast<int>(bits >> 23);
     if (bits != 0 && (exponent == 0 || exponent == 255 || exponent + undo_shift < 1 || exponent + undo_shift > 254)) {
       std::fesetenv(&original_environment);
@@ -11774,14 +10857,14 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_perio
     return false;
   }
   for (int lag = 0; lag < 240; ++lag)
-    transformed[lag].r *= restore;
+    res[lag] *= restore;
   if (std::feupdateenv(&original_environment) != 0) {
     std::fesetenv(&original_environment);
     return false;
   }
   celt_pitch_xcorr_c(x.data(), y.data() + 240, correlation.data() + 240, 240, 4);
   for (int lag = 0; lag < 240; ++lag)
-    correlation[lag] = transformed[lag].r;
+    correlation[lag] = res[lag];
   return true;
 }
 
@@ -12999,7 +12082,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
 
   float in[960];
   for (i = 0; i < N2; ++i) {
-    const float w = classical_analysis_window[i];
+    const float w = classical_analysis_window[i] * (1.f / 480);
     in[(i)] = w * tonal->inmem[i];
     in[N + (i)] = w * block[i];
     in[(N - i - 1)] = w * block[N2 - i - 1];
@@ -13021,8 +12104,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   }
   auto* out = (::new (static_cast<void*>(&scratch.spectrum)) std::array<float, 960>)->data();
   {
-    const kiss_fft_state* kst = &fft_state48000_960_0;
-    out = stockham_scaled_soa<480>(in, in, out, kst);
+    out = celt_fft(in, out, 0);
   }
   if (std::isnan(out[(0)])) {
     info->valid = 0;
@@ -13559,8 +12641,7 @@ static constexpr CeltModeInternal mode48000_960_120 = {
     band_allocation.data(),
     logN400.data(),
     celt_tables.window.data(),
-    mdct_lookup{
-        1920, {&fft_state48000_960_0, &fft_state48000_960_1, &fft_state48000_960_2, &fft_state48000_960_3}, celt_tables.mdct_trig.data()},
+    mdct_lookup{1920, celt_tables.mdct_trig.data()},
     cache_index50.data(),
     cache_bits50.data()};
 [[nodiscard]] static constexpr auto celt_mode() noexcept -> const CeltModeInternal* {
@@ -20791,24 +19872,13 @@ void assign_error(int* error, int value) noexcept {
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
 
-[[gnu::cold]] OPUSCPP_NOINLINE static void fill_pitch512_permutation() noexcept {
-  for (int n = 0; n < 512; ++n)
-    pitch512_permutation[n] = pitch512_bitrev_index(n);
-}
-
 [[gnu::cold]] OPUSCPP_NOINLINE static bool initialize_derived_tables_once() noexcept {
   if (!fill_celt_tables(celt_tables)) {
     return false;
   }
-  fill_fft_bitrev(celt_tables.fft_bitrev_480.data(), 480, pack_fft_bitrev_factors<5, 3, 4, 2, 4>());
-  fill_fft_bitrev(celt_tables.fft_bitrev_240.data(), 240, pack_fft_bitrev_factors<5, 3, 4, 4>());
-  fill_fft_bitrev(celt_tables.fft_bitrev_120.data(), 120, pack_fft_bitrev_factors<5, 3, 2, 4>());
-  fill_fft_bitrev(celt_tables.fft_bitrev_60.data(), 60, pack_fft_bitrev_factors<5, 3, 4>());
   silk_fill_nlsf_weights(silk_NLSF_CB1_Wght_Q9, silk_NLSF_CB1_NB_MB_Q8, 10);
   silk_fill_nlsf_weights(silk_NLSF_CB1_WB_Wght_Q9, silk_NLSF_CB1_WB_Q8, 16);
   fill_celt_pvq_u_fast_rows();
-  fill_pitch512_twiddles(pitch512_twiddles);
-  fill_pitch512_permutation();
   return true;
 }
 
