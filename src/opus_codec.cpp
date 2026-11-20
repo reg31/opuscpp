@@ -655,6 +655,7 @@ struct classical_leak_state {
   float rnn_state[24];
   opus_val32 downmix_state[3];
   bool pcm_bounded;
+  bool nearest_history_valid;
   classical_leak_record info[100];
   classical_leak_info out_info;
   opus_int8 analysis_read_pos_bak;
@@ -1140,12 +1141,17 @@ struct silk_nsq_storage {
 using silk_nsq_state = silk_nsq_storage<640, 96>;
 using silk_nsq_history = silk_nsq_storage<320, 16>;
 static_assert(sizeof(silk_nsq_history) == 2112);
+constexpr auto silk_nsq_history_tail_offset = offsetof(silk_nsq_history, sAR2_Q14);
+constexpr auto silk_nsq_state_tail_offset = offsetof(silk_nsq_state, sAR2_Q14);
+static_assert(sizeof(silk_nsq_history) - silk_nsq_history_tail_offset == sizeof(silk_nsq_state) - silk_nsq_state_tail_offset);
 
 OPUSCPP_LEANO static void silk_nsq_load(silk_nsq_state& state, const silk_nsq_history& history) noexcept {
   copy_n_items(history.xq, 320, state.xq);
   copy_n_items(history.sLTP_shp_Q14, 320, state.sLTP_shp_Q14);
   copy_n_items(history.sLPC_Q14, 16, state.sLPC_Q14);
-  std::memcpy(state.sAR2_Q14, history.sAR2_Q14, sizeof(history) - offsetof(silk_nsq_history, sAR2_Q14));
+  std::memcpy(reinterpret_cast<std::byte*>(&state) + silk_nsq_state_tail_offset,
+              reinterpret_cast<const std::byte*>(&history) + silk_nsq_history_tail_offset,
+              sizeof(history) - silk_nsq_history_tail_offset);
   zero_n_items(state.xq + 320, 320);
   zero_n_items(state.sLTP_shp_Q14 + 320, 320);
   zero_n_items(state.sLPC_Q14 + 16, 80);
@@ -1156,8 +1162,9 @@ OPUSCPP_LEANO static void silk_nsq_store(silk_nsq_history& history, const silk_n
   copy_n_items(state.sLTP_shp_Q14, 320, history.sLTP_shp_Q14);
   copy_n_items(state.sLPC_Q14, 16, history.sLPC_Q14);
   const auto skip = keep_ar ? 0 : sizeof(history.sAR2_Q14);
-  std::memcpy(reinterpret_cast<char*>(&history.sAR2_Q14) + skip, reinterpret_cast<const char*>(&state.sAR2_Q14) + skip,
-              sizeof(history) - offsetof(silk_nsq_history, sAR2_Q14) - skip);
+  std::memcpy(reinterpret_cast<std::byte*>(&history) + silk_nsq_history_tail_offset + skip,
+              reinterpret_cast<const std::byte*>(&state) + silk_nsq_state_tail_offset + skip,
+              sizeof(history) - silk_nsq_history_tail_offset - skip);
 }
 
 struct silk_VAD_state {
@@ -8437,14 +8444,14 @@ template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* p
   for (int c = 0; c < C; ++c) {
     celt_sig m = mem[c];
     const auto* x = in[c];
-    auto* out = pcm + c;
+    int output = c;
     int next_output = 0;
     for (int j = 0; j < N; ++j) {
       const celt_sig sample = x[j] + 1e-30f + m;
       m = celt_preemphasis[0] * sample;
       if (j == next_output) {
-        *out = deemphasis_output<Sample>(sample);
-        out += C;
+        pcm[output] = deemphasis_output<Sample>(sample);
+        output += C;
         next_output += downsample;
       }
     }
@@ -10976,21 +10983,27 @@ static inline float classifier_atan2_lane(float y, float x) {
   constexpr float cE = static_cast<float>(3.14159265358979323846 / 2);
   const float x2 = x * x;
   const float y2 = y * y;
+  const bool small = x2 + y2 < 1e-18f;
   const bool steep = x2 < y2;
-  const float major = classifier_select(steep, y2, x2);
-  const float minor = classifier_select(steep, x2, y2);
+  const float major = classifier_select(small, 1.f, classifier_select(steep, y2, x2));
+  const float minor = classifier_select(small, 0.f, classifier_select(steep, x2, y2));
   const float den = (major + cB * minor) * (major + cC * minor);
-  const float num = classifier_select(steep, -x * y, x * y);
+  const float xy = classifier_select(small, 0.f, x) * y;
+  const float num = classifier_select(steep, -xy, xy);
   const float first = num * (major + cA * minor) / den + classifier_select(y < 0, -cE, cE);
-  const float result = classifier_select(steep, first, first - classifier_select(x * y < 0, -cE, cE));
-  return classifier_select(x2 + y2 < 1e-18f, 0.f, result);
+  const float result = classifier_select(steep, first, first - classifier_select(xy < 0, -cE, cE));
+  return classifier_select(small, 0.f, result);
 }
 
-static inline float classifier_round(float x) {
+template <bool Fast> static inline float classifier_round(float x) {
+  if constexpr (!Fast) {
+    return std::nearbyintf(x);
+  }
   constexpr float magic = 12582912.f;
   return classifier_select(std::fabs(x) < 4194304.f, (x + magic) - magic, x);
 }
 
+template <bool Fast>
 static void classifier_phase_pass(const float* __restrict out, float* __restrict A, float* __restrict dA, float* __restrict d2A, float* __restrict tonality, float* __restrict noisiness, float* __restrict tonality2) {
   constexpr float pi4 = static_cast<float>(3.141592653 * 3.141592653 * 3.141592653 * 3.141592653);
   constexpr float angle_scale = static_cast<float>(.5f / 3.141592653);
@@ -10999,17 +11012,17 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     const float X1i = out[480 + i] - out[960 - i];
     const float X2r = out[480 + i] + out[960 - i];
     const float X2i = out[480 - i] - out[i];
-    const float angle = angle_scale * classifier_atan2_lane(X1i, X1r);
+    const float angle = angle_scale * (Fast ? classifier_atan2_lane(X1i, X1r) : classifier_fast_atan2f(X1i, X1r));
     const float d_angle = angle - A[i];
     const float d2_angle = d_angle - dA[i];
-    const float angle2 = angle_scale * classifier_atan2_lane(X2i, X2r);
+    const float angle2 = angle_scale * (Fast ? classifier_atan2_lane(X2i, X2r) : classifier_fast_atan2f(X2i, X2r));
     const float d_angle2 = angle2 - angle;
     const float d2_angle2 = d_angle2 - d_angle;
-    float mod1 = d2_angle - classifier_round(d2_angle);
+    float mod1 = d2_angle - classifier_round<Fast>(d2_angle);
     float noisy = std::fabs(mod1);
     mod1 *= mod1;
     mod1 *= mod1;
-    float mod2 = d2_angle2 - classifier_round(d2_angle2);
+    float mod2 = d2_angle2 - classifier_round<Fast>(d2_angle2);
     noisy += std::fabs(mod2);
     mod2 *= mod2;
     mod2 *= mod2;
@@ -11024,7 +11037,9 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
 }
 
 [[gnu::noinline]] static void classical_leak_features(classical_leak_state* tonal, classical_leak_record* info, const float* out,
-                                                      const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener) {
+                                                       const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener, bool nearest) {
+  const bool reuse_history = nearest && tonal->nearest_history_valid;
+  tonal->nearest_history_valid = false;
   int i, b;
   const int N = 480;
   float band_tonality[18];
@@ -11101,7 +11116,6 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     }
 
     tonal->E[tonal->E_count][b] = E;
-    tonal->E_root[tonal->E_count][b] = classifier_sqrt_d(E);
     frame_noisiness += nE / (1e-15f + E);
 
     frame_loudness += classifier_sqrt_d(E + 1e-10f);
@@ -11128,8 +11142,15 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     relativeE += (logE[b] - tonal->lowE[b]) / (1e-5f + (tonal->highE[b] - tonal->lowE[b]));
 
     L1 = L2 = 0;
+    if (reuse_history) {
+      tonal->E_root[tonal->E_count][b] = classifier_sqrt_d(E);
+    } else if (nearest) {
+      for (i = 0; i < 8; ++i) {
+        tonal->E_root[i][b] = classifier_sqrt_d(tonal->E[i][b]);
+      }
+    }
     for (i = 0; i < 8; ++i) {
-      L1 += tonal->E_root[i][b];
+      L1 += nearest ? tonal->E_root[i][b] : classifier_sqrt_d(tonal->E[i][b]);
       L2 += tonal->E[i][b];
     }
 
@@ -11165,26 +11186,42 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     info->leak_boost[b] = static_cast<opus_uint8>(std::min(255, static_cast<int>(std::floor(0.5 + static_cast<double>(64.f * boost)))));
   }
 
-  float min_distance[8];
-  std::fill_n(min_distance, 8, 1e15f);
-  int pair = 0;
-  for (i = 0; i < 8; ++i) {
-    for (int j = i + 1; j < 8; ++j, ++pair) {
-      if (i == tonal->E_count || j == tonal->E_count) {
-        float dist = 0;
-        for (int k = 0; k < 18; ++k) {
-          const float tmp = tonal->logE[i][k] - tonal->logE[j][k];
-          dist += tmp * tmp;
+  const auto history_distance = [&](int first, int second) {
+    float distance = 0;
+    for (int band = 0; band < 18; ++band) {
+      const float difference = tonal->logE[first][band] - tonal->logE[second][band];
+      distance += difference * difference;
+    }
+    return distance;
+  };
+  if (nearest) {
+    float min_distance[8];
+    std::fill_n(min_distance, 8, 1e15f);
+    int pair = 0;
+    for (i = 0; i < 8; ++i) {
+      for (int j = i + 1; j < 8; ++j, ++pair) {
+        if (!reuse_history || i == tonal->E_count || j == tonal->E_count) {
+          tonal->pair_distance[pair] = history_distance(i, j);
         }
-        tonal->pair_distance[pair] = dist;
+        min_distance[i] = std::min(min_distance[i], tonal->pair_distance[pair]);
+        min_distance[j] = std::min(min_distance[j], tonal->pair_distance[pair]);
       }
-      min_distance[i] = std::min(min_distance[i], tonal->pair_distance[pair]);
-      min_distance[j] = std::min(min_distance[j], tonal->pair_distance[pair]);
+    }
+    for (const float distance : min_distance) {
+      spec_variability += distance;
+    }
+  } else {
+    for (i = 0; i < 8; ++i) {
+      float minimum = 1e15f;
+      for (int j = 0; j < 8; ++j) {
+        if (j != i) {
+          minimum = std::min(minimum, history_distance(i, j));
+        }
+      }
+      spec_variability += minimum;
     }
   }
-  for (const float distance : min_distance) {
-    spec_variability += distance;
-  }
+  tonal->nearest_history_valid = nearest;
   spec_variability = classifier_sqrt_d(spec_variability / 8 / 18);
   bandwidth_mask = 0;
   int bandwidth = 0;
@@ -11378,12 +11415,20 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     return;
   }
 
-  classifier_phase_pass(out, A, dA, d2A, tonality, noisiness, tonality2);
+  constexpr bool fast_phase_format = std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
+                                    std::numeric_limits<float>::digits == 24 && std::numeric_limits<float>::max_exponent == 128 &&
+                                    FLT_EVAL_METHOD == 0;
+  const bool nearest = fast_phase_format && std::fegetround() == FE_TONEAREST && std::fetestexcept(FE_INEXACT) != 0;
+  if (nearest) {
+    classifier_phase_pass<true>(out, A, dA, d2A, tonality, noisiness, tonality2);
+  } else {
+    classifier_phase_pass<false>(out, A, dA, d2A, tonality, noisiness, tonality2);
+  }
   for (i = 2; i < N2 - 1; ++i) {
     float tt = std::min(tonality2[i], std::max(tonality2[i - 1], tonality2[i + 1]));
     tonality[i] = .9f * std::max(tonality[i], tt - .1f);
   }
-  classical_leak_features(tonal, info, out, tonality, noisiness, lsb_depth, Fs, hp_ener);
+  classical_leak_features(tonal, info, out, tonality, noisiness, lsb_depth, Fs, hp_ener, nearest);
 }
 
 OPUSCPP_COMPACT static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_info* info_out, int Fs, int len) {
@@ -12629,7 +12674,6 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
   silk_PLC_Reset(psDec);
 }
 
-constexpr int store_state_scratch_size = silk_max_frame_length;
 OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& control, opus_int16 xq[], const opus_int16 pulses[((5 * 4) * 16)], const bool store_state) {
   std::array<opus_int16, silk_max_ltp_mem_length> ltp_storage;
   std::array<opus_int32, silk_max_ltp_buffer_length> ltp_q15_storage;
@@ -12641,10 +12685,6 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
   const bool NLSF_interpolation_flag = state.indices.NLSFInterpCoef_Q2 < 1 << 2;
   auto rand_seed = static_cast<opus_int32>(state.indices.Seed);
   auto previous_gain_Q16 = state.prev_gain_Q16;
-  std::array<opus_uint16, store_state_scratch_size> scratch_low;
-  std::array<opus_int8, store_state_scratch_size> scratch_high;
-  auto* const exc_low = store_state ? state.exc_low : scratch_low.data();
-  auto* const exc_high = store_state ? state.exc_high : scratch_high.data();
   const auto decode_excitation = [&](int index) noexcept {
     rand_seed = silk_next_rand_seed(rand_seed);
     auto excitation = wrap_shift_left(pulses[index], 14);
@@ -12658,9 +12698,11 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
     if (negate) {
       excitation = -excitation;
     }
-    const auto compact = excitation >> 6;
-    exc_low[index] = static_cast<opus_uint16>(compact);
-    exc_high[index] = static_cast<opus_int8>(compact >> 16);
+    if (store_state) {
+      const auto compact = excitation >> 6;
+      state.exc_low[index] = static_cast<opus_uint16>(compact);
+      state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
+    }
     rand_seed = wrap_add(rand_seed, pulses[index]);
     return excitation;
   };
@@ -13818,14 +13860,13 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
                                    int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool float_environment) {
   auto* NSQ = b.NSQ;
   const int ar_order = b.ar_order;
-  const bool zero_ar = std::all_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
-    return c == 0;
+  const bool use_float = float_environment && std::any_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
+    return c != 0;
   });
-  const bool skip_ar = zero_ar && !keep_ar;
-  const bool use_float = float_environment && !zero_ar;
   float float_ar[24 * 4], float_coefficients[24];
-  const float float_warping = static_cast<opus_int16>(warping_Q16) * (1.f / 65536.f);
+  float float_warping;
   if (use_float) {
+    float_warping = static_cast<opus_int16>(warping_Q16) * (1.f / 65536.f);
     for (int index = 0; index < ar_order; ++index) {
       float_coefficients[index] = b.AR_Q13[index] * (1.f / 65536.f);
       for (int state = 0; state < 4; ++state)
@@ -13880,7 +13921,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       else
         LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psDD->sLPC_Q14 + 16 + i, b.a_Q12, b.order));
       opus_int32 n_AR_Q14 = use_float ? n_AR_lane[k]
-                            : skip_ar ? (ar_order >> 1) << 1
+                             : !keep_ar ? (ar_order >> 1) << 1
                                       : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
       n_AR_Q14 = static_cast<opus_int32>(n_AR_Q14 + ((psDD->LF_AR_Q14 * static_cast<opus_int64>(tilt_i16)) >> 16));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
@@ -13966,8 +14007,8 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
         std::memcpy(dst.sLPC_Q14 + i, src.sLPC_Q14 + i, 16 * sizeof(opus_int32));
       }
       constexpr auto ring_offset = offsetof(NSQ_del_dec_struct, RandState);
-      std::memcpy(reinterpret_cast<std::byte*>(&dst) + ring_offset, reinterpret_cast<const std::byte*>(&src) + ring_offset,
-                  offsetof(NSQ_del_dec_struct, LF_AR_Q14) - ring_offset);
+      const auto copy_end = keep_ar ? offsetof(NSQ_del_dec_struct, LF_AR_Q14) : offsetof(NSQ_del_dec_struct, sAR2_Q14);
+      std::memcpy(reinterpret_cast<std::byte*>(&dst) + ring_offset, reinterpret_cast<const std::byte*>(&src) + ring_offset, copy_end - ring_offset);
       dst.Seed = src.Seed;
       dst.SeedInit = src.SeedInit;
       if (use_float)
@@ -14072,21 +14113,25 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
       state.Diff_Q14 = NSQ->sDiff_shp_Q14;
       state.Shape_Q14[0] = NSQ->sLTP_shp_Q14[ltp_mem_length - 1];
       std::memcpy(state.sLPC_Q14, NSQ->sLPC_Q14, 16 * sizeof(opus_int32));
-      std::memcpy(state.sAR2_Q14, NSQ->sAR2_Q14, sizeof(NSQ->sAR2_Q14));
+      if (keep_ar)
+        std::memcpy(state.sAR2_Q14, NSQ->sAR2_Q14, sizeof(NSQ->sAR2_Q14));
     }
   } else {
     NSQ->rand_seed = psIndices->Seed;
   }
-  const int original_errno = errno;
+  int original_errno = 0;
   std::fenv_t original_environment, held_environment;
-  bool float_environment = delayed && N == 4 && !fixed;
-  if (float_environment && std::fegetenv(&original_environment) != 0)
-    float_environment = false;
-  else if (float_environment && std::feholdexcept(&held_environment) != 0) {
-    std::fesetenv(&original_environment);
-    float_environment = false;
+  bool float_environment = keep_ar && delayed && N == 4 && !fixed;
+  if (float_environment) {
+    original_errno = errno;
+    if (std::fegetenv(&original_environment) != 0)
+      float_environment = false;
+    else if (std::feholdexcept(&held_environment) != 0) {
+      std::fesetenv(&original_environment);
+      float_environment = false;
+    }
+    errno = original_errno;
   }
-  errno = original_errno;
   const int offset_Q10 = silk_Quantization_Offsets_Q10[psIndices->signalType >> 1][psIndices->quantOffsetType];
   const auto* const levels = silk_nsq_quant_levels[psIndices->signalType >> 1][psIndices->quantOffsetType].data();
   int smpl_buf_idx = 0;
@@ -14150,13 +14195,15 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
           state.LF_AR_Q14 = first.LF_AR_Q14;
           state.Diff_Q14 = first.Diff_Q14;
           std::memcpy(state.sLPC_Q14, first.sLPC_Q14, 16 * sizeof(opus_int32));
-          std::memcpy(state.sAR2_Q14, first.sAR2_Q14, sizeof(state.sAR2_Q14));
+          if (keep_ar)
+            std::memcpy(state.sAR2_Q14, first.sAR2_Q14, sizeof(state.sAR2_Q14));
           state.Shape_Q14[0] = first.Shape_Q14[0];
         } else if (gain_adj_Q16 != (1 << 16)) {
           state.LF_AR_Q14 = multiply_q16(gain_adj_Q16, state.LF_AR_Q14);
           state.Diff_Q14 = multiply_q16(gain_adj_Q16, state.Diff_Q14);
           scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
-          scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
+          if (keep_ar)
+            scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
           scale_q16_buffer(state.Pred_Q15, k == 0 ? 0 : 40, gain_adj_Q16);
           scale_q16_buffer(state.Shape_Q14, k == 0 ? 1 : 40, gain_adj_Q16);
         }
@@ -14194,7 +14241,8 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
       NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay + i] = psDD->Shape_Q14[last_smple_idx];
     }
     std::memcpy(NSQ->sLPC_Q14, psDD->sLPC_Q14, 16 * sizeof(opus_int32));
-    std::memcpy(NSQ->sAR2_Q14, psDD->sAR2_Q14, sizeof(psDD->sAR2_Q14));
+    if (keep_ar)
+      std::memcpy(NSQ->sAR2_Q14, psDD->sAR2_Q14, sizeof(psDD->sAR2_Q14));
     NSQ->sLF_AR_shp_Q14 = psDD->LF_AR_Q14;
     NSQ->sDiff_shp_Q14 = psDD->Diff_Q14;
   }
@@ -17171,15 +17219,25 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
 }
 
 OPUSCPP_LEANO static bool silk_zero_offset_floor_exceeds_residual(const silk_encoder_state& state, const silk_encoder_control_FLP& control) noexcept {
-  const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
-  double zero_excitation_power = 0.0, residual_power = 0.0;
-  for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
-    const double zero_excitation = static_cast<double>(control.Gains[subframe]) * offset;
-    zero_excitation_power += zero_excitation * zero_excitation;
-    residual_power += static_cast<double>(control.ResNrg[subframe]) / state.subfr_length;
+  const int saved_errno = errno;
+  std::fenv_t original_environment, held_environment;
+  bool prefer_low_offset = false;
+  if (std::fegetenv(&original_environment) == 0) {
+    if (std::feholdexcept(&held_environment) == 0) {
+      const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
+      double zero_excitation_power = 0.0, residual_power = 0.0;
+      for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
+        const double zero_excitation = static_cast<double>(control.Gains[subframe]) * offset;
+        zero_excitation_power += zero_excitation * zero_excitation;
+        residual_power += static_cast<double>(control.ResNrg[subframe]) / state.subfr_length;
+      }
+      prefer_low_offset = std::isfinite(zero_excitation_power) && std::isfinite(residual_power) &&
+                          residual_power >= 0.0 && zero_excitation_power > residual_power;
+    }
+    std::fesetenv(&original_environment);
   }
-  return std::isfinite(zero_excitation_power) && std::isfinite(residual_power) && residual_power >= 0.0 &&
-         zero_excitation_power > residual_power;
+  errno = saved_errno;
+  return prefer_low_offset;
 }
 
 OPUSCPP_LEANO static void silk_process_gains_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, int condCoding, opus_int32* quantized_gains = nullptr) {
