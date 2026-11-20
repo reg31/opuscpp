@@ -16,7 +16,7 @@ int main() {
       const int n = 120 << lm;
       auto ev = make_celt_encoder_views(enc);
       std::array<celt_sig, celt_max_channels*(celt_decode_buffer_size + celt_default_overlap)> decoder_workspace;
-      auto dv = make_celt_decoder_views(dec, n, decoder_workspace.data(), false);
+      auto dv = make_celt_decoder_views(dec, n, decoder_workspace.data(), false, true);
       enc->stream_channels = dec->stream_channels = 1;
       enc->end = dec->end = celt_default_nb_ebands;
       enc->complexity = 0;

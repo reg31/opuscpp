@@ -139,21 +139,24 @@ void check_recovery_sequence() {
   }
   check(recovery_hybrid >= 16, "recovery windows should be hybrid", recovery_hybrid);
   int eligible = 0;
-  int eligible_not_fb = 0;
+  int eligible_not_held = 0;
+  int fullband_frames = 0;
   for (int i = 0; i < 64; ++i) {
     const auto& info = packets[static_cast<std::size_t>(i)];
+    fullband_frames += info.hybrid && info.bandwidth == 1105 ? 1 : 0;
     if (!info.held_eligible) {
       continue;
     }
     ++eligible;
-    if (info.bandwidth != 1105) {
-      ++eligible_not_fb;
+    if (info.bandwidth != info.pre_bw) {
+      ++eligible_not_held;
     }
   }
   check(eligible >= 1, "held-but-eligible state exercised", eligible);
-  check(eligible_not_fb == 0, "held-but-eligible frames must be fullband", eligible_not_fb);
-  std::printf("upper_ceiling_recovery eligible=%d eligible_not_fb=%d recovery_hybrid=%d low_silk=%d\n", eligible,
-              eligible_not_fb, recovery_hybrid, low_silk);
+  check(eligible_not_held == 0, "held frames must inherit the latched bandwidth", eligible_not_held);
+  check(fullband_frames >= 1, "fullband restored once the latch releases", fullband_frames);
+  std::printf("upper_ceiling_recovery eligible=%d eligible_not_held=%d recovery_hybrid=%d low_silk=%d\n", eligible,
+              eligible_not_held, recovery_hybrid, low_silk);
 }
 
 void check_24k_input_ceiling() {
