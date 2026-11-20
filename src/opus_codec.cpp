@@ -5078,7 +5078,7 @@ constexpr auto eMeans = numeric_blob_array<opus_val16>(
 extern constinit const std::array<opus_val16, celt_default_nb_ebands> celt_noise_floor_base;
 }
 
-static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias = nullptr);
+static inline void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias, std::span<std::byte, 1275> intra_bytes);
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
 
@@ -8200,6 +8200,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   const auto energy_stage_tell = tell;
   constexpr auto live_band_floats = 3 * celt_max_channels * celt_default_nb_ebands;
   auto energy_stage_buffer = std::as_writable_bytes(std::span{input_storage}.subspan<live_band_floats>()).first<1275>();
+  constexpr auto rollback_floats = (1275 + sizeof(celt_sig) - 1) / sizeof(celt_sig);
+  const auto coarse_trial_bytes = std::as_writable_bytes(std::span{input_storage}.subspan<live_band_floats + rollback_floats>()).first<1275>();
   std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> energy_stage_old{}, energy_rounding{};
   std::copy_n(oldBandE, C * nbEBands, energy_stage_old.data());
@@ -8224,7 +8226,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   };
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
-                        &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data());
+                        &st->delayedIntra, st->complexity >= 4, st->loss_rate, empty_channel, energy_round == 0 ? nullptr : energy_rounding.data(), coarse_trial_bytes);
     process_tf_changes<true>(start, end, isTransient, tf_res.data(), LM, tf_select, enc);
 
     const bool signal_spread = ec_tell(enc) + 4 <= total_bits;
@@ -12087,7 +12089,7 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
   return badness;
 }
 
-OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias) {
+OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_uint32 budget, celt_glog* error, ec_enc* enc, int C, int LM, int nbAvailableBytes, int force_intra, opus_val32* delayedIntra, int two_pass, int loss_rate, const bool* empty_channel, const celt_glog* rounding_bias, std::span<std::byte, 1275> intra_bytes) {
   int intra = force_intra || (!two_pass && *delayedIntra > 2 * C * (end - start) && nbAvailableBytes > (end - start) * C);
   const opus_int32 intra_bias = two_pass ? static_cast<opus_int32>((budget * *delayedIntra * loss_rate) / (C * 512)) : 0;
   const opus_val32 new_distortion = loss_distortion(eBands, oldEBands, start, end, C);
@@ -12105,7 +12107,6 @@ OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glo
   const opus_uint32 nstart_bytes = enc->offs;
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> old_intra;
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> err_intra{};
-  std::array<unsigned char, 1275> intra_bytes;
   int badness1;
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
@@ -12113,7 +12114,8 @@ OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glo
                                                                e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
                            : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
                                                          e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
-    std::copy_n(enc->buf + nstart_bytes, enc->offs - nstart_bytes, intra_bytes.data());
+    if (const auto count = enc->offs - nstart_bytes; count != 0)
+      std::memcpy(intra_bytes.data(), enc->buf + nstart_bytes, count);
   }
   if (!intra) {
     const ec_enc enc_intra = *enc;
@@ -12126,7 +12128,8 @@ OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glo
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
       *enc = enc_intra;
-      std::copy_n(intra_bytes.data(), nintra_bytes - nstart_bytes, enc->buf + nstart_bytes);
+      if (const auto count = nintra_bytes - nstart_bytes; count != 0)
+        std::memcpy(enc->buf + nstart_bytes, intra_bytes.data(), count);
       std::copy_n(old_intra.data(), C * celt_default_nb_ebands, oldEBands);
       std::copy_n(err_intra.data(), C * celt_default_nb_ebands, error);
       intra = 1;
