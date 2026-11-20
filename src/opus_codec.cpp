@@ -316,20 +316,18 @@ template <int Order>
   return prediction_q10;
 }
 
-template <bool AddOutput = false, typename Source, bool StorePCM = true>
+template <bool AddOutput = false, typename Source>
   requires std::is_invocable_r_v<opus_int32, Source&, int>
 static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
   const auto synthesize = [&]<int Order>() noexcept {
     for (int i = 0; i < length; ++i) {
       const auto pred_Q10 = silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
       sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
-      if constexpr (StorePCM) {
-        auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
-        if constexpr (AddOutput) {
-          sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
-        }
-        pxq[i] = sample;
+      auto sample = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
+      if constexpr (AddOutput) {
+        sample = saturate_int16_from_int32(static_cast<opus_int32>(pxq[i]) + sample);
       }
+      pxq[i] = sample;
     }
   };
   if (order16) {
@@ -342,6 +340,14 @@ static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& s
 [[nodiscard]] static auto silk_lpc_prediction_q10(const opus_int32* history_end, const opus_int16* coefficients, const int order) noexcept -> opus_int32 {
   return order == 10 ? silk_lpc_prediction_q10_fixed<10>(history_end, coefficients)
                      : silk_lpc_prediction_q10_fixed<16>(history_end, coefficients);
+}
+
+[[nodiscard]] static auto silk_lpc_prediction_loop(const opus_int32* history_end, const opus_int16* coefficients, const int order) noexcept -> opus_int32 {
+  auto prediction_q10 = static_cast<opus_int32>(order >> 1);
+  for (int tap_index = 0; tap_index < order; ++tap_index) {
+    prediction_q10 = silk_mla_wb(prediction_q10, history_end[-tap_index - 1], coefficients[tap_index]);
+  }
+  return prediction_q10;
 }
 
 [[nodiscard]] static auto silk_ltp_prediction_5tap(const opus_int32* pred_lag_ptr, const opus_int16* coefficients) noexcept -> opus_int32 {
@@ -2333,24 +2339,17 @@ OPUSCPP_LEANO static void silk_sum_sqr_shift(opus_int32* energy, int* shift, con
          static_cast<opus_int32>(static_cast<opus_int16>(step)) * static_cast<opus_int32>(static_cast<opus_int16>(2 * fine_index + 1));
 }
 
-template <bool Reconstruct = true>
 [[gnu::cold]] static void silk_stereo_decode_pred(ec_dec* psRangeDec, std::span<opus_int32, 2> pred_Q13) {
   std::array<std::array<int, 3>, 2> ix{};
   const int joint_index = ec_dec_icdf(psRangeDec, silk_stereo_pred_joint_iCDF.data(), 8);
-  if constexpr (Reconstruct) {
-    ix[0][2] = joint_index / 5;
-    ix[1][2] = joint_index - 5 * ix[0][2];
-  }
+  ix[0][2] = joint_index / 5;
+  ix[1][2] = joint_index - 5 * ix[0][2];
   for (int channel = 0; channel < 2; ++channel) {
     ix[channel][0] = ec_dec_icdf(psRangeDec, silk_uniform3_iCDF.data(), 8);
     ix[channel][1] = ec_dec_icdf(psRangeDec, silk_uniform5_iCDF.data(), 8);
-    if constexpr (Reconstruct) {
-      pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
-    }
+    pred_Q13[channel] = silk_stereo_pred_level_q13(ix[channel][0] + 3 * ix[channel][2], ix[channel][1]);
   }
-  if constexpr (Reconstruct) {
-    pred_Q13[0] -= pred_Q13[1];
-  }
+  pred_Q13[0] -= pred_Q13[1];
 }
 
 [[gnu::cold]] static void silk_stereo_MS_to_LR(stereo_dec_state* state, opus_int16 x1[], opus_int16 x2[], const opus_int32 pred_Q13[], int fs_kHz, int frame_length) {
@@ -8438,71 +8437,23 @@ template <typename Sample> [[nodiscard]] static inline auto deemphasis_output(ce
   return signal_to_float_pcm(sample);
 }
 
-template <int Channels, typename Sample> static inline void deemphasis_simple(celt_sig* const* in, Sample* pcm, int N, celt_sig* mem) {
-  std::array<celt_sig, Channels> memories;
-  std::copy_n(mem, Channels, memories.begin());
-  for (int j = 0; j < N; ++j) {
-    std::array<celt_sig, Channels> samples;
-    for (int c = 0; c < Channels; ++c)
-      samples[c] = in[c][j] + 1e-30f + memories[c];
-    for (int c = 0; c < Channels; ++c)
-      memories[c] = celt_preemphasis[0] * samples[c];
-    for (int c = 0; c < Channels; ++c)
-      pcm[Channels * j + c] = deemphasis_output<Sample>(samples[c]);
-  }
-  for (int c = 0; c < Channels; ++c)
-    mem[c] = zero_tiny_float_mem(memories[c]);
-}
-
 template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* pcm, int N, int C, int downsample, celt_sig* mem) {
-  if (downsample == 1 && C == 1) {
-    deemphasis_simple<1>(in, pcm, N, mem);
-    return;
-  }
-  if (downsample == 1 && C == 2) {
-    deemphasis_simple<2>(in, pcm, N, mem);
-    return;
-  }
   for (int c = 0; c < C; ++c) {
     celt_sig m = mem[c];
+    const auto* x = in[c];
+    auto* out = pcm + c;
     int next_output = 0;
-    int output = 0;
     for (int j = 0; j < N; ++j) {
-      const celt_sig sample = in[c][j] + 1e-30f + m;
+      const celt_sig sample = x[j] + 1e-30f + m;
       m = celt_preemphasis[0] * sample;
       if (j == next_output) {
-        pcm[output++ * C + c] = deemphasis_output<Sample>(sample);
+        *out = deemphasis_output<Sample>(sample);
+        out += C;
         next_output += downsample;
       }
     }
     mem[c] = zero_tiny_float_mem(m);
   }
-}
-
-template <typename Sample>
-[[gnu::cold]] static void deemphasis_if_equal(celt_sig* const* in, Sample* pcm, int N, int C, int downsample, celt_sig* mem, bool identical_input) {
-  if (identical_input && C == 2 && downsample == 1 && N > 0 && std::memcmp(mem, mem + 1, sizeof(celt_sig)) == 0) {
-    const auto* begin = reinterpret_cast<const std::byte*>(pcm);
-    const auto* end = reinterpret_cast<const std::byte*>(pcm + 2 * N);
-    const auto less = std::less<const std::byte*>{};
-    const auto overlaps = [&](const celt_sig* first, const celt_sig* last) {
-      return less(begin, reinterpret_cast<const std::byte*>(last)) && less(reinterpret_cast<const std::byte*>(first), end);
-    };
-    if (!overlaps(in[0], in[0] + N) && !overlaps(in[1], in[1] + N) && !overlaps(mem, mem + 2)) {
-      celt_sig memory = mem[0];
-      for (int j = 0; j < N; ++j) {
-        const celt_sig sample = in[0][j] + 1e-30f + memory;
-        memory = celt_preemphasis[0] * sample;
-        const Sample output = deemphasis_output<Sample>(sample);
-        pcm[2 * j] = output;
-        pcm[2 * j + 1] = output;
-      }
-      mem[0] = zero_tiny_float_mem(memory);
-      mem[1] = zero_tiny_float_mem(memory);
-      return;
-    }
-  }
-  deemphasis(in, pcm, N, C, downsample, mem);
 }
 
 [[gnu::cold]] static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* oldBandE, int start, int effEnd, int C, int CC, int isTransient, int LM, int downsample, int silence) {
@@ -8852,24 +8803,12 @@ static void celt_load_decode_history(CeltDecoderInternal* st, celt_sig* history,
                                  (physical < tail_start ? std::min(tail_start, celt_decoder_compact_prefix / 2) : celt_decoder_compact_prefix / 2) - physical);
       auto* destination = location(physical);
       const int stop = i + limit;
-      for (; i + 3 < stop; i += 4, destination += 4) {
+      const int count = (backup || N != 240) ? stop - i : (stop - i) & ~3;
+      for (int end = i + count; i < end; ++i) {
         const int center = 2 * i + N - celt_decoder_raw_start;
-        const std::array<celt_sig, 4> values{
-            .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center],
-            .25f * raw[center + 1] + .25f * raw[center + 3] + .5f * raw[center + 2],
-            .25f * raw[center + 3] + .25f * raw[center + 5] + .5f * raw[center + 4],
-            .25f * raw[center + 5] + .25f * raw[center + 7] + .5f * raw[center + 6]};
-        destination[0] = values[0];
-        destination[1] = values[1];
-        destination[2] = values[2];
-        destination[3] = values[3];
+        *destination++ = .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center];
       }
-      if (backup || N != 240) {
-        for (; i < stop; ++i) {
-          const int center = 2 * i + N - celt_decoder_raw_start;
-          *destination++ = .25f * raw[center - 1] + .25f * raw[center + 1] + .5f * raw[center];
-        }
-      }
+      i = stop;
     }
     for (int i = prefix_pairs; i < celt_decoder_prefix_pairs; ++i) {
       const int source = i * celt_short_mdct_size + N - celt_decoder_raw_start;
@@ -8909,23 +8848,12 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   }
 }
 
-[[gnu::cold]] static bool celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
-  bool identical_output = false;
+[[gnu::cold]] static void celt_apply_postfilter(CeltDecoderInternal* st, celt_sig* const* out_syn, int N, int LM, int target_period, opus_val16 target_gain, int target_tapset) {
   const bool zero_gains = st->postfilter_gain_old == 0 && st->postfilter_gain == 0 && target_gain == 0;
   if (!zero_gains) {
-    bool same_input = false;
-    if (st->channels == 2) {
-      const int history = std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2;
-      const auto* first = out_syn[0] - history;
-      const auto* second = out_syn[1] - history;
-      const auto less = std::less<const celt_sig*>{};
-      same_input = !(less(first, out_syn[1] + N) && less(second, out_syn[0] + N)) &&
-                   std::memcmp(first, second, static_cast<std::size_t>(history + N) * sizeof(celt_sig)) == 0;
-    }
-    const int filter_channels = same_input ? 1 : st->channels;
     st->postfilter_period = std::max<int>(st->postfilter_period, 15);
     st->postfilter_period_old = std::max<int>(st->postfilter_period_old, 15);
-    for (int channel = 0; channel < filter_channels; ++channel) {
+    for (int channel = 0; channel < st->channels; ++channel) {
       comb_filter(out_syn[channel], out_syn[channel], st->postfilter_period_old, st->postfilter_period, celt_short_mdct_size,
                   st->postfilter_gain_old, st->postfilter_gain, st->postfilter_tapset_old, st->postfilter_tapset,
                   celt_default_overlap);
@@ -8933,10 +8861,6 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
         comb_filter(out_syn[channel] + celt_short_mdct_size, out_syn[channel] + celt_short_mdct_size, st->postfilter_period, target_period,
                     N - celt_short_mdct_size, st->postfilter_gain, target_gain, st->postfilter_tapset, target_tapset,
                     celt_default_overlap);
-    }
-    if (same_input) {
-      copy_n_items(out_syn[0], static_cast<std::size_t>(N), out_syn[1]);
-      identical_output = true;
     }
   }
   const bool retain_previous = !zero_gains && LM == 0;
@@ -8947,7 +8871,6 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   st->postfilter_period = target_period;
   st->postfilter_gain = zero_gains ? opus_val16{0} : target_gain;
   st->postfilter_tapset = target_tapset;
-  return identical_output;
 }
 
 [[gnu::cold]] static void celt_plc_extrapolate_channel(celt_sig* buf, opus_val16* lpc, int N, int pitch_index, int exc_length, opus_val16 fade, bool update_lpc, int history_size, int raw_offset, const celt_sig* old_buf, int old_history_size) {
@@ -9079,7 +9002,7 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
                       (st->last_frame_type != 3 || (st->last_pitch_index >= 100 && st->last_pitch_index <= celt_plc_max_pitch_period)));
 }
 
-OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum, bool retained_pitch_history = false) {
+OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_decoder_views& decoder, celt_norm* spectrum) {
   const int C = st->channels;
   constexpr int nbEBands = celt_default_nb_ebands;
   const auto* eBands = celt_mode()->eBands;
@@ -9089,7 +9012,7 @@ OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* 
   const int loss_duration = st->loss_duration;
   const int start = st->start;
   const bool use_noise_fill = loss_duration >= 40 || start != 0 || st->skip_plc;
-  const bool from_retained = !use_noise_fill && (retained_pitch_history || (celt_can_use_retained_plc_history(st, N) && decoder.raw_offset == 0));
+  const bool from_retained = !use_noise_fill && celt_can_use_retained_plc_history(st, N) && decoder.raw_offset == 0;
   if (use_noise_fill) {
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
@@ -9307,7 +9230,7 @@ OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* 
     std::fill_n(oldBandE, static_cast<std::size_t>(energy_channels * nbEBands), -(28.f));
   }
   celt_synthesis(spectrum.data(), out_syn.data(), oldBandE, start, end, C, CC, isTransient, LM, st->downsample, silence);
-  const bool identical_postfilter_output = celt_apply_postfilter(st, out_syn.data(), N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
+  celt_apply_postfilter(st, out_syn.data(), N, LM, postfilter_pitch, postfilter_gain, postfilter_tapset);
   celt_commit_band_state(oldBandE, oldLogE, oldLogE2, energy_channels, start, end, isTransient, C == 1 && !silence);
   const celt_glog max_background_increase = std::min(160, st->loss_duration + M) * .001f;
   for (int index = 0; index < CC * nbEBands; ++index) {
@@ -9315,31 +9238,14 @@ OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* 
   }
   st->rng = dec->rng;
   if (pcm16 != nullptr && st->downsample == 1) {
-    deemphasis_if_equal(out_syn.data(), pcm16, N, CC, st->downsample, st->preemph_memD, decoder.raw_offset != 0 && identical_postfilter_output);
+    deemphasis(out_syn.data(), pcm16, N, CC, st->downsample, st->preemph_memD);
   } else {
-    deemphasis_if_equal(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD, decoder.raw_offset != 0 && identical_postfilter_output);
+    deemphasis(out_syn.data(), pcm, N, CC, st->downsample, st->preemph_memD);
   }
   st->loss_duration = 0;
   st->last_frame_type = 1;
   celt_store_decode_history(st, decoder);
   return ec_tell(dec) > 8 * len ? -3 : frame_size / st->downsample;
-}
-
-[[gnu::cold]] OPUSCPP_NOINLINE static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_res* pcm, int frame_size) {
-  constexpr int N = 480, history_size = N + celt_lpc_order;
-  constexpr int stride = history_size + celt_default_overlap;
-  std::array<celt_sig, celt_max_channels * stride> working;
-  celt_decoder_views decoder;
-  decoder.history_size = history_size;
-  decoder.raw_offset = celt_decode_buffer_size - history_size;
-  for (int channel = 0; channel < st->channels; ++channel) {
-    decoder.decode_mem[channel] = working.data() + channel * stride;
-    decoder.out_syn[channel] = decoder.decode_mem[channel] + celt_lpc_order;
-  }
-  celt_bind_decoder_energy_views(decoder, celt_decoder_storage(st), st->channels);
-  celt_decode_lost(st, N, 2, decoder, nullptr, true);
-  deemphasis(decoder.out_syn.data(), pcm, N, st->channels, st->downsample, st->preemph_memD);
-  return frame_size;
 }
 
 [[gnu::cold]] OPUSCPP_NOINLINE static int celt_decode_with_ec_workspace(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
@@ -9350,10 +9256,6 @@ OPUSCPP_LEAN OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* 
 [[gnu::cold]] static inline int celt_decode_with_ec(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
   const int N = frame_size * st->downsample;
   const bool pitch_plc = (data == nullptr || len <= 1) && st->loss_duration < 40 && st->start == 0 && !st->skip_plc;
-  if (pitch_plc && N == 480 && data == nullptr && len == 0 && pcm != nullptr && pcm16 == nullptr &&
-      (st->downsample >= 1 && (st->downsample <= 4 || st->downsample == 6)) && st->channels >= 1 && st->channels <= celt_max_channels && update_pitch_cache &&
-      celt_can_use_retained_plc_history(st, N))
-    return celt_decode_pitch_480(st, pcm, frame_size);
   if (!pitch_plc && N <= celt_max_frame_samples / 2)
     return celt_decode_with_ec_body(st, data, len, pcm, N, dec, pcm16, nullptr, true, update_pitch_cache);
   return celt_decode_with_ec_workspace(st, data, len, pcm, N, dec, pcm16, update_pitch_cache);
@@ -12558,10 +12460,10 @@ constexpr auto silk_max_resampler_api_reconfig_samples = 45 * 48;
       const int index = (psCNG->rand_seed >> 24) & exc_mask;
       return silk_read_excitation(psCNG->CNG_exc_low[index], psCNG->CNG_exc_high[index]);
     };
-    if (gain_Q10 == 0) {
-      silk_decode_lpc_subframe_q14<true, decltype(source)&, false>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
-    } else {
-      silk_decode_lpc_subframe_q14<true>(CNG_sig_Q14, source, frame, length, A_Q12, gain_Q10, psDec->LPC_order != 10);
+    for (int i = 0; i < length; ++i) {
+      const auto pred_Q10 = silk_lpc_prediction_loop(CNG_sig_Q14 + 16 + i, A_Q12, psDec->LPC_order);
+      CNG_sig_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
+      frame[i] = saturate_int16_from_int32(static_cast<opus_int32>(frame[i]) + scale_and_saturate_q14<8>(CNG_sig_Q14[16 + i], gain_Q10));
     }
     std::memcpy(psCNG->CNG_synth_state, &CNG_sig_Q14[length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
   } else {
@@ -12741,7 +12643,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
   auto* sLPC_Q14_ptr = &sLTP_Q14[psDec->ltp_mem_length - 16];
   std::memcpy(sLPC_Q14_ptr, psDec->sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
   for (int i = 0; i < psDec->frame_length; i++) {
-    const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_q10(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
+    const opus_int32 LPC_pred_Q10 = silk_lpc_prediction_loop(sLPC_Q14_ptr + 16 + i, A_Q12, psDec->LPC_order);
     sLPC_Q14_ptr[16 + i] = saturating_add_int32(sLPC_Q14_ptr[16 + i], saturating_left_shift<4>(LPC_pred_Q10));
     conceal_gain_Q16 -= conceal_gain_step_Q16;
     frame[i] = scale_and_saturate_q14<8>(sLPC_Q14_ptr[16 + i], multiply_q16(prevGain_Q10[1], conceal_gain_Q16));
@@ -12803,8 +12705,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
   silk_PLC_Reset(psDec);
 }
 
-template <bool StoreState = true>
-OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& control, opus_int16 xq[], const opus_int16 pulses[((5 * 4) * 16)]) {
+OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& control, opus_int16 xq[], const opus_int16 pulses[((5 * 4) * 16)], const bool store_state) {
   std::array<opus_int16, silk_max_ltp_mem_length> ltp_storage;
   std::array<opus_int32, silk_max_ltp_buffer_length> ltp_q15_storage;
   std::array<opus_int32, silk_max_subfr_length + 16> lpc_storage;
@@ -12829,7 +12730,7 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
       excitation = -excitation;
     }
     const auto compact = excitation >> 6;
-    if constexpr (StoreState) {
+    if (store_state) {
       state.exc_low[index] = static_cast<opus_uint16>(compact);
       state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
     }
@@ -12912,12 +12813,12 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
                                  pxq, state.subfr_length, A_Q12, Gain_Q10, state.LPC_order == 16);
     if (k + 1 < state.nb_subfr) {
       std::memcpy(sLPC_Q14, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
-    } else if constexpr (StoreState) {
+    } else if (store_state) {
       std::memcpy(state.sLPC_Q14_buf, &sLPC_Q14[state.subfr_length], static_cast<std::size_t>(16 * sizeof(opus_int32)));
     }
     pxq += state.subfr_length;
   }
-  if constexpr (StoreState)
+  if (store_state)
     state.prev_gain_Q16 = previous_gain_Q16;
 }
 
@@ -13290,7 +13191,7 @@ __declspec(noinline)
 [[gnu::noinline]]
 #endif
 OPUSCPP_LEAN static void
-silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding, std::span<opus_int16> pulses, bool reconstruct_signs = true) {
+silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding, std::span<opus_int16> pulses) {
   const bool vad = decode_LBRR || psDec->VAD_flags[FrameIndex];
   const int type_offset =
       ec_dec_icdf(psRangeDec, vad ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8) + 2 * vad;
@@ -13304,11 +13205,7 @@ silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameInde
   const auto decoded_pulses = pulses.first(static_cast<std::size_t>(block_count * 16));
   auto sums = std::span{pulse_sums}.first(static_cast<std::size_t>(block_count));
   silk_decode_pulse_magnitudes(psRangeDec, decoded_pulses.data(), sums.data(), block_count, signal_type);
-  if (reconstruct_signs) {
-    silk_process_signs<false, ec_ctx, std::span<opus_int16>, true>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
-  } else {
-    silk_process_signs<false, ec_ctx, std::span<opus_int16>, false>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
-  }
+  silk_process_signs<false, ec_ctx, std::span<opus_int16>, true>(psRangeDec, decoded_pulses, signal_type, quant_offset_type, sums);
 }
 
 [[gnu::cold]] static void silk_decode_frame(silk_decoder_state* psDec, ec_dec* psRangeDec, opus_int16 pOut[], opus_int32* pN, int lostFlag, int condCoding) {
@@ -13319,7 +13216,7 @@ silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameInde
     std::array<opus_int16, silk_max_frame_length> pulse_storage;
     silk_decode_symbols(psDec, psRangeDec, psDec->nFramesDecoded, lostFlag, condCoding, pulse_storage);
     silk_decode_parameters(*psDec, psDecCtrl, condCoding);
-    silk_decode_core(*psDec, psDecCtrl, pOut, pulse_storage.data());
+    silk_decode_core(*psDec, psDecCtrl, pOut, pulse_storage.data(), true);
     silk_PLC_update(psDec, &psDecCtrl);
     psDec->lossCnt = 0;
     psDec->first_frame_after_reset = 0;
@@ -13400,30 +13297,7 @@ extern const std::array<std::array<opus_int16, 4>, 12> silk_resampler_frac_FIR_1
 static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len);
 
 [[gnu::cold]] static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
-  auto& resampler = state.resampler_state;
-  if (resampler.resampler_function == 2 && resampler.invRatio_Q16 == 43691) {
-    std::array<opus_int16, 2 * silk_max_frame_length + 8> upsampled;
-    auto* delayed = resampled.data() + resampled.size() - input_samples;
-    const int head = resampler.Fs_in_kHz - resampler.inputDelay;
-    copy_n_items(input, static_cast<std::size_t>(head), resampler.delayBuf + resampler.inputDelay);
-    copy_n_items(resampler.delayBuf, static_cast<std::size_t>(resampler.Fs_in_kHz), delayed);
-    copy_n_items(input + head, static_cast<std::size_t>(input_samples - resampler.Fs_in_kHz), delayed + resampler.Fs_in_kHz);
-    copy_n_items(resampler.sFIR.i16, 8, upsampled.data());
-    silk_resampler_private_up2_HQ(resampler.sIIR, upsampled.data() + 8, delayed, input_samples);
-    for (int i = 0; i < input_samples; ++i) {
-      const auto* window = upsampled.data() + 2 * i;
-      resampled[3 * i] = rounded_rshift_to_int16<15>(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[0], silk_resampler_frac_FIR_12[11]));
-      resampled[3 * i + 1] = rounded_rshift_to_int16<15>(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window, 8}, silk_resampler_frac_FIR_12[8], silk_resampler_frac_FIR_12[3]));
-      resampled[3 * i + 2] = rounded_rshift_to_int16<15>(
-          resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{window + 1, 8}, silk_resampler_frac_FIR_12[4], silk_resampler_frac_FIR_12[7]));
-    }
-    copy_n_items(upsampled.data() + 2 * input_samples, 8, resampler.sFIR.i16);
-    copy_n_items(input + input_samples - resampler.inputDelay, static_cast<std::size_t>(resampler.inputDelay), resampler.delayBuf);
-  } else {
-    silk_resampler(&resampler, resampled.data(), input, input_samples);
-  }
+  silk_resampler(&state.resampler_state, resampled.data(), input, input_samples);
   for (int i = 0; i < output_samples; ++i) {
     samplesOut[api_channels == 2 ? channel + 2 * i : i] = resampled[i] * (1 / 32768.f);
   }
@@ -13512,13 +13386,13 @@ OPUSCPP_LEAN int silk_Decode(void* decState, silk_DecControlStruct* decControl, 
             std::array<opus_int16, ((5 * 4) * 16)> pulses;
             int condCoding;
             if (decControl->nChannelsInternal == 2 && n == 0) {
-              silk_stereo_decode_pred<false>(psRangeDec, MS_pred_Q13);
+              silk_stereo_decode_pred(psRangeDec, MS_pred_Q13);
               if (channel_state[1]->LBRR_flags[i] == 0) {
                 silk_stereo_decode_mid_only(psRangeDec, decode_only_middle);
               }
             }
             condCoding = i > 0 && channel_state[n]->LBRR_flags[i - 1] ? 2 : 0;
-            silk_decode_symbols(channel_state[n], psRangeDec, i, 1, condCoding, pulses, false);
+            silk_decode_symbols(channel_state[n], psRangeDec, i, 1, condCoding, pulses);
           }
         }
       }
@@ -13642,7 +13516,7 @@ public:
     auto control = control_;
     for (int index = 0; index < frame_length_; ++index)
       widened_pulses_[static_cast<std::size_t>(index)] = pulses[static_cast<std::size_t>(index)];
-    silk_decode_core<false>(initial_, control, decoded_.data(), widened_pulses_.data());
+    silk_decode_core(initial_, control, decoded_.data(), widened_pulses_.data(), false);
     opus_int64 error = 0;
     for (int index = 0; index < frame_length_; ++index) {
       const opus_int64 difference = target[static_cast<std::size_t>(index)] - decoded_[static_cast<std::size_t>(index)];
