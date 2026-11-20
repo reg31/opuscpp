@@ -3170,7 +3170,7 @@ OPUSCPP_COMPACT static void update_voip_noise_confidence(OpusEncoder* st, const 
   }
 }
 
-static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs);
+static inline opus_val16 tone_detect(const celt_sig* x, int N, opus_val32* toneishness, opus_int32 Fs);
 
 OPUSCPP_COMPACT static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> void {
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
@@ -3182,7 +3182,7 @@ OPUSCPP_COMPACT static auto classify_encoder_frame(OpusEncoder* st, const encode
            (analysis.activity.mono_diff_ratio < .025f && analysis.activity.mono_zero_cross_rate < .075f));
       if (needs_raw_tone) {
         opus_val32 toneish = 0;
-        tone_detect(reinterpret_cast<const celt_sig*>(raw_pcm), 1, raw_frame_size, &toneish, st->Fs);
+        tone_detect(raw_pcm, raw_frame_size, &toneish, st->Fs);
         raw_toneishness = toneish;
       }
     }
@@ -7311,17 +7311,9 @@ static int tone_lpc(const opus_val16* x, int len, int delay, opus_val32* lpc) {
   return 0;
 }
 
-OPUSCPP_LEANO static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs) {
+OPUSCPP_LEANO static inline opus_val16 tone_detect(const celt_sig* x, int N, opus_val32* toneishness, opus_int32 Fs) {
   int delay = 1;
   std::array<opus_val32, 2> lpc;
-  std::array<opus_val16, OPUS_FRAME_SIZE_20MS + celt_default_overlap> x_sum;
-  const opus_val16* x = in;
-  if (CC == 2) {
-    for (int i = 0; i < N; i++) {
-      x_sum[i] = 0.5f * (in[i] + in[i + N]);
-    }
-    x = x_sum.data();
-  }
   int fail = tone_lpc(x, N, delay, lpc.data());
   for (; delay <= Fs / 3000 && (fail || (lpc[0] > (1.f) && lpc[1] < 0));) {
     delay *= 2;
@@ -7687,7 +7679,7 @@ struct celt_input_metrics {
   int silence;
 };
 
-[[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
+[[nodiscard]] static int celt_transient_analysis(const opus_val32* in, opus_val32* envelope, int len, int C, float* tf_estimate, int* tf_chan,
                                                  bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness, int threshold) {
   static constexpr auto inv_table = std::to_array<unsigned char>({255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25,
                                                                   23, 22, 21, 20, 19, 18, 17, 16, 16, 15, 15, 14, 13, 13, 12, 12,
@@ -7698,7 +7690,6 @@ struct celt_input_metrics {
                                                                   4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3,
                                                                   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2});
   static_assert(inv_table.size() == 128);
-  std::array<float, (celt_max_frame_samples + celt_default_overlap) / 2> tmp;
   int is_transient;
   opus_int32 mask_metric = 0;
   const int len2 = len / 2;
@@ -7731,20 +7722,20 @@ struct celt_input_metrics {
       const opus_val32 x2 = y0 * y0 + y1 * y1;
       mean += x2;
       mem0 = x2 + (1.f - forward_decay) * mem0;
-      tmp[i] = forward_decay * mem0;
+      envelope[i] = forward_decay * mem0;
     }
     mem0 = 0;
     float maxE = 0;
     for (int i = len2 - 1; i >= 0; --i) {
-      mem0 = tmp[i] + 0.875f * mem0;
-      tmp[i] = 0.125f * mem0;
+      mem0 = envelope[i] + 0.875f * mem0;
+      envelope[i] = 0.125f * mem0;
       maxE = std::max(maxE, 0.125f * mem0);
     }
     mean = std::sqrt(mean * maxE * .5f * len2);
     const opus_val32 norm = static_cast<opus_val32>(len2) / (1e-15f + mean);
     opus_int32 unmask = 0;
     for (int i = 12; i < len2 - 5; i += 4) {
-      const int id = static_cast<int>(std::min(127.f, 64 * norm * (tmp[i] + 1e-15f)));
+      const int id = static_cast<int>(std::min(127.f, 64 * norm * (envelope[i] + 1e-15f)));
       unmask += inv_table[id];
     }
     unmask = 64 * unmask * 4 / (6 * (len2 - 17));
@@ -7960,7 +7951,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   ec_enc local_encoder;
   std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_default_overlap)> input_storage;
   auto* in = input_storage.data();
-  std::array<celt_sig, celt_max_channels*(celt_max_frame_samples + celt_max_pitch_period)> frequency_storage;
+  constexpr int frequency_capacity = celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period);
+  static_assert(celt_max_frame_samples + overlap <= frequency_capacity);
+  std::array<celt_sig, frequency_capacity> frequency_storage;
   auto* freq = frequency_storage.data();
   celt_ener* bandE = in;
   celt_glog* bandLogE = bandE + nbEBands * CC;
@@ -8017,10 +8010,20 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       tell = nbCompressedBytes * 8;
       enc->nbits_total += tell - ec_tell(enc);
     }
-    tone_frequency = silence ? opus_val16{-1} : tone_detect(in, CC, N + overlap, &toneishness, celt_sample_rate);
+    const int prepared_samples = N + overlap;
+    tone_frequency = -1;
+    if (!silence) {
+      const celt_sig* tone_input = in;
+      if (CC == 2) {
+        for (int i = 0; i < prepared_samples; ++i)
+          freq[i] = 0.5f * (in[i] + in[prepared_samples + i]);
+        tone_input = freq;
+      }
+      tone_frequency = tone_detect(tone_input, prepared_samples, &toneishness, celt_sample_rate);
+    }
     if (!silence && LM > 0 && st->complexity >= 1) {
       const bool allow_weak_transients = hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2;
-      isTransient = celt_transient_analysis(in, N + overlap, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
+      isTransient = celt_transient_analysis(in, freq, prepared_samples, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
                                             toneishness, hybrid && !allow_weak_transients ? 60 : 200);
     }
     const bool prefilter_history_valid = st->prefilter_history_valid;
@@ -8030,7 +8033,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     common_source = C == 2 && CC == 2 &&
                     std::memcmp(in, in + N + overlap, static_cast<std::size_t>(N + overlap) * sizeof(celt_sig)) == 0;
     constexpr int forward_scratch_offset = celt_max_channels * (celt_max_frame_samples + 2 * celt_default_nb_ebands);
-    static_assert(forward_scratch_offset + celt_max_frame_samples <= celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period));
+    static_assert(forward_scratch_offset + celt_max_frame_samples <= frequency_capacity);
     auto* forward_scratch = freq + forward_scratch_offset;
     transient_enabled = LM > 0 && ec_tell(enc) + 3 <= total_bits;
     transient_got_disabled = !transient_enabled;
@@ -8070,7 +8073,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       }
     }
     auto* energy_prefix = forward_scratch + celt_max_frame_samples;
-    static_assert(forward_scratch_offset + celt_max_frame_samples + 2 * celt_default_nb_ebands <= celt_max_channels * (celt_max_frame_samples + celt_max_pitch_period));
+    static_assert(forward_scratch_offset + celt_max_frame_samples + 2 * celt_default_nb_ebands <= frequency_capacity);
     const bool fused_energy = shortBlocks == 0 && C == 2 && CC == 2 && LM == 3 && st->upsample == 1 && !common_source && FLT_EVAL_METHOD == 0 && std::fegetround() == FE_TONEAREST;
     if (fused_energy) {
       for (int c = 0; c < 2; ++c)

@@ -26,7 +26,8 @@ int main() {
             int got_ch = 0, ref_ch = 0, ref_weak = 0;
             bool got_weak = false;
             float tone_freq = tonal ? .01f : .1f, toneishness = tonal ? 1.f : 0.f;
-            int got = celt_transient_analysis(pcm.data(), len, channels, &got_est, &got_ch, allow_weak, &got_weak, tone_freq, toneishness, 200);
+            std::vector<float> envelope(static_cast<std::size_t>(len / 2));
+            int got = celt_transient_analysis(pcm.data(), envelope.data(), len, channels, &got_est, &got_ch, allow_weak, &got_weak, tone_freq, toneishness, 200);
             int ref = official_transient_analysis(pcm.data(), len, channels, &ref_est, &ref_ch, allow_weak, &ref_weak, tone_freq, toneishness);
             ++checked;
             attacks += ref != 0;
