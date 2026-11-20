@@ -13270,14 +13270,36 @@ OPUSCPP_GCC_NOINLINE [[gnu::cold]] static void silk_decoder_set_fs(silk_decoder_
   decoder->prev_decode_only_middle = 0;
 }
 
-namespace {
-extern const std::array<std::array<opus_int16, 4>, 12> silk_resampler_frac_FIR_12;
-[[nodiscard]] constexpr auto resampler_frac_fir_12_q15(std::span<const opus_int16, 8> buffer, std::span<const opus_int16, 4> leading, std::span<const opus_int16, 4> trailing) noexcept -> opus_int32;
-}
 static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len);
+static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16* buf, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16*;
+
+#if defined(_MSC_VER)
+__declspec(noinline)
+#else
+[[gnu::noinline]]
+#endif
+[[gnu::cold]] static void silk_resample_decoder_3x(silk_resampler_state_struct& resampler, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled,
+                                                  const opus_int16* input, int input_samples) {
+  std::array<opus_int16, 2 * silk_max_frame_length + 8> upsampled;
+  auto* delayed = resampled.data() + resampled.size() - input_samples;
+  const int head = resampler.Fs_in_kHz - resampler.inputDelay;
+  copy_n_items(input, static_cast<std::size_t>(head), resampler.delayBuf + resampler.inputDelay);
+  copy_n_items(resampler.delayBuf, static_cast<std::size_t>(resampler.Fs_in_kHz), delayed);
+  copy_n_items(input + head, static_cast<std::size_t>(input_samples - resampler.Fs_in_kHz), delayed + resampler.Fs_in_kHz);
+  copy_n_items(resampler.sFIR.i16, 8, upsampled.data());
+  silk_resampler_private_up2_HQ(resampler.sIIR, upsampled.data() + 8, delayed, input_samples);
+  silk_resampler_private_IIR_FIR_INTERPOL(resampled.data(), upsampled.data(), wrap_shift_left(input_samples, 17), resampler.invRatio_Q16);
+  copy_n_items(upsampled.data() + 2 * input_samples, 8, resampler.sFIR.i16);
+  copy_n_items(input + input_samples - resampler.inputDelay, static_cast<std::size_t>(resampler.inputDelay), resampler.delayBuf);
+}
 
 [[gnu::cold]] static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
-  silk_resampler(&state.resampler_state, resampled.data(), input, input_samples);
+  auto& resampler = state.resampler_state;
+  if (resampler.resampler_function == 2 && resampler.Fs_in_kHz == 16 && resampler.Fs_out_kHz == 48 && resampler.invRatio_Q16 == 43691 &&
+      (input_samples == silk_max_frame_length / 2 || input_samples == silk_max_frame_length) && output_samples == 3 * input_samples)
+    silk_resample_decoder_3x(resampler, resampled, input, input_samples);
+  else
+    silk_resampler(&resampler, resampled.data(), input, input_samples);
   for (int i = 0; i < output_samples; ++i) {
     samplesOut[api_channels == 2 ? channel + 2 * i : i] = resampled[i] * (1 / 32768.f);
   }
