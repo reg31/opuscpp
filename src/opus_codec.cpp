@@ -10935,31 +10935,45 @@ static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows
 }
 
 [[gnu::noinline]] static void classifier_compute_gru(float* state, const float* input, const opus_int8* weights,
-                                                     const opus_int8* recur_weights, const opus_int8* bias,
-                                                     int nb_inputs, int nb_neurons) {
-  std::array<float, 96> gates;
-  std::array<float, 32> tmp;
-  const int stride = 3 * nb_neurons;
-  auto* z = gates.data();
-  auto* r = z + nb_neurons;
-  auto* h = r + nb_neurons;
-  for (int i = 0; i < stride; ++i)
-    gates[i] = bias[i];
-  classifier_gemm_accum(gates.data(), weights, stride, nb_inputs, stride, input);
-  classifier_gemm_accum(gates.data(), recur_weights, 2 * nb_neurons, nb_neurons, stride, state);
-  for (int i = 0; i < 2 * nb_neurons; ++i)
-    gates[i] = classifier_sigmoid_approx(classifier_weights_scale * gates[i]);
-  for (int i = 0; i < nb_neurons; ++i)
-    tmp[i] = state[i] * r[i];
-  classifier_gemm_accum(h, &recur_weights[2 * nb_neurons], nb_neurons, nb_neurons, stride, tmp.data());
+                                                     const opus_int8* recur_weights, const opus_int8* bias) {
+  constexpr int rows = 24;
+  constexpr int input_columns = 32;
+  constexpr int stride = 3 * rows;
+  std::array<float, rows> gate, z, reset_state;
+  for (int offset = 0; offset < stride; offset += rows) {
+    for (int i = 0; i < rows; ++i)
+      gate[i] = bias[offset + i];
+    for (int j = 0; j < input_columns; ++j) {
+      const float xj = input[j];
+      const auto* column = weights + j * stride + offset;
+      for (int i = 0; i < rows; ++i)
+        gate[i] += column[i] * xj;
+    }
+    const auto* recurrent_input = offset == 2 * rows ? reset_state.data() : state;
+    for (int j = 0; j < rows; ++j) {
+      const float xj = recurrent_input[j];
+      const auto* column = recur_weights + j * stride + offset;
+      for (int i = 0; i < rows; ++i)
+        gate[i] += column[i] * xj;
+    }
+    if (offset == 0) {
+      for (int i = 0; i < rows; ++i)
+        z[i] = classifier_sigmoid_approx(classifier_weights_scale * gate[i]);
+    } else if (offset == rows) {
+      for (int i = 0; i < rows; ++i)
+        gate[i] = classifier_sigmoid_approx(classifier_weights_scale * gate[i]);
+      for (int i = 0; i < rows; ++i)
+        reset_state[i] = state[i] * gate[i];
+    }
+  }
   if constexpr (FLT_EVAL_METHOD == 0) {
-    for (int i = 0; i < nb_neurons; ++i)
-      h[i] = classifier_tansig_approx(classifier_weights_scale * h[i]);
-    for (int i = 0; i < nb_neurons; ++i)
-      state[i] = z[i] * state[i] + (1 - z[i]) * h[i];
+    for (int i = 0; i < rows; ++i)
+      gate[i] = classifier_tansig_approx(classifier_weights_scale * gate[i]);
+    for (int i = 0; i < rows; ++i)
+      state[i] = z[i] * state[i] + (1 - z[i]) * gate[i];
   } else {
-    for (int i = 0; i < nb_neurons; ++i)
-      state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * h[i]);
+    for (int i = 0; i < rows; ++i)
+      state[i] = z[i] * state[i] + (1 - z[i]) * classifier_tansig_approx(classifier_weights_scale * gate[i]);
   }
 }
 
@@ -11407,7 +11421,7 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
   features[24] = tonal->lowECount - 0.067930f;
 
   classifier_compute_dense(layer_out, features, classifier_layer0_weights, classifier_layer0_bias, 25, 32, false);
-  classifier_compute_gru(tonal->rnn_state, layer_out, classifier_layer1_weights, classifier_layer1_recur_weights, classifier_layer1_bias, 32, 24);
+  classifier_compute_gru(tonal->rnn_state, layer_out, classifier_layer1_weights, classifier_layer1_recur_weights, classifier_layer1_bias);
   classifier_compute_dense(frame_probs, tonal->rnn_state, classifier_layer2_weights, classifier_layer2_bias, 24, 2, true);
 
   info->activity_probability = frame_probs[1];
