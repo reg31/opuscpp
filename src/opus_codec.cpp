@@ -13088,29 +13088,30 @@ template <bool Encode, typename State>
   indices.Seed = static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.Seed, silk_uniform4_iCDF.data()));
 }
 
-static auto silk_combine_pulses(std::span<int> combined, std::span<const int> input, int max_pulses) noexcept -> bool {
+template <typename Sum>
+static auto silk_combine_pulses(std::span<Sum> combined, std::span<const opus_uint8> input, int max_pulses) noexcept -> bool {
   for (std::size_t index = 0; index < combined.size(); ++index) {
     const auto sum = input[2 * index] + input[2 * index + 1];
     if (sum > max_pulses) {
       return true;
     }
-    combined[index] = sum;
+    combined[index] = static_cast<Sum>(sum);
   }
   return false;
 }
 
 struct silk_shell_tree {
-  std::array<int, 8> pairs;
-  std::array<int, 4> quads;
-  std::array<int, 2> octets;
+  std::array<opus_uint8, 8> pairs;
+  std::array<opus_uint8, 4> quads;
+  std::array<opus_uint8, 2> octets;
 };
 
 template <std::size_t Count>
   requires(Count == 2 || Count == 4 || Count == 8 || Count == 16)
-static void silk_shell_encode_tree(ec_ctx* coder, const int* magnitudes, const silk_shell_tree& tree, int offset, int total_pulses) {
+static void silk_shell_encode_tree(ec_ctx* coder, const opus_uint8* magnitudes, const silk_shell_tree& tree, int offset, int total_pulses) {
   if (total_pulses == 0)
     return;
-  const auto left = [&] {
+  const int left = [&] {
     if constexpr (Count == 16)
       return tree.octets[0];
     else if constexpr (Count == 8)
@@ -13136,27 +13137,27 @@ OPUSCPP_LEANA static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pu
   const int block_count = (frame_length + 15) >> 4;
   std::array<int, silk_max_frame_length / 16> pulse_sums;
   std::array<int, silk_max_frame_length / 16> shifts;
-  std::array<int, Encode ? silk_max_frame_length : 1> magnitudes;
+  std::array<opus_uint8, Encode ? silk_max_frame_length : 1> magnitudes;
   std::array<silk_shell_tree, Encode ? silk_max_frame_length / 16 : 1> shell_trees;
   int rate_level;
 
-  static_assert(Encode);
+  static_assert(Encode && std::is_same_v<Pulse, opus_int8>);
   {
     if ((frame_length & 15) != 0) {
       zero_n_items(pulses.data() + frame_length, 16);
     }
     for (int index = 0; index < block_count * 16; ++index) {
-      magnitudes[index] = std::abs(static_cast<int>(pulses[index]));
+      magnitudes[index] = static_cast<opus_uint8>(std::abs(static_cast<int>(pulses[index])));
     }
     for (int block_index = 0; block_index < block_count; ++block_index) {
       auto& tree = shell_trees[block_index];
       shifts[block_index] = 0;
-      auto block_magnitudes = std::span<int, 16>{magnitudes.data() + block_index * 16, 16};
+      auto block_magnitudes = std::span<opus_uint8, 16>{magnitudes.data() + block_index * 16, 16};
       bool scale_down;
       do {
-        scale_down = silk_combine_pulses(tree.pairs, block_magnitudes, silk_max_pulses_table[0]) ||
-                     silk_combine_pulses(tree.quads, tree.pairs, silk_max_pulses_table[1]) ||
-                     silk_combine_pulses(tree.octets, tree.quads, silk_max_pulses_table[2]) ||
+        scale_down = silk_combine_pulses<opus_uint8>(tree.pairs, block_magnitudes, silk_max_pulses_table[0]) ||
+                     silk_combine_pulses<opus_uint8>(tree.quads, tree.pairs, silk_max_pulses_table[1]) ||
+                     silk_combine_pulses<opus_uint8>(tree.octets, tree.quads, silk_max_pulses_table[2]) ||
                      silk_combine_pulses(std::span<int>{pulse_sums.data() + block_index, 1}, tree.octets, silk_max_pulses_table[3]);
         if (scale_down) {
           ++shifts[block_index];
