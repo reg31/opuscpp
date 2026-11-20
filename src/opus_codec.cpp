@@ -1372,7 +1372,7 @@ OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, 
   return ret;
 }
 
-[[gnu::cold]] static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
+[[gnu::cold]] OPUSCPP_NOINLINE static int opus_decode_frame_slice(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
   ec_dec dec;
   opus_int32 silk_frame_size;
   opus_res* pcm_transition = nullptr;
@@ -1404,17 +1404,6 @@ OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, 
       zero_n_items(pcm, static_cast<std::size_t>(audiosize * st->channels));
       return audiosize;
     }
-    if (audiosize > F20) {
-      while (audiosize > 0) {
-        const int ret = opus_decode_frame(st, nullptr, 0, pcm, std::min(audiosize, F20), 0);
-        if (ret < 0) {
-          return ret;
-        }
-        pcm += ret * st->channels;
-        audiosize -= ret;
-      }
-      return frame_size;
-    }
     if (audiosize < F20) {
       if (audiosize > F10) {
         audiosize = F10;
@@ -1428,7 +1417,7 @@ OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, 
   std::array<opus_res, celt_max_frame_samples * celt_max_channels / 4> auxiliary_storage;
   if (transition && mode == opus_mode_celt_only) {
     pcm_transition = auxiliary_storage.data();
-    opus_decode_frame(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
+    opus_decode_frame_slice(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
   }
   frame_size = audiosize;
   if (mode != opus_mode_celt_only) {
@@ -1493,7 +1482,7 @@ OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, 
   const int start_band = mode != opus_mode_celt_only ? 17 : 0;
   if (transition && !redundancy && mode != opus_mode_celt_only) {
     pcm_transition = auxiliary_storage.data();
-    opus_decode_frame(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
+    opus_decode_frame_slice(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
   }
   if (bandwidth) {
     const auto endband = bandwidth_to_endband(bandwidth);
@@ -1553,6 +1542,29 @@ OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, 
   st->prev_mode = mode;
   st->prev_redundancy = redundancy && !celt_to_silk;
   return celt_ret < 0 ? celt_ret : audiosize;
+}
+
+[[gnu::cold]] OPUSCPP_NOINLINE static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
+  const int F20 = st->Fs / 50;
+  if (frame_size > F20 && (data == nullptr || len <= 1)) {
+    int limit = std::min(frame_size, st->Fs / 25 * 3);
+    if (len <= 1) {
+      limit = std::min(limit, st->frame_size);
+    }
+    if (limit > F20 && (st->prev_redundancy || st->prev_mode != 0)) {
+      int remaining = limit;
+      while (remaining > 0) {
+        const int ret = opus_decode_frame_slice(st, nullptr, 0, pcm, std::min(remaining, F20), 0);
+        if (ret < 0) {
+          return ret;
+        }
+        pcm += ret * st->channels;
+        remaining -= ret;
+      }
+      return limit;
+    }
+  }
+  return opus_decode_frame_slice(st, data, len, pcm, frame_size, decode_fec);
 }
 
 constexpr int opus_decode_fast_unavailable = -1000000;
