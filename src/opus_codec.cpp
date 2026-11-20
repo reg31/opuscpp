@@ -1745,15 +1745,13 @@ struct pitch_window_power {
 };
 
 struct pitch_fine_correlations {
-  const opus_val16* current = nullptr;
-  int length = 0;
   std::array<std::pair<int, int>, 2> intervals{};
   std::array<opus_val32, 10> raw;
   bool active = false;
 };
 
-static bool pitch_fine_correlation_lookup(const pitch_fine_correlations* fine, const opus_val16* current, int length, int period, opus_val32& value) {
-  if (fine == nullptr || !fine->active || fine->current != current || fine->length != length)
+static bool pitch_fine_correlation_lookup(const pitch_fine_correlations* fine, int period, opus_val32& value) {
+  if (fine == nullptr || !fine->active)
     return false;
   const int index = celt_max_pitch_period / 2 - period;
   int offset = 0;
@@ -1767,10 +1765,8 @@ static bool pitch_fine_correlation_lookup(const pitch_fine_correlations* fine, c
   return false;
 }
 
-static opus_val16 remove_doubling_with_power_and_fine(opus_val16*, int, int*, int, opus_val16, const pitch_window_power&, const pitch_fine_correlations&);
-
+OPUSCPP_NOINLINE static opus_val16 refine_pitch(const opus_val16*, int, int*, int, opus_val16, pitch_window_power&, const pitch_fine_correlations&);
 static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len);
-static opus_val16 remove_doubling(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain);
 static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, std::span<opus_val32, 4> sum, int len) {
   if (len <= 0)
     return;
@@ -7300,10 +7296,8 @@ OPUSCPP_LEANO static inline opus_val16 tone_detect(const celt_sig* in, int CC, i
   return -1;
 }
 
-static void prepare_pitch_window_power(const opus_val16* y, int len, pitch_window_power& power) {
+static void prepare_pitch_window_power(const opus_val16* x, int len, opus_val32 value, pitch_window_power& power) {
   constexpr int period = celt_max_pitch_period / 2;
-  const auto* x = y + period;
-  opus_val32 value = celt_inner_prod_c(x, x, len);
   power.lookup[0] = value;
   for (int i = 1; i <= period; ++i) {
     value = value + (static_cast<opus_val32>(x[-i]) * static_cast<opus_val32>(x[-i])) -
@@ -7311,11 +7305,10 @@ static void prepare_pitch_window_power(const opus_val16* y, int len, pitch_windo
     power.lookup[i] = std::max(0.f, value);
   }
   power.terminal = value;
-  power.active = true;
 }
 
 template <bool SharedPower>
-static void find_best_pitch_impl(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch, const pitch_window_power* power, std::span<const std::pair<int, int>> intervals = {}) {
+static void find_best_pitch_impl(const opus_val32* xcorr, const opus_val16* y, int len, int max_pitch, int* best_pitch, const pitch_window_power* power, std::span<const std::pair<int, int>> intervals = {}) {
   opus_val32 Syy = 1;
   opus_val16 best_num0 = -1, best_num1 = -1;
   opus_val32 best_den0 = 0, best_den1 = 0;
@@ -7362,7 +7355,7 @@ static void find_best_pitch_impl(opus_val32* xcorr, opus_val16* y, int len, int 
   best_pitch[1] = best_pitch1;
 }
 
-static void find_best_pitch(opus_val32* xcorr, opus_val16* y, int len, int max_pitch, int* best_pitch) {
+static void find_best_pitch(const opus_val32* xcorr, const opus_val16* y, int len, int max_pitch, int* best_pitch) {
   find_best_pitch_impl<false>(xcorr, y, len, max_pitch, best_pitch, nullptr);
 }
 
@@ -7382,25 +7375,25 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
   }
 }
 
-static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
-                                std::span<const opus_val16, celt_max_pitch_period / 2> y,
+static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<const opus_val16, 484> y,
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation);
 
-static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max_pitch, int* pitch, pitch_window_power* power = nullptr, pitch_fine_correlations* fine = nullptr) {
+static int pitch_search(const opus_val16* y, int current_offset, int len, int max_pitch, pitch_window_power* power = nullptr, pitch_fine_correlations* fine = nullptr) {
+  const auto* x_lp = y + current_offset;
+  const int coarse_offset = current_offset >> 1;
+  const int coarse_length = len >> 2;
+  const int coarse_count = max_pitch >> 2;
+  const int packed_count = std::max(coarse_offset + coarse_length, (len + max_pitch) >> 2);
+  std::array<opus_val16, celt_max_pitch_period / 2> coarse;
+  for (int j = 0; j < packed_count; ++j)
+    coarse[j] = y[2 * j];
+  const auto* x_coarse = coarse.data() + coarse_offset;
   std::array<int, 2> best_pitch;
-  const int lag = len + max_pitch;
-  std::array<opus_val16, celt_max_pitch_period / 2> x_lp4;
-  std::array<opus_val16, celt_max_pitch_period / 2> y_lp4;
   std::array<opus_val32, celt_max_pitch_period / 2> xcorr;
-  for (int j = 0; j < len >> 2; j++) {
-    x_lp4[j] = x_lp[2 * j];
-  }
-  for (int j = 0; j < lag >> 2; j++) {
-    y_lp4[j] = y[2 * j];
-  }
-  if (len != 960 || max_pitch != 979 || !pitch_coarse_fft480(x_lp4, y_lp4, xcorr))
-    celt_pitch_xcorr_c(x_lp4.data(), y_lp4.data(), xcorr.data(), len >> 2, max_pitch >> 2);
-  find_best_pitch(xcorr.data(), y_lp4.data(), len >> 2, max_pitch >> 2, best_pitch.data());
+  if (len != 960 || max_pitch != 979 ||
+      !pitch_coarse_fft480(std::span<const opus_val16, 240>{x_coarse, 240}, std::span<const opus_val16, 484>{coarse.data(), 484}, xcorr))
+    celt_pitch_xcorr_c(x_coarse, coarse.data(), xcorr.data(), coarse_length, coarse_count);
+  find_best_pitch(xcorr.data(), coarse.data(), coarse_length, coarse_count, best_pitch.data());
   const int fine_count = max_pitch >> 1;
   std::fill_n(xcorr.begin(), fine_count, 0.0f);
   std::array<std::pair<int, int>, 2> fine_intervals;
@@ -7415,12 +7408,10 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
     fine_intervals[1] = {0, 0};
   }
   if (fine != nullptr) {
-    fine->current = x_lp;
-    fine->length = len >> 1;
     fine->intervals = fine_intervals;
     const int count = fine_intervals[0].second - fine_intervals[0].first + fine_intervals[1].second - fine_intervals[1].first;
     fine->active = FLT_EVAL_METHOD == 0 && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::digits == 24 &&
-                   len > 0 && len <= celt_max_frame_samples && x_lp == y + celt_max_pitch_period / 2 &&
+                   len > 0 && len <= celt_max_frame_samples && current_offset == celt_max_pitch_period / 2 &&
                    count >= 0 && count <= static_cast<int>(fine->raw.size());
   }
   int raw_offset = 0;
@@ -7441,8 +7432,9 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
     power->active = false;
   if (power != nullptr && FLT_EVAL_METHOD == 0 && std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::digits == 24 &&
       len > 0 && len <= celt_max_frame_samples && (max_pitch >> 1) <= celt_max_pitch_period / 2 &&
-      x_lp == y + celt_max_pitch_period / 2 && std::fegetround() == FE_TONEAREST) {
-    prepare_pitch_window_power(y, len >> 1, *power);
+      current_offset == celt_max_pitch_period / 2 && std::fegetround() == FE_TONEAREST) {
+    prepare_pitch_window_power(x_lp, len >> 1, celt_inner_prod_c(x_lp, x_lp, len >> 1), *power);
+    power->active = true;
     find_best_pitch_impl<true>(xcorr.data(), y, len >> 1, max_pitch >> 1, best_pitch.data(), power, fine_intervals);
   } else {
     find_best_pitch(xcorr.data(), y, len >> 1, max_pitch >> 1, best_pitch.data());
@@ -7457,7 +7449,7 @@ static void pitch_search(const opus_val16* x_lp, opus_val16* y, int len, int max
     } else if ((a - c) > (((.7f)) * (b - c)))
       offset = -1;
   }
-  *pitch = 2 * best_pitch[0] - offset;
+  return 2 * best_pitch[0] - offset;
 }
 
 static int celt_prefilter_passthrough(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain) {
@@ -7514,15 +7506,8 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
     pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1);
     pitch_window_power shared_power;
     pitch_fine_correlations fine_correlations;
-    pitch_search(pitch_buf + (max_period >> 1), pitch_buf, N, max_period - 3 * min_period, &pitch_index, &shared_power, &fine_correlations);
-    pitch_index = max_period - pitch_index;
-    if (shared_power.active) {
-      auto* volatile evaluate = &remove_doubling_with_power_and_fine;
-      gain1 = evaluate(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain, shared_power, fine_correlations);
-    } else {
-      auto* volatile evaluate = &remove_doubling;
-      gain1 = evaluate(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain);
-    }
+    pitch_index = max_period - pitch_search(pitch_buf, max_period / 2, N, max_period - 3 * min_period, &shared_power, &fine_correlations);
+    gain1 = refine_pitch(pitch_buf, N, &pitch_index, st->prefilter_period, st->prefilter_gain, shared_power, fine_correlations);
     if (pitch_index > max_period - (2)) {
       pitch_index = max_period - (2);
     }
@@ -8915,7 +8900,6 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
 }
 
 [[gnu::cold]] static inline int celt_plc_pitch_search(CeltDecoderInternal* st, std::span<celt_sig* const> decode_mem, int raw_offset) {
-  int pitch_index;
   std::array<opus_val16, (2048 >> 1)> lp_pitch_buf;
   auto fill_channel = [&]<bool Accumulate>(int channel) {
     const auto* lowpass = celt_decoder_storage(st) + channel * celt_decoder_channel_storage;
@@ -8946,9 +8930,8 @@ static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decode
   if (st->channels == 2)
     fill_channel.template operator()<true>(1);
   pitch_whiten(lp_pitch_buf.data(), 2048 >> 1);
-  pitch_search(lp_pitch_buf.data() + (celt_plc_max_pitch_period >> 1), lp_pitch_buf.data(), 2048 - celt_plc_max_pitch_period, celt_plc_max_pitch_period - 100, &pitch_index);
-  pitch_index = celt_plc_max_pitch_period - pitch_index;
-  return pitch_index;
+  return celt_plc_max_pitch_period - pitch_search(lp_pitch_buf.data(), celt_plc_max_pitch_period / 2,
+                                                  2048 - celt_plc_max_pitch_period, celt_plc_max_pitch_period - 100);
 }
 
 [[gnu::cold]] static void celt_consume_pending_fold(CeltDecoderInternal* st, celt_sig* scratch) {
@@ -9878,8 +9861,7 @@ static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch
   clt_mdct_backward_overlap_c(out1, window, overlap);
 }
 
-static bool pitch_coarse_fft480(std::span<const opus_val16, celt_max_pitch_period / 2> x,
-                                std::span<const opus_val16, celt_max_pitch_period / 2> y,
+static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<const opus_val16, 484> y,
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
   static_assert(sizeof(opus_val16) == sizeof(opus_uint32));
   static_assert(std::numeric_limits<opus_val16>::is_iec559 && std::numeric_limits<opus_val16>::digits == 24);
@@ -11603,88 +11585,12 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
   correlation[2] = sum2;
 }
 
-#define OPUSCPP_REMOVE_DOUBLING_SEARCH                                                                                        \
-  for (int group = 2; group <= 15; group += 4) {                                                                              \
-    int periods[4], second_periods[4];                                                                                        \
-    int count = 0;                                                                                                            \
-    for (; count < 4 && group + count <= 15; ++count) {                                                                       \
-      const int k = group + count;                                                                                            \
-      const int T1 = celt_udiv(2 * T0 + k, 2 * k);                                                                            \
-      if (T1 < minperiod)                                                                                                     \
-        break;                                                                                                                \
-      periods[count] = T1;                                                                                                    \
-      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1) : celt_udiv(2 * second_check[k] * T0 + k, 2 * k); \
-    }                                                                                                                         \
-    if (count == 0)                                                                                                           \
-      break;                                                                                                                  \
-    const opus_val16 *a[4], *b[4];                                                                                            \
-    for (int lane = 0; lane < 4; ++lane) {                                                                                    \
-      a[lane] = x - periods[lane < count ? lane : 0];                                                                         \
-      b[lane] = x - second_periods[lane < count ? lane : 0];                                                                  \
-    }                                                                                                                         \
-    opus_val32 sa[4] = {}, sb[4] = {};                                                                                        \
-    if (count == 4) {                                                                                                         \
-      opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;                                      \
-      for (int index = 0; index < N; ++index) {                                                                               \
-        const auto sample = static_cast<opus_val32>(x[index]);                                                                \
-        sa0 += sample * static_cast<opus_val32>(a[0][index]);                                                                 \
-        sb0 += sample * static_cast<opus_val32>(b[0][index]);                                                                 \
-        sa1 += sample * static_cast<opus_val32>(a[1][index]);                                                                 \
-        sb1 += sample * static_cast<opus_val32>(b[1][index]);                                                                 \
-        sa2 += sample * static_cast<opus_val32>(a[2][index]);                                                                 \
-        sb2 += sample * static_cast<opus_val32>(b[2][index]);                                                                 \
-        sa3 += sample * static_cast<opus_val32>(a[3][index]);                                                                 \
-        sb3 += sample * static_cast<opus_val32>(b[3][index]);                                                                 \
-      }                                                                                                                       \
-      sa[0] = sa0, sb[0] = sb0, sa[1] = sa1, sb[1] = sb1, sa[2] = sa2, sb[2] = sb2, sa[3] = sa3, sb[3] = sb3;                 \
-    } else {                                                                                                                  \
-      for (int lane = 0; lane < count; ++lane)                                                                                \
-        dual_inner_prod_c(x, a[lane], b[lane], N, sa[lane], sb[lane]);                                                        \
-    }                                                                                                                         \
-    for (int lane = 0; lane < count; ++lane) {                                                                                \
-      const int k = group + lane;                                                                                             \
-      const int T1 = periods[lane];                                                                                           \
-      xy = (.5f * (sa[lane] + sb[lane]));                                                                                     \
-      yy = (.5f * (yy_lookup[T1] + yy_lookup[second_periods[lane]]));                                                         \
-      const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);                                                                   \
-      const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain                                 \
-                              : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain                           \
-                                                                                  : 0;                                        \
-      opus_val16 thresh = std::max(.3f, .7f * g0 - cont);                                                                     \
-      if (T1 < 3 * minperiod) {                                                                                               \
-        thresh = std::max(.4f, .85f * g0 - cont);                                                                             \
-      }                                                                                                                       \
-      if (g1 > thresh) {                                                                                                      \
-        best_xy = xy;                                                                                                         \
-        best_yy = yy;                                                                                                         \
-        T = T1;                                                                                                               \
-        g = g1;                                                                                                               \
-      }                                                                                                                       \
-    }                                                                                                                         \
-    if (count < 4)                                                                                                            \
-      break;                                                                                                                  \
-  }                                                                                                                           \
-  if (T < minperiod * 2) {                                                                                                    \
-    const int T1 = T * 5 / 8;                                                                                                 \
-    const int T2 = T * 6 / 8;                                                                                                 \
-    opus_val32 xy2;                                                                                                           \
-    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, xy, xy2);                                                                       \
-    const opus_val16 g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);                                                          \
-    const opus_val16 g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);                                                         \
-    if (g1 >= g || g2 >= g) {                                                                                                 \
-      g = 0;                                                                                                                  \
-    }                                                                                                                         \
-  }                                                                                                                           \
-  best_xy = std::max(0.f, best_xy);                                                                                           \
-  const opus_val16 pg = std::min(g, best_yy <= best_xy ? 1.0f : static_cast<float>(best_xy) / (best_yy + 1));
-
-static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain, const pitch_window_power* power, const pitch_fine_correlations* fine = nullptr) {
+static opus_val16 refine_pitch(const opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain,
+                               pitch_window_power& power, const pitch_fine_correlations& fine) {
   const bool strict = FLT_EVAL_METHOD != 0 || !std::numeric_limits<float>::is_iec559 || std::numeric_limits<float>::digits != 24 ||
                       N < 0 || N > celt_max_frame_samples || *T0_ < celt_min_pitch_period;
-  if (strict) {
-    power = nullptr;
-    fine = nullptr;
-  }
+  const bool shared_power = !strict && power.active;
+  const auto* reusable_fine = shared_power ? &fine : nullptr;
 
   constexpr int maxperiod = celt_max_pitch_period / 2;
   constexpr int minperiod = celt_min_pitch_period / 2;
@@ -11701,37 +11607,99 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
   }
   int T = *T0_;
   const int T0 = T;
-  std::array<opus_val32, celt_max_pitch_period / 2 + 1> energy_storage;
-  const opus_val32* yy_lookup;
-  opus_val32 yy;
-  if (power != nullptr) {
-    xx = power->lookup[0];
-    if (!pitch_fine_correlation_lookup(fine, x, N, T0, xy))
+  if (shared_power) {
+    xx = power.lookup[0];
+    if (!pitch_fine_correlation_lookup(reusable_fine, T0, xy))
       xy = celt_inner_prod_c(x, x - T0, N);
-    yy_lookup = power->lookup.data();
-    yy = power->terminal;
   } else {
     dual_inner_prod_c(x, x, x - T0, N, xx, xy);
-    energy_storage[0] = xx;
-    yy = xx;
-    for (int i = 1; i <= maxperiod; i++) {
-      yy = yy + (static_cast<opus_val32>(x[-i]) * static_cast<opus_val32>(x[-i])) -
-           (static_cast<opus_val32>(x[N - i]) * static_cast<opus_val32>(x[N - i]));
-      energy_storage[i] = std::max(0.f, yy);
-    }
-    yy_lookup = energy_storage.data();
+    prepare_pitch_window_power(x, N, xx, power);
   }
+  const auto* yy_lookup = power.lookup.data();
+  auto yy = power.terminal;
   const bool finite_interpolation = !strict && ((std::bit_cast<opus_uint32>(xx) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(yy) & 0x7f800000U) != 0x7f800000U) && ((std::bit_cast<opus_uint32>(prev_gain) & 0x7f800000U) != 0x7f800000U);
   yy = yy_lookup[T0];
   opus_val32 best_xy = xy;
   opus_val32 best_yy = yy;
   opus_val16 g = compute_pitch_gain(xy, xx, yy);
   const opus_val16 g0 = g;
-  OPUSCPP_REMOVE_DOUBLING_SEARCH
+  for (int group = 2; group <= 15; group += 4) {
+    int periods[4], second_periods[4];
+    int count = 0;
+    for (; count < 4 && group + count <= 15; ++count) {
+      const int k = group + count;
+      const int T1 = celt_udiv(2 * T0 + k, 2 * k);
+      if (T1 < minperiod)
+        break;
+      periods[count] = T1;
+      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1) : celt_udiv(2 * second_check[k] * T0 + k, 2 * k);
+    }
+    if (count == 0)
+      break;
+    const opus_val16 *a[4], *b[4];
+    for (int lane = 0; lane < 4; ++lane) {
+      a[lane] = x - periods[lane < count ? lane : 0];
+      b[lane] = x - second_periods[lane < count ? lane : 0];
+    }
+    opus_val32 sa[4] = {}, sb[4] = {};
+    if (count == 4) {
+      opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;
+      for (int index = 0; index < N; ++index) {
+        const auto sample = static_cast<opus_val32>(x[index]);
+        sa0 += sample * static_cast<opus_val32>(a[0][index]);
+        sb0 += sample * static_cast<opus_val32>(b[0][index]);
+        sa1 += sample * static_cast<opus_val32>(a[1][index]);
+        sb1 += sample * static_cast<opus_val32>(b[1][index]);
+        sa2 += sample * static_cast<opus_val32>(a[2][index]);
+        sb2 += sample * static_cast<opus_val32>(b[2][index]);
+        sa3 += sample * static_cast<opus_val32>(a[3][index]);
+        sb3 += sample * static_cast<opus_val32>(b[3][index]);
+      }
+      sa[0] = sa0, sb[0] = sb0, sa[1] = sa1, sb[1] = sb1, sa[2] = sa2, sb[2] = sb2, sa[3] = sa3, sb[3] = sb3;
+    } else {
+      for (int lane = 0; lane < count; ++lane)
+        dual_inner_prod_c(x, a[lane], b[lane], N, sa[lane], sb[lane]);
+    }
+    for (int lane = 0; lane < count; ++lane) {
+      const int k = group + lane;
+      const int T1 = periods[lane];
+      xy = (.5f * (sa[lane] + sb[lane]));
+      yy = (.5f * (yy_lookup[T1] + yy_lookup[second_periods[lane]]));
+      const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);
+      const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain
+                              : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain
+                                                                                  : 0;
+      opus_val16 thresh = std::max(.3f, .7f * g0 - cont);
+      if (T1 < 3 * minperiod) {
+        thresh = std::max(.4f, .85f * g0 - cont);
+      }
+      if (g1 > thresh) {
+        best_xy = xy;
+        best_yy = yy;
+        T = T1;
+        g = g1;
+      }
+    }
+    if (count < 4)
+      break;
+  }
+  if (T < minperiod * 2) {
+    const int T1 = T * 5 / 8;
+    const int T2 = T * 6 / 8;
+    opus_val32 xy2;
+    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, xy, xy2);
+    const opus_val16 g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);
+    const opus_val16 g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);
+    if (g1 >= g || g2 >= g) {
+      g = 0;
+    }
+  }
+  best_xy = std::max(0.f, best_xy);
+  const opus_val16 pg = std::min(g, best_yy <= best_xy ? 1.0f : static_cast<float>(best_xy) / (best_yy + 1));
   const bool reused_interpolation = finite_interpolation &&
-                                    pitch_fine_correlation_lookup(fine, x, N, T - 1, xcorr[0]) &&
-                                    pitch_fine_correlation_lookup(fine, x, N, T, xcorr[1]) &&
-                                    pitch_fine_correlation_lookup(fine, x, N, T + 1, xcorr[2]);
+                                    pitch_fine_correlation_lookup(reusable_fine, T - 1, xcorr[0]) &&
+                                    pitch_fine_correlation_lookup(reusable_fine, T, xcorr[1]) &&
+                                    pitch_fine_correlation_lookup(reusable_fine, T + 1, xcorr[2]);
   if (!reused_interpolation) {
     if (finite_interpolation) {
       celt_pitch_interpolation3(x, T, N, xcorr);
@@ -11751,16 +11719,6 @@ static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_
     *T0_ = minperiod0;
   }
   return pg;
-}
-
-#undef OPUSCPP_REMOVE_DOUBLING_SEARCH
-
-static opus_val16 remove_doubling(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain) {
-  return remove_doubling_impl(x, N, T0, prev_period, prev_gain, nullptr);
-}
-
-static opus_val16 remove_doubling_with_power_and_fine(opus_val16* x, int N, int* T0, int prev_period, opus_val16 prev_gain, const pitch_window_power& power, const pitch_fine_correlations& fine) {
-  return remove_doubling_impl(x, N, T0, prev_period, prev_gain, &power, &fine);
 }
 
 namespace {
