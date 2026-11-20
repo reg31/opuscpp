@@ -1974,56 +1974,39 @@ template <typename T> static void silk_bwexpander(T* ar, std::size_t count, opus
 }
 
 template <int Order>
-  requires(Order == 10 || Order == 16)
-static inline void silk_LPC_analysis_filter_order(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len) {
-  opus_int32 ix = len;
-  if (len > Order) {
-    const auto before = std::less<const opus_int16*>{};
-    const bool input_safe = out == in || !(before(out, in + len) && before(in, out + len));
-    const bool coefficients_safe = !(before(out, B + Order) && before(B, out + len));
-    if (input_safe && coefficients_safe) {
-      for (; ix - Order >= 4; ix -= 4) {
-        opus_uint32 prediction0 = 0, prediction1 = 0, prediction2 = 0, prediction3 = 0;
-        for (int tap = 0; tap < Order; ++tap) {
-          const auto coefficient = static_cast<opus_int32>(B[tap]);
-          prediction0 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 2]) * coefficient);
-          prediction1 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 3]) * coefficient);
-          prediction2 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 4]) * coefficient);
-          prediction3 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 5]) * coefficient);
-        }
-        const auto store = [&]<int Lane>(opus_uint32 prediction) {
-          const int index = ix - Lane - 1;
-          const auto residual = wrap_subtract(wrap_shift_left(in[index], 12), std::bit_cast<opus_int32>(prediction));
-          out[index] = saturate_int16_from_int32(rounded_rshift<12>(residual));
-        };
-        store.template operator()<0>(prediction0);
-        store.template operator()<1>(prediction1);
-        store.template operator()<2>(prediction2);
-        store.template operator()<3>(prediction3);
-      }
+static opus_int32 silk_LPC_analysis_filter_blocks(opus_int16* out, const opus_int16* in, const opus_int16* B, opus_int32 ix) {
+  for (; ix - Order >= 4; ix -= 4) {
+    opus_uint32 p0 = 0, p1 = 0, p2 = 0, p3 = 0;
+    for (int tap = 0; tap < Order; ++tap) {
+      const auto coefficient = static_cast<opus_int32>(B[tap]);
+      p0 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 2]) * coefficient);
+      p1 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 3]) * coefficient);
+      p2 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 4]) * coefficient);
+      p3 += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - tap - 5]) * coefficient);
+    }
+    const opus_uint32 sum[4] = {p0, p1, p2, p3};
+    for (int lane = 0; lane < 4; ++lane) {
+      out[ix - lane - 1] = saturate_int16_from_int32(rounded_rshift<12>(wrap_subtract(wrap_shift_left(in[ix - lane - 1], 12), std::bit_cast<opus_int32>(sum[lane]))));
     }
   }
-  for (; ix > Order;) {
-    --ix;
-    const auto* in_ptr = &in[ix - 1];
-    auto out32_Q12 = static_cast<opus_int32>(static_cast<opus_int16>(in_ptr[0])) * static_cast<opus_int32>(static_cast<opus_int16>(B[0]));
-    for (int j = 1; j < Order; ++j) {
-      const auto term =
-          static_cast<opus_int32>(static_cast<opus_int16>(in_ptr[-j])) * static_cast<opus_int32>(static_cast<opus_int16>(B[j]));
-      out32_Q12 = wrap_add(out32_Q12, term);
-    }
-    out32_Q12 = wrap_subtract(wrap_shift_left(in_ptr[1], 12), out32_Q12);
-    out[ix] = saturate_int16_from_int32(rounded_rshift<12>(out32_Q12));
-  }
-  zero_n_items(out, static_cast<std::size_t>(Order));
+  return ix;
 }
 
 static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, const opus_int16* B, const opus_int32 len, const opus_int32 d) {
-  if (d == 10) {
-    silk_LPC_analysis_filter_order<10>(out, in, B, len);
-  } else {
-    silk_LPC_analysis_filter_order<16>(out, in, B, len);
+  opus_int32 ix = len;
+  const auto before = std::less<const opus_int16*>{};
+  if (len > d && (out == in || !(before(out, in + len) && before(in, out + len))) && !(before(out, B + d) && before(B, out + len))) {
+    ix = d == 10 ? silk_LPC_analysis_filter_blocks<10>(out, in, B, ix) : silk_LPC_analysis_filter_blocks<16>(out, in, B, ix);
   }
+  for (; ix > d;) {
+    --ix;
+    opus_uint32 sum = 0;
+    for (opus_int32 j = 0; j < d; ++j) {
+      sum += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - 1 - j]) * static_cast<opus_int32>(B[j]));
+    }
+    out[ix] = saturate_int16_from_int32(rounded_rshift<12>(wrap_subtract(wrap_shift_left(in[ix], 12), std::bit_cast<opus_int32>(sum))));
+  }
+  zero_n_items(out, static_cast<std::size_t>(d));
 }
 
 static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA) {
@@ -9866,19 +9849,22 @@ template <int R, int L, bool LP>
 template <int R>
 [[gnu::noinline]] static void fft_stage(const float* __restrict x, float* __restrict y, int total, int m, int s, int ts) {
   const auto* tw = celt_tables.fft_twiddles.data();
-  if (s == 1) {
-    int p = 0;
-    if (m % 4 == 0) {
-      for (; p < m; p += 4) {
-        fft_block<R, 4, true>(x, y, total, p, m, R * p, 1, R, tw, p, ts);
+  if constexpr (R == 4) {
+    if (s == 1) {
+      int p = 0;
+      if (m % 4 == 0) {
+        for (; p < m; p += 4) {
+          fft_block<R, 4, true>(x, y, total, p, m, R * p, 1, R, tw, p, ts);
+        }
       }
+      for (; p < m; ++p) {
+        fft_block<R, 1, false>(x, y, total, p, m, R * p, 1, 0, tw, p, ts);
+      }
+      return;
     }
-    for (; p < m; ++p) {
-      fft_block<R, 1, false>(x, y, total, p, m, R * p, 1, 0, tw, p, ts);
-    }
-    return;
   }
   for (int p = 0; p < m; ++p) {
+#pragma clang loop vectorize(disable) interleave(disable) unroll(disable)
     for (int q = 0; q < s; q += 4) {
       fft_block<R, 4, false>(x, y, total, q + s * p, s * m, q + s * R * p, s, 1, tw, p, ts);
     }
@@ -11970,7 +11956,7 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
 
 #define OPUSCPP_REMOVE_DOUBLING_SEARCH                                                              \
   for (int group = 2; group <= 15; group += 4) {                                                    \
-    std::array<int, 4> periods{}, second_periods{};                                                 \
+    int periods[4], second_periods[4];                                                              \
     int count = 0;                                                                                  \
     for (; count < 4 && group + count <= 15; ++count) {                                             \
       const int k = group + count;                                                                  \
@@ -11978,49 +11964,39 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
       if (T1 < minperiod)                                                                           \
         break;                                                                                      \
       periods[count] = T1;                                                                          \
-      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1)                         \
-                                     : celt_udiv(2 * second_check[k] * T0 + k, 2 * k);              \
+      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1) : celt_udiv(2 * second_check[k] * T0 + k, 2 * k);\
     }                                                                                               \
     if (count == 0)                                                                                 \
       break;                                                                                        \
-    const auto* a0 = x - periods[0];                                                                \
-    const auto* b0 = x - second_periods[0];                                                         \
-    const auto* a1 = count > 1 ? x - periods[1] : x;                                                \
-    const auto* b1 = count > 1 ? x - second_periods[1] : x;                                         \
-    const auto* a2 = count > 2 ? x - periods[2] : x;                                                \
-    const auto* b2 = count > 2 ? x - second_periods[2] : x;                                         \
-    const auto* a3 = count > 3 ? x - periods[3] : x;                                                \
-    const auto* b3 = count > 3 ? x - second_periods[3] : x;                                         \
-    opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;              \
-    for (int index = 0; index < N; ++index) {                                                       \
-      const auto sample = static_cast<opus_val32>(x[index]);                                        \
-      sa0 += sample * static_cast<opus_val32>(a0[index]);                                           \
-      sb0 += sample * static_cast<opus_val32>(b0[index]);                                           \
-      if (count > 1) {                                                                              \
-        sa1 += sample * static_cast<opus_val32>(a1[index]);                                         \
-        sb1 += sample * static_cast<opus_val32>(b1[index]);                                         \
+    const opus_val16 *a[4], *b[4];                                                                  \
+    for (int lane = 0; lane < 4; ++lane) {                                                          \
+      a[lane] = x - periods[lane < count ? lane : 0];                                               \
+      b[lane] = x - second_periods[lane < count ? lane : 0];                                        \
+    }                                                                                               \
+    opus_val32 sa[4] = {}, sb[4] = {};                                                              \
+    if (count == 4) {                                                                               \
+      opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;            \
+      for (int index = 0; index < N; ++index) {                                                     \
+        const auto sample = static_cast<opus_val32>(x[index]);                                      \
+        sa0 += sample * static_cast<opus_val32>(a[0][index]);                                       \
+        sb0 += sample * static_cast<opus_val32>(b[0][index]);                                       \
+        sa1 += sample * static_cast<opus_val32>(a[1][index]);                                       \
+        sb1 += sample * static_cast<opus_val32>(b[1][index]);                                       \
+        sa2 += sample * static_cast<opus_val32>(a[2][index]);                                       \
+        sb2 += sample * static_cast<opus_val32>(b[2][index]);                                       \
+        sa3 += sample * static_cast<opus_val32>(a[3][index]);                                       \
+        sb3 += sample * static_cast<opus_val32>(b[3][index]);                                       \
       }                                                                                             \
-      if (count > 2) {                                                                              \
-        sa2 += sample * static_cast<opus_val32>(a2[index]);                                         \
-        sb2 += sample * static_cast<opus_val32>(b2[index]);                                         \
-      }                                                                                             \
-      if (count > 3) {                                                                              \
-        sa3 += sample * static_cast<opus_val32>(a3[index]);                                         \
-        sb3 += sample * static_cast<opus_val32>(b3[index]);                                         \
-      }                                                                                             \
+      sa[0] = sa0, sb[0] = sb0, sa[1] = sa1, sb[1] = sb1, sa[2] = sa2, sb[2] = sb2, sa[3] = sa3, sb[3] = sb3;\
+    } else {                                                                                        \
+      for (int lane = 0; lane < count; ++lane)                                                      \
+        dual_inner_prod_c(x, a[lane], b[lane], N, sa[lane], sb[lane]);                              \
     }                                                                                               \
     for (int lane = 0; lane < count; ++lane) {                                                      \
       const int k = group + lane;                                                                   \
       const int T1 = periods[lane];                                                                 \
-      const int T1b = second_periods[lane];                                                         \
-      xy = lane == 0 ? sa0 : lane == 1 ? sa1                                                        \
-                         : lane == 2   ? sa2                                                        \
-                                       : sa3;                                                         \
-      const opus_val32 xy2 = lane == 0 ? sb0 : lane == 1 ? sb1                                      \
-                                           : lane == 2   ? sb2                                      \
-                                                         : sb3;                                       \
-      xy = (.5f * (xy + xy2));                                                                      \
-      yy = (.5f * (yy_lookup[T1] + yy_lookup[T1b]));                                                \
+      xy = (.5f * (sa[lane] + sb[lane]));                                                           \
+      yy = (.5f * (yy_lookup[T1] + yy_lookup[second_periods[lane]]));                               \
       const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);                                         \
       const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain       \
                               : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain \
@@ -15444,28 +15420,6 @@ static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], cons
 }
 
 namespace {
-[[nodiscard]] constexpr auto resampler_fractional_fir18_q6(std::span<const opus_int32, 18> buffer, std::span<const opus_int16, 9> leading, std::span<const opus_int16, 9> trailing) noexcept -> opus_int32 {
-  auto acc = opus_int32{0};
-  for (auto tap = std::size_t{}; tap < leading.size(); ++tap) {
-    acc = silk_mla_wb(acc, buffer[tap], leading[tap]);
-  }
-  for (auto tap = std::size_t{}; tap < trailing.size(); ++tap) {
-    acc = silk_mla_wb(acc, buffer[buffer.size() - 1 - tap], trailing[tap]);
-  }
-  return acc;
-}
-
-template <std::size_t HalfOrder>
-  requires(HalfOrder > 0)
-[[nodiscard]] constexpr auto resampler_symmetric_fir_q6(std::span<const opus_int32, 2 * HalfOrder> buffer, std::span<const opus_int16, HalfOrder> coefficients) noexcept -> opus_int32 {
-  auto acc = opus_int32{0};
-  for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
-    const auto pair_sum = static_cast<opus_int32>(buffer[tap] + buffer[2 * HalfOrder - 1 - tap]);
-    acc = silk_mla_wb(acc, pair_sum, coefficients[tap]);
-  }
-  return acc;
-}
-
 [[nodiscard]] constexpr auto resampler_frac_fir_12_q15(std::span<const opus_int16, 8> buffer, std::span<const opus_int16, 4> leading, std::span<const opus_int16, 4> trailing) noexcept -> opus_int32 {
   auto acc = opus_int32{0};
   for (auto tap = std::size_t{}; tap < 4; ++tap) {
@@ -15477,57 +15431,56 @@ template <std::size_t HalfOrder>
   return acc;
 }
 
-template <std::size_t HalfOrder>
-static auto resample_symmetric_fir(opus_int16* out, const opus_int32* buffer, const opus_int16* coefficients, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
-  opus_int32 index_Q16 = 0;
-  for (; index_Q16 < max_index_Q16;) {
-    const opus_int32 next_index_Q16 = index_Q16 + index_increment_Q16;
-    if (next_index_Q16 >= max_index_Q16)
-      break;
-    const auto first = std::span<const opus_int32, 2 * HalfOrder>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
-    const auto second = std::span<const opus_int32, 2 * HalfOrder>{buffer + (next_index_Q16 >> 16), 2 * HalfOrder};
-    opus_int32 first_acc = 0, second_acc = 0;
-    for (auto tap = std::size_t{}; tap < HalfOrder; ++tap) {
-      const auto coefficient = coefficients[tap];
-      const auto first_sum = static_cast<opus_int32>(first[tap] + first[2 * HalfOrder - 1 - tap]);
-      const auto second_sum = static_cast<opus_int32>(second[tap] + second[2 * HalfOrder - 1 - tap]);
-      first_acc = silk_mla_wb(first_acc, first_sum, coefficient);
-      second_acc = silk_mla_wb(second_acc, second_sum, coefficient);
-    }
-    *out++ = rounded_rshift_to_int16<6>(first_acc);
-    *out++ = rounded_rshift_to_int16<6>(second_acc);
-    index_Q16 = next_index_Q16 + index_increment_Q16;
-  }
-  for (; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
-    const auto window = std::span<const opus_int32, 2 * HalfOrder>{buffer + (index_Q16 >> 16), 2 * HalfOrder};
-    *out++ = rounded_rshift_to_int16<6>(
-        resampler_symmetric_fir_q6<HalfOrder>(window, std::span<const opus_int16, HalfOrder>{coefficients, HalfOrder}));
-  }
-  return out;
-}
 }
 
-static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Order, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
-  switch (FIR_Order) {
-  case 18:
-    for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
-      const auto* buf_ptr = buf + (index_Q16 >> 16);
-      const opus_int32 interpol_ind =
-          static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(static_cast<opus_int16>(FIR_Fracs))) >> 16);
-      const auto leading = std::span<const opus_int16, 9>{&FIR_Coefs[9 * interpol_ind], 9};
-      const auto trailing = std::span<const opus_int16, 9>{&FIR_Coefs[9 * (FIR_Fracs - 1 - interpol_ind)], 9};
-      const opus_int32 res_Q6 = resampler_fractional_fir18_q6(std::span<const opus_int32, 18>{buf_ptr, 18}, leading, trailing);
-      *out++ = rounded_rshift_to_int16<6>(res_Q6);
+template <int Order>
+static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
+  constexpr int half = Order / 2;
+  for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
+    const auto* buf_ptr = buf + (index_Q16 >> 16);
+    const opus_int32 interpol_ind = static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(FIR_Fracs)) >> 16);
+    const auto* leading = FIR_Coefs + half * interpol_ind;
+    const auto* trailing = FIR_Coefs + half * (FIR_Fracs - 1 - interpol_ind);
+    opus_int32 res_Q6 = 0;
+    if constexpr (Order != 18) {
+      const opus_int32 next_index_Q16 = index_Q16 + index_increment_Q16;
+      if (next_index_Q16 < max_index_Q16) {
+        const auto* next_ptr = buf + (next_index_Q16 >> 16);
+        opus_int32 res2_Q6 = 0;
+        for (int tap = 0; tap < half; ++tap) {
+          res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
+          res2_Q6 = silk_mla_wb(res2_Q6, next_ptr[tap] + next_ptr[Order - 1 - tap], leading[tap]);
+        }
+        *out++ = rounded_rshift_to_int16<6>(res_Q6);
+        *out++ = rounded_rshift_to_int16<6>(res2_Q6);
+        index_Q16 = next_index_Q16;
+        continue;
+      }
     }
-    break;
-  case 24:
-    return resample_symmetric_fir<12>(out, buf, FIR_Coefs, max_index_Q16, index_increment_Q16);
-  case 36:
-    return resample_symmetric_fir<18>(out, buf, FIR_Coefs, max_index_Q16, index_increment_Q16);
-  default:
-    return out;
+    if constexpr (Order == 18) {
+      for (int tap = 0; tap < half; ++tap) {
+        res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap], leading[tap]);
+        res_Q6 = silk_mla_wb(res_Q6, buf_ptr[Order - 1 - tap], trailing[tap]);
+      }
+    } else {
+      for (int tap = 0; tap < half; ++tap) {
+        res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
+      }
+    }
+    *out++ = rounded_rshift_to_int16<6>(res_Q6);
   }
   return out;
+}
+
+static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, const opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Order, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
+  switch (FIR_Order) {
+  case 18:
+    return silk_resampler_down_FIR_kernel<18>(out, buf, FIR_Coefs, FIR_Fracs, max_index_Q16, index_increment_Q16);
+  case 24:
+    return silk_resampler_down_FIR_kernel<24>(out, buf, FIR_Coefs, FIR_Fracs, max_index_Q16, index_increment_Q16);
+  default:
+    return silk_resampler_down_FIR_kernel<36>(out, buf, FIR_Coefs, FIR_Fracs, max_index_Q16, index_increment_Q16);
+  }
 }
 
 static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
@@ -15584,31 +15537,23 @@ static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_
 }
 
 static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len) {
-  if (len <= 0) {
-    return;
-  }
-  std::array<opus_int32, 6> memory;
-  std::copy_n(S, memory.size(), memory.begin());
-  auto update_stage = []<bool AddDelta = false>(const opus_int32 input, opus_int32& state, const opus_int16 coefficient) noexcept {
-    const auto delta = input - state;
-    const auto product = (delta * static_cast<opus_int64>(coefficient)) >> 16;
-    const auto scaled = static_cast<opus_int32>(AddDelta ? delta + product : product);
-    const auto output = state + scaled;
-    state = input + scaled;
-    return output;
-  };
   for (opus_int32 k = 0; k < len; ++k) {
     const auto in32 = wrap_shift_left(in[k], 10);
-    const auto even0 = update_stage(in32, memory[0], silk_resampler_up2_hq_0[0]);
-    const auto even1 = update_stage(even0, memory[1], silk_resampler_up2_hq_0[1]);
-    const auto even = update_stage.operator()<true>(even1, memory[2], silk_resampler_up2_hq_0[2]);
-    out[2 * k] = rounded_rshift_to_int16<10>(even);
-    const auto odd0 = update_stage(in32, memory[3], silk_resampler_up2_hq_1[0]);
-    const auto odd1 = update_stage(odd0, memory[4], silk_resampler_up2_hq_1[1]);
-    const auto odd = update_stage.operator()<true>(odd1, memory[5], silk_resampler_up2_hq_1[2]);
-    out[2 * k + 1] = rounded_rshift_to_int16<10>(odd);
+    for (int branch = 0; branch < 2; ++branch) {
+      const auto& coefs = branch ? silk_resampler_up2_hq_1 : silk_resampler_up2_hq_0;
+      auto* state = S + 3 * branch;
+      opus_int32 value = in32;
+      for (int stage = 0; stage < 3; ++stage) {
+        const auto delta = value - state[stage];
+        const auto product = (delta * static_cast<opus_int64>(coefs[stage])) >> 16;
+        const auto scaled = static_cast<opus_int32>(stage == 2 ? delta + product : product);
+        const auto output = state[stage] + scaled;
+        state[stage] = value + scaled;
+        value = output;
+      }
+      out[2 * k + branch] = rounded_rshift_to_int16<10>(value);
+    }
   }
-  std::copy(memory.begin(), memory.end(), S);
 }
 
 constexpr std::array<opus_int16, 6> sigm_LUT_slope_Q10{237, 153, 73, 30, 12, 7};
