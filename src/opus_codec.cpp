@@ -2927,8 +2927,8 @@ struct encoder_frame_analysis {
 
 template <bool MeasureWidth = false>
 OPUSCPP_NOINLINE static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int frame_size, int channels, int lsb_depth,
-                                                     StereoWidthState* width_mem = nullptr, opus_val16* stereo_width = nullptr,
-                                                     opus_int32 sample_rate = 48000) {
+                                                                      StereoWidthState* width_mem = nullptr, opus_val16* stereo_width = nullptr,
+                                                                      opus_int32 sample_rate = 48000) {
   opus_val32 energy = 0, sample_max = 0, xx = 0, xy = 0, yy = 0;
   opus_val64 mono_energy = 0, mono_diff_energy = 0;
   opus_val32 right_difference_energy = 0, left_difference_energy = 0;
@@ -3198,7 +3198,10 @@ OPUSCPP_COMPACT static auto classify_encoder_frame(OpusEncoder* st, const encode
 }
 
 [[nodiscard]] static int bandwidth_floor(opus_int32 rate, int channels, bool celt) noexcept {
-  return rate <= 18000 * channels && celt ? 1101 : rate <= 24000 * channels && celt ? 1102 : rate <= 30000 * channels ? 1103 : rate <= 44000 * channels ? 1104 : 1105;
+  return rate <= 18000 * channels && celt ? 1101 : rate <= 24000 * channels && celt ? 1102
+                                               : rate <= 30000 * channels           ? 1103
+                                               : rate <= 44000 * channels           ? 1104
+                                                                                    : 1105;
 }
 
 [[nodiscard]] static int classifier_voice_estimate(OpusEncoder* st) noexcept {
@@ -3331,7 +3334,7 @@ OPUSCPP_COMPACT static int compute_redundancy_bytes(opus_int32 max_data_bytes, o
 }
 
 OPUSCPP_COMPACT static inline void apply_previous_sample_tilt(opus_res* pcm, int frame_size, int channels, opus_val16 smoothing,
-                                              opus_val16 gain = 1.0f) noexcept {
+                                                              opus_val16 gain = 1.0f) noexcept {
   for (int channel = 0; channel < channels; ++channel) {
     opus_res previous = pcm[channel] * gain;
     pcm[channel] = previous;
@@ -3804,8 +3807,8 @@ OPUSCPP_COMPACT static opus_int32 encode_native(OpusEncoder* st, const opus_res*
   }
   const int incoming_bandwidth = st->bandwidth;
   const bool silent_input = frame_metrics.energy == 0 && std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
-    return sample == 0;
-  });
+                              return sample == 0;
+                            });
   const bool inherited_bandwidth = st->mode != opus_mode_celt_only && !first && !st->silk_mode.allowBandwidthSwitch;
   const auto select_auto_bandwidth = [&](opus_int32 rate) {
     int bandwidth = 1105;
@@ -4197,8 +4200,8 @@ OPUSCPP_GCC_HOT OPUSCPP_NOINLINE static void voice_conditioning_scan(voice_scan_
 }
 
 OPUSCPP_GCC_HOT OPUSCPP_NOINLINE static void voip_mix_channel(const float* pcm, float* out, int frame_size, int stride, float r, const std::array<opus_val32, 2>& A, opus_val32& hp0_ref,
-                                              opus_val32& hp1_ref, opus_val32 mix, opus_val32 step, float& raw_memory_ref, float& hp_memory_ref,
-                                              float dc_coefficient, float dc_feedback, float restoration, bool use_ac) {
+                                                              opus_val32& hp1_ref, opus_val32 mix, opus_val32 step, float& raw_memory_ref, float& hp_memory_ref,
+                                                              float dc_coefficient, float dc_feedback, float restoration, bool use_ac) {
   opus_val32 hp0 = hp0_ref, hp1 = hp1_ref;
   float raw_memory = raw_memory_ref, hp_memory = hp_memory_ref;
   const bool mono = stride == 1;
@@ -4228,71 +4231,71 @@ OPUSCPP_GCC_HOT OPUSCPP_NOINLINE static void voip_mix_channel(const float* pcm, 
 
 OPUSCPP_GCC_COLD OPUSCPP_NOINLINE static bool voip_prepare_frame(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
-    const voice_conditioning_coefficients coefficients{st->Fs};
-    std::array<opus_val32, 2> initial_value;
-    for (int channel = 0; channel < st->channels; ++channel) {
-      initial_value[channel] = update_voice_conditioning(st->conditioning[channel], pcm + channel, frame_size, st->channels, st->Fs, coefficients);
+  const voice_conditioning_coefficients coefficients{st->Fs};
+  std::array<opus_val32, 2> initial_value;
+  for (int channel = 0; channel < st->channels; ++channel) {
+    initial_value[channel] = update_voice_conditioning(st->conditioning[channel], pcm + channel, frame_size, st->channels, st->Fs, coefficients);
+  }
+  const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
+  st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
+  const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
+  const opus_int32 Fc_Q19 = 2471 * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
+  const opus_int32 r_Q28 = (1 << 28) - 471 * Fc_Q19;
+  const opus_int32 r_Q22 = r_Q28 >> 6;
+  const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
+  const opus_int32 A_Q28[2]{static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * (fc_squared_Q22 - (2 << 22))) >> 16),
+                            static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
+  constexpr float inv28 = 1.f / (1 << 28);
+  const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
+  const opus_val32 r = r_Q28 * inv28;
+  opus_val16 restoration = 0.f;
+  if (st->channels == 1) {
+    if (st->bitrate_bps <= 16000) {
+      const auto diff = frame_metrics.mono_diff_ratio;
+      restoration = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
+                                                  : 0.f;
+    } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
+      restoration = .30f;
     }
-    const int hp_freq_smth1 = st->mode == opus_mode_celt_only ? silk_log_60_q15 : silk_encoder_channel_states(static_cast<silk_encoder*>(silk_enc))[0].sCmn.variable_HP_smth1_Q15;
-    st->variable_HP_smth2_Q15 += silk_mul_wb(hp_freq_smth1 - st->variable_HP_smth2_Q15, fixed_q<16>(0.015f));
-    const int cutoff_Hz = silk_log2lin(st->variable_HP_smth2_Q15 >> 8);
-    const opus_int32 Fc_Q19 = 2471 * static_cast<opus_int16>(cutoff_Hz) / (st->Fs / 1000);
-    const opus_int32 r_Q28 = (1 << 28) - 471 * Fc_Q19;
-    const opus_int32 r_Q22 = r_Q28 >> 6;
-    const opus_int32 fc_squared_Q22 = static_cast<opus_int32>((static_cast<opus_int64>(Fc_Q19) * Fc_Q19) >> 16);
-    const opus_int32 A_Q28[2]{static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * (fc_squared_Q22 - (2 << 22))) >> 16),
-                              static_cast<opus_int32>((static_cast<opus_int64>(r_Q22) * r_Q22) >> 16)};
-    constexpr float inv28 = 1.f / (1 << 28);
-    const std::array<opus_val32, 2> A{A_Q28[0] * inv28, A_Q28[1] * inv28};
-    const opus_val32 r = r_Q28 * inv28;
-    opus_val16 restoration = 0.f;
-    if (st->channels == 1) {
-      if (st->bitrate_bps <= 16000) {
-        const auto diff = frame_metrics.mono_diff_ratio;
-        restoration = diff >= .015f && diff < .055f ? voip_mid_diff_voice_low_band_keep
-                                                    : 0.f;
-      } else if (st->bitrate_bps <= 64000 && !st->use_dtx) {
-        restoration = .30f;
-      }
-      if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps < voip_noisy_voice_low_band_min_bps &&
-          frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
-        restoration = voip_quiet_hissy_voice_low_band_keep;
-      }
+    if (st->bitrate_bps >= voip_voice_low_band_keep_min_bps && st->bitrate_bps < voip_noisy_voice_low_band_min_bps &&
+        frame_metrics.energy < voip_noisy_voice_energy_max && frame_metrics.mono_diff_ratio > voip_quiet_hissy_voice_diff_ratio_min) {
+      restoration = voip_quiet_hissy_voice_low_band_keep;
     }
-    const float dc_coefficient = 6.3f * 3 / st->Fs;
-    const float dc_feedback = 1.f - dc_coefficient;
-    for (int channel = 0; channel < st->channels; ++channel) {
-      auto& state = st->conditioning[channel];
-      if (state.cond_init_dc == 0 && state.cond_init_done) {
-        state.cond_init_dc = 1;
-        state.raw_dc_memory = initial_value[channel];
-        state.hp_dc_memory = 0.f;
-      }
-      float raw_memory = state.raw_dc_memory, hp_memory = state.hp_dc_memory;
-      opus_val32 hp0 = st->hp_mem[2 * channel], hp1 = st->hp_mem[2 * channel + 1];
-      const opus_val32 step = (state.cond_score - state.cond_mix) / static_cast<opus_val32>(frame_size);
-      opus_val32 mix = state.cond_mix;
-      voip_mix_channel(pcm + channel, frame_pcm + channel, frame_size, st->channels, r, A, hp0, hp1, mix, step, raw_memory, hp_memory,
-                       dc_coefficient, dc_feedback, restoration, st->bitrate_bps > 16000 && restoration > 0);
-      st->hp_mem[2 * channel] = zero_tiny_float_mem(hp0);
-      st->hp_mem[2 * channel + 1] = zero_tiny_float_mem(hp1);
-      state.cond_mix = state.cond_score;
-      state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
-      state.hp_dc_memory = zero_tiny_float_mem(hp_memory);
+  }
+  const float dc_coefficient = 6.3f * 3 / st->Fs;
+  const float dc_feedback = 1.f - dc_coefficient;
+  for (int channel = 0; channel < st->channels; ++channel) {
+    auto& state = st->conditioning[channel];
+    if (state.cond_init_dc == 0 && state.cond_init_done) {
+      state.cond_init_dc = 1;
+      state.raw_dc_memory = initial_value[channel];
+      state.hp_dc_memory = 0.f;
     }
-    if (st->channels == 1) {
-      const bool broadband = broadband_voice_denoise_ready(st);
-      if (broadband)
-        apply_voice_denoise(st, frame_pcm, frame_size, frame_metrics);
-      denoise_handled = broadband;
-      const auto smoothing = voip_noise_smoothing_for(st, frame_metrics);
-      if (st->voice_denoise != nullptr)
-        apply_voice_denoise_companion(*st->voice_denoise, frame_pcm, frame_size, smoothing, frame_metrics.is_silence);
-      if (st->voice_denoise != nullptr && st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
-          frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
-        apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
-      }
+    float raw_memory = state.raw_dc_memory, hp_memory = state.hp_dc_memory;
+    opus_val32 hp0 = st->hp_mem[2 * channel], hp1 = st->hp_mem[2 * channel + 1];
+    const opus_val32 step = (state.cond_score - state.cond_mix) / static_cast<opus_val32>(frame_size);
+    opus_val32 mix = state.cond_mix;
+    voip_mix_channel(pcm + channel, frame_pcm + channel, frame_size, st->channels, r, A, hp0, hp1, mix, step, raw_memory, hp_memory,
+                     dc_coefficient, dc_feedback, restoration, st->bitrate_bps > 16000 && restoration > 0);
+    st->hp_mem[2 * channel] = zero_tiny_float_mem(hp0);
+    st->hp_mem[2 * channel + 1] = zero_tiny_float_mem(hp1);
+    state.cond_mix = state.cond_score;
+    state.raw_dc_memory = zero_tiny_float_mem(raw_memory);
+    state.hp_dc_memory = zero_tiny_float_mem(hp_memory);
+  }
+  if (st->channels == 1) {
+    const bool broadband = broadband_voice_denoise_ready(st);
+    if (broadband)
+      apply_voice_denoise(st, frame_pcm, frame_size, frame_metrics);
+    denoise_handled = broadband;
+    const auto smoothing = voip_noise_smoothing_for(st, frame_metrics);
+    if (st->voice_denoise != nullptr)
+      apply_voice_denoise_companion(*st->voice_denoise, frame_pcm, frame_size, smoothing, frame_metrics.is_silence);
+    if (st->voice_denoise != nullptr && st->bitrate_bps <= 16000 && frame_metrics.energy > .004f && frame_metrics.energy < .015f &&
+        frame_metrics.mono_diff_ratio > .04f && frame_metrics.mono_diff_ratio < .18f && frame_metrics.mono_zero_cross_rate < .12f) {
+      apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
     }
+  }
   return denoise_handled;
 }
 
@@ -6689,7 +6692,7 @@ static double l1_metric(const celt_norm* tmp, int N, int LM, opus_val16 bias, co
 }
 
 OPUSCPP_LEANA static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, int stride, int LM, opus_val16 bias,
-                             celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
+                                           celt_norm* side_output = nullptr, const celt_norm* side_input = nullptr) {
   opus_val32 L1 = 0, side_L1 = 0;
   const int pairs = N0 >> 1;
   if (stride == 1) {
@@ -7005,7 +7008,7 @@ struct stereo_tf_basis_choice {
 };
 
 OPUSCPP_LEANA static int stereo_analysis_tf(const celt_norm* X, int LM, int N0, int intensity, int transient, const int* tf_res,
-                              stereo_tf_basis_choice& cached) {
+                                            stereo_tf_basis_choice& cached) {
   constexpr unsigned level_bits = std::bit_width(static_cast<unsigned>(2 * celt_max_lm));
   static_assert(celt_stereo_analysis_bands * level_bits < std::numeric_limits<std::uint64_t>::digits);
   static_assert([] {
@@ -11001,7 +11004,7 @@ static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows
 }
 
 [[gnu::noinline]] static void classifier_compute_dense(float* output, const float* input, const opus_int8* weights,
-                                     const opus_int8* bias, int nb_inputs, int nb_neurons, bool sigmoid) {
+                                                       const opus_int8* bias, int nb_inputs, int nb_neurons, bool sigmoid) {
   for (int i = 0; i < nb_neurons; ++i) {
     output[i] = bias[i];
   }
@@ -11013,8 +11016,8 @@ static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows
 }
 
 [[gnu::noinline]] static void classifier_compute_gru(float* state, const float* input, const opus_int8* weights,
-                                   const opus_int8* recur_weights, const opus_int8* bias,
-                                   int nb_inputs, int nb_neurons) {
+                                                     const opus_int8* recur_weights, const opus_int8* bias,
+                                                     int nb_inputs, int nb_neurons) {
   std::array<float, 96> gates;
   std::array<float, 32> tmp;
   const int stride = 3 * nb_neurons;
@@ -11176,7 +11179,7 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
 }
 
 [[gnu::noinline]] static void classical_leak_features(classical_leak_state* tonal, classical_leak_record* info, const float* out,
-                                                                  const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener) {
+                                                      const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener) {
   int i, b;
   const int N = 480;
   float band_tonality[18];
@@ -11737,79 +11740,79 @@ static void celt_pitch_interpolation3(const opus_val16* x, int period, int lengt
   correlation[2] = sum2;
 }
 
-#define OPUSCPP_REMOVE_DOUBLING_SEARCH                                                              \
-  for (int group = 2; group <= 15; group += 4) {                                                    \
-    int periods[4], second_periods[4];                                                              \
-    int count = 0;                                                                                  \
-    for (; count < 4 && group + count <= 15; ++count) {                                             \
-      const int k = group + count;                                                                  \
-      const int T1 = celt_udiv(2 * T0 + k, 2 * k);                                                  \
-      if (T1 < minperiod)                                                                           \
-        break;                                                                                      \
-      periods[count] = T1;                                                                          \
-      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1) : celt_udiv(2 * second_check[k] * T0 + k, 2 * k);\
-    }                                                                                               \
-    if (count == 0)                                                                                 \
-      break;                                                                                        \
-    const opus_val16 *a[4], *b[4];                                                                  \
-    for (int lane = 0; lane < 4; ++lane) {                                                          \
-      a[lane] = x - periods[lane < count ? lane : 0];                                               \
-      b[lane] = x - second_periods[lane < count ? lane : 0];                                        \
-    }                                                                                               \
-    opus_val32 sa[4] = {}, sb[4] = {};                                                              \
-    if (count == 4) {                                                                               \
-      opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;            \
-      for (int index = 0; index < N; ++index) {                                                     \
-        const auto sample = static_cast<opus_val32>(x[index]);                                      \
-        sa0 += sample * static_cast<opus_val32>(a[0][index]);                                       \
-        sb0 += sample * static_cast<opus_val32>(b[0][index]);                                       \
-        sa1 += sample * static_cast<opus_val32>(a[1][index]);                                       \
-        sb1 += sample * static_cast<opus_val32>(b[1][index]);                                       \
-        sa2 += sample * static_cast<opus_val32>(a[2][index]);                                       \
-        sb2 += sample * static_cast<opus_val32>(b[2][index]);                                       \
-        sa3 += sample * static_cast<opus_val32>(a[3][index]);                                       \
-        sb3 += sample * static_cast<opus_val32>(b[3][index]);                                       \
-      }                                                                                             \
-      sa[0] = sa0, sb[0] = sb0, sa[1] = sa1, sb[1] = sb1, sa[2] = sa2, sb[2] = sb2, sa[3] = sa3, sb[3] = sb3;\
-    } else {                                                                                        \
-      for (int lane = 0; lane < count; ++lane)                                                      \
-        dual_inner_prod_c(x, a[lane], b[lane], N, sa[lane], sb[lane]);                              \
-    }                                                                                               \
-    for (int lane = 0; lane < count; ++lane) {                                                      \
-      const int k = group + lane;                                                                   \
-      const int T1 = periods[lane];                                                                 \
-      xy = (.5f * (sa[lane] + sb[lane]));                                                           \
-      yy = (.5f * (yy_lookup[T1] + yy_lookup[second_periods[lane]]));                               \
-      const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);                                         \
-      const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain       \
-                              : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain \
-                                                                                  : 0;              \
-      opus_val16 thresh = std::max(.3f, .7f * g0 - cont);                                           \
-      if (T1 < 3 * minperiod) {                                                                     \
-        thresh = std::max(.4f, .85f * g0 - cont);                                                   \
-      }                                                                                             \
-      if (g1 > thresh) {                                                                            \
-        best_xy = xy;                                                                               \
-        best_yy = yy;                                                                               \
-        T = T1;                                                                                     \
-        g = g1;                                                                                     \
-      }                                                                                             \
-    }                                                                                               \
-    if (count < 4)                                                                                  \
-      break;                                                                                        \
-  }                                                                                                 \
-  if (T < minperiod * 2) {                                                                          \
-    const int T1 = T * 5 / 8;                                                                       \
-    const int T2 = T * 6 / 8;                                                                       \
-    opus_val32 xy2;                                                                                 \
-    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, xy, xy2);                                             \
-    const opus_val16 g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);                                \
-    const opus_val16 g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);                               \
-    if (g1 >= g || g2 >= g) {                                                                       \
-      g = 0;                                                                                        \
-    }                                                                                               \
-  }                                                                                                 \
-  best_xy = std::max(0.f, best_xy);                                                                 \
+#define OPUSCPP_REMOVE_DOUBLING_SEARCH                                                                                        \
+  for (int group = 2; group <= 15; group += 4) {                                                                              \
+    int periods[4], second_periods[4];                                                                                        \
+    int count = 0;                                                                                                            \
+    for (; count < 4 && group + count <= 15; ++count) {                                                                       \
+      const int k = group + count;                                                                                            \
+      const int T1 = celt_udiv(2 * T0 + k, 2 * k);                                                                            \
+      if (T1 < minperiod)                                                                                                     \
+        break;                                                                                                                \
+      periods[count] = T1;                                                                                                    \
+      second_periods[count] = k == 2 ? (T1 + T0 > maxperiod ? T0 : T0 + T1) : celt_udiv(2 * second_check[k] * T0 + k, 2 * k); \
+    }                                                                                                                         \
+    if (count == 0)                                                                                                           \
+      break;                                                                                                                  \
+    const opus_val16 *a[4], *b[4];                                                                                            \
+    for (int lane = 0; lane < 4; ++lane) {                                                                                    \
+      a[lane] = x - periods[lane < count ? lane : 0];                                                                         \
+      b[lane] = x - second_periods[lane < count ? lane : 0];                                                                  \
+    }                                                                                                                         \
+    opus_val32 sa[4] = {}, sb[4] = {};                                                                                        \
+    if (count == 4) {                                                                                                         \
+      opus_val32 sa0 = 0, sb0 = 0, sa1 = 0, sb1 = 0, sa2 = 0, sb2 = 0, sa3 = 0, sb3 = 0;                                      \
+      for (int index = 0; index < N; ++index) {                                                                               \
+        const auto sample = static_cast<opus_val32>(x[index]);                                                                \
+        sa0 += sample * static_cast<opus_val32>(a[0][index]);                                                                 \
+        sb0 += sample * static_cast<opus_val32>(b[0][index]);                                                                 \
+        sa1 += sample * static_cast<opus_val32>(a[1][index]);                                                                 \
+        sb1 += sample * static_cast<opus_val32>(b[1][index]);                                                                 \
+        sa2 += sample * static_cast<opus_val32>(a[2][index]);                                                                 \
+        sb2 += sample * static_cast<opus_val32>(b[2][index]);                                                                 \
+        sa3 += sample * static_cast<opus_val32>(a[3][index]);                                                                 \
+        sb3 += sample * static_cast<opus_val32>(b[3][index]);                                                                 \
+      }                                                                                                                       \
+      sa[0] = sa0, sb[0] = sb0, sa[1] = sa1, sb[1] = sb1, sa[2] = sa2, sb[2] = sb2, sa[3] = sa3, sb[3] = sb3;                 \
+    } else {                                                                                                                  \
+      for (int lane = 0; lane < count; ++lane)                                                                                \
+        dual_inner_prod_c(x, a[lane], b[lane], N, sa[lane], sb[lane]);                                                        \
+    }                                                                                                                         \
+    for (int lane = 0; lane < count; ++lane) {                                                                                \
+      const int k = group + lane;                                                                                             \
+      const int T1 = periods[lane];                                                                                           \
+      xy = (.5f * (sa[lane] + sb[lane]));                                                                                     \
+      yy = (.5f * (yy_lookup[T1] + yy_lookup[second_periods[lane]]));                                                         \
+      const opus_val16 g1 = compute_pitch_gain(xy, xx, yy);                                                                   \
+      const opus_val16 cont = std::abs(T1 - prev_period) <= 1                     ? prev_gain                                 \
+                              : std::abs(T1 - prev_period) <= 2 && 5 * k * k < T0 ? .5f * prev_gain                           \
+                                                                                  : 0;                                        \
+      opus_val16 thresh = std::max(.3f, .7f * g0 - cont);                                                                     \
+      if (T1 < 3 * minperiod) {                                                                                               \
+        thresh = std::max(.4f, .85f * g0 - cont);                                                                             \
+      }                                                                                                                       \
+      if (g1 > thresh) {                                                                                                      \
+        best_xy = xy;                                                                                                         \
+        best_yy = yy;                                                                                                         \
+        T = T1;                                                                                                               \
+        g = g1;                                                                                                               \
+      }                                                                                                                       \
+    }                                                                                                                         \
+    if (count < 4)                                                                                                            \
+      break;                                                                                                                  \
+  }                                                                                                                           \
+  if (T < minperiod * 2) {                                                                                                    \
+    const int T1 = T * 5 / 8;                                                                                                 \
+    const int T2 = T * 6 / 8;                                                                                                 \
+    opus_val32 xy2;                                                                                                           \
+    dual_inner_prod_c(x, &x[-T1], &x[-T2], N, xy, xy2);                                                                       \
+    const opus_val16 g1 = compute_pitch_gain(xy, xx, yy_lookup[T1]);                                                          \
+    const opus_val16 g2 = compute_pitch_gain(xy2, xx, yy_lookup[T2]);                                                         \
+    if (g1 >= g || g2 >= g) {                                                                                                 \
+      g = 0;                                                                                                                  \
+    }                                                                                                                         \
+  }                                                                                                                           \
+  best_xy = std::max(0.f, best_xy);                                                                                           \
   const opus_val16 pg = std::min(g, best_yy <= best_xy ? 1.0f : static_cast<float>(best_xy) / (best_yy + 1));
 
 static opus_val16 remove_doubling_impl(opus_val16* x, int N, int* T0_, int prev_period, opus_val16 prev_gain, const pitch_window_power* power, const pitch_fine_correlations* fine = nullptr) {
@@ -12980,9 +12983,9 @@ template <bool Encode> [[nodiscard]] static inline int silk_index_symbol(ec_ctx*
 }
 
 OPUSCPP_LEANO static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
-                                   int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
-                                   decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
-                                   decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
+                                                 int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
+                                                 decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
+                                                 decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
   constexpr bool Encode = true;
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(frame_subframes), 4);
@@ -15888,7 +15891,7 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
 }
 
 OPUSCPP_LEANO static bool silk_fund_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control,
-                                   funded_lbrr_packet* funding) {
+                                                 funded_lbrr_packet* funding) {
   auto& lbrr = *encoder->lbrr;
   if (funding == nullptr || funding->available_bits <= 0 || states[0].sCmn.nFramesPerPacket != 1 ||
       lbrr.frames_per_packet != 1 || lbrr.channels_in_packet != control.nChannelsInternal)
@@ -15919,7 +15922,7 @@ struct silk_lbrr_pack_result {
   bool sparsified{}, pad{};
 };
 OPUSCPP_LEANO static auto silk_pack_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states,
-                                   const silk_EncControlStruct& control) -> silk_lbrr_pack_result {
+                                                 const silk_EncControlStruct& control) -> silk_lbrr_pack_result {
   auto& queued = *encoder->lbrr;
   if (queued.frames_per_packet != 3 || queued.channels_in_packet != 1 || control.nChannelsInternal != 1 ||
       states[0].sCmn.frame_length != 320 || states[0].sCmn.nb_subfr != 4)
@@ -16268,8 +16271,8 @@ static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], 
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
 OPUSCPP_LEANO OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
-                                                       const opus_int8* first_pulses, const SideInfoIndices& second_indices,
-                                                       const opus_int8* second_pulses) {
+                                                                     const opus_int8* first_pulses, const SideInfoIndices& second_indices,
+                                                                     const opus_int8* second_pulses) {
   silk_entropy_context state{common};
   std::array<unsigned char, 1275> storage{};
   ec_enc prefix;
@@ -16310,7 +16313,7 @@ OPUSCPP_LEANO OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_
 }
 
 OPUSCPP_LEANO static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, silk_encoder_control_FLP* control, const opus_int16* samples, int condCoding, int gain_reduction, bool protect_quiet, const silk_nsq_preparation& prepared, const SideInfoIndices& original_indices, opus_int8 original_last_gain_index,
-                               const silk_nsq_history& pre_frame_nsq, const opus_int16* pre_frame_nlsf, bool reconstructed_target) {
+                                             const silk_nsq_history& pre_frame_nsq, const opus_int16* pre_frame_nlsf, bool reconstructed_target) {
   const auto frame = static_cast<std::size_t>(psEnc->sCmn.nFramesEncoded);
   if (lbrr->enabled & 8) {
     const int lag_delta = control->pitchL[psEnc->sCmn.nb_subfr - 1] - psEnc->sCmn.prevLag;
