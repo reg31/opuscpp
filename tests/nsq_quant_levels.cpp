@@ -37,7 +37,7 @@ static silk_nsq_candidate_pair ref_pair(opus_int32 residual_q10, int Lambda_Q10,
   return {q1_Q10, q2_Q10, silk_square_i16(residual_q10 - q1_Q10), silk_square_i16(residual_q10 - q2_Q10), rd1_bias, rd2_bias};
 }
 
-static_assert(sizeof(silk_nsq_quant_level_pair) == 8 && sizeof(silk_nsq_quant_levels) == 1984);
+static_assert(sizeof(silk_nsq_quant_level_pair) == 4 && sizeof(silk_nsq_quant_levels) == 992);
 int main() {
   const int lambdas[] = {0, 1, 512, 1024, 2047, 2048, 2049, 3072, 4096, 8192, 16384, 32767, 32768, 65535, std::numeric_limits<int>::max()};
   long cases = 0, failures = 0, max_index = 0;
