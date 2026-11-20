@@ -62,24 +62,42 @@ struct BenchResult {
 }
 
 void check_cwrs_roundtrip() {
-  std::array<opus_int16, 176> decoded{};
-  for (int n = 2; n <= 48; ++n) {
-    for (int k = 0; k <= 32; ++k) {
-      const auto row = static_cast<unsigned>(std::min(n, k));
-      const auto column = static_cast<unsigned>(std::max(n, k));
-      if (row >= celt_pvq_table_row_count || column > celt_pvq_fast_row_max_columns[row]) {
+  const auto has_entry = [](int dimensions, int pulses) {
+    const auto row = static_cast<unsigned>(std::min(dimensions, pulses));
+    return row < celt_pvq_table_row_count && std::max(dimensions, pulses) <= celt_pvq_fast_row_max_columns[row];
+  };
+  const auto* mode = celt_mode();
+  std::array<opus_int16, celt_max_band_samples> decoded{};
+  for (int lm = -1; lm <= celt_max_lm; ++lm) {
+    for (int band = 0; band < celt_default_nb_ebands; ++band) {
+      const int n = ((mode->eBands[band + 1] - mode->eBands[band]) << (lm + 1)) >> 1;
+      if (n < 2)
         continue;
-      }
-      const auto total = celt_pvq_u_entry(n, k) + celt_pvq_u_entry(n, k + 1);
-      const std::array<opus_uint32, 7> samples{
-          0U, total / 7U, total / 3U, total / 2U, (total * 5U) / 7U, total > 1U ? total - 2U : 0U, total - 1U};
-      for (const auto index : samples) {
-        zero_n_items(decoded.data(), decoded.size());
-        celt_pvq_unrank(n, k, index, decoded.data());
-        const auto roundtrip = rank_cwrs(std::span{decoded}.first(static_cast<std::size_t>(n)));
-        if (roundtrip != index) {
-          throw std::runtime_error("CWRS roundtrip failed: n=" + std::to_string(n) + " k=" + std::to_string(k) +
-                                   " index=" + std::to_string(index) + " roundtrip=" + std::to_string(roundtrip));
+
+      const int cache_index = mode->cache_index[(lm + 1) * celt_default_nb_ebands + band];
+      if (cache_index < 0 || n > celt_max_band_samples)
+        throw std::runtime_error("CWRS invalid cached dimension: n=" + std::to_string(n));
+      const int max_q = mode->cache_bits[cache_index];
+      for (int q = 1; q <= max_q; ++q) {
+        const int k = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
+        if (!has_entry(n, k) || !has_entry(n, k + 1))
+          throw std::runtime_error("CWRS packed bounds failed: n=" + std::to_string(n) + " k=" + std::to_string(k));
+
+        const auto total = static_cast<std::uint64_t>(celt_pvq_u_entry(n, k)) + celt_pvq_u_entry(n, k + 1);
+        if (total < 2 || total > std::numeric_limits<opus_uint32>::max())
+          throw std::runtime_error("CWRS cardinality failed: n=" + std::to_string(n) + " k=" + std::to_string(k));
+
+        const std::array<std::uint64_t, 7> samples{0, total / 7, total / 3, total / 2, 5 * total / 7, total - 2, total - 1};
+        for (const auto index : samples) {
+          zero_n_items(decoded.data(), decoded.size());
+          celt_pvq_unrank(n, k, static_cast<opus_uint32>(index), decoded.data());
+          const auto vector = std::span{decoded}.first(static_cast<std::size_t>(n));
+          const int pulse_count = std::accumulate(vector.begin(), vector.end(), 0, [](int sum, opus_int16 pulse) {
+            return sum + std::abs(pulse);
+          });
+          if (pulse_count != k || rank_cwrs(vector) != index)
+            throw std::runtime_error("CWRS roundtrip failed: n=" + std::to_string(n) + " k=" + std::to_string(k) +
+                                     " index=" + std::to_string(index));
         }
       }
     }

@@ -9730,7 +9730,6 @@ template <int R>
     }
   }
   for (int p = 0; p < m; ++p) {
-#pragma clang loop vectorize(disable) interleave(disable) unroll(disable)
     for (int q = 0; q < s; q += 4) {
       fft_block<R, 4, false>(x, y, total, q + s * p, s * m, q + s * R * p, s, 1, tw, p, ts);
     }
@@ -9772,7 +9771,8 @@ static float* celt_fft(float* a, float* b, int shift) {
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* scratch) {
   const int N = l->n >> shift, N2 = N >> 1, N4 = N >> 2;
   const float* trig = l->trig + l->n - N;
-  const float scale = 1.f / static_cast<float>(N4);
+  static constexpr float scales[] = {1.f / 480, 1.f / 240, 1.f / 120, 1.f / 60};
+  const float scale = scales[shift];
   float* work = stride == 1 ? out : scratch + N2;
   float* first = fft_input(work, scratch, shift);
   const auto prerotate = [&](int i, float re, float im) {
@@ -9819,10 +9819,9 @@ static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch
   }
 }
 
-[[gnu::cold]] static void clt_mdct_backward_transform_c(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride) {
+[[gnu::cold]] static void clt_mdct_backward_transform(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride, float* scratch) {
   const int N = l->n >> shift, N2 = N >> 1, N4 = N >> 2;
   const float* trig = l->trig + l->n - N;
-  float scratch[celt_max_frame_samples];
   float* work = out + (overlap >> 1);
   float* first = fft_input(work, scratch, shift);
   for (int i = 0; i < N4; ++i) {
@@ -9843,6 +9842,19 @@ static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch
     yp0[1] = li * trig[N2 - i - 1] - lr * trig[mirror];
     yp0 += 2;
     yp1 -= 2;
+  }
+}
+
+[[gnu::cold, gnu::noinline]] static void clt_mdct_backward_short(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride) {
+  float scratch[celt_max_frame_samples / 2];
+  clt_mdct_backward_transform(l, in, out, overlap, shift, stride, scratch);
+}
+
+[[gnu::cold]] static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride) {
+  if (shift == 0) {
+    clt_mdct_backward_transform(l, in, out, overlap, shift, stride, in);
+  } else {
+    clt_mdct_backward_short(l, in, out, overlap, shift, stride);
   }
 }
 
@@ -13789,13 +13801,40 @@ OPUSCPP_LEANO static void silk_nsq_make_lpc_taps(silk_nsq_lpc_taps& taps, const 
 }
 
 struct NSQ_del_dec_struct {
-  alignas(16) opus_int16 lpc_high[104];
-  opus_uint16 lpc_low[104];
-  opus_int32 sLPC_Q14[(5 * 16) + 16];
+  alignas(silk_nsq_wide_tuning ? 16 : alignof(opus_int32)) std::array<opus_int16, silk_nsq_wide_tuning ? 104 : 0> lpc_high;
+  std::array<opus_uint16, silk_nsq_wide_tuning ? 104 : 0> lpc_low;
+  std::array<opus_int32, silk_nsq_wide_tuning ? 0 : (5 * 16) + 16> sLPC_Q14;
   opus_int32 RandState[40]{};
   opus_int8 pulses_Q0[40];
   opus_int32 Xq_Q14[40], Pred_Q15[40], Shape_Q14[40];
   opus_int32 sAR2_Q14[24], LF_AR_Q14, Diff_Q14, Seed, SeedInit, RD_Q10;
+
+  [[nodiscard]] auto lpc_sample(int index) const noexcept -> opus_int32 {
+    if constexpr (silk_nsq_wide_tuning) {
+      const auto high = static_cast<opus_uint32>(lpc_high[index + 1]) << 16;
+      return std::bit_cast<opus_int32>(high | lpc_low[index + 1]);
+    } else {
+      return sLPC_Q14[index];
+    }
+  }
+
+  void set_lpc_sample(int index, opus_int32 sample) noexcept {
+    if constexpr (silk_nsq_wide_tuning) {
+      lpc_high[index + 1] = static_cast<opus_int16>(std::bit_cast<opus_uint32>(sample) >> 16);
+      lpc_low[index + 1] = static_cast<opus_uint16>(sample);
+    } else {
+      sLPC_Q14[index] = sample;
+    }
+  }
+
+  void copy_lpc_history(const NSQ_del_dec_struct& source, int first) noexcept {
+    if constexpr (silk_nsq_wide_tuning) {
+      std::memcpy(lpc_high.data() + 1, source.lpc_high.data() + first + 1, 16 * sizeof(opus_int16));
+      std::memcpy(lpc_low.data() + 1, source.lpc_low.data() + first + 1, 16 * sizeof(opus_uint16));
+    } else {
+      std::memcpy(sLPC_Q14.data(), source.sLPC_Q14.data() + first, 16 * sizeof(opus_int32));
+    }
+  }
 };
 
 struct silk_nsq_block {
@@ -13881,12 +13920,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       auto& dd = psDelDec[k];
       dd.lpc_high[0] = 0;
       dd.lpc_low[0] = 0;
-      for (int m = 0; m < 16; ++m) {
-        const auto value = std::bit_cast<opus_uint32>(dd.sLPC_Q14[m]);
-        dd.lpc_high[m + 1] = static_cast<opus_int16>(value >> 16);
-        dd.lpc_low[m + 1] = static_cast<opus_uint16>(value);
-      }
-      newest_xq[k] = dd.sLPC_Q14[15];
+      newest_xq[k] = dd.lpc_sample(15);
     }
   }
   opus_int32 selected_levels[4], selected_costs[4], lpc_predictions[4], ar_feedback[4], lf_feedback[4], alternate_levels[4], alternate_costs[4];
@@ -13917,9 +13951,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       opus_int32 LPC_pred_Q14;
       if constexpr (silk_nsq_wide_tuning)
         LPC_pred_Q14 = saturating_left_shift<4>(
-            wrap_add(wrap_add(b.order >> 1, silk_mul_wb(newest_xq[k], b.a_Q12[0])), silk_nsq_lpc_prediction(psDD->lpc_high + i, psDD->lpc_low + i, lpc_taps)));
+            wrap_add(wrap_add(b.order >> 1, silk_mul_wb(newest_xq[k], b.a_Q12[0])), silk_nsq_lpc_prediction(psDD->lpc_high.data() + i, psDD->lpc_low.data() + i, lpc_taps)));
       else
-        LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psDD->sLPC_Q14 + 16 + i, b.a_Q12, b.order));
+        LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psDD->sLPC_Q14.data() + 16 + i, b.a_Q12, b.order));
       opus_int32 n_AR_Q14 = use_float ? n_AR_lane[k]
                              : !keep_ar ? (ar_order >> 1) << 1
                                       : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
@@ -13998,13 +14032,12 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       auto& dst = psDelDec[RDmax_ind];
       const auto& src = psDelDec[RDmin_ind];
       if constexpr (silk_nsq_wide_tuning) {
-        std::memcpy(dst.lpc_high + i, src.lpc_high + i, 16 * sizeof(opus_int16));
-        std::memcpy(dst.lpc_low + i, src.lpc_low + i, 16 * sizeof(opus_uint16));
+        std::memcpy(dst.lpc_high.data() + i, src.lpc_high.data() + i, 16 * sizeof(opus_int16));
+        std::memcpy(dst.lpc_low.data() + i, src.lpc_low.data() + i, 16 * sizeof(opus_uint16));
         newest_xq[RDmax_ind] = newest_xq[RDmin_ind];
-        dst.lpc_high[i + 16] = static_cast<opus_int16>(std::bit_cast<opus_uint32>(newest_xq[RDmax_ind]) >> 16);
-        dst.lpc_low[i + 16] = static_cast<opus_uint16>(newest_xq[RDmax_ind]);
+        dst.set_lpc_sample(i + 15, newest_xq[RDmax_ind]);
       } else {
-        std::memcpy(dst.sLPC_Q14 + i, src.sLPC_Q14 + i, 16 * sizeof(opus_int32));
+        std::memcpy(dst.sLPC_Q14.data() + i, src.sLPC_Q14.data() + i, 16 * sizeof(opus_int32));
       }
       constexpr auto ring_offset = offsetof(NSQ_del_dec_struct, RandState);
       const auto copy_end = keep_ar ? offsetof(NSQ_del_dec_struct, LF_AR_Q14) : offsetof(NSQ_del_dec_struct, sAR2_Q14);
@@ -14032,8 +14065,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       psDD->Diff_Q14 = s.Diff_Q14;
       if constexpr (silk_nsq_wide_tuning) {
         newest_xq[k] = s.xq_Q14;
-        psDD->lpc_high[17 + i] = static_cast<opus_int16>(std::bit_cast<opus_uint32>(s.xq_Q14) >> 16);
-        psDD->lpc_low[17 + i] = static_cast<opus_uint16>(s.xq_Q14);
+        psDD->set_lpc_sample(16 + i, s.xq_Q14);
       } else {
         psDD->sLPC_Q14[16 + i] = s.xq_Q14;
       }
@@ -14048,15 +14080,8 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
     }
     delayedGain_Q10[*smpl_buf_idx] = Gain_Q10;
   }
-  for (int k = 0; k < N; k++) {
-    if constexpr (silk_nsq_wide_tuning) {
-#pragma clang loop vectorize(disable) interleave(disable) unroll(disable)
-      for (int m = 0; m < 16; ++m)
-        psDelDec[k].sLPC_Q14[m] = std::bit_cast<opus_int32>((static_cast<opus_uint32>(psDelDec[k].lpc_high[b.length + 1 + m]) << 16) | psDelDec[k].lpc_low[b.length + 1 + m]);
-    } else {
-      std::memcpy(psDelDec[k].sLPC_Q14, &psDelDec[k].sLPC_Q14[b.length], 16 * sizeof(opus_int32));
-    }
-  }
+  for (int k = 0; k < N; k++)
+    psDelDec[k].copy_lpc_history(psDelDec[k], b.length);
   if (use_float) {
     for (int index = 0; index < ar_order; ++index)
       for (int state = 0; state < 4; ++state)
@@ -14112,7 +14137,12 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
       state.LF_AR_Q14 = NSQ->sLF_AR_shp_Q14;
       state.Diff_Q14 = NSQ->sDiff_shp_Q14;
       state.Shape_Q14[0] = NSQ->sLTP_shp_Q14[ltp_mem_length - 1];
-      std::memcpy(state.sLPC_Q14, NSQ->sLPC_Q14, 16 * sizeof(opus_int32));
+      if constexpr (silk_nsq_wide_tuning) {
+        for (int m = 0; m < 16; ++m)
+          state.set_lpc_sample(m, NSQ->sLPC_Q14[m]);
+      } else {
+        std::memcpy(state.sLPC_Q14.data(), NSQ->sLPC_Q14, 16 * sizeof(opus_int32));
+      }
       if (keep_ar)
         std::memcpy(state.sAR2_Q14, NSQ->sAR2_Q14, sizeof(NSQ->sAR2_Q14));
     }
@@ -14194,14 +14224,19 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
           const auto& first = psDelDec[0];
           state.LF_AR_Q14 = first.LF_AR_Q14;
           state.Diff_Q14 = first.Diff_Q14;
-          std::memcpy(state.sLPC_Q14, first.sLPC_Q14, 16 * sizeof(opus_int32));
+          state.copy_lpc_history(first, 0);
           if (keep_ar)
             std::memcpy(state.sAR2_Q14, first.sAR2_Q14, sizeof(state.sAR2_Q14));
           state.Shape_Q14[0] = first.Shape_Q14[0];
         } else if (gain_adj_Q16 != (1 << 16)) {
           state.LF_AR_Q14 = multiply_q16(gain_adj_Q16, state.LF_AR_Q14);
           state.Diff_Q14 = multiply_q16(gain_adj_Q16, state.Diff_Q14);
-          scale_q16_buffer(state.sLPC_Q14, 16, gain_adj_Q16);
+          if constexpr (silk_nsq_wide_tuning) {
+            for (int m = 0; m < 16; ++m)
+              state.set_lpc_sample(m, multiply_q16(gain_adj_Q16, state.lpc_sample(m)));
+          } else {
+            scale_q16_buffer(state.sLPC_Q14.data(), 16, gain_adj_Q16);
+          }
           if (keep_ar)
             scale_q16_buffer(state.sAR2_Q14, 24, gain_adj_Q16);
           scale_q16_buffer(state.Pred_Q15, k == 0 ? 0 : 40, gain_adj_Q16);
@@ -14240,7 +14275,12 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
       pxq[i - decisionDelay] = scale_and_saturate_q14<8>(psDD->Xq_Q14[last_smple_idx], Gain_Q10);
       NSQ->sLTP_shp_Q14[NSQ->sLTP_shp_buf_idx - decisionDelay + i] = psDD->Shape_Q14[last_smple_idx];
     }
-    std::memcpy(NSQ->sLPC_Q14, psDD->sLPC_Q14, 16 * sizeof(opus_int32));
+    if constexpr (silk_nsq_wide_tuning) {
+      for (int m = 0; m < 16; ++m)
+        NSQ->sLPC_Q14[m] = psDD->lpc_sample(m);
+    } else {
+      std::memcpy(NSQ->sLPC_Q14, psDD->sLPC_Q14.data(), 16 * sizeof(opus_int32));
+    }
     if (keep_ar)
       std::memcpy(NSQ->sAR2_Q14, psDD->sAR2_Q14, sizeof(psDD->sAR2_Q14));
     NSQ->sLF_AR_shp_Q14 = psDD->LF_AR_Q14;
@@ -17396,6 +17436,8 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
     const opus_int16 ec_prevLagIndex_copy = psEnc->sCmn.ec_prevLagIndex;
     const int ec_prevSignalType_copy = psEnc->sCmn.ec_prevSignalType;
     opus_uint8 ec_buf_copy[1275];
+    const auto lower_tuple = std::as_writable_bytes(std::span{x_buffer});
+    static_assert(decltype(lower_tuple)::extent >= sizeof(SideInfoIndices) + silk_max_frame_length);
     const int bits_margin = useCBR ? 5 : maxBits / 4;
     for (int iter = 0;; ++iter) {
       opus_int32 nBits;
@@ -17523,6 +17565,8 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
           *psRangeEnc = sRangeEnc_copy2;
           std::memcpy(psRangeEnc->buf, ec_buf_copy, static_cast<std::size_t>(sRangeEnc_copy2.offs));
           silk_nsq_load(nsq_working, sNSQ_best);
+          std::memcpy(&psEnc->sCmn.indices, lower_tuple.data(), sizeof(SideInfoIndices));
+          std::memcpy(frame_pulses.data(), lower_tuple.data() + sizeof(SideInfoIndices), frame);
           psEnc->sShape.LastGainIndex = LastGainIndex_copy2;
         }
         break;
@@ -17541,6 +17585,8 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
           sRangeEnc_copy2 = *psRangeEnc;
           std::memcpy(ec_buf_copy, psRangeEnc->buf, static_cast<std::size_t>(psRangeEnc->offs));
           silk_nsq_store(sNSQ_best, nsq_working);
+          std::memcpy(lower_tuple.data(), &psEnc->sCmn.indices, sizeof(SideInfoIndices));
+          std::memcpy(lower_tuple.data() + sizeof(SideInfoIndices), frame_pulses.data(), frame);
           LastGainIndex_copy2 = psEnc->sShape.LastGainIndex;
         }
         lower = {nBits, gainMult_Q8, gainsID};
