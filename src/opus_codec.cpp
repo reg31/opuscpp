@@ -5042,41 +5042,12 @@ static void process_energy_finalise(int start, int end, celt_glog* oldEBands, ce
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM);
 static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth);
 
-[[nodiscard]] constexpr auto celt_bits2pulses_search(const unsigned char* cache, int bits) noexcept -> int {
-  int lo = 0;
-  int hi = cache[0];
-  --bits;
-  for (int i = 0; i < 6; ++i) {
-    const int mid = (lo + hi + 1) >> 1;
-    if (static_cast<int>(cache[mid]) >= bits) {
-      hi = mid;
-    } else {
-      lo = mid;
-    }
-  }
-  const int low_distance = bits - (lo == 0 ? -1 : static_cast<int>(cache[lo]));
-  const int high_distance = static_cast<int>(cache[hi]) - bits;
-  return low_distance <= high_distance ? lo : hi;
-}
-
-struct celt_pulse_budget {
-  int pulses;
-  int bits;
-};
-
-[[nodiscard]] static auto compute_celt_pulse_budget(const unsigned char* cache, int bits) noexcept -> celt_pulse_budget {
-  const int pulses = celt_bits2pulses_search(cache, bits);
-  return {pulses, pulses == 0 ? 0 : cache[pulses] + 1};
-}
-
 struct celt_rotation_cache {
   std::uint64_t key{};
   opus_val16 c{}, s{};
   int stride2{};
 };
 
-static inline unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr, celt_rotation_cache* rotation_cache = nullptr);
-static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy);
 static void renormalise_vector(celt_norm* X, int N, opus_val32 gain);
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N);
 static int hysteresis_decision(int val, std::span<const opus_uint8> thresholds, std::span<const opus_uint8> hysteresis, int prev) {
@@ -5285,29 +5256,12 @@ static inline void stereo_split(celt_norm* X, celt_norm* Y, int N) {
   }
 }
 
-struct celt_theta_feedback {
-  double correlation_squared{};
-  bool valid{};
-};
-
-static void stereo_merge(celt_norm* X, celt_norm* Y, opus_val32 mid, int N, celt_theta_feedback* feedback = nullptr) {
-  if (feedback != nullptr)
-    feedback->valid = false;
-  opus_val32 xp = celt_inner_prod_c(Y, X, N), side = celt_inner_prod_c(Y, Y, N);
-  const auto child_cross = xp;
-  xp = mid * xp;
+static void stereo_merge(celt_norm* X, celt_norm* Y, opus_val32 mid, int N) {
+  opus_val32 xp = mid * celt_inner_prod_c(Y, X, N), side = celt_inner_prod_c(Y, Y, N);
   opus_val32 El = mid * mid + side - 2 * xp, Er = mid * mid + side + 2 * xp;
   if (Er < 6e-4f || El < 6e-4f) {
     copy_n_items(X, static_cast<std::size_t>(N), Y);
     return;
-  }
-  if (feedback != nullptr && side > 0.f) {
-    const double cross = child_cross;
-    const double correlation_squared = cross * cross / side;
-    if (std::isfinite(correlation_squared)) {
-      feedback->correlation_squared = std::clamp(correlation_squared, 0.0, 1.0);
-      feedback->valid = true;
-    }
   }
   opus_val32 lgain = 1.f / std::sqrt(El), rgain = 1.f / std::sqrt(Er);
   for (int j = 0; j < N; j++) {
@@ -5323,9 +5277,8 @@ static void remap_hadamard(celt_norm* X, int N0, int stride, int hadamard, const
   if (stride <= 1 || N0 <= 0) {
     return;
   }
-  const auto count = static_cast<std::size_t>(N0 * stride);
   std::array<celt_norm, celt_max_band_samples> tmp;
-  const opus_uint8* ordery = hadamard ? ordery_table.data() + stride - 2 : nullptr;
+  const opus_uint8* ordery = ordery_table.data() + stride - 2;
   for (int i = 0; i < stride; ++i) {
     const int reordered_i = hadamard ? ordery[i] : i;
     for (int j = 0; j < N0; ++j) {
@@ -5336,19 +5289,16 @@ static void remap_hadamard(celt_norm* X, int N0, int stride, int hadamard, const
       }
     }
   }
-  copy_n_items(tmp.data(), count, X);
+  copy_n_items(tmp.data(), static_cast<std::size_t>(N0 * stride), X);
 }
 
 static void haar1(celt_norm* X, int N0, int stride) {
-  int i, j;
-  N0 >>= 1;
-  for (i = 0; i < stride; i++) {
-    for (j = 0; j < N0; j++) {
-      opus_val32 tmp1, tmp2;
-      tmp1 = (((.70710678f)) * (X[stride * 2 * j + i]));
-      tmp2 = (((.70710678f)) * (X[stride * (2 * j + 1) + i]));
-      X[stride * 2 * j + i] = ((tmp1) + (tmp2));
-      X[stride * (2 * j + 1) + i] = ((tmp1) - (tmp2));
+  for (int i = 0; i < stride; i++) {
+    for (int j = 0; j < N0 >> 1; j++) {
+      celt_norm* p = X + stride * 2 * j + i;
+      const opus_val32 a = .70710678f * p[0], b = .70710678f * p[stride];
+      p[0] = a + b;
+      p[stride] = a - b;
     }
   }
 }
@@ -5401,15 +5351,10 @@ struct c2_consumer_plan {
   double incumbent_error = 0;
 };
 
-enum class celt_split_trial {
-  nearest,
-  lower,
-  upper
-};
-
 struct band_ctx {
-  int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise, theta_round;
-  opus_int32 raw_stereo_itheta;
+  int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise;
+  bool rdo;
+  opus_val32 rdo_angle, rdo_left, rdo_right;
   ec_ctx* ec;
   opus_int32 remaining_bits;
   const celt_ener* bandE;
@@ -5418,16 +5363,21 @@ struct band_ctx {
   bool refine_mono;
   bool changed_blocks;
   mono_fold_plan* mono_plan;
-  celt_rotation_cache* rotation_cache{};
-  celt_split_trial split_trial{};
-  int coherent_theta{-1};
+  celt_rotation_cache* rotation_cache;
 };
 
 struct split_ctx {
   int inv, imid, iside, delta, itheta, qalloc;
 };
 
-[[nodiscard]] static auto celt_theta_model_gains(int angle) -> std::array<int, 2> {
+static opus_val32 celt_gram_angle(opus_val32 left, opus_val32 right, opus_val32 cross) {
+  const auto total = left + right;
+  if (total == 0.f)
+    return 0.f;
+  return std::atan2(std::sqrt(std::max(0.f, total - 2.f * cross)), std::sqrt(std::max(0.f, total + 2.f * cross)));
+}
+
+[[nodiscard]] static auto celt_theta_gains(int angle) -> std::array<int, 2> {
   if (angle == 0)
     return {32767, 0};
   if (angle == 16384)
@@ -5435,57 +5385,29 @@ struct split_ctx {
   return {bitexact_cos(static_cast<opus_int16>(angle)), bitexact_cos(static_cast<opus_int16>(16384 - angle))};
 }
 
-struct celt_first_theta {
-  int qn, index, angle, imid, iside;
-};
+[[nodiscard]] static int celt_theta_delta(int N, int imid, int iside) {
+  return (16384 + static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) * static_cast<opus_int16>(bitexact_log2tan(iside, imid))) >> 15;
+}
 
-static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM, int stereo, int* fill, const celt_first_theta* first_theta = nullptr) {
-  int qn, itheta = 0, itheta_q30 = 0;
-  int delta, imid, iside;
-  int qalloc, pulse_cap, offset;
-  opus_int32 tell;
-  int inv = 0;
-  int i, intensity;
-  const int encode = ctx->encode;
-  i = ctx->i;
-  intensity = ctx->intensity;
+static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_norm* Y, int N, int* b, int B, int B0, int LM, int stereo, int* fill) {
+  const int encode = ctx->encode, i = ctx->i;
   auto* ec = ctx->ec;
-  const auto* bandE = ctx->bandE;
-  pulse_cap = celt_mode()->logN[i] + LM * (1 << 3);
-  offset = (pulse_cap >> 1) - (stereo && N == 2 ? 16 : 4);
-  qn = first_theta != nullptr ? first_theta->qn : compute_qn(N, *b, offset, pulse_cap, stereo);
-  if (stereo && i >= intensity) {
+  const int pulse_cap = celt_mode()->logN[i] + LM * (1 << 3);
+  const int offset = (pulse_cap >> 1) - (stereo && N == 2 ? 16 : 4);
+  int qn = compute_qn(N, *b, offset, pulse_cap, stereo);
+  if (stereo && i >= ctx->intensity) {
     qn = 1;
   }
-  if (encode && first_theta == nullptr) {
-    if (stereo && (ctx->theta_round == 1 || ctx->theta_round == -2)) {
-      itheta_q30 = ctx->raw_stereo_itheta;
-    } else {
-      itheta_q30 = stereo_itheta(X, Y, stereo, N);
-      if (stereo && ctx->theta_round == -1)
-        ctx->raw_stereo_itheta = itheta_q30;
-    }
-    itheta = itheta_q30 >> 16;
-  }
-  tell = ec_tell_frac(ec);
+  int itheta = encode ? stereo_itheta(X, Y, stereo, N) >> 16 : 0;
+  int inv = 0;
+  const opus_int32 tell = ec_tell_frac(ec);
   if (qn != 1) {
     if (encode) {
-      if (first_theta != nullptr) {
-        itheta = first_theta->index;
-      } else if (!stereo || ctx->theta_round == 0) {
-        if (!stereo && ctx->split_trial != celt_split_trial::nearest) {
-          const auto scaled = itheta * static_cast<opus_int32>(qn);
-          itheta = (scaled + (ctx->split_trial == celt_split_trial::upper ? 16383 : 0)) >> 14;
-          ctx->split_trial = celt_split_trial::nearest;
-        } else
-          itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
+      if (!stereo || !ctx->rdo) {
+        itheta = (itheta * static_cast<opus_int32>(qn) + 8192) >> 14;
         if (!stereo && ctx->avoid_split_noise && itheta > 0 && itheta < qn) {
-          int unquantized = celt_quantized_theta_runtime(itheta, qn);
-          imid = bitexact_cos(static_cast<opus_int16>(unquantized));
-          iside = bitexact_cos(static_cast<opus_int16>(16384 - unquantized));
-          delta = ((16384 + (static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) *
-                             static_cast<opus_int16>(bitexact_log2tan(iside, imid)))) >>
-                   15);
+          const int unquantized = celt_quantized_theta_runtime(itheta, qn);
+          const int delta = celt_theta_delta(N, bitexact_cos(static_cast<opus_int16>(unquantized)), bitexact_cos(static_cast<opus_int16>(16384 - unquantized)));
           if (delta > *b) {
             itheta = qn;
           } else if (delta < -*b) {
@@ -5495,23 +5417,34 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
       } else {
         const int bias = itheta > 8192 ? 32767 / qn : -32767 / qn;
         const int down = std::min(qn - 1, std::max(0, static_cast<int>((itheta * static_cast<opus_int32>(qn) + bias) >> 14)));
-        itheta = ctx->theta_round < 0 ? down : down + 1;
+        opus_val32 best_error = std::numeric_limits<opus_val32>::infinity();
+        itheta = down;
+        for (int up = 0; up < 2; ++up) {
+          const auto gains = celt_theta_gains(celt_quantized_theta_runtime(down + up, qn));
+          const opus_val32 sum = static_cast<opus_val32>(gains[0]) * gains[0] + static_cast<opus_val32>(gains[1]) * gains[1];
+          const opus_val32 difference = static_cast<opus_val32>(gains[0]) * gains[0] - static_cast<opus_val32>(gains[1]) * gains[1];
+          const opus_val32 error = celt_gram_angle(ctx->rdo_left * ctx->rdo_left * sum, ctx->rdo_right * ctx->rdo_right * sum, ctx->rdo_left * ctx->rdo_right * difference) - ctx->rdo_angle;
+          if (error * error < best_error) {
+            best_error = error * error;
+            itheta = down + up;
+          }
+        }
       }
-      if (stereo && ctx->coherent_theta >= 0)
-        itheta = ctx->coherent_theta != 0 ? qn : 0;
     }
     if (stereo && N > 2) {
-      int p0 = 3, x = itheta, x0 = qn / 2, ft = p0 * (x0 + 1) + x0;
-      if (encode) {
-        ec_encode(ec, x <= x0 ? p0 * x : (x - 1 - x0) + (x0 + 1) * p0, x <= x0 ? p0 * (x + 1) : (x - x0) + (x0 + 1) * p0, ft);
-      } else {
-        int fs = ec_decode(ec, ft);
-        if (fs < (x0 + 1) * p0) {
-          x = fs / p0;
-        } else
-          x = x0 + 1 + (fs - (x0 + 1) * p0);
-        ec_dec_update(ec, x <= x0 ? p0 * x : (x - 1 - x0) + (x0 + 1) * p0, x <= x0 ? p0 * (x + 1) : (x - x0) + (x0 + 1) * p0, ft);
+      const int p0 = 3, x0 = qn / 2, ft = p0 * (x0 + 1) + x0;
+      int x = itheta;
+      if (!encode) {
+        const int fs = ec_decode(ec, ft);
+        x = fs < (x0 + 1) * p0 ? fs / p0 : x0 + 1 + (fs - (x0 + 1) * p0);
         itheta = x;
+      }
+      const int fl = x <= x0 ? p0 * x : (x - 1 - x0) + (x0 + 1) * p0;
+      const int fh = x <= x0 ? p0 * (x + 1) : (x - x0) + (x0 + 1) * p0;
+      if (encode) {
+        ec_encode(ec, fl, fh, ft);
+      } else {
+        ec_dec_update(ec, fl, fh, ft);
       }
     } else if (B0 > 1 || stereo) {
       if (encode) {
@@ -5519,33 +5452,30 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
       } else
         itheta = ec_dec_uint(ec, qn + 1);
     } else {
-      int fs, ft;
-      ft = ((qn >> 1) + 1) * ((qn >> 1) + 1);
+      const int half = qn >> 1, ft = (half + 1) * (half + 1);
+      int fs, fl;
       if (encode) {
-        fs = itheta <= (qn >> 1) ? itheta + 1 : qn + 1 - itheta;
-        const int fl = itheta <= (qn >> 1) ? itheta * (itheta + 1) >> 1 : ft - ((qn + 1 - itheta) * (qn + 2 - itheta) >> 1);
+        fs = itheta <= half ? itheta + 1 : qn + 1 - itheta;
+        fl = itheta <= half ? itheta * (itheta + 1) >> 1 : ft - ((qn + 1 - itheta) * (qn + 2 - itheta) >> 1);
         ec_encode(ec, fl, fl + fs, ft);
       } else {
-        int fl;
-        int fm = ec_decode(ec, ft);
-        if (fm < ((qn >> 1) * ((qn >> 1) + 1) >> 1)) {
+        const int fm = ec_decode(ec, ft);
+        if (fm < (half * (half + 1) >> 1)) {
           itheta = static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(fm) + 1) - 1) >> 1);
           fs = itheta + 1;
           fl = itheta * (itheta + 1) >> 1;
         } else {
-          const int theta_value = ft - fm - 1;
-          const int theta_ceil = static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(theta_value) + 1) + 1) >> 1);
-          itheta = qn + 1 - theta_ceil;
+          itheta = qn + 1 - static_cast<int>((celt_isqrt32_runtime(8 * static_cast<opus_uint32>(ft - fm - 1) + 1) + 1) >> 1);
           fs = qn + 1 - itheta;
           fl = ft - ((qn + 1 - itheta) * (qn + 2 - itheta) >> 1);
         }
         ec_dec_update(ec, fl, fl + fs, ft);
       }
     }
-    itheta = first_theta != nullptr ? first_theta->angle : celt_quantized_theta_runtime(itheta, qn);
+    itheta = celt_quantized_theta_runtime(itheta, qn);
     if (encode && stereo) {
       if (itheta == 0) {
-        intensity_stereo(X, Y, bandE, i, N);
+        intensity_stereo(X, Y, ctx->bandE, i, N);
       } else
         stereo_split(X, Y, N);
     }
@@ -5555,7 +5485,7 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
       if (inv) {
         negate_n(Y, N);
       }
-      intensity_stereo(X, Y, bandE, i, N);
+      intensity_stereo(X, Y, ctx->bandE, i, N);
     }
     if (*b > 2 << 3 && ctx->remaining_bits > 2 << 3) {
       if (encode) {
@@ -5569,42 +5499,452 @@ static void compute_theta(band_ctx* ctx, split_ctx* sctx, celt_norm* X, celt_nor
     }
     itheta = 0;
   }
-  qalloc = ec_tell_frac(ec) - tell;
+  const int qalloc = ec_tell_frac(ec) - tell;
   *b -= qalloc;
+  const auto gains = celt_theta_gains(itheta);
+  int delta = itheta == 0 ? -16384 : 16384;
   if (itheta == 0) {
-    imid = 32767;
-    iside = 0;
     *fill &= (1 << B) - 1;
-    delta = -16384;
   } else if (itheta == 16384) {
-    imid = 0;
-    iside = 32767;
     *fill &= ((1 << B) - 1) << B;
-    delta = 16384;
   } else {
-    imid = first_theta != nullptr ? first_theta->imid : bitexact_cos(static_cast<opus_int16>(itheta));
-    iside = first_theta != nullptr ? first_theta->iside : bitexact_cos(static_cast<opus_int16>(16384 - itheta));
-    delta = ((16384 +
-              (static_cast<opus_int32>(static_cast<opus_int16>((N - 1) << 7)) * static_cast<opus_int16>(bitexact_log2tan(iside, imid)))) >>
-             15);
+    delta = celt_theta_delta(N, gains[0], gains[1]);
   }
-  *sctx = {inv, imid, iside, delta, itheta, qalloc};
+  *sctx = {inv, gains[0], gains[1], delta, itheta, qalloc};
+}
+
+static constexpr auto celt_pvq_table_row_count = 15U;
+static constexpr std::array<opus_uint8, celt_pvq_table_row_count> celt_pvq_fast_row_max_columns{176, 176, 176, 176, 176, 176, 96, 54,
+                                                                                                37, 28, 24, 19, 18, 16, 14};
+
+[[nodiscard]] consteval auto make_celt_pvq_fast_row_offsets() noexcept {
+  std::array<opus_uint16, celt_pvq_table_row_count + 1> offsets{};
+  for (std::size_t row = 0; row < celt_pvq_table_row_count; ++row) {
+    offsets[row + 1] = offsets[row] + celt_pvq_fast_row_max_columns[row] + 1U;
+  }
+  return offsets;
+}
+
+static constexpr auto celt_pvq_fast_row_offsets_storage = make_celt_pvq_fast_row_offsets();
+static std::array<opus_uint32, celt_pvq_fast_row_offsets_storage.back()> celt_pvq_u_fast_rows_storage;
+
+[[gnu::cold]] static bool fill_celt_pvq_u_fast_rows() noexcept {
+  auto& rows = celt_pvq_u_fast_rows_storage;
+  const auto get = [&](std::size_t row, std::size_t column) {
+    if (row > column) {
+      std::swap(row, column);
+    }
+    return rows[celt_pvq_fast_row_offsets_storage[row] + column];
+  };
+  for (std::size_t row_index = 0; row_index < celt_pvq_table_row_count; ++row_index) {
+    const auto offset = celt_pvq_fast_row_offsets_storage[row_index];
+    for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
+      rows[offset + column] = row_index == 0       ? static_cast<opus_uint32>(column == 0)
+                              : column < row_index ? get(column, row_index)
+                              : column == 0        ? 0U
+                                                   : get(row_index - 1, column) + rows[offset + column - 1] + get(row_index - 1, column - 1);
+    }
+  }
+  return true;
+}
+
+[[nodiscard]] static auto celt_pvq_row(unsigned row) noexcept -> const opus_uint32* {
+  return celt_pvq_u_fast_rows_storage.data() + celt_pvq_fast_row_offsets_storage[row];
+}
+
+[[nodiscard]] static auto celt_pvq_u_entry(int row, int column) noexcept -> opus_uint32 {
+  if (row > column) {
+    std::swap(row, column);
+  }
+  return celt_pvq_row(static_cast<unsigned>(row))[column];
+}
+
+[[nodiscard]] static inline auto celt_pvq_v_entry(int dimensions, int pulses) noexcept -> opus_uint32 {
+  return celt_pvq_u_entry(dimensions, pulses) + celt_pvq_u_entry(dimensions, pulses + 1);
+}
+
+static auto celt_pvq_unrank(int n, int k, opus_uint32 index, opus_int16* out) noexcept -> opus_val32 {
+  opus_val32 yy = 0;
+  int position = 0;
+  while (n > 2) {
+    opus_uint32 p, q;
+    const int k0 = k;
+    int sign;
+    if (k >= n) {
+      const auto* row = celt_pvq_row(static_cast<unsigned>(n));
+      p = row[k + 1];
+      sign = -(index >= p);
+      index -= p & sign;
+      if (row[n] > index) {
+        for (k = n; (p = celt_pvq_row(static_cast<unsigned>(--k))[n]) > index;) {}
+      } else {
+        for (p = row[k]; p > index; p = row[--k]) {}
+      }
+    } else {
+      const int limit = std::max(2, k);
+      const auto* lower = celt_pvq_row(static_cast<unsigned>(k)) + n;
+      const auto* upper = celt_pvq_row(static_cast<unsigned>(k + 1)) + n;
+      p = *lower;
+      q = *upper;
+      while (p <= index && index < q) {
+        index -= p;
+        out[position++] = 0;
+        --n;
+        if (n <= limit)
+          break;
+        p = *--lower;
+        q = *--upper;
+      }
+      if (n <= limit)
+        continue;
+      sign = -(index >= q);
+      index -= q & sign;
+      while ((p = celt_pvq_row(static_cast<unsigned>(--k))[n]) > index) {}
+    }
+    index -= p;
+    const auto value = static_cast<opus_int16>((k0 - k + sign) ^ sign);
+    out[position++] = value;
+    yy += static_cast<opus_val32>(value * value);
+    --n;
+  }
+  auto p = static_cast<opus_uint32>(2 * k + 1);
+  const int sign0 = -(index >= p);
+  index -= p & sign0;
+  const int k0 = k;
+  k = (index + 1) >> 1;
+  if (k != 0) {
+    index -= 2 * k - 1;
+  }
+  auto value = static_cast<opus_int16>((k0 - k + sign0) ^ sign0);
+  out[position] = value;
+  yy += static_cast<opus_val32>(value * value);
+  const int sign1 = -static_cast<int>(index);
+  value = static_cast<opus_int16>((k + sign1) ^ sign1);
+  out[position + 1] = value;
+  return yy + static_cast<opus_val32>(value * value);
+}
+
+static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_val16 s) {
+  const opus_val16 ms = -s;
+  if (stride == 1) {
+    if (len <= 1)
+      return;
+    celt_norm carry = X[0];
+    for (int i = 0; i < len - 1; ++i) {
+      const celt_norm x2 = X[i + 1];
+      const celt_norm next = c * x2 + s * carry;
+      X[i] = c * carry + ms * x2;
+      carry = next;
+    }
+    X[len - 1] = carry;
+    if (len > 2) {
+      carry = X[len - 2];
+      for (int i = len - 3; i >= 0; --i) {
+        const celt_norm x1 = X[i];
+        const celt_norm upper = c * carry + s * x1;
+        const celt_norm next = c * x1 + ms * carry;
+        X[i + 1] = upper;
+        carry = next;
+      }
+      X[0] = carry;
+    }
+    return;
+  }
+  const auto rotate = [&](int i) {
+    const celt_norm x1 = X[i];
+    const celt_norm x2 = X[i + stride];
+    X[i + stride] = c * x2 + s * x1;
+    X[i] = c * x1 + ms * x2;
+  };
+  for (int i = 0; i < len - stride; ++i) {
+    rotate(i);
+  }
+  for (int i = len - 2 * stride - 1; i >= 0; --i) {
+    rotate(i);
+  }
+}
+
+static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int spread, celt_rotation_cache* cache = nullptr) {
+  constexpr std::array<opus_uint8, 3> SPREAD_FACTOR{15, 10, 5};
+  if (2 * K >= len || spread == 0) {
+    return;
+  }
+  const std::uint64_t key = (static_cast<std::uint64_t>(len) << 32) | (static_cast<std::uint64_t>(K) << 8) |
+                            (static_cast<std::uint64_t>(stride) << 2) | static_cast<std::uint64_t>(spread);
+  celt_rotation_cache entry;
+  if (cache != nullptr && cache->key == key) {
+    entry = *cache;
+  } else {
+    const auto gain = static_cast<opus_val16>(static_cast<opus_val32>(len) / static_cast<opus_val32>(len + SPREAD_FACTOR[spread - 1] * K));
+    const auto angle = (.5f * 3.1415926535897931) * static_cast<opus_val16>(.5f * gain * gain);
+    entry = {key, static_cast<opus_val16>(std::cos(angle)), static_cast<opus_val16>(std::sin(angle)), 0};
+    if (len >= 8 * stride) {
+      entry.stride2 = 1;
+      for (; (entry.stride2 * entry.stride2 + entry.stride2) * stride + (stride >> 2) < len; ++entry.stride2) {}
+    }
+    if (cache != nullptr)
+      *cache = entry;
+  }
+  const opus_val16 c = entry.c, s = entry.s;
+  len = celt_udiv(len, stride);
+  for (int i = 0; i < stride; ++i) {
+    auto* x = X + i * len;
+    if (dir < 0) {
+      if (entry.stride2) {
+        exp_rotation1(x, len, entry.stride2, s, c);
+      }
+      exp_rotation1(x, len, 1, c, s);
+    } else {
+      exp_rotation1(x, len, 1, c, -s);
+      if (entry.stride2) {
+        exp_rotation1(x, len, entry.stride2, s, -c);
+      }
+    }
+  }
+}
+
+struct celt_pvq_quant_result {
+  unsigned collapse_mask;
+  opus_uint32 index;
+};
+
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks) -> celt_pvq_quant_result {
+  std::array<celt_norm, celt_max_band_samples> y;
+  for (int j = 0; j < N; ++j) {
+    iy[j] = X[j] < 0;
+    X[j] = std::abs(X[j]);
+  }
+  opus_val32 xy = 0;
+  opus_val16 yy = 0;
+  int pulsesLeft = K;
+  if (K > (N >> 1)) {
+    opus_val32 sum = 0;
+    for (int idx = 0; idx < N; ++idx) {
+      sum += X[idx];
+    }
+    if (!(sum > 1e-15f && sum < 64)) {
+      X[0] = (1.f);
+      zero_n_items(X + 1, static_cast<std::size_t>(N - 1));
+      sum = (1.f);
+    }
+    const opus_val16 rcp = (K + 0.8f) * (1.f / sum);
+    for (int j = 0; j < N; ++j) {
+      const int pulse_int = static_cast<int>(rcp * X[j]);
+      const auto pulse = static_cast<celt_norm>(pulse_int);
+      iy[j] = (pulse_int << 1) | (iy[j] & 1);
+      yy += static_cast<opus_val32>(pulse) * static_cast<opus_val32>(pulse);
+      xy += static_cast<opus_val32>(X[j]) * static_cast<opus_val32>(pulse);
+      y[j] = 2 * pulse;
+      pulsesLeft -= pulse_int;
+    }
+  } else {
+    zero_n_items(y.data(), static_cast<std::size_t>(N));
+  }
+  if (pulsesLeft > N + 3) {
+    const auto tmp = static_cast<opus_val16>(pulsesLeft);
+    yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(tmp);
+    yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(y[0]);
+    y[0] += 2 * pulsesLeft;
+    iy[0] += 2 * pulsesLeft;
+    pulsesLeft = 0;
+  }
+  std::array<opus_val32, celt_max_band_samples> candidate_num;
+  for (int i = 0; i < pulsesLeft; ++i) {
+    int best_id = 0;
+    yy += 1;
+    for (int candidate = 0; candidate < N; ++candidate) {
+      const opus_val32 rxy = xy + X[candidate];
+      candidate_num[candidate] = rxy * rxy;
+    }
+    opus_val32 best_num = candidate_num[0], best_den = yy + y[0];
+    for (int candidate = 1; candidate < N; ++candidate) {
+      const opus_val32 den = yy + y[candidate];
+      if (best_den * candidate_num[candidate] > den * best_num) {
+        best_den = den;
+        best_num = candidate_num[candidate];
+        best_id = candidate;
+      }
+    }
+    xy += X[best_id];
+    yy = best_den;
+    y[best_id] += 2;
+    iy[best_id] += 2;
+  }
+  const int block_size = B <= 1 ? N : celt_udiv(N, B);
+  if (refine_mono) {
+    const int blocks = B <= 1 ? 1 : B;
+    std::array<int, 1 << (celt_max_lm + 1)> block_pulses;
+    for (int block = 0; block < blocks && B > 1; ++block) {
+      int count = 0;
+      for (int index = block * block_size; index < std::min(N, (block + 1) * block_size); ++index)
+        count += iy[index] >> 1;
+      block_pulses[block] = count;
+    }
+    double dot = 0, norm = static_cast<double>(yy);
+    for (int index = 0; index < N; ++index) {
+      dot += static_cast<double>(X[index]) * (iy[index] >> 1);
+    }
+    double best_dot = dot, best_norm = norm;
+    const int groups = protect_blocks ? blocks : 1;
+    std::array<int, 1 << (celt_max_lm + 1)> maximum, minimum;
+    const bool projected_gradient = block_size > 0 && std::isfinite(dot) && std::isfinite(norm) && norm > 0;
+    const auto group_begin = [&](int group) { return protect_blocks ? group * block_size : 0; };
+    const auto group_end = [&](int group) { return protect_blocks ? std::min(N, group * block_size + block_size) : N; };
+    for (int group = 0; group < groups; ++group) {
+      const int begin = group_begin(group), end = group_end(group);
+      int best = begin, least = -1;
+      double best_gradient = norm * X[begin] - dot * (iy[begin] >> 1), least_gradient = best_gradient;
+      for (int index = begin; index < end; ++index) {
+        const double gradient = norm * X[index] - dot * (iy[index] >> 1);
+        if (gradient > best_gradient) {
+          best_gradient = gradient;
+          best = index;
+        }
+        if ((iy[index] >> 1) > 0 && (least < 0 || gradient < least_gradient)) {
+          least = index;
+          least_gradient = gradient;
+        }
+      }
+      maximum[group] = best;
+      minimum[group] = least;
+    }
+    int donor = -1, receiver = -1;
+    for (int from_group = 0; from_group < groups; ++from_group) {
+      const int first = projected_gradient ? minimum[from_group] : group_begin(from_group);
+      const int last = projected_gradient ? (first < 0 ? first : first + 1) : group_end(from_group);
+      for (int from = first; from < last; ++from) {
+        const int count = iy[from] >> 1;
+        if (count == 0)
+          continue;
+        const double reduced_dot = dot - X[from];
+        const double reduced_norm = norm - 2 * count + 1;
+        for (int to_group = 0; to_group < groups; ++to_group) {
+          const int to = maximum[to_group];
+          if (from == to || (protect_blocks && B > 1 && from_group != to_group && (block_pulses[from_group] == 1 || block_pulses[to_group] == 0)))
+            continue;
+          const double next_dot = reduced_dot + X[to];
+          const double next_norm = reduced_norm + 2 * (iy[to] >> 1) + 1;
+          if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
+            best_dot = next_dot;
+            best_norm = next_norm;
+            donor = from;
+            receiver = to;
+          }
+        }
+      }
+    }
+    int moved = donor >= 0 ? 1 : 0;
+    if (donor >= 0) {
+      int limit = iy[donor] >> 1;
+      if (protect_blocks && B > 1 && celt_udiv(donor, block_size) != celt_udiv(receiver, block_size))
+        limit = std::min(limit, block_pulses[celt_udiv(donor, block_size)] - 1);
+      const double delta = static_cast<double>(X[receiver]) - X[donor];
+      const int count_delta = (iy[receiver] >> 1) - (iy[donor] >> 1);
+      const double denominator = 2 * dot - delta * count_delta;
+      const double stationary = denominator > 0 ? std::clamp((delta * norm - dot * count_delta) / denominator, 0., static_cast<double>(limit)) : static_cast<double>(limit);
+      const int left = static_cast<int>(stationary);
+      for (const int count : {left, std::min(limit, left + 1), limit}) {
+        if (count == 0)
+          continue;
+        const double next_dot = dot + count * delta;
+        const double next_norm = norm + 2 * count * count_delta + 2 * count * count;
+        if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
+          best_dot = next_dot;
+          best_norm = next_norm;
+          moved = count;
+        }
+      }
+    }
+    if (moved != 0) {
+      if (changed_blocks != nullptr && B > 1) {
+        const int from = celt_udiv(donor, block_size);
+        const int to = celt_udiv(receiver, block_size);
+        *changed_blocks |= from != to && (block_pulses[from] == moved || block_pulses[to] == 0);
+      }
+      iy[donor] -= 2 * moved;
+      iy[receiver] += 2 * moved;
+      yy = static_cast<opus_val16>(best_norm);
+    }
+  }
+  const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
+  unsigned collapse_mask = B <= 1;
+  const int collapse_limit = B <= 1 ? 0 : B * block_size;
+  opus_uint32 index = 0;
+  int k = 0;
+  for (int j = N - 1; j >= 0; --j) {
+    const int packed_pulse = iy[j];
+    const int pulse = packed_pulse >> 1;
+    if (j < N - 1) {
+      index += celt_pvq_u_entry(N - j, k);
+    }
+    k += pulse;
+    if (pulse != 0) {
+      if (j < collapse_limit) {
+        collapse_mask |= 1U << celt_udiv(j, block_size);
+      }
+      if ((packed_pulse & 1) != 0) {
+        index += celt_pvq_u_entry(N - j, k + (j < N - 1));
+      }
+    }
+    if (resynth) {
+      const opus_val32 reconstructed = static_cast<opus_val32>(pulse);
+      X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
+    }
+  }
+  return {collapse_mask, index};
+}
+
+static unsigned alg_quant(band_ctx* ctx, celt_norm* X, int N, int K, int B, opus_val32 gain) {
+  const bool rotate = 2 * K < N && ctx->spread != 0;
+  if (rotate)
+    exp_rotation(X, N, 1, B, K, ctx->spread, ctx->rotation_cache);
+  std::array<int, celt_max_band_samples> iy;
+  const auto* plan = ctx->mono_plan;
+  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, ctx->resynth, ctx->refine_mono, plan == nullptr || (plan->protect_mask & (1U << ctx->i)) != 0, plan != nullptr ? &ctx->changed_blocks : nullptr);
+  ec_enc_uint(ctx->ec, quant.index, celt_pvq_v_entry(N, K));
+  if (ctx->resynth && rotate) {
+    exp_rotation(X, N, -1, B, K, ctx->spread, ctx->rotation_cache);
+  }
+  return quant.collapse_mask;
+}
+
+static unsigned alg_unquant(band_ctx* ctx, celt_norm* X, int N, int K, int B, opus_val32 gain) {
+  auto* iy = ctx->decode_pulse_scratch;
+  const opus_val32 g = (1.f / std::sqrt(celt_pvq_unrank(N, K, ec_dec_uint(ctx->ec, celt_pvq_v_entry(N, K)), iy))) * gain;
+  for (int j = 0; j < N; ++j) {
+    X[j] = static_cast<opus_val32>(iy[j]) * g;
+  }
+  const int N0 = celt_udiv(N, B);
+  unsigned collapse_mask = B <= 1;
+  for (int block = 0; block < B && B > 1; ++block) {
+    unsigned any = 0;
+    for (int j = block * N0; j < (block + 1) * N0; ++j) {
+      any |= static_cast<unsigned>(iy[j]);
+    }
+    collapse_mask |= (any != 0) << block;
+  }
+  exp_rotation(X, N, -1, B, K, ctx->spread);
+  return collapse_mask;
+}
+
+static void renormalise_vector(celt_norm* X, int N, opus_val32 gain) {
+  const opus_val32 E = 1e-15f + celt_inner_prod_c(X, X, N);
+  const opus_val16 g = (1.f / std::sqrt(E)) * gain;
+  for (int i = 0; i < N; ++i) {
+    X[i] = g * X[i];
+  }
 }
 
 static unsigned quant_band_n1(band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_norm* lowband_out) {
-  int c;
   celt_norm* x = X;
-  const int encode = ctx->encode;
-  auto* ec = ctx->ec;
-  const int stereo = Y != nullptr;
-  for (c = 0; c < 1 + stereo; ++c) {
+  for (int c = 0; c < 1 + (Y != nullptr); ++c) {
     int sign = 0;
     if (ctx->remaining_bits >= 1 << 3) {
-      if (encode) {
+      if (ctx->encode) {
         sign = x[0] < 0;
-        ec_enc_bits(ec, sign, 1);
+        ec_enc_bits(ctx->ec, sign, 1);
       } else {
-        sign = ec_dec_bits(ec, 1);
+        sign = ec_dec_bits(ctx->ec, 1);
       }
       ctx->remaining_bits -= 1 << 3;
     }
@@ -5620,23 +5960,13 @@ static unsigned quant_band_n1(band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_no
 }
 
 static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain, int fill, const unsigned char* cache) {
-  int q, curr_bits;
-  int B0 = B;
+  const int B0 = B;
   unsigned cm = 0;
-  celt_norm* Y = nullptr;
-  int i, spread;
-  const int encode = ctx->encode;
-  i = ctx->i;
-  spread = ctx->spread;
-  auto* ec = ctx->ec;
   if (LM != -1 && b > cache[cache[0]] + 12 && N > 2) {
-    int mbits, sbits;
-    celt_norm* next_lowband2 = nullptr;
-    opus_int32 rebalance;
     N >>= 1;
-    Y = X + N;
+    celt_norm* Y = X + N;
     LM -= 1;
-    const auto* child_cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + i];
+    const auto* child_cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + ctx->i];
     if (B == 1) {
       fill = (fill & 1) | (fill << 1);
     }
@@ -5652,14 +5982,11 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
         split.delta = std::min(0, split.delta + ((N << 3) >> (5 - LM)));
       }
     }
-    if (lowband) {
-      next_lowband2 = lowband + N;
-    }
-    const int half_delta_bits = (b - split.delta) / 2;
-    mbits = std::max(0, std::min(b, half_delta_bits));
-    sbits = b - mbits;
+    celt_norm* next_lowband2 = lowband != nullptr ? lowband + N : nullptr;
+    int mbits = std::max(0, std::min(b, (b - split.delta) / 2));
+    int sbits = b - mbits;
     ctx->remaining_bits -= split.qalloc;
-    rebalance = ctx->remaining_bits;
+    opus_int32 rebalance = ctx->remaining_bits;
     if (mbits >= sbits) {
       cm = quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill, child_cache);
       rebalance = mbits - (rebalance - ctx->remaining_bits);
@@ -5675,95 +6002,66 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
       }
       cm |= quant_partition(ctx, X, N, mbits, B, lowband, LM, gain * mid, fill, child_cache);
     }
-  } else {
-    const auto pulse_budget = compute_celt_pulse_budget(cache, b);
-    q = pulse_budget.pulses;
-    curr_bits = pulse_budget.bits;
-    ctx->remaining_bits -= curr_bits;
-    for (; ctx->remaining_bits < 0 && q > 0;) {
-      ctx->remaining_bits += curr_bits;
-      q--;
-      curr_bits = q == 0 ? 0 : cache[q] + 1;
-      ctx->remaining_bits -= curr_bits;
+    return cm;
+  }
+  const auto pulse_cost = [cache](int pulses) { return pulses == 0 ? 0 : cache[pulses] + 1; };
+  int q = 0;
+  {
+    int lo = 0, hi = cache[0];
+    const int bits = b - 1;
+    for (int step = 0; step < 6; ++step) {
+      const int mid = (lo + hi + 1) >> 1;
+      (static_cast<int>(cache[mid]) >= bits ? hi : lo) = mid;
     }
-    if (ctx->mono_plan != nullptr && q == 0 && gain != 0)
-      ctx->mono_plan->used_mask |= ctx->mono_plan->fold_mask;
-    if (q != 0) {
-      int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-      cm = encode ? alg_quant(X, N, K, spread, B, ec, gain, ctx->resynth, ctx->refine_mono, ctx->mono_plan == nullptr || (ctx->mono_plan->protect_mask & (1U << i)) != 0, ctx->mono_plan != nullptr ? &ctx->changed_blocks : nullptr, ctx->rotation_cache) : alg_unquant(X, N, K, spread, B, ec, gain, ctx->decode_pulse_scratch);
+    q = bits - (lo == 0 ? -1 : static_cast<int>(cache[lo])) <= static_cast<int>(cache[hi]) - bits ? lo : hi;
+  }
+  int curr_bits = pulse_cost(q);
+  ctx->remaining_bits -= curr_bits;
+  while (ctx->remaining_bits < 0 && q > 0) {
+    ctx->remaining_bits += curr_bits;
+    curr_bits = pulse_cost(--q);
+    ctx->remaining_bits -= curr_bits;
+  }
+  if (ctx->mono_plan != nullptr && q == 0 && gain != 0)
+    ctx->mono_plan->used_mask |= ctx->mono_plan->fold_mask;
+  if (q != 0) {
+    const int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
+    return ctx->encode ? alg_quant(ctx, X, N, K, B, gain) : alg_unquant(ctx, X, N, K, B, gain);
+  }
+  if (ctx->resynth) {
+    const auto cm_mask = static_cast<unsigned>(1UL << B) - 1;
+    fill &= cm_mask;
+    if (!fill) {
+      zero_n_items(X, static_cast<std::size_t>(N));
     } else {
-      int j;
-      if (ctx->resynth) {
-        const auto cm_mask = static_cast<unsigned>(1UL << B) - 1;
-        fill &= cm_mask;
-        if (!fill) {
-          zero_n_items(X, static_cast<std::size_t>(N));
+      for (int j = 0; j < N; j++) {
+        ctx->seed = celt_lcg_rand(ctx->seed);
+        if (lowband == nullptr) {
+          X[j] = static_cast<celt_norm>(static_cast<opus_int32>(ctx->seed) >> 20);
         } else {
-          if (lowband == nullptr) {
-            constexpr opus_uint32 a = 1664525U, offset = 1013904223U;
-            constexpr opus_uint32 a2 = a * a, a3 = a2 * a, a4 = a3 * a;
-            constexpr opus_uint32 b2 = a * offset + offset, b3 = a * b2 + offset, b4 = a * b3 + offset;
-            for (j = 0; j + 3 < N; j += 4) {
-              const auto seed = ctx->seed;
-              const std::array<opus_uint32, 4> next{a * seed + offset, a2 * seed + b2, a3 * seed + b3, a4 * seed + b4};
-              for (int k = 0; k < 4; ++k)
-                X[j + k] = static_cast<celt_norm>(static_cast<opus_int32>(next[k]) >> 20);
-              ctx->seed = next[3];
-            }
-            for (; j < N; j++) {
-              ctx->seed = celt_lcg_rand(ctx->seed);
-              X[j] = (static_cast<celt_norm>(static_cast<opus_int32>(ctx->seed) >> 20));
-            }
-            cm = cm_mask;
-          } else {
-            constexpr opus_uint32 a = 1664525U, offset = 1013904223U;
-            constexpr opus_uint32 a2 = a * a, a3 = a2 * a, a4 = a3 * a;
-            constexpr opus_uint32 b2 = a * offset + offset, b3 = a * b2 + offset, b4 = a * b3 + offset;
-            for (j = 0; j + 3 < N; j += 4) {
-              const auto seed = ctx->seed;
-              const std::array<opus_uint32, 4> next{a * seed + offset, a2 * seed + b2, a3 * seed + b3, a4 * seed + b4};
-              for (int k = 0; k < 4; ++k) {
-                ctx->seed = next[k];
-                opus_val16 tmp = (1.0f / 256);
-                tmp = (ctx->seed) & 0x8000 ? tmp : -tmp;
-                X[j + k] = lowband[j + k] + tmp;
-              }
-            }
-            for (; j < N; j++) {
-              ctx->seed = celt_lcg_rand(ctx->seed);
-              opus_val16 tmp = (1.0f / 256);
-              tmp = (ctx->seed) & 0x8000 ? tmp : -tmp;
-              X[j] = lowband[j] + tmp;
-            }
-            cm = fill;
-          }
-          renormalise_vector(X, N, gain);
+          const opus_val16 tmp = 1.0f / 256;
+          X[j] = lowband[j] + (ctx->seed & 0x8000 ? tmp : -tmp);
         }
       }
+      cm = lowband == nullptr ? cm_mask : fill;
+      renormalise_vector(X, N, gain);
     }
   }
   return cm;
 }
 
 static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, opus_val32 gain, celt_norm* lowband_scratch, int fill) {
-  int N0 = N, N_B = N, N_B0, B0 = B, time_divide = 0, recombine = 0, longBlocks;
-  unsigned cm = 0;
-  int k, encode, tf_change;
-  encode = ctx->encode;
-  tf_change = ctx->tf_change;
-  longBlocks = B0 == 1;
-  N_B = celt_udiv(N_B, B);
+  const int N0 = N, B0 = B, encode = ctx->encode;
+  int N_B = celt_udiv(N, B), time_divide = 0, tf_change = ctx->tf_change;
   if (N == 1) {
     return quant_band_n1(ctx, X, nullptr, lowband_out);
   }
-  if (tf_change > 0) {
-    recombine = tf_change;
-  }
+  const int recombine = std::max(0, tf_change);
   if (lowband_scratch && lowband && (recombine || ((N_B & 1) == 0 && tf_change < 0) || B0 > 1)) {
     copy_n_items(lowband, static_cast<std::size_t>(N), lowband_scratch);
     lowband = lowband_scratch;
   }
-  for (k = 0; k < recombine; k++) {
+  for (int k = 0; k < recombine; k++) {
     if (encode) {
       haar1(X, N >> k, 1 << k);
     }
@@ -5786,40 +6084,38 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
     N_B >>= 1;
     time_divide++;
   }
-  B0 = B;
-  N_B0 = N_B;
-  if (B0 > 1) {
+  const int B1 = B, N_B1 = N_B;
+  if (B1 > 1) {
     if (encode) {
-      remap_hadamard(X, N_B >> recombine, B0 << recombine, longBlocks, false);
+      remap_hadamard(X, N_B >> recombine, B1 << recombine, B0 == 1, false);
     }
     if (lowband) {
-      remap_hadamard(lowband, N_B >> recombine, B0 << recombine, longBlocks, false);
+      remap_hadamard(lowband, N_B >> recombine, B1 << recombine, B0 == 1, false);
     }
   }
   const auto* cache = celt_mode()->cache_bits + celt_mode()->cache_index[(LM + 1) * celt_default_nb_ebands + ctx->i];
-  cm = quant_partition(ctx, X, N, b, B, lowband, LM, gain, fill, cache);
+  unsigned cm = quant_partition(ctx, X, N, b, B, lowband, LM, gain, fill, cache);
   if (ctx->resynth) {
-    if (B0 > 1) {
-      remap_hadamard(X, N_B >> recombine, B0 << recombine, longBlocks, true);
+    if (B1 > 1) {
+      remap_hadamard(X, N_B1 >> recombine, B1 << recombine, B0 == 1, true);
     }
-    N_B = N_B0;
-    B = B0;
-    for (k = 0; k < time_divide; k++) {
+    N_B = N_B1;
+    B = B1;
+    for (int k = 0; k < time_divide; k++) {
       B >>= 1;
       N_B <<= 1;
       cm |= cm >> B;
       haar1(X, N_B, B);
     }
-    for (k = 0; k < recombine; k++) {
+    for (int k = 0; k < recombine; k++) {
       cm = bit_deinterleave_table[cm];
       haar1(X, N0 >> k, 1 << k);
     }
     B <<= recombine;
     if (lowband_out) {
-      int j;
-      opus_val16 n = (static_cast<float>(std::sqrt(((N0)))));
-      for (j = 0; j < N0; j++) {
-        lowband_out[j] = ((n) * (X[j]));
+      const opus_val16 n = static_cast<float>(std::sqrt(N0));
+      for (int j = 0; j < N0; j++) {
+        lowband_out[j] = n * X[j];
       }
     }
     cm &= (1 << B) - 1;
@@ -5827,43 +6123,38 @@ static unsigned quant_band(band_ctx* ctx, celt_norm* X, int N, int b, int B, cel
   return cm;
 }
 
-static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, celt_norm* lowband_scratch, int fill, celt_theta_feedback* theta_feedback = nullptr, const celt_first_theta* first_theta = nullptr) {
-  if (theta_feedback != nullptr)
-    theta_feedback->valid = false;
+static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int N, int b, int B, celt_norm* lowband, int LM, celt_norm* lowband_out, celt_norm* lowband_scratch, int fill) {
   ctx->refine_mono = ctx->encode && ctx->i < ctx->intensity;
   unsigned cm = 0;
-  int mbits, sbits;
   const int encode = ctx->encode;
   auto* ec = ctx->ec;
   if (N == 1) {
     return quant_band_n1(ctx, X, Y, lowband_out);
   }
   const int orig_fill = fill;
-  if (encode) {
-    if (ctx->bandE[ctx->i] < 1e-10f || ctx->bandE[celt_default_nb_ebands + ctx->i] < 1e-10f) {
-      if (ctx->bandE[ctx->i] > ctx->bandE[celt_default_nb_ebands + ctx->i]) {
-        copy_n_items(X, static_cast<std::size_t>(N), Y);
-      } else
-        copy_n_items(Y, static_cast<std::size_t>(N), X);
-    }
+  if (encode && (ctx->bandE[ctx->i] < 1e-10f || ctx->bandE[celt_default_nb_ebands + ctx->i] < 1e-10f)) {
+    if (ctx->bandE[ctx->i] > ctx->bandE[celt_default_nb_ebands + ctx->i]) {
+      copy_n_items(X, static_cast<std::size_t>(N), Y);
+    } else
+      copy_n_items(Y, static_cast<std::size_t>(N), X);
   }
   split_ctx split;
-  compute_theta(ctx, &split, X, Y, N, &b, B, B, LM, 1, &fill, first_theta);
+  compute_theta(ctx, &split, X, Y, N, &b, B, B, LM, 1, &fill);
   const auto mid = (1.f / 32768) * split.imid;
   const auto side = (1.f / 32768) * split.iside;
+  int mbits, sbits;
   if (N == 2) {
-    int c, sign = 0;
-    celt_norm *x2, *y2;
+    int sign = 0;
     mbits = b;
     sbits = 0;
     if (split.itheta != 0 && split.itheta != 16384) {
       sbits = 1 << 3;
     }
     mbits -= sbits;
-    c = split.itheta > 8192;
+    const int c = split.itheta > 8192;
     ctx->remaining_bits -= split.qalloc + sbits;
-    x2 = c ? Y : X;
-    y2 = c ? X : Y;
+    celt_norm* x2 = c ? Y : X;
+    celt_norm* y2 = c ? X : Y;
     if (sbits) {
       if (encode) {
         sign = ((x2[0]) * (y2[1])) - ((x2[1]) * (y2[0])) < 0;
@@ -5889,8 +6180,7 @@ static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int
       Y[1] = ((tmp) + (Y[1]));
     }
   } else {
-    const int half_delta_bits = (b - split.delta) / 2;
-    mbits = std::max(0, std::min(b, half_delta_bits));
+    mbits = std::max(0, std::min(b, (b - split.delta) / 2));
     sbits = b - mbits;
     ctx->remaining_bits -= split.qalloc;
     auto rebalance = ctx->remaining_bits;
@@ -5912,7 +6202,7 @@ static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int
   }
   if (ctx->resynth) {
     if (N != 2) {
-      stereo_merge(X, Y, mid, N, theta_feedback);
+      stereo_merge(X, Y, mid, N);
     }
     if (split.inv) {
       negate_n(Y, N);
@@ -5922,10 +6212,9 @@ static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int
 }
 
 static void special_hybrid_folding(celt_norm* norm, celt_norm* norm2, int start, int M, int dual_stereo) {
-  int n1, n2;
   const opus_int16* eBands = celt_mode()->eBands;
-  n1 = M * (eBands[start + 1] - eBands[start]);
-  n2 = M * (eBands[start + 2] - eBands[start + 1]);
+  const int n1 = M * (eBands[start + 1] - eBands[start]);
+  const int n2 = M * (eBands[start + 2] - eBands[start + 1]);
   copy_n_items(&norm[2 * n1 - n2], static_cast<std::size_t>(n2 - n1), &norm[n1]);
   if (dual_stereo) {
     copy_n_items(&norm2[2 * n1 - n2], static_cast<std::size_t>(n2 - n1), &norm2[n1]);
@@ -5940,32 +6229,24 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false, c2_consumer_plan* c2_plan = nullptr) {
-  int i;
-  opus_int32 remaining_bits;
+static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false, c2_consumer_plan* = nullptr) {
   const opus_int16* eBands = celt_mode()->eBands;
-  celt_norm *norm, *norm2;
-  celt_norm* lowband_scratch;
-  int B, M, lowband_offset;
-  int update_lowband = 1;
-  int C = Y_ != nullptr ? 2 : 1;
+  constexpr int nbEBands = celt_default_nb_ebands;
+  const int C = Y_ != nullptr ? 2 : 1;
   const int theta_rdo = encode && Y_ != nullptr && !dual_stereo;
   const int resynth = !encode || theta_rdo || mono_resynth;
-  struct band_ctx ctx;
-  M = 1 << LM;
-  B = shortBlocks ? M : 1;
+  const int M = 1 << LM;
+  const int B = shortBlocks ? M : 1;
   const int norm_offset = M * eBands[start];
-  const int norm_size = M * eBands[celt_default_nb_ebands - 1] - norm_offset;
+  const int norm_size = M * eBands[nbEBands - 1] - norm_offset;
   std::array<celt_norm, celt_max_norm_samples> norm_storage;
-  norm = norm_storage.data();
-  norm2 = norm + norm_size;
+  celt_norm* const norm = norm_storage.data();
+  celt_norm* const norm2 = norm + norm_size;
   std::array<celt_norm, celt_max_band_samples> lowband_scratch_storage;
-  lowband_scratch = lowband_scratch_storage.data();
-  std::array<celt_norm, celt_max_band_samples> X_save_storage, Y_save_storage, X_save2_storage, Y_save2_storage, norm_save2_storage;
-  std::array<unsigned char, 1275> bytes_save_storage;
-  std::array<opus_int16, celt_max_band_samples> decode_pulse_scratch_storage;
-  auto* decode_pulse_scratch = !encode ? decode_pulse_scratch_storage.data() : nullptr;
-  lowband_offset = 0;
+  celt_norm* lowband_scratch = lowband_scratch_storage.data();
+  std::array<opus_int16, celt_max_band_samples> decode_pulse_scratch;
+  celt_rotation_cache rotation_cache;
+  band_ctx ctx{};
   ctx.bandE = bandE;
   ctx.ec = ec;
   ctx.encode = encode;
@@ -5976,13 +6257,10 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.resynth = resynth;
   ctx.refine_mono = encode && Y_ == nullptr;
   ctx.mono_plan = mono_plan;
-  int fold_offset = 0;
-  ctx.decode_pulse_scratch = decode_pulse_scratch;
+  ctx.decode_pulse_scratch = decode_pulse_scratch.data();
   ctx.avoid_split_noise = B > 1;
-  ctx.theta_round = 0;
-  ctx.raw_stereo_itheta = 0;
-  celt_rotation_cache rotation_cache;
   ctx.rotation_cache = encode ? &rotation_cache : nullptr;
+  int lowband_offset = 0, fold_offset = 0, update_lowband = 1;
   const int process_end = encode && !mono_resynth ? std::min(end, codedBands) : end;
   const auto mark_fold_sources = [&](int band, int width, unsigned& mask) {
     if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
@@ -5995,404 +6273,95 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
         mask |= 1U << start;
     }
   };
-  for (i = start; i < process_end; i++) {
-    opus_int32 tell;
-    int b, N;
-    opus_int32 curr_balance;
+  for (int i = start; i < process_end; i++) {
     int effective_lowband = -1;
-    celt_norm *X, *Y;
-    int tf_change = 0;
-    unsigned x_cm;
-    unsigned y_cm;
-    int last;
+    unsigned x_cm, y_cm;
     ctx.i = i;
     ctx.changed_blocks = false;
-    ctx.split_trial = celt_split_trial::nearest;
-    ctx.coherent_theta = -1;
-    last = (i == end - 1);
-    X = X_ + M * eBands[i];
-    Y = Y_ != nullptr ? Y_ + M * eBands[i] : nullptr;
-    N = M * eBands[i + 1] - M * eBands[i];
-    tell = ec_tell_frac(ec);
+    const int last = i == end - 1;
+    celt_norm* const X = X_ + M * eBands[i];
+    celt_norm* const Y = Y_ != nullptr ? Y_ + M * eBands[i] : nullptr;
+    const int N = M * eBands[i + 1] - M * eBands[i];
+    const opus_int32 tell = ec_tell_frac(ec);
     if (i != start) {
       balance -= tell;
     }
-    remaining_bits = total_bits - tell - 1;
+    const opus_int32 remaining_bits = total_bits - tell - 1;
     ctx.remaining_bits = remaining_bits;
+    int b = 0;
     if (i <= codedBands - 1) {
-      curr_balance = celt_sudiv(balance, std::min(3, codedBands - i));
-      const int raw_bits = std::min(remaining_bits + 1, pulses[i] + curr_balance);
-      b = std::max(0, std::min(16383, raw_bits));
-    } else {
-      b = 0;
+      const opus_int32 curr_balance = celt_sudiv(balance, std::min(3, codedBands - i));
+      b = std::max(0, std::min(16383, std::min(remaining_bits + 1, pulses[i] + curr_balance)));
     }
+    const bool foldable = M * eBands[i] - N >= M * eBands[start] || i == start + 1;
     if (mono_plan != nullptr) {
-      if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || fold_offset == 0))
+      if (foldable && (update_lowband || fold_offset == 0))
         fold_offset = i;
       mono_plan->fold_mask = 0;
       mark_fold_sources(i, N, mono_plan->fold_mask);
     }
     if (resynth) {
-      if ((M * eBands[i] - N >= M * eBands[start] || i == start + 1) && (update_lowband || lowband_offset == 0)) {
+      if (foldable && (update_lowband || lowband_offset == 0)) {
         lowband_offset = i;
       }
       if (i == start + 1) {
         special_hybrid_folding(norm, norm2, start, M, dual_stereo);
       }
     }
-    tf_change = tf_res[i];
+    const int tf_change = tf_res[i];
     ctx.tf_change = tf_change;
     if (last) {
       lowband_scratch = nullptr;
     }
     if (lowband_offset != 0 && (spread != 3 || B > 1 || tf_change < 0)) {
-      int fold_start, fold_end, fold_i;
       effective_lowband = std::max(0, M * eBands[lowband_offset] - norm_offset - N);
-      fold_start = lowband_offset;
+      int fold_start = lowband_offset, fold_end = lowband_offset - 1;
       for (; M * eBands[--fold_start] > effective_lowband + norm_offset;) {}
-      fold_end = lowband_offset - 1;
       for (; ++fold_end < i && M * eBands[fold_end] < effective_lowband + norm_offset + N;) {}
       x_cm = y_cm = 0;
-      for (fold_i = fold_start;; ++fold_i) {
+      for (int fold_i = fold_start; fold_i < fold_end; ++fold_i) {
         x_cm |= collapse_masks[fold_i * C];
         y_cm |= collapse_masks[fold_i * C + C - 1];
-        if (fold_i + 1 >= fold_end) {
-          break;
-        }
       }
     } else
       x_cm = y_cm = (1 << B) - 1;
     if (dual_stereo && i == intensity) {
-      int j;
       dual_stereo = 0;
       if (resynth)
-        for (j = 0; j < M * eBands[i] - norm_offset; j++) {
+        for (int j = 0; j < M * eBands[i] - norm_offset; j++) {
           norm[j] = (.5f * (norm[j] + norm2[j]));
         }
     }
-    auto* const lowband = effective_lowband != -1 ? norm + effective_lowband : nullptr;
-    auto* const lowband2 = effective_lowband != -1 ? norm2 + effective_lowband : nullptr;
-    auto* const lowband_out = last ? nullptr : norm + M * eBands[i] - norm_offset;
-    auto* const lowband_out2 = last ? nullptr : norm2 + M * eBands[i] - norm_offset;
+    celt_norm* const lowband = effective_lowband != -1 ? norm + effective_lowband : nullptr;
+    celt_norm* const lowband2 = effective_lowband != -1 ? norm2 + effective_lowband : nullptr;
+    celt_norm* const lowband_out = last ? nullptr : norm + M * eBands[i] - norm_offset;
+    celt_norm* const lowband_out2 = last ? nullptr : norm2 + M * eBands[i] - norm_offset;
     if (dual_stereo) {
       x_cm = quant_band(&ctx, X, N, b / 2, B, lowband, LM, lowband_out, 1.0f, lowband_scratch, x_cm);
       y_cm = quant_band(&ctx, Y, N, b / 2, B, lowband2, LM, lowband_out2, 1.0f, lowband_scratch, y_cm);
-    } else {
-      if (Y != nullptr) {
-        if (theta_rdo && i < intensity) {
-          ec_ctx ec_save, ec_save2;
-          band_ctx ctx_save, ctx_save2;
-          opus_val32 dist0, dist1;
-          unsigned cm, cm2;
-          int nstart_bytes, nend_bytes, save_bytes;
-          unsigned char* bytes_buf;
-          const bool source_correlated = std::equal(X, X + N, Y);
-          const bool source_anticorrelated = std::equal(X, X + N, Y, [](celt_norm left, celt_norm right) {
-            return left == -right;
-          });
-          const bool coherent_source = source_correlated != source_anticorrelated;
-          const bool reuse_split_trials = B > 1 && coherent_source &&
-                                          !(bandE[i] < 1e-10f || bandE[celt_default_nb_ebands + i] < 1e-10f) &&
-                                          (c2_plan == nullptr || c2_plan->band < 0 || i < c2_plan->band ||
-                                           i >= c2_plan->band + c2_plan->horizon);
-          if (reuse_split_trials) {
-            ctx.coherent_theta = source_anticorrelated ? 1 : 0;
-            ctx.split_trial = celt_split_trial::lower;
-          }
-          const auto left_gain = coded_log_energy != nullptr
-                                     ? exp2f(std::min(32.f, coded_log_energy[i] + static_cast<opus_val32>(eMeans[i])))
-                                     : bandE[i];
-          const auto right_gain = coded_log_energy != nullptr
-                                      ? exp2f(std::min(32.f, coded_log_energy[celt_default_nb_ebands + i] + static_cast<opus_val32>(eMeans[i])))
-                                      : bandE[celt_default_nb_ebands + i];
-          const auto inverse_scale = 1.f / std::max({bandE[i], bandE[celt_default_nb_ebands + i], left_gain, right_gain});
-          const auto gram = [N, B](const celt_norm* left, const celt_norm* right, opus_val32 left_amplitude, opus_val32 right_amplitude) {
-            std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> result{};
-            if (B == 1) {
-              std::array<opus_val32, 3> dot{};
-              for (int j = 0; j < N; ++j) {
-                const auto l = left[j];
-                const auto r = right[j];
-                dot[0] += l * l;
-                dot[1] += r * r;
-                dot[2] += l * r;
-              }
-              result[0] = {left_amplitude * left_amplitude * dot[0],
-                           right_amplitude * right_amplitude * dot[1],
-                           left_amplitude * right_amplitude * dot[2]};
-            } else {
-              for (int block = 0; block < B; ++block) {
-                auto& value = result[block];
-                for (int j = block; j < N; j += B) {
-                  const auto l = left_amplitude * left[j];
-                  const auto r = right_amplitude * right[j];
-                  value[0] += l * l;
-                  value[1] += r * r;
-                  value[2] += l * r;
-                }
-              }
-            }
-            return result;
-          };
-          const bool prepare_theta = B == 1 && N > 1 &&
-                                     !(bandE[i] < 1e-10f || bandE[celt_default_nb_ebands + i] < 1e-10f);
-          std::array<std::array<opus_val32, 3>, 1 << celt_max_lm> source_gram{};
-          if (prepare_theta) {
-            const auto left_amplitude = inverse_scale * bandE[i];
-            const auto right_amplitude = inverse_scale * bandE[celt_default_nb_ebands + i];
-            std::array<opus_val32, 3> dot{};
-            opus_val32 Emid = 0;
-            opus_val32 Eside = 0;
-            for (int j = 0; j < N; ++j) {
-              const auto l = X[j];
-              const auto r = Y[j];
-              dot[0] += l * l;
-              dot[1] += r * r;
-              dot[2] += l * r;
-              const celt_norm m = l + r;
-              const celt_norm s = l - r;
-              Emid = Emid + static_cast<opus_val32>(m) * static_cast<opus_val32>(m);
-              Eside = Eside + static_cast<opus_val32>(s) * static_cast<opus_val32>(s);
-            }
-            source_gram[0] = {left_amplitude * left_amplitude * dot[0],
-                              right_amplitude * right_amplitude * dot[1],
-                              left_amplitude * right_amplitude * dot[2]};
-            const opus_val32 mid = std::sqrt(Emid);
-            const opus_val32 side = std::sqrt(Eside);
-            const auto angle = side * side + mid * mid < 1e-18f ? 0.0f : side < mid ? celt_atan_norm(side / mid)
-                                                                                    : 1.0f - celt_atan_norm(mid / side);
-            ctx.raw_stereo_itheta = static_cast<int>(std::floor(.5f + 65536.f * 16384 * angle));
-          } else {
-            source_gram = gram(X, Y, inverse_scale * bandE[i], inverse_scale * bandE[celt_default_nb_ebands + i]);
-          }
-          const auto stereo_angle = [](const std::array<opus_val32, 3>& value) {
-            const auto total = value[0] + value[1];
-            if (total == 0.f)
-              return 0.f;
-            const auto cross = 2.f * value[2];
-            return std::atan2(std::sqrt(std::max(0.f, total - cross)), std::sqrt(std::max(0.f, total + cross)));
-          };
-          const bool scalar_rank = B == 1 && source_gram[0][0] + source_gram[0][1] > 0.f &&
-                                   (c2_plan == nullptr || c2_plan->band < 0);
-          std::array<opus_val32, 1 << celt_max_lm> source_angles;
-          if (scalar_rank) {
-            const auto total = source_gram[0][0] + source_gram[0][1];
-            const auto cross = 2.f * source_gram[0][2];
-            source_angles[0] = std::max(0.f, total + cross);
-            source_angles[1] = std::max(0.f, total - cross);
-          } else
-            for (int block = 0; block < B; ++block)
-              source_angles[block] = stereo_angle(source_gram[block]);
-          const int blocks = scalar_rank ? 0 : B;
-          const auto trial_error = [&, left_gain, right_gain, inverse_scale, blocks](const celt_norm* left, const celt_norm* right) {
-            if (!reuse_split_trials) {
-              const auto reconstructed = gram(left, right, inverse_scale * left_gain, inverse_scale * right_gain);
-              if (blocks == 0) {
-                const auto total = reconstructed[0][0] + reconstructed[0][1];
-                const auto cross = 2.f * reconstructed[0][2];
-                const auto mid = std::max(0.f, total + cross);
-                const auto side = std::max(0.f, total - cross);
-                const double power = static_cast<double>(mid) + side;
-                if (power == 0)
-                  return source_angles[1];
-                const double residual = std::sqrt(static_cast<double>(source_angles[0]) * side) - std::sqrt(static_cast<double>(source_angles[1]) * mid);
-                return static_cast<opus_val32>(residual * residual / power);
-              }
-              opus_val32 error = 0;
-              for (int block = 0; block < blocks; ++block) {
-                const auto difference = stereo_angle(reconstructed[block]) - source_angles[block];
-                error += difference * difference;
-              }
-              return error;
-            }
-            const auto source_left = inverse_scale * bandE[i];
-            const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
-            const auto decoded_left = inverse_scale * left_gain;
-            const auto decoded_right = inverse_scale * right_gain;
-            double error = 0;
-            for (int j = 0; j < N; ++j) {
-              const double dl = static_cast<double>(decoded_left * left[j]) - source_left * X_save_storage[j];
-              const double dr = static_cast<double>(decoded_right * right[j]) - source_right * Y_save_storage[j];
-              error += dl * dl + dr * dr;
-            }
-            return static_cast<opus_val32>(error);
-          };
-
-          int theta_model_qn = 0;
-          int theta_model_down = 0;
-          bool theta_model_enabled = false;
-          bool theta_first_upper = false;
-          double theta_target_correlation = 0.0;
-          double theta_target_orthogonal = 0.0;
-          double theta_gain_contrast = 0.0;
-          std::array<std::array<double, 3>, 2> theta_geometry{};
-          std::array<celt_first_theta, 2> theta_prepared{};
-          const auto theta_model_score = [&](bool upper, double correlation_squared) {
-            const auto& geometry = theta_geometry[static_cast<std::size_t>(upper)];
-            const double determinant = geometry[1] * geometry[1] - geometry[2] * correlation_squared;
-            if (!(determinant > 0.0))
-              return -std::numeric_limits<double>::infinity();
-            const double contrast = std::clamp(theta_gain_contrast * geometry[0] / std::sqrt(determinant), -1.0, 1.0);
-            return theta_target_correlation * contrast +
-                   theta_target_orthogonal * std::sqrt(std::max(0.0, 1.0 - contrast * contrast));
-          };
-          if (prepare_theta && scalar_rank && !coherent_source && N > 2 &&
-              (c2_plan == nullptr || c2_plan->band < 0)) {
-            const int pulse_cap = celt_mode()->logN[i] + LM * (1 << 3);
-            theta_model_qn = compute_qn(N, b, (pulse_cap >> 1) - 4, pulse_cap, 1);
-            if (theta_model_qn > 1) {
-              const int raw_theta = ctx.raw_stereo_itheta >> 16;
-              const int bias = raw_theta > 8192 ? 32767 / theta_model_qn : -32767 / theta_model_qn;
-              theta_model_down = std::clamp((raw_theta * theta_model_qn + bias) >> 14, 0, theta_model_qn - 1);
-              const double decoded_left = static_cast<double>(inverse_scale) * left_gain;
-              const double decoded_right = static_cast<double>(inverse_scale) * right_gain;
-              const double left_energy = decoded_left * decoded_left;
-              const double right_energy = decoded_right * decoded_right;
-              const double target_power = static_cast<double>(source_angles[0]) + source_angles[1];
-              if (left_energy > 0.0 && right_energy > 0.0 && target_power > 0.0) {
-                theta_gain_contrast = 2.0 * decoded_left * decoded_right / (left_energy + right_energy);
-                theta_target_correlation = std::clamp((static_cast<double>(source_angles[0]) - source_angles[1]) / target_power, -1.0, 1.0);
-                theta_target_orthogonal = std::sqrt(std::max(0.0, 1.0 - theta_target_correlation * theta_target_correlation));
-                for (int upper = 0; upper < 2; ++upper) {
-                  const auto angle = celt_quantized_theta_runtime(theta_model_down + upper, theta_model_qn);
-                  const auto gains = celt_theta_model_gains(angle);
-                  const int imid = gains[0];
-                  const int iside = gains[1];
-                  const double m = imid;
-                  const double s = iside;
-                  const double m2 = m * m, s2 = s * s;
-                  theta_geometry[static_cast<std::size_t>(upper)] = {m2 - s2, m2 + s2, 4.0 * m2 * s2};
-                  theta_prepared[static_cast<std::size_t>(upper)] = {theta_model_qn, theta_model_down + upper, angle, imid, iside};
-                }
-                const double lower_score = theta_model_score(false, 0.0);
-                const double upper_score = theta_model_score(true, 0.0);
-                theta_model_enabled = std::isfinite(lower_score) && std::isfinite(upper_score);
-                theta_first_upper = theta_model_enabled && upper_score > lower_score;
-              }
-            }
-          }
-          celt_theta_feedback theta_first_feedback;
-          cm = x_cm | y_cm;
-          ec_save = *ec;
-          ctx_save = ctx;
-          copy_n_items(X, static_cast<std::size_t>(N), X_save_storage.data());
-          copy_n_items(Y, static_cast<std::size_t>(N), Y_save_storage.data());
-          ctx.theta_round = theta_first_upper ? 1 : prepare_theta ? -2
-                                                                  : -1;
-          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm, theta_model_enabled ? &theta_first_feedback : nullptr, theta_model_enabled ? &theta_prepared[static_cast<std::size_t>(theta_first_upper)] : nullptr);
-          bool theta_need_correction = true;
-          if (theta_model_enabled && theta_first_feedback.valid) {
-            const double first_score = theta_model_score(theta_first_upper, theta_first_feedback.correlation_squared);
-            const double other_score = theta_model_score(!theta_first_upper, theta_first_feedback.correlation_squared);
-            if (std::isfinite(first_score) && std::isfinite(other_score))
-              theta_need_correction = other_score > first_score;
-          }
-          if (theta_need_correction) {
-            dist0 = -trial_error(X, Y);
-            cm2 = x_cm;
-            ec_save2 = *ec;
-            ctx_save2 = ctx;
-            copy_n_items(X, static_cast<std::size_t>(N), X_save2_storage.data());
-            copy_n_items(Y, static_cast<std::size_t>(N), Y_save2_storage.data());
-            if (!last)
-              copy_n_items(lowband_out, static_cast<std::size_t>(N), norm_save2_storage.data());
-            nstart_bytes = static_cast<int>(ec_save.offs);
-            nend_bytes = static_cast<int>(ec_save.storage);
-            bytes_buf = ec_save.buf + nstart_bytes;
-            save_bytes = nend_bytes - nstart_bytes;
-            copy_n_items(bytes_buf, static_cast<std::size_t>(save_bytes), bytes_save_storage.data());
-            *ec = ec_save;
-            ctx = ctx_save;
-            ctx.raw_stereo_itheta = ctx_save2.raw_stereo_itheta;
-            copy_n_items(X_save_storage.data(), static_cast<std::size_t>(N), X);
-            copy_n_items(Y_save_storage.data(), static_cast<std::size_t>(N), Y);
-            ctx.theta_round = theta_first_upper ? -2 : 1;
-            if (reuse_split_trials)
-              ctx.split_trial = celt_split_trial::upper;
-            x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, cm);
-            dist1 = -trial_error(X, Y);
-
-            bool default_first = reuse_split_trials ? dist0 >= dist1 : coherent_source ? source_correlated
-                                                                                       : dist0 >= dist1;
-            if (!coherent_source) {
-              const auto first_bits = ec_tell_frac(&ec_save2);
-              const auto second_bits = ec_tell_frac(ec);
-              if (default_first ? second_bits <= first_bits : first_bits <= second_bits) {
-                double first_error = 0;
-                double second_error = 0;
-                const auto source_left = inverse_scale * bandE[i];
-                const auto source_right = inverse_scale * bandE[celt_default_nb_ebands + i];
-                const auto decoded_left = inverse_scale * left_gain;
-                const auto decoded_right = inverse_scale * right_gain;
-                for (int j = 0; j < N; ++j) {
-                  const auto source_l = source_left * X_save_storage[j];
-                  const auto source_r = source_right * Y_save_storage[j];
-                  const double first_dl = static_cast<double>(decoded_left * X_save2_storage[j]) - source_l;
-                  const double first_dr = static_cast<double>(decoded_right * Y_save2_storage[j]) - source_r;
-                  first_error += first_dl * first_dl + first_dr * first_dr;
-                  const double second_dl = static_cast<double>(decoded_left * X[j]) - source_l;
-                  const double second_dr = static_cast<double>(decoded_right * Y[j]) - source_r;
-                  second_error += second_dl * second_dl + second_dr * second_dr;
-                }
-                if (default_first ? second_error < first_error : first_error < second_error) {
-                  const bool same_fold_state =
-                      ctx_save2.seed == ctx.seed && cm2 == x_cm &&
-                      (last || std::equal(norm_save2_storage.data(), norm_save2_storage.data() + N, lowband_out,
-                                          [](celt_norm left, celt_norm right) {
-                                            return std::bit_cast<std::uint32_t>(left) == std::bit_cast<std::uint32_t>(right);
-                                          }));
-                  if (same_fold_state)
-                    default_first = !default_first;
-                }
-              }
-            }
-            const auto decoded_coherent = [N](const celt_norm* left, const celt_norm* right) {
-              return std::equal(left, left + N, right) ||
-                     std::equal(left, left + N, right, [](celt_norm l, celt_norm r) {
-                       return l == -r;
-                     });
-            };
-            if (c2_plan != nullptr && c2_plan->band < 0 && B > 1 && !coherent_source &&
-                !decoded_coherent(X_save2_storage.data(), Y_save2_storage.data()) &&
-                !decoded_coherent(X, Y) && ec_tell_frac(&ec_save2) != ec_tell_frac(ec)) {
-              const int horizon = std::min({3, codedBands - i, intensity - i});
-              if (horizon > 1) {
-                c2_plan->band = i;
-                c2_plan->round = default_first ? 1 : -1;
-                c2_plan->horizon = horizon;
-                c2_plan->alternative_first_error = default_first ? -dist1 : -dist0;
-              }
-            }
-            const bool take_first = c2_plan != nullptr && c2_plan->replay && c2_plan->band == i
-                                        ? c2_plan->round < 0
-                                        : default_first;
-            if (take_first) {
-
-              x_cm = cm2;
-              *ec = ec_save2;
-              ctx = ctx_save2;
-              copy_n_items(X_save2_storage.data(), static_cast<std::size_t>(N), X);
-              copy_n_items(Y_save2_storage.data(), static_cast<std::size_t>(N), Y);
-              if (!last)
-                copy_n_items(norm_save2_storage.data(), static_cast<std::size_t>(N), lowband_out);
-              copy_n_items(bytes_save_storage.data(), static_cast<std::size_t>(save_bytes), bytes_buf);
-            }
-
-            if (c2_plan != nullptr && c2_plan->band >= 0 && i >= c2_plan->band &&
-                i < c2_plan->band + c2_plan->horizon)
-              c2_plan->error += take_first ? -dist0 : -dist1;
-            if (c2_plan != nullptr && c2_plan->replay && i == c2_plan->band + c2_plan->horizon - 1 &&
-                !(c2_plan->error < c2_plan->incumbent_error))
-              return;
-          }
-        } else {
-          ctx.theta_round = 0;
-          x_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
+    } else if (Y != nullptr) {
+      ctx.rdo = theta_rdo && i < intensity && B == 1;
+      if (ctx.rdo) {
+        const auto decoded_gain = [&](int channel) {
+          const int index = channel * nbEBands + i;
+          return coded_log_energy != nullptr ? exp2f(std::min(32.f, coded_log_energy[index] + static_cast<opus_val32>(eMeans[i]))) : bandE[index];
+        };
+        const opus_val32 left_gain = decoded_gain(0), right_gain = decoded_gain(1);
+        const opus_val32 scale = 1.f / std::max({bandE[i], bandE[nbEBands + i], left_gain, right_gain});
+        opus_val32 left = 0, right = 0, cross = 0;
+        for (int j = 0; j < N; ++j) {
+          const opus_val32 l = scale * bandE[i] * X[j], r = scale * bandE[nbEBands + i] * Y[j];
+          left += l * l;
+          right += r * r;
+          cross += l * r;
         }
-      } else {
-        x_cm = quant_band(&ctx, X, N, b, B, lowband, LM, lowband_out, 1.0f, lowband_scratch, x_cm | y_cm);
+        ctx.rdo_angle = celt_gram_angle(left, right, cross);
+        ctx.rdo_left = scale * left_gain;
+        ctx.rdo_right = scale * right_gain;
       }
-      y_cm = x_cm;
+      x_cm = y_cm = quant_band_stereo(&ctx, X, Y, N, b, B, lowband, LM, lowband_out, lowband_scratch, x_cm | y_cm);
+    } else {
+      x_cm = y_cm = quant_band(&ctx, X, N, b, B, lowband, LM, lowband_out, 1.0f, lowband_scratch, x_cm | y_cm);
     }
     if (resynth) {
       collapse_masks[i * C] = static_cast<unsigned char>(x_cm);
@@ -9400,137 +9369,6 @@ OPUSCPP_NOINLINE static bool celt_decode_lost(CeltDecoderInternal* st, int N, in
   return celt_decode_with_ec_workspace(st, data, len, pcm, N, dec, pcm16, update_pitch_cache);
 }
 #undef OPUSCPP_NOINLINE
-
-static constexpr auto celt_pvq_table_row_count = 15U;
-static constexpr auto celt_pvq_fast_row_count = celt_pvq_table_row_count;
-static constexpr std::array<opus_uint8, celt_pvq_fast_row_count> celt_pvq_fast_row_max_columns{176, 176, 176, 176, 176, 176, 96, 54,
-                                                                                               37, 28, 24, 19, 18, 16, 14};
-
-[[nodiscard]] consteval auto make_celt_pvq_fast_row_offsets() noexcept {
-  std::array<opus_uint16, celt_pvq_fast_row_count + 1> offsets{};
-  for (std::size_t row = 0; row < celt_pvq_fast_row_count; ++row) {
-    offsets[row + 1] = offsets[row] + celt_pvq_fast_row_max_columns[row] + 1U;
-  }
-  return offsets;
-}
-
-static constexpr auto celt_pvq_fast_row_offsets_storage = make_celt_pvq_fast_row_offsets();
-static constexpr auto celt_pvq_fast_data_count = celt_pvq_fast_row_offsets_storage.back();
-
-static std::array<opus_uint32, celt_pvq_fast_data_count> celt_pvq_u_fast_rows_storage;
-
-[[gnu::cold]] static bool fill_celt_pvq_u_fast_rows() noexcept {
-  auto& rows = celt_pvq_u_fast_rows_storage;
-  const auto get = [&](std::size_t row, std::size_t column) {
-    if (row > column) {
-      std::swap(row, column);
-    }
-    return rows[celt_pvq_fast_row_offsets_storage[row] + column];
-  };
-  for (std::size_t row_index = 0; row_index < celt_pvq_fast_row_count; ++row_index) {
-    const auto offset = celt_pvq_fast_row_offsets_storage[row_index];
-    for (unsigned column = 0; column <= celt_pvq_fast_row_max_columns[row_index]; ++column) {
-      rows[offset + column] = row_index == 0       ? static_cast<opus_uint32>(column == 0)
-                              : column < row_index ? get(column, row_index)
-                              : column == 0        ? 0U
-                                                   : get(row_index - 1, column) + rows[offset + column - 1] + get(row_index - 1, column - 1);
-    }
-  }
-  return true;
-}
-
-[[nodiscard]] consteval auto make_celt_pvq_fast_rows() noexcept {
-  std::array<const opus_uint32*, celt_pvq_fast_row_count> rows{};
-  for (std::size_t row = 0; row < rows.size(); ++row) {
-    rows[row] = celt_pvq_u_fast_rows_storage.data() + celt_pvq_fast_row_offsets_storage[row];
-  }
-  return rows;
-}
-
-static constexpr auto celt_pvq_fast_rows = make_celt_pvq_fast_rows();
-
-[[nodiscard]] static auto celt_pvq_u_entry(int row, int column) noexcept -> opus_uint32 {
-  if (row > column) {
-    std::swap(row, column);
-  }
-  return celt_pvq_fast_rows[static_cast<unsigned>(row)][static_cast<unsigned>(column)];
-}
-
-[[nodiscard]] static inline auto celt_pvq_v_entry(int dimensions, int pulses) noexcept -> opus_uint32 {
-  if (dimensions <= pulses) {
-    const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(dimensions)];
-    return row[pulses] + row[pulses + 1];
-  }
-  return celt_pvq_fast_rows[static_cast<unsigned>(pulses)][dimensions] + celt_pvq_fast_rows[static_cast<unsigned>(pulses + 1)][dimensions];
-}
-
-template <typename Writer> static auto celt_pvq_unrank_impl(int n, int k, opus_uint32 index, Writer& writer) noexcept -> opus_val32 {
-  opus_val32 yy = 0;
-  int position = 0;
-  while (n > 2) {
-    opus_uint32 p, q;
-    const int k0 = k;
-    int sign;
-    if (k >= n) {
-      const auto* row = celt_pvq_fast_rows[static_cast<unsigned>(n)];
-      p = row[k + 1];
-      sign = -(index >= p);
-      index -= p & sign;
-      if (row[n] > index) {
-        for (k = n; (p = celt_pvq_fast_rows[static_cast<unsigned>(--k)][n]) > index;) {}
-      } else {
-        for (p = row[k]; p > index; p = row[--k]) {}
-      }
-    } else {
-      const int limit = std::max(2, k);
-      const auto* lower = celt_pvq_fast_rows[static_cast<unsigned>(k)] + n;
-      const auto* upper = celt_pvq_fast_rows[static_cast<unsigned>(k + 1)] + n;
-      p = *lower;
-      q = *upper;
-      while (p <= index && index < q) {
-        index -= p;
-        writer(position, 0);
-        --n;
-        ++position;
-        if (n <= limit)
-          break;
-        p = *--lower;
-        q = *--upper;
-      }
-      if (n <= limit)
-        continue;
-      sign = -(index >= q);
-      index -= q & sign;
-      while ((p = celt_pvq_fast_rows[static_cast<unsigned>(--k)][n]) > index) {}
-    }
-    index -= p;
-    const auto value = static_cast<opus_int16>((k0 - k + sign) ^ sign);
-    writer(position, value);
-    yy += static_cast<opus_val32>(value * value);
-    --n;
-    ++position;
-  }
-  auto p = static_cast<opus_uint32>(2 * k + 1);
-  const int sign0 = -(index >= p);
-  index -= p & sign0;
-  const int k0 = k;
-  k = (index + 1) >> 1;
-  if (k != 0) {
-    index -= 2 * k - 1;
-  }
-  auto value = static_cast<opus_int16>((k0 - k + sign0) ^ sign0);
-  writer(position, value);
-  yy += static_cast<opus_val32>(value * value);
-  const int sign1 = -static_cast<int>(index);
-  value = static_cast<opus_int16>((k + sign1) ^ sign1);
-  writer(position + 1, value);
-  return yy + static_cast<opus_val32>(value * value);
-}
-
-template <typename Writer> static inline auto celt_pvq_decode_unrank(int n, int k, ec_dec* dec, Writer& writer) noexcept -> opus_val32 {
-  const auto index = ec_dec_uint(dec, celt_pvq_v_entry(n, k));
-  return celt_pvq_unrank_impl(n, k, index, writer);
-}
 
 template <bool AtEnd> static int ec_write_byte(ec_enc* _this, unsigned _value) {
   if (_this->offs + _this->end_offs >= _this->storage) {
@@ -12881,510 +12719,6 @@ static int clt_compute_allocation(int start, int end, const int* offsets, const 
                             signalBandwidth);
 }
 
-static void exp_rotation1(celt_norm* X, int len, int stride, opus_val16 c, opus_val16 s) {
-  const opus_val16 ms = -s;
-  if (stride == 1) {
-    if (len <= 1)
-      return;
-    celt_norm carry = X[0];
-    for (int i = 0; i < len - 1; ++i) {
-      const celt_norm x2 = X[i + 1];
-      const celt_norm next = c * x2 + s * carry;
-      X[i] = c * carry + ms * x2;
-      carry = next;
-    }
-    X[len - 1] = carry;
-    if (len > 2) {
-      carry = X[len - 2];
-      for (int i = len - 3; i >= 0; --i) {
-        const celt_norm x1 = X[i];
-        const celt_norm upper = c * carry + s * x1;
-        const celt_norm next = c * x1 + ms * carry;
-        X[i + 1] = upper;
-        carry = next;
-      }
-      X[0] = carry;
-    }
-    return;
-  }
-  const auto rotate = [&](int i) {
-    const celt_norm x1 = X[i];
-    const celt_norm x2 = X[i + stride];
-    X[i + stride] = c * x2 + s * x1;
-    X[i] = c * x1 + ms * x2;
-  };
-  for (int i = 0; i < len - stride; ++i) {
-    rotate(i);
-  }
-  for (int i = len - 2 * stride - 1; i >= 0; --i) {
-    rotate(i);
-  }
-}
-
-static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int spread, celt_rotation_cache* rotation_cache = nullptr) {
-  constexpr std::array<opus_uint8, 3> SPREAD_FACTOR{15, 10, 5};
-  if (2 * K >= len || spread == 0) {
-    return;
-  }
-  std::uint64_t key = 0;
-  if (rotation_cache != nullptr)
-    key = (static_cast<std::uint64_t>(len) << 32) | (static_cast<std::uint64_t>(K) << 8) |
-          (static_cast<std::uint64_t>(stride) << 2) | static_cast<std::uint64_t>(spread);
-  opus_val16 c, s;
-  int stride2;
-  if (rotation_cache != nullptr && rotation_cache->key == key) {
-    c = rotation_cache->c;
-    s = rotation_cache->s;
-    stride2 = rotation_cache->stride2;
-  } else {
-    const int factor = SPREAD_FACTOR[spread - 1];
-    const auto gain = static_cast<opus_val16>(static_cast<opus_val32>(len) / static_cast<opus_val32>(len + factor * K));
-    const auto theta = static_cast<opus_val16>(.5f * gain * gain);
-    const auto angle = (.5f * 3.1415926535897931) * theta;
-    c = static_cast<opus_val16>(std::cos(angle));
-    s = static_cast<opus_val16>(std::sin(angle));
-    stride2 = 0;
-    if (len >= 8 * stride) {
-      stride2 = 1;
-      for (; (stride2 * stride2 + stride2) * stride + (stride >> 2) < len; ++stride2) {}
-    }
-    if (rotation_cache != nullptr)
-      *rotation_cache = {key, c, s, stride2};
-  }
-  len = celt_udiv(len, stride);
-  for (int i = 0; i < stride; ++i) {
-    if (dir < 0) {
-      if (stride2) {
-        exp_rotation1(X + i * len, len, stride2, s, c);
-      }
-      exp_rotation1(X + i * len, len, 1, c, s);
-    } else {
-      exp_rotation1(X + i * len, len, 1, c, -s);
-      if (stride2) {
-        exp_rotation1(X + i * len, len, stride2, s, -c);
-      }
-    }
-  }
-}
-
-static unsigned normalise_residual_and_extract_collapse_mask(const opus_int16* iy, celt_norm* X, int N, int B, opus_val32 Ryy, opus_val32 gain) {
-  const opus_val32 g = (1.f / std::sqrt(Ryy)) * gain;
-  if (B <= 1) {
-    for (int index = 0; index < N; ++index) {
-      X[index] = static_cast<opus_val32>(iy[index]) * g;
-    }
-    return 1;
-  }
-  const int N0 = celt_udiv(N, B);
-  auto collapse_mask = unsigned{};
-  for (int band = 0; band < B; ++band) {
-    auto tmp = unsigned{};
-    const int base = band * N0;
-    for (int offset = 0; offset < N0; ++offset) {
-      const auto value = iy[base + offset];
-      tmp |= static_cast<unsigned>(value);
-      X[base + offset] = static_cast<opus_val32>(value) * g;
-    }
-    collapse_mask |= (tmp != 0) << band;
-  }
-  for (int index = B * N0; index < N; ++index) {
-    X[index] = static_cast<opus_val32>(iy[index]) * g;
-  }
-  return collapse_mask;
-}
-
-struct celt_pvq_quant_result {
-  unsigned collapse_mask;
-  opus_uint32 index;
-  opus_val16 yy;
-};
-
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy_out, opus_val32 gain, int resynth, bool refine_mono = false, bool protect_blocks = true, bool* changed_blocks = nullptr) -> celt_pvq_quant_result {
-  std::array<celt_norm, celt_max_band_samples> y;
-  for (int j = 0; j < N; ++j) {
-    iy_out[j] = X[j] < 0;
-    X[j] = std::abs(X[j]);
-  }
-  opus_val32 xy = 0;
-  opus_val16 yy = 0;
-  int pulsesLeft = K;
-  const bool event_rank = K <= 4 && K <= (N >> 1);
-  std::array<int, 4> events;
-  if (K > (N >> 1)) {
-    opus_val32 sum = 0;
-    for (int idx = 0; idx < N; ++idx) {
-      sum += X[idx];
-    }
-    if (!(sum > 1e-15f && sum < 64)) {
-      X[0] = (1.f);
-      zero_n_items(X + 1, static_cast<std::size_t>(N - 1));
-      sum = (1.f);
-    }
-    const opus_val16 rcp = (K + 0.8f) * (1.f / sum);
-    for (int j = 0; j < N; ++j) {
-      const int pulse_int = static_cast<int>(rcp * X[j]);
-      const auto pulse = static_cast<celt_norm>(pulse_int);
-      iy_out[j] = (pulse_int << 1) | (iy_out[j] & 1);
-      yy += static_cast<opus_val32>(pulse) * static_cast<opus_val32>(pulse);
-      xy += static_cast<opus_val32>(X[j]) * static_cast<opus_val32>(pulse);
-      y[j] = 2 * pulse;
-      pulsesLeft -= pulse_int;
-    }
-  } else {
-    zero_n_items(y.data(), static_cast<std::size_t>(N));
-  }
-  if (pulsesLeft > N + 3) {
-    const auto tmp = static_cast<opus_val16>(pulsesLeft);
-    yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(tmp);
-    yy += static_cast<opus_val32>(tmp) * static_cast<opus_val32>(y[0]);
-    y[0] += 2 * pulsesLeft;
-    iy_out[0] += 2 * pulsesLeft;
-    pulsesLeft = 0;
-  }
-  std::array<opus_val32, celt_max_band_samples> candidate_num_storage;
-  for (int i = 0; i < pulsesLeft; ++i) {
-    int best_id = 0;
-    yy += 1;
-    for (int candidate = 0; candidate < N; ++candidate) {
-      const opus_val32 rxy = xy + X[candidate];
-      candidate_num_storage[candidate] = rxy * rxy;
-    }
-    opus_val32 best_num = candidate_num_storage[0];
-    opus_val32 best_den = yy + y[0];
-    for (int candidate = 1; candidate < N; ++candidate) {
-      const opus_val32 num = candidate_num_storage[candidate];
-      const opus_val32 den = yy + y[candidate];
-      if (best_den * num > den * best_num) {
-        best_den = den;
-        best_num = num;
-        best_id = candidate;
-      }
-    }
-    xy += X[best_id];
-    yy = best_den;
-    y[best_id] += 2;
-    iy_out[best_id] += 2;
-    if (event_rank) {
-      int event = i;
-      for (; event > 0 && events[event - 1] < best_id; --event) {
-        events[event] = events[event - 1];
-      }
-      events[event] = best_id;
-    }
-  }
-  if (refine_mono) {
-    const int blocks = B <= 1 ? 1 : B;
-    const int block_size = B <= 1 ? N : celt_udiv(N, B);
-    std::array<int, 1 << (celt_max_lm + 1)> block_pulses;
-    if (B > 1) {
-      for (int block = 0; block < B; ++block) {
-        int count = 0;
-        const int begin = block * block_size;
-        const int end = std::min(N, begin + block_size);
-        for (int index = begin; index < end; ++index)
-          count += iy_out[index] >> 1;
-        block_pulses[block] = count;
-      }
-    }
-    double dot = 0, norm = 0;
-    constexpr bool exact_integer_norm_format = std::is_same_v<opus_val16, opus_val32> && std::is_same_v<opus_val16, celt_norm> && std::numeric_limits<opus_val16>::is_iec559 && std::numeric_limits<opus_val16>::radix == 2 && std::numeric_limits<opus_val16>::digits == 24 && std::numeric_limits<opus_val16>::min_exponent == -125 && std::numeric_limits<opus_val16>::max_exponent == 128;
-    if constexpr (exact_integer_norm_format) {
-      norm = static_cast<double>(yy);
-      for (int index = 0; index < N; ++index) {
-        dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
-      }
-    } else {
-      for (int index = 0; index < N; ++index) {
-        dot += static_cast<double>(X[index]) * (iy_out[index] >> 1);
-        const double count = iy_out[index] >> 1;
-        norm += count * count;
-      }
-    }
-    double best_dot = dot, best_norm = norm;
-    const int groups = protect_blocks ? blocks : 1;
-    std::array<int, 1 << (celt_max_lm + 1)> maximum;
-    std::array<int, 1 << (celt_max_lm + 1)> minimum;
-    constexpr bool gradient_format = FLT_EVAL_METHOD == 0 && std::numeric_limits<celt_norm>::is_iec559 && std::numeric_limits<celt_norm>::radix == 2 && std::numeric_limits<celt_norm>::digits == 24 && std::numeric_limits<double>::is_iec559 && std::numeric_limits<double>::radix == 2 && std::numeric_limits<double>::digits == 53;
-    const bool projected_gradient = gradient_format && block_size > 0 && std::isfinite(dot) && std::isfinite(norm) && norm > 0;
-    for (int group = 0; group < groups; ++group) {
-      const int begin = protect_blocks ? group * block_size : 0;
-      const int end = protect_blocks ? std::min(N, begin + block_size) : N;
-      int best = begin;
-      double best_gradient = norm * X[begin] - dot * (iy_out[begin] >> 1);
-      int least = -1;
-      double least_gradient = 0;
-      if (projected_gradient && (iy_out[begin] >> 1) > 0) {
-        least = begin;
-        least_gradient = best_gradient;
-      }
-      for (int index = begin + 1; index < end; ++index) {
-        const double gradient = norm * X[index] - dot * (iy_out[index] >> 1);
-        if (gradient > best_gradient) {
-          best_gradient = gradient;
-          best = index;
-        }
-        if (projected_gradient && (iy_out[index] >> 1) > 0 && (least < 0 || gradient < least_gradient)) {
-          least = index;
-          least_gradient = gradient;
-        }
-      }
-      maximum[group] = best;
-      minimum[group] = least;
-    }
-    int donor = -1, receiver = -1;
-    for (int from_group = 0; from_group < groups; ++from_group) {
-      const int begin = protect_blocks ? from_group * block_size : 0;
-      const int end = protect_blocks ? std::min(N, begin + block_size) : N;
-      const int first = projected_gradient ? minimum[from_group] : begin;
-      const int last = projected_gradient ? (first < 0 ? first : first + 1) : end;
-      for (int from = first; from < last; ++from) {
-        const int count = iy_out[from] >> 1;
-        if (count == 0)
-          continue;
-        const double reduced_dot = dot - X[from];
-        const double reduced_norm = norm - 2 * count + 1;
-        for (int to_group = 0; to_group < groups; ++to_group) {
-          const int to = maximum[to_group];
-          if (from == to || (protect_blocks && B > 1 && from_group != to_group && (block_pulses[from_group] == 1 || block_pulses[to_group] == 0)))
-            continue;
-          const double next_dot = reduced_dot + X[to];
-          const double next_norm = reduced_norm + 2 * (iy_out[to] >> 1) + 1;
-          if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
-            best_dot = next_dot;
-            best_norm = next_norm;
-            donor = from;
-            receiver = to;
-          }
-        }
-      }
-    }
-    int moved = donor >= 0 ? 1 : 0;
-    if (donor >= 0) {
-      int limit = iy_out[donor] >> 1;
-      if (protect_blocks && B > 1 && celt_udiv(donor, block_size) != celt_udiv(receiver, block_size))
-        limit = std::min(limit, block_pulses[celt_udiv(donor, block_size)] - 1);
-      const double delta = static_cast<double>(X[receiver]) - X[donor];
-      const int count_delta = (iy_out[receiver] >> 1) - (iy_out[donor] >> 1);
-      const double denominator = 2 * dot - delta * count_delta;
-      const double stationary = denominator > 0 ? std::clamp((delta * norm - dot * count_delta) / denominator, 0., static_cast<double>(limit)) : static_cast<double>(limit);
-      const int left = static_cast<int>(stationary);
-      const std::array<int, 3> moves{left, std::min(limit, left + 1), limit};
-      for (const int count : moves) {
-        if (count == 0)
-          continue;
-        const double next_dot = dot + count * delta;
-        const double next_norm = norm + 2 * count * count_delta + 2 * count * count;
-        if (next_dot * next_dot * best_norm > best_dot * best_dot * next_norm) {
-          best_dot = next_dot;
-          best_norm = next_norm;
-          moved = count;
-        }
-      }
-    }
-    if (moved != 0) {
-      if (changed_blocks != nullptr && B > 1) {
-        const int from = celt_udiv(donor, block_size);
-        const int to = celt_udiv(receiver, block_size);
-        *changed_blocks |= from != to && (block_pulses[from] == moved || block_pulses[to] == 0);
-      }
-      iy_out[donor] -= 2 * moved;
-      iy_out[receiver] += 2 * moved;
-      y[donor] -= 2 * moved;
-      y[receiver] += 2 * moved;
-      xy = static_cast<opus_val32>(best_dot);
-      yy = static_cast<opus_val16>(best_norm);
-      if (event_rank) {
-        int event = 0;
-        for (int index = N; index-- > 0;)
-          for (int count = iy_out[index] >> 1; count-- > 0;)
-            events[event++] = index;
-      }
-    }
-  }
-  const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
-  if (event_rank) {
-    const auto volume = [](opus_uint32 n, int pulses) -> opus_uint32 {
-      const auto square = n * n;
-      if (pulses == 1)
-        return 2 * n;
-      if (pulses == 2)
-        return 2 * square;
-      if (pulses == 3)
-        return (4 * square * n + 2 * n) / 3;
-      return (2 * square * square + 4 * square) / 3;
-    };
-    const auto boundary = [](opus_uint32 n, int pulses) -> opus_uint32 {
-      const auto square = n * n;
-      if (pulses == 1)
-        return 2 * n - 1;
-      if (pulses == 2)
-        return 2 * square - 2 * n + 1;
-      if (pulses == 3)
-        return (4 * square * n - 6 * square + 8 * n - 3) / 3;
-      return (2 * square * square - 4 * square * n + 10 * square - 8 * n + 3) / 3;
-    };
-    opus_uint32 index = 0, anchor = 0;
-    int accumulated = 0;
-    auto collapse_mask = B <= 1 ? 1U : 0U;
-    const int block_size = B <= 1 ? 0 : celt_udiv(N, B);
-    const int limit = B <= 1 ? 0 : B * block_size;
-    for (int event = 0; event < K;) {
-      const int position = events[event++];
-      int pulse = 1;
-      for (; event < K && events[event] == position; ++event) {
-        ++pulse;
-      }
-      const auto dimension = static_cast<opus_uint32>(N - position);
-      if (accumulated != 0) {
-        index += (volume(dimension, accumulated) - anchor) >> 1;
-      }
-      accumulated += pulse;
-      if ((iy_out[position] & 1) != 0) {
-        index += boundary(dimension, accumulated);
-      }
-      anchor = volume(dimension, accumulated);
-      if (position < limit) {
-        collapse_mask |= 1U << celt_udiv(position, block_size);
-      }
-    }
-    index += (volume(static_cast<opus_uint32>(N), K) - anchor) >> 1;
-    if (resynth) {
-      for (int j = N; j-- > 0;) {
-        const auto reconstructed = static_cast<opus_val32>(iy_out[j] >> 1);
-        X[j] = (iy_out[j] & 1) ? -reconstructed * g : reconstructed * g;
-      }
-    }
-    return {collapse_mask, index, yy};
-  }
-  auto collapse_mask = B <= 1 ? 1U : 0U;
-  const int N0 = B <= 1 ? 0 : celt_udiv(N, B);
-  const int collapse_limit = B <= 1 ? 0 : B * N0;
-  int j = N - 1;
-  int packed_pulse = iy_out[j];
-  int k = packed_pulse >> 1;
-  opus_uint32 index = (k != 0 && (packed_pulse & 1) != 0) ? 1U : 0U;
-  if (j < collapse_limit && k != 0) {
-    collapse_mask |= 1U << celt_udiv(j, N0);
-  }
-  if (resynth) {
-    const opus_val32 reconstructed = static_cast<opus_val32>(k);
-    X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
-  }
-  for (; j-- > 0;) {
-    packed_pulse = iy_out[j];
-    const int pulse = packed_pulse >> 1;
-    index += celt_pvq_u_entry(N - j, k);
-    k += pulse;
-    if (pulse != 0) {
-      if (j < collapse_limit) {
-        collapse_mask |= 1U << celt_udiv(j, N0);
-      }
-      if ((packed_pulse & 1) != 0) {
-        index += celt_pvq_u_entry(N - j, k + 1);
-      }
-    }
-    if (resynth) {
-      const opus_val32 reconstructed = static_cast<opus_val32>(pulse);
-      X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
-    }
-  }
-  return {collapse_mask, index, yy};
-}
-
-static inline unsigned resynth_single_pulse(celt_norm* X, int N, int spread, int B, opus_val32 gain, int position, bool negative, bool resynth, celt_rotation_cache* rotation_cache = nullptr) {
-  if (resynth) {
-    zero_n_items(X, static_cast<std::size_t>(N));
-    X[position] = negative ? -gain : gain;
-    if (N > 2 && spread != 0)
-      exp_rotation(X, N, -1, B, 1, spread, rotation_cache);
-  }
-  if (B <= 1) {
-    return 1;
-  }
-  const int block_size = celt_udiv(N, B);
-  return position < B * block_size ? 1U << celt_udiv(position, block_size) : 0;
-}
-
-static unsigned alg_quant(celt_norm* X, int N, int K, int spread, int B, ec_enc* enc, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks, celt_rotation_cache* rotation_cache) {
-  const bool rotate = 2 * K < N && spread != 0;
-  if (rotate)
-    exp_rotation(X, N, 1, B, K, spread, rotation_cache);
-  if (K == 1) {
-    int best_id = 0;
-    for (int candidate = 1; candidate < N; ++candidate) {
-      if (std::abs(X[candidate]) > std::abs(X[best_id])) {
-        best_id = candidate;
-      }
-    }
-    const bool negative = X[best_id] < 0;
-    const auto encoded_pulse = static_cast<opus_uint32>(negative ? (N << 1) - 1 - best_id : best_id);
-    ec_enc_uint(enc, encoded_pulse, static_cast<opus_uint32>(N << 1));
-    return resynth_single_pulse(X, N, spread, B, gain, best_id, negative, resynth, rotation_cache);
-  }
-  std::array<int, celt_max_band_samples> iy;
-  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, resynth, refine_mono, protect_blocks, changed_blocks);
-  ec_enc_uint(enc, quant.index, celt_pvq_v_entry(N, K));
-  if (resynth && rotate) {
-    exp_rotation(X, N, -1, B, K, spread, rotation_cache);
-  }
-  return quant.collapse_mask;
-}
-
-static unsigned alg_unquant(celt_norm* X, int N, int K, int spread, int B, ec_dec* dec, opus_val32 gain, opus_int16* iy) {
-  if (K == 1) {
-    const auto encoded = ec_dec_uint(dec, static_cast<opus_uint32>(N << 1));
-    const bool negative = encoded >= static_cast<opus_uint32>(N);
-    const int position = negative ? (N << 1) - 1 - static_cast<int>(encoded) : static_cast<int>(encoded);
-    return resynth_single_pulse(X, N, spread, B, gain, position, negative, true);
-  }
-  if (K <= 4) {
-    std::array<int, 4> positions;
-    std::array<int, 4> values;
-    int count = 0;
-    auto add_pulse = [&](int position, int value) noexcept {
-      if (value != 0) {
-        positions[static_cast<std::size_t>(count)] = position;
-        values[static_cast<std::size_t>(count++)] = value;
-      }
-    };
-    auto writer = [&](int position, opus_int16 value) noexcept {
-      add_pulse(position, value);
-    };
-    const opus_val32 Ryy = celt_pvq_decode_unrank(N, K, dec, writer);
-    zero_n_items(X, static_cast<std::size_t>(N));
-    const opus_val32 g = (1.f / std::sqrt(Ryy)) * gain;
-    unsigned collapse_mask = B <= 1 ? 1 : 0;
-    const int block_size = B <= 1 ? N : celt_udiv(N, B);
-    const int active_length = B * block_size;
-    for (int index = 0; index < count; ++index) {
-      const int position = positions[static_cast<std::size_t>(index)];
-      X[position] = static_cast<opus_val32>(values[static_cast<std::size_t>(index)]) * g;
-      if (B > 1 && position < active_length) {
-        collapse_mask |= 1U << celt_udiv(position, block_size);
-      }
-    }
-    if (2 * K < N && spread != 0)
-      exp_rotation(X, N, -1, B, K, spread);
-    return collapse_mask;
-  }
-  auto* out = iy;
-  auto writer = [&](int, opus_int16 value) noexcept {
-    *out++ = value;
-  };
-  const opus_val32 Ryy = celt_pvq_decode_unrank(N, K, dec, writer);
-  const unsigned collapse_mask = normalise_residual_and_extract_collapse_mask(iy, X, N, B, Ryy, gain);
-  if (2 * K < N && spread != 0)
-    exp_rotation(X, N, -1, B, K, spread);
-  return collapse_mask;
-}
-
-static void renormalise_vector(celt_norm* X, int N, opus_val32 gain) {
-  const opus_val32 E = 1e-15f + celt_inner_prod_c(X, X, N);
-  const opus_val16 g = (1.f / std::sqrt(E)) * gain;
-  for (int i = 0; i < N; ++i) {
-    X[i] = g * X[i];
-  }
-}
 
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N) {
   opus_val32 Emid = 0;

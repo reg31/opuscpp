@@ -67,7 +67,7 @@ void check_cwrs_roundtrip() {
     for (int k = 0; k <= 32; ++k) {
       const auto row = static_cast<unsigned>(std::min(n, k));
       const auto column = static_cast<unsigned>(std::max(n, k));
-      if (row >= celt_pvq_fast_row_count || column > celt_pvq_fast_row_max_columns[row]) {
+      if (row >= celt_pvq_table_row_count || column > celt_pvq_fast_row_max_columns[row]) {
         continue;
       }
       const auto total = celt_pvq_u_entry(n, k) + celt_pvq_u_entry(n, k + 1);
@@ -75,10 +75,7 @@ void check_cwrs_roundtrip() {
           0U, total / 7U, total / 3U, total / 2U, (total * 5U) / 7U, total > 1U ? total - 2U : 0U, total - 1U};
       for (const auto index : samples) {
         zero_n_items(decoded.data(), decoded.size());
-        auto writer = [&](int position, opus_int16 value) noexcept {
-          decoded[static_cast<std::size_t>(position)] = value;
-        };
-        celt_pvq_unrank_impl(n, k, index, writer);
+        celt_pvq_unrank(n, k, index, decoded.data());
         const auto roundtrip = rank_cwrs(std::span{decoded}.first(static_cast<std::size_t>(n)));
         if (roundtrip != index) {
           throw std::runtime_error("CWRS roundtrip failed: n=" + std::to_string(n) + " k=" + std::to_string(k) +
@@ -187,6 +184,7 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
 
 int main() {
   try {
+    fill_celt_pvq_u_fast_rows();
     check_cwrs_roundtrip();
     const std::array cases{
         QuantCase{"mono-mid", 1, 6},

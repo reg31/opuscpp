@@ -18,7 +18,7 @@ int main() try {
   std::set<int> old_endpoint_mismatches;
   int checks = 0;
   for (const auto& direction : directions) {
-    for (const int rounding : {-2, 1}) {
+    for (const bool rdo : {false, true}) {
       std::array<celt_norm, N> X{}, Y{};
       X[0] = 1.f;
       Y[0] = direction[0];
@@ -36,12 +36,13 @@ int main() try {
       ctx.ec = &ec;
       ctx.bandE = energies.data();
       ctx.remaining_bits = 631;
-      ctx.raw_stereo_itheta = stereo_itheta(X.data(), Y.data(), 1, N);
-      ctx.theta_round = rounding;
+      ctx.rdo = rdo;
+      ctx.rdo_left = ctx.rdo_right = 1.f;
+      ctx.rdo_angle = celt_gram_angle(1.f, 1.f, direction[0]);
       int budget = initial_budget, fill = 3;
       split_ctx actual{};
       compute_theta(&ctx, &actual, X.data(), Y.data(), N, &budget, 1, 1, LM, 1, &fill);
-      const auto model = celt_theta_model_gains(actual.itheta);
+      const auto model = celt_theta_gains(actual.itheta);
       if (model[0] != actual.imid || model[1] != actual.iside)
         throw std::runtime_error("producer/ACTUALdefault-consumer Q15 mismatch");
       const float actual_mid = (1.f / 32768) * actual.imid;
