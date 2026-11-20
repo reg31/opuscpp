@@ -2444,7 +2444,7 @@ constexpr int silk_ltp_row_offset(int row) noexcept {
 
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[], const int K, const int LPC_order);
-static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10, std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
+static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
 static opus_int32 silk_lin2log(const opus_int32 inLin);
 static void silk_control_SNR(silk_encoder_state* psEncC, opus_int32 TargetRate_bps);
 struct silk_shape_state_FLP {
@@ -14383,7 +14383,7 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
 
 static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
   int bestIndex;
-  opus_int16 res_Q10[16], W_adj_Q5[16], ec_ix[16];
+  opus_int16 ec_ix[16];
   opus_uint8 pred_Q8[16];
   silk_NLSF_stabilize(pNLSF_Q15.data(), psNLSF_CB->deltaMin_Q15, psNLSF_CB->order);
   opus_int32 err_Q24[silk_nlsf_max_cb1_vectors], RD_Q25[silk_nlsf_max_survivors];
@@ -14391,25 +14391,23 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
   opus_int8 tempIndices2[silk_nlsf_max_survivors][silk_nlsf_max_order];
   silk_NLSF_VQ(err_Q24, pNLSF_Q15.data(), psNLSF_CB->CB1_NLSF_Q8, psNLSF_CB->CB1_Wght_Q9, psNLSF_CB->nVectors, psNLSF_CB->order);
   silk_insertion_sort_top_k<opus_int32, true>(err_Q24, tempIndices1, psNLSF_CB->nVectors, nSurvivors);
+  opus_int32 best_RD_Q25 = opus_int32_max;
   for (int s = 0; s < nSurvivors; s++) {
     const int ind1 = tempIndices1[s];
-    const opus_uint8* const pCB_element = psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order;
-    const opus_int16* const pCB_Wght_Q9 = psNLSF_CB->CB1_Wght_Q9 + ind1 * psNLSF_CB->order;
-    for (int i = 0; i < psNLSF_CB->order; i++) {
-      const auto NLSF_tmp_Q15 = static_cast<opus_int16>(static_cast<opus_uint16>(pCB_element[i]) << 7);
-      const opus_int32 W_tmp_Q9 = pCB_Wght_Q9[i];
-      res_Q10[i] = static_cast<opus_int16>(silk_mul_i16_shift<14>(pNLSF_Q15[i] - NLSF_tmp_Q15, W_tmp_Q9));
-      W_adj_Q5[i] = silk_DIV32_varQ(
-          static_cast<opus_int32>(pW_Q2[i]),
-          (static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9)) * static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9))), 21);
-    }
-    silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, ind1);
-    RD_Q25[s] = silk_NLSF_del_dec_quant(tempIndices2[s], res_Q10, W_adj_Q5, pred_Q8, ec_ix, psNLSF_CB->ec_Rates_Q5,
-                                        psNLSF_CB->quantStepSize_Q16, psNLSF_CB->invQuantStepSize_Q6, NLSF_mu_Q20, psNLSF_CB->order);
     const opus_uint8* const iCDF_ptr = silk_nlsf_cb1_icdf(psNLSF_CB, signalType);
     const int prob_Q8 = ind1 == 0 ? 256 - iCDF_ptr[ind1] : iCDF_ptr[ind1 - 1] - iCDF_ptr[ind1];
     const int bits_q7 = (8 << 7) - silk_lin2log(prob_Q8);
-    RD_Q25[s] += static_cast<opus_int16>(bits_q7) * static_cast<opus_int16>(NLSF_mu_Q20 >> 2);
+    const opus_int32 penalty = static_cast<opus_int16>(bits_q7) * static_cast<opus_int16>(NLSF_mu_Q20 >> 2);
+    RD_Q25[s] = opus_int32_max;
+    silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, ind1);
+    const opus_int32 rd = silk_NLSF_del_dec_quant(tempIndices2[s], pNLSF_Q15, psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order,
+                                                  psNLSF_CB->CB1_Wght_Q9 + ind1 * psNLSF_CB->order, pW_Q2, best_RD_Q25 - penalty, pred_Q8,
+                                                  ec_ix, psNLSF_CB->ec_Rates_Q5, psNLSF_CB->quantStepSize_Q16,
+                                                  psNLSF_CB->invQuantStepSize_Q6, NLSF_mu_Q20, psNLSF_CB->order);
+    if (rd != opus_int32_max) {
+      RD_Q25[s] = rd + penalty;
+      best_RD_Q25 = std::min(best_RD_Q25, RD_Q25[s]);
+    }
   }
   silk_insertion_sort_top_k<opus_int32, true>(RD_Q25, &bestIndex, nSurvivors, 1);
   NLSFIndices[0] = static_cast<opus_int8>(tempIndices1[bestIndex]);
@@ -14487,7 +14485,7 @@ constexpr auto silk_nlsf_del_dec_out_tables_wb = make_silk_nlsf_del_dec_out_tabl
          static_cast<opus_int32>(static_cast<opus_int16>(mu_Q20)) * static_cast<opus_int32>(static_cast<opus_int16>(rate_Q5));
 }
 
-opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> x_Q10, std::span<const opus_int16, 16> w_Q5, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order) {
+opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order) {
   constexpr int state_count = 4;
   std::array<int, state_count> ind_sort;
   std::array<std::array<opus_int8, 16>, state_count> ind;
@@ -14504,7 +14502,12 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
   prev_out_Q10[0] = 0;
   for (int i = order - 1; i >= 0; --i) {
     const auto* rates_Q5 = &ec_rates_Q5[ec_ix[i]];
-    const auto in_Q10 = x_Q10[i];
+    const opus_int32 W_tmp_Q9 = cb_wght_Q9[i];
+    const auto in_Q10 = static_cast<opus_int16>(
+        silk_mul_i16_shift<14>(nlsf_Q15[i] - static_cast<opus_int16>(static_cast<opus_uint16>(cb_Q8[i]) << 7), W_tmp_Q9));
+    const auto w_Q5 = static_cast<opus_int16>(silk_DIV32_varQ(
+        static_cast<opus_int32>(w_Q2[i]),
+        (static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9)) * static_cast<opus_int32>(static_cast<opus_int16>(W_tmp_Q9))), 21));
     for (int j = 0; j < nStates; ++j) {
       const auto pred_Q10 = silk_mul_i16_shift<8>(pred_coef_Q8[i], prev_out_Q10[j]);
       const auto res_Q10 = ((in_Q10) - (pred_Q10));
@@ -14518,8 +14521,8 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
       const auto rate0_Q5 = silk_nlsf_rate_q5(rates_Q5, ind_tmp);
       const auto rate1_Q5 = silk_nlsf_rate_q5(rates_Q5, ind_tmp + 1);
       const auto RD_tmp_Q25 = RD_Q25[j];
-      RD_Q25[j] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out0_Q10, w_Q5[i], mu_Q20, rate0_Q5);
-      RD_Q25[j + nStates] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out1_Q10, w_Q5[i], mu_Q20, rate1_Q5);
+      RD_Q25[j] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out0_Q10, w_Q5, mu_Q20, rate0_Q5);
+      RD_Q25[j + nStates] = silk_nlsf_rd_q25(RD_tmp_Q25, in_Q10, out1_Q10, w_Q5, mu_Q20, rate1_Q5);
     }
     if (nStates <= state_count / 2) {
       for (int j = 0; j < nStates; ++j) {
@@ -14542,6 +14545,9 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
           RD_max_Q25[j] = RD_Q25[j + state_count];
           ind_sort[j] = j;
         }
+      }
+      if (*std::ranges::min_element(RD_min_Q25) >= bound) {
+        return opus_int32_max;
       }
       while (true) {
         const auto max_min = std::ranges::max_element(RD_min_Q25);
@@ -17013,32 +17019,48 @@ OPUSCPP_LEANA static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc
   std::memcpy(psEnc->sCmn.prev_NLSFq_Q15.data(), NLSF_Q15, static_cast<std::size_t>(sizeof(psEnc->sCmn.prev_NLSFq_Q15)));
 }
 
-template <std::size_t Lanes>
-  requires(Lanes == 1 || Lanes == 4)
-static inline void silk_warped_autocorrelation_FLP(std::array<float*, Lanes> corr, std::array<const float*, Lanes> input,
+static inline void silk_warped_autocorrelation_FLP(std::array<float*, 4> corr, std::array<const float*, 4> input,
                                                    const float warping, const int length, const int order) {
+  constexpr std::size_t Lanes = 4;
   std::array<std::array<double, Lanes>, 24 + 1> state{};
   std::array<std::array<double, Lanes>, 24 + 1> C{};
-  for (int n = 0; n < length; n++) {
-    std::array<double, Lanes> sample, tmp1;
+  struct Sample {
+    std::array<double, Lanes> value, tmp1;
+  };
+  const auto load = [&](Sample& s, int n) {
     for (std::size_t lane = 0; lane < Lanes; ++lane) {
-      sample[lane] = input[lane][n];
-      tmp1[lane] = sample[lane];
+      s.value[lane] = input[lane][n];
+      s.tmp1[lane] = s.value[lane];
     }
+  };
+  const auto step = [&](Sample& s, int i) {
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
+      const double tmp2 = state[i][lane] + warping * state[i + 1][lane] - warping * s.tmp1[lane];
+      state[i][lane] = s.tmp1[lane];
+      C[i][lane] += s.value[lane] * s.tmp1[lane];
+      s.tmp1[lane] = state[i + 1][lane] + warping * state[i + 2][lane] - warping * tmp2;
+      state[i + 1][lane] = tmp2;
+      C[i + 1][lane] += s.value[lane] * tmp2;
+    }
+  };
+  const auto finish = [&](Sample& s) {
+    for (std::size_t lane = 0; lane < Lanes; ++lane) {
+      state[order][lane] = s.tmp1[lane];
+      C[order][lane] += s.value[lane] * s.tmp1[lane];
+    }
+  };
+  for (int n = 0; n < length; n += 2) {
+    Sample a, b;
+    load(a, n);
+    load(b, n + 1);
     for (int i = 0; i < order; i += 2) {
-      for (std::size_t lane = 0; lane < Lanes; ++lane) {
-        const double tmp2 = state[i][lane] + warping * state[i + 1][lane] - warping * tmp1[lane];
-        state[i][lane] = tmp1[lane];
-        C[i][lane] += sample[lane] * tmp1[lane];
-        tmp1[lane] = state[i + 1][lane] + warping * state[i + 2][lane] - warping * tmp2;
-        state[i + 1][lane] = tmp2;
-        C[i + 1][lane] += sample[lane] * tmp2;
-      }
+      step(a, i);
+      if (i > 0)
+        step(b, i - 2);
     }
-    for (std::size_t lane = 0; lane < Lanes; ++lane) {
-      state[order][lane] = tmp1[lane];
-      C[order][lane] += sample[lane] * tmp1[lane];
-    }
+    finish(a);
+    step(b, order - 2);
+    finish(b);
   }
   for (std::size_t lane = 0; lane < Lanes; ++lane) {
     for (int index = 0; index <= order; ++index) {
@@ -17099,39 +17121,24 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   if (voiced) {
     HarmShapeGain *= silk_sqrt_reference(psEnc->LTPCorr);
   }
-  if (psEnc->sCmn.nb_subfr == 4) {
+  {
     const int flat_part = psEnc->sCmn.fs_kHz * 3;
     const int slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
     std::array<float*, 4> window_output;
     std::array<const float*, 4> window_input;
     for (k = 0; k < 4; ++k) {
       window_output[k] = x_windowed[k];
-      window_input[k] = x_ptr + k * psEnc->sCmn.subfr_length;
+      window_input[k] = x_ptr + (k % psEnc->sCmn.nb_subfr) * psEnc->sCmn.subfr_length;
     }
     silk_prepare_analysis_windows_FLP<4>(window_output, window_input, slope_part, flat_part);
-    x_ptr += 4 * psEnc->sCmn.subfr_length;
-  } else {
-    for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
-      const int flat_part = psEnc->sCmn.fs_kHz * 3;
-      const int slope_part = (psEnc->sCmn.shapeWinLength - flat_part) / 2;
-      silk_prepare_analysis_windows_FLP<1>({x_windowed[k]}, {x_ptr}, slope_part, flat_part);
-      x_ptr += psEnc->sCmn.subfr_length;
-    }
   }
-  if (psEnc->sCmn.warping_Q16 > 0 && psEnc->sCmn.nb_subfr == 4) {
-    silk_warped_autocorrelation_FLP<4>({auto_corr[0], auto_corr[1], auto_corr[2], auto_corr[3]},
-                                       {x_windowed[0], x_windowed[1], x_windowed[2], x_windowed[3]}, warping,
-                                       psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
+  if (psEnc->sCmn.warping_Q16 > 0) {
+    silk_warped_autocorrelation_FLP({auto_corr[0], auto_corr[1], auto_corr[2], auto_corr[3]},
+                                    {x_windowed[0], x_windowed[1], x_windowed[2], x_windowed[3]}, warping,
+                                    psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder);
   } else {
-    for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
-      if (psEnc->sCmn.warping_Q16 > 0) {
-        silk_warped_autocorrelation_FLP<1>({auto_corr[k]}, {x_windowed[k]}, warping, psEnc->sCmn.shapeWinLength,
-                                           psEnc->sCmn.shapingLPCOrder);
-      } else {
-        silk_autocorrelation_FLP(auto_corr[k], x_windowed[k], psEnc->sCmn.shapeWinLength,
-                                 psEnc->sCmn.shapingLPCOrder + 1);
-      }
-    }
+    for (k = 0; k < psEnc->sCmn.nb_subfr; k++)
+      silk_autocorrelation_FLP(auto_corr[k], x_windowed[k], psEnc->sCmn.shapeWinLength, psEnc->sCmn.shapingLPCOrder + 1);
   }
   for (k = 0; k < psEnc->sCmn.nb_subfr; k++) {
     auto_corr[k][0] += auto_corr[k][0] * 3e-5f + 1.0f;
