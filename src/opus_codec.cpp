@@ -37,8 +37,19 @@
 
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
+#define OPUSCPP_COMPACT
+#define OPUSCPP_GCC_COLD
+#define OPUSCPP_GCC_HOT
+#elif defined(__clang__)
+#define OPUSCPP_GCC_COLD
+#define OPUSCPP_GCC_HOT
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
+#define OPUSCPP_COMPACT [[clang::minsize]]
 #else
 #define OPUSCPP_NOINLINE [[gnu::noinline]]
+#define OPUSCPP_COMPACT [[gnu::optimize("Os")]]
+#define OPUSCPP_GCC_COLD [[gnu::cold]]
+#define OPUSCPP_GCC_HOT [[gnu::hot]]
 #endif
 
 using opus_int8 = std::int8_t;
@@ -579,6 +590,8 @@ struct classical_leak_state {
   int prev_bandwidth;
   float E[8][18];
   float logE[8][18];
+  float E_root[8][18];
+  float pair_distance[28];
   float lowE[18];
   float highE[18];
   float meanE[19];
@@ -595,15 +608,11 @@ struct classical_leak_state {
   float hp_ener_accum;
   float rnn_state[24];
   opus_val32 downmix_state[3];
+  bool pcm_bounded;
   classical_leak_record info[100];
   classical_leak_info out_info;
   opus_int8 analysis_read_pos_bak;
   opus_uint8 analysis_read_subframe_bak;
-  float history_distances[28];
-  bool history_distance_valid;
-  float history_energy_roots[8][18];
-  int energy_roots_rounding;
-  bool energy_roots_valid;
 };
 [[gnu::cold]] static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept {
   if (state->pending_pcm == nullptr) {
@@ -614,7 +623,7 @@ struct classical_leak_state {
 
 struct CeltEncoderInternal;
 static void classical_leak_reset(classical_leak_state* s);
-static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth, const opus_int16* pcm16 = nullptr);
+static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth);
 static void classical_leak_get_info(classical_leak_state* s, classical_leak_info* info_out, int Fs, int len);
 static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt);
 struct CeltEncoderInternal {
@@ -2661,7 +2670,7 @@ static_assert(std::is_standard_layout_v<OpusEncoder>);
   return st->application == OPUS_APPLICATION_VOIP && st->use_vbr && st->user_bitrate_bps > 0;
 }
 
-static void update_rate_servo(OpusEncoder* st, opus_int32 packet_bytes, opus_int32 target_bits) noexcept {
+OPUSCPP_COMPACT static void update_rate_servo(OpusEncoder* st, opus_int32 packet_bytes, opus_int32 target_bits) noexcept {
   if (rate_servo_enabled(st) && packet_bytes > 2 && st->mode != opus_mode_silk_only) {
     st->rate_servo_bits = std::clamp(st->rate_servo_bits + target_bits - packet_bytes * 8, -25 * target_bits, 25 * target_bits);
   }
@@ -2706,6 +2715,11 @@ static void reset_vbr_budget(OpusEncoder* st) noexcept {
         channel.enabled = 4;
   }
   return silk_enc->lbrr != nullptr;
+}
+
+static void reset_signal_bandwidth(CeltEncoderInternal* celt_enc) noexcept {
+  std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
+  celt_enc->signal_bw_temporal.reset();
 }
 
 static void reset_encoder_silk_state(OpusEncoder* st) {
@@ -2774,7 +2788,7 @@ constexpr int silk_preserve_stereo_force = 2;
   set_ref_encoder_defaults(st);
 }
 
-static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channels) {
+OPUSCPP_COMPACT static unsigned char gen_toc(int mode, int framerate, int bandwidth, int channels) {
   const int period = std::bit_width(static_cast<unsigned>((399 + framerate) / framerate - 1));
   unsigned char toc;
   if (mode == opus_mode_silk_only) {
@@ -2808,7 +2822,7 @@ template <int Channels> static void dc_reject_channels(const opus_val16* in, opu
   }
 }
 
-static void dc_reject(const opus_val16* in, opus_val16* out, opus_val32* hp_mem, int len, int channels, opus_int32 Fs) {
+OPUSCPP_NOINLINE static void dc_reject(const opus_val16* in, opus_val16* out, opus_val32* hp_mem, int len, int channels, opus_int32 Fs) {
   constexpr opus_int32 cutoff_Hz = 3;
   const float coef = 6.3f * cutoff_Hz / Fs;
   if (channels == 2) {
@@ -2834,7 +2848,7 @@ static void fade_frames(opus_val16 first_gain, opus_val16 final_gain, int frame_
   }
 }
 
-static void stereo_fade(const opus_res* in, opus_res* out, opus_val16 g1, opus_val16 g2, int frame_size, int channels, opus_int32 Fs) {
+OPUSCPP_COMPACT OPUSCPP_NOINLINE static void stereo_fade(const opus_res* in, opus_res* out, opus_val16 g1, opus_val16 g2, int frame_size, int channels, opus_int32 Fs) {
   g1 = 1.0f - g1;
   g2 = 1.0f - g2;
   fade_frames(g1, g2, frame_size, Fs, [&](int frame, opus_val16 gain) {
@@ -2845,7 +2859,7 @@ static void stereo_fade(const opus_res* in, opus_res* out, opus_val16 g1, opus_v
   });
 }
 
-static inline void gain_fade(const opus_res* in, opus_res* out, opus_val16 g1, opus_val16 g2, int frame_size, int channels, opus_int32 Fs) {
+OPUSCPP_COMPACT OPUSCPP_NOINLINE static void gain_fade(const opus_res* in, opus_res* out, opus_val16 g1, opus_val16 g2, int frame_size, int channels, opus_int32 Fs) {
   fade_frames(g1, g2, frame_size, Fs, [&](int frame, opus_val16 gain) {
     const int offset = frame * channels;
     for (int channel = 0; channel < channels; ++channel) {
@@ -2887,7 +2901,7 @@ struct encoder_frame_analysis {
 };
 
 template <bool MeasureWidth = false>
-static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int frame_size, int channels, int lsb_depth,
+OPUSCPP_NOINLINE static frame_activity_metrics measure_frame_activity(const opus_res* pcm, int frame_size, int channels, int lsb_depth,
                                                      StereoWidthState* width_mem = nullptr, opus_val16* stereo_width = nullptr,
                                                      opus_int32 sample_rate = 48000) {
   opus_val32 energy = 0, sample_max = 0, xx = 0, xy = 0, yy = 0;
@@ -3010,7 +3024,7 @@ static int compute_silk_rate_for_hybrid(int rate, int bandwidth, int vbr, int ch
   return silk_rate;
 }
 
-[[nodiscard]] static auto decide_fec(const silk_EncControlStruct& control, int mode, int& bandwidth, opus_int32 rate) noexcept -> int {
+[[nodiscard]] OPUSCPP_COMPACT static auto decide_fec(const silk_EncControlStruct& control, int mode, int& bandwidth, opus_int32 rate) noexcept -> int {
   if (!control.useInBandFEC || control.packetLossPercentage == 0 || mode == opus_mode_celt_only) {
     return 0;
   }
@@ -3076,7 +3090,7 @@ constexpr opus_val16 voip_mid_diff_voice_low_band_keep = 0.42f;
   return metrics.energy > 1e-5f && metrics.mono_diff_ratio > .40f && metrics.mono_zero_cross_rate > .20f;
 }
 
-static void update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics, float raw_toneishness) noexcept {
+OPUSCPP_COMPACT static void update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo_width, const frame_activity_metrics& frame_metrics, float raw_toneishness) noexcept {
   const auto track_score = [](int score, bool detected, int attack, int release_Q7) noexcept {
     score = detected ? score + std::max(1, (115 - score) / attack) : (score * release_Q7) >> 7;
     return std::clamp(score, 0, 115);
@@ -3103,7 +3117,7 @@ static void update_lightweight_voice_estimate(OpusEncoder* st, opus_val16 stereo
   music_score = track_score(music_score, stereo_music || sustained_harmonic || high_z, 8, 112);
 }
 
-static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
+OPUSCPP_COMPACT static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_metrics& metrics) noexcept {
   if (st->channels != 1) {
     return;
   }
@@ -3123,7 +3137,7 @@ static void update_voip_noise_confidence(OpusEncoder* st, const frame_activity_m
 
 static inline opus_val16 tone_detect(const celt_sig* in, int CC, int N, opus_val32* toneishness, opus_int32 Fs);
 
-static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> void {
+OPUSCPP_COMPACT static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis& analysis, const opus_res* raw_pcm, int raw_frame_size) noexcept -> void {
   if (st->application == OPUS_APPLICATION_VOIP || st->application == OPUS_APPLICATION_AUDIO) {
     float raw_toneishness = 0;
     if (st->application == OPUS_APPLICATION_VOIP && st->channels == 1) {
@@ -3156,6 +3170,10 @@ static auto classify_encoder_frame(OpusEncoder* st, const encoder_frame_analysis
   } else if (prev_mode > 0)
     threshold += 4000;
   return threshold;
+}
+
+[[nodiscard]] static int bandwidth_floor(opus_int32 rate, int channels, bool celt) noexcept {
+  return rate <= 18000 * channels && celt ? 1101 : rate <= 24000 * channels && celt ? 1102 : rate <= 30000 * channels ? 1103 : rate <= 44000 * channels ? 1104 : 1105;
 }
 
 [[nodiscard]] static int classifier_voice_estimate(OpusEncoder* st) noexcept {
@@ -3197,7 +3215,7 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
   return silk_encoder_channel_states(static_cast<silk_encoder*>(encoder_silk_state(st)))[0].sCmn.speech_activity_Q8;
 }
 
-[[nodiscard]] static bool should_emit_dtx(OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size) noexcept {
+[[nodiscard]] OPUSCPP_COMPACT static bool should_emit_dtx(OpusEncoder* st, const frame_activity_metrics& metrics, int frame_size) noexcept {
   bool active;
   if (metrics.is_silence || (metrics.energy <= dtx_digital_silence_max_energy && metrics.mono_zero_cross_rate == 0)) {
     st->dtx_smoothed_energy *= .875f;
@@ -3240,7 +3258,7 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
   return st->nb_no_activity_ms_Q1 >= dtx_entry_ms_Q1;
 }
 
-[[nodiscard]] static opus_int32 finalize_dtx_packet(OpusEncoder* st, unsigned char* data, opus_int32 length, bool emit_dtx) noexcept {
+[[nodiscard]] OPUSCPP_COMPACT static opus_int32 finalize_dtx_packet(OpusEncoder* st, unsigned char* data, opus_int32 length, bool emit_dtx) noexcept {
   if (!emit_dtx || length <= 0) {
     return length;
   }
@@ -3249,7 +3267,7 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
   return 1;
 }
 
-[[nodiscard]] static int choose_audio_preprocess_mode(OpusEncoder* st) noexcept {
+[[nodiscard]] OPUSCPP_COMPACT static int choose_audio_preprocess_mode(OpusEncoder* st) noexcept {
   if (st->audio_preprocess_hold > 0) {
     --st->audio_preprocess_hold;
     return st->audio_preprocess_mode;
@@ -3271,7 +3289,7 @@ constexpr opus_val32 dtx_noise_energy_stability = .08f;
   return st->audio_preprocess_mode;
 }
 
-static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrate_bps, int frame_rate, int channels) {
+OPUSCPP_COMPACT static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrate_bps, int frame_rate, int channels) {
   const int base_bits = 40 * channels + 20;
   auto redundancy_rate = bitrate_bps + base_bits * (200 - frame_rate);
   redundancy_rate = 3 * redundancy_rate / 2;
@@ -3287,7 +3305,7 @@ static int compute_redundancy_bytes(opus_int32 max_data_bytes, opus_int32 bitrat
   return redundancy_bytes;
 }
 
-static inline void apply_previous_sample_tilt(opus_res* pcm, int frame_size, int channels, opus_val16 smoothing,
+OPUSCPP_COMPACT static inline void apply_previous_sample_tilt(opus_res* pcm, int frame_size, int channels, opus_val16 smoothing,
                                               opus_val16 gain = 1.0f) noexcept {
   for (int channel = 0; channel < channels; ++channel) {
     opus_res previous = pcm[channel] * gain;
@@ -3356,7 +3374,7 @@ struct encoder_stage_storage {
 }
 }
 
-[[nodiscard]] static auto encode_low_rate_packet(OpusEncoder* st, const int frame_size, const opus_int32 out_data_bytes, opus_int32 max_data_bytes, unsigned char* data) -> opus_int32 {
+[[nodiscard]] [[gnu::cold]] static auto encode_low_rate_packet(OpusEncoder* st, const int frame_size, const opus_int32 out_data_bytes, opus_int32 max_data_bytes, unsigned char* data) -> opus_int32 {
   encoder_celt_state(st)->prefilter_history_valid = false;
   int tocmode = st->mode;
   int frame_rate = st->Fs / frame_size;
@@ -3408,6 +3426,18 @@ struct encoder_stage_storage {
   return ret;
 }
 
+static void commit_packet_budget(OpusEncoder* st, bool governed_vbr, opus_int32 packet_bytes, opus_int32 target_bits) noexcept {
+  const bool in_dtx = encoder_is_in_dtx(st);
+  update_rate_servo(st, in_dtx ? 0 : packet_bytes, target_bits);
+  if (in_dtx) {
+    reset_vbr_budget(st);
+  } else if (governed_vbr && packet_bytes > 0) {
+    st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, packet_bytes, target_bits);
+  } else if (packet_bytes > 0 && st->mode == opus_mode_hybrid && st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0) {
+    st->vbr_budget_reservoir_bits = update_hybrid_fec_credit(st->vbr_budget_reservoir_bits, packet_bytes, target_bits);
+  }
+}
+
 struct multiframe_encode_params final {
   bool governed_vbr;
   int lsb_depth;
@@ -3416,7 +3446,7 @@ struct multiframe_encode_params final {
 };
 
 static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames = nullptr, opus_int32 range_storage_bytes = 0);
-[[nodiscard]] OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params, const vbr_frame_budget& packet_budget) -> opus_int32 {
+[[nodiscard]] OPUSCPP_COMPACT OPUSCPP_NOINLINE static auto encode_multiframe_packet(OpusEncoder* st, const opus_res* pcm, const int frame_size, unsigned char* data, const opus_int32 out_data_bytes, const multiframe_encode_params& params, const vbr_frame_budget& packet_budget) -> opus_int32 {
   const int enc_frame_size = st->mode != opus_mode_silk_only ? st->Fs / 50
                              : frame_size == 2 * st->Fs / 25 ? st->Fs / 25
                              : frame_size == 3 * st->Fs / 25 ? 3 * st->Fs / 50
@@ -3511,20 +3541,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
     return result;
   }
   result = write_packet_frames(&packet_frames, data, repacketize_len, !st->use_vbr && dtx_count != nb_frames);
-  update_rate_servo(st, encoder_is_in_dtx(st) ? 0 : result, packet_target_bits);
-  if (encoder_is_in_dtx(st)) {
-    reset_vbr_budget(st);
-  } else if (params.governed_vbr && result > 0) {
-    st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, result, packet_target_bits);
-  } else if (result > 0 && st->mode == opus_mode_hybrid && st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0) {
-    st->vbr_budget_reservoir_bits = update_hybrid_fec_credit(st->vbr_budget_reservoir_bits, result, packet_target_bits);
-  }
+  commit_packet_budget(st, params.governed_vbr, result, packet_target_bits);
   return result < 0 ? -3 : result;
 }
 
-template <std::size_t Capacity>
-[[nodiscard]] OPUSCPP_NOINLINE static auto encode_single_frame_packet(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, const multiframe_encode_params& params, const frame_activity_metrics& frame_metrics, const vbr_frame_budget& frame_budget) -> opus_int32 {
-  std::array<opus_res, Capacity> stage_buffer_storage;
+[[nodiscard]] OPUSCPP_COMPACT OPUSCPP_NOINLINE static auto encode_single_frame_packet(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, const multiframe_encode_params& params, const frame_activity_metrics& frame_metrics, const vbr_frame_budget& frame_budget) -> opus_int32 {
+  std::array<opus_res, encoder_max_stage_samples> stage_buffer_storage;
   auto stage_storage = make_encoder_stage_storage(stage_buffer_storage, st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
   opus_int32 range_storage_bytes = max_data_bytes;
@@ -3545,14 +3567,7 @@ template <std::size_t Capacity>
       opus_encode_frame_native(st, pcm, frame_size, data, max_data_bytes, allocator_target_bits, frame_metrics, params.redundancy,
                                params.celt_to_silk, params.prefill, params.equiv_rate, params.to_celt, false, emit_dtx, stage_storage, nullptr, range_storage_bytes);
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
-  update_rate_servo(st, encoder_is_in_dtx(st) ? 0 : ret, params.target_bits);
-  if (encoder_is_in_dtx(st)) {
-    reset_vbr_budget(st);
-  } else if (params.governed_vbr && ret > 0) {
-    st->vbr_budget_reservoir_bits = update_vbr_credit(st->vbr_budget_reservoir_bits, ret, params.target_bits);
-  } else if (ret > 0 && st->mode == opus_mode_hybrid && st->use_vbr && st->vbr_constraint && st->user_bitrate_bps > 0) {
-    st->vbr_budget_reservoir_bits = update_hybrid_fec_credit(st->vbr_budget_reservoir_bits, ret, params.target_bits);
-  }
+  commit_packet_budget(st, params.governed_vbr, ret, params.target_bits);
   return ret;
 }
 
@@ -3571,7 +3586,7 @@ template <std::size_t Capacity>
   return side > 0 && bits > 0 && frame_size > 1 && side > mid * std::exp2(-2.0 * bits / (frame_size - 1));
 }
 
-static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 out_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm16 = nullptr) {
+OPUSCPP_COMPACT static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 out_data_bytes, int lsb_depth, bool float_api) {
   int prefill = 0, redundancy = 0, celt_to_silk = 0, to_celt = 0;
   opus_int32 cbr_bytes = -1;
   auto max_data_bytes = std::min(1276 * 6, out_data_bytes);
@@ -3607,7 +3622,8 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
   if (st->silk_mode.complexity >= 7 && st->Fs >= 16000 && st->Fs <= 48000) {
     st->classical_leak.analysis_read_pos_bak = st->classical_leak.read_pos;
     st->classical_leak.analysis_read_subframe_bak = st->classical_leak.read_subframe;
-    classical_leak_ingest_pcm(&st->classical_leak, pcm, frame_size, st->channels, st->Fs, lsb_depth, pcm16);
+    st->classical_leak.pcm_bounded = !float_api;
+    classical_leak_ingest_pcm(&st->classical_leak, pcm, frame_size, st->channels, st->Fs, lsb_depth);
     classical_leak_get_info(&st->classical_leak, &st->classical_leak.out_info, st->Fs, frame_size);
   } else if (st->classical_leak.initialized) {
     classical_leak_reset(&st->classical_leak);
@@ -3762,6 +3778,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     prefill = previous_stereo_policy && stereo_policy_allowed ? 3 : 1;
   }
   const int incoming_bandwidth = st->bandwidth;
+  const bool silent_input = frame_metrics.energy == 0 && std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
+    return sample == 0;
+  });
   const bool inherited_bandwidth = st->mode != opus_mode_celt_only && !first && !st->silk_mode.allowBandwidthSwitch;
   const auto select_auto_bandwidth = [&](opus_int32 rate) {
     int bandwidth = 1105;
@@ -3787,11 +3806,9 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
     int bandwidth = select_auto_bandwidth(equiv_rate);
     st->auto_bandwidth = bandwidth;
 
-    if (frame_metrics.energy == 0 && st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
+    if (st->mode == opus_mode_celt_only && st->prev_mode == opus_mode_celt_only &&
         st->prev_framesize == frame_size && celt_enc->overlap_max > 0 && bandwidth > st->bandwidth &&
-        std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
-          return sample == 0;
-        })) {
+        silent_input) {
       bandwidth = st->bandwidth;
     }
     st->bandwidth = bandwidth;
@@ -3827,13 +3844,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                                    : det_band <= 16   ? 1103
                                                    : det_band <= 18   ? 1104
                                                                       : 1105;
-    const int sc = st->stream_channels;
-    const int floor_bw = equiv_rate <= 18000 * sc && st->mode == opus_mode_celt_only   ? 1101
-                         : equiv_rate <= 24000 * sc && st->mode == opus_mode_celt_only ? 1102
-                         : equiv_rate <= 30000 * sc                                    ? 1103
-                         : equiv_rate <= 44000 * sc                                    ? 1104
-                                                                                       : 1105;
-    st->bandwidth = std::min(st->bandwidth, std::max(detected_bandwidth_limit, floor_bw));
+    st->bandwidth = std::min(st->bandwidth, std::max(detected_bandwidth_limit, bandwidth_floor(equiv_rate, st->stream_channels, st->mode == opus_mode_celt_only)));
   }
   if (st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage != 0 && st->mode != opus_mode_celt_only) {
     st->silk_mode.LBRR_coded = decide_fec(st->silk_mode, st->mode, st->bandwidth, equiv_rate);
@@ -3868,22 +3879,14 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
                                                                st->silk_mode.packetLossPercentage);
         const int destination_auto_bandwidth = select_auto_bandwidth(destination_equiv_rate);
         int destination_bandwidth = destination_auto_bandwidth;
-        if (frame_metrics.energy == 0 && st->prev_framesize == frame_size && celt_enc->overlap_max > 0 &&
+        if (st->prev_framesize == frame_size && celt_enc->overlap_max > 0 &&
             destination_bandwidth > incoming_bandwidth &&
-            std::all_of(pcm, pcm + frame_size * st->channels, [](opus_res sample) {
-              return sample == 0;
-            })) {
+            silent_input) {
           destination_bandwidth = incoming_bandwidth;
         }
         destination_bandwidth = std::min(destination_bandwidth, sample_rate_bandwidth);
         if (detected_bandwidth_limit != 0) {
-          const int sc = st->stream_channels;
-          const int floor_bw = destination_equiv_rate <= 18000 * sc   ? 1101
-                               : destination_equiv_rate <= 24000 * sc ? 1102
-                               : destination_equiv_rate <= 30000 * sc ? 1103
-                               : destination_equiv_rate <= 44000 * sc ? 1104
-                                                                      : 1105;
-          destination_bandwidth = std::min(destination_bandwidth, std::max(detected_bandwidth_limit, floor_bw));
+          destination_bandwidth = std::min(destination_bandwidth, std::max(detected_bandwidth_limit, bandwidth_floor(destination_equiv_rate, st->stream_channels, true)));
         }
         if (destination_bandwidth == 1102) {
           destination_bandwidth = 1103;
@@ -3933,13 +3936,7 @@ static opus_int32 encode_native(OpusEncoder* st, const opus_res* pcm, int frame_
         {governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits}, frame_budget);
   }
   const multiframe_encode_params params{governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits};
-  if (frame_size <= st->Fs / 50) {
-    if (st->channels == 1) {
-      return encode_single_frame_packet<1440>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
-    }
-    return encode_single_frame_packet<2880>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
-  }
-  return encode_single_frame_packet<encoder_max_stage_samples>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
+  return encode_single_frame_packet(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
 }
 
 static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept;
@@ -3964,14 +3961,17 @@ struct voice_conditioning_coefficients {
   }
 };
 
-static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate, const voice_conditioning_coefficients& coefficients) {
+struct voice_scan_state {
+  opus_val32 lf, dc, mid_hp, mid_hp2, mid_lp;
+  opus_val32 lf_e, tot_e, mid_e;
+  double sample_sum, raw_e;
+};
+
+OPUSCPP_GCC_HOT OPUSCPP_NOINLINE static void voice_conditioning_scan(voice_scan_state& v, const opus_res* pcm, int frame_size, int stride, const voice_conditioning_coefficients& coefficients) {
   const auto& [lf_coef, dc_coef, mid_hp_coef, mid_lp_coef] = coefficients;
-  opus_val32 lf = state.cond_lf_state, dc = state.cond_dc_state, lf_e = 0, tot_e = 0, mid_e = 0;
-  opus_val32 mid_hp = state.cond_mid_hp, mid_hp2 = state.cond_mid_hp2, mid_lp = state.cond_mid_lp;
+  opus_val32 lf = v.lf, dc = v.dc, lf_e = 0, tot_e = 0, mid_e = 0;
+  opus_val32 mid_hp = v.mid_hp, mid_hp2 = v.mid_hp2, mid_lp = v.mid_lp;
   double sample_sum = 0, raw_e = 0;
-  if (state.cond_init_done == 0) {
-    dc = pcm[0];
-  }
   for (int index = 0; index < frame_size; ++index) {
     const opus_val32 sample = pcm[index * stride];
     sample_sum += sample;
@@ -3988,6 +3988,18 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
     mid_lp += mid_lp_coef * (hp2 - mid_lp);
     mid_e += mid_lp * mid_lp;
   }
+  v = {lf, dc, mid_hp, mid_hp2, mid_lp, lf_e, tot_e, mid_e, sample_sum, raw_e};
+}
+
+[[gnu::cold]] static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, const opus_res* pcm, int frame_size, int stride, opus_int32 sample_rate, const voice_conditioning_coefficients& coefficients) {
+  voice_scan_state scan{state.cond_lf_state, state.cond_dc_state, state.cond_mid_hp, state.cond_mid_hp2, state.cond_mid_lp, 0, 0, 0, 0, 0};
+  if (state.cond_init_done == 0) {
+    scan.dc = pcm[0];
+  }
+  voice_conditioning_scan(scan, pcm, frame_size, stride, coefficients);
+  const opus_val32 lf = scan.lf, dc = scan.dc, mid_hp = scan.mid_hp, mid_hp2 = scan.mid_hp2, mid_lp = scan.mid_lp;
+  const opus_val32 lf_e = scan.lf_e, tot_e = scan.tot_e, mid_e = scan.mid_e;
+  const double sample_sum = scan.sample_sum, raw_e = scan.raw_e;
   if (state.cond_init_done == 0 && raw_e > 0.0) {
     state.cond_init_done = 1;
   }
@@ -4159,29 +4171,38 @@ static opus_val32 update_voice_conditioning(voice_conditioning_channel& state, c
   return dc_fast ? frame_mean : pcm[0];
 }
 
-static inline void prepare_audio_mono_staging(const opus_res* pcm, opus_res* frame_pcm, int frame_size,
-                                              opus_val16 keep, bool apply_tilt, opus_val16 smoothing) noexcept {
-  if (!apply_tilt) {
-    for (int index = 0; index < frame_size; ++index) {
-      const opus_res sample = pcm[index];
-      frame_pcm[index] = sample + keep * (sample - sample);
+OPUSCPP_GCC_HOT OPUSCPP_NOINLINE static void voip_mix_channel(const float* pcm, float* out, int frame_size, int stride, float r, const std::array<opus_val32, 2>& A, opus_val32& hp0_ref,
+                                              opus_val32& hp1_ref, opus_val32 mix, opus_val32 step, float& raw_memory_ref, float& hp_memory_ref,
+                                              float dc_coefficient, float dc_feedback, float restoration, bool use_ac) {
+  opus_val32 hp0 = hp0_ref, hp1 = hp1_ref;
+  float raw_memory = raw_memory_ref, hp_memory = hp_memory_ref;
+  const bool mono = stride == 1;
+  for (int i = 0; i < frame_size; ++i) {
+    const float raw = pcm[i * stride];
+    const opus_val32 filtered_input = r * raw;
+    const opus_val32 hp = hp0 + filtered_input;
+    hp0 = hp1 - hp * A[0] - 2.f * filtered_input;
+    hp1 = -hp * A[1] + filtered_input + 1e-30f;
+    float protected_sample = hp;
+    if (mono) {
+      const float raw_ac = raw - raw_memory;
+      const float hp_ac = hp - hp_memory;
+      raw_memory = dc_coefficient * raw + 1e-30f + dc_feedback * raw_memory;
+      hp_memory = dc_coefficient * hp + 1e-30f + dc_feedback * hp_memory;
+      const float base = use_ac ? hp_ac : hp;
+      protected_sample = base + restoration * (raw_ac - base);
     }
-    return;
+    mix += step;
+    out[i * stride] = raw + mix * (protected_sample - raw);
   }
-  const opus_res first = pcm[0];
-  opus_res previous = (first + keep * (first - first)) * 1.0f;
-  frame_pcm[0] = previous;
-  for (int index = 1; index < frame_size; ++index) {
-    const opus_res sample = pcm[index];
-    const opus_res current = (sample + keep * (sample - sample)) * 1.0f;
-    frame_pcm[index] = current + smoothing * (previous - current);
-    previous = current;
-  }
+  hp0_ref = hp0;
+  hp1_ref = hp1;
+  raw_memory_ref = raw_memory;
+  hp_memory_ref = hp_memory;
 }
 
-static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
+OPUSCPP_GCC_COLD OPUSCPP_NOINLINE static bool voip_prepare_frame(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
   bool denoise_handled = false;
-  if (st->application == OPUS_APPLICATION_VOIP) {
     const voice_conditioning_coefficients coefficients{st->Fs};
     std::array<opus_val32, 2> initial_value;
     for (int channel = 0; channel < st->channels; ++channel) {
@@ -4226,25 +4247,8 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
       opus_val32 hp0 = st->hp_mem[2 * channel], hp1 = st->hp_mem[2 * channel + 1];
       const opus_val32 step = (state.cond_score - state.cond_mix) / static_cast<opus_val32>(frame_size);
       opus_val32 mix = state.cond_mix;
-      for (int i = 0; i < frame_size; ++i) {
-        const int index = i * st->channels + channel;
-        const float raw = pcm[index];
-        const opus_val32 filtered_input = r * raw;
-        const opus_val32 hp = hp0 + filtered_input;
-        hp0 = hp1 - hp * A[0] - 2.f * filtered_input;
-        hp1 = -hp * A[1] + filtered_input + 1e-30f;
-        float protected_sample = hp;
-        if (st->channels == 1) {
-          const float raw_ac = raw - raw_memory;
-          const float hp_ac = hp - hp_memory;
-          raw_memory = dc_coefficient * raw + 1e-30f + dc_feedback * raw_memory;
-          hp_memory = dc_coefficient * hp + 1e-30f + dc_feedback * hp_memory;
-          const float base = st->bitrate_bps > 16000 && restoration > 0 ? hp_ac : hp;
-          protected_sample = base + restoration * (raw_ac - base);
-        }
-        mix += step;
-        frame_pcm[index] = raw + mix * (protected_sample - raw);
-      }
+      voip_mix_channel(pcm + channel, frame_pcm + channel, frame_size, st->channels, r, A, hp0, hp1, mix, step, raw_memory, hp_memory,
+                       dc_coefficient, dc_feedback, restoration, st->bitrate_bps > 16000 && restoration > 0);
       st->hp_mem[2 * channel] = zero_tiny_float_mem(hp0);
       st->hp_mem[2 * channel + 1] = zero_tiny_float_mem(hp1);
       state.cond_mix = state.cond_score;
@@ -4264,6 +4268,13 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
         apply_previous_sample_tilt(frame_pcm, frame_size, 1, -.020f);
       }
     }
+  return denoise_handled;
+}
+
+OPUSCPP_NOINLINE static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const opus_res* pcm, opus_res* frame_pcm, int frame_size, const frame_activity_metrics& frame_metrics) {
+  bool denoise_handled = false;
+  if (st->application == OPUS_APPLICATION_VOIP) {
+    denoise_handled = voip_prepare_frame(st, silk_enc, pcm, frame_pcm, frame_size, frame_metrics);
   } else if (st->application == OPUS_APPLICATION_AUDIO) {
     const bool low_z_mono = st->channels == 1 && frame_metrics.energy > 1e-4f && frame_metrics.mono_diff_ratio < .001f &&
                             frame_metrics.mono_zero_cross_rate < .005f;
@@ -4285,12 +4296,14 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
                                        choose_audio_preprocess_mode(st) != audio_preprocess_speech;
     if (apply_mono_preprocess && st->bitrate_bps >= 20000 && st->bitrate_bps <= 36000) {
       const bool clean_music = st->bitrate_bps < 28000 && st->lightweight_music_score_Q7 > 16 && st->lightweight_voice_score_Q7 == 0;
-      const opus_val16 keep = clean_music ? .94f : .86f;
       const bool final_audio_tilt = st->application == OPUS_APPLICATION_AUDIO && st->channels == 1 && st->bitrate_bps >= 28000 &&
                                     st->bitrate_bps <= 40000 && st->lightweight_high_z_tonal_Q7 < 64;
       const opus_val16 smoothing = clean_music ? .08f : final_audio_tilt ? -.035f
                                                                          : 0.f;
-      prepare_audio_mono_staging(pcm, frame_pcm, frame_size, keep, clean_music || final_audio_tilt, smoothing);
+      copy_n_items(pcm, static_cast<std::size_t>(frame_size), frame_pcm);
+      if (clean_music || final_audio_tilt) {
+        apply_previous_sample_tilt(frame_pcm, frame_size, 1, smoothing);
+      }
       return denoise_handled;
     }
     copy_n_items(pcm, static_cast<std::size_t>(frame_size * st->channels), frame_pcm);
@@ -4308,7 +4321,7 @@ static bool opus_prepare_frame_highpass(OpusEncoder* st, void* silk_enc, const o
   return denoise_handled;
 }
 
-static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames, opus_int32 range_storage_bytes) {
+OPUSCPP_COMPACT static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames, opus_int32 range_storage_bytes) {
   if (st->classical_leak.initialized) {
     classical_leak_export(&st->classical_leak, encoder_celt_state(st));
   }
@@ -4330,8 +4343,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   const bool celt_history_ready = celt_enc->prefilter_history_valid;
   bool celt_history_current = false;
   if (st->mode == opus_mode_silk_only || skip_celt_for_dtx) {
-    std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-    celt_enc->signal_bw_temporal.reset();
+    reset_signal_bandwidth(celt_enc);
   }
   auto refresh_redundancy = [&] {
     redundancy_bytes = compute_redundancy_bytes(max_data_bytes, st->bitrate_bps, frame_rate, st->stream_channels);
@@ -4471,8 +4483,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       st->silk_mode.opusCanSwitch = st->silk_mode.switchReady && !nonfinal_frame;
     if (nBytes == 0) {
       celt_enc->prefilter_history_valid = false;
-      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-      celt_enc->signal_bw_temporal.reset();
+      reset_signal_bandwidth(celt_enc);
       stage_storage.finish_frame(st);
       st->rangeFinal = 0;
       data[-1] = gen_toc(st->mode, frame_rate, curr_bandwidth, st->stream_channels);
@@ -4589,14 +4600,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
       celt_enc->prediction_disabled = true;
     }
     if (st->prev_channels != st->stream_channels) {
-      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-      celt_enc->signal_bw_temporal.reset();
+      reset_signal_bandwidth(celt_enc);
     }
     const int vbr_header_bits = st->mode == opus_mode_celt_only && packet_frames == nullptr ? 8 : 0;
     if (skip_celt_for_dtx || ec_tell(&enc) > 8 * nb_compr_bytes ||
         (ret = celt_encode_with_ec(celt_enc, celt_pcm.data(), frame_size, nullptr, nb_compr_bytes, &enc, st->mode == opus_mode_hybrid && allow_stereo_policy(st, frame_size) && st->stereo_recovery_frames > 0 && st->stereo_recovery_frames < 255, funding.reserved_bytes, funding.prefix_frac, vbr_header_bits)) < 0) {
-      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-      celt_enc->signal_bw_temporal.reset();
+      reset_signal_bandwidth(celt_enc);
       if (ret < 0)
         return -3;
     } else if (redundancy && celt_to_silk && st->mode == opus_mode_hybrid && nb_compr_bytes != ret) {
@@ -4641,8 +4650,7 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
         enc.offs == static_cast<opus_uint32>(body_cap)) {
       ret = body_cap;
     } else {
-      std::fill_n(celt_enc->signal_bw_retained, signal_bw_retained_bands, signal_bw_retained_inactive);
-      celt_enc->signal_bw_temporal.reset();
+      reset_signal_bandwidth(celt_enc);
       if (max_data_bytes < 2) {
         return -2;
       }
@@ -4707,7 +4715,7 @@ struct voice_denoise_coefficients {
   return {low, low + middle - 2.f * cross, high};
 }
 
-static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept {
+[[gnu::cold]] static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept {
   auto* state = st->voice_denoise;
   const bool broadband = broadband_voice_denoise_ready(st);
   if (metrics.is_silence) {
@@ -4874,31 +4882,6 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
   }
 }
 
-#if !defined(__clang__)
-OPUSCPP_NOINLINE
-#endif
-static inline void convert_encoder_pcm16(const opus_int16* pcm, opus_res* input_storage, std::size_t sample_count) {
-  for (std::size_t index = 0; index < sample_count; ++index) {
-    input_storage[index] = pcm[index] * (1.0f / 32768.0f);
-  }
-}
-
-#if defined(__clang__)
-OPUSCPP_NOINLINE
-#endif
-static inline opus_int32 encode_pcm16_converted(OpusEncoder* st, opus_res* input_storage, int frame_size, unsigned char* data,
-                                                opus_int32 max_data_bytes, int lsb_depth, bool float_api, const opus_int16* pcm) {
-  const auto sample_count = static_cast<std::size_t>(frame_size * st->channels);
-  convert_encoder_pcm16(pcm, input_storage, sample_count);
-  return encode_native(st, input_storage, frame_size, data, max_data_bytes, lsb_depth, float_api, pcm);
-}
-
-template <std::size_t Capacity>
-static opus_int32 encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes) {
-  std::array<opus_res, Capacity> input_storage;
-  return encode_pcm16_converted(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false, pcm);
-}
-
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
   if (st == nullptr || !has_required_storage(pcm, analysis_frame_size) || !has_required_storage(data, max_data_bytes)) {
     return OPUS_BAD_ARG;
@@ -4907,9 +4890,11 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-  return frame_size <= celt_max_frame_samples
-             ? encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes)
-             : encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
+  std::array<opus_res, opus_max_pcm_samples> input_storage;
+  for (int index = 0; index < frame_size * st->channels; ++index) {
+    input_storage[index] = pcm[index] * (1.0f / 32768.0f);
+  }
+  return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
 }
 
 int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept {
@@ -4948,7 +4933,7 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
   set_ref_encoder_defaults(st);
 }
 
-static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned char* data, opus_int32 maxlen, int pad) {
+OPUSCPP_COMPACT static opus_int32 write_packet_frames(packet_frame_set* packet_frames, unsigned char* data, opus_int32 maxlen, int pad) {
   if (packet_frames->nb_frames <= 0) {
     return -1;
   }
@@ -10990,7 +10975,7 @@ static void classifier_gemm_accum(float* out, const opus_int8* weights, int rows
   }
 }
 
-static void classifier_compute_dense(float* output, const float* input, const opus_int8* weights,
+[[gnu::noinline]] static void classifier_compute_dense(float* output, const float* input, const opus_int8* weights,
                                      const opus_int8* bias, int nb_inputs, int nb_neurons, bool sigmoid) {
   for (int i = 0; i < nb_neurons; ++i) {
     output[i] = bias[i];
@@ -11002,7 +10987,7 @@ static void classifier_compute_dense(float* output, const float* input, const op
   }
 }
 
-static void classifier_compute_gru(float* state, const float* input, const opus_int8* weights,
+[[gnu::noinline]] static void classifier_compute_gru(float* state, const float* input, const opus_int8* weights,
                                    const opus_int8* recur_weights, const opus_int8* bias,
                                    int nb_inputs, int nb_neurons) {
   std::array<float, 96> gates;
@@ -11039,227 +11024,136 @@ static bool classical_leak_is_digital_silence(const float* overlap, const float*
   return std::none_of(overlap, overlap + 240, audible) && std::none_of(block, block + 480, audible);
 }
 
-static float classical_leak_down2_hp(opus_val32* S, opus_val32* out, const opus_val32* in, int inLen) {
-  const int len2 = inLen / 2;
-  float hp = 0;
-  for (int k = 0; k < len2; ++k) {
-    opus_val32 in32 = in[2 * k];
-    opus_val32 Y = in32 - S[0];
-    opus_val32 X = Y * 0.6074371f;
-    opus_val32 out32 = S[0] + X;
-    S[0] = in32 + X;
-    opus_val32 hp32 = out32;
-    in32 = in[2 * k + 1];
-    Y = in32 - S[1];
-    X = Y * 0.15063f;
-    out32 = out32 + S[1] + X;
-    S[1] = in32 + X;
-    Y = -in32 - S[2];
-    X = Y * 0.15063f;
-    hp32 = hp32 + S[2] + X;
-    S[2] = -in32 + X;
-    hp += hp32 * hp32;
-    out[k] = 0.5f * out32;
-  }
-  return hp;
-}
-
-static float classifier_pcm16_stereo_down2_hp(float* state, float* out, const opus_int16* input, int count) {
-  float state0 = state[0], state1 = state[1], state2 = state[2];
-  float hp = 0;
-  for (int k = 0; k < count; ++k) {
-    float in32 = (static_cast<float>(input[4 * k]) + static_cast<float>(input[4 * k + 1])) * .5f;
-    float Y = in32 - state0;
-    float X = Y * 0.6074371f;
-    float out32 = state0 + X;
-    state0 = in32 + X;
-    float hp32 = out32;
-    in32 = (static_cast<float>(input[4 * k + 2]) + static_cast<float>(input[4 * k + 3])) * .5f;
-    Y = in32 - state1;
-    X = Y * 0.15063f;
-    out32 = out32 + state1 + X;
-    state1 = in32 + X;
-    Y = -in32 - state2;
-    X = Y * 0.15063f;
-    hp32 = hp32 + state2 + X;
-    state2 = -in32 + X;
-    hp += hp32 * hp32;
-    out[k] = 0.5f * out32;
-  }
-  state[0] = state0;
-  state[1] = state1;
-  state[2] = state2;
-  return hp;
-}
-static float classifier_pcm16_mono_down2_hp(float* state, float* out, const opus_int16* input, int count) {
-  float state0 = state[0], state1 = state[1], state2 = state[2];
-  float hp = 0;
-  for (int k = 0; k < count; ++k) {
-    float in32 = static_cast<float>(input[2 * k]);
-    float Y = in32 - state0;
-    float X = Y * 0.6074371f;
-    float out32 = state0 + X;
-    state0 = in32 + X;
-    float hp32 = out32;
-    in32 = static_cast<float>(input[2 * k + 1]);
-    Y = in32 - state1;
-    X = Y * 0.15063f;
-    out32 = out32 + state1 + X;
-    state1 = in32 + X;
-    Y = -in32 - state2;
-    X = Y * 0.15063f;
-    hp32 = hp32 + state2 + X;
-    state2 = -in32 + X;
-    hp += hp32 * hp32;
-    out[k] = 0.5f * out32;
-  }
-  state[0] = state0;
-  state[1] = state1;
-  state[2] = state2;
-  return hp;
-}
-
-static float classical_leak_downmix_resample_generic(classical_leak_state* s, const opus_res* pcm, float* out,
-                                                     int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
-  if (subframe == 0) {
-    return 0;
-  }
-  if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
-                std::numeric_limits<float>::digits >= 17 && std::numeric_limits<float>::min_exponent <= -15 &&
-                std::numeric_limits<float>::max_exponent > 16 && FLT_EVAL_METHOD == 0) {
-    if (Fs == 48000 && channels == 2 && pcm16 != nullptr && subframe > 0)
-      return classifier_pcm16_stereo_down2_hp(s->downmix_state, out, pcm16 + static_cast<std::size_t>(offset) * 4, subframe) * (1.f / 32768.f / 32768.f);
-  }
-  if (Fs == 48000) {
-    subframe *= 2;
-    offset *= 2;
-  } else if (Fs == 16000) {
-    subframe = subframe * 2 / 3;
-    offset = offset * 2 / 3;
-  }
-  float tmp[1440];
-  constexpr bool exact_pcm16_format = std::numeric_limits<float>::is_iec559 &&
-                                      std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits >= 17 &&
-                                      std::numeric_limits<float>::min_exponent <= -15 && std::numeric_limits<float>::max_exponent > 16;
-  if (exact_pcm16_format && pcm16 != nullptr) {
-    for (int j = 0; j < subframe; ++j) {
-      float y = static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels]);
-      if (channels == 2)
-        y += static_cast<float>(pcm16[static_cast<std::size_t>(j + offset) * channels + 1]);
-      tmp[j] = y;
-    }
-  } else {
-    for (int j = 0; j < subframe; ++j) {
-      float y = static_cast<float>(pcm[static_cast<std::size_t>(j + offset) * channels]) * 32768.f;
-      if (channels == 2)
-        y += static_cast<float>(pcm[static_cast<std::size_t>(j + offset) * channels + 1]) * 32768.f;
-      if (y < -65536.f)
-        y = -65536.f;
-      if (y > 65536.f)
-        y = 65536.f;
-      if (std::isnan(y))
-        y = 0;
-      tmp[j] = y;
-    }
-  }
+static inline float classifier_mix_sample(const float* frame, int channels, bool bounded, float scale) {
+  float y = frame[0] * scale;
   if (channels == 2) {
-    for (int j = 0; j < subframe; ++j) {
-      tmp[j] *= .5f;
-    }
+    y += frame[1] * scale;
+  }
+  if (!bounded) {
+    y = std::clamp(y, -65536.f, 65536.f);
+    y = std::isnan(y) ? 0.f : y;
+  }
+  return channels == 2 ? y * .5f : y;
+}
+
+OPUSCPP_COMPACT static float classical_leak_down2_hp_pcm(float* S, float* out, const float* pcm, int count, int channels, bool bounded, float scale) {
+  float state0 = S[0], state1 = S[1], state2 = S[2];
+  float hp = 0;
+  for (int k = 0; k < count; ++k) {
+    float in32 = classifier_mix_sample(pcm + 2 * k * channels, channels, bounded, scale);
+    float Y = in32 - state0;
+    float X = Y * 0.6074371f;
+    float out32 = state0 + X;
+    state0 = in32 + X;
+    float hp32 = out32;
+    in32 = classifier_mix_sample(pcm + (2 * k + 1) * channels, channels, bounded, scale);
+    Y = in32 - state1;
+    X = Y * 0.15063f;
+    out32 = out32 + state1 + X;
+    state1 = in32 + X;
+    Y = -in32 - state2;
+    X = Y * 0.15063f;
+    hp32 = hp32 + state2 + X;
+    state2 = -in32 + X;
+    hp += hp32 * hp32;
+    out[k] = 0.5f * out32;
+  }
+  S[0] = state0;
+  S[1] = state1;
+  S[2] = state2;
+  return hp;
+}
+
+OPUSCPP_COMPACT static float classical_leak_downmix_resample(classical_leak_state* s, const opus_res* pcm, float* out, int subframe, int offset, int channels, int Fs) {
+  if (subframe <= 0) {
+    return 0;
   }
   float ret = 0;
   if (Fs == 48000) {
-    ret = classical_leak_down2_hp(s->downmix_state, out, tmp, subframe);
-  } else if (Fs == 24000) {
-    for (int j = 0; j < subframe; ++j) {
-      out[j] = tmp[j];
+    ret = classical_leak_down2_hp_pcm(s->downmix_state, out, pcm + static_cast<std::size_t>(offset) * 2 * channels, subframe, channels, s->pcm_bounded, 32768.f);
+  } else {
+    if (Fs == 16000) {
+      subframe = subframe * 2 / 3;
+      offset = offset * 2 / 3;
     }
-  } else if (Fs == 16000) {
-    float tmp3x[1440];
+    float tmp[1440];
     for (int j = 0; j < subframe; ++j) {
-      tmp3x[3 * j] = tmp[j];
-      tmp3x[3 * j + 1] = tmp[j];
-      tmp3x[3 * j + 2] = tmp[j];
+      tmp[j] = classifier_mix_sample(pcm + static_cast<std::size_t>(j + offset) * channels, channels, s->pcm_bounded, 32768.f);
     }
-    ret = classical_leak_down2_hp(s->downmix_state, out, tmp3x, 3 * subframe);
+    if (Fs == 24000) {
+      std::copy_n(tmp, subframe, out);
+    } else if (Fs == 16000) {
+      float tmp3x[1440];
+      for (int j = 0; j < subframe; ++j) {
+        tmp3x[3 * j] = tmp3x[3 * j + 1] = tmp3x[3 * j + 2] = tmp[j];
+      }
+      ret = classical_leak_down2_hp_pcm(s->downmix_state, out, tmp3x, 3 * subframe / 2, 1, true, 1.f);
+    }
   }
   return ret * (1.f / 32768.f / 32768.f);
 }
 
-static float classical_leak_downmix_resample(classical_leak_state* s, const opus_res* pcm, float* out, int subframe, int offset, int channels, int Fs, const opus_int16* pcm16 = nullptr) {
-  if (subframe == 0)
-    return 0;
-  if constexpr (std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
-                std::numeric_limits<float>::digits >= 17 && std::numeric_limits<float>::min_exponent <= -15 &&
-                std::numeric_limits<float>::max_exponent > 16 && FLT_EVAL_METHOD == 0) {
-    if (Fs == 48000 && channels == 1 && pcm16 != nullptr && subframe > 0 && offset >= 0)
-      return classifier_pcm16_mono_down2_hp(s->downmix_state, out, pcm16 + static_cast<std::size_t>(offset) * 2, subframe) * (1.f / 32768.f / 32768.f);
-  }
-  return classical_leak_downmix_resample_generic(s, pcm, out, subframe, offset, channels, Fs, pcm16);
+static inline float classifier_select(bool condition, float a, float b) {
+  const opus_uint32 mask = 0U - static_cast<opus_uint32>(condition);
+  return std::bit_cast<float>((std::bit_cast<opus_uint32>(a) & mask) | (std::bit_cast<opus_uint32>(b) & ~mask));
 }
 
-template <typename Float>
-static Float classifier_unified_atan2_nearest(Float y, Float x) {
-  const auto legacy = [y, x]() {
-    float (*volatile call)(float, float) = classifier_fast_atan2f;
-    return static_cast<Float>(call(static_cast<float>(y), static_cast<float>(x)));
-  };
-  if constexpr (std::is_same_v<Float, float> && sizeof(Float) == sizeof(opus_uint32) &&
-                std::numeric_limits<Float>::is_iec559 && std::numeric_limits<Float>::radix == 2 &&
-                std::numeric_limits<Float>::digits == 24 && std::numeric_limits<Float>::max_exponent == 128 &&
-                FLT_EVAL_METHOD == 0) {
-    const opus_uint32 x_bits = std::bit_cast<opus_uint32>(x);
-    const opus_uint32 y_bits = std::bit_cast<opus_uint32>(y);
-    const opus_uint32 x_magnitude = x_bits & 0x7fffffffU;
-    const opus_uint32 y_magnitude = y_bits & 0x7fffffffU;
-    const auto bounded = [](opus_uint32 magnitude) {
-      return magnitude == 0 || (magnitude >= 0x00800000U && magnitude <= 0x49800000U);
-    };
-    if (!bounded(x_magnitude) || !bounded(y_magnitude))
-      return legacy();
-    const Float cA = 0.43157974f;
-    const Float cB = 0.67848403f;
-    const Float cC = 0.08595542f;
-    const Float cE = static_cast<Float>(3.14159265358979323846 / 2);
-    const Float x2 = x * x;
-    const Float y2 = y * y;
-    if (x2 + y2 < 1e-18f)
-      return 0;
-    const opus_uint32 steep = 0U - static_cast<opus_uint32>(x2 < y2);
-    const opus_uint32 x2_bits = std::bit_cast<opus_uint32>(x2);
-    const opus_uint32 y2_bits = std::bit_cast<opus_uint32>(y2);
-    const opus_uint32 exchange = (x2_bits ^ y2_bits) & steep;
-    const Float major = std::bit_cast<Float>(x2_bits ^ exchange);
-    const Float minor = std::bit_cast<Float>(y2_bits ^ exchange);
-    const Float denominator = (major + cB * minor) * (major + cC * minor);
-    const Float selected_x = std::bit_cast<Float>(x_bits ^ (steep & 0x80000000U));
-    const Float xy = selected_x * y;
-    const opus_uint32 xy_bits = std::bit_cast<opus_uint32>(xy);
-    const opus_uint32 xy_magnitude = xy_bits & 0x7fffffffU;
-    if (xy_magnitude != 0 && xy_magnitude < 0x00800000U)
-      return legacy();
-    const opus_uint32 y_negative = ((y_bits >> 31) & static_cast<opus_uint32>(y_magnitude != 0)) << 31;
-    const opus_uint32 xy_negative = ((xy_bits >> 31) & static_cast<opus_uint32>(xy_magnitude != 0)) << 31;
-    const opus_uint32 half_pi = std::bit_cast<opus_uint32>(cE);
-    const Float first = xy * (major + cA * minor) / denominator + std::bit_cast<Float>(half_pi | y_negative);
-    const opus_uint32 opposite_zero = (std::bit_cast<opus_uint32>(first) ^ 0x80000000U) & 0x80000000U;
-    const opus_uint32 shallow_correction = half_pi | xy_negative;
-    const opus_uint32 correction = shallow_correction ^ ((shallow_correction ^ opposite_zero) & steep);
-    return first - std::bit_cast<Float>(correction);
-  } else {
-    return legacy();
+static inline float classifier_atan2_lane(float y, float x) {
+  constexpr float cA = 0.43157974f, cB = 0.67848403f, cC = 0.08595542f;
+  constexpr float cE = static_cast<float>(3.14159265358979323846 / 2);
+  const float x2 = x * x;
+  const float y2 = y * y;
+  const bool steep = x2 < y2;
+  const float major = classifier_select(steep, y2, x2);
+  const float minor = classifier_select(steep, x2, y2);
+  const float den = (major + cB * minor) * (major + cC * minor);
+  const float num = classifier_select(steep, -x * y, x * y);
+  const float first = num * (major + cA * minor) / den + classifier_select(y < 0, -cE, cE);
+  const float result = classifier_select(steep, first, first - classifier_select(x * y < 0, -cE, cE));
+  return classifier_select(x2 + y2 < 1e-18f, 0.f, result);
+}
+
+static inline float classifier_round(float x) {
+  constexpr float magic = 12582912.f;
+  return classifier_select(std::fabs(x) < 4194304.f, (x + magic) - magic, x);
+}
+
+static void classifier_phase_pass(const float* __restrict out, float* __restrict A, float* __restrict dA, float* __restrict d2A, float* __restrict tonality, float* __restrict noisiness, float* __restrict tonality2) {
+  constexpr float pi4 = static_cast<float>(3.141592653 * 3.141592653 * 3.141592653 * 3.141592653);
+  constexpr float angle_scale = static_cast<float>(.5f / 3.141592653);
+  for (int i = 0; i < 240; ++i) {
+    const float X1r = out[i] + out[480 - i];
+    const float X1i = out[480 + i] - out[960 - i];
+    const float X2r = out[480 + i] + out[960 - i];
+    const float X2i = out[480 - i] - out[i];
+    const float angle = angle_scale * classifier_atan2_lane(X1i, X1r);
+    const float d_angle = angle - A[i];
+    const float d2_angle = d_angle - dA[i];
+    const float angle2 = angle_scale * classifier_atan2_lane(X2i, X2r);
+    const float d_angle2 = angle2 - angle;
+    const float d2_angle2 = d_angle2 - d_angle;
+    float mod1 = d2_angle - classifier_round(d2_angle);
+    float noisy = std::fabs(mod1);
+    mod1 *= mod1;
+    mod1 *= mod1;
+    float mod2 = d2_angle2 - classifier_round(d2_angle2);
+    noisy += std::fabs(mod2);
+    mod2 *= mod2;
+    mod2 *= mod2;
+    const float avg_mod = .25f * (d2A[i] + mod1 + 2 * mod2);
+    noisiness[i] = noisy;
+    tonality[i] = 1.f / (1.f + 40.f * 16.f * pi4 * avg_mod) - .015f;
+    tonality2[i] = 1.f / (1.f + 40.f * 16.f * pi4 * mod2) - .015f;
+    A[i] = angle2;
+    dA[i] = d_angle2;
+    d2A[i] = mod2;
   }
 }
 
-static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* pcm, int len, int offset,
-                                   int channels, int lsb_depth, int Fs, const opus_int16* pcm16 = nullptr) {
+[[gnu::noinline]] static void classical_leak_features(classical_leak_state* tonal, classical_leak_record* info, const float* out,
+                                                                  const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener) {
   int i, b;
-  const int N = 480, N2 = 240;
-  float* A = tonal->angle;
-  float* dA = tonal->d_angle;
-  float* d2A = tonal->d2_angle;
-  float tonality[240];
-  float noisiness[240];
+  const int N = 480;
   float band_tonality[18];
   std::array<float, 18> raw_band_energy;
   float logE[18];
@@ -11268,7 +11162,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float frame_tonality;
   float max_frame_tonality;
   float frame_noisiness;
-  const float pi4 = static_cast<float>(3.141592653 * 3.141592653 * 3.141592653 * 3.141592653);
   float slope = 0;
   float frame_stationarity;
   float relativeE;
@@ -11278,16 +11171,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float bandwidth_mask;
   int is_masked[19];
   float noise_floor;
-  int remaining;
-  classical_leak_record* info;
   float activity;
-  float hp_ener;
-  float tonality2[240];
-  constexpr bool stream_tonality_neighbors = sizeof(float) == sizeof(opus_uint32) &&
-                                             std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
-                                             std::numeric_limits<float>::digits == 24 && FLT_EVAL_METHOD == 0;
-  std::array<float, 18> tonality_neighbors{};
-  int tonality_tile_start = 1;
   float midE[8];
   float spec_variability = 0;
   float band_log2[19];
@@ -11299,112 +11183,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   alphaE = 1.f / std::min(25, 1 + tonal->count);
   const float alphaE2 = tonal->count <= 1 ? 1.f : 1.f / std::min(100, 1 + tonal->count);
 
-  const int pending_samples = tonal->mem_fill - 240;
-  const int needed = 480 - pending_samples;
-  union {
-    std::array<float, 480> block;
-    std::array<float, 960> spectrum;
-  } scratch;
-  auto* block = tonal->pending_pcm != nullptr ? tonal->pending_pcm
-                                              : (::new (static_cast<void*>(&scratch.block)) std::array<float, 480>)->data();
-  tonal->hp_ener_accum += classical_leak_downmix_resample(tonal, pcm, block + pending_samples,
-                                                          needed, offset, channels, Fs, pcm16);
-  hp_ener = tonal->hp_ener_accum;
-  info = &tonal->info[tonal->write_pos++];
-  if (tonal->write_pos >= 100)
-    tonal->write_pos -= 100;
-
-  const bool is_silence = classical_leak_is_digital_silence(tonal->inmem, block, lsb_depth);
-
-  float in[960];
-  for (i = 0; i < N2; ++i) {
-    const float w = classical_analysis_window[i] * (1.f / 480);
-    in[(i)] = w * tonal->inmem[i];
-    in[N + (i)] = w * block[i];
-    in[(N - i - 1)] = w * block[N2 - i - 1];
-    in[N + (N - i - 1)] = w * block[N - i - 1];
-  }
-  for (i = 0; i < 240; ++i) {
-    tonal->inmem[i] = block[240 + i];
-  }
-  remaining = len - (720 - tonal->mem_fill);
-  tonal->hp_ener_accum = classical_leak_downmix_resample(tonal, pcm, remaining > 0 ? tonal->pending_pcm : block, remaining,
-                                                         offset + 720 - tonal->mem_fill, channels, Fs, pcm16);
-  tonal->mem_fill = 240 + remaining;
-  if (is_silence) {
-    int prev_pos = tonal->write_pos - 2;
-    if (prev_pos < 0)
-      prev_pos += 100;
-    *info = tonal->info[prev_pos];
-    return;
-  }
-  auto* out = (::new (static_cast<void*>(&scratch.spectrum)) std::array<float, 960>)->data();
-  {
-    out = celt_fft(in, out, 0);
-  }
-  if (std::isnan(out[(0)])) {
-    info->valid = 0;
-    return;
-  }
-
-  const bool unified_phase_atan = std::fegetround() == FE_TONEAREST;
-  for (i = 1; i < N2; ++i) {
-    float X1r, X2r, X1i, X2i;
-    float angle, d_angle, d2_angle;
-    float angle2, d_angle2, d2_angle2;
-    float mod1, mod2, avg_mod;
-    X1r = out[(i)] + out[(N - i)];
-    X1i = out[N + (i)] - out[N + (N - i)];
-    X2r = out[N + (i)] + out[N + (N - i)];
-    X2i = out[(N - i)] - out[(i)];
-
-    angle = static_cast<float>(.5f / 3.141592653) * (unified_phase_atan ? classifier_unified_atan2_nearest(X1i, X1r) : classifier_fast_atan2f(X1i, X1r));
-    d_angle = angle - A[i];
-    d2_angle = d_angle - dA[i];
-
-    angle2 = static_cast<float>(.5f / 3.141592653) * (unified_phase_atan ? classifier_unified_atan2_nearest(X2i, X2r) : classifier_fast_atan2f(X2i, X2r));
-    d_angle2 = angle2 - angle;
-    d2_angle2 = d_angle2 - d_angle;
-
-    mod1 = d2_angle - std::nearbyintf(d2_angle);
-    noisiness[i] = std::fabs(mod1);
-    mod1 *= mod1;
-    mod1 *= mod1;
-
-    mod2 = d2_angle2 - std::nearbyintf(d2_angle2);
-    noisiness[i] += std::fabs(mod2);
-    mod2 *= mod2;
-    mod2 *= mod2;
-
-    avg_mod = .25f * (d2A[i] + mod1 + 2 * mod2);
-    tonality[i] = 1.f / (1.f + 40.f * 16.f * pi4 * avg_mod) - .015f;
-    tonality2[i] = 1.f / (1.f + 40.f * 16.f * pi4 * mod2) - .015f;
-
-    A[i] = angle2;
-    dA[i] = d_angle2;
-    d2A[i] = mod2;
-    if constexpr (stream_tonality_neighbors) {
-      const int produced = i - tonality_tile_start + 1;
-      tonality_neighbors[static_cast<std::size_t>(produced + 1)] = tonality2[i];
-      if (produced == 16 || i == N2 - 1) {
-        for (int output = std::max(2, tonality_tile_start - 1); output < i; ++output) {
-          const auto center = static_cast<std::size_t>(output - tonality_tile_start + 2);
-          const float tt = std::min(tonality_neighbors[center],
-                                    std::max(tonality_neighbors[center - 1], tonality_neighbors[center + 1]));
-          tonality[output] = .9f * std::max(tonality[output], tt - .1f);
-        }
-        tonality_neighbors[0] = tonality_neighbors[static_cast<std::size_t>(produced)];
-        tonality_neighbors[1] = tonality_neighbors[static_cast<std::size_t>(produced + 1)];
-        tonality_tile_start = i + 1;
-      }
-    }
-  }
-  if constexpr (!stream_tonality_neighbors) {
-    for (i = 2; i < N2 - 1; ++i) {
-      float tt = std::min(tonality2[i], std::max(tonality2[i - 1], tonality2[i + 1]));
-      tonality[i] = .9f * std::max(tonality[i], tt - .1f);
-    }
-  }
   frame_tonality = 0;
   max_frame_tonality = 0;
   activity = 0;
@@ -11431,20 +11209,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     E = (1.f / 32768.f / 32768.f) * E;
     band_log2[0] = .5f * 1.442695f * static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
   }
-  constexpr bool energy_root_format = sizeof(float) == sizeof(opus_uint32) &&
-                                      std::numeric_limits<float>::is_iec559 && FLT_EVAL_METHOD == 0;
-  int energy_root_rounding = 0;
-  bool energy_roots_build = false;
-  bool energy_roots_reuse = false;
-  if constexpr (energy_root_format) {
-    energy_root_rounding = std::fegetround();
-    energy_roots_build = energy_root_rounding == FE_TONEAREST || energy_root_rounding == FE_DOWNWARD ||
-                         energy_root_rounding == FE_UPWARD || energy_root_rounding == FE_TOWARDZERO;
-    energy_roots_reuse = energy_roots_build && tonal->energy_roots_valid &&
-                         tonal->energy_roots_rounding == energy_root_rounding && std::fetestexcept(FE_INEXACT) != 0;
-  }
-  if (!energy_roots_reuse)
-    tonal->energy_roots_valid = false;
   for (b = 0; b < 18; ++b) {
     float E = 0, tE = 0, nE = 0;
     raw_band_energy[b] = 0;
@@ -11464,6 +11228,7 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     }
 
     tonal->E[tonal->E_count][b] = E;
+    tonal->E_root[tonal->E_count][b] = classifier_sqrt_d(E);
     frame_noisiness += nE / (1e-15f + E);
 
     frame_loudness += classifier_sqrt_d(E + 1e-10f);
@@ -11490,31 +11255,9 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     relativeE += (logE[b] - tonal->lowE[b]) / (1e-5f + (tonal->highE[b] - tonal->lowE[b]));
 
     L1 = L2 = 0;
-    bool current_root_safe = false;
-    if constexpr (energy_root_format) {
-      const opus_uint32 bits = std::bit_cast<opus_uint32>(E);
-      const opus_uint32 magnitude = bits & 0x7fffffffU;
-      current_root_safe = magnitude == 0 || (bits < 0x7f800000U && magnitude >= 0x00800000U);
-    }
-    if (energy_roots_reuse && current_root_safe) {
-      tonal->history_energy_roots[tonal->E_count][b] = classifier_sqrt_d(E);
-      for (i = 0; i < 8; ++i) {
-        L1 += tonal->history_energy_roots[i][b];
-        L2 += tonal->E[i][b];
-      }
-    } else {
-      for (i = 0; i < 8; ++i) {
-        const float energy = tonal->E[i][b];
-        const float root = classifier_sqrt_d(energy);
-        if constexpr (energy_root_format) {
-          tonal->history_energy_roots[i][b] = root;
-          const opus_uint32 bits = std::bit_cast<opus_uint32>(energy);
-          const opus_uint32 magnitude = bits & 0x7fffffffU;
-          energy_roots_build &= magnitude == 0 || (bits < 0x7f800000U && magnitude >= 0x00800000U);
-        }
-        L1 += root;
-        L2 += energy;
-      }
+    for (i = 0; i < 8; ++i) {
+      L1 += tonal->E_root[i][b];
+      L2 += tonal->E[i][b];
     }
 
     stationarity = std::min(0.99f, L1 / classifier_sqrt_d(1e-15 + 8 * L2));
@@ -11531,10 +11274,6 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     tonal->prev_band_tonality[b] = band_tonality[b];
   }
 
-  if constexpr (energy_root_format) {
-    tonal->energy_roots_valid = energy_roots_build;
-    tonal->energy_roots_rounding = energy_root_rounding;
-  }
   leakage_from[0] = band_log2[0];
   leakage_to[0] = band_log2[0] - 2.5f;
   for (b = 1; b < 19; ++b) {
@@ -11553,78 +11292,25 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     info->leak_boost[b] = static_cast<opus_uint8>(std::min(255, static_cast<int>(std::floor(0.5 + static_cast<double>(64.f * boost)))));
   }
 
-  bool symmetric_history = false;
-  bool cache_eligible = false;
-  if constexpr (sizeof(float) == sizeof(opus_uint32) && std::numeric_limits<float>::is_iec559 && FLT_EVAL_METHOD == 0) {
-    const bool nearest = std::fegetround() == FE_TONEAREST;
-    bool bounded_history = nearest && tonal->count >= 8 && std::fetestexcept(FE_INEXACT) != 0;
-    if (bounded_history) {
-      const int first_row = tonal->history_distance_valid ? tonal->E_count : 0;
-      const int end_row = tonal->history_distance_valid ? tonal->E_count + 1 : 8;
-      for (int row = first_row; row < end_row; ++row) {
-        for (const float value : tonal->logE[row]) {
-          const opus_uint32 magnitude = std::bit_cast<opus_uint32>(value) & 0x7fffffffU;
-          bounded_history &= magnitude == 0 || (magnitude >= 0x2c000000U && magnitude <= 0x5d000000U);
-        }
-      }
-    }
-    cache_eligible = bounded_history;
-    if (cache_eligible) {
-      symmetric_history = true;
-    } else {
-      opus_uint32 exceptional_history = 0;
-      for (const auto& history : tonal->logE)
-        for (const float value : history)
-          exceptional_history |= static_cast<opus_uint32>((std::bit_cast<opus_uint32>(value) & 0x7f800000U) == 0x7f800000U);
-      symmetric_history = nearest && exceptional_history == 0;
-    }
-  }
-  if (symmetric_history) {
-    const bool cache_valid = cache_eligible && tonal->history_distance_valid;
-    std::array<float, 8> minimum;
-    minimum.fill(1e15f);
-    int pair = 0;
-    for (int first = 0; first < 8; ++first) {
-      for (int second = first + 1; second < 8; ++second) {
-        float distance;
-        if (cache_valid && first != tonal->E_count && second != tonal->E_count) {
-          distance = tonal->history_distances[pair];
-        } else {
-          distance = 0;
-          for (int band = 0; band < 18; ++band) {
-            const float difference = tonal->logE[first][band] - tonal->logE[second][band];
-            distance += difference * difference;
-          }
-          if (cache_eligible)
-            tonal->history_distances[pair] = distance;
-        }
-        minimum[first] = std::min(minimum[first], distance);
-        minimum[second] = std::min(minimum[second], distance);
-        ++pair;
-      }
-    }
-    tonal->history_distance_valid = cache_eligible;
-    for (const float distance : minimum)
-      spec_variability += distance;
-  } else {
-    tonal->history_distance_valid = false;
-    for (i = 0; i < 8; ++i) {
-      int j;
-      float mindist = 1e15f;
-      for (j = 0; j < 8; ++j) {
-        int k;
+  float min_distance[8];
+  std::fill_n(min_distance, 8, 1e15f);
+  int pair = 0;
+  for (i = 0; i < 8; ++i) {
+    for (int j = i + 1; j < 8; ++j, ++pair) {
+      if (i == tonal->E_count || j == tonal->E_count) {
         float dist = 0;
-        for (k = 0; k < 18; ++k) {
-          float tmp;
-          tmp = tonal->logE[i][k] - tonal->logE[j][k];
+        for (int k = 0; k < 18; ++k) {
+          const float tmp = tonal->logE[i][k] - tonal->logE[j][k];
           dist += tmp * tmp;
         }
-        if (j != i) {
-          mindist = std::min(mindist, dist);
-        }
+        tonal->pair_distance[pair] = dist;
       }
-      spec_variability += mindist;
+      min_distance[i] = std::min(min_distance[i], tonal->pair_distance[pair]);
+      min_distance[j] = std::min(min_distance[j], tonal->pair_distance[pair]);
     }
+  }
+  for (const float distance : min_distance) {
+    spec_variability += distance;
   }
   spec_variability = classifier_sqrt_d(spec_variability / 8 / 18);
   bandwidth_mask = 0;
@@ -11755,7 +11441,79 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   info->valid = 1;
 }
 
-static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_info* info_out, int Fs, int len) {
+static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* pcm, int len, int offset,
+                                   int channels, int lsb_depth, int Fs) {
+  int i;
+  const int N = 480, N2 = 240;
+  float* A = tonal->angle;
+  float* dA = tonal->d_angle;
+  float* d2A = tonal->d2_angle;
+  float tonality[256];
+  float noisiness[256];
+  const float pi4 = static_cast<float>(3.141592653 * 3.141592653 * 3.141592653 * 3.141592653);
+  int remaining;
+  classical_leak_record* info;
+  float hp_ener;
+  float tonality2[256];
+
+  const int pending_samples = tonal->mem_fill - 240;
+  const int needed = 480 - pending_samples;
+  union {
+    std::array<float, 480> block;
+    std::array<float, 964> spectrum;
+  } scratch;
+  auto* block = tonal->pending_pcm != nullptr ? tonal->pending_pcm
+                                              : (::new (static_cast<void*>(&scratch.block)) std::array<float, 480>)->data();
+  tonal->hp_ener_accum += classical_leak_downmix_resample(tonal, pcm, block + pending_samples,
+                                                          needed, offset, channels, Fs);
+  hp_ener = tonal->hp_ener_accum;
+  info = &tonal->info[tonal->write_pos++];
+  if (tonal->write_pos >= 100)
+    tonal->write_pos -= 100;
+
+  const bool is_silence = classical_leak_is_digital_silence(tonal->inmem, block, lsb_depth);
+
+  float in[964];
+  for (i = 0; i < N2; ++i) {
+    const float w = classical_analysis_window[i] * (1.f / 480);
+    in[(i)] = w * tonal->inmem[i];
+    in[N + (i)] = w * block[i];
+    in[(N - i - 1)] = w * block[N2 - i - 1];
+    in[N + (N - i - 1)] = w * block[N - i - 1];
+  }
+  for (i = 0; i < 240; ++i) {
+    tonal->inmem[i] = block[240 + i];
+  }
+  remaining = len - (720 - tonal->mem_fill);
+  tonal->hp_ener_accum = classical_leak_downmix_resample(tonal, pcm, remaining > 0 ? tonal->pending_pcm : block, remaining,
+                                                         offset + 720 - tonal->mem_fill, channels, Fs);
+  tonal->mem_fill = 240 + remaining;
+  if (is_silence) {
+    int prev_pos = tonal->write_pos - 2;
+    if (prev_pos < 0)
+      prev_pos += 100;
+    *info = tonal->info[prev_pos];
+    return;
+  }
+  auto* out = (::new (static_cast<void*>(&scratch.spectrum)) std::array<float, 964>)->data();
+  {
+    out = celt_fft(in, out, 0);
+  }
+  out[960] = 0;
+  if (std::isnan(out[(0)])) {
+    info->valid = 0;
+    return;
+  }
+
+  classifier_phase_pass(out, A, dA, d2A, tonality, noisiness, tonality2);
+  for (i = 2; i < N2 - 1; ++i) {
+    float tt = std::min(tonality2[i], std::max(tonality2[i - 1], tonality2[i + 1]));
+    tonality[i] = .9f * std::max(tonality[i], tt - .1f);
+  }
+  classical_leak_features(tonal, info, out, tonality, noisiness, lsb_depth, Fs, hp_ener);
+}
+
+OPUSCPP_COMPACT static void classical_leak_get_info(classical_leak_state* tonal, classical_leak_info* info_out, int Fs, int len) {
   int pos = tonal->read_pos;
   const int curr_lookahead = (tonal->write_pos - pos + 100) % 100;
   const int subframes = tonal->read_subframe + len / (Fs / 400);
@@ -11838,7 +11596,7 @@ static void classical_leak_reset(classical_leak_state* s) {
   s->analysis_read_pos_bak = -1;
 }
 
-static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth, const opus_int16* pcm16) {
+OPUSCPP_COMPACT static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth) {
   if (!s->initialized) {
     s->mem_fill = 240;
     s->initialized = 1;
@@ -11855,10 +11613,10 @@ static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* p
     const int fill = s->mem_fill;
     if (analysis_len < 720 - fill) {
       s->hp_ener_accum += classical_leak_downmix_resample(s, pcm, s->pending_pcm + fill - 240,
-                                                          analysis_len, analysis_offset, channels, Fs, pcm16);
+                                                          analysis_len, analysis_offset, channels, Fs);
       s->mem_fill += analysis_len;
     } else {
-      classical_leak_analyze(s, pcm, analysis_len, analysis_offset, channels, lsb_depth, Fs, pcm16);
+      classical_leak_analyze(s, pcm, analysis_len, analysis_offset, channels, lsb_depth, Fs);
     }
     offset += step;
     pcm_len -= step;
@@ -18491,7 +18249,7 @@ template <int Maximum> [[nodiscard]] static inline auto ctl_read_bounded(va_list
 }
 }
 
-OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* error) noexcept {
+[[gnu::cold]] OpusEncoder* opus_encoder_create(int Fs, int channels, int application, int* error) noexcept {
   return create_codec_state<true>(Fs, channels, application, error);
 }
 
@@ -18510,7 +18268,7 @@ void opus_encoder_destroy(OpusEncoder* st) noexcept {
   std::free(st);
 }
 
-int opus_encoder_ctl(OpusEncoder* st, int request, ...) noexcept {
+[[gnu::cold]] int opus_encoder_ctl(OpusEncoder* st, int request, ...) noexcept {
   va_list ap;
   va_start(ap, request);
   const int ret = st == nullptr ? OPUS_BAD_ARG : dispatch_encoder_control(st, request, ap);
