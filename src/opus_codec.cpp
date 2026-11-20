@@ -5036,7 +5036,6 @@ static inline void quant_coarse_energy(int start, int end, const celt_glog* eBan
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C);
 
-static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1);
 
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C);
@@ -6609,157 +6608,6 @@ template <bool Encode>
   return tell;
 }
 
-template <class Float>
-static constexpr bool celt_projection_binary64 =
-    sizeof(Float) == sizeof(std::uint64_t) && std::numeric_limits<Float>::is_iec559 &&
-    std::numeric_limits<Float>::radix == 2 && std::numeric_limits<Float>::digits == 53 &&
-    std::numeric_limits<Float>::max_exponent == 1024 && std::numeric_limits<Float>::min_exponent == -1021 &&
-    (std::endian::native == std::endian::little || std::endian::native == std::endian::big);
-
-template <class Float>
-static constexpr std::uint64_t celt_projection_target_bits(const Float& value) {
-  if constexpr (celt_projection_binary64<Float>)
-    return std::bit_cast<std::uint64_t>(value);
-  else
-    return 0;
-}
-
-static bool celt_exact_projection_heap(int start, int end, const int* requested, int* counts, const int* width, const int* quantum, const double* targets, int& requested_total, int delivered_budget) {
-  if constexpr (!celt_projection_binary64<double>)
-    return false;
-  constexpr int max_width = 2 * celt_max_band_samples;
-  constexpr auto max_target = celt_projection_target_bits(static_cast<double>(32 * max_width));
-  if (start < 0 || end > celt_default_nb_ebands || start >= end || delivered_budget < 0)
-    return false;
-  for (int band = start; band < end; ++band) {
-    if (counts[band] == 0)
-      continue;
-    if (counts[band] < 0 || counts[band] > requested[band] || requested[band] > 32 || width[band] < 1 || width[band] > max_width || quantum[band] < 1 || quantum[band] > max_width)
-      return false;
-    const auto bits = celt_projection_target_bits(targets[band]);
-    if (bits > max_target)
-      return false;
-    if (bits != 0) {
-      const int exponent = static_cast<int>((bits >> 52) & 2047) - 1023;
-      if (exponent < -24)
-        return false;
-      const unsigned low_bits = static_cast<unsigned>(28 - exponent);
-      if ((bits & ((std::uint64_t{1} << low_bits) - 1)) != 0)
-        return false;
-    }
-  }
-  std::array<opus_int64, celt_default_nb_ebands> primary;
-  std::array<double, celt_default_nb_ebands> continuous;
-  const auto update = [&](int band) {
-    primary[band] = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band];
-    continuous[band] = 2 * (targets[band] - counts[band] * quantum[band]) + quantum[band];
-  };
-  const auto before = [&](int band, int best) {
-    const auto marginal = primary[band] * width[best];
-    const auto incumbent = primary[best] * width[band];
-    if (marginal != incumbent)
-      return marginal < incumbent;
-    const double continuous_marginal = continuous[band] * width[best];
-    const double continuous_incumbent = continuous[best] * width[band];
-    if (continuous_marginal != continuous_incumbent)
-      return continuous_marginal < continuous_incumbent;
-    const auto step = static_cast<opus_int64>(quantum[band]) * width[best];
-    const auto incumbent_step = static_cast<opus_int64>(quantum[best]) * width[band];
-    return step != incumbent_step ? step < incumbent_step : band < best;
-  };
-  std::array<int, celt_default_nb_ebands> heap;
-  int size = 0;
-  for (int band = start; band < end; ++band)
-    if (counts[band] > 0) {
-      update(band);
-      heap[size++] = band;
-    }
-  if (size == 0 && requested_total > delivered_budget)
-    return false;
-  const auto sift = [&](int position) {
-    const int value = heap[position];
-    while (2 * position + 1 < size) {
-      int child = 2 * position + 1;
-      if (child + 1 < size && before(heap[child + 1], heap[child]))
-        ++child;
-      if (!before(heap[child], value))
-        break;
-      heap[position] = heap[child];
-      position = child;
-    }
-    heap[position] = value;
-  };
-  for (int position = size / 2; position-- > 0;)
-    sift(position);
-  while (requested_total > delivered_budget) {
-    const int best = heap[0];
-    --counts[best];
-    requested_total -= quantum[best];
-    if (counts[best] == 0)
-      heap[0] = heap[--size];
-    else
-      update(best);
-    if (size > 0)
-      sift(0);
-  }
-  return true;
-}
-
-static inline auto process_celt_encoder_dynalloc(ec_enc* coder, std::span<const opus_int16> eBands, std::span<int> offsets, std::span<const int> cap, int start, int end, int C, int LM, opus_int32& total_bits, int& total_boost, const double* requested_boost = nullptr, bool has_requested_offsets = true) -> opus_int32 {
-  if (C != 2 || start != 0 || !has_requested_offsets)
-    return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
-  const auto saved_coder = *coder;
-  const auto saved_bits = total_bits;
-  std::array<unsigned char, 1275> saved_bytes;
-  std::memcpy(saved_bytes.data(), coder->buf, coder->storage);
-  std::array<int, celt_default_nb_ebands> requested{}, counts{}, width{}, quantum{};
-  int requested_total = 0;
-  std::array<double, celt_default_nb_ebands> targets{};
-  for (int band = start; band < end; ++band) {
-    width[band] = C * (eBands[band + 1] - eBands[band]) << LM;
-    quantum[band] = std::min(width[band] << 3, std::max(6 << 3, width[band]));
-    requested[band] = counts[band] = std::min(offsets[band], (cap[band] + quantum[band] - 1) / quantum[band]);
-    requested_total += requested[band] * quantum[band];
-    targets[band] = requested_boost != nullptr ? requested_boost[band] : static_cast<double>(requested[band]) * quantum[band];
-  }
-  const auto tell = process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
-  if (total_boost == 0 || total_boost >= requested_total)
-    return tell;
-  const int delivered_budget = total_boost;
-  if (!celt_exact_projection_heap(start, end, requested.data(), counts.data(), width.data(), quantum.data(), targets.data(), requested_total, delivered_budget)) {
-    while (requested_total > delivered_budget) {
-      int best = -1;
-      for (int band = start; band < end; ++band) {
-        if (counts[band] == 0)
-          continue;
-        if (best < 0) {
-          best = band;
-          continue;
-        }
-        const auto marginal = static_cast<opus_int64>(2 * (requested[band] - counts[band]) + 1) * quantum[band] * width[best];
-        const auto incumbent = static_cast<opus_int64>(2 * (requested[best] - counts[best]) + 1) * quantum[best] * width[band];
-        bool better = marginal < incumbent;
-        if (marginal == incumbent) {
-          const double continuous_marginal = (2 * (targets[band] - counts[band] * quantum[band]) + quantum[band]) * width[best];
-          const double continuous_incumbent = (2 * (targets[best] - counts[best] * quantum[best]) + quantum[best]) * width[band];
-          better = continuous_marginal < continuous_incumbent ||
-                   (continuous_marginal == continuous_incumbent &&
-                    static_cast<opus_int64>(quantum[band]) * width[best] < static_cast<opus_int64>(quantum[best]) * width[band]);
-        }
-        if (better)
-          best = band;
-      }
-      --counts[best];
-      requested_total -= quantum[best];
-    }
-  }
-  *coder = saved_coder;
-  std::memcpy(coder->buf, saved_bytes.data(), coder->storage);
-  total_bits = saved_bits;
-  std::copy_n(counts.data(), end, offsets.data());
-  return process_celt_dynalloc<true>(coder, eBands, offsets, cap, start, end, C, LM, total_bits, total_boost);
-}
-
 static constexpr int celt_encoder_history_size = 1024;
 static constexpr int celt_decoder_history_size = 2048;
 static constexpr int celt_decoder_compact_prefix = 600;
@@ -6937,20 +6785,17 @@ static double haar_l1_metric(celt_norm* output, const celt_norm* input, int N0, 
   return L1;
 }
 
-static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, const int* importance, int coupled_end, const celt_ener* bandE, int intensity_start, int* metric, int metric_end) {
+static int tf_analysis(int len, int isTransient, int* tf_res, const celt_norm* X, int N0, int LM, opus_val16 tf_estimate, int tf_chan, int coupled_end, const celt_ener* bandE, int intensity_start) {
   const auto* eBands = celt_mode()->eBands;
   const opus_val16 bias = .04f * std::max(-.25f, .5f - tf_estimate);
   std::array<int, celt_default_nb_ebands> path0, path1;
   std::array<celt_norm, celt_max_band_samples> tmp, tmp_1, tmp_side, tmp_side_1;
-  const bool legal_entropy = bandE != nullptr && coupled_end >= len && LM >= 2;
-  const bool legal_metric = legal_entropy || (bandE != nullptr && intensity_start >= 0);
   std::array<std::array<double, 4>, celt_default_nb_ebands> legal_cost;
   int tf_select = 0;
-  for (int i = 0; i < metric_end; i++) {
+  for (int i = 0; i < len; i++) {
     int k, N;
     int narrow;
-    double L1, best_L1;
-    int best_level = 0;
+    double L1;
     N = (eBands[i + 1] - eBands[i]) << LM;
     narrow = (eBands[i + 1] - eBands[i]) == 1;
     if (N <= 0)
@@ -6960,7 +6805,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     unsigned legal_levels = 0;
     int last_legal_level = 0;
     const int legal_states = isTransient ? 4 : 2;
-    if (legal_metric) {
+    {
       for (int state = 0; state < legal_states; ++state) {
         const int tf = tf_select_table[LM][4 * isTransient + state];
         int level = isTransient ? tf : -tf;
@@ -6974,7 +6819,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       }
     }
     const auto record_legal_cost = [&](int level, double value) {
-      if (!legal_entropy || (legal_levels & (1u << (level + 1))) == 0)
+      if ((legal_levels & (1u << (level + 1))) == 0)
         return;
       const double cost = value > 0 ? N * std::log2(value) : 0;
       for (int state = 0; state < legal_states; ++state) {
@@ -6985,7 +6830,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     if (coupled) {
       copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
       copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
-      if (bandE != nullptr) {
+      {
         std::array<opus_val16, 2> weights;
         compute_channel_weights(bandE[i], bandE[celt_default_nb_ebands + i], weights.data());
         const auto left_gain = std::sqrt(weights[0]), right_gain = std::sqrt(weights[1]);
@@ -6995,7 +6840,7 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
         }
       }
       stereo_split(tmp.data(), tmp_side.data(), N);
-    } else if (bandE != nullptr && intensity_start >= 0 && i >= intensity_start) {
+    } else if (intensity_start >= 0 && i >= intensity_start) {
       copy_n_items(&X[eBands[i] << LM], static_cast<std::size_t>(N), tmp.data());
       copy_n_items(&X[N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp_side.data());
       if ((stereo_itheta(tmp.data(), tmp_side.data(), 1, N) >> 16) > 8192)
@@ -7005,40 +6850,25 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
       copy_n_items(&X[tf_chan * N0 + (eBands[i] << LM)], static_cast<std::size_t>(N), tmp.data());
     }
     L1 = l1_metric(tmp.data(), N, isTransient ? LM : 0, bias, coupled ? tmp_side.data() : nullptr);
-    best_L1 = L1;
     record_legal_cost(0, L1);
-    if (isTransient && !narrow && (!legal_metric || (legal_levels & 1u) != 0)) {
+    if (isTransient && !narrow && (legal_levels & 1u) != 0) {
       L1 = haar_l1_metric(tmp_1.data(), tmp.data(), N >> LM, 1 << LM, LM + 1, bias, tmp_side_1.data(), coupled ? tmp_side.data() : nullptr);
       record_legal_cost(-1, L1);
-      if (L1 < best_L1) {
-        best_L1 = L1;
-        best_level = -1;
-      }
     }
-    const int haar_levels = legal_metric ? last_legal_level : LM + !(isTransient || narrow);
+    const int haar_levels = last_legal_level;
     for (k = 0; k < haar_levels; k++) {
       const int B = isTransient ? (LM - k - 1) : k + 1;
-      if (!legal_entropy || (legal_levels & (1u << (k + 2))) != 0) {
+      if ((legal_levels & (1u << (k + 2))) != 0) {
         L1 = haar_l1_metric(tmp.data(), tmp.data(), N >> k, 1 << k, B, bias, tmp_side.data(), coupled ? tmp_side.data() : nullptr);
         record_legal_cost(k + 1, L1);
-        if (L1 < best_L1) {
-          best_L1 = L1;
-          best_level = k + 1;
-        }
       } else {
         haar1(tmp.data(), N >> k, 1 << k);
         if (coupled)
           haar1(tmp_side.data(), N >> k, 1 << k);
       }
     }
-    if (isTransient)
-      metric[i] = 2 * best_level;
-    else
-      metric[i] = -2 * best_level;
-    if (narrow && (metric[i] == 0 || metric[i] == -2 * LM))
-      metric[i] -= 1;
   }
-  if (legal_entropy) {
+  {
     std::array<int, celt_default_nb_ebands> best_path;
     double best_cost = std::numeric_limits<double>::max();
     const int first_logp = isTransient ? 2 : 4;
@@ -7073,50 +6903,6 @@ static int tf_analysis(int len, int isTransient, int* tf_res, int lambda, const 
     std::copy_n(best_path.begin(), len, tf_res);
     return tf_select;
   }
-  std::array<int, celt_default_nb_ebands> best_path;
-  int best_cost = 0;
-  for (int sel = 0; sel < (isTransient ? 2 : 1); ++sel) {
-    int cost0 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
-    int cost1 = importance[0] * std::abs(metric[0] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]) + (isTransient ? 0 : lambda);
-    for (int i = 1; i < len; i++) {
-      int curr0, curr1, from0, from1;
-      from0 = cost0;
-      from1 = cost1 + lambda;
-      if (from0 < from1) {
-        curr0 = from0;
-        path0[i] = 0;
-      } else {
-        curr0 = from1;
-        path0[i] = 1;
-      }
-      from0 = cost0 + lambda;
-      from1 = cost1;
-      if (from0 < from1) {
-        curr1 = from0;
-        path1[i] = 0;
-      } else {
-        curr1 = from1;
-        path1[i] = 1;
-      }
-      cost0 = curr0 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 0]);
-      cost1 = curr1 + importance[i] * std::abs(metric[i] - 2 * tf_select_table[LM][4 * isTransient + 2 * sel + 1]);
-    }
-    const int cost = std::min(cost0, cost1);
-    if (sel == 0 || cost < best_cost) {
-      best_cost = cost;
-      tf_select = sel;
-      best_path[len - 1] = cost0 < cost1 ? 0 : 1;
-      for (int i = len - 2; i >= 0; i--) {
-        if (best_path[i + 1] == 1)
-          best_path[i] = path1[i + 1];
-        else
-          best_path[i] = path0[i + 1];
-      }
-    }
-  }
-  for (int i = len; i-- > 0;)
-    tf_res[i] = best_path[i];
-  return tf_select;
 }
 
 template <bool Encode> static inline void process_tf_changes(int start, int end, int isTransient, int* tf_res, int LM, int tf_select, ec_ctx* coder) {
@@ -7294,53 +7080,27 @@ static celt_glog median_of_3(const celt_glog* x) {
   return high < x[2] ? high : (low < x[2] ? x[2] : low);
 }
 
-static inline void apply_low_rate_lf_dynalloc_boost(celt_glog* follower, int start, int end, int LM, int effectiveBytes, opus_val32 toneishness) noexcept {
-  const int low_rate_start = 30 + 5 * LM;
-  if (start != 0 || end <= 1 || effectiveBytes < low_rate_start || effectiveBytes >= 160 || toneishness <= (.30f)) {
-    return;
-  }
-
-  celt_glog dyn_peak = -1.f;
-  int dyn_peak_i = -1;
-  for (int i = start; i < end; ++i) {
-    if (follower[i] > dyn_peak) {
-      dyn_peak = follower[i];
-      dyn_peak_i = i;
-    }
-  }
-
-  const celt_glog low_need = std::max(follower[0], follower[1]);
-  const bool harmonic_veto = dyn_peak_i >= 3 && dyn_peak > low_need + (1.f);
-  if (!(low_need > (.5f)) || harmonic_veto) {
-    return;
-  }
-
-  const auto low_rate_lf_boost = std::min<celt_glog>(1.f, (.025f) * (effectiveBytes - low_rate_start));
-  follower[0] += low_rate_lf_boost;
-  follower[1] += (.5f) * low_rate_lf_boost;
-}
-
-static constexpr std::array<std::array<double, celt_default_nb_ebands>, celt_default_nb_ebands> celt_roex_demand_weights{{{{1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 0.0000019130979702274050, 4.3284226071209714e-8, 9.4378363606977447e-10, 2.0051760310126590e-11, 5.9986795103970461e-14, 2.4722945736462309e-17, 9.8366242246159806e-21, 3.8174386061308212e-24, 2.8225693124951394e-29, 3.8921879963775753e-36, 5.1856126195279314e-43, 1.2763750882934765e-51, 5.7586804067420821e-62, 4.7402167166918927e-74, 2.4741118684359429e-91, 2.7710518516839517e-117, 6.4562711163916464e-152}},
-                                                                                                                          {{0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 0.0000019130979702274050, 4.3284226071209714e-8, 9.4378363606977447e-10, 2.9008631203404541e-12, 1.2242617888987316e-15, 4.9493901580502920e-19, 1.9429457147104440e-22, 1.4542497475734384e-27, 2.0273586123246380e-34, 2.7212971578311125e-41, 6.7421451298671379e-50, 3.0585783298063408e-60, 2.5289147346498948e-72, 1.3256877878715265e-89, 1.4909366031516639e-115, 3.4852862290890077e-150}},
-                                                                                                                          {{0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 0.0000019130979702274050, 4.3284226071209714e-8, 1.3794540375770979e-10, 5.9986795103970461e-14, 2.4722945736462309e-17, 9.8366242246159806e-21, 7.4659086446740804e-26, 1.0535557042467865e-32, 1.4257464745720250e-39, 3.5573525130048448e-48, 1.6232159354479550e-58, 1.3484426338757408e-70, 7.1007966128144820e-88, 8.0200869199721466e-114, 1.8812163137936140e-148}},
-                                                                                                                          {{0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 0.0000019130979702274050, 6.4157766135985268e-9, 2.9008631203404541e-12, 1.2242617888987316e-15, 4.9493901580502920e-19, 3.8174386061308212e-24, 5.4609676337412329e-31, 7.4565514878313687e-38, 1.8746921870492311e-46, 8.6074239347266415e-57, 7.1859060702850592e-69, 3.8019875768464427e-86, 4.3132188033721240e-112, 1.0152694287331033e-146}},
-                                                                                                                          {{0.0000019130979702274050, 0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 2.8936961514953994e-7, 1.3794540375770979e-10, 5.9986795103970461e-14, 2.4722945736462309e-17, 1.9429457147104440e-22, 2.8225693124951394e-29, 3.8921879963775753e-36, 9.8666266725306863e-45, 4.5602499602746465e-55, 3.8270927154706374e-67, 2.0349121251634340e-84, 2.3191211309598151e-110, 5.4785397228506519e-145}},
-                                                                                                                          {{4.3284226071209714e-8, 0.0000019130979702274050, 0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000012472930786553518, 6.4157766135985268e-9, 2.9008631203404541e-12, 1.2242617888987316e-15, 9.8366242246159806e-21, 1.4542497475734384e-27, 2.0273586123246380e-34, 5.1856126195279314e-43, 2.4137873177865521e-53, 2.0369552359655966e-65, 1.0886922268953678e-82, 1.2466420648865123e-108, 2.9558871624335699e-143}},
-                                                                                                                          {{9.4378363606977447e-10, 4.3284226071209714e-8, 0.0000019130979702274050, 0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.00049939922738733333, 2.8936961514953994e-7, 1.3794540375770979e-10, 5.9986795103970461e-14, 4.9493901580502920e-19, 7.4659086446740804e-26, 1.0535557042467865e-32, 2.7212971578311125e-41, 1.2763750882934765e-51, 1.0834394919478258e-63, 5.8221287563562468e-81, 6.6996674410086034e-107, 1.5945897410961580e-141}},
-                                                                                                                          {{2.0051760310126590e-11, 9.4378363606977447e-10, 4.3284226071209714e-8, 0.0000019130979702274050, 0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.017351265236664509, 0.000012472930786553518, 6.4157766135985268e-9, 2.9008631203404541e-12, 2.4722945736462309e-17, 3.8174386061308212e-24, 5.4609676337412329e-31, 1.4257464745720250e-39, 6.7421451298671379e-50, 5.7586804067420821e-62, 3.1122033978424436e-79, 3.5996013420215438e-105, 8.6009545394856741e-140}},
-                                                                                                                          {{7.4518878938133007e-7, 0.0000048944371280292126, 0.000031644611697734759, 0.00020042040948294791, 0.0012340980408667955, 0.0072950557244361299, 0.040427681994512799, 0.19914827347145578, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000079874760593266728, 2.8936961514953994e-7, 1.3794540375770979e-10, 5.9986795103970461e-14, 3.5015095085102085e-18, 2.7251089438147170e-23, 2.8225693124951394e-29, 7.4565514878313687e-38, 9.2778541692036193e-51, 5.2445565368541088e-68}},
-                                                                                                                          {{1.6681632941406194e-8, 1.1205592875074535e-7, 7.4518878938133007e-7, 0.0000048944371280292126, 0.000031644611697734759, 0.00020042040948294791, 0.0012340980408667955, 0.0072950557244361299, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000012472930786553518, 6.4157766135985268e-9, 2.9008631203404541e-12, 1.7418252446695514e-16, 1.3834479069238835e-21, 1.4542497475734384e-27, 3.8921879963775753e-36, 4.8980809791859509e-49, 2.7922897075195948e-66}},
-                                                                                                                          {{3.6108654048906452e-10, 2.4628511116084537e-9, 1.6681632941406194e-8, 1.1205592875074535e-7, 7.4518878938133007e-7, 0.0000048944371280292126, 0.000031644611697734759, 0.00020042040948294791, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.00049939922738733333, 2.8936961514953994e-7, 1.3794540375770979e-10, 8.5822344719012082e-15, 6.9833040054305828e-20, 7.4659086446740804e-26, 2.0273586123246380e-34, 2.5828338546920989e-47, 1.4856967780404695e-64}},
-                                                                                                                          {{7.6309969421307683e-12, 5.2626806863094334e-11, 3.6108654048906452e-10, 2.4628511116084537e-9, 1.6681632941406194e-8, 1.1205592875074535e-7, 7.4518878938133007e-7, 0.0000048944371280292126, 0.000079874760593266728, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.017351265236664509, 0.000012472930786553518, 6.4157766135985268e-9, 4.1791746312010778e-13, 3.5015095085102085e-18, 3.8174386061308212e-24, 1.0535557042467865e-32, 1.3602616445751168e-45, 7.8995608124775619e-63}},
-                                                                                                                          {{4.6453484381263667e-7, 0.0000011944805908586022, 0.0000030613957483163637, 0.0000078173887698022648, 0.000019878906752569221, 0.000050309817823062061, 0.00012662616998288388, 0.00031666916752209234, 0.0012340980408667955, 0.0072950557244361299, 0.040427681994512799, 0.19914827347145578, 1.0000000000000000, 0.091578194443670893, 0.0030191636511226068, 0.000031644611697734759, 1.1205592875074535e-7, 1.3794540375770979e-10, 8.5822344719012082e-15, 3.6896465643880468e-21, 1.0529900836208862e-29}},
-                                                                                                                          {{1.0347874601967713e-8, 2.6878286627314966e-8, 6.9664490299648955e-8, 1.8013026840842659e-7, 4.6453484381263667e-7, 0.0000011944805908586022, 0.0000030613957483163637, 0.0000078173887698022648, 0.000031644611697734759, 0.00020042040948294791, 0.0012340980408667955, 0.0072950557244361299, 0.091578194443670893, 1.0000000000000000, 0.091578194443670893, 0.0012340980408667955, 0.0000048944371280292126, 6.4157766135985268e-9, 4.1791746312010778e-13, 1.8595188617698497e-19, 5.4297348870671455e-28}},
-                                                                                                                          {{2.2322178949341915e-10, 5.8388238563961599e-10, 1.5249154326124068e-9, 3.9759601181455567e-9, 1.0347874601967713e-8, 2.6878286627314966e-8, 6.9664490299648955e-8, 1.8013026840842659e-7, 7.4518878938133007e-7, 0.0000048944371280292126, 0.000031644611697734759, 0.00020042040948294791, 0.0030191636511226068, 0.091578194443670893, 1.0000000000000000, 0.040427681994512799, 0.00020042040948294791, 2.8936961514953994e-7, 2.0051760310126590e-11, 9.3065765654007546e-18, 2.7901504000403717e-26}},
-                                                                                                                          {{3.1506796936102717e-8, 5.9449146513386648e-8, 1.1205592875074535e-7, 2.1097997536549685e-7, 3.9676278068990065e-7, 7.4518878938133007e-7, 0.0000013976729212721804, 0.0000026175914682905345, 0.0000066884302432285768, 0.000023214220689814074, 0.000079874760593266728, 0.00027193951333426519, 0.0016649118076211646, 0.017351265236664509, 0.15458730450476041, 1.0000000000000000, 0.091578194443670893, 0.0016649118076211646, 0.0000035800803134066955, 2.6204686096009795e-10, 6.3930152402710256e-16}},
-                                                                                                                          {{6.8526719932652142e-10, 1.2995940868373449e-9, 2.4628511116084537e-9, 4.6637295329033301e-9, 8.8241703475218801e-9, 1.6681632941406194e-8, 3.1506796936102717e-8, 5.9449146513386648e-8, 1.5378020236128325e-7, 5.4383908321141708e-7, 0.0000019130979702274050, 0.0000066884302432285768, 0.000043112098670659862, 0.00049939922738733333, 0.0054449331655615045, 0.091578194443670893, 1.0000000000000000, 0.053286854458472838, 0.00014759659585790075, 1.2134017046047246e-8, 3.1384880808417625e-14}},
-                                                                                                                          {{8.1484765413942364e-9, 1.3139301397650487e-8, 2.1176235680795806e-8, 3.4111096172694246e-8, 5.4916403007364177e-8, 8.8360110622109959e-8, 1.4208412734892633e-7, 2.2832656291336873e-7, 4.6453484381263667e-7, 0.0000011944805908586022, 0.0000030613957483163637, 0.0000078173887698022648, 0.000031644611697734759, 0.00020042040948294791, 0.0012340980408667955, 0.011275793947331792, 0.13588822540043324, 1.0000000000000000, 0.040427681994512799, 0.000050309817823062061, 3.9759601181455567e-9}},
-                                                                                                                          {{3.3885112549730908e-7, 4.6453484381263667e-7, 6.3662932783988436e-7, 8.7218527166520973e-7, 0.0000011944805908586022, 0.0000016352789645240288, 0.0000022379007745489001, 0.0000030613957483163637, 0.0000048944371280292126, 0.0000091358508974783586, 0.000017020546578887290, 0.000031644611697734759, 0.000079874760593266728, 0.00027193951333426519, 0.00091374554948545788, 0.0040575237009907337, 0.023062515576431724, 0.15458730450476041, 1.0000000000000000, 0.040427681994512799, 0.00010861589530051576}},
-                                                                                                                          {{0.0000039735916367854614, 0.0000048944371280292126, 0.0000060275176568538532, 0.0000074214380648658149, 0.0000091358508974783586, 0.000011243944929369604, 0.000013835488085981588, 0.000017020546578887290, 0.000023214220689814074, 0.000035082794638046052, 0.000052965040451075092, 0.000079874760593266728, 0.00014759659585790075, 0.00033314256597551968, 0.00074740508205450428, 0.0020314249928102884, 0.0066185679955852025, 0.025343254247655073, 0.15458730450476041, 1.0000000000000000, 0.063937532710449635}},
-                                                                                                                          {{0.0000017561925768094331, 0.0000020839623339098975, 0.0000024726199957781595, 0.0000029334154501342175, 0.0000034796641218540888, 0.0000041271234109870194, 0.0000048944371280292126, 0.0000058036600765039664, 0.0000074919139296426695, 0.000010525395075878013, 0.000014778651420090666, 0.000020738129959327070, 0.000034431171332552573, 0.000067527224721349120, 0.00013203285015675692, 0.00030379338817126478, 0.00081893274249378008, 0.0025680897669825148, 0.012688204688620461, 0.12215882013971688, 1.0000000000000000}}}};
+static constexpr std::array<std::array<float, celt_default_nb_ebands>, celt_default_nb_ebands> celt_roex_demand_weights{{{{1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 1.913098e-06f, 4.3284226e-08f, 9.4378364e-10f, 2.005176e-11f, 5.9986795e-14f, 2.4722946e-17f, 9.8366242e-21f, 3.8174386e-24f, 2.8225693e-29f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 1.913098e-06f, 4.3284226e-08f, 9.4378364e-10f, 2.9008631e-12f, 1.2242618e-15f, 4.9493902e-19f, 1.9429457e-22f, 1.4542497e-27f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 1.913098e-06f, 4.3284226e-08f, 1.379454e-10f, 5.9986795e-14f, 2.4722946e-17f, 9.8366242e-21f, 7.4659086e-26f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 1.913098e-06f, 6.4157766e-09f, 2.9008631e-12f, 1.2242618e-15f, 4.9493902e-19f, 3.8174386e-24f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{1.913098e-06f, 7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 2.8936962e-07f, 1.379454e-10f, 5.9986795e-14f, 2.4722946e-17f, 1.9429457e-22f, 2.8225693e-29f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{4.3284226e-08f, 1.913098e-06f, 7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 1.2472931e-05f, 6.4157766e-09f, 2.9008631e-12f, 1.2242618e-15f, 9.8366242e-21f, 1.4542497e-27f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{9.4378364e-10f, 4.3284226e-08f, 1.913098e-06f, 7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.00049939923f, 2.8936962e-07f, 1.379454e-10f, 5.9986795e-14f, 4.9493902e-19f, 7.4659086e-26f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{2.005176e-11f, 9.4378364e-10f, 4.3284226e-08f, 1.913098e-06f, 7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.017351265f, 1.2472931e-05f, 6.4157766e-09f, 2.9008631e-12f, 2.4722946e-17f, 3.8174386e-24f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f}},
+{{7.4518879e-07f, 4.8944371e-06f, 3.1644612e-05f, 0.00020042041f, 0.001234098f, 0.0072950557f, 0.040427682f, 0.19914827f, 1.f, 0.091578194f, 0.0030191637f, 7.9874761e-05f, 2.8936962e-07f, 1.379454e-10f, 5.9986795e-14f, 3.5015095e-18f, 2.7251089e-23f, 2.8225693e-29f, 0.f, 0.f, 0.f}},
+{{1.6681633e-08f, 1.1205593e-07f, 7.4518879e-07f, 4.8944371e-06f, 3.1644612e-05f, 0.00020042041f, 0.001234098f, 0.0072950557f, 0.091578194f, 1.f, 0.091578194f, 0.0030191637f, 1.2472931e-05f, 6.4157766e-09f, 2.9008631e-12f, 1.7418252e-16f, 1.3834479e-21f, 1.4542497e-27f, 0.f, 0.f, 0.f}},
+{{3.6108654e-10f, 2.4628511e-09f, 1.6681633e-08f, 1.1205593e-07f, 7.4518879e-07f, 4.8944371e-06f, 3.1644612e-05f, 0.00020042041f, 0.0030191637f, 0.091578194f, 1.f, 0.091578194f, 0.00049939923f, 2.8936962e-07f, 1.379454e-10f, 8.5822345e-15f, 6.983304e-20f, 7.4659086e-26f, 0.f, 0.f, 0.f}},
+{{7.6309969e-12f, 5.2626807e-11f, 3.6108654e-10f, 2.4628511e-09f, 1.6681633e-08f, 1.1205593e-07f, 7.4518879e-07f, 4.8944371e-06f, 7.9874761e-05f, 0.0030191637f, 0.091578194f, 1.f, 0.017351265f, 1.2472931e-05f, 6.4157766e-09f, 4.1791746e-13f, 3.5015095e-18f, 3.8174386e-24f, 0.f, 0.f, 0.f}},
+{{4.6453484e-07f, 1.1944806e-06f, 3.0613957e-06f, 7.8173888e-06f, 1.9878907e-05f, 5.0309818e-05f, 0.00012662617f, 0.00031666917f, 0.001234098f, 0.0072950557f, 0.040427682f, 0.19914827f, 1.f, 0.091578194f, 0.0030191637f, 3.1644612e-05f, 1.1205593e-07f, 1.379454e-10f, 8.5822345e-15f, 3.6896466e-21f, 1.0529901e-29f}},
+{{1.0347875e-08f, 2.6878287e-08f, 6.966449e-08f, 1.8013027e-07f, 4.6453484e-07f, 1.1944806e-06f, 3.0613957e-06f, 7.8173888e-06f, 3.1644612e-05f, 0.00020042041f, 0.001234098f, 0.0072950557f, 0.091578194f, 1.f, 0.091578194f, 0.001234098f, 4.8944371e-06f, 6.4157766e-09f, 4.1791746e-13f, 1.8595189e-19f, 5.4297349e-28f}},
+{{2.2322179e-10f, 5.8388239e-10f, 1.5249154e-09f, 3.9759601e-09f, 1.0347875e-08f, 2.6878287e-08f, 6.966449e-08f, 1.8013027e-07f, 7.4518879e-07f, 4.8944371e-06f, 3.1644612e-05f, 0.00020042041f, 0.0030191637f, 0.091578194f, 1.f, 0.040427682f, 0.00020042041f, 2.8936962e-07f, 2.005176e-11f, 9.3065766e-18f, 2.7901504e-26f}},
+{{3.1506797e-08f, 5.9449147e-08f, 1.1205593e-07f, 2.1097998e-07f, 3.9676278e-07f, 7.4518879e-07f, 1.3976729e-06f, 2.6175915e-06f, 6.6884302e-06f, 2.3214221e-05f, 7.9874761e-05f, 0.00027193951f, 0.0016649118f, 0.017351265f, 0.1545873f, 1.f, 0.091578194f, 0.0016649118f, 3.5800803e-06f, 2.6204686e-10f, 6.3930152e-16f}},
+{{6.852672e-10f, 1.2995941e-09f, 2.4628511e-09f, 4.6637295e-09f, 8.8241703e-09f, 1.6681633e-08f, 3.1506797e-08f, 5.9449147e-08f, 1.537802e-07f, 5.4383908e-07f, 1.913098e-06f, 6.6884302e-06f, 4.3112099e-05f, 0.00049939923f, 0.0054449332f, 0.091578194f, 1.f, 0.053286854f, 0.0001475966f, 1.2134017e-08f, 3.1384881e-14f}},
+{{8.1484765e-09f, 1.3139301e-08f, 2.1176236e-08f, 3.4111096e-08f, 5.4916403e-08f, 8.8360111e-08f, 1.4208413e-07f, 2.2832656e-07f, 4.6453484e-07f, 1.1944806e-06f, 3.0613957e-06f, 7.8173888e-06f, 3.1644612e-05f, 0.00020042041f, 0.001234098f, 0.011275794f, 0.13588823f, 1.f, 0.040427682f, 5.0309818e-05f, 3.9759601e-09f}},
+{{3.3885113e-07f, 4.6453484e-07f, 6.3662933e-07f, 8.7218527e-07f, 1.1944806e-06f, 1.635279e-06f, 2.2379008e-06f, 3.0613957e-06f, 4.8944371e-06f, 9.1358509e-06f, 1.7020547e-05f, 3.1644612e-05f, 7.9874761e-05f, 0.00027193951f, 0.00091374555f, 0.0040575237f, 0.023062516f, 0.1545873f, 1.f, 0.040427682f, 0.0001086159f}},
+{{3.9735916e-06f, 4.8944371e-06f, 6.0275177e-06f, 7.4214381e-06f, 9.1358509e-06f, 1.1243945e-05f, 1.3835488e-05f, 1.7020547e-05f, 2.3214221e-05f, 3.5082795e-05f, 5.296504e-05f, 7.9874761e-05f, 0.0001475966f, 0.00033314257f, 0.00074740508f, 0.002031425f, 0.006618568f, 0.025343254f, 0.1545873f, 1.f, 0.063937533f}},
+{{1.7561926e-06f, 2.0839623e-06f, 2.47262e-06f, 2.9334155e-06f, 3.4796641e-06f, 4.1271234e-06f, 4.8944371e-06f, 5.8036601e-06f, 7.4919139e-06f, 1.0525395e-05f, 1.4778651e-05f, 2.073813e-05f, 3.4431171e-05f, 6.7527225e-05f, 0.00013203285f, 0.00030379339f, 0.00081893274f, 0.0025680898f, 0.012688205f, 0.12215882f, 1.f}}}};
 
 static celt_glog celt_roex_demand_reduction(int start, int end, int band, const celt_ener* source_energy) {
   double excitation = 0.;
@@ -7355,7 +7115,7 @@ static celt_glog celt_roex_demand_reduction(int start, int end, int band, const 
   return static_cast<celt_glog>(.5 * std::log2(excitation / (amplitude * amplitude)));
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, int* importance = nullptr, double* requested_boost = nullptr, const celt_ener* source_energy = nullptr, bool common_follower_source = false) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, const celt_ener* source_energy = nullptr, bool common_follower_source = false) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -7366,8 +7126,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
   std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> follower;
   std::array<celt_glog, celt_default_nb_ebands> noise_floor;
   zero_n_items(offsets, static_cast<std::size_t>(nbEBands));
-  if (requested_boost != nullptr)
-    std::fill_n(requested_boost, nbEBands, 0.);
   celt_glog maxDepth = -(31.9f);
   const bool analyze_followers = effectiveBytes >= (30 + 5 * LM) || st->lowrate_refinement;
   {
@@ -7379,17 +7137,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       for (i = 0; i < end; i++) {
         maxDepth = std::max(maxDepth, bandLogE[nbEBands + i] - noise_floor[i]);
       }
-    }
-  }
-  if (importance != nullptr) {
-    if (C == 2 && st->classical_leak_valid && effectiveBytes < (30 + 5 * LM) && !st->lowrate_refinement) {
-      for (i = 0; i < end; ++i) {
-        const celt_glog depth = std::max(0.f, std::max(bandLogE[i], bandLogE[nbEBands + i]) - noise_floor[i]);
-        const celt_glog cue = i < 19 ? std::min(depth, (1.f / 64.f) * static_cast<celt_glog>(st->classical_leak_boost[i])) : 0.f;
-        importance[i] = static_cast<int>(std::floor(.5f + 13.f * std::exp2(std::min(cue, 4.f))));
-      }
-    } else {
-      std::fill_n(importance, end, 13);
     }
   }
   if (analyze_followers) {
@@ -7449,10 +7196,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] = std::max(0.f, bandLogE[i] - follower[i]);
       }
     }
-    if (importance != nullptr) {
-      for (i = start; i < end; ++i)
-        importance[i] = static_cast<int>(std::floor(.5f + 13.f * std::exp2(std::min(follower[i], 4.f))));
-    }
     const bool constrained_steady = (!st->vbr || st->constrained_vbr) && !isTransient;
     for (i = start; i < end; i++) {
       if (constrained_steady) {
@@ -7467,12 +7210,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         follower[i] *= .5f;
       }
     }
-    if (st->classical_leak_valid) {
-      for (i = start; i < std::min(19, end); ++i) {
-        follower[i] += (1.f / 64.f) * static_cast<celt_glog>(st->classical_leak_boost[i]);
-      }
-    }
-    apply_low_rate_lf_dynalloc_boost(follower.data(), start, end, LM, effectiveBytes, toneishness);
     if (st->channels == 2 && st->bitrate >= 40000 && st->constrained_vbr && !isTransient && effectiveBytes > 60) {
       const auto boost = std::min<celt_glog>(4.f, 2e-2f * (effectiveBytes - 60));
       for (i = 0; i < std::min(4, end); ++i)
@@ -7497,8 +7234,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
       }
       follower[i] = std::min(follower[i], 4.0f);
       width = C * (eBands[i + 1] - eBands[i]) << LM;
-      if (requested_boost != nullptr)
-        requested_boost[i] = static_cast<double>(follower[i]) * width * 8;
       if (width < 6) {
         boost = C == 2 && start == 0 ? static_cast<int>(follower[i] + .5f) : static_cast<int>(follower[i]);
         boost_bits = boost * width << 3;
@@ -7513,8 +7248,6 @@ static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const c
         opus_int32 cap = ((2 * effectiveBytes / 3) << 3 << 3);
         const int quanta = std::min(width << 3, std::max(6 << 3, width));
         offsets[i] = std::max(0, cap - tot_boost) / quanta;
-        if (requested_boost != nullptr)
-          requested_boost[i] = static_cast<double>(offsets[i]) * quanta;
         tot_boost += offsets[i] * quanta;
         break;
       } else {
@@ -7784,7 +7517,6 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
   opus_val16 gain1, pf_threshold;
   int pf_on, qg;
   std::array<opus_val32, celt_max_channels> output_abs_sum{};
-  bool common_input = false;
   bool cancel_pitch = false;
   constexpr auto max_period = celt_max_pitch_period, min_period = celt_min_pitch_period;
   const int overlap = celt_default_overlap;
@@ -7824,32 +7556,6 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
     }
     if (pitch_index > max_period - (2)) {
       pitch_index = max_period - (2);
-    }
-    if (CC == 2) {
-      double cross = 0, power = 0;
-      const auto& taps = comb_filter_tapset_gains[0];
-      const auto* window = celt_mode()->window;
-      const int previous_period = std::max<int>(st->prefilter_period, 15);
-      common_input = std::memcmp(pre[0], pre[1], static_cast<std::size_t>(N + max_period) * sizeof(celt_sig)) == 0;
-      for (int c = 0; c < CC; ++c) {
-        const auto* x = pre[c] + max_period;
-        const auto predict = [&](int i, int lag) {
-          return taps[0] * static_cast<double>(x[i - lag]) + taps[1] * (static_cast<double>(x[i - lag - 1]) + x[i - lag + 1]) + taps[2] * (static_cast<double>(x[i - lag - 2]) + x[i - lag + 2]);
-        };
-        for (int i = 0; i < N; ++i) {
-          const bool fading = i < overlap;
-          const double fade = fading ? static_cast<double>(window[i]) * window[i] : 1;
-          double target = x[i];
-          if (fading && st->prefilter_gain != 0)
-            target -= (1 - fade) * st->prefilter_gain * predict(i, previous_period);
-          const double predictor = fade * predict(i, pitch_index);
-          cross += target * predictor;
-          power += predictor * predictor;
-        }
-      }
-      if (power > 0 && std::isfinite(cross / power)) {
-        gain1 = static_cast<float>(std::clamp(cross / power, 0., 1.));
-      }
     }
     gain1 = (((.7f)) * (gain1));
     if (st->loss_rate > 2)
@@ -7916,43 +7622,6 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
   } else if (output_abs_sum[0] > input_abs_sum[0]) {
     cancel_pitch = true;
   }
-  if (cancel_pitch && CC == 2 && st->stream_channels == 2 && !common_input && qg > 0) {
-    const auto finite = [](opus_val32 value) {
-      return (std::bit_cast<opus_uint32>(value) & 0x7fffffffU) < 0x7f800000U;
-    };
-    if (finite(input_abs_sum[0]) && finite(input_abs_sum[1]) && finite(output_abs_sum[0]) && finite(output_abs_sum[1]) && finite(st->prefilter_gain)) {
-      const int saved_errno = errno;
-      std::fenv_t original_environment, held_environment;
-      if (std::fegetenv(&original_environment) == 0) {
-        if (std::feholdexcept(&held_environment) == 0) {
-
-          for (int trial_qg = qg - 1; trial_qg >= 0; --trial_qg) {
-            const opus_val16 trial_gain = .09375f * (trial_qg + 1);
-            std::array<opus_val32, 2> trial_after{};
-            comb_filter(in + overlap, pre[0] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -trial_gain, 0, 0, overlap);
-            for (int i = 0; i < N; ++i)
-              trial_after[0] += std::abs(in[overlap + i]);
-            const opus_val32 threshold0 = .25f * trial_gain * input_abs_sum[0] + .01f * input_abs_sum[1];
-            if (!(trial_after[0] - input_abs_sum[0] <= threshold0))
-              continue;
-            comb_filter(in + (N + overlap) + overlap, pre[1] + max_period, st->prefilter_period, pitch_index, N, -st->prefilter_gain, -trial_gain, 0, 0, overlap);
-            for (int i = 0; i < N; ++i)
-              trial_after[1] += std::abs(in[(N + overlap) + overlap + i]);
-            const opus_val32 threshold1 = .25f * trial_gain * input_abs_sum[1] + .01f * input_abs_sum[0];
-            if (trial_after[1] - input_abs_sum[1] <= threshold1 &&
-                (input_abs_sum[0] - trial_after[0] >= threshold0 || input_abs_sum[1] - trial_after[1] >= threshold1)) {
-              gain1 = trial_gain;
-              qg = trial_qg;
-              cancel_pitch = false;
-              break;
-            }
-          }
-        }
-        std::fesetenv(&original_environment);
-      }
-      errno = saved_errno;
-    }
-  }
   if (cancel_pitch) {
     for (int c = 0; c < CC; ++c) {
       copy_n_items(pre[c] + max_period, static_cast<std::size_t>(N), in + c * (N + overlap) + overlap);
@@ -7978,17 +7647,10 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
   return pf_on;
 }
 
-template <bool Mono> static int run_prefilter_for_channels(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int channels, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
-  const int CC = Mono ? 1 : channels;
+static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
   if (st->prefilter_gain == 0 && (!enabled || (complexity < 5 && toneishness <= (.99f))))
     return celt_prefilter_passthrough(st, in, prefilter_mem, CC, N, pitch, gain, qgain);
   return run_prefilter_active_for_channels(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
-}
-
-static int run_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_sig* prefilter_mem, int CC, int N, int* pitch, opus_val16* gain, int* qgain, int enabled, int complexity, int nbAvailableBytes, opus_val16 tone_freq, opus_val32 toneishness, opus_val16 tf_estimate, const std::array<opus_val32, celt_max_channels>& input_abs_sum, celt_sig* prefilter_scratch) {
-  if (CC == 1)
-    return run_prefilter_for_channels<true>(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
-  return run_prefilter_for_channels<false>(st, in, prefilter_mem, CC, N, pitch, gain, qgain, enabled, complexity, nbAvailableBytes, tone_freq, toneishness, tf_estimate, input_abs_sum, prefilter_scratch);
 }
 
 static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate, int lastCodedBands, int C, int intensity, int constrained_vbr, opus_val16 stereo_saving, int tot_boost, celt_glog maxDepth, celt_glog temporal_vbr, bool content_vbr, opus_val16 tf_estimate) {
@@ -8030,7 +7692,6 @@ static inline int compute_vbr(opus_int32 base_target, int LM, opus_int32 bitrate
 struct celt_input_metrics {
   std::array<opus_val32, celt_max_channels> abs_sum{};
   int silence;
-  bool release;
 };
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, int len, int C, float* tf_estimate, int* tf_chan,
@@ -8147,44 +7808,9 @@ struct celt_input_metrics {
     return abs_sum;
   };
   celt_input_metrics metrics;
-  if (st->upsample == 1) {
-    const std::array old_mem{st->preemph_memE[0], st->preemph_memE[1]};
-    const opus_val32 old_overlap_max = st->overlap_max;
-    const int tail_begin = N - overlap;
-    opus_val16 frame_max = 0, tail_max = 0;
-    constexpr opus_val16 coef0 = celt_preemphasis[0];
-    for (int c = 0; c < channels; ++c) {
-      celt_sig m = st->preemph_memE[static_cast<std::size_t>(c)];
-      auto* dst = in + c * (N + overlap) + overlap;
-      for (int i = 0; i < N; ++i) {
-        const opus_val16 sample = pcm[channels * i + c];
-        const auto magnitude = std::abs(sample);
-        frame_max = std::max(frame_max, magnitude);
-        if (i >= tail_begin) {
-          tail_max = std::max(tail_max, magnitude);
-        }
-        const celt_sig x = 32768.f * sample;
-        dst[i] = x - m;
-        metrics.abs_sum[static_cast<std::size_t>(c)] += std::abs(dst[i]);
-        m = coef0 * x;
-      }
-      st->preemph_memE[static_cast<std::size_t>(c)] = m;
-      copy_n_items(&prefilter_mem[(1 + c) * (1024) - overlap], static_cast<std::size_t>(overlap), in + c * (N + overlap));
-    }
-    st->overlap_max = tail_max;
-    if (frame_max <= 65536.f) {
-      const opus_val32 sample_max = std::max(frame_max, old_overlap_max);
-      metrics.release = tail_max < 0.125f * sample_max;
-      metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
-      return metrics;
-    }
-    std::copy_n(old_mem.data(), channels, st->preemph_memE);
-    st->overlap_max = old_overlap_max;
-  }
   opus_val32 sample_max = std::max<opus_val32>(st->overlap_max, celt_maxabs16(pcm, channels * (N - overlap) / st->upsample));
   st->overlap_max = celt_maxabs16(pcm + channels * (N - overlap) / st->upsample, channels * overlap / st->upsample);
   sample_max = std::max(sample_max, st->overlap_max);
-  metrics.release = st->overlap_max < 0.125f * sample_max;
   metrics.silence = sample_max <= static_cast<opus_val16>(1) / (1 << st->lsb_depth);
   const bool need_clip = sample_max > 65536.f;
   for (int c = 0; c < channels; ++c) {
@@ -8238,62 +7864,6 @@ static auto celt_encode_prefilter(CeltEncoderInternal* st, celt_sig* in, celt_si
   return temporal_vbr;
 }
 
-[[nodiscard]] static auto celt_adjust_alloc_trim(int alloc_trim, const CeltEncoderInternal* st, bool hybrid, opus_int32 high_rate_bitrate) noexcept -> int {
-  if (hybrid) {
-    return st->high_z_tonal_Q7 > 64 ? std::clamp(alloc_trim - 4, 0, 10) : alloc_trim;
-  }
-  if (st->high_z_tonal_Q7 > 64) {
-    if (st->bitrate >= 16000 && st->bitrate < 24000) {
-      alloc_trim = std::clamp(alloc_trim + 2, 0, 10);
-    } else if (st->bitrate >= 40000 && st->bitrate < 56000) {
-      alloc_trim = std::clamp(alloc_trim - 2, 0, 10);
-    }
-  }
-  if (st->bitrate > 0) {
-    const int missing_bands = std::clamp(celt_default_nb_ebands - st->end, 0, 3);
-    const int spectral_budget = st->bitrate / std::max<int>(1, st->end);
-    const int bandwidth_boost = missing_bands > 0 ? (spectral_budget < 1200 ? std::min(7, 2 * missing_bands) : 7) : 0;
-    alloc_trim = std::clamp(alloc_trim + bandwidth_boost, 0, 10);
-  }
-  if (st->stream_channels == 2 && high_rate_bitrate >= 56000 && high_rate_bitrate < 80000) {
-    alloc_trim = std::clamp(alloc_trim + (st->high_z_tonal_Q7 > 64 ? -1 : 1), 0, 10);
-  } else if (high_rate_bitrate >= 80000 && high_rate_bitrate < 112000) {
-    alloc_trim = std::clamp(alloc_trim + 2, 0, 10);
-  }
-  return alloc_trim;
-}
-
-static int celt_balance_lowrate_stereo_trim(int alloc_trim, const celt_glog* bandLogE, int end, int LM, int effectiveBytes, opus_int32 total_boost, std::span<const int> offsets) {
-  if (end == celt_default_nb_ebands) {
-    return alloc_trim;
-  }
-  const auto* eBands = celt_mode()->eBands;
-  const int coefficient_count = 2 * eBands[end] << LM;
-  const opus_val32 base_depth = std::max<opus_int32>(0, (effectiveBytes * 8 << 3) - total_boost) * (1.f / 8) / coefficient_count;
-  opus_val32 mean = 0;
-  for (int i = 0; i < end; ++i) {
-    const int width = eBands[i + 1] - eBands[i];
-    mean += width * .5f * (bandLogE[i] + bandLogE[celt_default_nb_ebands + i]);
-  }
-  mean /= eBands[end];
-  opus_val32 gradient = 0;
-  opus_val32 distortion_sum = 0;
-  for (int i = 0; i < end; ++i) {
-    const int width = eBands[i + 1] - eBands[i];
-    const int coefficients = 2 * width << LM;
-    const int trim_bits = 2 * width * (alloc_trim - 5 - LM) * (end - i - 1) * (1 << (LM + 3)) >> 6;
-    const opus_val32 bit_depth = base_depth + (offsets[i] + trim_bits) * (1.f / 8) / coefficients;
-    const opus_val32 energy = .5f * (bandLogE[i] + bandLogE[celt_default_nb_ebands + i]);
-    const opus_val32 distortion = width * std::exp2(.25f * std::clamp(energy - mean, -4.f, 4.f) - 2 * bit_depth);
-    const opus_val32 position = (2.f * i + 1 - end) / end;
-    gradient -= distortion * position;
-    distortion_sum += distortion;
-  }
-  const opus_val32 imbalance = gradient / distortion_sum;
-  const bool correctable = distortion_sum > .15f * eBands[end] && std::fabs(imbalance) < .6f;
-  return std::clamp(alloc_trim + (correctable && imbalance > .15f) - (correctable && imbalance < -.15f), 0, 10);
-}
-
 template <typename Operation> static inline void for_each_celt_band(const CeltEncoderInternal* st, Operation operation) noexcept {
   for (int c = 0; c < st->stream_channels; ++c) {
     const int band_offset = c * celt_default_nb_ebands;
@@ -8336,65 +7906,6 @@ static void celt_update_signal_bw_retained(CeltEncoderInternal* st, const celt_g
     const int r = b - signal_bw_retained_first_band;
     st->signal_bw_retained[r] = std::max(band_e - frame_short, st->signal_bw_retained[r]);
   }
-}
-
-constexpr std::array<std::array<double, celt_default_nb_ebands>, 4> celt_gaussian_noise_log_shape{{
-    {{-5.4647392654800502, -5.3923602643167508, -5.2577060213163547, -5.0768051925420306, -4.8664100973421593, -4.6405800276884754, -4.4095681039704484, -4.180144107316063, -2.8445354679401489, -2.4321466716469784, -2.0571439854840827, -1.7174918669117176, -0.26231537612906336, 0.25033512573600603, 0.68497535898958695, 1.731535651458501, 2.1901249671670957, 3.045857397588438, 4.1286114058699841, 5.2510735103929793, 5.9838197025857198}},
-    {{-4.4624214619428191, -4.3901572977085772, -4.2557019784992161, -4.0750408145696095, -3.8648892067812346, -3.6392838837804788, -3.4084682365296204, -3.1792104350340775, -1.8438019399436156, -1.4316031593837462, -1.0567319338263146, -0.71717272123287779, 0.73790906277404233, 1.2504832059286575, 1.6850768845563708, 2.7316009175467624, 3.1901640474958839, 4.0458780578774176, 5.1286170204107453, 6.2510677675517421, 6.983807305125306}},
-    {{-3.4618426032714695, -3.3896070915724272, -3.255201411842906, -3.0746000652837977, -2.8645092416486015, -2.6389600357404257, -2.4081934057862799, -2.1789771157189928, -0.84361861963968265, -0.43146731585137565, -0.056628941228013666, 0.28290705266179977, 1.7379651659932178, 2.2505202229083321, 2.6851022643561171, 3.7316172333017192, 4.1901738172295753, 5.0458832228066353, 6.1286184240162154, 7.2510663318647683, 7.9838042058016416}},
-    {{-2.4616979255644766, -2.3894695734630171, -2.2550762978977632, -2.0744898995144521, -1.8644142664446233, -1.6388790854670845, -1.4081247066019633, -1.1789187920588595, 0.15642720658211789, 0.56856664287411729, 0.9433968056521379, 1.2829269953528168, 2.7379791913914104, 3.2505294769614901, 3.6851086092065644, 4.7316213121925168, 5.1901762596412171, 6.0458845140300008, 7.1286187749157257, 8.2510659729444829, 8.9838034309733157}},
-}};
-
-constexpr std::array<std::array<double, celt_default_nb_ebands>, 4> celt_gaussian_noise_inverse_shape{{
-    {{44.162173272789431, 42.001247229151744, 38.258436761866484, 33.749756600739701, 29.169931583056862, 24.943292848612661, 21.252609732143465, 18.127952831635277, 7.1827458449080188, 5.3969587914925548, 4.1616163877134635, 3.2886417749778918, 1.1994020769177522, 0.84070110488385263, 0.62201645050424736, 0.30113125238339311, 0.21913244811409635, 0.12108924206249803, 0.057169464782673506, 0.026258466761848294, 0.015801225860893848}},
-    {{22.045640108044289, 20.968580551155178, 19.10266449540223, 16.85425338385302, 14.569598407523143, 12.460446698264134, 10.61820677712754, 9.0581123589966825, 3.5895473786561261, 2.6974629783003925, 2.0802139740036001, 1.6439571793933865, 0.5996077507088825, 0.4203074093003436, 0.31098633970149531, 0.15055881490663978, 0.10956325612138286, 0.06054375400088248, 0.028584621148261588, 0.013129285643703741, 0.0079006808227970876}},
-    {{11.018398208176208, 10.480292603971524, 9.5480188315110901, 8.4245525631854576, 7.2828808460028664, 6.2288249807135001, 5.3080921104905556, 4.5283237788094102, 1.7945456456002282, 1.3486044991634054, 1.04003273742414, 0.82193313960592473, 0.29979221687152513, 0.21014831255039115, 0.15549043444881669, 0.075278556106787672, 0.054781257088247493, 0.030271768625616563, 0.014292296669074649, 0.0065646493546093893, 0.0039503488978744269}},
-    {{5.5086466530802216, 5.2396468335267086, 4.7735954202564645, 4.2119546398549215, 3.6412007083330189, 3.1142377441613971, 2.6539196761749531, 2.2640703582525576, 0.89724432199489734, 0.67428637777591582, 0.52000708838651777, 0.41096088896089816, 0.14989465120306295, 0.10507348228749784, 0.077744875308287761, 0.03763917163708027, 0.027390582173178045, 0.015135870766079289, 0.0071461465964155627, 0.0032823254938965755, 0.0019751755097445769}},
-}};
-
-static bool celt_noise_gaussian_source_supported(const opus_res* pcm, int N, int CC, int C, int channel) {
-  double sum = 0, squares = 0;
-  double low = std::numeric_limits<double>::infinity();
-  double high = -std::numeric_limits<double>::infinity();
-  for (int i = 0; i < N; ++i) {
-    const double sample = CC == 2 && C == 1 ? .5 * (static_cast<double>(pcm[2 * i]) + pcm[2 * i + 1])
-                                            : static_cast<double>(pcm[CC * i + channel]);
-    sum += sample;
-    squares += sample * sample;
-    low = std::min(low, sample);
-    high = std::max(high, sample);
-  }
-  const double mean = sum / N;
-  const double variance = squares / N - mean * mean;
-  const double span = high - low;
-  return variance > 0 && span * span >= 17.079468445347132 * variance;
-}
-
-static std::array<double, 2> celt_estimate_noise_covariance_parameter(const CeltEncoderInternal* st, const celt_ener* bandE, const celt_glog* bandLogE, int LM, int shortBlocks) {
-  std::array<double, 2> parameter;
-  parameter.fill(-std::numeric_limits<double>::infinity());
-  if (st->start == 0 || shortBlocks != 0 || st->upsample != 1)
-    return parameter;
-  const auto* edges = celt_mode()->eBands;
-  const auto& shape = celt_gaussian_noise_log_shape[LM];
-  const int dimensions = edges[st->end] << LM;
-  const double penalty = (st->end - 1) * std::log2(dimensions);
-  for (int channel = 0; channel < st->stream_channels; ++channel) {
-    double variance_sum = 0, log_sum = 0;
-    for (int band = 0; band < st->end; ++band) {
-      const int index = channel * celt_default_nb_ebands + band;
-      const int width = (edges[band + 1] - edges[band]) << LM;
-      variance_sum += static_cast<double>(bandE[index]) * bandE[index] * celt_gaussian_noise_inverse_shape[LM][band] * width;
-      log_sum += width * (2 * (bandLogE[index] + eMeans[band]) - shape[band]);
-    }
-    if (!(variance_sum > 0))
-      continue;
-    const double log_variance = std::log2(variance_sum / dimensions);
-    const double deviance = dimensions * log_variance - log_sum;
-    if (deviance < penalty)
-      parameter[channel] = log_variance;
-  }
-  return parameter;
 }
 
 constexpr std::array<celt_glog, 9> celt_coarse_fine_power_rounding{0.3390359525563188f, 0.45751874963942196f, 0.48922334841819398f, 0.497295774761502f, 0.49932331008195074f, 0.49983078784567636f, 0.49995769448057997f, 0.49998942346507441f, 0.49999735585657634f};
@@ -8450,7 +7961,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   opus_val16 tf_estimate = 0;
   int tf_chan = 0;
   bool weak_transient = false;
-  bool input_release;
   bool common_source;
   bool enable_tf_analysis;
   bool preserve_hybrid_tf_time_support;
@@ -8465,9 +7975,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   celt_input_spreading_counts input_spread_counts;
   std::array<std::array<int, celt_default_nb_ebands>, 5> band_workspace;
   auto& [offsets, tf_res, fine_quant, pulses, fine_priority] = band_workspace;
-  std::array<double, celt_default_nb_ebands> requested_boost{};
   const auto& cap = celt_caps_for(LM, C);
-  auto& importance = fine_priority;
 
   {
     tell = enc == nullptr ? 1 : ec_tell(enc);
@@ -8502,7 +8010,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     total_bits = nbCompressedBytes * 8;
     const auto input_metrics = celt_preemphasise_input(st, pcm, in, prefilter_mem, N);
     silence = input_metrics.silence;
-    input_release = input_metrics.release;
     if (tell == 1)
       ec_enc_bit_logp(enc, silence, 15);
     else
@@ -8625,7 +8132,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       ec_enc_bit_logp(enc, isTransient, 3);
     enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, enable_tf_analysis ? importance.data() : nullptr, C == 2 && start == 0 ? requested_boost.data() : nullptr, C == 1 ? bandE : nullptr, common_source && !second_mdct && LM > 0);
+                                 &tot_boost, toneishness, C == 1 ? bandE : nullptr, common_source && !second_mdct && LM > 0);
   }
   auto* X = freq;
 
@@ -8647,11 +8154,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   const std::array<int, celt_default_nb_ebands> no_tf_change{};
   const int analyzed_dual_stereo = C == 2 && LM != 0 ? stereo_analysis_tf(X, LM, N, analyzed_intensity, 0, no_tf_change.data()) : 0;
   const int tf_coupled_end = C == 2 && analyzed_dual_stereo == 0 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : 0;
-  std::array<int, celt_default_nb_ebands> tf_metric;
   int tf_select = 0;
   if (enable_tf_analysis) {
-    const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-    tf_select = tf_analysis(end, isTransient, tf_res.data(), lambda, X, N, LM, tf_estimate, tf_chan, importance.data(), tf_coupled_end, st->complexity >= 8 ? bandE : nullptr, C == 2 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : -1, tf_metric.data(), end);
+    tf_select = tf_analysis(end, isTransient, tf_res.data(), X, N, LM, tf_estimate, tf_chan, tf_coupled_end, bandE, C == 2 && empty_channel[0] == empty_channel[1] && !common_source ? analyzed_intensity : -1);
   } else if (hybrid && weak_transient) {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), 1);
     tf_select = 0;
@@ -8663,7 +8168,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   } else {
     std::fill_n(tf_res.data(), static_cast<std::size_t>(end), (st->lowrate_refinement || (((!hybrid && st->stereo_policy_celt) || protect_transients) && isTransient)) ? 1 : 0);
   }
-  const auto noise_covariance = celt_estimate_noise_covariance_parameter(st, bandE, bandLogE, LM, shortBlocks);
   const int input_spread = !hybrid && !silence ? celt_input_spreading_decision(X, eBands, start, end, common_source ? 1 : C, N, LM, &input_spread_counts) : 2;
   auto* error = bandLogE2;
   for_each_celt_band(st, [&](int index) {
@@ -8703,10 +8207,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   stereo_tf_basis_choice tf_basis_choice;
   int tf_basis_dual_stereo = analyzed_dual_stereo;
   bool tf_basis_reselected = false;
-  std::array<opus_int8, celt_max_channels> noise_source_support{-1, -1};
-  const opus_int32 trim_payload_bitrate = vbr_header_bits != 0 && vbr_rate > 0
-                                              ? (vbr_rate >> LM) * 50
-                                              : st->bitrate;
   const auto allocate_bands = [&](int trim, int* intensity, int* dual, opus_int32 bits_budget, opus_int32* balance_out, int* pulses_out, int* fine_out, int* priority_out, ec_enc* coder) __attribute__((noinline)) {
     return clt_compute_allocation(start, end, offsets.data(), cap.data(), trim, intensity, dual, bits_budget, balance_out, pulses_out, fine_out, priority_out, C, LM, coder, 1, st->lastCodedBands, signal_bandwidth);
   };
@@ -8722,19 +8222,11 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         spread_decision = st->complexity == 0 ? 0 : (isTransient ? 2 : 3);
       } else {
         spread_decision = shortBlocks != 0 ? std::min(2, input_spread) : input_spread;
-        const bool tonal_high_rate = st->audio_application && C == 2 && st->input_diff_Q10 >= 128 && 4 * effectiveBytes < C * N &&
-                                     toneishness >= .40f &&
-                                     16 * effectiveBytes >= C * N;
-        const bool release_high_rate = input_release && st->bitrate >= 48000;
-        if (tonal_high_rate || release_high_rate) {
-          spread_decision = 2;
-        }
       }
       ec_enc_icdf(enc, spread_decision, spread_icdf.data(), 5);
     }
     opus_int32 total_boost;
-    tell = process_celt_encoder_dynalloc(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
-                                         total_boost, requested_boost.data(), tot_boost != 0);
+    tell = process_celt_dynalloc<true>(enc, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits, total_boost);
     dual_stereo = 0;
     if (C == 2) {
       if (LM != 0) {
@@ -8746,10 +8238,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         if (!tf_basis_reselected && enable_tf_analysis && !common_source && empty_channel[0] == empty_channel[1] &&
             dual_stereo != analyzed_dual_stereo) {
           tf_basis_dual_stereo = dual_stereo;
-          const int lambda = std::max(80, 20480 / effectiveBytes + 2);
-          tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), lambda, X, N, LM, tf_estimate, tf_chan,
-                                  importance.data(), tf_basis_dual_stereo == 0 ? analyzed_intensity : 0,
-                                  st->complexity >= 8 ? bandE : nullptr, analyzed_intensity, tf_metric.data(), analyzed_intensity);
+          tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), X, N, LM, tf_estimate, tf_chan, tf_basis_dual_stereo == 0 ? analyzed_intensity : 0, bandE, analyzed_intensity);
           restore_energy_stage();
           nbCompressedBytes = energy_stage_bytes;
           nbAvailableBytes = energy_stage_available;
@@ -8767,33 +8256,12 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       }
     }
     int alloc_trim = 5;
-    int alternate_trim = 5;
-    bool trim_preview = false;
-    ec_enc trim_preview_coder{};
-    std::array<unsigned char, 1275> trim_preview_bytes;
     if (tell + (6 << 3) <= total_bits - total_boost) {
       if (start > 0) {
         st->stereo_saving = 0;
       } else {
         const auto value = alloc_trim_analysis_value(X, bandLogE, end, LM, C, N, &st->stereo_saving, st->intensity, equiv_rate, tf_estimate);
         alloc_trim = std::clamp(static_cast<int>(std::floor(.5f + value)), 0, 10);
-        if (C == 2 && !silence) {
-          const int lower = std::clamp(static_cast<int>(std::floor(value)), 0, 10);
-          const int upper = std::clamp(static_cast<int>(std::ceil(value)), 0, 10);
-          alternate_trim = alloc_trim == lower ? upper : lower;
-        }
-      }
-      alloc_trim = celt_adjust_alloc_trim(alloc_trim, st, hybrid, trim_payload_bitrate);
-      alternate_trim = celt_adjust_alloc_trim(alternate_trim, st, hybrid, trim_payload_bitrate);
-      if (!hybrid && C == 2) {
-        alloc_trim = celt_balance_lowrate_stereo_trim(alloc_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
-        alternate_trim = celt_balance_lowrate_stereo_trim(alternate_trim, bandLogE, end, LM, effectiveBytes, total_boost, offsets);
-        trim_preview = !silence && alloc_trim != alternate_trim;
-      }
-      if (trim_preview) {
-        trim_preview_coder = *enc;
-        std::memcpy(trim_preview_bytes.data(), enc->buf, enc->storage);
-        trim_preview_coder.buf = trim_preview_bytes.data();
       }
       ec_enc_icdf(enc, alloc_trim, trim_icdf.data(), 7);
       tell = ec_tell_frac(enc);
@@ -8866,52 +8334,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     opus_int32 bits = ((static_cast<opus_int32>(nbCompressedBytes) * 8) << 3) - static_cast<opus_int32>(ec_tell_frac(enc)) - 1;
     anti_collapse_rsv = celt_anti_collapse_reserve(isTransient, LM, bits);
     bits -= anti_collapse_rsv;
-    const int allocation_intensity = st->intensity;
-    const int allocation_dual = dual_stereo;
     codedBands =
         allocate_bands(alloc_trim, &st->intensity, &dual_stereo, bits, &balance, pulses.data(), fine_quant.data(), fine_priority.data(), enc);
-    if (trim_preview) {
-      ec_enc_icdf(&trim_preview_coder, alternate_trim, trim_icdf.data(), 7);
-      if (!trim_preview_coder.error && static_cast<unsigned>(nbCompressedBytes + funded_bytes) >= trim_preview_coder.offs + trim_preview_coder.end_offs) {
-        shrink_budget(&trim_preview_coder, nbCompressedBytes);
-        opus_int32 trial_bits = (nbCompressedBytes * 8 << 3) - static_cast<opus_int32>(ec_tell_frac(&trim_preview_coder)) - 1;
-        const int trial_anti = celt_anti_collapse_reserve(isTransient, LM, trial_bits);
-        trial_bits -= trial_anti;
-        if (trial_bits >= 0) {
-          int trial_intensity = allocation_intensity;
-          int trial_dual = allocation_dual;
-          opus_int32 trial_balance;
-          std::array<int, celt_default_nb_ebands> trial_pulses{}, trial_fine{}, trial_priority{};
-          const int trial_coded = allocate_bands(alternate_trim, &trial_intensity, &trial_dual, trial_bits, &trial_balance, trial_pulses.data(), trial_fine.data(), trial_priority.data(), &trim_preview_coder);
-          const bool same_basis = trial_coded == codedBands && trial_intensity == st->intensity && trial_dual == dual_stereo;
-          bool same_uncoded = true;
-          for (int band = codedBands; band < end; ++band)
-            same_uncoded &= trial_fine[band] == fine_quant[band] && trial_priority[band] == fine_priority[band];
-          if (same_basis && same_uncoded && !trim_preview_coder.error) {
-            const auto paired_cost = celt_max_relative_fine_phase_cost_pair(start, codedBands, C, LM, st->intensity, dual_stereo, bandE, oldBandE, error, pulses.data(), fine_quant.data(), enc, trial_pulses.data(), trial_fine.data(), &trim_preview_coder);
-            const double incumbent_cost = paired_cost[0];
-            const double trial_cost = paired_cost[1];
-            if (trial_cost < incumbent_cost) {
-              auto* output = enc->buf;
-              *enc = trim_preview_coder;
-              enc->buf = output;
-              std::memcpy(output, trim_preview_bytes.data(), enc->storage);
-              alloc_trim = alternate_trim;
-              st->intensity = trial_intensity;
-              dual_stereo = trial_dual;
-              bits = trial_bits;
-              anti_collapse_rsv = trial_anti;
-              balance = trial_balance;
-              codedBands = trial_coded;
-              std::memcpy(pulses.data(), trial_pulses.data(), sizeof(int) * celt_default_nb_ebands);
-              std::memcpy(fine_quant.data(), trial_fine.data(), sizeof(int) * celt_default_nb_ebands);
-              std::memcpy(fine_priority.data(), trial_priority.data(), sizeof(int) * celt_default_nb_ebands);
-              tell = ec_tell_frac(enc);
-            }
-          }
-        }
-      }
-    }
     st->lastCodedBands =
         static_cast<opus_uint8>(st->lastCodedBands ? std::clamp(codedBands, st->lastCodedBands - 1, st->lastCodedBands + 1) : codedBands);
 
@@ -8919,12 +8343,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       break;
     bool energy_needs_refinement = false;
     for (int channel = 0; channel < C; ++channel) {
-      const bool energy_model_channel = spread_decision == 3 && shortBlocks == 0 && std::isfinite(noise_covariance[channel]) &&
-                                        (noise_source_support[channel] = static_cast<opus_int8>(celt_noise_gaussian_source_supported(pcm, N, CC, C, channel)));
       for (int band = start; band < end; ++band) {
         const int index = channel * nbEBands + band;
-        const bool model_fine = energy_model_channel && band >= codedBands && tf_res[band] >= 0;
-        const int width = model_fine ? 0 : fine_quant[band];
+        const int width = fine_quant[band];
         const auto rounding = celt_coarse_fine_power_rounding[width];
         energy_rounding[index] = rounding;
         energy_needs_refinement |= width > 0 && error[index] + rounding >= 1.f;
@@ -8937,25 +8358,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
     nbAvailableBytes = energy_stage_available;
     total_bits = energy_stage_total_bits;
     tell = energy_stage_tell;
-  }
-
-  constexpr auto snapshot_floats = (decltype(energy_stage_buffer)::extent + sizeof(celt_sig) - 1) / sizeof(celt_sig);
-  auto source_error_offset = std::span{input_storage}.subspan<live_band_floats + snapshot_floats, celt_max_channels * celt_default_nb_ebands>();
-  std::ranges::fill(source_error_offset, 0.f);
-  if (spread_decision == 3 && shortBlocks == 0) {
-    for (int channel = 0; channel < C; ++channel) {
-      if (!std::isfinite(noise_covariance[channel]) ||
-          !(noise_source_support[channel] < 0 ? celt_noise_gaussian_source_supported(pcm, N, CC, C, channel) : noise_source_support[channel] != 0))
-        continue;
-      for (int band = codedBands; band < end; ++band) {
-        if (tf_res[band] < 0)
-          continue;
-        const int index = channel * nbEBands + band;
-        const auto target = static_cast<float>(.5 * (noise_covariance[channel] + celt_gaussian_noise_log_shape[LM][band]) - eMeans[band]);
-        source_error_offset[index] = error[index] - (target - oldBandE[index]);
-        error[index] = target - oldBandE[index];
-      }
-    }
   }
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
@@ -9000,8 +8402,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
 
   zero_n_items(energyError, static_cast<std::size_t>(nbEBands * CC));
   for_each_celt_band(st, [&](int index) {
-    if (source_error_offset[index] != 0)
-      error[index] += source_error_offset[index];
     energyError[index] = std::clamp(error[index], -0.5f, 0.5f);
   });
   if (silence) {
@@ -13206,112 +12606,6 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
     if constexpr (Encode)
       fine_bits_left -= C * extra_bits;
   }
-}
-
-static double celt_finite_log_cell_marginal(double squared_log_step) {
-  if (squared_log_step <= 1) {
-    constexpr auto coefficients = [] {
-      std::array<double, 10> values{};
-      double factorial = 1;
-      double half_power = .5;
-      for (int k = 1; k <= 10; ++k) {
-        factorial *= (2 * k) * (2 * k + 1);
-        values[k - 1] = k * (1 - half_power) / factorial;
-        half_power *= .25;
-      }
-      return values;
-    }();
-    double value = coefficients.back();
-    value = coefficients[8] + squared_log_step * value;
-    value = coefficients[7] + squared_log_step * value;
-    value = coefficients[6] + squared_log_step * value;
-    value = coefficients[5] + squared_log_step * value;
-    value = coefficients[4] + squared_log_step * value;
-    value = coefficients[3] + squared_log_step * value;
-    value = coefficients[2] + squared_log_step * value;
-    value = coefficients[1] + squared_log_step * value;
-    value = coefficients[0] + squared_log_step * value;
-    return squared_log_step * value;
-  }
-  const double step = std::sqrt(squared_log_step);
-  const double half_step = .5 * step;
-  return (step * std::cosh(step) - std::sinh(step) - 4 * (half_step * std::cosh(half_step) - std::sinh(half_step))) / (2 * step);
-}
-
-static std::array<double, 2> celt_max_relative_fine_phase_cost_pair(int start, int codedBands, int C, int LM, int intensity, int dual_stereo, const celt_ener* bandE, const celt_glog* oldBandE, const celt_glog* error, const int* pulses0, const int* fine_quant0, const ec_ctx* coder0, const int* pulses1, const int* fine_quant1, const ec_ctx* coder1) {
-  constexpr double ln2 = 0.693147180559945309417232121458;
-  std::array<int, 2> tell{ec_tell(coder0), ec_tell(coder1)};
-  std::array<double, 2> cost{}, sum_cost{};
-  const std::array<const int*, 2> pulses{pulses0, pulses1};
-  for (int band = start; band < codedBands; ++band) {
-    const std::array<int, 2> planned_fine{fine_quant0[band], fine_quant1[band]};
-    const std::array<int, 2> fine{
-        tell[0] + C * planned_fine[0] <= static_cast<int>(coder0->storage * 8) ? planned_fine[0] : 0,
-        tell[1] + C * planned_fine[1] <= static_cast<int>(coder1->storage * 8) ? planned_fine[1] : 0};
-    tell[0] += C * fine[0];
-    tell[1] += C * fine[1];
-    const int N = (celt_mode()->eBands[band + 1] - celt_mode()->eBands[band]) << LM;
-    const int den = C * N + (C == 2 && N > 2 && !dual_stereo && band < intensity);
-    const int shape_dimension = den - C;
-    std::array<double, 2> shape_error{pulses0[band] >= C << 3 ? 0. : 2., pulses1[band] >= C << 3 ? 0. : 2.};
-    if (shape_dimension > 0) {
-      const int NClogN = den * (celt_mode()->logN[band] + (LM << 3));
-      int base_offset = (NClogN >> 1) - den * 21;
-      if (N == 2)
-        base_offset += den << 3 >> 2;
-      const auto cell_for = [&](int arm) {
-        const int band_bits = pulses[arm][band] + (C * planned_fine[arm] << 3);
-        int offset = base_offset;
-        if (band_bits + offset < den * 2 << 3)
-          offset += NClogN >> 2;
-        else if (band_bits + offset < den * 3 << 3)
-          offset += NClogN >> 3;
-        return pulses[arm][band] + offset;
-      };
-      const int cell0 = cell_for(0);
-      const bool same_inputs = pulses0[band] == pulses1[band] && planned_fine[0] == planned_fine[1];
-      const int cell1 = same_inputs ? cell0 : cell_for(1);
-      const bool same_cell = cell0 == cell1;
-      const auto evaluate = [&](int cell) {
-        return static_cast<double>(shape_dimension) / C * celt_finite_log_cell_marginal(ln2 * ln2 * std::exp2(-static_cast<double>(cell) / (4 * shape_dimension)));
-      };
-      shape_error[0] = evaluate(cell0);
-      shape_error[1] = same_cell ? shape_error[0] : evaluate(cell1);
-    }
-    for (int channel = 0; channel < C; ++channel) {
-      const int index = channel * celt_default_nb_ebands + band;
-      const auto gain_for = [&](int width) -> double {
-        float offset = 0;
-        if (width > 0) {
-          const int bins = 1 << width;
-          const int q = floor_to_int_reference<true>((error[index] + .5f) * bins - fine_power_decision_bias[width], width);
-          offset = (q + .5f) * (1 << (14 - width)) * (1.f / 16384) - .5f;
-        }
-        return exp2f(std::min(32.f, oldBandE[index] + offset + static_cast<opus_val32>(eMeans[band])));
-      };
-      const double gain0 = gain_for(fine[0]);
-      const double gain1 = fine[0] == fine[1] ? gain0 : gain_for(fine[1]);
-      const double source = bandE[index];
-      if (source > 0) {
-        const double ratio0 = gain0 / source;
-        const double ratio1 = gain1 / source;
-        const double difference0 = 1 - ratio0;
-        const double difference1 = 1 - ratio1;
-        cost[0] = std::max(cost[0], difference0 * difference0 + ratio0 * shape_error[0]);
-        cost[1] = std::max(cost[1], difference1 * difference1 + ratio1 * shape_error[1]);
-      } else {
-        cost[0] = std::max(cost[0], gain0 == 0 ? 0. : std::numeric_limits<double>::infinity());
-        cost[1] = std::max(cost[1], gain1 == 0 ? 0. : std::numeric_limits<double>::infinity());
-      }
-      const double sum_difference0 = source - gain0;
-      sum_cost[0] += sum_difference0 * sum_difference0 + source * gain0 * shape_error[0];
-      const double sum_difference1 = source - gain1;
-      sum_cost[1] += sum_difference1 * sum_difference1 + source * gain1 * shape_error[1];
-    }
-  }
-  if (cost[0] == cost[1])
-    return sum_cost;
-  return cost;
 }
 
 template <bool Encode>
