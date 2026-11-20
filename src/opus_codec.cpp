@@ -15745,9 +15745,8 @@ static void silk_InitEncoder(void* encState, int channels) {
   psEnc->nChannelsInternal = 1;
 }
 
-template <bool Price>
 static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_FLP* states, const silk_EncControlStruct& control,
-                                     ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr, bool sparse_padding = false) {
+                                     ec_enc* range_encoder, std::array<int, celt_max_channels>& packet_has_lbrr, bool price, bool sparse_padding = false) {
   auto& lbrr = *encoder->lbrr;
   const int frames = states[0].sCmn.nFramesPerPacket;
   if ((lbrr.frames_per_packet != 0 && lbrr.frames_per_packet != frames) ||
@@ -15784,20 +15783,21 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
         const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1
                                                                                                                 : 0;
-        if constexpr (Price) {
-          silk_entropy_context context{state};
-          auto priced_indices = indices;
-          std::array<opus_int8, silk_max_frame_length + 16> priced_pulses{};
-          std::copy_n(channel.pulses[static_cast<std::size_t>(frame)].data(), state.frame_length, priced_pulses.data());
-          const int type_offset = 2 * priced_indices.signalType + priced_indices.quantOffsetType;
-          ec_enc_icdf(range_encoder, type_offset - 2, silk_type_offset_VAD_iCDF.data(), 8);
-          silk_process_indices<true>(&context, priced_indices, range_encoder, cond_coding);
-          silk_process_pulses<true>(range_encoder, std::span<opus_int8>{priced_pulses.data(), static_cast<std::size_t>((state.frame_length + 15) & ~15)},
-                                    priced_indices.signalType, priced_indices.quantOffsetType, state.frame_length, zero_padding_blocks);
-        } else {
-          silk_encode_indices_and_pulses(&state, indices, range_encoder, cond_coding,
-                                         channel.pulses[static_cast<std::size_t>(frame)].data(), true,
-                                         zero_padding_blocks);
+        SideInfoIndices scratch_indices;
+        std::array<opus_int8, silk_max_frame_length + 16> scratch_pulses{};
+        auto* coded_indices = &indices;
+        auto* coded_pulses = channel.pulses[static_cast<std::size_t>(frame)].data();
+        if (price) {
+          scratch_indices = indices;
+          std::copy_n(coded_pulses, state.frame_length, scratch_pulses.data());
+          coded_indices = &scratch_indices;
+          coded_pulses = scratch_pulses.data();
+        }
+        silk_entropy_context context{state};
+        silk_encode_indices_and_pulses(&context, *coded_indices, range_encoder, cond_coding, coded_pulses, true, zero_padding_blocks);
+        if (!price) {
+          state.ec_prevLagIndex = context.ec_prevLagIndex;
+          state.ec_prevSignalType = context.ec_prevSignalType;
         }
       }
     }
@@ -15819,7 +15819,7 @@ OPUSCPP_LEANO static bool silk_fund_pending_lbrr(silk_encoder* encoder, silk_enc
   const int start = ec_tell(&price);
   const int start_frac = ec_tell_frac(&price);
   std::array<int, celt_max_channels> flags{};
-  silk_encode_pending_lbrr<true>(encoder, states, control, &price, flags);
+  silk_encode_pending_lbrr(encoder, states, control, &price, flags, true);
   const int fractional_cost = ec_tell_frac(&price) - start_frac;
   const int integer_cost = ec_tell(&price) - start;
   const int bytes = (fractional_cost + 63) / 64;
@@ -15920,7 +15920,7 @@ OPUSCPP_LEANO static int silk_encode_previous_lbrr(silk_encoder* encoder, silk_e
   const int original_average_bits = lbrr.average_bits;
   const auto packed_lbrr = silk_pack_pending_lbrr(encoder, states, control);
   const int start_bits = ec_tell(range_encoder);
-  silk_encode_pending_lbrr<false>(encoder, states, control, range_encoder, packet_has_lbrr, packed_lbrr.pad);
+  silk_encode_pending_lbrr(encoder, states, control, range_encoder, packet_has_lbrr, false, packed_lbrr.pad);
   for (auto& channel : lbrr.channels) {
     channel.flags.fill(0);
   }
@@ -16071,7 +16071,7 @@ OPUSCPP_LEANO static bool silk_setup_resamplers(silk_encoder_state_FLP* psEnc, i
   return true;
 }
 
-static void silk_setup_fs(silk_encoder_state_FLP* psEnc, int fs_kHz, int PacketSize_ms) {
+OPUSCPP_LEANO static void silk_setup_fs(silk_encoder_state_FLP* psEnc, int fs_kHz, int PacketSize_ms) {
   if (PacketSize_ms != 5 * psEnc->sCmn.nb_subfr * psEnc->sCmn.nFramesPerPacket) {
     if (PacketSize_ms <= 10) {
       psEnc->sCmn.nFramesPerPacket = 1;
@@ -16151,7 +16151,7 @@ OPUSCPP_LEANO static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, si
   return true;
 }
 
-OPUSCPP_LEANO static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr, bool fixed_pulses = false, bool keep_ar = true) {
+OPUSCPP_LEANO [[gnu::noinline]] static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr, bool fixed_pulses = false, bool keep_ar = true) {
   opus_int32 gains[4];
   for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe)
     gains[subframe] = exact_gains ? exact_gains[subframe] : float2int(psEncCtrl->Gains[subframe] * 65536.0f);
@@ -16177,7 +16177,7 @@ struct silk_lpc_model_context {
 template <class State>
 static void silk_find_LPC_FLP(State*, opus_int16[], const float[], float);
 template <class State>
-static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], const opus_int16[16]);
+OPUSCPP_LEANO static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], const opus_int16[16]);
 
 #if defined(_MSC_VER)
 #define OPUSCPP_NOINLINE __declspec(noinline)
@@ -16633,7 +16633,7 @@ OPUSCPP_LEANA static auto silk_pitch_analysis_core_FLP(const float* frame, float
   return result;
 }
 
-static float silk_schur_FLP(float refl_coef[], const float auto_corr[], int order) {
+OPUSCPP_LEANO static float silk_schur_FLP(float refl_coef[], const float auto_corr[], int order) {
   std::array<std::array<double, 2>, 24 + 1> C;
   C[0] = {auto_corr[0], auto_corr[0]};
   for (int i = 1; i <= order; ++i) {
@@ -16697,7 +16697,7 @@ OPUSCPP_LEANO static void silk_A2NLSF_FLP(opus_int16* NLSF_Q15, const float* pAR
   silk_A2NLSF(NLSF_Q15, a_fix_Q16.data(), LPC_order);
 }
 
-static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LPC_order) {
+OPUSCPP_LEANO static void silk_NLSF2A_FLP(float* pAR, const opus_int16* NLSF_Q15, const int LPC_order) {
   std::array<opus_int16, 16> a_fix_Q12;
   silk_NLSF2A(a_fix_Q12.data(), NLSF_Q15, LPC_order);
   for (int index = 0; index < LPC_order; ++index) {
@@ -16866,7 +16866,7 @@ OPUSCPP_LEANO OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus
 }
 #undef OPUSCPP_NOINLINE
 
-static void silk_scale_copy_vector_FLP(float* data_out, const float* data_in, float gain, int dataSize) {
+[[gnu::noinline]] static void silk_scale_copy_vector_FLP(float* data_out, const float* data_in, float gain, int dataSize) {
   const auto count = static_cast<std::size_t>(dataSize > 0 ? dataSize : 0);
   for (auto index = std::size_t{}; index < count; ++index)
     data_out[index] = data_in[index] * gain;
@@ -16946,7 +16946,7 @@ OPUSCPP_LEANO static inline void silk_residual_energy_FLP(float nrgs[4], const f
 }
 
 template <class State>
-static inline void silk_process_NLSFs_FLP(State* psEncC, float PredCoef[2][16], opus_int16 NLSF_Q15[16], const opus_int16 prev_NLSF_Q15[16]) {
+OPUSCPP_LEANO static inline void silk_process_NLSFs_FLP(State* psEncC, float PredCoef[2][16], opus_int16 NLSF_Q15[16], const opus_int16 prev_NLSF_Q15[16]) {
   opus_int16 PredCoef_Q12[2][16];
   silk_process_NLSFs(psEncC, PredCoef_Q12, NLSF_Q15, prev_NLSF_Q15);
   for (int j = 0; j < 2; j++) {
@@ -16972,7 +16972,7 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
   *pred_gain_dB = static_cast<float>(pred_gain_dB_Q7) * (1.0f / 128.0f);
 }
 
-OPUSCPP_LEANA static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
+OPUSCPP_LEANA OPUSCPP_SMALL static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
   std::array<float, 4 * (silk_max_subfr_length + silk_nlsf_max_order)> lpc_input_storage;
@@ -17009,17 +17009,12 @@ OPUSCPP_LEANA static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc
     minInvGain /= 0.25f + 0.75f * psEncCtrl->coding_quality;
   }
   const bool select_coded_interpolation = psEnc->sCmn.Complexity >= 4 && !psEnc->sCmn.first_frame_after_reset && psEnc->sCmn.nb_subfr == 4;
-  if (select_coded_interpolation) {
-    float prediction[16]{};
+  {
+    float prediction[16];
     silk_burg_modified_FLP(prediction, LPC_in_pre, minInvGain, psEnc->sCmn.subfr_length + psEnc->sCmn.predictLPCOrder,
                            psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder, nullptr, nullptr);
     silk_A2NLSF_FLP(NLSF_Q15, prediction, psEnc->sCmn.predictLPCOrder);
     psEnc->sCmn.indices.NLSFInterpCoef_Q2 = 4;
-  } else {
-    silk_lpc_model_context model_state(psEnc->sCmn, psEnc->sCmn.indices);
-    model_state.prev_NLSFq_Q15 = psEnc->sCmn.prev_NLSFq_Q15;
-    silk_find_LPC_FLP(&model_state, NLSF_Q15, LPC_in_pre, minInvGain);
-    psEnc->sCmn.indices.NLSFInterpCoef_Q2 = model_state.indices.NLSFInterpCoef_Q2;
   }
   silk_process_NLSFs_FLP(&psEnc->sCmn, psEncCtrl->PredCoef, NLSF_Q15, psEnc->sCmn.prev_NLSFq_Q15.data());
   if (select_coded_interpolation) {
@@ -17217,7 +17212,7 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
   }
 }
 
-static bool silk_zero_offset_floor_exceeds_residual(const silk_encoder_state& state, const silk_encoder_control_FLP& control) noexcept {
+OPUSCPP_LEANO static bool silk_zero_offset_floor_exceeds_residual(const silk_encoder_state& state, const silk_encoder_control_FLP& control) noexcept {
   const double offset = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType] / 1024.0;
   double zero_excitation_power = 0.0, residual_power = 0.0;
   for (int subframe = 0; subframe < state.nb_subfr; ++subframe) {
@@ -17285,7 +17280,7 @@ OPUSCPP_LEANO static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, c
   prepared.ltp_scale = psIndices->signalType == 2 ? silk_LTPScales_table_Q14[psIndices->LTP_scaleIndex] : 0;
 }
 
-OPUSCPP_MINSIZE OPUSCPP_SMALL static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
+OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
   silk_encoder_control_FLP sEncCtrl;
   const auto lbrr_pre_frame_nlsf = psEnc->sCmn.prev_NLSFq_Q15;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
