@@ -11455,13 +11455,10 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float* A = tonal->angle;
   float* dA = tonal->d_angle;
   float* d2A = tonal->d2_angle;
-  float tonality[256];
-  float noisiness[256];
   const float pi4 = static_cast<float>(3.141592653 * 3.141592653 * 3.141592653 * 3.141592653);
   int remaining;
   classical_leak_record* info;
   float hp_ener;
-  float tonality2[256];
 
   const int pending_samples = tonal->mem_fill - 240;
   const int needed = 480 - pending_samples;
@@ -11502,16 +11499,17 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
     *info = tonal->info[prev_pos];
     return;
   }
-  auto* out = (::new (static_cast<void*>(&scratch.spectrum)) std::array<float, 964>)->data();
-  {
-    out = celt_fft(in, out, 0);
-  }
+  auto* spectrum = (::new (static_cast<void*>(&scratch.spectrum)) std::array<float, 964>)->data();
+  auto* out = celt_fft(in, spectrum, 0);
   out[960] = 0;
   if (std::isnan(out[(0)])) {
     info->valid = 0;
     return;
   }
 
+  float* const tonality = out == in ? spectrum : in;
+  float* const noisiness = tonality + 256;
+  float* const tonality2 = tonality + 512;
   constexpr bool fast_phase_format = std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
                                     std::numeric_limits<float>::digits == 24 && std::numeric_limits<float>::max_exponent == 128 &&
                                     FLT_EVAL_METHOD == 0;
