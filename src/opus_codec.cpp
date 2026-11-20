@@ -123,6 +123,7 @@ constexpr int celt_max_pitch_period = 1024;
 constexpr int celt_min_pitch_period = 15;
 constexpr int celt_max_band_samples = 22 * 8;
 constexpr int celt_max_norm_samples = celt_max_channels * 78 * 8;
+constexpr int encoder_short_stage_samples_per_channel = celt_max_frame_samples + celt_sample_rate / 100;
 constexpr int encoder_max_stage_samples = (3 * celt_max_frame_samples + celt_sample_rate / 100) * celt_max_channels;
 
 constexpr int silk_nlsf_max_cb1_vectors = 32;
@@ -3575,8 +3576,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   return result < 0 ? -3 : result;
 }
 
-[[nodiscard]] OPUSCPP_COMPACT OPUSCPP_NOINLINE static auto encode_single_frame_packet(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, const multiframe_encode_params& params, const frame_activity_metrics& frame_metrics, const vbr_frame_budget& frame_budget) -> opus_int32 {
-  std::array<opus_res, encoder_max_stage_samples> stage_buffer_storage;
+template <std::size_t Capacity>
+[[nodiscard]] OPUSCPP_COMPACT OPUSCPP_NOINLINE static auto encode_single_frame_packet(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, const multiframe_encode_params& params, const frame_activity_metrics& frame_metrics, const vbr_frame_budget& frame_budget, std::span<opus_res> stage_buffer_storage = {}) -> opus_int32 {
+  std::array<opus_res, Capacity> storage;
+  if constexpr (Capacity != 0) {
+    stage_buffer_storage = storage;
+  }
   auto stage_storage = make_encoder_stage_storage(stage_buffer_storage, st, encoder_delay_compensation(st), frame_size);
   stage_storage.prime_from_encoder(st);
   opus_int32 range_storage_bytes = max_data_bytes;
@@ -3599,6 +3604,12 @@ static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm,
   ret = finalize_dtx_packet(st, data, ret, emit_dtx);
   commit_packet_budget(st, params.governed_vbr, ret, params.target_bits);
   return ret;
+}
+
+template <std::size_t Capacity>
+[[nodiscard]] OPUSCPP_NOINLINE static auto encode_single_frame_with_storage(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 max_data_bytes, const multiframe_encode_params& params, const frame_activity_metrics& frame_metrics, const vbr_frame_budget& frame_budget) -> opus_int32 {
+  std::array<opus_res, Capacity> storage;
+  return encode_single_frame_packet<0>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget, storage);
 }
 
 [[nodiscard]] static constexpr auto allow_stereo_policy(const OpusEncoder* st, int frame_size) noexcept -> bool {
@@ -3966,7 +3977,13 @@ OPUSCPP_COMPACT static opus_int32 encode_native(OpusEncoder* st, const opus_res*
         {governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits}, frame_budget);
   }
   const multiframe_encode_params params{governed_vbr, lsb_depth, redundancy, celt_to_silk, to_celt, prefill, equiv_rate, cbr_bytes, requested_frame_bits};
-  return encode_single_frame_packet(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
+  if (frame_size <= st->Fs / 50) {
+    if (st->channels == 1) {
+      return encode_single_frame_with_storage<encoder_short_stage_samples_per_channel>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
+    }
+    return encode_single_frame_with_storage<encoder_short_stage_samples_per_channel * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
+  }
+  return encode_single_frame_packet<encoder_max_stage_samples>(st, pcm, frame_size, data, max_data_bytes, params, frame_metrics, frame_budget);
 }
 
 static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, const frame_activity_metrics& metrics) noexcept;
@@ -4912,6 +4929,15 @@ struct voice_denoise_coefficients {
   }
 }
 
+template <std::size_t Capacity>
+OPUSCPP_NOINLINE static int encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept {
+  std::array<opus_res, Capacity> input_storage;
+  for (int index = 0; index < frame_size * st->channels; ++index) {
+    input_storage[index] = pcm[index] * (1.0f / 32768.0f);
+  }
+  return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
+}
+
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
   if (st == nullptr || !has_required_storage(pcm, analysis_frame_size) || !has_required_storage(data, max_data_bytes)) {
     return OPUS_BAD_ARG;
@@ -4920,11 +4946,10 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-  std::array<opus_res, opus_max_pcm_samples> input_storage;
-  for (int index = 0; index < frame_size * st->channels; ++index) {
-    input_storage[index] = pcm[index] * (1.0f / 32768.0f);
+  if (frame_size <= celt_max_frame_samples) {
+    return encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes);
   }
-  return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
+  return encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
 }
 
 int opus_encode(OpusEncoder* st, std::span<const opus_int16> pcm, std::span<unsigned char> packet) noexcept {
