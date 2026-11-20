@@ -11134,7 +11134,7 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
 }
 
 [[gnu::noinline]] static void classical_leak_features(classical_leak_state* tonal, classical_leak_record* info, const float* out,
-                                                       const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener, bool nearest) {
+                                                      const float* tonality, const float* noisiness, int lsb_depth, int Fs, float hp_ener, bool nearest) {
   const bool reuse_history = nearest && tonal->nearest_history_valid;
   tonal->nearest_history_valid = false;
   int i, b;
@@ -11511,8 +11511,8 @@ static void classical_leak_analyze(classical_leak_state* tonal, const opus_res* 
   float* const noisiness = tonality + 256;
   float* const tonality2 = tonality + 512;
   constexpr bool fast_phase_format = std::numeric_limits<float>::is_iec559 && std::numeric_limits<float>::radix == 2 &&
-                                    std::numeric_limits<float>::digits == 24 && std::numeric_limits<float>::max_exponent == 128 &&
-                                    FLT_EVAL_METHOD == 0;
+                                     std::numeric_limits<float>::digits == 24 && std::numeric_limits<float>::max_exponent == 128 &&
+                                     FLT_EVAL_METHOD == 0;
   const bool nearest = fast_phase_format && std::fegetround() == FE_TONEAREST && std::fetestexcept(FE_INEXACT) != 0;
   if (nearest) {
     classifier_phase_pass<true>(out, A, dA, d2A, tonality, noisiness, tonality2);
@@ -13362,8 +13362,9 @@ __declspec(noinline)
 #else
 [[gnu::noinline]]
 #endif
-[[gnu::cold]] static void silk_resample_decoder_3x(silk_resampler_state_struct& resampler, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled,
-                                                  const opus_int16* input, int input_samples) {
+[[gnu::cold]] static void
+silk_resample_decoder_3x(silk_resampler_state_struct& resampler, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled,
+                         const opus_int16* input, int input_samples) {
   std::array<opus_int16, 2 * silk_max_frame_length + 8> upsampled;
   auto* delayed = resampled.data() + resampled.size() - input_samples;
   const int head = resampler.Fs_in_kHz - resampler.inputDelay;
@@ -14006,8 +14007,8 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
   auto* NSQ = b.NSQ;
   const int ar_order = b.ar_order;
   const bool use_float = float_environment && std::any_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
-    return c != 0;
-  });
+                           return c != 0;
+                         });
   float float_ar[24 * 4], float_coefficients[24];
   float float_warping;
   if (use_float) {
@@ -14060,9 +14061,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
             wrap_add(wrap_add(b.order >> 1, silk_mul_wb(newest_xq[k], b.a_Q12[0])), silk_nsq_lpc_prediction(psDD->lpc_high.data() + i, psDD->lpc_low.data() + i, lpc_taps)));
       else
         LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psDD->sLPC_Q14.data() + 16 + i, b.a_Q12, b.order));
-      opus_int32 n_AR_Q14 = use_float ? n_AR_lane[k]
-                             : !keep_ar ? (ar_order >> 1) << 1
-                                      : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
+      opus_int32 n_AR_Q14 = use_float  ? n_AR_lane[k]
+                            : !keep_ar ? (ar_order >> 1) << 1
+                                       : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
       n_AR_Q14 = static_cast<opus_int32>(n_AR_Q14 + ((psDD->LF_AR_Q14 * static_cast<opus_int64>(tilt_i16)) >> 16));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
       opus_int32 n_LF_Q14 = static_cast<opus_int32>((psDD->Shape_Q14[*smpl_buf_idx] * static_cast<opus_int64>(lf_i16)) >> 16);
