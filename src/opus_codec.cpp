@@ -1679,7 +1679,7 @@ OPUSCPP_LEAN static int decode_native(OpusDecoder* st, const unsigned char* data
 }
 
 template <std::size_t Capacity>
-[[gnu::cold]] static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size, int decode_fec) {
+[[gnu::cold]] OPUSCPP_NOINLINE static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size, int decode_fec) {
   std::array<opus_res, Capacity> output;
   const int ret = decode_native(st, data, len, output.data(), frame_size, decode_fec);
   if (ret > 0) {
@@ -1706,7 +1706,11 @@ template <typename Sample>
     const int packet_samples = frame_size > celt_max_frame_samples && data != nullptr && len > 1 && decode_fec == 0
                                    ? opus_packet_get_nb_samples(data, len, st->Fs)
                                    : 0;
-    if (frame_size <= celt_max_frame_samples || (packet_samples > 0 && packet_samples <= celt_max_frame_samples)) {
+    const int output_bound = packet_samples > 0 ? std::min(frame_size, packet_samples) : frame_size;
+    if (output_bound <= OPUS_FRAME_SIZE_5MS) {
+      return decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec);
+    }
+    if (output_bound <= celt_max_frame_samples) {
       return decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec);
     }
     return decode_pcm16_fallback<opus_max_pcm_samples>(st, data, len, pcm, frame_size, decode_fec);
