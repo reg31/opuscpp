@@ -1988,7 +1988,7 @@ template <int Shift>
   return rounded_rshift(static_cast<opus_int64>(reflected) * rc_mult2, mult2_q);
 }
 
-template <typename T> static void silk_bwexpander(T* ar, std::size_t count, opus_int32 chirp_Q16) {
+template <typename T> OPUSCPP_SMALL static void silk_bwexpander(T* ar, std::size_t count, opus_int32 chirp_Q16) {
   const opus_int32 chirp_minus_one_Q16 = chirp_Q16 - 65536;
   for (auto index = std::size_t{}; index + 1 < count; ++index) {
     const auto scaled = static_cast<opus_int64>(chirp_Q16) * ar[index];
@@ -2043,7 +2043,7 @@ static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, cons
   zero_n_items(out, static_cast<std::size_t>(d));
 }
 
-static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA) {
+OPUSCPP_SMALL static inline opus_int32 LPC_inverse_pred_gain_QA_c(std::span<opus_int32> A_QA) {
   int k, n, mult2Q;
   opus_int32 invGain_Q30, rc_Q31, rc_mult1_Q30, rc_mult2, tmp1, tmp2;
   constexpr auto rc_limit_Q24 = fixed_q<24>(0.99975);
@@ -2139,23 +2139,15 @@ OPUSCPP_LEANO static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF,
 }
 
 OPUSCPP_LEANO static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_int16* NDeltaMin_Q15, const int L) {
-  int i, I, k;
-  opus_int16 center_freq_Q15;
-  opus_int32 diff_Q15, min_diff_Q15, min_center_Q15, max_center_Q15;
   for (int loops = 0; loops < 20; ++loops) {
-    min_diff_Q15 = NLSF_Q15[0] - NDeltaMin_Q15[0];
-    I = 0;
-    for (i = 1; i <= L - 1; i++) {
-      diff_Q15 = NLSF_Q15[i] - (NLSF_Q15[i - 1] + NDeltaMin_Q15[i]);
+    opus_int32 min_diff_Q15 = opus_int32_max;
+    int I = 0;
+    for (int i = 0; i <= L; ++i) {
+      const opus_int32 diff_Q15 = (i < L ? NLSF_Q15[i] : 1 << 15) - (i ? NLSF_Q15[i - 1] : 0) - NDeltaMin_Q15[i];
       if (diff_Q15 < min_diff_Q15) {
         min_diff_Q15 = diff_Q15;
         I = i;
       }
-    }
-    diff_Q15 = (1 << 15) - (NLSF_Q15[L - 1] + NDeltaMin_Q15[L]);
-    if (diff_Q15 < min_diff_Q15) {
-      min_diff_Q15 = diff_Q15;
-      I = L;
     }
     if (min_diff_Q15 >= 0) {
       return;
@@ -2165,36 +2157,33 @@ OPUSCPP_LEANO static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_i
     } else if (I == L) {
       NLSF_Q15[L - 1] = (1 << 15) - NDeltaMin_Q15[L];
     } else {
-      min_center_Q15 = 0;
-      for (k = 0; k < I; k++) {
+      opus_int32 min_center_Q15 = NDeltaMin_Q15[I] >> 1;
+      opus_int32 max_center_Q15 = (1 << 15) - (NDeltaMin_Q15[I] >> 1);
+      for (int k = 0; k < I; ++k) {
         min_center_Q15 += NDeltaMin_Q15[k];
       }
-      min_center_Q15 += ((NDeltaMin_Q15[I]) >> (1));
-      max_center_Q15 = 1 << 15;
-      for (k = L; k > I; k--) {
+      for (int k = L; k > I; --k) {
         max_center_Q15 -= NDeltaMin_Q15[k];
       }
-      max_center_Q15 -= ((NDeltaMin_Q15[I]) >> (1));
-      center_freq_Q15 = static_cast<opus_int16>(std::clamp(rounded_rshift<1>(static_cast<opus_int32>(NLSF_Q15[I - 1]) + NLSF_Q15[I]), min_center_Q15, max_center_Q15));
-      NLSF_Q15[I - 1] = center_freq_Q15 - ((NDeltaMin_Q15[I]) >> (1));
+      const auto center_freq_Q15 = static_cast<opus_int16>(std::clamp(rounded_rshift<1>(static_cast<opus_int32>(NLSF_Q15[I - 1]) + NLSF_Q15[I]), min_center_Q15, max_center_Q15));
+      NLSF_Q15[I - 1] = center_freq_Q15 - (NDeltaMin_Q15[I] >> 1);
       NLSF_Q15[I] = NLSF_Q15[I - 1] + NDeltaMin_Q15[I];
     }
   }
   for (int i = 1; i < L; ++i) {
     const auto value = NLSF_Q15[i];
     int position = i;
-    while (position > 0 && NLSF_Q15[position - 1] > value) {
+    for (; position > 0 && NLSF_Q15[position - 1] > value; --position) {
       NLSF_Q15[position] = NLSF_Q15[position - 1];
-      --position;
     }
     NLSF_Q15[position] = value;
   }
   NLSF_Q15[0] = std::max(NLSF_Q15[0], NDeltaMin_Q15[0]);
-  for (i = 1; i < L; i++) {
+  for (int i = 1; i < L; ++i) {
     NLSF_Q15[i] = std::max(NLSF_Q15[i], saturate_int16_from_int32(static_cast<opus_int32>(NLSF_Q15[i - 1]) + NDeltaMin_Q15[i]));
   }
   NLSF_Q15[L - 1] = std::min(NLSF_Q15[L - 1], static_cast<opus_int16>((1 << 15) - NDeltaMin_Q15[L]));
-  for (i = L - 2; i >= 0; i--) {
+  for (int i = L - 2; i >= 0; --i) {
     NLSF_Q15[i] = std::min(NLSF_Q15[i], static_cast<opus_int16>(NLSF_Q15[i + 1] - NDeltaMin_Q15[i + 1]));
   }
 }
@@ -2272,7 +2261,7 @@ static opus_int32 silk_log2lin(const opus_int32 inLog_Q7) {
   return out;
 }
 
-static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
+OPUSCPP_SMALL static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
   for (int k = 0; k < nb_subfr; k++) {
     if (k == 0 && conditional == 0) {
       *prev_ind = std::max(ind[k], static_cast<opus_int8>(*prev_ind - 16));
@@ -15605,7 +15594,7 @@ OPUSCPP_LEANO void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[]
   state->width_prev_Q14 = static_cast<opus_int16>(width_Q14);
 }
 
-void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
+OPUSCPP_SMALL void silk_LPC_fit(opus_int16* a_QOUT, opus_int32* a_QIN, const int d) {
   constexpr int QOUT = 12, QIN = 17;
   int i = 0;
   for (; i < 10; ++i) {
