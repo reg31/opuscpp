@@ -14013,8 +14013,11 @@ OPUSCPP_LEANO static void silk_nsq_plain_block(const silk_nsq_block& b) {
   std::memcpy(NSQ->sLPC_Q14, &NSQ->sLPC_Q14[b.length], 16 * sizeof(opus_int32));
 }
 
-static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* psDelDec, const int N, opus_int32* delayedGain_Q10, bool keep_ar,
+enum class silk_nsq_role : unsigned char { ordinary, cap_retry, fixed, terminal_redundancy };
+
+static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* psDelDec, const int N, opus_int32* delayedGain_Q10, silk_nsq_role role,
                                    int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool float_environment) {
+  const bool keep_ar = role != silk_nsq_role::terminal_redundancy;
   auto* NSQ = b.NSQ;
   const int ar_order = b.ar_order;
   const bool use_float = float_environment && std::any_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
@@ -14092,9 +14095,23 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
     for (int k = 0; k < N; ++k) {
       const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10, b.levels,
                                                   b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
-      const auto candidate0 = static_cast<opus_int32>((c.rate1_Q20 + c.dist1_Q20) >> 10);
-      const auto candidate1 = static_cast<opus_int32>((c.rate2_Q20 + c.dist2_Q20) >> 10);
-      const auto first_is_q0 = candidate0 < candidate1;
+      const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
+      const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
+      const auto candidate0 = full_cost0_Q20 >> 10;
+      const auto candidate1 = full_cost1_Q20 >> 10;
+      bool first_is_q0 = candidate0 < candidate1;
+      if (role == silk_nsq_role::cap_retry && full_cost0_Q20 == full_cost1_Q20) {
+        const auto target_Q14 = wrap_shift_left(input_Q10, 4);
+        const auto prediction_Q14 = wrap_add(LTP_pred_Q14, lpc_predictions[k]);
+        const auto error = [&](opus_int32 q_Q10) {
+          const auto excitation_Q14 = wrap_shift_left(q_Q10, 4);
+          const auto sample_Q14 = wrap_add(prediction_Q14, psDelDec[k].Seed < 0 ? -excitation_Q14 : excitation_Q14);
+          const auto sample_bits = static_cast<opus_uint32>(sample_Q14);
+          const auto target_bits = static_cast<opus_uint32>(target_Q14);
+          return sample_Q14 < target_Q14 ? target_bits - sample_bits : sample_bits - target_bits;
+        };
+        first_is_q0 = error(c.q1_Q10) < error(c.q2_Q10);
+      }
       const auto swap_mask = -static_cast<opus_int32>(first_is_q0);
       const auto level_delta = (c.q1_Q10 ^ c.q2_Q10) & swap_mask, cost_delta = (candidate0 ^ candidate1) & swap_mask;
       if constexpr (silk_nsq_wide_tuning) {
@@ -14237,7 +14254,9 @@ static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_sta
   return gain_adj_Q16;
 }
 
-static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const silk_nsq_preparation& prepared, const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, bool fixed, bool keep_ar) {
+static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, SideInfoIndices* psIndices, const opus_int16 x16[], opus_int8 pulses[], const silk_nsq_preparation& prepared, const opus_int32 Gains_Q16[4], const int pitchL[4], const int Lambda_Q10, silk_nsq_role role) {
+  const bool fixed = role == silk_nsq_role::fixed;
+  const bool keep_ar = role != silk_nsq_role::terminal_redundancy;
   const bool delayed = !keep_ar || psEncC->nStatesDelayedDecision > 1 || psEncC->warping_Q16 > 0;
   const int N = fixed ? 1 : psEncC->nStatesDelayedDecision;
   const int subfr_length = psEncC->subfr_length;
@@ -14367,7 +14386,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
                                subfr_length, psIndices->signalType, lag, prepared.tilt[k], Lambda_Q10, offset_Q10, psEncC->predictLPCOrder,
                                psEncC->shapingLPCOrder, fixed};
     if (delayed)
-      silk_nsq_del_dec_block(block, psDelDec.data(), N, delayedGain_Q10.data(), keep_ar, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay, float_environment);
+      silk_nsq_del_dec_block(block, psDelDec.data(), N, delayedGain_Q10.data(), role, subfr++, psEncC->warping_Q16, &smpl_buf_idx, decisionDelay, float_environment);
     else
       silk_nsq_plain_block(block);
     x16 += subfr_length;
@@ -16315,11 +16334,11 @@ OPUSCPP_LEANO static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, si
   return true;
 }
 
-OPUSCPP_LEANO [[gnu::noinline]] static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr, bool fixed_pulses = false, bool keep_ar = true) {
+OPUSCPP_LEANO [[gnu::noinline]] static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32* exact_gains = nullptr, silk_nsq_role role = silk_nsq_role::ordinary) {
   opus_int32 gains[4];
   for (int subframe = 0; subframe < psEnc->sCmn.nb_subfr; ++subframe)
     gains[subframe] = exact_gains ? exact_gains[subframe] : float2int(psEncCtrl->Gains[subframe] * 65536.0f);
-  silk_NSQ(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared, gains, psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), fixed_pulses, keep_ar);
+  silk_NSQ(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared, gains, psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), role);
 }
 
 struct silk_lpc_model_context {
@@ -16501,7 +16520,7 @@ OPUSCPP_LEANO static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk
                                 psEnc->sCmn.frame_length <= silk_max_frame_length && psEnc->sCmn.nb_subfr > 0 &&
                                 psEnc->sCmn.nb_subfr <= 4 && psEnc->sCmn.frame_length == psEnc->sCmn.subfr_length * psEnc->sCmn.nb_subfr;
   if (omit_terminal_ar) {
-    silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr_nsq, lbrr->pulses[frame].data(), samples, *lbrr_prepared, gains_Q16.data(), false, false);
+    silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr_nsq, lbrr->pulses[frame].data(), samples, *lbrr_prepared, gains_Q16.data(), silk_nsq_role::terminal_redundancy);
     silk_nsq_store(lbrr->nsq, lbrr_nsq, false);
   } else {
     silk_NSQ_wrapper_FLP(psEnc, control, &indices, &lbrr_nsq, lbrr->pulses[frame].data(), samples, *lbrr_prepared, gains_Q16.data());
@@ -17571,7 +17590,8 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
           psEnc->sCmn.ec_prevLagIndex = ec_prevLagIndex_copy;
           psEnc->sCmn.ec_prevSignalType = ec_prevSignalType_copy;
         }
-        silk_NSQ_wrapper_FLP(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working, frame_pulses.data(), nsq_samples.data(), prepared, pGains_Q16);
+        const auto role = iter > 0 && lower.id < 0 ? silk_nsq_role::cap_retry : silk_nsq_role::ordinary;
+        silk_NSQ_wrapper_FLP(psEnc, &sEncCtrl, &psEnc->sCmn.indices, &nsq_working, frame_pulses.data(), nsq_samples.data(), prepared, pGains_Q16, role);
         if (iter == max_iterations && lower.id < 0) {
           sRangeEnc_copy2 = *psRangeEnc;
         }
@@ -17598,7 +17618,7 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
           silk_gains_dequant(zero_gains.data(), gain_indices, &previous_gain, condCoding == 2, common.nb_subfr);
           const auto replay = [&](const silk_encoder_control_FLP& control, SideInfoIndices& indices) {
             silk_nsq_load(nsq_working, common.sNSQ);
-            silk_NSQ_wrapper_FLP(psEnc, &control, &indices, &nsq_working, frame_pulses.data(), nsq_samples.data(), prepared, zero_gains.data(), true);
+            silk_NSQ_wrapper_FLP(psEnc, &control, &indices, &nsq_working, frame_pulses.data(), nsq_samples.data(), prepared, zero_gains.data(), silk_nsq_role::fixed);
           };
           replay(sEncCtrl, common.indices);
           use_reconstructed_lbrr_target = false;
