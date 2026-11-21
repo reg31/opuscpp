@@ -9283,7 +9283,7 @@ OPUSCPP_LEAN static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM
 
 template <int Channels>
 [[gnu::cold]] OPUSCPP_NOINLINE static int celt_decode_with_ec_workspace(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, bool update_pitch_cache) {
-  std::array<celt_sig, Channels * (celt_decode_buffer_size + celt_default_overlap)> workspace;
+  std::array<celt_sig, Channels*(celt_decode_buffer_size + celt_default_overlap)> workspace;
   return celt_decode_with_ec_body(st, data, len, pcm, frame_size, dec, pcm16, workspace.data(), false, update_pitch_cache);
 }
 
