@@ -14809,10 +14809,11 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
 }
 
 #if defined(_MSC_VER)
-__declspec(noinline)
+#define OPUSCPP_NOINLINE __declspec(noinline)
 #else
-[[gnu::noinline]]
+#define OPUSCPP_NOINLINE [[gnu::noinline]]
 #endif
+OPUSCPP_NOINLINE
 OPUSCPP_MINSIZE OPUSCPP_SMALL static void
 silk_process_NLSFs_common(SideInfoIndices& indices, opus_int16 PredCoef_Q12[2][16],
                           opus_int16 pNLSF_Q15[16], const opus_int16 prev_NLSFq_Q15[16],
@@ -16365,11 +16366,6 @@ static void silk_find_LPC_FLP(State*, opus_int16[], const float[], float);
 template <class State>
 OPUSCPP_LEANO static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], const opus_int16[16]);
 
-#if defined(_MSC_VER)
-#define OPUSCPP_NOINLINE __declspec(noinline)
-#else
-#define OPUSCPP_NOINLINE [[gnu::noinline]]
-#endif
 OPUSCPP_LEANO OPUSCPP_NOINLINE static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
                                                                      const opus_int8* first_pulses, const SideInfoIndices& second_indices,
                                                                      const opus_int8* second_pulses) {
