@@ -1412,7 +1412,7 @@ static inline int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsi
   const bool transition = data != nullptr && st->prev_mode > 0 &&
                           ((mode == opus_mode_celt_only && st->prev_mode != opus_mode_celt_only && !st->prev_redundancy) ||
                            (mode != opus_mode_celt_only && st->prev_mode == opus_mode_celt_only));
-  std::array<opus_res, celt_max_frame_samples * celt_max_channels / 4> auxiliary_storage;
+  std::array<opus_res, celt_max_frame_samples> auxiliary_storage;
   if (transition && mode == opus_mode_celt_only) {
     pcm_transition = auxiliary_storage.data();
     opus_decode_frame_slice(st, nullptr, 0, pcm_transition, std::min(F5, audiosize), 0);
@@ -1420,8 +1420,7 @@ static inline int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsi
   frame_size = audiosize;
   if (mode != opus_mode_celt_only) {
     const bool pcm_too_small = frame_size < F10;
-    std::array<opus_res, celt_max_frame_samples> pcm_silk;
-    auto* pcm_ptr = pcm_too_small ? pcm_silk.data() : pcm;
+    auto* pcm_ptr = pcm_too_small ? auxiliary_storage.data() : pcm;
     if (st->prev_mode == opus_mode_celt_only) {
       silk_ResetDecoder(silk_dec);
     }
@@ -1457,7 +1456,7 @@ static inline int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsi
       decoded_samples += silk_frame_size;
     }
     if (pcm_too_small) {
-      copy_n_items(pcm_silk.data(), static_cast<std::size_t>(frame_size * st->channels), pcm);
+      copy_n_items(auxiliary_storage.data(), static_cast<std::size_t>(frame_size * st->channels), pcm);
     }
   }
   if (!decode_fec && mode != opus_mode_celt_only && data != nullptr && ec_tell_out(&dec) + 17 + 20 * (mode == opus_mode_hybrid) <= 8 * len) {
