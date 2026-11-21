@@ -1360,16 +1360,23 @@ static_assert(sizeof(OpusDecoder) <= 80);
   }
 }
 
-OPUSCPP_NOINLINE static int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, int channels, bool update_pitch_cache = true) {
-  std::array<opus_res, celt_max_frame_samples * celt_max_channels> mix;
+template <int Channels>
+OPUSCPP_NOINLINE static int celt_decode_then_add_workspace(CeltDecoderInternal* celt_dec, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, bool update_pitch_cache) {
+  std::array<opus_res, celt_max_frame_samples * Channels> mix;
   const int ret = celt_decode_with_ec(celt_dec, data, len, mix.data(), frame_size, dec, nullptr, update_pitch_cache);
   if (ret >= 0) {
-    const auto mix_samples = static_cast<std::size_t>(ret) * static_cast<std::size_t>(channels);
+    const auto mix_samples = static_cast<std::size_t>(ret) * Channels;
     for (std::size_t i = 0; i < mix_samples; ++i) {
       pcm[i] += mix[i];
     }
   }
   return ret;
+}
+
+static inline int celt_decode_then_add(CeltDecoderInternal* celt_dec, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, int channels, bool update_pitch_cache = true) {
+  if (channels == 1)
+    return celt_decode_then_add_workspace<1>(celt_dec, data, len, pcm, frame_size, dec, update_pitch_cache);
+  return celt_decode_then_add_workspace<celt_max_channels>(celt_dec, data, len, pcm, frame_size, dec, update_pitch_cache);
 }
 
 [[gnu::cold]] OPUSCPP_NOINLINE static int opus_decode_frame_slice(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
