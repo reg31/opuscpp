@@ -12783,7 +12783,8 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
   auto previous_gain_Q16 = state.prev_gain_Q16;
   const auto decode_excitation = [&](int index) noexcept {
     rand_seed = silk_next_rand_seed(rand_seed);
-    auto excitation = wrap_shift_left(pulses[index], 14);
+    const auto pulse = pulses[index];
+    auto excitation = wrap_shift_left(pulse, 14);
     if (excitation > 0) {
       excitation -= 80 << 4;
     } else if (excitation < 0) {
@@ -12799,7 +12800,7 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
       state.exc_low[index] = static_cast<opus_uint16>(compact);
       state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
     }
-    rand_seed = wrap_add(rand_seed, pulses[index]);
+    rand_seed = wrap_add(rand_seed, pulse);
     return excitation;
   };
   std::memcpy(sLPC_Q14, state.sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
