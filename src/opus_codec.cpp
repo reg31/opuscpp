@@ -14013,7 +14013,12 @@ OPUSCPP_LEANO static void silk_nsq_plain_block(const silk_nsq_block& b) {
   std::memcpy(NSQ->sLPC_Q14, &NSQ->sLPC_Q14[b.length], 16 * sizeof(opus_int32));
 }
 
-enum class silk_nsq_role : unsigned char { ordinary, cap_retry, fixed, terminal_redundancy };
+enum class silk_nsq_role : unsigned char {
+  ordinary,
+  cap_retry,
+  fixed,
+  terminal_redundancy
+};
 
 static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* psDelDec, const int N, opus_int32* delayedGain_Q10, silk_nsq_role role,
                                    int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool float_environment) {
