@@ -1721,12 +1721,12 @@ int opus_decode(OpusDecoder* st, const unsigned char* data, int len, opus_int16*
 }
 
 int opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::span<opus_int16> pcm, int decode_fec) noexcept {
-  if (st == nullptr || pcm.empty() || packet.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+  if (st == nullptr || packet.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
     return OPUS_BAD_ARG;
   }
   const int frame_size = interleaved_frame_size(pcm.size(), st->channels);
   const int packet_size = static_cast<int>(packet.size());
-  return frame_size < 0 ? OPUS_BAD_ARG : decode_to_output(st, packet.data(), packet_size, pcm.data(), frame_size, decode_fec);
+  return decode_to_output(st, packet.data(), packet_size, pcm.data(), frame_size, decode_fec);
 }
 
 int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept {
