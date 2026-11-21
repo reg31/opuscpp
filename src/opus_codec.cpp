@@ -12777,31 +12777,32 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
   auto* sLTP = ltp_storage.data();
   auto* sLTP_Q15 = ltp_q15_storage.data();
   auto* sLPC_Q14 = lpc_storage.data();
-  const opus_int32 offset_Q10 = silk_Quantization_Offsets_Q10[state.indices.signalType >> 1][state.indices.quantOffsetType];
+  constexpr const auto& offsets = silk_Quantization_Offsets_Q10;
+  static_assert(((offsets[0][0] | offsets[0][1] | offsets[1][0] | offsets[1][1]) & 3) == 0);
+  const opus_int32 offset_Q8 = offsets[state.indices.signalType >> 1][state.indices.quantOffsetType] >> 2;
   const bool NLSF_interpolation_flag = state.indices.NLSFInterpCoef_Q2 < 1 << 2;
   auto rand_seed = static_cast<opus_int32>(state.indices.Seed);
   auto previous_gain_Q16 = state.prev_gain_Q16;
   const auto decode_excitation = [&](int index) noexcept {
     rand_seed = silk_next_rand_seed(rand_seed);
     const auto pulse = pulses[index];
-    auto excitation = wrap_shift_left(pulse, 14);
-    if (excitation > 0) {
-      excitation -= 80 << 4;
-    } else if (excitation < 0) {
-      excitation += 80 << 4;
+    auto compact = wrap_shift_left(pulse, 8);
+    if (compact > 0) {
+      compact -= 20;
+    } else if (compact < 0) {
+      compact += 20;
     }
-    excitation += offset_Q10 << 4;
+    compact += offset_Q8;
     const bool negate = rand_seed < 0;
     if (negate) {
-      excitation = -excitation;
+      compact = -compact;
     }
     if (store_state) {
-      const auto compact = excitation >> 6;
       state.exc_low[index] = static_cast<opus_uint16>(compact);
       state.exc_high[index] = static_cast<opus_int8>(compact >> 16);
     }
     rand_seed = wrap_add(rand_seed, pulse);
-    return excitation;
+    return wrap_shift_left(compact, 6);
   };
   std::memcpy(sLPC_Q14, state.sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
   auto* pxq = xq;
