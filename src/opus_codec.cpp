@@ -12939,52 +12939,48 @@ OPUSCPP_LEAN static void silk_decode_core(silk_decoder_state& state, silk_decode
   }
 }
 
-template <bool Encode> [[nodiscard]] static inline int silk_index_symbol(ec_ctx* coder, int value, const opus_uint8* icdf) {
-  if constexpr (Encode) {
-    ec_enc_icdf(coder, value, icdf, 8);
-    return value;
-  }
-  return ec_dec_icdf8(coder, icdf);
+[[nodiscard]] static inline int silk_encode_index_symbol(ec_ctx* coder, int value, const opus_uint8* icdf) {
+  ec_enc_icdf(coder, value, icdf, 8);
+  return value;
 }
 
 OPUSCPP_LEANO static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
                                                  int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
                                                  decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
                                                  decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
-  constexpr bool Encode = true;
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(frame_subframes), 4);
   if (condCoding == 2) {
     indices.GainsIndices[0] =
-        static_cast<opus_int8>(silk_index_symbol<Encode>(coder, indices.GainsIndices[0], silk_delta_gain_iCDF.data()));
+        static_cast<opus_int8>(silk_encode_index_symbol(coder, indices.GainsIndices[0], silk_delta_gain_iCDF.data()));
   } else {
-    const auto gain_high = silk_index_symbol<Encode>(coder, indices.GainsIndices[0] >> 3, silk_gain_iCDF[indices.signalType].data());
-    const auto gain_low = silk_index_symbol<Encode>(coder, indices.GainsIndices[0] & 7, silk_uniform8_iCDF.data());
+    const auto gain_high = silk_encode_index_symbol(coder, indices.GainsIndices[0] >> 3, silk_gain_iCDF[indices.signalType].data());
+    const auto gain_low = silk_encode_index_symbol(coder, indices.GainsIndices[0] & 7, silk_uniform8_iCDF.data());
     indices.GainsIndices[0] = static_cast<opus_int8>((gain_high << 3) + gain_low);
   }
   for (int i = 1; i < nb_subfr; ++i) {
     indices.GainsIndices[i] =
-        static_cast<opus_int8>(silk_index_symbol<Encode>(coder, indices.GainsIndices[i], silk_delta_gain_iCDF.data()));
+        static_cast<opus_int8>(silk_encode_index_symbol(coder, indices.GainsIndices[i], silk_delta_gain_iCDF.data()));
   }
   indices.NLSFIndices[0] = static_cast<opus_int8>(
-      silk_index_symbol<Encode>(coder, indices.NLSFIndices[0], silk_nlsf_cb1_icdf(codebook, indices.signalType)));
+      silk_encode_index_symbol(coder, indices.NLSFIndices[0], silk_nlsf_cb1_icdf(codebook, indices.signalType)));
   {
     opus_uint8 pred_Q8[16];
     silk_NLSF_unpack(ec_ix, pred_Q8, codebook, indices.NLSFIndices[0]);
   }
   for (int i = 0; i < codebook->order; ++i) {
     const int index = indices.NLSFIndices[i + 1];
-    int base = silk_index_symbol<Encode>(coder, std::clamp(index + 4, 0, 8), &codebook->ec_iCDF[ec_ix[i]]);
+    int base = silk_encode_index_symbol(coder, std::clamp(index + 4, 0, 8), &codebook->ec_iCDF[ec_ix[i]]);
     if (base == 0) {
-      base -= silk_index_symbol<Encode>(coder, -index - 4, silk_NLSF_EXT_iCDF.data());
+      base -= silk_encode_index_symbol(coder, -index - 4, silk_NLSF_EXT_iCDF.data());
     } else if (base == 8) {
-      base += silk_index_symbol<Encode>(coder, index - 4, silk_NLSF_EXT_iCDF.data());
+      base += silk_encode_index_symbol(coder, index - 4, silk_NLSF_EXT_iCDF.data());
     }
     indices.NLSFIndices[i + 1] = static_cast<opus_int8>(base - 4);
   }
   if (frame_subframes == 4) {
     indices.NLSFInterpCoef_Q2 =
-        static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.NLSFInterpCoef_Q2, silk_NLSF_interpolation_factor_iCDF.data()));
+        static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.NLSFInterpCoef_Q2, silk_NLSF_interpolation_factor_iCDF.data()));
   } else {
     indices.NLSFInterpCoef_Q2 = 4;
   }
@@ -12994,34 +12990,34 @@ OPUSCPP_LEANO static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices&
       int delta_lag = 0;
       delta_lag = indices.lagIndex - previous_lag;
       delta_lag = delta_lag < -8 || delta_lag > 11 ? 0 : delta_lag + 9;
-      delta_lag = silk_index_symbol<Encode>(coder, delta_lag, silk_pitch_delta_iCDF.data());
+      delta_lag = silk_encode_index_symbol(coder, delta_lag, silk_pitch_delta_iCDF.data());
       if (delta_lag > 0) {
         absolute_lag = false;
       }
     }
     if (absolute_lag) {
       const int divisor = fs_kHz >> 1;
-      const auto high = silk_index_symbol<Encode>(coder, indices.lagIndex / divisor, silk_pitch_lag_iCDF.data());
+      const auto high = silk_encode_index_symbol(coder, indices.lagIndex / divisor, silk_pitch_lag_iCDF.data());
       const auto low =
-          silk_index_symbol<Encode>(coder, indices.lagIndex - high * divisor, silk_pitch_lag_low_bits_icdf(fs_kHz));
+          silk_encode_index_symbol(coder, indices.lagIndex - high * divisor, silk_pitch_lag_low_bits_icdf(fs_kHz));
       indices.lagIndex = static_cast<opus_int16>(high * divisor + low);
     }
     previous_lag = indices.lagIndex;
     indices.contourIndex = static_cast<opus_uint8>(
-        silk_index_symbol<Encode>(coder, indices.contourIndex, silk_pitch_contour_icdf(fs_kHz, frame_subframes).data()));
-    indices.PERIndex = static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.PERIndex, silk_LTP_per_index_iCDF.data()));
+        silk_encode_index_symbol(coder, indices.contourIndex, silk_pitch_contour_icdf(fs_kHz, frame_subframes).data()));
+    indices.PERIndex = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.PERIndex, silk_LTP_per_index_iCDF.data()));
     for (int k = 0; k < nb_subfr; ++k) {
       indices.LTPIndex[k] = static_cast<opus_uint8>(
-          silk_index_symbol<Encode>(coder, indices.LTPIndex[k], silk_LTP_codebook(indices.PERIndex).gain_icdf.data()));
+          silk_encode_index_symbol(coder, indices.LTPIndex[k], silk_LTP_codebook(indices.PERIndex).gain_icdf.data()));
     }
     if (condCoding == 0) {
-      indices.LTP_scaleIndex = static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.LTP_scaleIndex, silk_LTPscale_iCDF.data()));
+      indices.LTP_scaleIndex = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.LTP_scaleIndex, silk_LTPscale_iCDF.data()));
     } else {
       indices.LTP_scaleIndex = 0;
     }
   }
   previous_signal = indices.signalType;
-  indices.Seed = static_cast<opus_uint8>(silk_index_symbol<Encode>(coder, indices.Seed, silk_uniform4_iCDF.data()));
+  indices.Seed = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.Seed, silk_uniform4_iCDF.data()));
 }
 
 template <bool Encode, typename State>
@@ -14441,7 +14437,7 @@ OPUSCPP_LEANO static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int
                                             : pulses.size() == 4 ? silk_shell_code_table1
                                             : pulses.size() == 8 ? silk_shell_code_table2
                                                                  : silk_shell_code_table3;
-  const auto left = silk_index_symbol<false>(coder, 0, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
+  const auto left = ec_dec_icdf8(coder, table.data() + silk_shell_code_table_offsets[static_cast<std::size_t>(total_pulses)]);
   if (pulses.size() == 2) {
     pulses[0] = static_cast<opus_int16>(left);
     pulses[1] = static_cast<opus_int16>(total_pulses - left);
