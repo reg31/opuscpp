@@ -204,15 +204,6 @@ template <int FractionBits, std::floating_point T> [[nodiscard]] consteval auto 
   return bandwidth >= 1101 && bandwidth <= 1105 ? end_bands[static_cast<std::size_t>(bandwidth - 1101)] : 21;
 }
 
-template <int Shift, std::signed_integral Integer>
-  requires(Shift > 0)
-[[nodiscard]] static auto rounded_rshift(Integer value) noexcept -> Integer {
-  if constexpr (Shift == 1) {
-    return (value >> 1) + (value & 1);
-  }
-  return ((value >> (Shift - 1)) + 1) >> 1;
-}
-
 template <std::signed_integral Integer> [[nodiscard]] static constexpr auto rounded_rshift(Integer value, int shift) noexcept -> Integer {
   return shift == 1 ? (value >> 1) + (value & 1) : ((value >> (shift - 1)) + 1) >> 1;
 }
@@ -228,7 +219,7 @@ template <std::signed_integral Integer> [[nodiscard]] static constexpr auto roun
 template <int Shift>
   requires(Shift > 0)
 [[nodiscard]] static auto scale_and_saturate_q14(opus_int32 sample_q14, opus_int32 gain) noexcept -> opus_int16 {
-  return saturate_int16_from_int32(rounded_rshift<Shift>(multiply_q16(sample_q14, gain)));
+  return saturate_int16_from_int32(rounded_rshift(multiply_q16(sample_q14, gain), Shift));
 }
 
 template <int Shift>
@@ -260,7 +251,7 @@ template <int Shift>
 }
 
 [[nodiscard]] static auto delayed_pulse_from_q10(opus_int32 value_q10) noexcept -> opus_int8 {
-  return static_cast<opus_int8>(rounded_rshift<10>(value_q10));
+  return static_cast<opus_int8>(rounded_rshift(value_q10, 10));
 }
 
 [[nodiscard]] static auto silk_next_rand_seed(const opus_int32 seed) noexcept -> opus_int32 {
@@ -2016,14 +2007,14 @@ constinit const std::array<opus_int16, 128 + 1> silk_LSFCosTab_FIX_Q12 = numeric
 template <int Shift>
   requires(Shift > 0)
 [[nodiscard]] static constexpr auto rounded_rshift_to_int16(opus_int32 value) noexcept -> opus_int16 {
-  return saturate_int16_from_int32(rounded_rshift<Shift>(value));
+  return saturate_int16_from_int32(rounded_rshift(value, Shift));
 }
 
 template <int Shift>
   requires(Shift > 0)
 [[nodiscard]] static constexpr auto rounded_i16_product_shift(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32 {
   return static_cast<opus_int32>(
-      rounded_rshift<Shift>(static_cast<opus_int64>(static_cast<opus_int16>(lhs)) * static_cast<opus_int64>(static_cast<opus_int16>(rhs))));
+      rounded_rshift(static_cast<opus_int64>(static_cast<opus_int16>(lhs)) * static_cast<opus_int64>(static_cast<opus_int16>(rhs)), Shift));
 }
 
 [[nodiscard]] static auto saturating_subtract_int32(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32 {
@@ -2035,7 +2026,7 @@ template <int Shift>
 }
 
 [[nodiscard]] static auto inverse_prediction_step(opus_int32 lhs, opus_int32 rhs, opus_int32 rc_q31, opus_int32 rc_mult2, int mult2_q) noexcept -> opus_int64 {
-  const auto reflected = saturating_subtract_int32(lhs, static_cast<opus_int32>(rounded_rshift<31>(static_cast<opus_int64>(rhs) * rc_q31)));
+  const auto reflected = saturating_subtract_int32(lhs, static_cast<opus_int32>(rounded_rshift(static_cast<opus_int64>(rhs) * rc_q31, 31)));
   return rounded_rshift(static_cast<opus_int64>(reflected) * rc_mult2, mult2_q);
 }
 
@@ -2044,15 +2035,15 @@ template <typename T> OPUSCPP_SMALL static void silk_bwexpander(T* ar, std::size
   for (auto index = std::size_t{}; index + 1 < count; ++index) {
     const auto scaled = static_cast<opus_int64>(chirp_Q16) * ar[index];
     if constexpr (std::same_as<T, opus_int16>) {
-      ar[index] = static_cast<opus_int16>(rounded_rshift<16>(scaled));
+      ar[index] = static_cast<opus_int16>(rounded_rshift(scaled, 16));
     } else {
       ar[index] = static_cast<opus_int32>(scaled >> 16);
     }
-    chirp_Q16 += static_cast<opus_int32>(rounded_rshift<16>(static_cast<opus_int64>(chirp_Q16) * chirp_minus_one_Q16));
+    chirp_Q16 += static_cast<opus_int32>(rounded_rshift(static_cast<opus_int64>(chirp_Q16) * chirp_minus_one_Q16, 16));
   }
   const auto scaled = static_cast<opus_int64>(chirp_Q16) * ar[count - 1];
   if constexpr (std::same_as<T, opus_int16>) {
-    ar[count - 1] = static_cast<opus_int16>(rounded_rshift<16>(scaled));
+    ar[count - 1] = static_cast<opus_int16>(rounded_rshift(scaled, 16));
   } else {
     ar[count - 1] = static_cast<opus_int32>(scaled >> 16);
   }
@@ -2071,7 +2062,7 @@ static opus_int32 silk_LPC_analysis_filter_blocks(opus_int16* out, const opus_in
     }
     const opus_uint32 sum[4] = {p0, p1, p2, p3};
     for (int lane = 0; lane < 4; ++lane) {
-      out[ix - lane - 1] = saturate_int16_from_int32(rounded_rshift<12>(wrap_subtract(wrap_shift_left(in[ix - lane - 1], 12), std::bit_cast<opus_int32>(sum[lane]))));
+      out[ix - lane - 1] = saturate_int16_from_int32(rounded_rshift(wrap_subtract(wrap_shift_left(in[ix - lane - 1], 12), std::bit_cast<opus_int32>(sum[lane])), 12));
     }
   }
   return ix;
@@ -2089,7 +2080,7 @@ static void silk_LPC_analysis_filter(opus_int16* out, const opus_int16* in, cons
     for (opus_int32 j = 0; j < d; ++j) {
       sum += static_cast<opus_uint32>(static_cast<opus_int32>(in[ix - 1 - j]) * static_cast<opus_int32>(B[j]));
     }
-    out[ix] = saturate_int16_from_int32(rounded_rshift<12>(wrap_subtract(wrap_shift_left(in[ix], 12), std::bit_cast<opus_int32>(sum))));
+    out[ix] = saturate_int16_from_int32(rounded_rshift(wrap_subtract(wrap_shift_left(in[ix], 12), std::bit_cast<opus_int32>(sum)), 12));
   }
   zero_n_items(out, static_cast<std::size_t>(d));
 }
@@ -2149,9 +2140,9 @@ OPUSCPP_LEANO static void silk_NLSF2A_find_poly(opus_int32* out, const opus_int3
   for (int k = 1; k < dd; ++k) {
     const opus_int32 ftmp = cLSF[2 * k];
     out[k + 1] =
-        wrap_subtract(wrap_shift_left(out[k - 1], 1), static_cast<opus_int32>(rounded_rshift<16>(static_cast<opus_int64>(ftmp) * out[k])));
+        wrap_subtract(wrap_shift_left(out[k - 1], 1), static_cast<opus_int32>(rounded_rshift(static_cast<opus_int64>(ftmp) * out[k], 16)));
     for (int n = k; n > 1; --n) {
-      out[n] += out[n - 2] - static_cast<opus_int32>(rounded_rshift<16>(static_cast<opus_int64>(ftmp) * out[n - 1]));
+      out[n] += out[n - 2] - static_cast<opus_int32>(rounded_rshift(static_cast<opus_int64>(ftmp) * out[n - 1], 16));
     }
     out[1] -= ftmp;
   }
@@ -2169,7 +2160,7 @@ OPUSCPP_LEANO static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF,
     const opus_int32 f_frac = NLSF[k] - wrap_shift_left(f_int, 15 - 7);
     const opus_int32 cos_val = silk_LSFCosTab_FIX_Q12[f_int];
     const opus_int32 delta = silk_LSFCosTab_FIX_Q12[f_int + 1] - cos_val;
-    cos_LSF_QA[ordering[k]] = rounded_rshift<4>(wrap_add(wrap_shift_left(cos_val, 8), delta * f_frac));
+    cos_LSF_QA[ordering[k]] = rounded_rshift(wrap_add(wrap_shift_left(cos_val, 8), delta * f_frac), 4);
   }
   const int dd = d >> 1;
   silk_NLSF2A_find_poly(P, &cos_LSF_QA[0], dd);
@@ -2184,7 +2175,7 @@ OPUSCPP_LEANO static void silk_NLSF2A(opus_int16* a_Q12, const opus_int16* NLSF,
   for (int i = 0; silk_LPC_inverse_pred_gain_c(a_Q12, d) == 0 && i < 16; ++i) {
     silk_bwexpander(a32_QA1, static_cast<std::size_t>(d), 65536 - wrap_shift_left(2, i));
     for (int k = 0; k < d; ++k) {
-      a_Q12[k] = static_cast<opus_int16>(rounded_rshift<5>(a32_QA1[k]));
+      a_Q12[k] = static_cast<opus_int16>(rounded_rshift(a32_QA1[k], 5));
     }
   }
 }
@@ -2216,7 +2207,7 @@ OPUSCPP_LEANO static void silk_NLSF_stabilize(opus_int16* NLSF_Q15, const opus_i
       for (int k = L; k > I; --k) {
         max_center_Q15 -= NDeltaMin_Q15[k];
       }
-      const auto center_freq_Q15 = static_cast<opus_int16>(std::clamp(rounded_rshift<1>(static_cast<opus_int32>(NLSF_Q15[I - 1]) + NLSF_Q15[I]), min_center_Q15, max_center_Q15));
+      const auto center_freq_Q15 = static_cast<opus_int16>(std::clamp(rounded_rshift(static_cast<opus_int32>(NLSF_Q15[I - 1]) + NLSF_Q15[I], 1), min_center_Q15, max_center_Q15));
       NLSF_Q15[I - 1] = center_freq_Q15 - (NDeltaMin_Q15[I] >> 1);
       NLSF_Q15[I] = NLSF_Q15[I - 1] + NDeltaMin_Q15[I];
     }
@@ -12621,7 +12612,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
   psPLC->subfr_length = psDec->subfr_length;
   psPLC->nb_subfr = psDec->nb_subfr;
   psPLC->pitch_history[static_cast<std::size_t>(psPLC->pitch_history_index)] =
-      psDec->indices.signalType == 2 ? static_cast<opus_uint16>(rounded_rshift<8>(psPLC->pitchL_Q8)) : 0;
+      psDec->indices.signalType == 2 ? static_cast<opus_uint16>(rounded_rshift(psPLC->pitchL_Q8, 8)) : 0;
   psPLC->pitch_history_index = (psPLC->pitch_history_index + 1) & 3;
 }
 
@@ -12650,7 +12641,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
     const std::array<opus_uint16, 3> previous_pitch{psPLC->pitch_history[next], psPLC->pitch_history[(next + 1) & 3],
                                                     psPLC->pitch_history[(next + 2) & 3]};
     const int history_pitch = stable_pitch_average(previous_pitch);
-    const int current_pitch = rounded_rshift<8>(psPLC->pitchL_Q8);
+    const int current_pitch = rounded_rshift(psPLC->pitchL_Q8, 8);
     const int pitch_delta = std::abs(history_pitch - current_pitch);
     if (history_pitch > 0 && pitch_delta * 4 >= current_pitch && pitch_delta <= current_pitch) {
       psPLC->pitchL_Q8 = static_cast<opus_int32>(history_pitch << 8);
@@ -12688,7 +12679,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
     }
   }
   opus_int32 rand_seed = psPLC->rand_seed;
-  int lag = rounded_rshift<8>(psPLC->pitchL_Q8);
+  int lag = rounded_rshift(psPLC->pitchL_Q8, 8);
   int sLTP_buf_idx = psDec->ltp_mem_length;
   const bool has_harmonic = psPLC->LTPCoef_Q14 != 0;
   if (has_harmonic) {
@@ -12714,7 +12705,7 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
     rand_scale_Q14 = silk_mul_i16_shift<15>(rand_scale_Q14, rand_Gain_Q15);
     psPLC->pitchL_Q8 = silk_mla_wb(psPLC->pitchL_Q8, psPLC->pitchL_Q8, 655);
     psPLC->pitchL_Q8 = std::min(psPLC->pitchL_Q8, wrap_shift_left(18 * psDec->fs_kHz, 8));
-    lag = rounded_rshift<8>(psPLC->pitchL_Q8);
+    lag = rounded_rshift(psPLC->pitchL_Q8, 8);
   }
   auto* sLPC_Q14_ptr = &sLTP_Q14[psDec->ltp_mem_length - 16];
   std::memcpy(sLPC_Q14_ptr, psDec->sLPC_Q14_buf, static_cast<std::size_t>(16 * sizeof(opus_int32)));
@@ -13727,8 +13718,8 @@ OPUSCPP_LEANO static void silk_LP_interpolate_filter_taps(opus_int32 B_Q28[3], o
 template <int Shift>
   requires(Shift > 0)
 [[nodiscard]] static constexpr auto rounded_mul_i16_q16(opus_int32 lhs, opus_int32 rhs) noexcept -> opus_int32 {
-  return rounded_rshift<Shift>(
-      static_cast<opus_int32>((static_cast<opus_int64>(lhs) * static_cast<opus_int64>(static_cast<opus_int16>(rhs))) >> 16));
+  return rounded_rshift(
+      static_cast<opus_int32>((static_cast<opus_int64>(lhs) * static_cast<opus_int64>(static_cast<opus_int16>(rhs))) >> 16), Shift);
 }
 
 struct silk_nsq_candidate_pair {
@@ -13985,9 +13976,9 @@ OPUSCPP_LEANO static void silk_nsq_plain_block(const silk_nsq_block& b) {
     tmp1 = wrap_subtract(tmp1, n_LF_Q12);
     if (b.lag > 0) {
       const opus_int32 n_LTP_Q13 = saturating_left_shift<1>(silk_harmonic_shaping(shp_lag_ptr++, b.harm));
-      tmp1 = rounded_rshift<3>(saturating_add_int32(LTP_pred_Q13 - n_LTP_Q13, wrap_shift_left(tmp1, 1)));
+      tmp1 = rounded_rshift(saturating_add_int32(LTP_pred_Q13 - n_LTP_Q13, wrap_shift_left(tmp1, 1)), 3);
     } else {
-      tmp1 = rounded_rshift<2>(tmp1);
+      tmp1 = rounded_rshift(tmp1, 2);
     }
     const opus_int32 r_Q10 = silk_signed_clamped_residual(b.x_Q10[i] - tmp1, NSQ->rand_seed);
     const auto c = silk_quantize_candidate_pair(b.fixed, r_Q10, b.lambda_Q10, b.offset_Q10, b.levels, b.fixed ? b.pulses[i] : 0);
@@ -14084,7 +14075,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       n_LF_Q14 = wrap_shift_left(n_LF_Q14, 2);
       opus_int32 tmp1 = saturating_add_int32(n_AR_Q14, n_LF_Q14);
       tmp1 = saturating_subtract_int32(wrap_add(n_LTP_Q14, LPC_pred_Q14), tmp1);
-      tmp1 = rounded_rshift<4>(tmp1);
+      tmp1 = rounded_rshift(tmp1, 4);
       lpc_predictions[k] = LPC_pred_Q14;
       ar_feedback[k] = n_AR_Q14;
       lf_feedback[k] = n_LF_Q14;
@@ -14204,7 +14195,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
         psDD->sLPC_Q14[16 + i] = s.xq_Q14;
       }
       psDD->Xq_Q14[*smpl_buf_idx] = s.xq_Q14;
-      const auto coded_pulse = rounded_rshift<10>(selected_levels[k]);
+      const auto coded_pulse = rounded_rshift(selected_levels[k], 10);
       psDD->pulses_Q0[*smpl_buf_idx] = static_cast<opus_int8>(coded_pulse);
       psDD->Pred_Q15[*smpl_buf_idx] = wrap_shift_left(s.LPC_exc_Q14, 1);
       psDD->Shape_Q14[*smpl_buf_idx] = s.sLTP_shp_Q14;
@@ -14226,7 +14217,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
 static auto silk_nsq_scale_common(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, const opus_int16* x16, opus_int32* x_sc_Q10, const opus_int16* sLTP, opus_int32* sLTP_Q15, int subfr, const int LTP_scale_Q14, const opus_int32* Gains_Q16, const int* pitchL, const int signal_type, const int ltp_scale_end, bool scale_global) noexcept -> opus_int32 {
   const auto lag = pitchL[subfr];
   auto inv_gain_Q31 = silk_INVERSE32_varQ(std::max(Gains_Q16[subfr], 1), 47);
-  const auto inv_gain_Q26 = rounded_rshift<5>(inv_gain_Q31);
+  const auto inv_gain_Q26 = rounded_rshift(inv_gain_Q31, 5);
   for (int index = 0; index < psEncC->subfr_length; ++index)
     x_sc_Q10[index] = multiply_q16(x16[index], inv_gain_Q26);
   if (NSQ->rewhite_flag) {
@@ -14963,7 +14954,7 @@ restart_search:
       thr = yhi == 0 ? 1 : 0;
       int ffrac = -256;
       for (int m = 0; m < 3; m++) {
-        const opus_int32 xmid = rounded_rshift<1>(xlo + xhi);
+        const opus_int32 xmid = rounded_rshift(xlo + xhi, 1);
         const opus_int32 ymid = silk_A2NLSF_eval_poly(p, xmid, dd);
         if ((ylo <= 0 && ymid >= 0) || (ylo >= 0 && ymid <= 0)) {
           xhi = xmid;
@@ -15485,7 +15476,7 @@ template <std::totally_ordered T, bool Increasing> static inline void silk_inser
 
 static void silk_stereo_split_lp_hp(const opus_int16* source, opus_int16* lowpass, opus_int16* highpass, int frame_length) {
   for (int index = 0; index < frame_length; ++index) {
-    const auto sum = rounded_rshift<2>(source[index] + static_cast<opus_int32>(source[index + 2]) + wrap_shift_left(source[index + 1], 1));
+    const auto sum = rounded_rshift(source[index] + static_cast<opus_int32>(source[index + 2]) + wrap_shift_left(source[index + 1], 1), 2);
     lowpass[index] = sum;
     highpass[index] = source[index + 1] - sum;
   }
@@ -15577,7 +15568,7 @@ OPUSCPP_LEANO void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[]
   for (n = 0; n < frame_length + 2; n++) {
     sum = x1[n - 2] + static_cast<opus_int32>(x2[n - 2]);
     diff = x1[n - 2] - static_cast<opus_int32>(x2[n - 2]);
-    mid[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
+    mid[n] = static_cast<opus_int16>(rounded_rshift(sum, 1));
     side[n] = rounded_rshift_to_int16<1>(diff);
   }
   std::memcpy(mid, state->sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)));
@@ -17954,7 +17945,7 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL static bool silk_Encode(void* encState, silk_EncCo
           buf[n] = static_cast<opus_int16>(pcm_float2int(std::clamp(mean, -32768.f, 32767.f)));
         } else {
           const int sum = saturate_input(left) + saturate_input(right);
-          buf[n] = static_cast<opus_int16>(rounded_rshift<1>(sum));
+          buf[n] = static_cast<opus_int16>(rounded_rshift(sum, 1));
         }
       }
     } else {
