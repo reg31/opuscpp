@@ -2461,7 +2461,7 @@ OPUSCPP_LEANO static void silk_sum_sqr_shift(opus_int32* energy, int* shift, con
   psDec->sPLC.subfr_length = 20;
   psDec->sPLC.nb_subfr = 2;
 }
-static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length);
+static void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length, bool projected = false);
 static inline void silk_stereo_encode_pred(ec_enc* psRangeEnc, const silk_stereo_pred_indices& ix);
 static void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag);
 [[gnu::cold]] static void silk_stereo_decode_mid_only(ec_dec* psRangeDec, int& decode_only_mid) {
@@ -15196,8 +15196,84 @@ constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_fra
 }
 
 static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
-template <bool CorrectThird>
-static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
+enum class silk_fir_projection { pcm, left, right };
+
+struct silk_fir_joint_views {
+  opus_int16* left;
+  opus_int16* right;
+  std::byte* staging;
+  int head;
+  int count;
+};
+
+struct silk_fir_joint_slot {
+  std::byte* low;
+  std::byte* high;
+  int low_bytes;
+};
+
+static auto silk_fir_joint_slot_at(const silk_fir_joint_views& views, std::ptrdiff_t index) noexcept -> silk_fir_joint_slot {
+  auto* right = std::as_writable_bytes(std::span<opus_int16>{views.right, static_cast<std::size_t>(views.count)}).data();
+  if (index < views.head)
+    return {views.staging + 4 * index, right + 3 * index, 4};
+  if (index < views.head + views.head / 2)
+    return {views.staging + 4 * views.head + 7 * (index - views.head), right, 7};
+  return {views.staging + 5 * index, right + 2 * index, 5};
+}
+
+template <silk_fir_projection Projection>
+static void silk_fir_write_joint(opus_int16* out, std::uint64_t packed, const opus_int32* history,
+                                 const silk_fir_joint_views& views) noexcept {
+  constexpr opus_int64 unit = opus_int64{1} << 22;
+  constexpr std::uint64_t residue_mask = (std::uint64_t{1} << 23) - 1;
+  const auto even_Q6 = static_cast<opus_int32>(std::bit_cast<opus_int64>(packed) >> 21);
+  const auto fraction = static_cast<opus_int32>(packed & ((std::uint64_t{1} << 21) - 1));
+  const auto exact_even = static_cast<opus_int64>(even_Q6) * (1 << 16) + fraction;
+  const auto odd = history[16] - history[19] + 3 * (history[18] - history[17]);
+  const auto clip_native = [](opus_int64 value) noexcept {
+    return std::clamp(value, -32768 * unit, 32767 * unit);
+  };
+  const auto p0 = clip_native(exact_even);
+  const auto p1 = clip_native(exact_even + odd);
+  const auto original_even = rounded_rshift_to_int16<6>(even_Q6);
+  if constexpr (Projection == silk_fir_projection::left) {
+    const auto residue = static_cast<std::uint64_t>(p0 - original_even * unit) & residue_mask;
+    const auto difference = static_cast<std::uint64_t>(static_cast<opus_uint32>(p1 - p0));
+    const auto slot = silk_fir_joint_slot_at(views, out - views.left);
+    auto word = residue | (difference << 23);
+    for (int k = 0; k < slot.low_bytes; ++k) {
+      slot.low[k] = static_cast<std::byte>(word & 255);
+      word >>= 8;
+    }
+    for (int k = 0; k < 7 - slot.low_bytes; ++k) {
+      slot.high[k] = static_cast<std::byte>(word & 255);
+      word >>= 8;
+    }
+    *out = original_even;
+  } else {
+    const auto index = out - views.right;
+    const auto slot = silk_fir_joint_slot_at(views, index);
+    std::uint64_t word = 0;
+    for (int k = 0; k < slot.low_bytes; ++k)
+      word |= std::to_integer<std::uint64_t>(slot.low[k]) << (8 * k);
+    for (int k = slot.low_bytes; k < 7; ++k)
+      word |= std::to_integer<std::uint64_t>(slot.high[k - slot.low_bytes]) << (8 * k);
+    const auto left_even = views.left[index];
+    const auto residue = static_cast<opus_int32>(word & residue_mask);
+    const auto left_p0 = left_even * unit + ((residue ^ (1 << 22)) - (1 << 22));
+    const auto left_p1 = left_p0 + std::bit_cast<opus_int32>(static_cast<opus_uint32>(word >> 23));
+    const auto project = [](opus_int64 sum) noexcept {
+      return saturate_int16_from_int32(static_cast<opus_int32>((sum + unit) >> 23));
+    };
+    const auto old_mid = rounded_rshift(left_even + static_cast<opus_int32>(original_even), 1);
+    const auto old_side = rounded_rshift_to_int16<1>(left_even - static_cast<opus_int32>(original_even));
+    views.left[index] = saturate_int16_from_int32(old_mid + project(left_p1 + p1) - project(left_p0 + p0));
+    *out = saturate_int16_from_int32(old_side + project(left_p1 - p1) - project(left_p0 - p0));
+  }
+}
+
+template <bool CorrectThird, silk_fir_projection Projection = silk_fir_projection::pcm>
+static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen, const silk_fir_joint_views* joint = nullptr);
 static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], const opus_int16 in[], const opus_int16 A_Q14[], opus_int32 len);
 constexpr std::array<std::array<opus_uint8, 3>, 6> delay_matrix_enc =
     numeric_blob_matrix<opus_uint8, 3>(R"blob(06000300070300010A000206120A0C00002C)blob");
@@ -15318,9 +15394,21 @@ namespace {
 
 }
 
-template <int Order, bool CorrectThird = false>
-static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
+template <int Order, bool CorrectThird = false, silk_fir_projection Projection = silk_fir_projection::pcm>
+static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16, const silk_fir_joint_views* joint = nullptr) noexcept -> opus_int16* {
   constexpr int half = Order / 2;
+  constexpr auto project = Projection != silk_fir_projection::pcm;
+  using accumulator = std::conditional_t<project, std::uint64_t, opus_int32>;
+  constexpr std::uint64_t fraction_mask = 0xffff;
+  static_assert(!project || (CorrectThird && Order == 36 && half * fraction_mask < (1 << 21)));
+  const auto add_pair = [](accumulator sum, opus_int32 pair, opus_int16 coefficient) noexcept -> accumulator {
+    if constexpr (project) {
+      const auto product = static_cast<std::uint64_t>(static_cast<opus_int64>(pair) * coefficient);
+      return sum + (((product & ~fraction_mask) << 5) | (product & fraction_mask));
+    } else {
+      return silk_mla_wb(sum, pair, coefficient);
+    }
+  };
   const auto to_pcm = [](opus_int32 value, const opus_int32* history) noexcept {
     if constexpr (CorrectThird) {
       const auto odd_Q8 = history[16] - history[19] + 3 * (history[18] - history[17]);
@@ -15328,23 +15416,31 @@ static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* bu
     }
     return rounded_rshift_to_int16<6>(value);
   };
+  const auto emit = [&](accumulator sum, const opus_int32* history) noexcept {
+    if constexpr (project) {
+      silk_fir_write_joint<Projection>(out, sum, history, *joint);
+    } else {
+      *out = to_pcm(sum, history);
+    }
+    ++out;
+  };
   for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
     const auto* buf_ptr = buf + (index_Q16 >> 16);
     const opus_int32 interpol_ind = static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(FIR_Fracs)) >> 16);
     const auto* leading = FIR_Coefs + half * interpol_ind;
     const auto* trailing = FIR_Coefs + half * (FIR_Fracs - 1 - interpol_ind);
-    opus_int32 res_Q6 = 0;
+    accumulator res_Q6 = 0;
     if constexpr (Order != 18) {
       const opus_int32 next_index_Q16 = index_Q16 + index_increment_Q16;
       if (next_index_Q16 < max_index_Q16) {
         const auto* next_ptr = buf + (next_index_Q16 >> 16);
-        opus_int32 res2_Q6 = 0;
+        accumulator res2_Q6 = 0;
         for (int tap = 0; tap < half; ++tap) {
-          res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
-          res2_Q6 = silk_mla_wb(res2_Q6, next_ptr[tap] + next_ptr[Order - 1 - tap], leading[tap]);
+          res_Q6 = add_pair(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
+          res2_Q6 = add_pair(res2_Q6, next_ptr[tap] + next_ptr[Order - 1 - tap], leading[tap]);
         }
-        *out++ = to_pcm(res_Q6, buf_ptr);
-        *out++ = to_pcm(res2_Q6, next_ptr);
+        emit(res_Q6, buf_ptr);
+        emit(res2_Q6, next_ptr);
         index_Q16 = next_index_Q16;
         continue;
       }
@@ -15356,10 +15452,10 @@ static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* bu
       }
     } else {
       for (int tap = 0; tap < half; ++tap) {
-        res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
+        res_Q6 = add_pair(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
       }
     }
-    *out++ = to_pcm(res_Q6, buf_ptr);
+    emit(res_Q6, buf_ptr);
   }
   return out;
 }
@@ -15375,8 +15471,8 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, const opus
   }
 }
 
-template <bool CorrectThird>
-static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
+template <bool CorrectThird, silk_fir_projection Projection>
+static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen, const silk_fir_joint_views* joint) {
   opus_int32 nSamplesIn = 0;
   std::array<opus_int32, silk_max_resampler_batch_size + silk_max_resampler_fir_order> buf;
   std::memcpy(buf.data(), S->sFIR.i32, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)));
@@ -15387,7 +15483,7 @@ static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus
     silk_resampler_private_AR2(S->sIIR, buf.data() + S->FIR_Order, in, S->Coefs, nSamplesIn);
     const opus_int32 max_index_Q16 = wrap_shift_left(nSamplesIn, 16);
     if constexpr (CorrectThird) {
-      out = silk_resampler_down_FIR_kernel<36, true>(out, buf.data(), FIR_Coefs, 1, max_index_Q16, 3 << 16);
+      out = silk_resampler_down_FIR_kernel<36, true, Projection>(out, buf.data(), FIR_Coefs, 1, max_index_Q16, 3 << 16, joint);
     } else {
       out = silk_resampler_private_down_FIR_INTERPOL(out, buf.data(), FIR_Coefs, S->FIR_Order, S->FIR_Fracs, max_index_Q16,
                                                      index_increment_Q16);
@@ -15399,6 +15495,17 @@ static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus
     }
   }
   std::memcpy(S->sFIR.i32, buf.data() + nSamplesIn, static_cast<std::size_t>(S->FIR_Order * sizeof(opus_int32)));
+}
+
+template <silk_fir_projection Projection>
+static void silk_resampler_joint(silk_resampler_state_struct* state, opus_int16* out, const opus_int16* in,
+                                 opus_int32 samples, const silk_fir_joint_views& views) {
+  const int incoming_head = state->Fs_in_kHz - state->inputDelay;
+  std::memcpy(state->delayBuf + state->inputDelay, in, static_cast<std::size_t>(incoming_head) * sizeof(opus_int16));
+  silk_resampler_private_down_FIR<true, Projection>(state, out, state->delayBuf, state->Fs_in_kHz, &views);
+  silk_resampler_private_down_FIR<true, Projection>(state, out + state->Fs_out_kHz, in + incoming_head,
+                                                    samples - state->Fs_in_kHz, &views);
+  std::memcpy(state->delayBuf, in + samples - state->inputDelay, static_cast<std::size_t>(state->inputDelay) * sizeof(opus_int16));
 }
 
 static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16* buf, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
@@ -15582,17 +15689,19 @@ void silk_stereo_encode_mid_only(ec_enc* psRangeEnc, opus_int8 mid_only_flag) {
   ec_enc_icdf(psRangeEnc, mid_only_flag, silk_stereo_only_code_mid_iCDF.data(), 8);
 }
 
-OPUSCPP_LEANO void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length) {
+OPUSCPP_LEANO void silk_stereo_LR_to_MS(stereo_enc_state* state, opus_int16 x1[], opus_int16 x2[], silk_stereo_pred_indices& ix, opus_uint8* mid_only_flag, opus_int32 mid_side_rates_bps[], opus_int32 total_rate_bps, int prev_speech_act_Q8, int toMono, int preserve_stereo, int fs_kHz, int frame_length, bool projected) {
   int n, is10msFrame, denom_Q16, delta0_Q13, delta1_Q13;
   opus_int32 sum, diff, smooth_coef_Q16, pred_Q13[2], pred0_Q13, pred1_Q13, frac_Q16, frac_3_Q16,
       min_mid_rate_bps, width_Q14, w_Q24, deltaw_Q24;
   opus_int16* mid = &x1[-2];
-  opus_int16 side[silk_max_frame_length + 2];
-  for (n = 0; n < frame_length + 2; n++) {
-    sum = x1[n - 2] + static_cast<opus_int32>(x2[n - 2]);
-    diff = x1[n - 2] - static_cast<opus_int32>(x2[n - 2]);
-    mid[n] = static_cast<opus_int16>(rounded_rshift(sum, 1));
-    side[n] = rounded_rshift_to_int16<1>(diff);
+  opus_int16* side = &x2[-2];
+  if (!projected) {
+    for (n = 0; n < frame_length + 2; n++) {
+      sum = x1[n - 2] + static_cast<opus_int32>(x2[n - 2]);
+      diff = x1[n - 2] - static_cast<opus_int32>(x2[n - 2]);
+      mid[n] = static_cast<opus_int16>(rounded_rshift(sum, 1));
+      side[n] = rounded_rshift_to_int16<1>(diff);
+    }
   }
   std::memcpy(mid, state->sMid.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)));
   std::memcpy(side, state->sSide.data(), static_cast<std::size_t>(2 * sizeof(opus_int16)));
@@ -17974,10 +18083,25 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL static bool silk_Encode(void* encState, silk_EncCo
     } else {
       celt_float2int16_c(samplesIn, buf, static_cast<std::size_t>(nSamplesFromInput));
     }
-    resample_input(0, buf);
-    if (stereo_coding) {
-      resample_input(1, buf + nSamplesFromInput);
-    } else if (blend_mono_resamplers) {
+    const auto exact_third = [](const silk_resampler_state_struct& state) noexcept {
+      return state.resampler_function == 3 && state.FIR_Order == 36 && state.invRatio_Q16 == (3 << 16);
+    };
+    const bool projected = stereo_coding && nSamplesToBuffer == state_Fxx[0].sCmn.frame_length &&
+                           exact_third(state_Fxx[0].sCmn.resampler_state) && exact_third(state_Fxx[1].sCmn.resampler_state);
+    if (projected) {
+      auto& left = state_Fxx[0].sCmn.resampler_state;
+      auto& right = state_Fxx[1].sCmn.resampler_state;
+      const silk_fir_joint_views views{input_buffers[0].data() + 2, input_buffers[1].data() + 2,
+          std::as_writable_bytes(std::span<opus_int16>{buf, static_cast<std::size_t>(nSamplesFromInput)}).data(),
+          left.Fs_out_kHz, nSamplesToBuffer};
+      silk_resampler_joint<silk_fir_projection::left>(&left, views.left, buf, nSamplesFromInput, views);
+      silk_resampler_joint<silk_fir_projection::right>(&right, views.right, buf + nSamplesFromInput, nSamplesFromInput, views);
+    } else {
+      resample_input(0, buf);
+      if (stereo_coding)
+        resample_input(1, buf + nSamplesFromInput);
+    }
+    if (blend_mono_resamplers) {
       resample_input(1, buf);
       for (int n = 0; n < nSamplesToBuffer; ++n) {
         input_buffers[0].data()[n + 2] =
@@ -18031,7 +18155,7 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL static bool silk_Encode(void* encState, silk_EncCo
       if (stereo_coding) {
         silk_stereo_LR_to_MS(&psEnc->sStereo, &input_buffers[0].data()[2], &input_buffers[1].data()[2], psEnc->sStereo.predIx[frame_index],
                              &psEnc->sStereo.mid_only_flags[frame_index], MStargetRates_bps, TargetRate_bps, state0.speech_activity_Q8,
-                             encControl->toMono, encControl->preserveStereo, state0.fs_kHz, state0.frame_length);
+                             encControl->toMono, encControl->preserveStereo, state0.fs_kHz, state0.frame_length, projected);
         if (psEnc->sStereo.mid_only_flags[frame_index] == 0) {
           if (psEnc->prev_decode_only_middle == 1) {
             zero_object(state_Fxx[1].sShape);
