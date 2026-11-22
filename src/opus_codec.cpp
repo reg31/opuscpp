@@ -1908,7 +1908,7 @@ constexpr std::array<opus_uint8, 18> silk_NLSF_PRED_NB_MB_Q8 =
     numeric_blob_array<opus_uint8>(R"blob(B38A8C9497959997A37443523B5C4864595C)blob");
 constexpr std::array<opus_int16, 11> silk_NLSF_DELTA_MIN_NB_MB_Q15 =
     numeric_blob_array<opus_int16>(R"blob(00FA00030006000300030003000400030003000301CD)blob");
-template <std::size_t Count> static bool silk_fill_nlsf_weights(std::array<opus_int16, Count>& weights, const auto& cb1_q8, const int order) {
+template <std::size_t Count> static void silk_fill_nlsf_weights(std::array<opus_int16, Count>& weights, const auto& cb1_q8, const int order) {
   for (std::size_t vector = 0; vector < Count / static_cast<std::size_t>(order); ++vector) {
     std::array<opus_int16, 16> nlsf;
     for (int i = 0; i < order; ++i) {
@@ -1920,7 +1920,6 @@ template <std::size_t Count> static bool silk_fill_nlsf_weights(std::array<opus_
       out[i] = static_cast<opus_int16>(silk_SQRT_APPROX(static_cast<opus_int32>(out[i]) << 16));
     }
   }
-  return true;
 }
 constinit const silk_NLSF_CB_struct silk_NLSF_CB_NB_MB =
     make_silk_nlsf_cb(32, 10, fixed_q<16>(0.18), fixed_q<6>(1.0 / 0.18), silk_NLSF_CB1_NB_MB_Q8, silk_NLSF_CB1_Wght_Q9,
@@ -12532,11 +12531,8 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
           ec_enc_binary_icdf8(coder, (pulse >> 15) + 1, icdf[0]);
         }
       } else if (pulse > 0) {
-        if constexpr (ReconstructSigns) {
-          pulse *= static_cast<opus_int16>((ec_dec_icdf8(coder, icdf) << 1) - 1);
-        } else {
-          static_cast<void>(ec_dec_icdf8(coder, icdf));
-        }
+        static_assert(ReconstructSigns);
+        pulse *= static_cast<opus_int16>((ec_dec_icdf8(coder, icdf) << 1) - 1);
       }
     }
   }
