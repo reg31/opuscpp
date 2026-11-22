@@ -633,7 +633,7 @@ struct classical_leak_state {
   float lowE[18];
   float highE[18];
   float meanE[19];
-  float mem[32];
+  float bfcc_history[4][4];
   float cmean[4];
   float std[9];
   float Etracker;
@@ -11403,16 +11403,16 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
   tonal->count = std::min(tonal->count + 1, 10000);
 
   for (i = 0; i < 4; ++i) {
-    features[i] = -0.12299f * (BFCC[i] + tonal->mem[i + 24]) + 0.49195f * (tonal->mem[i] + tonal->mem[i + 16]) + 0.69693f * tonal->mem[i + 8] - 1.4349f * tonal->cmean[i];
+    features[i] = -0.12299f * (BFCC[i] + tonal->bfcc_history[3][i]) + 0.49195f * (tonal->bfcc_history[0][i] + tonal->bfcc_history[2][i]) + 0.69693f * tonal->bfcc_history[1][i] - 1.4349f * tonal->cmean[i];
   }
   for (i = 0; i < 4; ++i) {
     tonal->cmean[i] = (1 - alpha) * tonal->cmean[i] + alpha * BFCC[i];
   }
   for (i = 0; i < 4; ++i) {
-    features[4 + i] = 0.63246f * (BFCC[i] - tonal->mem[i + 24]) + 0.31623f * (tonal->mem[i] - tonal->mem[i + 16]);
+    features[4 + i] = 0.63246f * (BFCC[i] - tonal->bfcc_history[3][i]) + 0.31623f * (tonal->bfcc_history[0][i] - tonal->bfcc_history[2][i]);
   }
   for (i = 0; i < 3; ++i) {
-    features[8 + i] = 0.53452f * (BFCC[i] + tonal->mem[i + 24]) - 0.26726f * (tonal->mem[i] + tonal->mem[i + 16]) - 0.53452f * tonal->mem[i + 8];
+    features[8 + i] = 0.53452f * (BFCC[i] + tonal->bfcc_history[3][i]) - 0.26726f * (tonal->bfcc_history[0][i] + tonal->bfcc_history[2][i]) - 0.53452f * tonal->bfcc_history[1][i];
   }
 
   if (tonal->count > 5) {
@@ -11424,11 +11424,11 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     features[i] = BFCC[i] - midE[i];
   }
 
-  for (i = 0; i < 8; ++i) {
-    tonal->mem[i + 24] = tonal->mem[i + 16];
-    tonal->mem[i + 16] = tonal->mem[i + 8];
-    tonal->mem[i + 8] = tonal->mem[i];
-    tonal->mem[i] = BFCC[i];
+  for (i = 0; i < 4; ++i) {
+    tonal->bfcc_history[3][i] = tonal->bfcc_history[2][i];
+    tonal->bfcc_history[2][i] = tonal->bfcc_history[1][i];
+    tonal->bfcc_history[1][i] = tonal->bfcc_history[0][i];
+    tonal->bfcc_history[0][i] = BFCC[i];
   }
   for (i = 0; i < 9; ++i) {
     features[11 + i] = classifier_sqrt_d(tonal->std[i]) - classifier_std_feature_bias[i];
