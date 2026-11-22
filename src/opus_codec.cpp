@@ -1307,7 +1307,6 @@ struct silk_decoder {
 [[gnu::cold]] static void silk_release_cng(silk_decoder_state* psDec) noexcept {
   if (psDec != nullptr && psDec->sCNG != nullptr) {
     std::free(psDec->sCNG);
-    psDec->sCNG = nullptr;
   }
 }
 
