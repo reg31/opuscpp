@@ -1670,16 +1670,21 @@ OPUSCPP_LEAN static int decode_native(OpusDecoder* st, const unsigned char* data
   return nb_samples;
 }
 
-[[gnu::cold]] OPUSCPP_NOINLINE static void convert_decoder_pcm16(const float* input, opus_int16* output, std::size_t count) {
-  celt_float2int16_c(input, output, count);
+[[gnu::cold]] OPUSCPP_NOINLINE static void convert_decoder_pcm16(const float* input, opus_int16* output, std::size_t count, bool exact_s16) {
+  if (exact_s16) {
+    for (std::size_t i = 0; i < count; ++i)
+      output[i] = static_cast<opus_int16>(input[i] * 32768.f);
+  } else {
+    celt_float2int16_c(input, output, count);
+  }
 }
 
-template <std::size_t Capacity>
+template <std::size_t Capacity, bool CouldUseGrid>
 [[gnu::cold]] OPUSCPP_NOINLINE static int decode_pcm16_fallback(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_int16* pcm, int frame_size, int decode_fec) {
   std::array<opus_res, Capacity> output;
   const int ret = decode_native(st, data, len, output.data(), frame_size, decode_fec);
   if (ret > 0) {
-    convert_decoder_pcm16(output.data(), pcm, static_cast<std::size_t>(ret * st->channels));
+    convert_decoder_pcm16(output.data(), pcm, static_cast<std::size_t>(ret * st->channels), CouldUseGrid && !st->prev_redundancy);
   }
   return ret;
 }
@@ -1703,13 +1708,19 @@ template <typename Sample>
                                    ? opus_packet_get_nb_samples(data, len, st->Fs)
                                    : 0;
     const int output_bound = packet_samples > 0 ? std::min(frame_size, packet_samples) : frame_size;
+    const bool steady_silk = std::numeric_limits<float>::is_iec559 && sizeof(float) == sizeof(opus_int32) &&
+                             !decode_fec && len > 2 && data != nullptr && data[0] < 96 && (data[0] & 3) == 0 &&
+                             st->prev_mode == opus_mode_silk_only && !st->prev_redundancy;
     if (output_bound <= OPUS_FRAME_SIZE_5MS) {
-      return decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec);
+      return steady_silk ? decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels, true>(st, data, len, pcm, frame_size, decode_fec)
+                         : decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels, false>(st, data, len, pcm, frame_size, decode_fec);
     }
     if (output_bound <= celt_max_frame_samples) {
-      return decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels>(st, data, len, pcm, frame_size, decode_fec);
+      return steady_silk ? decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels, true>(st, data, len, pcm, frame_size, decode_fec)
+                         : decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels, false>(st, data, len, pcm, frame_size, decode_fec);
     }
-    return decode_pcm16_fallback<opus_max_pcm_samples>(st, data, len, pcm, frame_size, decode_fec);
+    return steady_silk ? decode_pcm16_fallback<opus_max_pcm_samples, true>(st, data, len, pcm, frame_size, decode_fec)
+                       : decode_pcm16_fallback<opus_max_pcm_samples, false>(st, data, len, pcm, frame_size, decode_fec);
   }
 }
 
