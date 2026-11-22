@@ -15196,6 +15196,7 @@ constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_fra
 }
 
 static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
+template <bool CorrectThird>
 static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
 static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], const opus_int16 in[], const opus_int16 A_Q14[], opus_int32 len);
 constexpr std::array<std::array<opus_uint8, 3>, 6> delay_matrix_enc =
@@ -15248,8 +15249,13 @@ OPUSCPP_LEANO void silk_resampler(silk_resampler_state_struct* S, opus_int16 out
     silk_resampler_private_IIR_FIR(S, &out[S->Fs_out_kHz], &in[nSamples], inLen - S->Fs_in_kHz);
     break;
   case (3):
-    silk_resampler_private_down_FIR(S, out, S->delayBuf, S->Fs_in_kHz);
-    silk_resampler_private_down_FIR(S, &out[S->Fs_out_kHz], &in[nSamples], inLen - S->Fs_in_kHz);
+    if (S->FIR_Order == 36 && S->invRatio_Q16 == (3 << 16)) {
+      silk_resampler_private_down_FIR<true>(S, out, S->delayBuf, S->Fs_in_kHz);
+      silk_resampler_private_down_FIR<true>(S, &out[S->Fs_out_kHz], &in[nSamples], inLen - S->Fs_in_kHz);
+    } else {
+      silk_resampler_private_down_FIR<false>(S, out, S->delayBuf, S->Fs_in_kHz);
+      silk_resampler_private_down_FIR<false>(S, &out[S->Fs_out_kHz], &in[nSamples], inLen - S->Fs_in_kHz);
+    }
     break;
   default:
     std::memcpy(out, S->delayBuf, static_cast<std::size_t>(S->Fs_in_kHz * sizeof(opus_int16)));
@@ -15312,9 +15318,16 @@ namespace {
 
 }
 
-template <int Order>
+template <int Order, bool CorrectThird = false>
 static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* buf, const opus_int16* FIR_Coefs, int FIR_Fracs, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
   constexpr int half = Order / 2;
+  const auto to_pcm = [](opus_int32 value, const opus_int32* history) noexcept {
+    if constexpr (CorrectThird) {
+      const auto odd_Q8 = history[16] - history[19] + 3 * (history[18] - history[17]);
+      value += odd_Q8 >> 16;
+    }
+    return rounded_rshift_to_int16<6>(value);
+  };
   for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
     const auto* buf_ptr = buf + (index_Q16 >> 16);
     const opus_int32 interpol_ind = static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(FIR_Fracs)) >> 16);
@@ -15330,8 +15343,8 @@ static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* bu
           res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
           res2_Q6 = silk_mla_wb(res2_Q6, next_ptr[tap] + next_ptr[Order - 1 - tap], leading[tap]);
         }
-        *out++ = rounded_rshift_to_int16<6>(res_Q6);
-        *out++ = rounded_rshift_to_int16<6>(res2_Q6);
+        *out++ = to_pcm(res_Q6, buf_ptr);
+        *out++ = to_pcm(res2_Q6, next_ptr);
         index_Q16 = next_index_Q16;
         continue;
       }
@@ -15346,7 +15359,7 @@ static auto silk_resampler_down_FIR_kernel(opus_int16* out, const opus_int32* bu
         res_Q6 = silk_mla_wb(res_Q6, buf_ptr[tap] + buf_ptr[Order - 1 - tap], leading[tap]);
       }
     }
-    *out++ = rounded_rshift_to_int16<6>(res_Q6);
+    *out++ = to_pcm(res_Q6, buf_ptr);
   }
   return out;
 }
@@ -15362,6 +15375,7 @@ static auto silk_resampler_private_down_FIR_INTERPOL(opus_int16* out, const opus
   }
 }
 
+template <bool CorrectThird>
 static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen) {
   opus_int32 nSamplesIn = 0;
   std::array<opus_int32, silk_max_resampler_batch_size + silk_max_resampler_fir_order> buf;
@@ -15372,8 +15386,12 @@ static void silk_resampler_private_down_FIR(silk_resampler_state_struct* S, opus
     nSamplesIn = std::min(inLen, S->Fs_in_kHz * 10);
     silk_resampler_private_AR2(S->sIIR, buf.data() + S->FIR_Order, in, S->Coefs, nSamplesIn);
     const opus_int32 max_index_Q16 = wrap_shift_left(nSamplesIn, 16);
-    out = silk_resampler_private_down_FIR_INTERPOL(out, buf.data(), FIR_Coefs, S->FIR_Order, S->FIR_Fracs, max_index_Q16,
-                                                   index_increment_Q16);
+    if constexpr (CorrectThird) {
+      out = silk_resampler_down_FIR_kernel<36, true>(out, buf.data(), FIR_Coefs, 1, max_index_Q16, 3 << 16);
+    } else {
+      out = silk_resampler_private_down_FIR_INTERPOL(out, buf.data(), FIR_Coefs, S->FIR_Order, S->FIR_Fracs, max_index_Q16,
+                                                     index_increment_Q16);
+    }
     in += nSamplesIn;
     inLen -= nSamplesIn;
     if (inLen > 1) {
