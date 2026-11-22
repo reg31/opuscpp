@@ -15196,7 +15196,11 @@ constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_fra
 }
 
 static void silk_resampler_private_IIR_FIR(silk_resampler_state_struct* S, opus_int16 out[], const opus_int16 in[], opus_int32 inLen);
-enum class silk_fir_projection { pcm, left, right };
+enum class silk_fir_projection {
+  pcm,
+  left,
+  right
+};
 
 struct silk_fir_joint_views {
   opus_int16* left;
@@ -18092,8 +18096,8 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL static bool silk_Encode(void* encState, silk_EncCo
       auto& left = state_Fxx[0].sCmn.resampler_state;
       auto& right = state_Fxx[1].sCmn.resampler_state;
       const silk_fir_joint_views views{input_buffers[0].data() + 2, input_buffers[1].data() + 2,
-          std::as_writable_bytes(std::span<opus_int16>{buf, static_cast<std::size_t>(nSamplesFromInput)}).data(),
-          left.Fs_out_kHz, nSamplesToBuffer};
+                                       std::as_writable_bytes(std::span<opus_int16>{buf, static_cast<std::size_t>(nSamplesFromInput)}).data(),
+                                       left.Fs_out_kHz, nSamplesToBuffer};
       silk_resampler_joint<silk_fir_projection::left>(&left, views.left, buf, nSamplesFromInput, views);
       silk_resampler_joint<silk_fir_projection::right>(&right, views.right, buf + nSamplesFromInput, nSamplesFromInput, views);
     } else {
