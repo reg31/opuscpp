@@ -4972,7 +4972,7 @@ int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size,
   if (frame_size <= 0) {
     return -1;
   }
-  if (frame_size <= celt_max_frame_samples) {
+  if (frame_size * st->channels <= celt_max_frame_samples * celt_max_channels) {
     return encode_pcm16_input<celt_max_frame_samples * celt_max_channels>(st, pcm, frame_size, data, max_data_bytes);
   }
   return encode_pcm16_input<opus_max_pcm_samples>(st, pcm, frame_size, data, max_data_bytes);
