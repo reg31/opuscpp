@@ -2267,8 +2267,12 @@ OPUSCPP_LEANO static void silk_NLSF_decode(std::span<opus_int16, 16> pNLSF_Q15, 
   const int quant_step_size_Q16 = psNLSF_CB->quantStepSize_Q16;
   const opus_int16 order = psNLSF_CB->order;
   constexpr auto adjustment = static_cast<opus_int32>((0.1) * (static_cast<opus_int64>(1) << 10) + 0.5);
+  int index = order - 1;
+  for (; index >= 0 && indices[index] == 0; --index) {
+    pNLSF_Q15[index] = static_cast<opus_int16>(pCB_element[index] << 7);
+  }
   auto residual = opus_int32{0};
-  for (int index = order - 1; index >= 0; --index) {
+  for (; index >= 0; --index) {
     const auto prediction = silk_mul_i16_shift<8>(residual, pred_Q8[index]);
     residual = wrap_shift_left(indices[index], 10);
     if (residual > 0) {
