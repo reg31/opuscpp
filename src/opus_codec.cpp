@@ -8187,8 +8187,13 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       bandLogE[c * nbEBands + start] += .16f;
     }
   }
-  const auto energy_stage_state = *st;
-  const ec_enc energy_stage_coder = *enc;
+  static_assert(std::is_trivially_copyable_v<CeltEncoderInternal> && std::is_trivially_copyable_v<ec_enc>);
+  constexpr auto live_frequency_floats = celt_max_channels * celt_max_frame_samples;
+  const auto energy_checkpoint = std::as_writable_bytes(std::span{frequency_storage}.subspan<live_frequency_floats>());
+  const auto energy_stage_state = energy_checkpoint.first<sizeof(CeltEncoderInternal)>();
+  const auto energy_stage_coder = energy_checkpoint.subspan<sizeof(CeltEncoderInternal), sizeof(ec_enc)>();
+  std::memcpy(energy_stage_state.data(), st, energy_stage_state.size());
+  std::memcpy(energy_stage_coder.data(), enc, energy_stage_coder.size());
   const int energy_stage_bytes = nbCompressedBytes;
   const int energy_stage_available = nbAvailableBytes;
   const int energy_stage_total_bits = total_bits;
@@ -8204,8 +8209,8 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   std::copy_n(tf_res.data(), end, energy_stage_tf.data());
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   const auto restore_energy_stage = [&]() __attribute__((noinline)) {
-    *st = energy_stage_state;
-    *enc = energy_stage_coder;
+    std::memcpy(st, energy_stage_state.data(), energy_stage_state.size());
+    std::memcpy(enc, energy_stage_coder.data(), energy_stage_coder.size());
     std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
     std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
     std::copy_n(energy_stage_tf.data(), end, tf_res.data());
