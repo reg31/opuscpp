@@ -2829,7 +2829,6 @@ constexpr int silk_preserve_stereo_force = 2;
   auto* celt_enc = encoder_celt_state(st);
   celt_encoder_init(celt_enc, Fs, channels);
   celt_enc->complexity = st->silk_mode.complexity;
-  celt_enc->audio_application = application == OPUS_APPLICATION_AUDIO;
   st->use_vbr = 1;
   st->vbr_constraint = 1;
   st->user_bitrate_bps = -1000;
@@ -3691,7 +3690,6 @@ OPUSCPP_COMPACT static opus_int32 encode_native(OpusEncoder* st, const opus_res*
     classical_leak_get_info(&st->classical_leak, &st->classical_leak.out_info, st->Fs, frame_size);
   } else if (st->classical_leak.initialized) {
     classical_leak_reset(&st->classical_leak);
-    celt_enc->classical_leak_valid = false;
   }
   st->bitrate_bps = user_bitrate_to_bitrate(st, frame_rate, max_data_bytes);
   const bool previous_stereo_policy = st->prev_mode != 0 && celt_enc->stereo_policy_celt;
@@ -8435,7 +8433,6 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
 
 static void celt_encoder_reset_state(CeltEncoderInternal* st) {
   static_assert(std::is_standard_layout_v<CeltEncoderInternal>);
-  st->classical_leak_valid = false;
   st->prefilter_history_valid = false;
   zero_object_tail(*st, offsetof(CeltEncoderInternal, rng));
   zero_n_items(celt_encoder_storage(st), celt_encoder_storage_count(st->channels));
