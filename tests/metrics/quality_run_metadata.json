@@ -1,18 +1,22 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo",
-  "source_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
-  "source_blob": "b5c0fc149dc987e66d066c7e6439928d4989d3ad",
-  "source_sha256": "0ffbc1ceba26fe120c06982e51b4fad2bb064d0b4e698061cfa98b4679f2cbad",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo",
+  "source_commit": "374a3682988b3e7a16cc938e2901870baaa7b011",
+  "source_blob": "6dc191f8c642fdde2a3dea1f25530e143bc7767b",
+  "source_sha256": "3c77a673fac2bc278bdef15b6f0c7b80bfa2b3450adbb11dbb97b9faf5414a75",
   "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
   "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
+  "tests_commit": "374a3682988b3e7a16cc938e2901870baaa7b011",
   "tests_sha256": {
+    "tests/bench/bench17.cpp": "e43eff507b3957c56ca5ee4a8cecdba383bb139c5663efee4caa50920e12518c",
+    "tests/bench/bench17.py": "996c5ea5b520da659a151080c6c35de45f7df1bba4e517a5930279d8f888e847",
+    "tests/bench/build.py": "93c6901a47d3690c432ac39317defbf8d81dc4f47c27261a2135b3a5f4828140",
+    "tests/bench/check_portability.py": "c2468d6e06b54168d256876c2e077ace48e9ea82e18ba15bf93a4728a37a7709",
     "tests/benchmark_vs_official.cpp": "8ac278f7f9897c2d8a5a33f7b9b60cdba70734d7a6e16a0ed5e1de04b7b75214",
     "tests/celt_bandwidth_history.cpp": "f195f17e66cbd06f8cdbf46d92fb1adf3871bcc7bb87fd76f21b276b67bd4b93",
     "tests/celt_empty_channel.cpp": "4396489035de31f0dbcfde2583b462ad3521d1ea9a2776de7385f97aef6f0a9a",
     "tests/celt_energy_decode.cpp": "225ae313f73fe6690022c6005c35da17021879cedfed9c07e0c1e2e6ca4db55f",
-    "tests/celt_mono_energy_history.cpp": "541455c7bda36fb378329e616ea994ed9098e33275711779a476ecfc02eccd3b",
-    "tests/celt_transient_analysis.cpp": "616c095239e618e112db7654c3501db3119edd25998a5c75c0658737cdcfaf3d",
+    "tests/celt_mono_energy_history.cpp": "9afc267c50fd3a1ecee81ffe71154a1d4116102c60352d5d4be6678a377d1bc7",
+    "tests/celt_transient_analysis.cpp": "9019b0073ee0e7f2591ffec41f4b385358edc39631e8868b150a4ef918c0bca5",
     "tests/conformance_decode.cpp": "fac43585f2a6aa0c0fbda25970524a482591ad63c77fec4d097e91e76e7d1b94",
     "tests/conformance_encode.cpp": "75960bb5e3fc6004ce82a31933d818fcfd27332d85b1719d4baddeb9caf2fe7a",
     "tests/decoder_channel_remap.cpp": "8fc6659d9910623fd92caf221207182b5228235d78373dc4a3e24e06b19eb6c9",
@@ -28,8 +32,8 @@
     "tests/lpc_analysis_filter.cpp": "4b42de2ed9283ffebfc8506a4e7f7f532478f2bede5fd02add41189d4862f422",
     "tests/lpc_reconstruction_vs_official.cpp": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
     "tests/malformed_packet_fuzz.cpp": "c4b5c0ad33309118de4323cca23df1b07a1ef73cafeff7649f4e677ad7918fa6",
-    "tests/nsq_quant_levels.cpp": "b4cf3afbe93dbbab9cc2fa083e92364c8b8b6345c8f7558b49a3aff4371c168e",
-    "tests/nsq_shaping_feedback.cpp": "7d3013c6e66e4137127e2d0080ead1e9978a0beeb69c6004e947a0865a9c6715",
+    "tests/nsq_quant_levels.cpp": "c5b8df7fe536942007c2c4e60946444049281a0e6bc0f6076526d110781fb6dc",
+    "tests/nsq_shaping_feedback.cpp": "847290cea1150566757ceb82a385c7960bcd519efb80e62e99af3dfb42ed334f",
     "tests/official_encode_validation.cpp": "286539fdd81d9e66cca94f13188b775ef0fb1bc868c880ed5d31a98aab0d67c1",
     "tests/official_opus_abi.h": "6e783c0e55483cda2f73982b93ea7028279d5c156e8ae668f46d472aec3e00a9",
     "tests/optional_processing_benchmark.cpp": "09f2e7f3944fca4b141aef0e9589bbc0fb0abbc86353060b4089720de10c1718",
@@ -37,26 +41,27 @@
     "tests/perceptual_alignment.cpp": "4852383b1caf41242c7528913e4a6160ce3307c9b6dace429ca23c80d6c5bf9a",
     "tests/perceptual_memory_validation.cpp": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
     "tests/postfilter_bypass.cpp": "8710f468a28e73f0317edf56e9cfeb0f3662bbd646f9488eb94b816435b27f71",
-    "tests/quant_all_bands_microbench.cpp": "2bb30a6878f159089edf556434db326e570236f9f8cb9d179fe699513b1d913f",
+    "tests/quant_all_bands_microbench.cpp": "888091ef22cbad08beaec53effb479e18fdadcd5f1e6bf285c52d2fff1d1427d",
     "tests/rfc_silk_concealment_range.cpp": "b659c6db65926c0741b1838844b5938e5cde03ce870f1352748061de5304aab6",
     "tests/scripts/check_fec_source_quality.py": "736d9b7d55c272da8c791f9ed369a9dcfc63fefb903cedba1bcf52d69dc3e7cd",
     "tests/scripts/run_voice_denoise_quality.py": "5c45d7241f8f7a2fca30c430bb54b0895bcf868be4baec6662a3cc8e7b398d88",
     "tests/scripts/run_wer_validation.py": "fa9328b079fde29883ecbb99595b0b8e4f6aa434c0db694ed0e5c2ecf81052ab",
-    "tests/scripts/setup_official_compare.py": "31b5b04f7f1ca2e0038387c37abf17fc11674e6c34e076092f22b84d95504619",
+    "tests/scripts/setup_official_compare.py": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "tests/scripts/test_preprocessing_quality.py": "56edc3e74d51e97abf5a6ff15f494e74ccf8f208a9606c5ad505f595bd96c3dc",
     "tests/silk_lbrr_duration_transition.cpp": "82f644b3f36dfd8a46531c152a7b4949a3a4fa9f0656dddea852da90e9397923",
-    "tests/silk_ltp_support.cpp": "e5c9abf9f6b046eeed157688445f63ad8f442f8003d1a8baa81451687953e32b",
+    "tests/silk_ltp_support.cpp": "fc32facb26f28cefe5f2dac8775423378eddd1a2b49d95ee14ad6ab6829891bc",
     "tests/silk_packet_duration.cpp": "182ed3e9455f6850ba213994947a06927e8312be1e7f76ed04cfa9659c3560c5",
     "tests/silk_plc_energy.cpp": "e4b2089d0f96e4a0b5b1bfba86b4e06696bc4d157cab4fbac04987cd8acc3074",
     "tests/stereo_policy.cpp": "1f026ec9d701147a2dba3bce7e04e9024c18a7329adb74d9e7b011b73d16d46a",
-    "tests/theta003_gain_domain.cpp": "616a6d67e278070c0b7e794fde55f801f12cb88b8cb9d6c4201a9dac424d17e9",
-    "tests/transient_invariant.cpp": "de6aaaa88d1bab48439073386fe3d8fd8b6eae699b470b29fabfea876a7017e6",
+    "tests/theta003_gain_domain.cpp": "e5398d220f51c599ac28e69f9e754815e17d795d763ef30c67571559d5299dbe",
+    "tests/transient_invariant.cpp": "60fee15b71175c4d8427d99334d936bcd9b9c0e5c2aa3f2307ac1369f94ed44c",
     "tests/unconstrained_capacity_vbr.cpp": "24263a4f2a15a00f98130e9341ea7160b650aa9e735f28d2cf08280657900359",
-    "tests/upper_ceiling_recovery.cpp": "c8aae81852fa8ed43cf4622d66da6b994f856a0f39f47e755d5f8e7008d7f134",
+    "tests/upper_ceiling_recovery.cpp": "83132f624b59265037dbe7c5f8e4d1450a8878673df7644b039c2fa1012a2554",
     "tests/vbr_budget_behavior.cpp": "41bfbf6d192a59aa632c3afcc871c03bbdf90a43135e2917046ff0bee5ec7fe0",
     "tests/voice_conditioning_release.cpp": "65dca03d1b03d710ca0dcab1e02c633105bd6f5b3c94423aa0d8f426885a2973",
     "tests/voice_denoise_state.cpp": "6f2932c647c9b343ed27f08d42268fbdacec39ade354a60a3e783c1a7ecb3aa2",
     "tests/voip_quiet_start_latch.cpp": "4d39502eddcf9ff721a3a98ed7456cc70f623da741f47824cc02481b966279d4",
+    "tests/voip_vbr_rate.cpp": "40911be0d18be53928cc697d26dcc5ba05e19378d84065f1f6719dc228838f4d",
     "tests/wer_roundtrip.cpp": "e0d8cfa3698c285ba421eb6052bf7e54727be913405d0054fc829017d1c9ed6f"
   },
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
@@ -66,14 +71,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "06044f15415861debfac1ae5ff108b2a250ee6bac3e06c3a79d89cdb3cec5597",
+  "quality_binary_sha256": "eb14e965d6faf393a65dd2333327b010740ee8e1655b663c33eb1fb5eb55614c",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -86,41 +91,35 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\tests\\scripts\\setup_official_compare.py",
-    "setup_sha256": "31b5b04f7f1ca2e0038387c37abf17fc11674e6c34e076092f22b84d95504619",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
   },
   "fixtures": {
     "synthetic_music_like_stereo.wav": "487f6dc76dc985bb2a1f29240533a239a262e73e68bd40e802b9155484396565",
-    "synthetic_tonal_stress_mono.wav": "3d8eb6f8a3fb1aea6b3d3b81166d3301ededd4f997aec2678084bb27425a8627",
-    "synthetic_voice_like_mono.wav": "dc1221df06fd4959e44116769217003c6887b02e528f25c1a7d7d1ef11446246",
-    "synthetic_voice_like_mono_noisy.wav": "5b6bce7fa215e3029a7735325478ccd54c628648faf2cbf9122d9f7ea088be88"
+    "synthetic_voice_like_mono.wav": "dc1221df06fd4959e44116769217003c6887b02e528f25c1a7d7d1ef11446246"
   },
-  "executor": "/root/binary_encoder_recovered_20261026",
+  "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 675,
-  "acceptance_status": "failed_known_fec_criterion",
+  "quality_negative_fields": 745,
+  "acceptance_status": "pass",
   "acceptance_counts": [
     18,
     18,
     18,
-    17
+    18
   ],
-  "standard_fec_acceptance": "FAIL",
-  "measurement_date": "2026-11-11",
-  "completed_utc": "2026-11-11T10:42:06.401272+00:00",
+  "standard_fec_acceptance": "PASS",
+  "measurement_date": "2026-11-22",
+  "completed_utc": "2026-11-22T10:24:45.892265+00:00",
   "root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
   "phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
-  "input_manifest_sha256": "d3327aea2d320f8a97d3fb29cc8f7e271cacb65773c9df86c76811d47475454c",
-  "maintained_method_executor_label": "Codex root",
-  "Root_role": "Assign/release, review measured merits, publish Git and pointer only. Root did not execute the benchmark.",
-  "actual_owner_launch_receipt": {
-    "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\ACTUAL_LAUNCH_RECEIPT.json",
-    "bytes": 1476,
-    "sha256": "b348cae8fbb208103a145db8c2b4820da1b6de549ee5ff24be9a7478d8dacf5c"
-  },
+  "input_manifest_sha256": "3594cbfbce546ffe55ea24fda5573493d126a31ac3e1e455b5f12331f0809b3a",
+  "resume_provenance_sha256": "fbdf935dc8ce6e5ea659ed59f09f3027c85794ee187705cea06f30c9725fa5a2",
+  "pre_resume_root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
+  "pre_resume_phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
@@ -155,444 +154,2013 @@
     "stereo_width_error"
   ],
   "quality_negatives": {
-    "snr_db": 10,
-    "segmental_snr_db": 12,
-    "rms_error": 10,
-    "mean_abs_error": 10,
-    "pesq_style": 14,
-    "visqol_style": 55,
-    "logband_corr": 55,
-    "logband_error": 54,
-    "celt_quality": 122,
-    "celt_masked_error": 122,
-    "celt_highband_error": 185,
-    "stereo_width_error": 26
+    "snr_db": 29,
+    "segmental_snr_db": 25,
+    "rms_error": 29,
+    "mean_abs_error": 24,
+    "pesq_style": 25,
+    "visqol_style": 64,
+    "logband_corr": 61,
+    "logband_error": 64,
+    "celt_quality": 113,
+    "celt_masked_error": 113,
+    "celt_highband_error": 171,
+    "stereo_width_error": 27
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
-  "human_new_full_assignment": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\ROOT_ASSIGNMENT.json",
-  "prior_full_measurements_reused_as_current": 0,
-  "successful_measurements_repeated": 0,
-  "runtime_factory_getter_scope": "Fresh quality, all17 timing, optional and denoiser timing factory paths: source-authored benchmark-v2 current getters plus private OFF guards after setters and before frame1. Unsupported application/signal getters remain UNKNOWN; DN eligibility is VOIP+mono.",
-  "runtime_option_evidence": {
-    "status": "FRESH_BENCHMARK_V2_RUNTIME_OPTION_SCOPE_WITH_EXPLICIT_UNSUPPORTED_PROPERTIES",
-    "source_commit": "9270eacdb9b1817cf77f6e1c3e43d17de1f332a7",
-    "source_sha256": "0ffbc1ceba26fe120c06982e51b4fad2bb064d0b4e698061cfa98b4679f2cbad",
-    "all_declared_runtime_option_states_proved": false,
-    "guarded_factory_properties": [
-      "complexity",
-      "CVBR",
-      "VBR",
-      "bitrate",
-      "FEC",
-      "packet_loss",
-      "current_effective_denoiser"
-    ],
-    "guarded_families": {
-      "quality/current": 3249,
-      "quality/official": 2840,
-      "fec60/current": 20,
-      "fec60/official": 20,
-      "speed/current": 90,
-      "speed/official": 90,
-      "voice/current": 60,
-      "voice/official": 60
+  "nominal_s17_music_eof_v1": {
+    "version": "S17_MUSIC_EOF_V1",
+    "source_commit": null,
+    "source_sha256": "6b24d60b66d32dc99f0874c7d4262f1d0a83fa36ae206750f3efa18d28ee09ad",
+    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
+    "official_scalar_archive_sha256": "ec84527b88e31bf4166d7b2b23af1c154d20fceb07ba7e856a4ac2967fa79e3f",
+    "freeze_sha256": "89251a31107476afb817fe28b3988d74e892e2cc9557857c1dbd40b62d6f7e5d",
+    "result_sha256": "9f2184f04e52cc85963be242f8910738c809541a5e283d2fabc3a8e6bee04816",
+    "geometry": {
+      "requests_bps": [
+        16000,
+        24000,
+        32000,
+        48000,
+        64000,
+        96000,
+        128000,
+        192000,
+        256000
+      ],
+      "rate_hz": 48000,
+      "channels": 2,
+      "source_frames": 3000,
+      "frame_samples": 960,
+      "source_samples_per_channel": 2880000,
+      "lookahead_samples_per_channel": 312,
+      "source_samples_from_drain": 312,
+      "extra_coded_samples_discarded": 648,
+      "drain_frames": 1,
+      "reset_calls": 0,
+      "decode_fec": 0,
+      "iterations_per_capture": 1,
+      "original_CPU_flush_frames": 0
     },
-    "observed_values": {
-      "quality/current": {
-        "requested_application": [
-          2048,
-          2049
-        ],
-        "application_getter": [
-          "UNKNOWN"
-        ],
-        "channels": [
-          1,
-          2
-        ],
-        "sample_rate": [
-          48000
-        ],
-        "requested_bitrate": [
-          15000,
-          15500,
-          15900,
-          16000,
-          16100,
-          16500,
-          17000,
-          18000,
-          20000,
-          22000,
-          23000,
-          23500,
-          23900,
-          24000,
-          24100,
-          24500,
-          25000,
-          28000,
-          32000,
-          48000,
-          64000,
-          96000,
-          128000,
-          192000,
-          256000
-        ],
-        "bitrate": [
-          15000,
-          15500,
-          15900,
-          16000,
-          16100,
-          16500,
-          17000,
-          18000,
-          20000,
-          22000,
-          23000,
-          23500,
-          23900,
-          24000,
-          24100,
-          24500,
-          25000,
-          28000,
-          32000,
-          48000,
-          64000,
-          96000,
-          128000,
-          192000,
-          256000
-        ],
-        "requested_complexity": [
-          9,
-          10
-        ],
-        "complexity": [
-          9,
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ],
-        "dtx": [
-          0
-        ],
-        "requested_denoise": [
-          0,
-          1
-        ],
-        "expected_effective_denoise": [
-          0,
-          1
-        ],
-        "denoise": [
-          0,
-          1
-        ],
-        "signal": [
-          "UNKNOWN"
-        ]
+    "directions": {
+      "snr_db": "higher",
+      "segmental_snr_db": "higher",
+      "rms_error": "lower",
+      "mean_abs_error": "lower",
+      "pesq_style": "higher",
+      "visqol_style": "higher",
+      "logband_corr": "higher",
+      "logband_error": "lower",
+      "celt_quality": "higher",
+      "celt_masked_error": "lower",
+      "celt_highband_error": "lower",
+      "stereo_width_error": "lower"
+    },
+    "rows": [
+      {
+        "id": "audio_16000",
+        "request_bps": 16000,
+        "current": {
+          "snr_db": 9.147508997752876,
+          "segmental_snr_db": 9.240837672566922,
+          "rms_error": 0.06958874569663372,
+          "mean_abs_error": 0.04969591264164074,
+          "pesq_style": 2.4137595805227425,
+          "visqol_style": 4.680899178452883,
+          "logband_corr": 0.9637856011311285,
+          "logband_error": 0.2881074003687837,
+          "celt_quality": 99.10248689731908,
+          "celt_masked_error": 0.7212520112310853,
+          "celt_highband_error": 5.897913449512e-05,
+          "stereo_width_error": 0.051531443306429
+        },
+        "official": {
+          "snr_db": 2.913329111113676,
+          "segmental_snr_db": 2.9186668146551726,
+          "rms_error": 0.14264219163059835,
+          "mean_abs_error": 0.1076953786596928,
+          "pesq_style": 1.9339786094205522,
+          "visqol_style": 4.344025150274147,
+          "logband_corr": 0.8495779756032423,
+          "logband_error": 0.5902128032803914,
+          "celt_quality": 97.49944095284202,
+          "celt_masked_error": 2.0258833454186522,
+          "celt_highband_error": 0.00014408938479059,
+          "stereo_width_error": 0.6962835286383952
+        },
+        "margins": {
+          "snr_db": 6.2341798866392,
+          "segmental_snr_db": 6.3221708579117495,
+          "rms_error": 0.07305344593396464,
+          "mean_abs_error": 0.05799946601805205,
+          "pesq_style": 0.4797809711021903,
+          "visqol_style": 0.3368740281787357,
+          "logband_corr": 0.11420762552788621,
+          "logband_error": 0.3021054029116077,
+          "celt_quality": 1.60304594447706,
+          "celt_masked_error": 1.304631334187567,
+          "celt_highband_error": 8.511025029547001e-05,
+          "stereo_width_error": 0.6447520853319662
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 123197,
+            "eof_payload_bytes": 58,
+            "full_payload_bytes": 123255,
+            "primary_bps_at_60_seconds": 16426.266666666666,
+            "with_drain_bps_at_60_seconds": 16434.0,
+            "with_drain_bps_at_60_02_coded_seconds": 16428.523825391538,
+            "charged_eof_bps_at_60_seconds": 7.733333333333333
+          },
+          "official": {
+            "primary_payload_bytes": 123464,
+            "eof_payload_bytes": 65,
+            "full_payload_bytes": 123529,
+            "primary_bps_at_60_seconds": 16461.866666666665,
+            "with_drain_bps_at_60_seconds": 16470.533333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 16465.044985005,
+            "charged_eof_bps_at_60_seconds": 8.666666666666666,
+            "primary_bps_minus_request": 461.86666666666497,
+            "drain_bps_at_20_ms": 26000,
+            "with_drain_bps_minus_request_at_source_duration": 470.53333333333285,
+            "with_drain_bps_minus_request_at_coded_duration": 465.04498500499903
+          }
+        },
+        "evidence_sha256": "ee5693629a1c94beabf68f442705467c00f45841ea4102e625b6f26b0770a4b3",
+        "capture_receipts": {
+          "score": {
+            "artifact": "428e3c8_silk_joint_phase_candidate_20261122/a16/RESULT.json",
+            "bytes": 3766,
+            "sha256": "ee5693629a1c94beabf68f442705467c00f45841ea4102e625b6f26b0770a4b3"
+          },
+          "current_packets": {
+            "artifact": "428e3c8_silk_joint_phase_candidate_20261122/a16/A16.ENCODE.RESULT.json",
+            "bytes": 3212,
+            "sha256": "16f715a95e64c6c07d2e645a8570a392ce7668836b7b8c5dcb2c1cc4f11169e1"
+          },
+          "current_receive": {
+            "artifact": "428e3c8_silk_joint_phase_candidate_20261122/a16/candidate-native.RECEIVE.json",
+            "bytes": 3053,
+            "sha256": "b33c93159f0ebdfd8e674e710447bfe0080b0460c5f4076913fcd305c61244cb"
+          },
+          "official_same_packet_receive": {
+            "artifact": "428e3c8_silk_joint_phase_candidate_20261122/a16/candidate-cross.RECEIVE.json",
+            "bytes": 3047,
+            "sha256": "2e21fbb042f64577d67abacea9b1b7e3e6728f3d7127b33cd3d3f81a65997567"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_16000.off0.CAPTURE.json",
+            "bytes": 3177,
+            "sha256": "8789f8e239919760556a6cd043cf90fcbe37d7cb5dedc4c1838590f67a0267e1"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_16000.off0.b.RECEIVE.json",
+            "bytes": 3341,
+            "sha256": "1599d8846747760abf13866209e887842483304cb7a5bb00d4f9e8d555793f8a"
+          }
+        }
       },
-      "quality/official": {
-        "complexity": [
-          9,
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          15000,
-          15500,
-          15900,
-          16000,
-          16100,
-          16500,
-          17000,
-          18000,
-          20000,
-          22000,
-          23000,
-          23500,
-          23900,
-          24000,
-          24100,
-          24500,
-          25000,
-          28000,
-          32000,
-          48000,
-          64000,
-          96000,
-          128000,
-          192000,
-          256000
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ]
+      {
+        "id": "audio_24000",
+        "request_bps": 24000,
+        "current": {
+          "snr_db": 17.04326605134441,
+          "segmental_snr_db": 17.703103265011986,
+          "rms_error": 0.02803826628047988,
+          "mean_abs_error": 0.01928024308321104,
+          "pesq_style": 3.052780908783527,
+          "visqol_style": 4.805169469916805,
+          "logband_corr": 0.983281705915104,
+          "logband_error": 0.16666252315945304,
+          "celt_quality": 99.00692231518494,
+          "celt_masked_error": 0.7984332737881125,
+          "celt_highband_error": 0.00036674749698903,
+          "stereo_width_error": 0.01694692249068764
+        },
+        "official": {
+          "snr_db": 10.854860725418177,
+          "segmental_snr_db": 11.32439968991969,
+          "rms_error": 0.05717042519760659,
+          "mean_abs_error": 0.04071851979590679,
+          "pesq_style": 2.572243951471646,
+          "visqol_style": 4.681138985165729,
+          "logband_corr": 0.9608556654010016,
+          "logband_error": 0.28213202677537935,
+          "celt_quality": 98.3373821803838,
+          "celt_masked_error": 1.3412755558615248,
+          "celt_highband_error": 0.15740402122015287,
+          "stereo_width_error": 0.05060518439192736
+        },
+        "margins": {
+          "snr_db": 6.188405325926233,
+          "segmental_snr_db": 6.378703575092295,
+          "rms_error": 0.029132158917126706,
+          "mean_abs_error": 0.021438276712695745,
+          "pesq_style": 0.48053695731188073,
+          "visqol_style": 0.12403048475107603,
+          "logband_corr": 0.022426040514102352,
+          "logband_error": 0.11546950361592631,
+          "celt_quality": 0.6695401348011387,
+          "celt_masked_error": 0.5428422820734123,
+          "celt_highband_error": 0.15703727372316384,
+          "stereo_width_error": 0.033658261901239724
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 183405,
+            "eof_payload_bytes": 93,
+            "full_payload_bytes": 183498,
+            "primary_bps_at_60_seconds": 24454.0,
+            "with_drain_bps_at_60_seconds": 24466.4,
+            "with_drain_bps_at_60_02_coded_seconds": 24458.24725091636,
+            "charged_eof_bps_at_60_seconds": 12.4,
+            "primary_bps_minus_request": 454.0,
+            "drain_bps_at_20_ms": 37200,
+            "with_drain_bps_minus_request_at_source_duration": 466.40000000000146,
+            "with_drain_bps_minus_request_at_coded_duration": 458.2472509163599
+          },
+          "official": {
+            "primary_payload_bytes": 183574,
+            "eof_payload_bytes": 56,
+            "full_payload_bytes": 183630,
+            "primary_bps_at_60_seconds": 24476.533333333333,
+            "with_drain_bps_at_60_seconds": 24484.0,
+            "with_drain_bps_at_60_02_coded_seconds": 24475.8413862046,
+            "charged_eof_bps_at_60_seconds": 7.466666666666667,
+            "primary_bps_minus_request": 476.53333333333285,
+            "drain_bps_at_20_ms": 22400,
+            "with_drain_bps_minus_request_at_source_duration": 484.0,
+            "with_drain_bps_minus_request_at_coded_duration": 475.8413862046
+          }
+        },
+        "evidence_sha256": "092889672460172821ccca34e91c79e89b3286837deee05d3ee6f708949fae6d",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_24000.FROZEN.RESULT.json",
+            "bytes": 4105,
+            "sha256": "092889672460172821ccca34e91c79e89b3286837deee05d3ee6f708949fae6d"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_24000.current.CAPTURE.json",
+            "bytes": 3053,
+            "sha256": "841182a71d97dd20b7e6eca1c23501b3793e2e92b5d7728667203938d994e463"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_24000.current.RECEIVE.json",
+            "bytes": 2999,
+            "sha256": "23a8c52f645da00cad6ea7a832042711d93c49c3339ee683911050b5825e8cc0"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_24000.cross.RECEIVE.json",
+            "bytes": 2995,
+            "sha256": "93c2930ef89d26006ea073bd5a510043ac31580633388d9596179ad3240b9664"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_24000.off0.CAPTURE.json",
+            "bytes": 3149,
+            "sha256": "e3f9dbccfcbf8b8723b06689e1842298abed66969575d22da55af7a0b3be178c"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_24000.off0.b.RECEIVE.json",
+            "bytes": 3354,
+            "sha256": "270d9c4798333420edc843e86d7fffd82961feb8ba067be18e91c24e4fb5930e"
+          }
+        }
       },
-      "fec60/current": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          24000
-        ],
-        "fec": [
-          1
-        ],
-        "loss": [
-          15
-        ],
-        "denoise": [
-          0
-        ]
+      {
+        "id": "audio_32000",
+        "request_bps": 32000,
+        "current": {
+          "snr_db": 20.777630772717032,
+          "segmental_snr_db": 21.018912277864086,
+          "rms_error": 0.01824033960316898,
+          "mean_abs_error": 0.01302487403831361,
+          "pesq_style": 3.302606164846497,
+          "visqol_style": 4.867061744927141,
+          "logband_corr": 0.991454975224715,
+          "logband_error": 0.11211533105931118,
+          "celt_quality": 99.42081331465053,
+          "celt_masked_error": 0.46469638088603105,
+          "celt_highband_error": 0.00021533901920443,
+          "stereo_width_error": 0.01019386061209458
+        },
+        "official": {
+          "snr_db": 16.868049241030402,
+          "segmental_snr_db": 17.239457042255985,
+          "rms_error": 0.0286096138746344,
+          "mean_abs_error": 0.02059322321068351,
+          "pesq_style": 3.0154866590130465,
+          "visqol_style": 4.803049782029072,
+          "logband_corr": 0.983270676073107,
+          "logband_error": 0.16905415961889705,
+          "celt_quality": 99.20868923375244,
+          "celt_masked_error": 0.6355665960906008,
+          "celt_highband_error": 0.00062858232969386,
+          "stereo_width_error": 0.01716464618902287
+        },
+        "margins": {
+          "snr_db": 3.90958153168663,
+          "segmental_snr_db": 3.7794552356081006,
+          "rms_error": 0.010369274271465417,
+          "mean_abs_error": 0.0075683491723699,
+          "pesq_style": 0.28711950583345036,
+          "visqol_style": 0.06401196289806865,
+          "logband_corr": 0.00818429915160801,
+          "logband_error": 0.056938828559585875,
+          "celt_quality": 0.21212408089809287,
+          "celt_masked_error": 0.1708702152045698,
+          "celt_highband_error": 0.00041324331048943005,
+          "stereo_width_error": 0.006970785576928288
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 243668,
+            "eof_payload_bytes": 126,
+            "full_payload_bytes": 243794,
+            "primary_bps_at_60_seconds": 32489.066666666666,
+            "with_drain_bps_at_60_seconds": 32505.866666666665,
+            "with_drain_bps_at_60_02_coded_seconds": 32495.034988337222,
+            "charged_eof_bps_at_60_seconds": 16.8,
+            "primary_bps_minus_request": 489.0666666666657,
+            "drain_bps_at_20_ms": 50400,
+            "with_drain_bps_minus_request_at_source_duration": 505.86666666666497,
+            "with_drain_bps_minus_request_at_coded_duration": 495.0349883372219
+          },
+          "official": {
+            "primary_payload_bytes": 243842,
+            "eof_payload_bytes": 89,
+            "full_payload_bytes": 243931,
+            "primary_bps_at_60_seconds": 32512.266666666666,
+            "with_drain_bps_at_60_seconds": 32524.133333333335,
+            "with_drain_bps_at_60_02_coded_seconds": 32513.295568143953,
+            "charged_eof_bps_at_60_seconds": 11.866666666666667,
+            "primary_bps_minus_request": 512.2666666666664,
+            "drain_bps_at_20_ms": 35600,
+            "with_drain_bps_minus_request_at_source_duration": 524.133333333335,
+            "with_drain_bps_minus_request_at_coded_duration": 513.2955681439526
+          }
+        },
+        "evidence_sha256": "c037dabfcbd9c2a260edf251e04267d168ed1652bbb022fcd85e5f3c83e5f89b",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_32000.FROZEN.RESULT.json",
+            "bytes": 4110,
+            "sha256": "c037dabfcbd9c2a260edf251e04267d168ed1652bbb022fcd85e5f3c83e5f89b"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_32000.current.CAPTURE.json",
+            "bytes": 3091,
+            "sha256": "07dc7d1bf2aacd601ad8fabf512f9e10a19591eca3d9ce0fa32521bb3f605aef"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_32000.current.RECEIVE.json",
+            "bytes": 3001,
+            "sha256": "f76831f162bc9b9e1b1141ffd9f3018010e17a0b67227f733973fcf2dbf2ab65"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_32000.cross.RECEIVE.json",
+            "bytes": 2994,
+            "sha256": "ec1418d495f641616ff819d2dba1649f5c2ce5f652e79e85d3c40c28e9a5e4dd"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_32000.off0.CAPTURE.json",
+            "bytes": 3176,
+            "sha256": "c1718e87e4ec307cec1cb0b714221432054a89eb6abde938f4cc312853789683"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_32000.off0.b.RECEIVE.json",
+            "bytes": 3351,
+            "sha256": "29fdfccab7aba5945c442a2656b4125c5c9e5b5ff8cd46801ff3f52fc0632a70"
+          }
+        }
       },
-      "fec60/official": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          24000
-        ],
-        "fec": [
-          1
-        ],
-        "loss": [
-          15
-        ]
+      {
+        "id": "audio_48000",
+        "request_bps": 48000,
+        "current": {
+          "snr_db": 29.03337525238833,
+          "segmental_snr_db": 29.394038522807538,
+          "rms_error": 0.0070509185177596,
+          "mean_abs_error": 0.00506168270734663,
+          "pesq_style": 3.933393546052,
+          "visqol_style": 4.950665904042416,
+          "logband_corr": 0.9987380565142076,
+          "logband_error": 0.04127562344971928,
+          "celt_quality": 99.92661349615197,
+          "celt_masked_error": 0.05873075593944684,
+          "celt_highband_error": 1.302375752168e-05,
+          "stereo_width_error": 0.0039568719782797
+        },
+        "official": {
+          "snr_db": 23.354557426086284,
+          "segmental_snr_db": 23.58298050837342,
+          "rms_error": 0.01355771771411914,
+          "mean_abs_error": 0.00993093868922771,
+          "pesq_style": 3.495357679496842,
+          "visqol_style": 4.904201794329296,
+          "logband_corr": 0.9952460909475227,
+          "logband_error": 0.08024679285553372,
+          "celt_quality": 99.85039294492776,
+          "celt_masked_error": 0.11977526253635701,
+          "celt_highband_error": 0.00026732248370873,
+          "stereo_width_error": 0.00804222747498187
+        },
+        "margins": {
+          "snr_db": 5.678817826302044,
+          "segmental_snr_db": 5.811058014434117,
+          "rms_error": 0.0065067991963595395,
+          "mean_abs_error": 0.00486925598188108,
+          "pesq_style": 0.438035866555158,
+          "visqol_style": 0.04646410971311976,
+          "logband_corr": 0.0034919655666848515,
+          "logband_error": 0.038971169405814444,
+          "celt_quality": 0.07622055122421045,
+          "celt_masked_error": 0.061044506596910166,
+          "celt_highband_error": 0.00025429872618704997,
+          "stereo_width_error": 0.00408535549670217
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 363005,
+            "eof_payload_bytes": 236,
+            "full_payload_bytes": 363241,
+            "primary_bps_at_60_seconds": 48400.666666666664,
+            "with_drain_bps_at_60_seconds": 48432.13333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 48415.994668443855,
+            "charged_eof_bps_at_60_seconds": 31.466666666666665,
+            "primary_bps_minus_request": 400.66666666666424,
+            "drain_bps_at_20_ms": 94400,
+            "with_drain_bps_minus_request_at_source_duration": 432.1333333333314,
+            "with_drain_bps_minus_request_at_coded_duration": 415.9946684438546
+          },
+          "official": {
+            "primary_payload_bytes": 363017,
+            "eof_payload_bytes": 152,
+            "full_payload_bytes": 363169,
+            "primary_bps_at_60_seconds": 48402.26666666667,
+            "with_drain_bps_at_60_seconds": 48422.53333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 48406.39786737754,
+            "charged_eof_bps_at_60_seconds": 20.266666666666666,
+            "primary_bps_minus_request": 402.26666666667006,
+            "drain_bps_at_20_ms": 60800,
+            "with_drain_bps_minus_request_at_source_duration": 422.53333333333285,
+            "with_drain_bps_minus_request_at_coded_duration": 406.39786737754184
+          }
+        },
+        "evidence_sha256": "2d30cd2276f6bc3583e0336db2d4156ae4f19e5660e557c67a88d7020d2cd4ab",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_48000.FROZEN.RESULT.json",
+            "bytes": 4108,
+            "sha256": "2d30cd2276f6bc3583e0336db2d4156ae4f19e5660e557c67a88d7020d2cd4ab"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_48000.current.CAPTURE.json",
+            "bytes": 2898,
+            "sha256": "1c19b676295e8a088a09912ff778ad5ec6c732a33c1f1903c5f2ef1f09a44c27"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_48000.current.RECEIVE.json",
+            "bytes": 2991,
+            "sha256": "c4e11a4260f1605fae8e7dd1693dafb5ffdbc3e49a33dbf78db8cd231f02ed8c"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_48000.cross.RECEIVE.json",
+            "bytes": 2991,
+            "sha256": "9a8628eacd7250e17caca64df32dd4dbfa64382e5363dd993d2fe768cd3f9dd0"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_48000.off0.CAPTURE.json",
+            "bytes": 2975,
+            "sha256": "7e454899f8cf824d26386c61e3ef664da45f825f6d7e309767fb0d442b16deb0"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_48000.off0.b.RECEIVE.json",
+            "bytes": 3077,
+            "sha256": "d252f8f8d7937136d12ae6c19d6082f232a0e0eb0848d2a787ea0d3af80834ff"
+          }
+        }
       },
-      "speed/current": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          16000,
-          24000,
-          32000,
-          48000,
-          64000,
-          96000,
-          128000,
-          192000,
-          256000
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ],
-        "denoise": [
-          0
-        ]
+      {
+        "id": "audio_64000",
+        "request_bps": 64000,
+        "current": {
+          "snr_db": 35.36027941253738,
+          "segmental_snr_db": 34.68085936472401,
+          "rms_error": 0.00340330199163024,
+          "mean_abs_error": 0.0024318523089643,
+          "pesq_style": 4.33040414304671,
+          "visqol_style": 4.977024207712528,
+          "logband_corr": 0.9997156542152131,
+          "logband_error": 0.01917553994500936,
+          "celt_quality": 99.94683238448928,
+          "celt_masked_error": 0.04254540359936795,
+          "celt_highband_error": 1.2539439834e-06,
+          "stereo_width_error": 0.00179137014304125
+        },
+        "official": {
+          "snr_db": 25.487146385242188,
+          "segmental_snr_db": 25.684593557643073,
+          "rms_error": 0.01060613471955685,
+          "mean_abs_error": 0.00778701603963989,
+          "pesq_style": 3.6534755371896277,
+          "visqol_style": 4.925860019115916,
+          "logband_corr": 0.997044545291374,
+          "logband_error": 0.06194910576885027,
+          "celt_quality": 99.88369324890944,
+          "celt_masked_error": 0.09309955190545374,
+          "celt_highband_error": 4.207318255797e-05,
+          "stereo_width_error": 0.00614669284781793
+        },
+        "margins": {
+          "snr_db": 9.873133027295193,
+          "segmental_snr_db": 8.996265807080935,
+          "rms_error": 0.00720283272792661,
+          "mean_abs_error": 0.005355163730675591,
+          "pesq_style": 0.6769286058570825,
+          "visqol_style": 0.05116418859661209,
+          "logband_corr": 0.0026711089238391494,
+          "logband_error": 0.04277356582384091,
+          "celt_quality": 0.06313913557984563,
+          "celt_masked_error": 0.050554148306085796,
+          "celt_highband_error": 4.0819238574569995e-05,
+          "stereo_width_error": 0.00435532270477668
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 483008,
+            "eof_payload_bytes": 313,
+            "full_payload_bytes": 483321,
+            "primary_bps_at_60_seconds": 64401.066666666666,
+            "with_drain_bps_at_60_seconds": 64442.8,
+            "with_drain_bps_at_60_02_coded_seconds": 64421.3262245918,
+            "charged_eof_bps_at_60_seconds": 41.733333333333334,
+            "primary_bps_minus_request": 401.0666666666657,
+            "drain_bps_at_20_ms": 125200,
+            "with_drain_bps_minus_request_at_source_duration": 442.8000000000029,
+            "with_drain_bps_minus_request_at_coded_duration": 421.3262245918013
+          },
+          "official": {
+            "primary_payload_bytes": 483015,
+            "eof_payload_bytes": 215,
+            "full_payload_bytes": 483230,
+            "primary_bps_at_60_seconds": 64402.0,
+            "with_drain_bps_at_60_seconds": 64430.666666666664,
+            "with_drain_bps_at_60_02_coded_seconds": 64409.19693435521,
+            "charged_eof_bps_at_60_seconds": 28.666666666666668,
+            "primary_bps_minus_request": 402.0,
+            "drain_bps_at_20_ms": 86000,
+            "with_drain_bps_minus_request_at_source_duration": 430.66666666666424,
+            "with_drain_bps_minus_request_at_coded_duration": 409.19693435521185
+          }
+        },
+        "evidence_sha256": "73f47f60693da5b49c38ff96c76863ab1c60641c832bee8a193b0a599ae26382",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_64000.FROZEN.RESULT.json",
+            "bytes": 4107,
+            "sha256": "73f47f60693da5b49c38ff96c76863ab1c60641c832bee8a193b0a599ae26382"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_64000.current.CAPTURE.json",
+            "bytes": 2890,
+            "sha256": "78eb511cc9dd6787ef851241c2eb5ec11ef0e0957f38229f7eb068f176758079"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_64000.current.RECEIVE.json",
+            "bytes": 2998,
+            "sha256": "3fcba0e7e75ba9b96a5e23c6ea4d4efe2eabc463c90ba992828b9a93619866f6"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_64000.cross.RECEIVE.json",
+            "bytes": 2990,
+            "sha256": "4384f69b8f046dd4765009a12b1a1d56e0b3224479e8451b4dcf7d58eb7eb110"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_64000.off0.CAPTURE.json",
+            "bytes": 2952,
+            "sha256": "e0be96e958c1e8e6bd48b19b709014cac8bf7f8a8817f0261ec462cabaedf27e"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_64000.off0.b.RECEIVE.json",
+            "bytes": 3074,
+            "sha256": "fa821a522a1eb51a6ac643e551e6648bc27b11fe3947049954ebfa8b42f895f6"
+          }
+        }
       },
-      "speed/official": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          16000,
-          24000,
-          32000,
-          48000,
-          64000,
-          96000,
-          128000,
-          192000,
-          256000
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ]
+      {
+        "id": "audio_96000",
+        "request_bps": 96000,
+        "current": {
+          "snr_db": 44.096577858954056,
+          "segmental_snr_db": 34.99840065785902,
+          "rms_error": 0.00124475983265913,
+          "mean_abs_error": 0.00087066516430542,
+          "pesq_style": 4.354545805320058,
+          "visqol_style": 4.9934717548829255,
+          "logband_corr": 0.9999758637469313,
+          "logband_error": 0.00544149491933055,
+          "celt_quality": 99.97975185012726,
+          "celt_masked_error": 0.01620016006989444,
+          "celt_highband_error": 1.20813274961e-06,
+          "stereo_width_error": 0.00066566149688342
+        },
+        "official": {
+          "snr_db": 29.413188929779327,
+          "segmental_snr_db": 29.60163821430298,
+          "rms_error": 0.00674924218005947,
+          "mean_abs_error": 0.00495855342786145,
+          "pesq_style": 3.948681196346424,
+          "visqol_style": 4.956013488893586,
+          "logband_corr": 0.9989026982071757,
+          "logband_error": 0.03667254043456112,
+          "celt_quality": 99.91284796576637,
+          "celt_masked_error": 0.06975202695903424,
+          "celt_highband_error": 1.28693594788e-06,
+          "stereo_width_error": 0.0038661355706901
+        },
+        "margins": {
+          "snr_db": 14.683388929174729,
+          "segmental_snr_db": 5.396762443556042,
+          "rms_error": 0.00550448234740034,
+          "mean_abs_error": 0.004087888263556031,
+          "pesq_style": 0.4058646089736335,
+          "visqol_style": 0.03745826598933988,
+          "logband_corr": 0.0010731655397555606,
+          "logband_error": 0.03123104551523057,
+          "celt_quality": 0.06690388436088313,
+          "celt_masked_error": 0.05355186688913979,
+          "celt_highband_error": 7.880319827000017e-08,
+          "stereo_width_error": 0.00320047407380668
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 723000,
+            "eof_payload_bytes": 481,
+            "full_payload_bytes": 723481,
+            "primary_bps_at_60_seconds": 96400.0,
+            "with_drain_bps_at_60_seconds": 96464.13333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 96431.98933688771,
+            "charged_eof_bps_at_60_seconds": 64.13333333333334,
+            "primary_bps_minus_request": 400.0,
+            "drain_bps_at_20_ms": 192400,
+            "with_drain_bps_minus_request_at_source_duration": 464.1333333333314,
+            "with_drain_bps_minus_request_at_coded_duration": 431.9893368877092
+          },
+          "official": {
+            "primary_payload_bytes": 723028,
+            "eof_payload_bytes": 340,
+            "full_payload_bytes": 723368,
+            "primary_bps_at_60_seconds": 96403.73333333334,
+            "with_drain_bps_at_60_seconds": 96449.06666666667,
+            "with_drain_bps_at_60_02_coded_seconds": 96416.92769076975,
+            "charged_eof_bps_at_60_seconds": 45.333333333333336,
+            "primary_bps_minus_request": 403.7333333333372,
+            "drain_bps_at_20_ms": 136000,
+            "with_drain_bps_minus_request_at_source_duration": 449.0666666666657,
+            "with_drain_bps_minus_request_at_coded_duration": 416.92769076974946
+          }
+        },
+        "evidence_sha256": "709dd10507fb88ac182510230f0ff195e60b6ab64954ef436ec797697a7b5211",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_96000.FROZEN.RESULT.json",
+            "bytes": 4108,
+            "sha256": "709dd10507fb88ac182510230f0ff195e60b6ab64954ef436ec797697a7b5211"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_96000.current.CAPTURE.json",
+            "bytes": 2667,
+            "sha256": "3de8d2ecaff3be16882e53bd147291f66cb7103e331747b3fe4bc2f81639b79e"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_96000.current.RECEIVE.json",
+            "bytes": 3001,
+            "sha256": "a6988029f2b11c5883a46549940027cfeb7db6164f26085db77d68af1ac613d3"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_96000.cross.RECEIVE.json",
+            "bytes": 2992,
+            "sha256": "61c0787cf4a53136aadbe347606ca2971410a173157ebe064c817f827e5aa8b0"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_96000.off0.CAPTURE.json",
+            "bytes": 2766,
+            "sha256": "f059ec5b95373b6d5d38849e3a5e2a5bab5a39450e8d988ae7e72b69f7ec75f0"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_96000.off0.b.RECEIVE.json",
+            "bytes": 3073,
+            "sha256": "a2e8a64998bbfd273b1947f259ca982a2293595d7cf93f09943e00b038a61340"
+          }
+        }
       },
-      "voice/current": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          16000,
-          32000,
-          64000
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ],
-        "denoise": [
-          0
-        ]
+      {
+        "id": "audio_128000",
+        "request_bps": 128000,
+        "current": {
+          "snr_db": 46.009210604155086,
+          "segmental_snr_db": 34.99920786661589,
+          "rms_error": 0.00099874341360642,
+          "mean_abs_error": 0.00070818569164806,
+          "pesq_style": 4.354710271784598,
+          "visqol_style": 4.994836171616036,
+          "logband_corr": 0.99998640929653,
+          "logband_error": 0.00430579488219963,
+          "celt_quality": 99.98475315820843,
+          "celt_masked_error": 0.01219840339251053,
+          "celt_highband_error": 1.20411577959e-06,
+          "stereo_width_error": 0.00056408033668933
+        },
+        "official": {
+          "snr_db": 31.358781523899907,
+          "segmental_snr_db": 31.49687701572298,
+          "rms_error": 0.0053948004158704,
+          "mean_abs_error": 0.00399422701849565,
+          "pesq_style": 4.090830041288478,
+          "visqol_style": 4.966687201630959,
+          "logband_corr": 0.999355402518704,
+          "logband_error": 0.02775835005510571,
+          "celt_quality": 99.94916903282791,
+          "celt_masked_error": 0.04067511239020682,
+          "celt_highband_error": 1.23008787555e-06,
+          "stereo_width_error": 0.00288474911786682
+        },
+        "margins": {
+          "snr_db": 14.65042908025518,
+          "segmental_snr_db": 3.5023308508929105,
+          "rms_error": 0.00439605700226398,
+          "mean_abs_error": 0.0032860413268475898,
+          "pesq_style": 0.2638802304961203,
+          "visqol_style": 0.028148969985076988,
+          "logband_corr": 0.0006310067778260153,
+          "logband_error": 0.02345255517290608,
+          "celt_quality": 0.0355841253805238,
+          "celt_masked_error": 0.02847670899769629,
+          "celt_highband_error": 2.5972095959999974e-08,
+          "stereo_width_error": 0.00232066878117749
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 963000,
+            "eof_payload_bytes": 641,
+            "full_payload_bytes": 963641,
+            "primary_bps_at_60_seconds": 128400.0,
+            "with_drain_bps_at_60_seconds": 128485.46666666666,
+            "with_drain_bps_at_60_02_coded_seconds": 128442.6524491836,
+            "charged_eof_bps_at_60_seconds": 85.46666666666667,
+            "primary_bps_minus_request": 400.0,
+            "drain_bps_at_20_ms": 256400,
+            "with_drain_bps_minus_request_at_source_duration": 485.4666666666599,
+            "with_drain_bps_minus_request_at_coded_duration": 442.6524491836026
+          },
+          "official": {
+            "primary_payload_bytes": 963039,
+            "eof_payload_bytes": 472,
+            "full_payload_bytes": 963511,
+            "primary_bps_at_60_seconds": 128405.2,
+            "with_drain_bps_at_60_seconds": 128468.13333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 128425.32489170277,
+            "charged_eof_bps_at_60_seconds": 62.93333333333333,
+            "primary_bps_minus_request": 405.1999999999971,
+            "drain_bps_at_20_ms": 188800,
+            "with_drain_bps_minus_request_at_source_duration": 468.1333333333314,
+            "with_drain_bps_minus_request_at_coded_duration": 425.32489170276676
+          }
+        },
+        "evidence_sha256": "2c712902e31d87cf30f26e0e5b6cccfb21f166f07a512454289623e332e1f111",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_128000.FROZEN.RESULT.json",
+            "bytes": 4114,
+            "sha256": "2c712902e31d87cf30f26e0e5b6cccfb21f166f07a512454289623e332e1f111"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_128000.current.CAPTURE.json",
+            "bytes": 2676,
+            "sha256": "eef1773b3bb564d43e185e80d8bf9184d0c68ac862cf7a5f2ebc5bbb3bb98760"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_128000.current.RECEIVE.json",
+            "bytes": 3001,
+            "sha256": "4cc948248af8ccb22418c82783b5c2cbf9b8fb084a686f550d0272d64bbcafbb"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_128000.cross.RECEIVE.json",
+            "bytes": 2993,
+            "sha256": "4c0baa9f631f26a2bdf1b3bbc7b3b3d7fb93052033262ff7550540d42d7b7b28"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_128000.off0.CAPTURE.json",
+            "bytes": 2765,
+            "sha256": "59683e53bbb37ea8420c2e4b4f9cbfd8bfdce41294ee5c5504d506551e80ff12"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_128000.off0.b.RECEIVE.json",
+            "bytes": 3075,
+            "sha256": "0b3dcc41450f68e13ea820831d9833dea00397d5534a1f470998f08127f000c0"
+          }
+        }
       },
-      "voice/official": {
-        "complexity": [
-          10
-        ],
-        "cvbr": [
-          1
-        ],
-        "vbr": [
-          1
-        ],
-        "bitrate": [
-          16000,
-          32000,
-          64000
-        ],
-        "fec": [
-          0
-        ],
-        "loss": [
-          0
-        ]
+      {
+        "id": "audio_192000",
+        "request_bps": 192000,
+        "current": {
+          "snr_db": 46.573795018970245,
+          "segmental_snr_db": 35.0,
+          "rms_error": 0.00093588978601202,
+          "mean_abs_error": 0.00066602095180022,
+          "pesq_style": 4.354802195873405,
+          "visqol_style": 4.995158370849919,
+          "logband_corr": 0.9999879864103378,
+          "logband_error": 0.00403690619201734,
+          "celt_quality": 99.99070021407465,
+          "celt_masked_error": 0.00744017470580837,
+          "celt_highband_error": 8.1375924944e-07,
+          "stereo_width_error": 0.000559651898318
+        },
+        "official": {
+          "snr_db": 34.10988049161942,
+          "segmental_snr_db": 34.012762593449246,
+          "rms_error": 0.00393025233078527,
+          "mean_abs_error": 0.00293488723435013,
+          "pesq_style": 4.279791360458175,
+          "visqol_style": 4.978434029575681,
+          "logband_corr": 0.9997120278225958,
+          "logband_error": 0.01795227495728289,
+          "celt_quality": 99.96600901732208,
+          "celt_masked_error": 0.02719740873749534,
+          "celt_highband_error": 1.33927820184e-06,
+          "stereo_width_error": 0.0019296097067489
+        },
+        "margins": {
+          "snr_db": 12.463914527350823,
+          "segmental_snr_db": 0.9872374065507543,
+          "rms_error": 0.0029943625447732504,
+          "mean_abs_error": 0.00226886628254991,
+          "pesq_style": 0.07501083541523013,
+          "visqol_style": 0.016724341274238164,
+          "logband_corr": 0.0002759585877419868,
+          "logband_error": 0.01391536876526555,
+          "celt_quality": 0.024691196752570477,
+          "celt_masked_error": 0.019757234031686968,
+          "celt_highband_error": 5.255189524000001e-07,
+          "stereo_width_error": 0.0013699578084309
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 1443000,
+            "eof_payload_bytes": 961,
+            "full_payload_bytes": 1443961,
+            "primary_bps_at_60_seconds": 192400.0,
+            "with_drain_bps_at_60_seconds": 192528.13333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 192463.97867377542,
+            "charged_eof_bps_at_60_seconds": 128.13333333333333,
+            "primary_bps_minus_request": 400.0,
+            "drain_bps_at_20_ms": 384400,
+            "with_drain_bps_minus_request_at_source_duration": 528.1333333333314,
+            "with_drain_bps_minus_request_at_coded_duration": 463.97867377541843
+          },
+          "official": {
+            "primary_payload_bytes": 1443117,
+            "eof_payload_bytes": 737,
+            "full_payload_bytes": 1443854,
+            "primary_bps_at_60_seconds": 192415.6,
+            "with_drain_bps_at_60_seconds": 192513.86666666667,
+            "with_drain_bps_at_60_02_coded_seconds": 192449.71676107965,
+            "charged_eof_bps_at_60_seconds": 98.26666666666667,
+            "primary_bps_minus_request": 415.6000000000058,
+            "drain_bps_at_20_ms": 294800,
+            "with_drain_bps_minus_request_at_source_duration": 513.8666666666686,
+            "with_drain_bps_minus_request_at_coded_duration": 449.71676107964595
+          }
+        },
+        "evidence_sha256": "4d3f7a519e3d71a4d89452fb7be438492e40b58002caf600565b01233d1cfe2c",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_192000.FROZEN.RESULT.json",
+            "bytes": 4104,
+            "sha256": "4d3f7a519e3d71a4d89452fb7be438492e40b58002caf600565b01233d1cfe2c"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_192000.current.CAPTURE.json",
+            "bytes": 2683,
+            "sha256": "a6d6a687ca6c452b45880f653cd883fcd7da7aac52e9f0648c894c16fe80db1f"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_192000.current.RECEIVE.json",
+            "bytes": 2990,
+            "sha256": "521c8fda16f94aa5ca79aa66d933bfd1e5ce3ffcbb52502669f4fffbce274723"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_192000.cross.RECEIVE.json",
+            "bytes": 2978,
+            "sha256": "e0d3a0f64091f56f7791878208d67296b4b8af08091947e2867391b3548c384f"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_192000.off0.CAPTURE.json",
+            "bytes": 2770,
+            "sha256": "a27b33551809234d326101667bdf86f0862e16de1ef6adc682792cf46fd75d71"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_192000.off0.b.RECEIVE.json",
+            "bytes": 3076,
+            "sha256": "4135812bdec08e457232d234ff52561a32d8a7884c686846b78e64604ae171e8"
+          }
+        }
+      },
+      {
+        "id": "audio_256000",
+        "request_bps": 256000,
+        "current": {
+          "snr_db": 46.60767107025456,
+          "segmental_snr_db": 35.0,
+          "rms_error": 0.00093224680794752,
+          "mean_abs_error": 0.00066515385041986,
+          "pesq_style": 4.354697777800843,
+          "visqol_style": 4.995233826013667,
+          "logband_corr": 0.9999884035468088,
+          "logband_error": 0.00397401272475156,
+          "celt_quality": 99.99048727444143,
+          "celt_masked_error": 0.00761054243760311,
+          "celt_highband_error": 8.1780634365e-07,
+          "stereo_width_error": 0.00056266154192484
+        },
+        "official": {
+          "snr_db": 35.28870542049441,
+          "segmental_snr_db": 34.68321578763055,
+          "rms_error": 0.00343146194946148,
+          "mean_abs_error": 0.0025802478027962,
+          "pesq_style": 4.330070715747639,
+          "visqol_style": 4.982161109338026,
+          "logband_corr": 0.9997958769810296,
+          "logband_error": 0.0148447416193353,
+          "celt_quality": 99.9696618334907,
+          "celt_masked_error": 0.02427421556962541,
+          "celt_highband_error": 1.28290574081e-06,
+          "stereo_width_error": 0.00155390220554455
+        },
+        "margins": {
+          "snr_db": 11.318965649760152,
+          "segmental_snr_db": 0.3167842123694484,
+          "rms_error": 0.00249921514151396,
+          "mean_abs_error": 0.0019150939523763402,
+          "pesq_style": 0.024627062053204085,
+          "visqol_style": 0.013072716675640805,
+          "logband_corr": 0.00019252656577928295,
+          "logband_error": 0.01087072889458374,
+          "celt_quality": 0.020825440950730467,
+          "celt_masked_error": 0.0166636731320223,
+          "celt_highband_error": 4.650993971599999e-07,
+          "stereo_width_error": 0.00099124066361971
+        },
+        "tolerances": {
+          "snr_db": 0.0,
+          "segmental_snr_db": 0.0,
+          "rms_error": 0.0,
+          "mean_abs_error": 0.0,
+          "pesq_style": 0.0,
+          "visqol_style": 0.0,
+          "logband_corr": 0.0,
+          "logband_error": 0.0,
+          "celt_quality": 0.0,
+          "celt_masked_error": 0.0,
+          "celt_highband_error": 0.0,
+          "stereo_width_error": 0.0
+        },
+        "rates": {
+          "current": {
+            "primary_payload_bytes": 1923000,
+            "eof_payload_bytes": 1276,
+            "full_payload_bytes": 1924276,
+            "primary_bps_at_60_seconds": 256400.0,
+            "with_drain_bps_at_60_seconds": 256570.13333333333,
+            "with_drain_bps_at_60_02_coded_seconds": 256484.63845384872,
+            "charged_eof_bps_at_60_seconds": 170.13333333333333,
+            "primary_bps_minus_request": 400.0,
+            "drain_bps_at_20_ms": 510400,
+            "with_drain_bps_minus_request_at_source_duration": 570.1333333333314,
+            "with_drain_bps_minus_request_at_coded_duration": 484.6384538487182
+          },
+          "official": {
+            "primary_payload_bytes": 1923270,
+            "eof_payload_bytes": 1007,
+            "full_payload_bytes": 1924277,
+            "primary_bps_at_60_seconds": 256436.0,
+            "with_drain_bps_at_60_seconds": 256570.26666666666,
+            "with_drain_bps_at_60_02_coded_seconds": 256484.7717427524,
+            "charged_eof_bps_at_60_seconds": 134.26666666666668,
+            "primary_bps_minus_request": 436.0,
+            "drain_bps_at_20_ms": 402800,
+            "with_drain_bps_minus_request_at_source_duration": 570.2666666666628,
+            "with_drain_bps_minus_request_at_coded_duration": 484.77174275240395
+          }
+        },
+        "evidence_sha256": "2189b018e64d9caf608cca496cb7e041e5d5ed11adcdec96b69250119cd0dc8f",
+        "capture_receipts": {
+          "score": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_256000.FROZEN.RESULT.json",
+            "bytes": 4103,
+            "sha256": "2189b018e64d9caf608cca496cb7e041e5d5ed11adcdec96b69250119cd0dc8f"
+          },
+          "current_packets": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_256000.current.CAPTURE.json",
+            "bytes": 2686,
+            "sha256": "83e73ef29ab626181f0983c52975226845b892f64dc9f2bc9fc501c9b6f0355e"
+          },
+          "current_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_256000.current.RECEIVE.json",
+            "bytes": 2989,
+            "sha256": "b422433cb248d37c2e8f1ac824704adad1144dbc3515a6aa71b69d43e4a3150b"
+          },
+          "official_same_packet_receive": {
+            "artifact": "6b24d60b_frozen_quality_20261122/audio_256000.cross.RECEIVE.json",
+            "bytes": 2982,
+            "sha256": "11b46accd19bc183c05c80effffe462a461568fef927edb5d8eeac57b058dc24"
+          },
+          "scalar_off_packets": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_256000.off0.CAPTURE.json",
+            "bytes": 2761,
+            "sha256": "5d64756fe1d24d12ecf86465264d2a9f5692ceb142bacdf3eb85c5617d67c8e3"
+          },
+          "scalar_off_receive": {
+            "artifact": "s17_music_eof_fixture_v1_20261121/execution/audio_256000.off0.b.RECEIVE.json",
+            "bytes": 3353,
+            "sha256": "c2c03adfb103fb0f3fb89875d3d8acd68b0cee6c2d539438213447966b82f9a3"
+          }
+        }
+      }
+    ],
+    "fields_checked": 108,
+    "fields_below_frozen_tolerance": 0,
+    "evidence_use": "Original capture epochs. Applicability to the released codec is from byte-identical objects.",
+    "applicable_release": {
+      "source_commit": "374a3682988b3e7a16cc938e2901870baaa7b011",
+      "source_sha256": "3c77a673fac2bc278bdef15b6f0c7b80bfa2b3450adbb11dbb97b9faf5414a75",
+      "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+      "formatter": {
+        "artifact": "374a368_formatter_bridge_20261122/RESULT.json",
+        "bytes": 2836,
+        "sha256": "759f2f243c54e0cbec734066170835f571c28cbbfdd7d295fc52eb0455713e6b"
+      },
+      "stereo_policy_repair": {
+        "artifact": "6b24d60b_stereo_policy_default_20261122/RESULT.json",
+        "bytes": 1926,
+        "sha256": "ca81d6abddbc62307571a5f5d7e7b07540f1aa407d69cf440da1a3cc508890aa"
+      },
+      "targets": {
+        "host": {
+          "normal": {
+            "artifact": "374a368_formatter_bridge_20261122/host.o",
+            "bytes": 382799,
+            "sha256": "5261f913e9b80173fb3508f9cd401981eed3e51ca4a95f82d147ab62b571a4ad"
+          },
+          "stripped": {
+            "artifact": "374a368_formatter_bridge_20261122/host.stripped.o",
+            "bytes": 343787,
+            "sha256": "f52f10a9f9ba77befe00c134f850c620a6eea0bf5ea0cc31e7d2fe97ae636de1"
+          },
+          "initial_proof": {
+            "artifact": "6b24d60b_stereo_policy_default_20261122/host.RESULT.json",
+            "bytes": 3995,
+            "sha256": "20ecff664b27f4f2e83eba2df57dc83dd24eb3933e2f645ee69eb0558c494690"
+          },
+          "final_proof": {
+            "artifact": "374a368_formatter_bridge_20261122/host.RESULT.json",
+            "bytes": 3968,
+            "sha256": "7a7db2b5be8e192d355d98ae62b7cd7d9a614f141a5c27f52bf66b106cf72af8"
+          },
+          "current_full_link": {
+            "artifact": "374a368_formatter_bridge_20261122/host-closure.exe",
+            "bytes": 378293,
+            "sha256": "8f2cf9098aef9e866a238e6814b8cd092d09080e11128a840a6237dff1886941"
+          },
+          "comparison_full_link": {
+            "artifact": "6b24d60b_stereo_policy_default_20261122/host-closure.exe",
+            "bytes": 378293,
+            "sha256": "693a7a5a01d68ab4ae77e52017ee69a204e64b15f800f1cd320e779d85232548"
+          },
+          "linked_comparison": {
+            "identity": false,
+            "metadata_only": true,
+            "timestamp_offset": 136,
+            "checksum_offset": 216,
+            "lengths": [
+              378293,
+              378293
+            ],
+            "differing_bytes": 4,
+            "first_spans": [
+              [
+                136,
+                138
+              ],
+              [
+                216,
+                218
+              ]
+            ]
+          },
+          "loaded_sections_and_relocations_identical": true
+        },
+        "android": {
+          "normal": {
+            "artifact": "374a368_formatter_bridge_20261122/android.o",
+            "bytes": 391488,
+            "sha256": "495b68f39aa0e3a9dc35abcc1fe16d11537006540496a1627cda0abc477727e3"
+          },
+          "stripped": {
+            "artifact": "374a368_formatter_bridge_20261122/android.stripped.o",
+            "bytes": 357480,
+            "sha256": "c16da85a76ed8d65d565f971372ea3fc22001b1b1c8f7944ee8007bf3e23f642"
+          },
+          "initial_proof": {
+            "artifact": "6b24d60b_stereo_policy_default_20261122/android.RESULT.json",
+            "bytes": 3875,
+            "sha256": "9e73f628e9580662c8d960a7a5f71da9645aa3eeef934c82e5e344f688f3f189"
+          },
+          "final_proof": {
+            "artifact": "374a368_formatter_bridge_20261122/android.RESULT.json",
+            "bytes": 3848,
+            "sha256": "e113685e79581a4de2d720922a3b5c7366ba844bc6b45b520632182830f32d36"
+          },
+          "current_full_link": {
+            "artifact": "374a368_formatter_bridge_20261122/android-closure",
+            "bytes": 347920,
+            "sha256": "818f03aab21d7291a024ecc04f4c0e0fe88ae0622f82c9c6e0af1f7445ffc284"
+          },
+          "comparison_full_link": {
+            "artifact": "6b24d60b_stereo_policy_default_20261122/android-closure",
+            "bytes": 347920,
+            "sha256": "818f03aab21d7291a024ecc04f4c0e0fe88ae0622f82c9c6e0af1f7445ffc284"
+          },
+          "linked_comparison": {
+            "identity": true,
+            "metadata_only": false,
+            "lengths": [
+              347920,
+              347920
+            ],
+            "differing_bytes": 0,
+            "first_spans": []
+          },
+          "loaded_sections_and_relocations_identical": true
+        }
+      },
+      "final_gate": {
+        "artifact": "de611d21_exact_release_20261122/374A.FINAL.GATE.RESULT.json",
+        "bytes": 8579,
+        "sha256": "3c5c281c4e1f6c289a37f73a3585fce25ced5e94c026dcfdd7ccf1c344f074fe"
+      },
+      "stock_report_inputs": {
+        "timing_validation": {
+          "artifact": "de611d21_exact_release_20261122/374A.STOCK.TIMING.VALIDITY.json",
+          "bytes": 19200,
+          "sha256": "69bfd99c54c0e429a0aedb402fc267b10fe3a69dab438a69b920251e4061cab8"
+        },
+        "renderer_inputs": {
+          "artifact": "de611d21_exact_release_20261122/374A.STOCK.RENDERER.INPUTS.json",
+          "bytes": 583581,
+          "sha256": "964afd845d60c66e0aa5a882a25622a991fa06ff3455a119076378126170fe71"
+        }
       }
     },
-    "mandatory17_timing_logs": [
-      {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_speed.stderr.txt",
-        "bytes": 151168,
-        "sha256": "ae53266399af074a33c96ce803f86f0b67c6406a889665560df158157bb58a9f"
+    "original_s17": {
+      "cases_checked": 17,
+      "fields_checked": 204,
+      "fields_below_frozen_tolerance": 0,
+      "original_result": {
+        "artifact": "6b24d60b_frozen_quality_20261122/RESULT.json",
+        "bytes": 13122,
+        "sha256": "9f2184f04e52cc85963be242f8910738c809541a5e283d2fabc3a8e6bee04816"
       },
-      {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_voice_hazel.stderr.txt",
-        "bytes": 7872,
-        "sha256": "b9741f4ee98df6adf141f9b4f997e3d6b5f796ebd7c8e8384e435c2f2eb28df7"
+      "original_terminal": {
+        "artifact": "6b24d60b_frozen_quality_20261122/LEASE.COMPLETE.json",
+        "bytes": 2427,
+        "sha256": "38311bdfffced594cf1bd77c0192269fb21f05762c85b53f4eaf7c56f44e3d64"
       },
-      {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_voice_david.stderr.txt",
-        "bytes": 7774,
-        "sha256": "66e372ae10bac7638d3d5efaa23a3f315c226d04b6a4fca9403010147d07b099"
+      "original_scope": {
+        "artifact": "6b24d60b_frozen_quality_20261122/RUN.BEFORE_SCOPE.json",
+        "bytes": 1432,
+        "sha256": "db84cd31148a42c846fb0fa382a795cf6fddf5b98d65c9cb536853c71aee7bef"
       },
-      {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_fec60_hazel.stderr.txt",
-        "bytes": 2576,
-        "sha256": "97eae8890a1e1bb678e11f8ebefd86a874d0a866bf200c2afffc23a8498a833d"
+      "matched_voice_and_fec_rows": [
+        {
+          "id": "hazel_voice_16000",
+          "request_bps": 16000,
+          "current": {
+            "snr_db": 13.33804154754988,
+            "segmental_snr_db": 11.63644489696778,
+            "rms_error": 0.02461419553403163,
+            "mean_abs_error": 0.01324290285810943,
+            "pesq_style": 2.604643234096242,
+            "visqol_style": 4.934456081929326,
+            "logband_corr": 0.9960200374358578,
+            "logband_error": 0.05260569821793872,
+            "celt_quality": 99.48112421201984,
+            "celt_masked_error": 0.4161812985554106,
+            "celt_highband_error": 0.04808008773764088,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 6.050394136999144,
+            "segmental_snr_db": 3.6178844175413625,
+            "rms_error": 0.05695974243647888,
+            "mean_abs_error": 0.0307708584112457,
+            "pesq_style": 1.9995229053717678,
+            "visqol_style": 4.898148160118019,
+            "logband_corr": 0.9893491562630283,
+            "logband_error": 0.078109634788015,
+            "celt_quality": 99.31786569525444,
+            "celt_masked_error": 0.547577180228705,
+            "celt_highband_error": 0.0666825456171913,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 7.287647410550735,
+            "segmental_snr_db": 8.018560479426416,
+            "rms_error": 0.03234554690244725,
+            "mean_abs_error": 0.01752795555313627,
+            "pesq_style": 0.6051203287244744,
+            "visqol_style": 0.03630792181130715,
+            "logband_corr": 0.006670881172829435,
+            "logband_error": 0.025503936570076276,
+            "celt_quality": 0.1632585167653957,
+            "celt_masked_error": 0.13139588167329447,
+            "celt_highband_error": 0.018602457879550414,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_16000.FROZEN.RESULT.json",
+              "bytes": 3380,
+              "sha256": "36cae5a1e8d5ac8cd936552eb43240ff14241a224c6b6d15032b386a0ef91547"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_16000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "c80c6b4c1cf1f76a7a86edbcb0005a2605b223d435927731d34c76f67f403af4"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/hazel_voice_16000_official_0_request16000.packets",
+              "bytes": 26873,
+              "sha256": "26d82819e452ec0ef8822f9738d54404e2ce7ce726a56ee9e8e55877f233ad9a"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_16000.no-flush.packets",
+              "bytes": 29451,
+              "sha256": "9c0d393a517fefdc1a162bb175d01a95fe9383c950ca652d7976bd04a5f26e8f"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_16000.PRIMARY.json",
+              "bytes": 2014,
+              "sha256": "b43f2a41fefd77c4510d931ae3d68b9769d6e1bbee1ecabaabda3e0d6936947d"
+            }
+          }
+        },
+        {
+          "id": "hazel_voice_32000",
+          "request_bps": 32000,
+          "current": {
+            "snr_db": 14.686708402811572,
+            "segmental_snr_db": 13.190321949826874,
+            "rms_error": 0.02107425853196184,
+            "mean_abs_error": 0.01111735516941234,
+            "pesq_style": 2.7212935457171508,
+            "visqol_style": 4.963114549417187,
+            "logband_corr": 0.9984901144181859,
+            "logband_error": 0.029841026093776,
+            "celt_quality": 99.57140134644973,
+            "celt_masked_error": 0.34361581636106475,
+            "celt_highband_error": 0.02456076143009335,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 6.20228178547031,
+            "segmental_snr_db": 4.052146495411061,
+            "rms_error": 0.05597236201740788,
+            "mean_abs_error": 0.02979754222297787,
+            "pesq_style": 2.0322360634559713,
+            "visqol_style": 4.918222375325191,
+            "logband_corr": 0.9910591543247702,
+            "logband_error": 0.06125233716433384,
+            "celt_quality": 99.34171489951693,
+            "celt_masked_error": 0.5283690821903123,
+            "celt_highband_error": 0.0626529294892267,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 8.484426617341262,
+            "segmental_snr_db": 9.138175454415812,
+            "rms_error": 0.03489810348544604,
+            "mean_abs_error": 0.018680187053565528,
+            "pesq_style": 0.6890574822611795,
+            "visqol_style": 0.04489217409199675,
+            "logband_corr": 0.007430960093415706,
+            "logband_error": 0.03141131107055784,
+            "celt_quality": 0.22968644693280282,
+            "celt_masked_error": 0.18475326582924756,
+            "celt_highband_error": 0.03809216805913335,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_32000.FROZEN.RESULT.json",
+              "bytes": 3384,
+              "sha256": "e0ece1c98b2b50d85209478ea270ab7a591b9f11094f24aa65ec4288f7006f5d"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_32000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "ce5460ad1698db2c17666a0903bfdae8dbae3cdf06fd20ee2619cead8e422869"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/hazel_voice_32000_official_0_request32000.packets",
+              "bytes": 50207,
+              "sha256": "096ffc5f5c8c03c97c1453c3a41d4f46be9aac7529e1286c60879b5e173d86c2"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_32000.no-flush.packets",
+              "bytes": 55290,
+              "sha256": "32e81886ac6ddefb12f948a957e33d0bb35e840b8eed10b67c154817e85450f9"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_32000.PRIMARY.json",
+              "bytes": 2014,
+              "sha256": "3c588a0e383e54f0914e7d6c3e2e19d128a2a1c3ef338461c3c6cd5a9ff43e6f"
+            }
+          }
+        },
+        {
+          "id": "hazel_voice_64000",
+          "request_bps": 64000,
+          "current": {
+            "snr_db": 15.842569216336598,
+            "segmental_snr_db": 15.94611475302817,
+            "rms_error": 0.0184484236346229,
+            "mean_abs_error": 0.00902417547237141,
+            "pesq_style": 2.928209126043931,
+            "visqol_style": 4.974726936556095,
+            "logband_corr": 0.9993725624302844,
+            "logband_error": 0.02075071439906546,
+            "celt_quality": 99.68026616767692,
+            "celt_masked_error": 0.2561968584828343,
+            "celt_highband_error": 0.00454074702337197,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 6.6517367107906,
+            "segmental_snr_db": 4.949519753690426,
+            "rms_error": 0.05314970864123197,
+            "mean_abs_error": 0.02788109469490808,
+            "pesq_style": 2.099593064885421,
+            "visqol_style": 4.932740628039541,
+            "logband_corr": 0.9920748827167725,
+            "logband_error": 0.04910163516928034,
+            "celt_quality": 99.48302204814198,
+            "celt_masked_error": 0.41465512519574466,
+            "celt_highband_error": 0.03678222514087286,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 9.190832505545998,
+            "segmental_snr_db": 10.996594999337743,
+            "rms_error": 0.034701285006609066,
+            "mean_abs_error": 0.01885691922253667,
+            "pesq_style": 0.82861606115851,
+            "visqol_style": 0.04198630851655416,
+            "logband_corr": 0.007297679713511918,
+            "logband_error": 0.028350920770214876,
+            "celt_quality": 0.19724411953494325,
+            "celt_masked_error": 0.15845826671291036,
+            "celt_highband_error": 0.03224147811750089,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_64000.FROZEN.RESULT.json",
+              "bytes": 3383,
+              "sha256": "906d84a4172b077f9a9166e4eb8b0021f066a1b178af79b447ae5950dc3caa9b"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_64000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "56b8b82bdc09b4d5291dbecb64e2017b8c76dc13242539861eb6d9de59a8ed75"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/hazel_voice_64000_official_0_request64000.packets",
+              "bytes": 98734,
+              "sha256": "e3715eec96b39ad06a2df3e8b9e904bd12e61a90ed50cd7e1c3920d798ee1299"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_64000.no-flush.packets",
+              "bytes": 106587,
+              "sha256": "8cfaadaccee7022c684fae8dd3a753e01f842b0545e8253949db872d62e765a8"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/hazel_voice_64000.PRIMARY.json",
+              "bytes": 2017,
+              "sha256": "243fc2575943c39011372f396555333741ba243fc2917edb24af8851797d26e4"
+            }
+          }
+        },
+        {
+          "id": "hazel_fec60_24000",
+          "request_bps": 24000,
+          "current": {
+            "snr_db": 14.092505791052838,
+            "segmental_snr_db": 12.845795798603291,
+            "rms_error": 0.02258319214707044,
+            "mean_abs_error": 0.01200863099287427,
+            "pesq_style": 2.6944126799434094,
+            "visqol_style": 4.944209756368407,
+            "logband_corr": 0.9968103900304727,
+            "logband_error": 0.04468172483647504,
+            "celt_quality": 99.44597997401033,
+            "celt_masked_error": 0.4444483271387367,
+            "celt_highband_error": 0.07996362448110449,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 6.142314168680105,
+            "segmental_snr_db": 3.7983631417468495,
+            "rms_error": 0.05640205280469414,
+            "mean_abs_error": 0.03033425051068503,
+            "pesq_style": 2.013164880985458,
+            "visqol_style": 4.904364314283994,
+            "logband_corr": 0.9898945274434275,
+            "logband_error": 0.0728539576645282,
+            "celt_quality": 99.35013074922948,
+            "celt_masked_error": 0.5215920755627024,
+            "celt_highband_error": 0.08025829064270423,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 7.950191622372733,
+            "segmental_snr_db": 9.047432656856442,
+            "rms_error": 0.0338188606576237,
+            "mean_abs_error": 0.01832561951781076,
+            "pesq_style": 0.6812477989579513,
+            "visqol_style": 0.03984544208441321,
+            "logband_corr": 0.00691586258704513,
+            "logband_error": 0.028172232828053152,
+            "celt_quality": 0.09584922478084934,
+            "celt_masked_error": 0.07714374842396565,
+            "celt_highband_error": 0.00029466616159974646,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "428e3c8_full_qualification_20261122/hazel_fec60_24000.nominal-score.COMPLETE.json",
+              "bytes": 1284,
+              "sha256": "6262aaf9fd84f053a0ce5f82b86dd15f05d07a04b0d5d8b9012e993f5efba94b"
+            },
+            "same_wire_witness": {
+              "artifact": "428e3c8_silk_joint_phase_candidate_20261122/hazel/RESULT.json",
+              "bytes": 3270,
+              "sha256": "58325f07aa99e8b7f632eef214aedcae98bc2d300a1cbee4195afa07e450fdc3"
+            },
+            "original_hazel": {
+              "artifact": "66be7de_silk_one_q14_stack_repair_20261122/HAZEL.RESULT.json",
+              "bytes": 6046,
+              "sha256": "b8d9bd94a3df2f584e08d28938ce916bf6ff3ef0b2ae91332c7e1ba96ca51ced"
+            },
+            "current_packets": {
+              "artifact": "428e3c8_full_qualification_20261122/nominal/hazel_fec60_24000.packets",
+              "bytes": 38291,
+              "sha256": "e7e59a1c4a706cfa1d4f17168a47e721c7449df0f8f637258199afa02d952e64"
+            },
+            "actual_capture": {
+              "artifact": "428e3c8_silk_joint_phase_candidate_20261122/hazel/RESULT.json",
+              "bytes": 3270,
+              "sha256": "58325f07aa99e8b7f632eef214aedcae98bc2d300a1cbee4195afa07e450fdc3"
+            }
+          }
+        },
+        {
+          "id": "david_voice_16000",
+          "request_bps": 16000,
+          "current": {
+            "snr_db": 9.342532809330713,
+            "segmental_snr_db": 9.852912702203463,
+            "rms_error": 0.02993059718521857,
+            "mean_abs_error": 0.01445621044551227,
+            "pesq_style": 2.4685152003420594,
+            "visqol_style": 4.923037241503165,
+            "logband_corr": 0.9947557330201482,
+            "logband_error": 0.06159064478915399,
+            "celt_quality": 99.00457563843142,
+            "celt_masked_error": 0.8003294681225768,
+            "celt_highband_error": 0.01355485671416332,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 5.030018173100843,
+            "segmental_snr_db": 3.535000609349513,
+            "rms_error": 0.04917463147684142,
+            "mean_abs_error": 0.02479425951027168,
+            "pesq_style": 1.9935228893528902,
+            "visqol_style": 4.891182780336597,
+            "logband_corr": 0.9910163861756497,
+            "logband_error": 0.08719302591792293,
+            "celt_quality": 97.44756486342588,
+            "celt_masked_error": 2.06845991369034,
+            "celt_highband_error": 0.01848032487452197,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 4.31251463622987,
+            "segmental_snr_db": 6.31791209285395,
+            "rms_error": 0.019244034291622848,
+            "mean_abs_error": 0.010338049064759412,
+            "pesq_style": 0.47499231098916916,
+            "visqol_style": 0.03185446116656809,
+            "logband_corr": 0.0037393468444985034,
+            "logband_error": 0.025602381128768933,
+            "celt_quality": 1.557010775005537,
+            "celt_masked_error": 1.2681304455677633,
+            "celt_highband_error": 0.004925468160358652,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_16000.FROZEN.RESULT.json",
+              "bytes": 3383,
+              "sha256": "33f4297b545f248f29215c0999e068412a66423c708c3c3ee786719a57ec65fc"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_16000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "1758477ae41f4cebad4061f90e8555d6a6b82b417de029ad4106735d46e9cef8"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/david_voice_16000_official_0_request16000.packets",
+              "bytes": 23102,
+              "sha256": "2af9650cc7ee6a661ab4690d7cb50e89c5687e80871f4ea8628822220a4eeec4"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_16000.no-flush.packets",
+              "bytes": 25931,
+              "sha256": "3b1bb10d73a3a348a362f5a1a3808b88fcfca3b165348c6649821443eb856399"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_16000.PRIMARY.json",
+              "bytes": 2014,
+              "sha256": "f8e50259a17554f17d4baa352cdf97651e6da08568db59fc67407c68b0a6ee45"
+            }
+          }
+        },
+        {
+          "id": "david_voice_32000",
+          "request_bps": 32000,
+          "current": {
+            "snr_db": 10.188730358243934,
+            "segmental_snr_db": 11.197852663130345,
+            "rms_error": 0.02715223005474494,
+            "mean_abs_error": 0.01234921242825807,
+            "pesq_style": 2.5714054049650823,
+            "visqol_style": 4.954040961230941,
+            "logband_corr": 0.9980719667269466,
+            "logband_error": 0.03739801892817832,
+            "celt_quality": 99.3699175900347,
+            "celt_masked_error": 0.5056606455647942,
+            "celt_highband_error": 0.00438889113027344,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 5.3064854278692835,
+            "segmental_snr_db": 3.8953508201466147,
+            "rms_error": 0.04763407665190296,
+            "mean_abs_error": 0.02340440916211292,
+            "pesq_style": 2.0215144734311288,
+            "visqol_style": 4.920659674075413,
+            "logband_corr": 0.9942859371327103,
+            "logband_error": 0.06320829854128884,
+            "celt_quality": 97.20079098592296,
+            "celt_masked_error": 2.271306947164166,
+            "celt_highband_error": 0.00559702985168808,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 4.88224493037465,
+            "segmental_snr_db": 7.30250184298373,
+            "rms_error": 0.02048184659715802,
+            "mean_abs_error": 0.011055196733854852,
+            "pesq_style": 0.5498909315339535,
+            "visqol_style": 0.03338128715552813,
+            "logband_corr": 0.003786029594236351,
+            "logband_error": 0.025810279613110526,
+            "celt_quality": 2.1691266041117387,
+            "celt_masked_error": 1.7656463015993715,
+            "celt_highband_error": 0.00120813872141464,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_32000.FROZEN.RESULT.json",
+              "bytes": 3383,
+              "sha256": "09c8e4fd15ac8b66736046fad5d47b0474c885f3525bfc20e282980383d33554"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_32000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "243288d4de62f94106cd0bc75baca6783a63a42410fb10e8109c2f18f9730ff6"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/david_voice_32000_official_0_request32000.packets",
+              "bytes": 43019,
+              "sha256": "4e0579bf9c96f9fe45087b234eb7271479fcc033487c672d80545949299649cd"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_32000.no-flush.packets",
+              "bytes": 48098,
+              "sha256": "50bde554b7cbff02101ea7108dc49c26caec62f084a527c66ba5fed9c4dfd008"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_32000.PRIMARY.json",
+              "bytes": 2014,
+              "sha256": "715736e894d54a661ed830656fa69ab39ec84978eb3a928df44128a7becc0c11"
+            }
+          }
+        },
+        {
+          "id": "david_voice_64000",
+          "request_bps": 64000,
+          "current": {
+            "snr_db": 11.587690936305975,
+            "segmental_snr_db": 14.13356740347578,
+            "rms_error": 0.02311306154704115,
+            "mean_abs_error": 0.00957530537479419,
+            "pesq_style": 2.791731936854528,
+            "visqol_style": 4.971761153411262,
+            "logband_corr": 0.9993377660471212,
+            "logband_error": 0.02328983711911173,
+            "celt_quality": 99.67255793731728,
+            "celt_masked_error": 0.26238346187656847,
+            "celt_highband_error": 0.00230544809652466,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 5.872107099527332,
+            "segmental_snr_db": 4.961020240362261,
+            "rms_error": 0.04463100512540152,
+            "mean_abs_error": 0.02136359115771357,
+            "pesq_style": 2.1012273609189442,
+            "visqol_style": 4.940845606913527,
+            "logband_corr": 0.9959430609322055,
+            "logband_error": 0.04664064315347299,
+            "celt_quality": 97.40115137062536,
+            "celt_masked_error": 2.106572348465724,
+            "celt_highband_error": 0.00317717456445338,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 5.715583836778643,
+            "segmental_snr_db": 9.172547163113519,
+            "rms_error": 0.021517943578360368,
+            "mean_abs_error": 0.01178828578291938,
+            "pesq_style": 0.6905045759355839,
+            "visqol_style": 0.030915546497735313,
+            "logband_corr": 0.003394705114915686,
+            "logband_error": 0.023350806034361255,
+            "celt_quality": 2.2714065666919225,
+            "celt_masked_error": 1.8441888865891558,
+            "celt_highband_error": 0.0008717264679287198,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_64000.FROZEN.RESULT.json",
+              "bytes": 3388,
+              "sha256": "cf4563cee1f262e889128ae607ddd693ef1a492ebd026debf86981e87141105a"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_64000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "8d10e17468913d8e7bc73f6c8b30da70518aa2ddb26db21845d789025c125ce8"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/david_voice_64000_official_0_request64000.packets",
+              "bytes": 82165,
+              "sha256": "d29f533fe08492cdff5a639f02c9677f74be4efedeb95e46db719c22912f92d0"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_64000.no-flush.packets",
+              "bytes": 89007,
+              "sha256": "eadffddd17b3cef2c0edf6f0268e2d8d3bdc9d9215c0e764c75798c51c207ded"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_voice_64000.PRIMARY.json",
+              "bytes": 2013,
+              "sha256": "57843a9a8876ecb9f3979005d9dd2dfc33381f847d9df18ba50713f5119cde77"
+            }
+          }
+        },
+        {
+          "id": "david_fec60_24000",
+          "request_bps": 24000,
+          "current": {
+            "snr_db": 8.984150449992754,
+            "segmental_snr_db": 10.327712906363631,
+            "rms_error": 0.03124437508830166,
+            "mean_abs_error": 0.01461280170752078,
+            "pesq_style": 2.5029423418902628,
+            "visqol_style": 4.921302940334476,
+            "logband_corr": 0.9941130856934087,
+            "logband_error": 0.06237503004848969,
+            "celt_quality": 98.60986038749292,
+            "celt_masked_error": 1.119914035969034,
+            "celt_highband_error": 0.07387448358950989,
+            "stereo_width_error": 0.0
+          },
+          "official": {
+            "snr_db": 5.035794708586799,
+            "segmental_snr_db": 3.6837448043519805,
+            "rms_error": 0.04922544262735089,
+            "mean_abs_error": 0.02448795436461226,
+            "pesq_style": 2.004724646755323,
+            "visqol_style": 4.902021221777179,
+            "logband_corr": 0.9922429304934177,
+            "logband_error": 0.07828228857465364,
+            "celt_quality": 97.68606186296053,
+            "celt_masked_error": 1.872903978165374,
+            "celt_highband_error": 0.07450068345542407,
+            "stereo_width_error": 0.0
+          },
+          "margins": {
+            "snr_db": 3.9483557414059547,
+            "segmental_snr_db": 6.643968102011651,
+            "rms_error": 0.01798106753904923,
+            "mean_abs_error": 0.00987515265709148,
+            "pesq_style": 0.49821769513493974,
+            "visqol_style": 0.019281718557296657,
+            "logband_corr": 0.0018701551999910082,
+            "logband_error": 0.015907258526163946,
+            "celt_quality": 0.923798524532387,
+            "celt_masked_error": 0.75298994219634,
+            "celt_highband_error": 0.0006261998659141815,
+            "stereo_width_error": -0.0
+          },
+          "tolerances": {
+            "snr_db": 0.0,
+            "segmental_snr_db": 0.0,
+            "rms_error": 0.0,
+            "mean_abs_error": 0.0,
+            "pesq_style": 0.0,
+            "visqol_style": 0.0,
+            "logband_corr": 0.0,
+            "logband_error": 0.0,
+            "celt_quality": 0.0,
+            "celt_masked_error": 0.0,
+            "celt_highband_error": 0.0,
+            "stereo_width_error": 0.0
+          },
+          "capture_receipts": {
+            "score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_fec60_24000.FROZEN.RESULT.json",
+              "bytes": 3386,
+              "sha256": "c89324044ff887096863e1781847bb71802e9c3ccefa4a306425728cfd4a3bb1"
+            },
+            "matched_original_score": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_fec60_24000-pair-score.COMPLETE.json",
+              "bytes": 1260,
+              "sha256": "3789e15ba2a41f71ccf7638987349497740314db7ae7f3ecb4d0374f46b3f347"
+            },
+            "scalar_off_packets": {
+              "artifact": "baseline_protocol_20261114/scalar_reference/calibration/david_fec60_24000_official_0_request24000.packets",
+              "bytes": 28895,
+              "sha256": "3f0a6b771784aba04b7d39aa0c7122409a5b57326fd00abcdb254a24c8eb12a8"
+            },
+            "current_packets": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_fec60_24000.no-flush.packets",
+              "bytes": 31976,
+              "sha256": "d688a0f3aba09a6d30e57d72e83a433a6e15cd277b0454ec4d178e969b6cbb67"
+            },
+            "actual_capture": {
+              "artifact": "6b24d60b_frozen_quality_20261122/david_fec60_24000.PRIMARY.json",
+              "bytes": 2015,
+              "sha256": "951a4f16029312521737428c404d1db470ef46625dcc3e8276bb92debc4e9400"
+            }
+          }
+        }
+      ],
+      "voice_fec_frozen_tolerance": {
+        "artifact": "baseline_protocol_20261114/matched_quality/exact17/execution_v1/TOLERANCES17.frozen.json",
+        "bytes": 49134,
+        "sha256": "949ddbba104fdffe76834a667a3565794d3b14e7efec678e7d2aa585a7729b13"
       },
-      {
-        "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_fec60_david.stderr.txt",
-        "bytes": 2697,
-        "sha256": "aebd1d2d3b1bf3343144fea7e507fcabfad2424038f3f4d53478a60187b8f6ba"
-      }
-    ],
-    "quality_scope": "Fresh498 matrix plus806 published rows use the guarded full-precision quality image. Actual configured properties above were checked outside timed regions after setters and before frame1.",
-    "denoiser_contract": "Effective current denoiser is requested && VOIP && physical mono; AUDIO or stereo legitimately reports0.",
-    "unsupported_application_getter": "Request4001 is not supported by this current public source/header. Create-call source arguments are retained; runtime application getter remains UNKNOWN.",
-    "additional_factory_properties": "The current benchmark-v2 quality/optional source records DTX; application and signal getters remain explicitly UNKNOWN because they are unsupported. Private timing adapters record the exposed common options without inventing unsupported values.",
-    "optional_encoder_runtime_evidence": [
-      {
-        "family": "optional",
-        "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\optional_driver.cpp",
-          "bytes": 5595,
-          "sha256": "331fbfffd32083cf7c5e8c6ed36277e97e49b402db4eabbf78b6e68ed06c7767"
-        },
-        "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_optional.stderr.txt",
-          "bytes": 58187,
-          "sha256": "6f84514801c0af6f339bf447175b9e22cf344fa7aa7f552ce1075931c4ba1963"
-        },
-        "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 49855,
-          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
-        },
-        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
-        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
-        "actual_getter_records": 189,
-        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
-        "decoder_postfilter_getter": "Present before decode timing in optional driver; actual applied levels are retained in optional.csv."
-      },
-      {
-        "family": "denoise_timing",
-        "original_driver": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\denoise_timing_driver.cpp",
-          "bytes": 2662,
-          "sha256": "43e48de4a737165f592c92e304612b4115095dd5d7ed7669081802483bf4afd0"
-        },
-        "original_stderr": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\logs\\timing_denoise_timing.stderr.txt",
-          "bytes": 67698,
-          "sha256": "0b43763fe539595c654ba1801f3951d40a2775e928a8d771a21b0c7be32443f2"
-        },
-        "shared_included_factory": {
-          "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\repo\\build\\official_compare_report\\full9270eac_once_20261111\\tests\\perceptual_memory_validation.cpp",
-          "bytes": 49855,
-          "sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421"
-        },
-        "encoder_option_runtime_getters": "RECORDED_FOR_THE_CURRENT_ONLY_OPTIONAL_WORKLOAD_BY_BENCHMARK_V2_SOURCE_BEFORE_FRAME1",
-        "intended_option_claim": "QUALIFIED_FOR_RECORDED_GETTERS_WITH_APPLICATION_AND_SIGNAL_EXPLICITLY_UNKNOWN",
-        "actual_getter_records": 220,
-        "raw_elapsed_values": "Freshly executed with source-authored current runtime getter evidence outside timed regions; these optional workloads do not execute an official encoder.",
-        "decoder_postfilter_getter": "Not a decoder workload"
-      }
-    ],
-    "optional_encoder_setup_gaps": [],
-    "other_maintained_tests": "Original source/getter assertions and actual outputs are retained per test. No generic all-options proof is inferred for an image without corresponding runtime evidence.",
-    "no_late_getter_rebuild_replacement_or_retime": true,
-    "measured_values_and_original_identity_unchanged": true,
-    "decision": "Retain the fresh raw values and exact gap. Do not score unobserved intended-option states as qualified benchmark proof. Root alone decides publication of the disclosed facts; no goal or setup waiver.",
-    "original_method": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\source_supported_option_getters.py",
-      "bytes": 3025,
-      "sha256": "03aa0275364df121e6e0517af1038b9052d7bbf8df91cf8af58b33fe1f1b6f18"
-    },
-    "complete_original_log_index": {
-      "path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\full_benchmark_9270eac_20261111\\RUNTIME_OPTION_SCOPE.json",
-      "sha256": "89ca5dd8530e250fc86392787643c4cb699ba3ec7671dcbec573bd0eb052d8d5"
+      "voice_fec_off_lane": "Original matched scalar OFF receive. The older calibration supplies tolerances."
     }
   }
 }

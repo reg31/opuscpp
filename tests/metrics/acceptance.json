@@ -5,62 +5,22 @@
       18,
       18,
       18,
-      17
+      18
     ],
-    "failed_rows": [
-      {
-        "key": [
-          1,
-          20,
-          16000,
-          1,
-          1
-        ],
-        "criteria_pass": [
-          true,
-          true,
-          true,
-          false
-        ],
-        "current": {
-          "fidelity_fec": 0.949547904,
-          "next_fec": 0.799315657,
-          "transition_fec": 0.93212934,
-          "fidelity_ref": 0.254626704,
-          "next_ref": 0.268937922,
-          "transition_ref": 0.227502066,
-          "fidelity_plc": 0.949547904,
-          "self_consistency": 0.951637461,
-          "step_fec": -73.0,
-          "step_ref": -124.0
-        },
-        "official": {
-          "fidelity_fec": 1.026548022,
-          "next_fec": 0.895819017,
-          "transition_fec": 0.969528753,
-          "fidelity_ref": 0.713662654,
-          "next_ref": 0.671142318,
-          "transition_ref": 0.323463324,
-          "fidelity_plc": 1.026548022,
-          "self_consistency": 0.963701829,
-          "step_fec": -138.0,
-          "step_ref": -281.0
-        }
-      }
-    ],
-    "exit_code": 1,
-    "acceptance": "FAIL",
+    "failed_rows": [],
+    "exit_code": 0,
+    "acceptance": "PASS",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false,
-    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 17] out of 18"
+    "stdout": "FEC source criteria C1/C2/C3/C4: [18, 18, 18, 18] out of 18"
   },
   "standard_interop": {
-    "exit_code": 1,
-    "summary": "fec_summary recovery_error_ratio=0.566567 wins=18/18 coverage=17/18 official_coverage=15/18 packet_byte_ratio=1.00197",
-    "acceptance": "FAIL",
+    "exit_code": 0,
+    "summary": "fec_summary recovery_error_ratio=0.390692 wins=18/18 coverage=18/18 official_coverage=15/18 packet_byte_ratio=0.988523",
+    "acceptance": "PASS",
     "failure_is_non_gating_for_measurement_completion": true,
     "waiver": false
   },
-  "acceptance": "FAIL",
+  "acceptance": "PASS",
   "waiver": false
 }
