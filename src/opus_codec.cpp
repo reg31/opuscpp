@@ -664,7 +664,6 @@ struct CeltEncoderInternal;
 static void classical_leak_reset(classical_leak_state* s);
 static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth);
 static void classical_leak_get_info(classical_leak_state* s, classical_leak_info* info_out, int Fs, int len);
-static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt);
 struct CeltEncoderInternal {
   bool classical_leak_valid = false;
   opus_uint8 classical_leak_boost[19]{};
@@ -4393,9 +4392,6 @@ OPUSCPP_NOINLINE static bool opus_prepare_frame_highpass(OpusEncoder* st, void* 
 }
 
 OPUSCPP_COMPACT static opus_int32 opus_encode_frame_native(OpusEncoder* st, const opus_res* pcm, int frame_size, unsigned char* data, opus_int32 orig_max_data_bytes, opus_int32 allocator_target_bits, const frame_activity_metrics& metrics, int redundancy, int celt_to_silk, int prefill, opus_int32 equiv_rate, int to_celt, bool nonfinal_frame, bool emit_dtx, encoder_stage_storage& stage_storage, packet_frame_set* packet_frames, opus_int32 range_storage_bytes) {
-  if (st->classical_leak.initialized) {
-    classical_leak_export(&st->classical_leak, encoder_celt_state(st));
-  }
   const bool skip_celt_for_dtx = emit_dtx && st->mode == opus_mode_hybrid;
   int ret = 0, redundancy_bytes = 0, nb_compr_bytes;
   opus_int32 nBytes = 0;
@@ -11163,9 +11159,6 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
   float activity;
   float midE[8];
   float spec_variability = 0;
-  float band_log2[19];
-  float leakage_from[19];
-  float leakage_to[19];
   float layer_out[32];
 
   alpha = 1.f / std::min(10, 1 + tonal->count);
@@ -11196,7 +11189,7 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
       E += binE;
     }
     E = (1.f / 32768.f / 32768.f) * E;
-    band_log2[0] = .5f * 1.442695f * static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
+    [[maybe_unused]] const volatile float scaled_log = .5f * 1.442695f * static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
   }
   for (b = 0; b < 18; ++b) {
     float E = 0, tE = 0, nE = 0;
@@ -11221,7 +11214,7 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
 
     frame_loudness += classifier_sqrt_d(E + 1e-10f);
     logE[b] = static_cast<float>(std::log(static_cast<double>(E + 1e-10f)));
-    band_log2[b + 1] = .5f * 1.442695f * logE[b];
+    [[maybe_unused]] const volatile float scaled_log = .5f * 1.442695f * logE[b];
     tonal->logE[tonal->E_count][b] = logE[b];
     if (tonal->count == 0) {
       tonal->highE[b] = tonal->lowE[b] = logE[b];
@@ -11267,24 +11260,6 @@ static void classifier_phase_pass(const float* __restrict out, float* __restrict
     max_frame_tonality = std::max(max_frame_tonality, (1.f + .03f * (b - 18)) * frame_tonality);
     slope += band_tonality[b] * (b - 8);
     tonal->prev_band_tonality[b] = band_tonality[b];
-  }
-
-  leakage_from[0] = band_log2[0];
-  leakage_to[0] = band_log2[0] - 2.5f;
-  for (b = 1; b < 19; ++b) {
-    float leak_slope = 2.f * (classical_tbands[b] - classical_tbands[b - 1]) / 4;
-    leakage_from[b] = std::min(leakage_from[b - 1] + leak_slope, band_log2[b]);
-    leakage_to[b] = std::max(leakage_to[b - 1] - leak_slope, band_log2[b] - 2.5f);
-  }
-  for (b = 16; b >= 0; --b) {
-    float leak_slope = 2.f * (classical_tbands[b + 1] - classical_tbands[b]) / 4;
-    leakage_from[b] = std::min(leakage_from[b + 1] + leak_slope, leakage_from[b]);
-    leakage_to[b] = std::max(leakage_to[b + 1] - leak_slope, leakage_to[b]);
-  }
-  for (b = 0; b < 19; ++b) {
-    float boost = std::max(0.f, leakage_to[b] - band_log2[b]) +
-                  std::max(0.f, band_log2[b] - (leakage_from[b] + 2.5f));
-    info->leak_boost[b] = static_cast<opus_uint8>(std::min(255, static_cast<int>(std::floor(0.5 + static_cast<double>(64.f * boost)))));
   }
 
   const auto history_distance = [&](int first, int second) {
@@ -11546,7 +11521,6 @@ OPUSCPP_COMPACT static void classical_leak_get_info(classical_leak_state* tonal,
   const int pos0 = pos;
   const auto& record = tonal->info[pos];
   *info_out = {.music_prob = record.music_prob, .music_prob_min = 0, .music_prob_max = 0, .activity_probability = record.activity_probability, .leak_boost = {}, .valid = record.valid, .bandwidth = record.bandwidth};
-  copy_n_items(record.leak_boost, 19, info_out->leak_boost);
   if (!info_out->valid) {
     return;
   }
@@ -11637,13 +11611,6 @@ OPUSCPP_COMPACT static void classical_leak_ingest_pcm(classical_leak_state* s, c
     }
     offset += step;
     pcm_len -= step;
-  }
-}
-
-static void classical_leak_export(const classical_leak_state* s, CeltEncoderInternal* celt) {
-  celt->classical_leak_valid = s->out_info.valid != 0;
-  for (int i = 0; i < 19; ++i) {
-    celt->classical_leak_boost[i] = s->out_info.leak_boost[i];
   }
 }
 
