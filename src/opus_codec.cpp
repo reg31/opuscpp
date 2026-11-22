@@ -15545,12 +15545,14 @@ OPUSCPP_LEANO static void silk_resampler_private_IIR_FIR(silk_resampler_state_st
 }
 
 OPUSCPP_LEANO static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const opus_int16* in, opus_int32 len) {
-  for (opus_int32 k = 0; k < len; ++k) {
-    const auto in32 = wrap_shift_left(in[k], 10);
-    for (int branch = 0; branch < 2; ++branch) {
-      const auto& coefs = branch ? silk_resampler_up2_hq_1 : silk_resampler_up2_hq_0;
-      auto* state = S + 3 * branch;
-      opus_int32 value = in32;
+  if (len <= 0) {
+    return;
+  }
+  for (int branch = 0; branch < 2; ++branch) {
+    const auto& coefs = branch ? silk_resampler_up2_hq_1 : silk_resampler_up2_hq_0;
+    auto* state = S + 3 * branch;
+    for (opus_int32 k = 0; k < len; ++k) {
+      opus_int32 value = wrap_shift_left(in[k], 10);
       for (int stage = 0; stage < 3; ++stage) {
         const auto delta = value - state[stage];
         const auto product = (delta * static_cast<opus_int64>(coefs[stage])) >> 16;
