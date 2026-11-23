@@ -1044,7 +1044,8 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
 #if defined(__GNUC__) && !defined(__clang__)
 [[gnu::always_inline]]
 #endif
-[[nodiscard]] static inline auto normalized_pcm16(float x) noexcept -> opus_int16 {
+[[nodiscard]] static inline auto
+normalized_pcm16(float x) noexcept -> opus_int16 {
   return static_cast<opus_int16>(pcm_float2int(std::clamp(x * 32768.f, -32768.f, 32767.f)));
 }
 
