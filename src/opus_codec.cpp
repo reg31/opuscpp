@@ -13369,7 +13369,8 @@ __declspec(noinline)
 #else
 [[gnu::hot, gnu::noinline]]
 #endif
-static void silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int api_channels, int channel) {
+static void
+silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int api_channels, int channel) {
   constexpr float scale = 1.f / 32768.f;
   if (api_channels == 2) {
     for (int i = 0; i < samples; ++i) {
