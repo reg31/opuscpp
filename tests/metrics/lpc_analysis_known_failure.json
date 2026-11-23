@@ -1,12 +1,12 @@
 {
   "status": "PASS",
   "status_from_current_run": true,
-  "run_id": "full374a368_once_20261122",
-  "source_sha256": "3c77a673fac2bc278bdef15b6f0c7b80bfa2b3450adbb11dbb97b9faf5414a75",
+  "run_id": "clean-current-full",
+  "source_sha256": "50465e2bb2185e1c0182821b6081ae8bcbd9b6a7abe3b4ab14bdffbc9a5b9ad3",
   "test_sha256": "4b42de2ed9283ffebfc8506a4e7f7f532478f2bede5fd02add41189d4862f422",
   "adapter_sha256": "4c08ddcaf69747297abfd0da9d648a8d314f36b53107cfafc44debbce08886d8",
-  "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
-  "matrix_results_sha256": "286b3b3afbffcb911000abbd9b3e1696dfd446cb4492f48e114f588a48b1b7d8",
+  "matrix_results_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\RESULTS.json",
+  "matrix_results_sha256": "b3d9b6c62766f1443ed74ef0e4358fe5c863949b453b112b4b287c51c74fcaf1",
   "oracle": "RFC6716 section6 opus_compare exit0 for each configuration plus per-packet exact final ranges; no per-frame PCM tolerance",
   "matrix": {
     "status": "PASS",
@@ -22,19 +22,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "74c36d4339ecd6bae0a55aabf7bcd929cdb07b15a1ddc38f6e5027c10c5a9a8b",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "b1b4371a549c3ec9fee7b18b7e0e88672933ff7b4a6331ca8ed527d7477e17fe",
         "packet_sha256": "ca0b1ddc90e3b227e781d8cdf101e934b2f113429f1f87f4f29f33cb7e509829",
         "ranges_sha256": "ef006c7e185321076888479f4f41f91a7221f4e6d6b42394367282807c031db4",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -47,19 +47,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 83.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "07f168101d92536f5a80c8be860e1c17850c952599de9be82d22420054798505",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "e902872f58bb402b065747f29c310c0c4ccdb39ef7567bf13e98eb71fd8dc313",
         "packet_sha256": "abddf9a026ad6218098f48d5bb425a219b1e873e3ebf30c297841330228771fa",
         "ranges_sha256": "ec1767d21d88821e2a426846c4c5a39dc65e24fd6b05ca3b1aaa84b8c4b775a3",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -72,19 +72,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "d39a0b4070d0ba0660c040b3d4d77c3955cb4fe021da1f068eb1add480de388f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "9117819f9a14d39586c2ef9d286dd93122449ed26b0c4982c7dfd9ed3dbd9513",
         "packet_sha256": "9bf6771fb4a7325995e32f15b5ebac60eb1d312ae49ad6535b11f00233b0ca46",
         "ranges_sha256": "56395193cb3401208b2f4c2177d79dc2dc65a831c46f46398778f3ed0c1df88d",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 0,
@@ -97,19 +97,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 87.5,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "b4a5f3d4d07ae71345dcc90fccce98bbb346a9128922d063cc8fc1d471575c63",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "10548140e768175698c8c19dd5df20a4bc6fcd69a2bb9c5661461bf69e8577f5",
         "packet_sha256": "f53141ccc2725477a9bd83ffe68a6e428b60d517105c3463bb836bcb140447ad",
         "ranges_sha256": "3735650070226571e3c4bd38b2762c7c4421c1ca8accb4d5d55b29df2687bdcc",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c0_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -122,19 +122,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.7,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "39bc9755d44561b162178a5af71d677cb74c6149420be8fcde56b34fa015d985",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "15c5f0d922e133972895c3ef36ea0fe03029759bc4dda9ee08546f7f583a297e",
         "packet_sha256": "5ec3ad74c26f0a8ecb11c4b15e06bfed34c6132d132fea652e81cb7284482cf0",
         "ranges_sha256": "fd8a84533922fd914f871021b0862e223aa7771ce9340782955792766d80a0c5",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -147,19 +147,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 81.9,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "39ca1d26b816f101ff5b9c2eeb901d802064563125e7e6b977314e2913466113",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "d78e656a3928a5ed33c59f88cfa970f5220928dc1b58208ed5fb3cc3c985a315",
         "packet_sha256": "b983897bb58802ef44d9d5f7684acacbbd997b64b5a72a0ab8ba06529aa7c44d",
         "ranges_sha256": "a8dc3ea01e80cafe7bff721fcf79b198c72bc8dff9ad13b37ccfca7bf75e19dd",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -172,19 +172,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 83.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "e177639eeeaca2077631d70f86e7ffcb528c32bad0747cbb3fcba576c3cf7aaa",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "0c59d06a926e5784541d9c4025242e21a4776a0b832d61669be906e163dc15d0",
         "packet_sha256": "5a0eaae7ed1aea87ddd4f1a2333ef01a8087397968149e1dfc881123ef5cf906",
         "ranges_sha256": "50f49650fa20fb6c83ac125cb802e1d3943917596e0f64819b498ea74e68d067",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 5,
@@ -197,19 +197,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 84.6,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "2e863f0deeeb1503713e5922e964773c8df2fb196c353f030ee6da7dbdbddfda",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "4007769be38c8f9e9e8de90327570ef2e96318fc6ddcc1d17d74b34be01de889",
         "packet_sha256": "305e2dc62a5727a3e99d202d8cdb08d49befa546381983f18625182d88082aad",
         "ranges_sha256": "aea85aab255ce06e33af6d22230b782b31c47ad96d1d2a15b37c468ab2144f3b",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c5_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -222,19 +222,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "648328cfc9f6c852ec4f72f8c48791a223a4678a37678d23310750ddb2b1d0b0",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "36b0b8b7cef01f7edd600be224786b244967024bc69e28d670c3693c4e5f943c",
         "packet_sha256": "af8c843d9d9431c6707c614c5adb0ebf4e1f7d09a7db9bccf28dcc11cfbbe1d7",
         "ranges_sha256": "cf7490c9e97ad6e8f54a4b00eaed8958a798165d3d16ee972e5f056ef9dbcb26",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -247,19 +247,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 65.6,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "e32bca97ea7edf95ced53b33fc684af4088bfed2e96de7eed75b9f256bcddb8f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "c78d7709421e6b5de3cebe7e42af8fe398f51e467cb4d8fcd23934b4ed554273",
         "packet_sha256": "f99dfcd2f136543104dd39cef2c09a0f533870a12718f7bcb36fe205b7ef3664",
         "ranges_sha256": "2d2a5402478b434f2f054908424c49393bd2f159ce758dea69c5672945f4aabe",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -272,19 +272,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 62.7,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "89e944dd6912747ad5f9d83eb05c4f002eca514d45796600f31451b4c8937176",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "b1530790379dc986b1ed4c9cf2521dec447a6c5227030d12ea5741079a9ac841",
         "packet_sha256": "88d6fd932600fc91f8db7a5d2acfcc03e7477eef9e2a8cdb5a20345065396117",
         "ranges_sha256": "66ecbad543381f56e1c0d98bfea2ccad41251f5b51cabc9aa4b20580f4eaf409",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 9,
@@ -297,19 +297,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 65.5,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "a863ec3051b9fea64fcbe9a5194db85b13d083e6dafe27da78dbfaa18181c81a",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "dac52b680722e2753aacb2bab56c2e5da4d66182b9d581242b82b41e49283d7f",
         "packet_sha256": "110c7f1402c2212fb3a197060e8925446769f20f45a6e178417336791be8ec7a",
         "ranges_sha256": "cf7d49eb644dc1dec2c37b6b3bdd468665e9ec539232300fb5645bd08e65d136",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c9_b48000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -322,19 +322,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 88.8,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\native16_mono.pcm",
         "native_pcm_sha256": "648328cfc9f6c852ec4f72f8c48791a223a4678a37678d23310750ddb2b1d0b0",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\official48_stereo.pcm",
         "reference_pcm_sha256": "36b0b8b7cef01f7edd600be224786b244967024bc69e28d670c3693c4e5f943c",
         "packet_sha256": "af8c843d9d9431c6707c614c5adb0ebf4e1f7d09a7db9bccf28dcc11cfbbe1d7",
         "ranges_sha256": "cf7490c9e97ad6e8f54a4b00eaed8958a798165d3d16ee972e5f056ef9dbcb26",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b16000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -347,19 +347,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 65.6,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\native16_mono.pcm",
         "native_pcm_sha256": "e32bca97ea7edf95ced53b33fc684af4088bfed2e96de7eed75b9f256bcddb8f",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\official48_stereo.pcm",
         "reference_pcm_sha256": "c78d7709421e6b5de3cebe7e42af8fe398f51e467cb4d8fcd23934b4ed554273",
         "packet_sha256": "f99dfcd2f136543104dd39cef2c09a0f533870a12718f7bcb36fe205b7ef3664",
         "ranges_sha256": "2d2a5402478b434f2f054908424c49393bd2f159ce758dea69c5672945f4aabe",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b24000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -372,19 +372,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 62.7,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\native16_mono.pcm",
         "native_pcm_sha256": "89e944dd6912747ad5f9d83eb05c4f002eca514d45796600f31451b4c8937176",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\official48_stereo.pcm",
         "reference_pcm_sha256": "b1530790379dc986b1ed4c9cf2521dec447a6c5227030d12ea5741079a9ac841",
         "packet_sha256": "88d6fd932600fc91f8db7a5d2acfcc03e7477eef9e2a8cdb5a20345065396117",
         "ranges_sha256": "66ecbad543381f56e1c0d98bfea2ccad41251f5b51cabc9aa4b20580f4eaf409",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b32000\\compare.stderr.txt"
       },
       {
         "complexity": 10,
@@ -397,19 +397,19 @@
           "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
           "-r",
           "16000",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm"
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm"
         ],
         "compare_exit": 0,
         "quality_metric": 65.5,
-        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm",
+        "native_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\native16_mono.pcm",
         "native_pcm_sha256": "a863ec3051b9fea64fcbe9a5194db85b13d083e6dafe27da78dbfaa18181c81a",
-        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
+        "reference_pcm_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\official48_stereo.pcm",
         "reference_pcm_sha256": "dac52b680722e2753aacb2bab56c2e5da4d66182b9d581242b82b41e49283d7f",
         "packet_sha256": "110c7f1402c2212fb3a197060e8925446769f20f45a6e178417336791be8ec7a",
         "ranges_sha256": "cf7d49eb644dc1dec2c37b6b3bdd468665e9ec539232300fb5645bd08e65d136",
-        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stdout.txt",
-        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\374a368_formatter_bridge_20261122\\repo\\build\\official_compare_report\\full374a368_once_20261122\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stderr.txt"
+        "stdout_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stdout.txt",
+        "stderr_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\compatibility\\api_behavior\\lpc_matrix\\c10_b48000\\compare.stderr.txt"
       }
     ],
     "failures": [],
@@ -423,7 +423,7 @@
     "comparator_path": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\off51bd\\opus_compare.exe",
     "comparator_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
     "official_archive_sha256": "fddd85a404fcf70f3e50e8bc8361ab691d1cb253e64f8321c7a742f8bfdc1215",
-    "source_sha256": "3c77a673fac2bc278bdef15b6f0c7b80bfa2b3450adbb11dbb97b9faf5414a75",
+    "source_sha256": "50465e2bb2185e1c0182821b6081ae8bcbd9b6a7abe3b4ab14bdffbc9a5b9ad3",
     "oracle": "RFC6716 section6 opus_compare exit0 for each configuration plus per-packet exact final ranges; no per-frame PCM tolerance"
   },
   "stdout": "lpc_case complexity=0 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=0 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=24000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=32000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=5 bitrate=48000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=9 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=9 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=9 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_case complexity=10 bitrate=16000 frames=200 silk_frames=200 hybrid_frames=0 celt_frames=0\nlpc_case complexity=10 bitrate=24000 frames=200 silk_frames=64 hybrid_frames=0 celt_frames=136\nlpc_case complexity=10 bitrate=32000 frames=200 silk_frames=47 hybrid_frames=0 celt_frames=153\nlpc_case complexity=10 bitrate=48000 frames=200 silk_frames=27 hybrid_frames=0 celt_frames=173\nlpc_silk_layer_frames=2276\ncelt_iir_incoming_env exceptions=1 rounding=0 errno=2\ncelt_iir_case samples=240 energy_bits=1130204932 expected_energy_bits=1130204932 exceptions=9 expected_exceptions=9 errno=7 expected_errno=7 rounding=0 expected_rounding=0\ncelt_iir_case samples=360 energy_bits=1134956584 expected_energy_bits=1134956584 exceptions=9 expected_exceptions=9 errno=7 expected_errno=7 rounding=0 expected_rounding=0\ncelt_iir_case samples=600 energy_bits=1141523459 expected_energy_bits=1141523459 exceptions=9 expected_exceptions=9 errno=7 expected_errno=7 rounding=0 expected_rounding=0\ncelt_iir_case samples=1080 energy_bits=1148699763 expected_energy_bits=1148699763 exceptions=9 expected_exceptions=9 errno=7 expected_errno=7 rounding=0 expected_rounding=0\ncelt_iir_helper_checks=PASS cases=4 samples=2280 (original in-place lengths; exact outputs/energy; FENV/errno/rounding/sticky flags)\nlpc_helper_checks=PASS (bit helpers; seed wrap; Schur initialization; SILK orders 6/8/10/12/16; CELT PLC including overlap)\nlpc_packet_checks=PASS (16 cases; 3200 frames; exact public returns/final ranges; actual TOC coverage)\nlpc_reconstruction_vs_official=PASS (RFC6716 section6 opus_compare;16cases/3200frames;exact final ranges)\nlpc_analysis_filter=PASS (lower helpers and public decoder acceptance)"

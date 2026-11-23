@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `374a3682988b3e7a16cc938e2901870baaa7b011`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -32,7 +32,7 @@ Nominal S17 scalar music EOF quality passed 108/108 fields across 9 rates. Each 
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.97x to 1.05x | 1.04x to 1.44x |
+| AUDIO | 0.98x to 1.05x | 1.05x to 1.42x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) Â· [Encode](encode_speed_vs_official.csv) Â· [Decode](decode_speed_vs_official.csv) Â· [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -42,14 +42,14 @@ Nominal S17 scalar music EOF quality passed 108/108 fields across 9 rates. Each 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20464 | 20832 | Not exposed |
-| official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 8496 | 8320 | Not exposed |
-| official_decoder_ch1 | 18432 | 18544 | 18468 |
-| current_encoder_ch2 | 30656 | 30544 | Not exposed |
-| official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17520 | 16208 | Not exposed |
-| official_decoder_ch2 | 27136 | 27264 | 27236 |
+| current_encoder_ch1 | 20448 | 20784 | Not exposed |
+| official_encoder_ch1 | 31824 | 31888 | 31668 |
+| current_decoder_ch1 | 8432 | 8288 | Not exposed |
+| official_decoder_ch1 | 18496 | 18576 | 18468 |
+| current_encoder_ch2 | 30528 | 30480 | Not exposed |
+| official_encoder_ch2 | 48928 | 48736 | 48684 |
+| current_decoder_ch2 | 17536 | 16224 | Not exposed |
+| official_decoder_ch2 | 27072 | 27248 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -59,8 +59,8 @@ Nominal S17 scalar music EOF quality passed 108/108 fields across 9 rates. Each 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 305212 | 0 | 19712 | 324924 |
-| android | 294115 | 152 | 19664 | 313931 |
+| host | 305368 | 0 | 19712 | 325080 |
+| android | 293291 | 152 | 19664 | 313107 |
 
 [Object-size data](binary_size.csv).
 
@@ -122,36 +122,10 @@ Nominal S17 scalar music EOF quality passed 108/108 fields across 9 rates. Each 
 ## CELT microbenchmark
 
 ```text
-mono-mid bytes=76 encode_ms=20.5974 decode_ms=17.7369 checksum=340886119
-mono-high bytes=115 encode_ms=21.8223 decode_ms=17.9983 checksum=2633358364
-stereo-mid bytes=103 encode_ms=43.8928 decode_ms=32.6901 checksum=1794710616
-stereo-high bytes=147 encode_ms=48.1949 decode_ms=35.1713 checksum=2844469021
+mono-mid bytes=76 encode_ms=28.9909 decode_ms=25.502 checksum=340886119
+mono-high bytes=115 encode_ms=33.6678 decode_ms=24.2703 checksum=2633358364
+stereo-mid bytes=103 encode_ms=62.03 decode_ms=45.4528 checksum=1794710616
+stereo-high bytes=147 encode_ms=68.834 decode_ms=49.8338 checksum=2844469021
 ```
 
 [Metric coverage](readme_metric_coverage.json) Â· [Artifact hashes](benchmark_metric_inventory.json).
-
-## Scalar encoder CPU
-
-Opuscpp `374a368` had the lower encode CPU median in all 17 cases against scalar libopus `51bd2e649f45` with SIMD and dispatch disabled. Medians use 15 matched runs per codec and are shown in milliseconds per original clip, rounded to three decimals.
-
-| Workload | Requested kbps | Clip seconds | opuscpp CPU ms | libopus scalar CPU ms |
-|---|---:|---:|---:|---:|
-| AUDIO | 16 | 60 | 234.375 | 320.312 |
-| AUDIO | 24 | 60 | 247.768 | 344.866 |
-| AUDIO | 32 | 60 | 258.681 | 305.556 |
-| AUDIO | 48 | 60 | 285.156 | 310.547 |
-| AUDIO | 64 | 60 | 248.047 | 306.641 |
-| AUDIO | 96 | 60 | 281.250 | 377.232 |
-| AUDIO | 128 | 60 | 326.562 | 426.562 |
-| AUDIO | 192 | 60 | 463.542 | 604.167 |
-| AUDIO | 256 | 60 | 388.021 | 492.188 |
-| Hazel VOIP | 16 | 13.46 | 84.821 | 133.929 |
-| Hazel VOIP | 32 | 13.46 | 87.054 | 135.417 |
-| Hazel VOIP | 64 | 13.46 | 84.310 | 119.141 |
-| Hazel FEC60 | 24 | 13.44 | 117.188 | 159.180 |
-| David VOIP | 16 | 11.8 | 74.219 | 113.932 |
-| David VOIP | 32 | 11.8 | 75.149 | 120.536 |
-| David VOIP | 64 | 11.8 | 96.788 | 137.153 |
-| David FEC60 | 24 | 11.76 | 103.299 | 137.153 |
-
-From 16 to 256 kbps, absolute CPU growth per 60-second AUDIO clip was **153.646 ms** for opuscpp and **171.875 ms** for scalar libopus. Relative growth was 65.56% and 53.66%, respectively.
