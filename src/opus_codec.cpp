@@ -13362,6 +13362,26 @@ silk_resample_decoder_3x(silk_resampler_state_struct& resampler, std::span<opus_
   copy_n_items(input + input_samples - resampler.inputDelay, static_cast<std::size_t>(resampler.inputDelay), resampler.delayBuf);
 }
 
+#if defined(_MSC_VER)
+__declspec(noinline)
+#elif defined(__clang__)
+[[gnu::noinline]]
+#else
+[[gnu::hot, gnu::noinline]]
+#endif
+static void silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int api_channels, int channel) {
+  constexpr float scale = 1.f / 32768.f;
+  if (api_channels == 2) {
+    for (int i = 0; i < samples; ++i) {
+      output[channel + 2 * i] = input[i] * scale;
+    }
+  } else {
+    for (int i = 0; i < samples; ++i) {
+      output[i] = input[i] * scale;
+    }
+  }
+}
+
 [[gnu::cold]] static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
   auto& resampler = state.resampler_state;
   if (resampler.resampler_function == 2 && resampler.Fs_in_kHz == 16 && resampler.Fs_out_kHz == 48 && resampler.invRatio_Q16 == 43691 &&
@@ -13369,9 +13389,7 @@ silk_resample_decoder_3x(silk_resampler_state_struct& resampler, std::span<opus_
     silk_resample_decoder_3x(resampler, resampled, input, input_samples);
   else
     silk_resampler(&resampler, resampled.data(), input, input_samples);
-  for (int i = 0; i < output_samples; ++i) {
-    samplesOut[api_channels == 2 ? channel + 2 * i : i] = resampled[i] * (1 / 32768.f);
-  }
+  silk_store_resampled(resampled.data(), samplesOut, output_samples, api_channels, channel);
 }
 
 OPUSCPP_GCC_NOINLINE OPUSCPP_LEAN int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec, opus_res* samplesOut, opus_int32* nSamplesOut) {
