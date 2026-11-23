@@ -1041,13 +1041,20 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
   return std::fabs(value) < tiny_output_as_signal ? 0.0f : (1.0f / 32768.0f) * value;
 }
 
-[[nodiscard]] static inline auto FLOAT2INT16(float x) noexcept -> opus_int16 {
+#if defined(__GNUC__) && !defined(__clang__)
+[[gnu::always_inline]]
+#endif
+[[nodiscard]] static inline auto normalized_pcm16(float x) noexcept -> opus_int16 {
   return static_cast<opus_int16>(pcm_float2int(std::clamp(x * 32768.f, -32768.f, 32767.f)));
+}
+
+[[nodiscard]] OPUSCPP_GCC_NOINLINE static inline auto FLOAT2INT16(float x) noexcept -> opus_int16 {
+  return normalized_pcm16(x);
 }
 
 OPUSCPP_LEANO static void celt_float2int16_c(const float* in, opus_int16* out, std::size_t count) {
   for (std::size_t i = 0; i < count; ++i) {
-    out[i] = FLOAT2INT16(in[i]);
+    out[i] = normalized_pcm16(in[i]);
   }
 }
 
