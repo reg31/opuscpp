@@ -13790,6 +13790,7 @@ OPUSCPP_LEANO static void scale_q16_buffer(opus_int32* data, const int count, co
   return static_cast<opus_int32>(value);
 }
 
+template <bool project = true>
 OPUSCPP_LEANO static auto silk_nsq_noise_shape_feedback(opus_int32 diff, opus_int32* state, const opus_int16* coefficients, int order, int warping_Q16 = 0) noexcept -> opus_int32 {
   const auto warp = [&](opus_int32 delta) noexcept {
     return silk_mul_wb(delta, static_cast<opus_int16>(warping_Q16));
@@ -13797,17 +13798,23 @@ OPUSCPP_LEANO static auto silk_nsq_noise_shape_feedback(opus_int32 diff, opus_in
   auto even = wrap_add(diff, warp(state[0]));
   auto odd = wrap_add(state[0], warp(wrap_subtract(state[1], even)));
   state[0] = even;
-  auto out = wrap_add(order >> 1, silk_mul_wb(even, coefficients[0]));
+  auto out = order >> 1;
+  if constexpr (project)
+    out = wrap_add(out, silk_mul_wb(even, coefficients[0]));
   for (int index = 2; index < order; index += 2) {
     even = wrap_add(state[index - 1], warp(wrap_subtract(state[index], odd)));
     state[index - 1] = odd;
-    out = wrap_add(out, silk_mul_wb(odd, coefficients[index - 1]));
+    if constexpr (project)
+      out = wrap_add(out, silk_mul_wb(odd, coefficients[index - 1]));
     odd = wrap_add(state[index], warp(wrap_subtract(state[index + 1], even)));
     state[index] = even;
-    out = wrap_add(out, silk_mul_wb(even, coefficients[index]));
+    if constexpr (project)
+      out = wrap_add(out, silk_mul_wb(even, coefficients[index]));
   }
   state[order - 1] = odd;
-  return wrap_shift_left(wrap_add(out, silk_mul_wb(odd, coefficients[order - 1])), 1);
+  if constexpr (project)
+    out = wrap_add(out, silk_mul_wb(odd, coefficients[order - 1]));
+  return wrap_shift_left(out, 1);
 }
 
 static auto silk_nsq_noise_shape_float(const opus_int32* diff, float* state, const float* coefficients, int order, float warping) noexcept {
@@ -14001,6 +14008,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
   const bool use_float = float_environment && std::any_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
                            return c != 0;
                          });
+  const auto fixed_feedback = float_environment && !use_float ? silk_nsq_noise_shape_feedback<false> : silk_nsq_noise_shape_feedback<>;
   float float_ar[24 * 4], float_coefficients[24];
   float float_warping;
   if (use_float) {
@@ -14055,7 +14063,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
         LPC_pred_Q14 = saturating_left_shift<4>(silk_lpc_prediction_q10(psDD->sLPC_Q14.data() + 16 + i, b.a_Q12, b.order));
       opus_int32 n_AR_Q14 = use_float  ? n_AR_lane[k]
                             : !keep_ar ? (ar_order >> 1) << 1
-                                       : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
+                                       : fixed_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
       n_AR_Q14 = static_cast<opus_int32>(n_AR_Q14 + ((psDD->LF_AR_Q14 * static_cast<opus_int64>(tilt_i16)) >> 16));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
       opus_int32 n_LF_Q14 = static_cast<opus_int32>((psDD->Shape_Q14[*smpl_buf_idx] * static_cast<opus_int64>(lf_i16)) >> 16);
