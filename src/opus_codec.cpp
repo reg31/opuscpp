@@ -10197,34 +10197,57 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
     return false;
   }
 
-  std::array<float, 960> spectrum, product;
-  for (int i = 0; i < 480; ++i) {
-    spectrum[i] = i < 240 ? x[i] * factor_x : 0.f;
-    spectrum[480 + i] = y[i] * factor_y;
+  constexpr int half = 240;
+  std::array<float, 2 * half> x_buffer, y_buffer, scratch;
+  for (int i = 0; i < half; ++i) {
+    x_buffer[i] = i < half / 2 ? x[2 * i] * factor_x : 0.f;
+    x_buffer[half + i] = i < half / 2 ? x[2 * i + 1] * factor_x : 0.f;
+    y_buffer[i] = y[2 * i] * factor_y;
+    y_buffer[half + i] = y[2 * i + 1] * factor_y;
   }
-  const float* freq = celt_fft<true>(spectrum.data(), product.data(), 0);
-  const float scale = 1.f / 480;
-  spectrum[0] = freq[0] * freq[480] * scale;
-  spectrum[480] = 0.f;
-  spectrum[240] = freq[240] * freq[720] * scale;
-  spectrum[720] = 0.f;
-  for (int k = 1; k < 240; ++k) {
-    const float ar = freq[k], ai = freq[480 + k], br = freq[480 - k], bi = freq[960 - k];
-    const float xr = .5f * (ar + br);
-    const float xi = .5f * (ai - bi);
-    const float yr = .5f * (ai + bi);
-    const float yi = .5f * (br - ar);
-    const float real = (xr * yr + xi * yi) * scale;
-    const float imaginary = (xr * yi - xi * yr) * scale;
-    spectrum[k] = real;
-    spectrum[480 + k] = -imaginary;
-    spectrum[480 - k] = real;
-    spectrum[960 - k] = imaginary;
+  auto* x_frequency = celt_fft<true>(x_buffer.data(), scratch.data(), 1);
+  auto* free_buffer = x_frequency == x_buffer.data() ? scratch.data() : x_buffer.data();
+  auto* y_frequency = celt_fft<true>(y_buffer.data(), free_buffer, 1);
+  auto* spectrum = y_frequency == y_buffer.data() ? free_buffer : y_buffer.data();
+
+  constexpr float scale = 1.f / half;
+  for (const int k : {0, half / 2}) {
+    const float xe = x_frequency[k], xo = x_frequency[half + k];
+    const float ye = y_frequency[k], yo = y_frequency[half + k];
+    const float shift = k == 0 ? 1.f : -1.f;
+    spectrum[k] = (xe * ye + xo * yo) * scale;
+    spectrum[half + k] = -(xe * yo + shift * xo * ye) * scale;
   }
-  float* res = celt_fft<true>(spectrum.data(), product.data(), 0);
+  const auto unpack = [](const float* frequency, int k) {
+    const float ar = frequency[k], ai = frequency[half + k];
+    const float br = frequency[half - k], bi = frequency[2 * half - k];
+    return std::array{kiss_twiddle_cpx{.5f * (ar + br), .5f * (ai - bi)},
+                      kiss_twiddle_cpx{.5f * (ai + bi), .5f * (br - ar)}};
+  };
+  const auto correlate = [](kiss_twiddle_cpx a, kiss_twiddle_cpx b) -> kiss_twiddle_cpx {
+    return {a.r * b.r + a.i * b.i, a.r * b.i - a.i * b.r};
+  };
+  for (int k = 1; k < half / 2; ++k) {
+    const auto [xe, xo] = unpack(x_frequency, k);
+    const auto [ye, yo] = unpack(y_frequency, k);
+    const auto even_first = correlate(xe, ye);
+    const auto even_second = correlate(xo, yo);
+    const float even_real = even_first.r + even_second.r;
+    const float even_imaginary = even_first.i + even_second.i;
+    const auto odd_first = correlate(xe, yo);
+    const auto odd_second = correlate(xo, ye);
+    const auto root = celt_tables.fft_twiddles[2 * k];
+    const float odd_real = odd_first.r + (odd_second.r * root.r + odd_second.i * root.i);
+    const float odd_imaginary = odd_first.i + (odd_second.i * root.r - odd_second.r * root.i);
+    spectrum[k] = (even_real - odd_imaginary) * scale;
+    spectrum[half + k] = -(even_imaginary + odd_real) * scale;
+    spectrum[half - k] = (even_real + odd_imaginary) * scale;
+    spectrum[2 * half - k] = (even_imaginary - odd_real) * scale;
+  }
+  float* res = celt_fft<true>(spectrum, x_frequency, 1);
 
   for (int lag = 0; lag < 240; ++lag) {
-    const auto bits = magnitude(res[lag]);
+    const auto bits = magnitude(res[lag / 2 + (lag % 2) * half]);
     const int exponent = static_cast<int>(bits >> 23);
     if (bits != 0 && (exponent == 0 || exponent == 255 || exponent + undo_shift < 1 || exponent + undo_shift > 254)) {
       std::fesetenv(&original_environment);
@@ -10236,14 +10259,16 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
     return false;
   }
   for (int lag = 0; lag < 240; ++lag)
-    res[lag] *= restore;
+    res[lag / 2 + (lag % 2) * half] *= restore;
   if (std::feupdateenv(&original_environment) != 0) {
     std::fesetenv(&original_environment);
     return false;
   }
   celt_pitch_xcorr_c(x.data(), y.data() + 240, correlation.data() + 240, 240, 4);
-  for (int lag = 0; lag < 240; ++lag)
-    correlation[lag] = res[lag];
+  for (int k = 0; k < half / 2; ++k) {
+    correlation[2 * k] = res[k];
+    correlation[2 * k + 1] = -res[half + k];
+  }
   return true;
 }
 
