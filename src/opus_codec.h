@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OPUSCPP_OPUS_CODEC_H
+#define OPUSCPP_OPUS_CODEC_H
 
 #include <cstdint>
 #include <memory>
@@ -119,3 +120,5 @@ template <> struct default_delete<OpusDecoder> {
 [[nodiscard]] inline auto make_opus_decoder(int Fs, int channels, int* error) noexcept -> std::unique_ptr<OpusDecoder> {
   return std::unique_ptr<OpusDecoder>{opus_decoder_create(Fs, channels, error)};
 }
+
+#endif
