@@ -59,7 +59,7 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.
+Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.
 
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
 

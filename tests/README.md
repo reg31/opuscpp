@@ -183,7 +183,7 @@ recorded in [run metadata](metrics/run_metadata.json).
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.
+Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.
 
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS and nine 60-second stereo runs. Ratios above `1.00x` indicate faster processing.
 

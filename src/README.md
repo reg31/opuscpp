@@ -129,7 +129,7 @@ Denoiser comparisons and boundary coverage are listed in [`tests/metrics/README.
 
 ## In-band FEC
 
-Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.
+Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.
 
 In-band FEC is optional and disabled by default. When enabled for SILK or hybrid packets, the
 encoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only

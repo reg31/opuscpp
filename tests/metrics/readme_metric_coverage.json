@@ -585,7 +585,7 @@
       "start_line": 132,
       "end_line": 132,
       "kind": "paragraph",
-      "text": "Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.",
+      "text": "Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.",
       "source_families": [
         "fec"
       ]
@@ -725,7 +725,7 @@
       "start_line": 186,
       "end_line": 186,
       "kind": "paragraph",
-      "text": "Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.",
+      "text": "Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.",
       "source_families": [
         "speed",
         "snapshot"
@@ -1162,7 +1162,7 @@
       "start_line": 62,
       "end_line": 62,
       "kind": "paragraph",
-      "text": "Measured codec: `9270eacdb9b1817cf77f6e1c3e43d17de1f332a7`; Source/header and all raw results are bound in the metrics metadata.",
+      "text": "Measured codec: `5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c`; Source/header and all raw results are bound in the metrics metadata.",
       "classification": "numeric source/API/format contract; not a benchmark claim"
     },
     {
@@ -1439,17 +1439,17 @@
     "project_intro_unchanged": true,
     "documents": {
       "README.md": {
-        "sha256": "1d68651058dd5d2d52a9188ae40ac48aa83cc58763f5211284804e64d2b3eab1",
+        "sha256": "9c4bebcf8d79cd000e75911b74a80c5f5e9924f7457ba566817bf7fb11ecabdd",
         "utf8": true,
         "lf_only": true
       },
       "src/README.md": {
-        "sha256": "040aa3e3e537164273623e50e1c4244be3edde94cc6bd1aec05ebf8b2baeeac3",
+        "sha256": "07741484c5843e84c08cc3284b38ff595321c8c60ebc9be704cae6f31cf88076",
         "utf8": true,
         "lf_only": true
       },
       "tests/README.md": {
-        "sha256": "380bd07cbdaefd5d9708399445c484d3d1a9b187b7569bfbcdbbc1214d9ae5ba",
+        "sha256": "3dc3b4a668e7d0735c48cebb7b09788df63a218fd761db749e15013e4a797de2",
         "utf8": true,
         "lf_only": true
       },
