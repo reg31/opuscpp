@@ -13916,9 +13916,10 @@ consteval bool silk_nsq_levels_match() {
   for (const auto& offsets : silk_Quantization_Offsets_Q10) {
     for (int offset : offsets) {
       for (int bin = -32; bin <= 29; ++bin) {
-        const int reference_first = bin > 0 ? bin * 1024 - 80 + offset
-                                            : bin == 0 ? offset
-                                                       : bin == -1 ? offset - 944 : bin * 1024 + 80 + offset;
+        const int reference_first = bin > 0     ? bin * 1024 - 80 + offset
+                                    : bin == 0  ? offset
+                                    : bin == -1 ? offset - 944
+                                                : bin * 1024 + 80 + offset;
         const int reference_second = bin == -1 ? offset : reference_first + (bin == 0 ? 944 : 1024);
         const int first = silk_nsq_first_level(bin) + offset;
         const int second = first + silk_nsq_level_gap(bin);
