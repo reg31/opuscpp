@@ -7641,7 +7641,8 @@ struct celt_input_metrics {
 };
 
 [[nodiscard]] static int celt_transient_analysis(const opus_val32* in, opus_val32* envelope, int len, int C, float* tf_estimate, int* tf_chan,
-                                                 bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness) {
+                                                 bool allow_weak_transients, bool* weak_transient, opus_val16 tone_freq, opus_val32 toneishness,
+                                                 int* transient_mask = nullptr) {
   static constexpr auto inv_table = std::to_array<unsigned char>({255, 255, 156, 110, 86, 70, 59, 51, 45, 40, 37, 33, 31, 28, 26, 25,
                                                                   23, 22, 21, 20, 19, 18, 17, 16, 16, 15, 15, 14, 13, 13, 12, 12,
                                                                   12, 12, 11, 11, 11, 10, 10, 10, 9, 9, 9, 9, 9, 9, 8, 8,
@@ -7716,7 +7717,86 @@ struct celt_input_metrics {
   }
   const float tf_max = std::max(0.f, std::sqrt(27.f * mask_metric) - 42.f);
   *tf_estimate = static_cast<float>(std::sqrt(std::max(0., 0.0069f * std::min(163.f, tf_max) - 0.139)));
+  if (transient_mask != nullptr)
+    *transient_mask = mask_metric;
   return is_transient;
+}
+
+static bool celt_predictable_upper_envelope(const celt_sig* spectrum, const opus_int16* bands, int start, int end, int scale) {
+  constexpr int order = 4;
+  constexpr float minimum_gain = 1.2f;
+  double total = 0;
+  for (int i = scale * bands[start]; i < scale * bands[end]; ++i)
+    total += static_cast<double>(spectrum[i]) * spectrum[i];
+  if (!(total > 1e-12))
+    return false;
+  std::array<double, order + 1> correlation{};
+  const double weight_floor = total / (4 * (end - start));
+  for (int band = start; band < end; ++band) {
+    const int low = scale * bands[band], high = scale * bands[band + 1];
+    std::array<double, order + 1> local{};
+    const int first_full = std::min(low + order, high);
+    for (int i = low; i < first_full; ++i)
+      for (int lag = 0; lag <= i - low; ++lag)
+        local[lag] += static_cast<double>(spectrum[i]) * spectrum[i - lag];
+    for (int i = first_full; i < high; ++i) {
+      const double x = spectrum[i];
+      local[0] += x * spectrum[i];
+      local[1] += x * spectrum[i - 1];
+      local[2] += x * spectrum[i - 2];
+      local[3] += x * spectrum[i - 3];
+      local[4] += x * spectrum[i - 4];
+    }
+    const double inverse = 1.0 / std::max(local[0], weight_floor);
+    for (int lag = 0; lag <= order; ++lag)
+      correlation[lag] += inverse * local[lag];
+  }
+  const double floor = .0001 * correlation[0];
+  correlation[0] *= 1.0001;
+  double residual = correlation[0];
+  std::array<double, order> coefficients{};
+  for (int k = 0; k < order; ++k) {
+    double cross = correlation[k + 1];
+    for (int j = 0; j < k; ++j)
+      cross += coefficients[j] * correlation[k - j];
+    const double reflection = -cross / residual;
+    const auto previous = coefficients;
+    for (int j = 0; j < k; ++j)
+      coefficients[j] = previous[j] + reflection * previous[k - 1 - j];
+    coefficients[k] = reflection;
+    residual = std::max(residual * (1 - reflection * reflection), floor);
+  }
+  return static_cast<float>(correlation[0] / residual) >= minimum_gain;
+}
+
+static float celt_upper_band_rise(const celt_sig* spectrum, const celt_glog* history, const opus_int16* bands,
+                                  int start, int end, int scale, float previous_scale) {
+  float rise = 0;
+  for (int band = start; band < end; ++band) {
+    const auto* x = spectrum + scale * bands[band];
+    const int n = scale * (bands[band + 1] - bands[band]);
+    const float current = 0.5f * std::log2(1e-27f + celt_inner_prod_c(x, x, n)) - eMeans[band];
+    rise += std::max(0.f, current - std::max(history[band] - previous_scale, -12.f));
+  }
+  return rise / (end - start);
+}
+
+static double celt_upper_band_density(const celt_sig* spectrum, const opus_int16* bands, int start, int end,
+                                      int scale, int channels, int frame_samples) {
+  double density = 0;
+  for (int ch = 0; ch < channels; ++ch) {
+    for (int band = start; band < end; ++band) {
+      double l1 = 0, l2 = 0;
+      for (int i = scale * bands[band]; i < scale * bands[band + 1]; ++i) {
+        const double x = spectrum[ch * frame_samples + i];
+        l1 += std::abs(x);
+        l2 += x * x;
+      }
+      if (l2 > 1e-12)
+        density += l1 / std::sqrt(l2);
+    }
+  }
+  return density;
 }
 
 [[nodiscard]] static inline auto celt_preemphasise_input(CeltEncoderInternal* st, const opus_res* pcm, celt_sig* in, celt_sig* prefilter_mem, int N) -> celt_input_metrics {
@@ -7905,6 +7985,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   int silence, isTransient = 0, transient_enabled, transient_got_disabled, shortBlocks;
   opus_val16 tf_estimate = 0;
   int tf_chan = 0;
+  int transient_mask = 0;
   bool weak_transient = false;
   bool common_source;
   bool enable_tf_analysis;
@@ -7984,7 +8065,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     if (!silence && LM > 0 && st->complexity >= 1) {
       const bool allow_weak_transients = hybrid && effectiveBytes < 15 && st->silk_info.signalType != 2;
       isTransient = celt_transient_analysis(in, freq, prepared_samples, CC, &tf_estimate, &tf_chan, allow_weak_transients, &weak_transient, tone_frequency,
-                                            toneishness);
+                                            toneishness, &transient_mask);
     }
     const bool prefilter_history_valid = st->prefilter_history_valid;
     prefilter = celt_encode_prefilter(st, in, prefilter_mem, enc, N, nbAvailableBytes, total_bits, tell, silence, tone_frequency,
@@ -7999,6 +8080,46 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     transient_got_disabled = !transient_enabled;
     if (!transient_enabled)
       isTransient = 0;
+    bool have_long_spectrum = false;
+    const int history_end = std::min(end, static_cast<int>(st->lastCodedBands));
+    if (signal_bw_main && hybrid && transient_enabled && !silence && !isTransient && !weak_transient &&
+        effectiveBytes >= 15 && transient_mask > 60 && history_end > start) {
+      const int spectral_channels = common_source ? 1 : C;
+      const int input_channels = common_source ? 1 : CC;
+      const bool reuse_long = CC == C && spectral_channels == 1;
+      if (reuse_long) {
+        compute_mdcts(0, in, freq, spectral_channels, input_channels, LM, st->upsample, forward_scratch);
+        have_long_spectrum = true;
+      }
+      const int saved_errno = errno;
+      std::fenv_t environment, held;
+      if (std::fegetenv(&environment) == 0) {
+        if (std::feholdexcept(&held) == 0) {
+          if (!reuse_long)
+            compute_mdcts(0, in, freq, spectral_channels, input_channels, LM, st->upsample, forward_scratch);
+          const float previous_scale = st->consec_transient ? 0.5f * LM : 0.f;
+          bool rising = false;
+          for (int ch = 0; ch < spectral_channels; ++ch)
+            rising = rising || celt_upper_band_rise(freq + ch * N, oldBandE + ch * nbEBands, eBands, start, history_end, M,
+                                                    previous_scale) >= 1.f;
+          bool predictable = false;
+          if (rising)
+            for (int ch = 0; ch < spectral_channels; ++ch)
+              predictable = predictable || celt_predictable_upper_envelope(freq + ch * N, eBands, start, end, M);
+          if (predictable) {
+            const double long_density = celt_upper_band_density(freq, eBands, start, history_end, M, spectral_channels, N);
+            auto* short_spectrum = reuse_long ? freq + N : freq;
+            compute_mdcts(M, in, short_spectrum, spectral_channels, input_channels, LM, st->upsample, forward_scratch);
+            isTransient = celt_upper_band_density(short_spectrum, eBands, start, history_end, M, spectral_channels, N) < long_density;
+          }
+          if (std::fesetenv(&environment) != 0)
+            isTransient = 0;
+        } else {
+          std::fesetenv(&environment);
+        }
+      }
+      errno = saved_errno;
+    }
     shortBlocks = transient_enabled && isTransient ? 1 << LM : 0;
     preserve_hybrid_tf_time_support = [&] {
       if (!prefilter_history_valid || !hybrid || shortBlocks == 0 || effectiveBytes >= 15 || st->silk_info.signalType == 2)
@@ -8021,7 +8142,8 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     auto* second_mdct_bandE = freq + N * CC;
     auto* second_mdct_bandLogE = second_mdct_bandE + nbEBands * CC;
     if (second_mdct) {
-      compute_mdcts(0, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
+      if (!have_long_spectrum)
+        compute_mdcts(0, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
       if (common_source) {
         copy_n_items(freq, static_cast<std::size_t>(N), freq + N);
       }
@@ -8042,7 +8164,7 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
       for (int i = 0; i < N + overlap; ++i)
         in[i] = .5f * in[i] + .5f * in[N + overlap + i];
       compute_mdcts(0, in, freq, 1, 1, LM, 1, forward_scratch);
-    } else {
+    } else if (shortBlocks != 0 || !have_long_spectrum) {
       compute_mdcts(shortBlocks, in, freq, common_source ? 1 : C, common_source ? 1 : CC, LM, st->upsample, forward_scratch);
     }
     if (CC == 2 && C == 1) {
