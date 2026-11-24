@@ -16765,9 +16765,9 @@ static void silk_LPC_analysis_filter_FLP(float r_LPC[], const float PredCoef[], 
   std::fill_n(r_LPC, Order, 0.0f);
 }
 
-static double silk_inner_product_FLP_c(const float* data1, const float* data2, int dataSize) {
+template <typename Left, typename Right>
+static double silk_ordered_inner_product(double result, const Left* data1, const Right* data2, int dataSize) {
   int i;
-  double result = 0.0;
   for (i = 0; i < dataSize - 3; i += 4) {
     result += data1[i] * static_cast<double>(data2[i]) + data1[i + 1] * static_cast<double>(data2[i + 1]) +
               data1[i + 2] * static_cast<double>(data2[i + 2]) + data1[i + 3] * static_cast<double>(data2[i + 3]);
@@ -16776,6 +16776,10 @@ static double silk_inner_product_FLP_c(const float* data1, const float* data2, i
     result += data1[i] * static_cast<double>(data2[i]);
   }
   return result;
+}
+
+static double silk_inner_product_FLP_c(const float* data1, const float* data2, int dataSize) {
+  return silk_ordered_inner_product(0.0, data1, data2, dataSize);
 }
 
 static void silk_autocorrelation_FLP(float* results, const float* inputData, int inputDataSize, int correlationCount) {
@@ -17270,29 +17274,45 @@ OPUSCPP_LEANO OPUSCPP_NOINLINE static void silk_find_LPC_FLP(State* psEncC, opus
 }
 
 static void silk_find_LTP_FLP(float XX[4 * silk_ltp_matrix_values], float xX[4 * silk_ltp_order], const float residual[],
-                              const int pitch[4], const int length, const int subframes) {
+                              const int pitch[4], const int length, const int subframes, double* basis_storage) {
   for (int subframe = 0; subframe < subframes; ++subframe) {
     const auto* center = residual - pitch[subframe] + silk_ltp_order / 2;
-    double diagonal = silk_energy_FLP(center, length);
-    XX[0] = static_cast<float>(diagonal);
-    for (int row = 1; row < silk_ltp_order; ++row) {
-      diagonal += center[-row] * center[-row] - center[length - row] * center[length - row];
-      XX[silk_ltp_row_offset(row)] = static_cast<float>(diagonal);
-    }
-    for (int lag = 1; lag < silk_ltp_order; ++lag) {
-      double product = silk_inner_product_FLP_c(center, center - lag, length);
-      XX[lag] = static_cast<float>(product);
-      for (int row = 1; row + lag < silk_ltp_order; ++row) {
-        product += center[-row] * center[-row - lag] - center[length - row] * center[length - row - lag];
-        XX[silk_ltp_row_offset(row) + lag] = static_cast<float>(product);
+    const auto calculate = [&](const auto* basis) {
+      double diagonal = silk_ordered_inner_product(0.0, basis, basis, length);
+      XX[0] = static_cast<float>(diagonal);
+      for (int row = 1; row < silk_ltp_order; ++row) {
+        diagonal += center[-row] * center[-row] - center[length - row] * center[length - row];
+        XX[silk_ltp_row_offset(row)] = static_cast<float>(diagonal);
       }
+      for (int lag = 1; lag < silk_ltp_order; ++lag) {
+        double product = silk_ordered_inner_product(0.0, basis, basis - lag, length);
+        XX[lag] = static_cast<float>(product);
+        for (int row = 1; row + lag < silk_ltp_order; ++row) {
+          product += center[-row] * center[-row - lag] - center[length - row] * center[length - row - lag];
+          XX[silk_ltp_row_offset(row) + lag] = static_cast<float>(product);
+        }
+      }
+      for (int row = 0; row < silk_ltp_order; ++row)
+        xX[row] = static_cast<float>(silk_ordered_inner_product(0.0, basis - row, residual, length));
+      const float energy = static_cast<float>(silk_energy_FLP(residual, length + silk_ltp_order));
+      const float scale = 1.0f / std::max(energy, 0.015f * (XX[0] + XX[silk_ltp_matrix_values - 1]) + 1.0f);
+      silk_scale_copy_vector_FLP(XX, XX, scale, silk_ltp_matrix_values);
+      silk_scale_copy_vector_FLP(xX, xX, scale, silk_ltp_order);
+    };
+    constexpr int lag_prefix = silk_ltp_order - 1;
+    const auto safe_input = [](const float* data, int count) noexcept {
+      return std::all_of(data, data + count, [](const float& value) noexcept {
+        const auto bits = std::bit_cast<opus_uint32>(value) & 0x7fffffffU;
+        return bits == 0 || (bits >= 0x00800000U && bits < 0x7f800000U);
+      });
+    };
+    if (length > 0 && length <= silk_max_subfr_length &&
+        safe_input(center - lag_prefix, length + lag_prefix) && safe_input(residual, length + silk_ltp_order)) {
+      std::copy_n(center - lag_prefix, length + lag_prefix, basis_storage);
+      calculate(basis_storage + lag_prefix);
+    } else {
+      calculate(center);
     }
-    for (int row = 0; row < silk_ltp_order; ++row)
-      xX[row] = static_cast<float>(silk_inner_product_FLP_c(center - row, residual, length));
-    const float energy = static_cast<float>(silk_energy_FLP(residual, length + silk_ltp_order));
-    const float scale = 1.0f / std::max(energy, 0.015f * (XX[0] + XX[silk_ltp_matrix_values - 1]) + 1.0f);
-    silk_scale_copy_vector_FLP(XX, XX, scale, silk_ltp_matrix_values);
-    silk_scale_copy_vector_FLP(xX, xX, scale, silk_ltp_order);
     residual += length;
     XX += silk_ltp_matrix_values;
     xX += silk_ltp_order;
@@ -17369,25 +17389,41 @@ static inline void silk_quant_LTP_gains_FLP(float B[4 * 5], opus_int16 B_Q14[4 *
   *pred_gain_dB = static_cast<float>(pred_gain_dB_Q7) * (1.0f / 128.0f);
 }
 
-OPUSCPP_LEANA OPUSCPP_SMALL static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float res_pitch[], const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
+constexpr auto silk_pitch_scratch_size = silk_max_ltp_buffer_length + silk_max_frame_length / 2;
+
+OPUSCPP_LEANA OPUSCPP_SMALL static void silk_find_pred_coefs_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, std::span<float, silk_pitch_scratch_size> pitch_scratch, const float x[], int condCoding, opus_int16 LTPCoef_Q14[4 * 5]) {
   float invGains[4];
   opus_int16 NLSF_Q15[16]{};
-  std::array<float, 4 * (silk_max_subfr_length + silk_nlsf_max_order)> lpc_input_storage;
-  auto* LPC_in_pre = lpc_input_storage.data();
-  auto* XXLTP = LPC_in_pre;
-  auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * silk_ltp_matrix_values;
+  union alignas(double) {
+    float lpc[4 * (silk_max_subfr_length + silk_nlsf_max_order)];
+    struct {
+      float correlation[4 * (silk_ltp_matrix_values + silk_ltp_order)];
+      double basis[silk_max_subfr_length + silk_ltp_order - 1];
+    } ltp;
+  } scratch;
+  static_assert(sizeof(scratch) == sizeof(scratch.lpc));
+  float* LPC_in_pre;
   float minInvGain;
   for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
     invGains[i] = 1.0f / psEncCtrl->Gains[i];
   }
   if (psEnc->sCmn.indices.signalType == 2) {
-    silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
+    scratch.ltp.correlation[0] = 0.f;
+    auto* XXLTP = scratch.ltp.correlation;
+    auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * silk_ltp_matrix_values;
+    const auto* res_pitch = pitch_scratch.data() + psEnc->sCmn.ltp_mem_length;
+    silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr,
+                     scratch.ltp.basis);
     silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, LTPCoef_Q14, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
+    scratch.lpc[0] = 0.f;
+    LPC_in_pre = scratch.lpc;
     silk_LTP_analysis_filter_FLP(LPC_in_pre, x - psEnc->sCmn.predictLPCOrder, psEncCtrl->LTPCoef, psEncCtrl->pitchL, invGains,
                                  psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr, psEnc->sCmn.predictLPCOrder);
   } else {
+    scratch.lpc[0] = 0.f;
+    LPC_in_pre = scratch.lpc;
     auto* x_ptr = x - psEnc->sCmn.predictLPCOrder;
     auto* x_pre_ptr = LPC_in_pre;
     for (int i = 0; i < psEnc->sCmn.nb_subfr; i++) {
@@ -17417,7 +17453,10 @@ OPUSCPP_LEANA OPUSCPP_SMALL static void silk_find_pred_coefs_FLP(silk_encoder_st
   if (select_coded_interpolation) {
     std::array<double, 2> selected_energy;
     opus_int16 interpolated[16]{};
-    float prediction[2][16]{}, residual[2][(((5 * 4) * 16) + 4 * 16) / 2]{};
+    float prediction[2][16]{};
+    constexpr auto residual_stride = 2 * (silk_max_subfr_length + silk_nlsf_max_order);
+    static_assert(2 * residual_stride <= silk_pitch_scratch_size);
+    const std::array residual{pitch_scratch.data(), pitch_scratch.data() + residual_stride};
     const int order = psEnc->sCmn.predictLPCOrder;
     const int shift = order + psEnc->sCmn.subfr_length;
     silk_LPC_analysis_filter_FLP(residual[0], psEncCtrl->PredCoef[0], LPC_in_pre, 2 * shift, order);
@@ -17720,11 +17759,11 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
     int redundancy_quant_offset_type;
     const bool lbrr_deferred_generate = (lbrr != nullptr && (lbrr->enabled & 3));
     {
-      std::array<float, silk_max_ltp_buffer_length + silk_max_frame_length / 2> pitch_residual;
+      std::array<float, silk_pitch_scratch_size> pitch_residual;
       auto* res_pitch_frame = pitch_residual.data() + psEnc->sCmn.ltp_mem_length;
       silk_find_pitch_lags_FLP(psEnc, &sEncCtrl, pitch_residual.data(), x_frame);
       silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, lbrr_deferred_generate);
-      silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
+      silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, pitch_residual, x_frame, condCoding, prepared.ltp.data());
       redundancy_quant_offset_type = psEnc->sCmn.indices.quantOffsetType;
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding, pGains_Q16);
       if (psEnc->sCmn.indices.signalType == 2)
