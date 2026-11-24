@@ -17391,7 +17391,7 @@ static inline void silk_warped_autocorrelation_FLP(std::array<float*, 4> corr, s
   }
 }
 
-static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float* pitch_res, const float* x) {
+static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_encoder_control_FLP* psEncCtrl, const float* pitch_res, const float* x, bool shared_with_lbrr) {
   silk_shape_state_FLP* psShapeSt = &psEnc->sShape;
   int k, nSamples, nSegs;
   float SNR_adj_dB, HarmShapeGain, Tilt;
@@ -17430,7 +17430,8 @@ static void silk_noise_shape_analysis_FLP(silk_encoder_state_FLP* psEnc, silk_en
     }
     psEnc->sCmn.indices.quantOffsetType = energy_variation > 0.6f * (nSegs - 1) ? 0 : 1;
   }
-  strength = (psEnc->sCmn.nFramesPerPacket == 1 && psEnc->sCmn.SNR_dB_Q7 < 20 * 128 ? (psEnc->sCmn.nChannelsInternal == 2 ? 2.25e-4f : 5.5e-4f) : 1e-3f) * psEncCtrl->predGain;
+  const bool soften_lbrr_shaping = shared_with_lbrr && psEnc->sCmn.nFramesPerPacket == 1 && psEnc->sCmn.SNR_dB_Q7 < 20 * 128;
+  strength = (soften_lbrr_shaping ? (psEnc->sCmn.nChannelsInternal == 2 ? 2.25e-4f : 5.5e-4f) : 1e-3f) * psEncCtrl->predGain;
   BWExp = 0.94f / (1.0f + strength * strength);
   warping = static_cast<float>(psEnc->sCmn.warping_Q16) / 65536.0f + 0.01f * psEncCtrl->coding_quality;
   gain_mult = silk_pow_reference(2.0f, -0.16f * SNR_adj_dB);
@@ -17602,11 +17603,12 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
     silk_nsq_preparation prepared;
     opus_int32 pGains_Q16[4];
     int redundancy_quant_offset_type;
+    const bool lbrr_deferred_generate = (lbrr != nullptr && (lbrr->enabled & 3));
     {
       std::array<float, silk_max_ltp_buffer_length + silk_max_frame_length / 2> pitch_residual;
       auto* res_pitch_frame = pitch_residual.data() + psEnc->sCmn.ltp_mem_length;
       silk_find_pitch_lags_FLP(psEnc, &sEncCtrl, pitch_residual.data(), x_frame);
-      silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame);
+      silk_noise_shape_analysis_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, lbrr_deferred_generate);
       silk_find_pred_coefs_FLP(psEnc, &sEncCtrl, res_pitch_frame, x_frame, condCoding, prepared.ltp.data());
       redundancy_quant_offset_type = psEnc->sCmn.indices.quantOffsetType;
       silk_process_gains_FLP(psEnc, &sEncCtrl, condCoding, pGains_Q16);
@@ -17636,7 +17638,6 @@ OPUSCPP_MINSIZE OPUSCPP_SMALL [[gnu::noinline]] static void silk_encode_frame_FL
       for (int row = first_prediction; row < 2; ++row)
         silk_bwexpander(prepared.prediction.data() + row * 16, static_cast<std::size_t>(psEnc->sCmn.predictLPCOrder), 63570);
     }
-    const bool lbrr_deferred_generate = (lbrr != nullptr && (lbrr->enabled & 3));
     SideInfoIndices lbrr_original_indices;
     float lbrr_original_lambda;
     opus_int8 lbrr_original_last_gain_index;
