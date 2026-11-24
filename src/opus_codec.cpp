@@ -13903,31 +13903,47 @@ struct silk_nsq_candidate_pair {
 struct silk_nsq_quant_level_pair {
   opus_int16 q1_Q10, q2_Q10;
 };
-consteval auto make_silk_nsq_quant_levels() noexcept {
-  std::array<std::array<std::array<silk_nsq_quant_level_pair, 62>, 2>, 2> table{};
-  for (int row = 0; row < 2; ++row)
-    for (int col = 0; col < 2; ++col) {
-      const int offset_Q10 = silk_Quantization_Offsets_Q10[row][col];
-      for (int qbin = -32; qbin <= 29; ++qbin) {
-        opus_int32 q1_Q10 = qbin > 0     ? qbin * 1024 - 80 + offset_Q10
-                            : qbin == 0  ? offset_Q10
-                            : qbin == -1 ? offset_Q10 - (1024 - 80)
-                                         : qbin * 1024 + 80 + offset_Q10;
-        const opus_int32 q2_Q10 = qbin > 0 ? q1_Q10 + 1024 : qbin == 0 ? q1_Q10 + (1024 - 80)
-                                                         : qbin == -1  ? offset_Q10
-                                                                       : q1_Q10 + 1024;
-        table[row][col][qbin + 32] = {static_cast<opus_int16>(q1_Q10), static_cast<opus_int16>(q2_Q10)};
+[[nodiscard]] constexpr auto silk_nsq_first_level(int bin) noexcept -> int {
+  const int sign = (bin > 0) - (bin < 0);
+  return 1024 * bin - 80 * sign;
+}
+
+[[nodiscard]] constexpr auto silk_nsq_level_gap(int bin) noexcept -> int {
+  return 1024 - 80 * (static_cast<unsigned>(bin + 1) < 2);
+}
+
+consteval bool silk_nsq_levels_match() {
+  for (const auto& offsets : silk_Quantization_Offsets_Q10) {
+    for (int offset : offsets) {
+      for (int bin = -32; bin <= 29; ++bin) {
+        const int reference_first = bin > 0 ? bin * 1024 - 80 + offset
+                                            : bin == 0 ? offset
+                                                       : bin == -1 ? offset - 944 : bin * 1024 + 80 + offset;
+        const int reference_second = bin == -1 ? offset : reference_first + (bin == 0 ? 944 : 1024);
+        const int first = silk_nsq_first_level(bin) + offset;
+        const int second = first + silk_nsq_level_gap(bin);
+        if (first != reference_first || second != reference_second ||
+            static_cast<opus_int16>(first) != first || static_cast<opus_int16>(second) != second)
+          return false;
       }
     }
-  return table;
+  }
+  return true;
 }
-inline constexpr auto silk_nsq_quant_levels = make_silk_nsq_quant_levels();
+static_assert(silk_nsq_levels_match());
 
-static_assert(sizeof(silk_nsq_quant_level_pair) == 4);
-static_assert(sizeof(silk_nsq_quant_levels) == 992);
+inline constexpr auto silk_nsq_quant_levels = [] consteval {
+  std::array<silk_nsq_quant_level_pair, 62> levels{};
+  for (int bin = -32; bin <= 29; ++bin) {
+    const int first = silk_nsq_first_level(bin);
+    levels[bin + 32] = {static_cast<opus_int16>(first), static_cast<opus_int16>(first + silk_nsq_level_gap(bin))};
+  }
+  return levels;
+}();
+static_assert(sizeof(silk_nsq_quant_levels) == 248);
 
 [[nodiscard]] static inline auto silk_quantize_candidate_pair(bool fixed, opus_int32 residual_q10, int Lambda_Q10, int offset_Q10,
-                                                              const silk_nsq_quant_level_pair* levels, int fixed_pulse = 0) noexcept -> silk_nsq_candidate_pair {
+                                                              int fixed_pulse = 0) noexcept -> silk_nsq_candidate_pair {
   if (fixed) {
     const auto q_Q10 = fixed_pulse * 1024 + (fixed_pulse > 0 ? -80 : fixed_pulse < 0 ? 80
                                                                                      : 0) +
@@ -13945,10 +13961,12 @@ static_assert(sizeof(silk_nsq_quant_levels) == 992);
     else
       q1_Q0 = q1_Q10 < 0 ? -1 : 0;
   }
-  const auto& level = levels[q1_Q0 + 32];
+  const auto& level = silk_nsq_quant_levels[q1_Q0 + 32];
+  const auto first = level.q1_Q10 + offset_Q10;
+  const auto second = level.q2_Q10 + offset_Q10;
   const auto lambda_i16 = static_cast<opus_int32>(static_cast<opus_int16>(Lambda_Q10));
-  return {level.q1_Q10, level.q2_Q10, silk_square_i16(residual_q10 - level.q1_Q10), silk_square_i16(residual_q10 - level.q2_Q10),
-          std::abs(static_cast<opus_int32>(level.q1_Q10)) * lambda_i16, std::abs(static_cast<opus_int32>(level.q2_Q10)) * lambda_i16};
+  return {first, second, silk_square_i16(residual_q10 - first), silk_square_i16(residual_q10 - second),
+          std::abs(first) * lambda_i16, std::abs(second) * lambda_i16};
 }
 
 static void scale_q16_buffer(opus_int32* data, const int count, const opus_int32 gain_Q16) noexcept {
@@ -14091,7 +14109,6 @@ struct NSQ_del_dec_struct {
 
 struct silk_nsq_block {
   silk_nsq_state* NSQ;
-  const silk_nsq_quant_level_pair* levels;
   const opus_int32* x_Q10;
   opus_int8* pulses;
   opus_int16* xq;
@@ -14130,7 +14147,7 @@ static void silk_nsq_plain_block(const silk_nsq_block& b) {
       tmp1 = rounded_rshift(tmp1, 2);
     }
     const opus_int32 r_Q10 = silk_signed_clamped_residual(b.x_Q10[i] - tmp1, NSQ->rand_seed);
-    const auto c = silk_quantize_candidate_pair(b.fixed, r_Q10, b.lambda_Q10, b.offset_Q10, b.levels, b.fixed ? b.pulses[i] : 0);
+    const auto c = silk_quantize_candidate_pair(b.fixed, r_Q10, b.lambda_Q10, b.offset_Q10, b.fixed ? b.pulses[i] : 0);
     const auto second = c.dist2_Q20 + c.rate2_Q20 < c.dist1_Q20 + c.rate1_Q20;
     const auto q_Q10 = second ? c.q2_Q10 : c.q1_Q10;
     const auto s = silk_nsq_build_sample(q_Q10, NSQ->rand_seed, saturating_left_shift<1>(LTP_pred_Q13), saturating_left_shift<4>(LPC_pred_Q10),
@@ -14228,7 +14245,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       alternate_costs[k] = psDD->RD_Q10;
     }
     for (int k = 0; k < N; ++k) {
-      const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10, b.levels,
+      const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
                                                   b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
       const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
       const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
@@ -14255,7 +14272,8 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       alternate_costs[k] += candidate0 ^ cost_delta;
     }
     *smpl_buf_idx = *smpl_buf_idx == 0 ? 39 : *smpl_buf_idx - 1;
-    const int last_smple_idx = (*smpl_buf_idx + decisionDelay) % 40;
+    const int delayed_slot = *smpl_buf_idx + decisionDelay;
+    const int last_smple_idx = delayed_slot < 0 ? delayed_slot % 40 : delayed_slot - 40 * (delayed_slot >= 40);
     opus_int32 RDmin_Q10 = selected_costs[0];
     int Winner_ind = 0;
     for (int k = 1; k < N; k++) {
@@ -14421,7 +14439,6 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
     errno = original_errno;
   }
   const int offset_Q10 = silk_Quantization_Offsets_Q10[psIndices->signalType >> 1][psIndices->quantOffsetType];
-  const auto* const levels = silk_nsq_quant_levels[psIndices->signalType >> 1][psIndices->quantOffsetType].data();
   int smpl_buf_idx = 0;
   int decisionDelay = std::min(40, subfr_length);
   if (delayed) {
@@ -14498,7 +14515,7 @@ static void silk_NSQ(const silk_encoder_state* psEncC, silk_nsq_state* NSQ, Side
         }
       }
     }
-    const silk_nsq_block block{NSQ, levels, x_sc_Q10, pulses - prefix, pxq - prefix, sLTP_Q15.data(), A_Q12, &prepared.ltp[k * 5], &prepared.shaping[k * 24],
+    const silk_nsq_block block{NSQ, x_sc_Q10, pulses - prefix, pxq - prefix, sLTP_Q15.data(), A_Q12, &prepared.ltp[k * 5], &prepared.shaping[k * 24],
                                silk_pack_harm_shape_gain(prepared.harmonic[k]), prepared.low_frequency[k], Gains_Q16[k],
                                subfr_length, psIndices->signalType, lag, prepared.tilt[k], Lambda_Q10, offset_Q10, psEncC->predictLPCOrder,
                                psEncC->shapingLPCOrder, fixed};
