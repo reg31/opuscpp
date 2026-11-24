@@ -13326,9 +13326,15 @@ __declspec(noinline)
 [[gnu::hot, gnu::noinline]]
 #endif
 static void
-silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int api_channels, int channel) {
+silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int api_channels, int channel, bool duplicate) {
   constexpr float scale = 1.f / 32768.f;
-  if (api_channels == 2) {
+  if (duplicate) {
+    for (int i = 0; i < samples; ++i) {
+      const float sample = input[i] * scale;
+      output[2 * i] = sample;
+      output[2 * i + 1] = sample;
+    }
+  } else if (api_channels == 2) {
     for (int i = 0; i < samples; ++i) {
       output[channel + 2 * i] = input[i] * scale;
     }
@@ -13339,14 +13345,14 @@ silk_store_resampled(const opus_int16* input, opus_res* output, int samples, int
   }
 }
 
-[[gnu::cold]] static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel) {
+[[gnu::cold]] static inline void silk_resample_and_store_channel(silk_decoder_state& state, std::span<opus_int16, OPUS_FRAME_SIZE_20MS> resampled, const opus_int16* input, int input_samples, opus_res* samplesOut, int output_samples, int api_channels, int channel, bool duplicate) {
   auto& resampler = state.resampler_state;
   if (resampler.resampler_function == 2 && resampler.Fs_in_kHz == 16 && resampler.Fs_out_kHz == 48 && resampler.invRatio_Q16 == 43691 &&
       (input_samples == silk_max_frame_length / 2 || input_samples == silk_max_frame_length) && output_samples == 3 * input_samples)
     silk_resample_decoder_3x(resampler, resampled, input, input_samples);
   else
     silk_resampler(&resampler, resampled.data(), input, input_samples);
-  silk_store_resampled(resampled.data(), samplesOut, output_samples, api_channels, channel);
+  silk_store_resampled(resampled.data(), samplesOut, output_samples, api_channels, channel, duplicate);
 }
 
 OPUSCPP_GCC_NOINLINE OPUSCPP_LEAN int silk_Decode(void* decState, silk_DecControlStruct* decControl, int lostFlag, int newPacketFlag, ec_dec* psRangeDec, opus_res* samplesOut, opus_int32* nSamplesOut) {
@@ -13487,16 +13493,11 @@ OPUSCPP_GCC_NOINLINE OPUSCPP_LEAN int silk_Decode(void* decState, silk_DecContro
   const int resampled_channels = decControl->nChannelsAPI == 2 && stereo_to_mono
                                      ? 2
                                      : std::min(decControl->nChannelsAPI, decControl->nChannelsInternal);
+  const bool duplicate = decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 1 && !stereo_to_mono;
   for (int n = 0; n < resampled_channels; ++n) {
     const int input_channel = n < decControl->nChannelsInternal ? n : 0;
     silk_resample_and_store_channel(*channel_state[n], samplesOut2_tmp, &samplesOut1_tmp[input_channel][1], nSamplesOutDec, samplesOut,
-                                    *nSamplesOut, decControl->nChannelsAPI, n);
-  }
-  if (decControl->nChannelsAPI == 2 && decControl->nChannelsInternal == 1 && !stereo_to_mono) {
-    const int output_samples = *nSamplesOut;
-    for (int i = 0; i < output_samples; ++i) {
-      samplesOut[1 + 2 * i] = samplesOut[2 * i];
-    }
+                                    *nSamplesOut, decControl->nChannelsAPI, n, duplicate);
   }
   if (lostFlag == 1) {
     for (int i = 0; i < psDec->nChannelsInternal; ++i) {
