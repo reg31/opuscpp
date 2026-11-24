@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo",
-  "source_commit": "5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c",
-  "source_blob": "5e9515470155df56466c6ce6ff94a7f983870c21",
-  "source_sha256": "50465e2bb2185e1c0182821b6081ae8bcbd9b6a7abe3b4ab14bdffbc9a5b9ad3",
-  "header_blob": "79f21465b2f6c3d97e5bcb45b3c7a3d40db5e6a5",
-  "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
-  "tests_commit": "5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo",
+  "source_commit": "96ef72d19446079c8647178f32591f00fe149d64",
+  "source_blob": "1006fea676e73171e5d09066942c7ac8320e2aea",
+  "source_sha256": "0b743e0f1cb5b796cebb17dc93e8d17829e59a0acc447727adb5bf8d021dbee1",
+  "header_blob": "418470e6268c04ce5b4993f0f6dd1d1d4fefbd5e",
+  "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
+  "tests_commit": "96ef72d19446079c8647178f32591f00fe149d64",
   "tests_sha256": {
     "tests/bench/bench17.cpp": "e43eff507b3957c56ca5ee4a8cecdba383bb139c5663efee4caa50920e12518c",
     "tests/bench/bench17.py": "996c5ea5b520da659a151080c6c35de45f7df1bba4e517a5930279d8f888e847",
@@ -16,10 +16,10 @@
     "tests/celt_empty_channel.cpp": "4396489035de31f0dbcfde2583b462ad3521d1ea9a2776de7385f97aef6f0a9a",
     "tests/celt_energy_decode.cpp": "225ae313f73fe6690022c6005c35da17021879cedfed9c07e0c1e2e6ca4db55f",
     "tests/celt_mono_energy_history.cpp": "9afc267c50fd3a1ecee81ffe71154a1d4116102c60352d5d4be6678a377d1bc7",
-    "tests/celt_transient_analysis.cpp": "9019b0073ee0e7f2591ffec41f4b385358edc39631e8868b150a4ef918c0bca5",
+    "tests/celt_transient_analysis.cpp": "f984f178096d73b6db79b64680330e82d0a0c892fc65398879bc3afcd0ff7ec0",
     "tests/conformance_decode.cpp": "fac43585f2a6aa0c0fbda25970524a482591ad63c77fec4d097e91e76e7d1b94",
     "tests/conformance_encode.cpp": "75960bb5e3fc6004ce82a31933d818fcfd27332d85b1719d4baddeb9caf2fe7a",
-    "tests/decoder_channel_remap.cpp": "8fc6659d9910623fd92caf221207182b5228235d78373dc4a3e24e06b19eb6c9",
+    "tests/decoder_channel_remap.cpp": "1e6e6a7058e9b84c4a56049dd89987294b77ce4cb71013b74041c00f399f5603",
     "tests/detector_mode_balance.cpp": "be2af33bd1fbe2eabfedeb778e4357858252c783491666f9e709c714d0bfd95a",
     "tests/dtx_behavior.cpp": "d053bbba9563ca2e156a3b5848d82a631b4845fe5441603fbbaf96df29f643d9",
     "tests/dtx_vs_official.cpp": "da4c831bf8665f0cb8006425fc0e58bfec5f88434f81bfbb3ddfc7c27d3cb93f",
@@ -54,7 +54,7 @@
     "tests/silk_plc_energy.cpp": "e4b2089d0f96e4a0b5b1bfba86b4e06696bc4d157cab4fbac04987cd8acc3074",
     "tests/stereo_policy.cpp": "1f026ec9d701147a2dba3bce7e04e9024c18a7329adb74d9e7b011b73d16d46a",
     "tests/theta003_gain_domain.cpp": "e5398d220f51c599ac28e69f9e754815e17d795d763ef30c67571559d5299dbe",
-    "tests/transient_invariant.cpp": "60fee15b71175c4d8427d99334d936bcd9b9c0e5c2aa3f2307ac1369f94ed44c",
+    "tests/transient_invariant.cpp": "250293c1f616ce70e795cf9b6cfcb4189e3b935d735bf87ff7b42edf2ac2c52a",
     "tests/unconstrained_capacity_vbr.cpp": "24263a4f2a15a00f98130e9341ea7160b650aa9e735f28d2cf08280657900359",
     "tests/upper_ceiling_recovery.cpp": "83132f624b59265037dbe7c5f8e4d1450a8878673df7644b039c2fa1012a2554",
     "tests/vbr_budget_behavior.cpp": "41bfbf6d192a59aa632c3afcc871c03bbdf90a43135e2917046ff0bee5ec7fe0",
@@ -71,14 +71,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "b41b3624d5c75773ba3407300d6beac533c5f39135dc98d6a257d306e40847f8",
+  "quality_binary_sha256": "7bfc8298e3d27e25de5ff1632c9f39de1b95ddd8bc8b9efd45f45a3534858d77",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -91,7 +91,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -103,7 +103,7 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 745,
+  "quality_negative_fields": 658,
   "acceptance_status": "pass",
   "acceptance_counts": [
     18,
@@ -112,12 +112,12 @@
     18
   ],
   "standard_fec_acceptance": "PASS",
-  "measurement_date": "2026-11-23",
-  "completed_utc": "2026-11-23T23:58:47.778591+00:00",
+  "measurement_date": "2026-11-24",
+  "completed_utc": "2026-11-24T17:12:47.800631+00:00",
   "root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
   "phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
-  "input_manifest_sha256": "14088e1a76141bffab8da7348fa068cf28cbf59361d222e554c4356ec8b77785",
-  "resume_provenance_sha256": "a098cd3697a9adfa6fa693f1a9e17af56eaa160111c0536644b07207b4311f19",
+  "input_manifest_sha256": "b5c6ea5d129045cb162445c34ae9bfd9dbe97be8e2844349693f29d13a25e8fc",
+  "resume_provenance_sha256": "dff1855815baeedff5ae3791ef722ffeb126d0a580fe78502ef2ed5cdcff198b",
   "pre_resume_root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
   "pre_resume_phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
   "official_version": "libopus 1.6.1-81-g51bd2e64",
@@ -154,29 +154,29 @@
     "stereo_width_error"
   ],
   "quality_negatives": {
-    "snr_db": 29,
-    "segmental_snr_db": 25,
-    "rms_error": 29,
-    "mean_abs_error": 24,
-    "pesq_style": 25,
-    "visqol_style": 64,
-    "logband_corr": 61,
-    "logband_error": 64,
-    "celt_quality": 113,
-    "celt_masked_error": 113,
-    "celt_highband_error": 171,
-    "stereo_width_error": 27
+    "snr_db": 24,
+    "segmental_snr_db": 21,
+    "rms_error": 24,
+    "mean_abs_error": 22,
+    "pesq_style": 20,
+    "visqol_style": 49,
+    "logband_corr": 51,
+    "logband_error": 47,
+    "celt_quality": 103,
+    "celt_masked_error": 103,
+    "celt_highband_error": 169,
+    "stereo_width_error": 25
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
   "nominal_s17_music_eof_v1": {
     "version": "S17_MUSIC_EOF_V1",
-    "source_commit": "5f2be5aa99bb1b5e5b9b598b8434e9ee8a79b56c",
-    "source_sha256": "50465e2bb2185e1c0182821b6081ae8bcbd9b6a7abe3b4ab14bdffbc9a5b9ad3",
-    "header_sha256": "6265f2d300b62cd8b5cce8bd2e28f3640363c815335f0bba05d0c0b44a9a989a",
+    "source_commit": "96ef72d19446079c8647178f32591f00fe149d64",
+    "source_sha256": "0b743e0f1cb5b796cebb17dc93e8d17829e59a0acc447727adb5bf8d021dbee1",
+    "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
     "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
     "official_scalar_archive_sha256": "ec84527b88e31bf4166d7b2b23af1c154d20fceb07ba7e856a4ac2967fa79e3f",
     "freeze_sha256": "89251a31107476afb817fe28b3988d74e892e2cc9557857c1dbd40b62d6f7e5d",
-    "result_sha256": "1a91fc82130e3ee1ea922a39b218f731544d66e3b398809355ef13286c1ba7b0",
+    "result_sha256": "ec4a57c483e82fd37d7d835069dbc9441acc3b08ca56139a1d581484109938c9",
     "geometry": {
       "requests_bps": [
         16000,
@@ -222,18 +222,18 @@
         "id": "audio_16000",
         "request_bps": 16000,
         "current": {
-          "snr_db": 9.147508997752876,
-          "segmental_snr_db": 9.240837672566922,
-          "rms_error": 0.06958874569663372,
-          "mean_abs_error": 0.04969591264164074,
-          "pesq_style": 2.4137595805227425,
-          "visqol_style": 4.680899178452883,
-          "logband_corr": 0.9637856011311285,
-          "logband_error": 0.2881074003687837,
-          "celt_quality": 99.10248689731908,
-          "celt_masked_error": 0.7212520112310853,
-          "celt_highband_error": 5.897913449512e-05,
-          "stereo_width_error": 0.051531443306429
+          "snr_db": 10.20870339971821,
+          "segmental_snr_db": 10.746270650574914,
+          "rms_error": 0.06158561582686813,
+          "mean_abs_error": 0.04300086252474388,
+          "pesq_style": 2.527608111920097,
+          "visqol_style": 4.692024485705735,
+          "logband_corr": 0.9655076772972289,
+          "logband_error": 0.2761698060518366,
+          "celt_quality": 98.32029070038611,
+          "celt_masked_error": 1.3551811246931735,
+          "celt_highband_error": 0.0003593683132208,
+          "stereo_width_error": 0.04423316007130778
         },
         "official": {
           "snr_db": 2.913329111113676,
@@ -250,18 +250,18 @@
           "stereo_width_error": 0.6962835286383952
         },
         "margins": {
-          "snr_db": 6.2341798866392,
-          "segmental_snr_db": 6.3221708579117495,
-          "rms_error": 0.07305344593396464,
-          "mean_abs_error": 0.05799946601805205,
-          "pesq_style": 0.4797809711021903,
-          "visqol_style": 0.3368740281787357,
-          "logband_corr": 0.11420762552788621,
-          "logband_error": 0.3021054029116077,
-          "celt_quality": 1.60304594447706,
-          "celt_masked_error": 1.304631334187567,
-          "celt_highband_error": 8.511025029547001e-05,
-          "stereo_width_error": 0.6447520853319662
+          "snr_db": 7.295374288604535,
+          "segmental_snr_db": 7.827603835919741,
+          "rms_error": 0.08105657580373021,
+          "mean_abs_error": 0.06469451613494892,
+          "pesq_style": 0.5936295024995448,
+          "visqol_style": 0.347999335431588,
+          "logband_corr": 0.11592970169398653,
+          "logband_error": 0.3140429972285548,
+          "celt_quality": 0.8208497475440879,
+          "celt_masked_error": 0.6707022207254787,
+          "celt_highband_error": -0.00021527892843020997,
+          "stereo_width_error": 0.6520503685670874
         },
         "tolerances": {
           "snr_db": 0.0,
@@ -279,17 +279,17 @@
         },
         "rates": {
           "current": {
-            "primary_payload_bytes": 123197,
-            "eof_payload_bytes": 58,
-            "full_payload_bytes": 123255,
-            "primary_bps_at_60_seconds": 16426.266666666666,
-            "with_drain_bps_at_60_seconds": 16434.0,
-            "with_drain_bps_at_60_02_coded_seconds": 16428.523825391538,
-            "charged_eof_bps_at_60_seconds": 7.733333333333333,
-            "primary_bps_minus_request": 426.2666666666664,
-            "drain_bps_at_20_ms": 23200,
-            "with_drain_bps_minus_request_at_source_duration": 434.0,
-            "with_drain_bps_minus_request_at_coded_duration": 428.5238253915377
+            "primary_payload_bytes": 123259,
+            "eof_payload_bytes": 59,
+            "full_payload_bytes": 123318,
+            "primary_bps_at_60_seconds": 16434.533333333333,
+            "with_drain_bps_at_60_seconds": 16442.4,
+            "with_drain_bps_at_60_02_coded_seconds": 16436.92102632456,
+            "charged_eof_bps_at_60_seconds": 7.866666666666666,
+            "primary_bps_minus_request": 434.53333333333285,
+            "drain_bps_at_20_ms": 23600,
+            "with_drain_bps_minus_request_at_source_duration": 442.40000000000146,
+            "with_drain_bps_minus_request_at_coded_duration": 436.9210263245586
           },
           "official": {
             "primary_payload_bytes": 123464,
@@ -305,24 +305,27 @@
             "with_drain_bps_minus_request_at_coded_duration": 465.04498500499903
           }
         },
-        "evidence_sha256": "a645e0dd12c0f9c12323df120ec2736beb8331d9cf43c6859a6614a1b2001c1f"
+        "failures": {
+          "celt_highband_error": -0.00021527892843020997
+        },
+        "evidence_sha256": "62230a9fcf1f59f869fac97b46e623c4447389c6d117e4f106af817c4a133299"
       },
       {
         "id": "audio_24000",
         "request_bps": 24000,
         "current": {
-          "snr_db": 17.04326605134441,
-          "segmental_snr_db": 17.703103265011986,
-          "rms_error": 0.02803826628047988,
-          "mean_abs_error": 0.01928024308321104,
-          "pesq_style": 3.052780908783527,
-          "visqol_style": 4.805169469916805,
-          "logband_corr": 0.983281705915104,
-          "logband_error": 0.16666252315945304,
-          "celt_quality": 99.00692231518494,
-          "celt_masked_error": 0.7984332737881125,
-          "celt_highband_error": 0.00036674749698903,
-          "stereo_width_error": 0.01694692249068764
+          "snr_db": 18.201345970155813,
+          "segmental_snr_db": 19.825386082415353,
+          "rms_error": 0.0245384518906415,
+          "mean_abs_error": 0.01560206774320041,
+          "pesq_style": 3.215210091978863,
+          "visqol_style": 4.845788977388074,
+          "logband_corr": 0.9886308458210079,
+          "logband_error": 0.1302566187752255,
+          "celt_quality": 99.11457319444926,
+          "celt_masked_error": 0.7114960016205524,
+          "celt_highband_error": 7.276511988515e-05,
+          "stereo_width_error": 0.01500441909058769
         },
         "official": {
           "snr_db": 10.854860725418177,
@@ -339,18 +342,18 @@
           "stereo_width_error": 0.05060518439192736
         },
         "margins": {
-          "snr_db": 6.188405325926233,
-          "segmental_snr_db": 6.378703575092295,
-          "rms_error": 0.029132158917126706,
-          "mean_abs_error": 0.021438276712695745,
-          "pesq_style": 0.48053695731188073,
-          "visqol_style": 0.12403048475107603,
-          "logband_corr": 0.022426040514102352,
-          "logband_error": 0.11546950361592631,
-          "celt_quality": 0.6695401348011387,
-          "celt_masked_error": 0.5428422820734123,
-          "celt_highband_error": 0.15703727372316384,
-          "stereo_width_error": 0.033658261901239724
+          "snr_db": 7.346485244737636,
+          "segmental_snr_db": 8.500986392495662,
+          "rms_error": 0.03263197330696509,
+          "mean_abs_error": 0.02511645205270638,
+          "pesq_style": 0.6429661405072169,
+          "visqol_style": 0.164649992222345,
+          "logband_corr": 0.027775180420006262,
+          "logband_error": 0.15187540800015384,
+          "celt_quality": 0.7771910140654654,
+          "celt_masked_error": 0.6297795542409724,
+          "celt_highband_error": 0.1573312561002677,
+          "stereo_width_error": 0.035600765301339675
         },
         "tolerances": {
           "snr_db": 0.0,
@@ -368,17 +371,17 @@
         },
         "rates": {
           "current": {
-            "primary_payload_bytes": 183405,
+            "primary_payload_bytes": 183477,
             "eof_payload_bytes": 93,
-            "full_payload_bytes": 183498,
-            "primary_bps_at_60_seconds": 24454.0,
-            "with_drain_bps_at_60_seconds": 24466.4,
-            "with_drain_bps_at_60_02_coded_seconds": 24458.24725091636,
+            "full_payload_bytes": 183570,
+            "primary_bps_at_60_seconds": 24463.6,
+            "with_drain_bps_at_60_seconds": 24476.0,
+            "with_drain_bps_at_60_02_coded_seconds": 24467.844051982673,
             "charged_eof_bps_at_60_seconds": 12.4,
-            "primary_bps_minus_request": 454.0,
+            "primary_bps_minus_request": 463.59999999999854,
             "drain_bps_at_20_ms": 37200,
-            "with_drain_bps_minus_request_at_source_duration": 466.40000000000146,
-            "with_drain_bps_minus_request_at_coded_duration": 458.2472509163599
+            "with_drain_bps_minus_request_at_source_duration": 476.0,
+            "with_drain_bps_minus_request_at_coded_duration": 467.8440519826727
           },
           "official": {
             "primary_payload_bytes": 183574,
@@ -394,24 +397,25 @@
             "with_drain_bps_minus_request_at_coded_duration": 475.8413862046
           }
         },
-        "evidence_sha256": "06d8e5b272a1dc5ea82ab26c9aa5095537e41c1e7d5662207288b3b4d852647c"
+        "failures": {},
+        "evidence_sha256": "942faba3b1362516a98fee76d494bd4c12078db9b387c3bc9a06cf96014a8a35"
       },
       {
         "id": "audio_32000",
         "request_bps": 32000,
         "current": {
-          "snr_db": 20.777630772717032,
-          "segmental_snr_db": 21.018912277864086,
-          "rms_error": 0.01824033960316898,
-          "mean_abs_error": 0.01302487403831361,
-          "pesq_style": 3.302606164846497,
-          "visqol_style": 4.867061744927141,
-          "logband_corr": 0.991454975224715,
-          "logband_error": 0.11211533105931118,
-          "celt_quality": 99.42081331465053,
-          "celt_masked_error": 0.46469638088603105,
-          "celt_highband_error": 0.00021533901920443,
-          "stereo_width_error": 0.01019386061209458
+          "snr_db": 23.545457163872836,
+          "segmental_snr_db": 24.162971371586032,
+          "rms_error": 0.01326299482931294,
+          "mean_abs_error": 0.00926022951095348,
+          "pesq_style": 3.5400976896488197,
+          "visqol_style": 4.906326759781155,
+          "logband_corr": 0.9953382064810687,
+          "logband_error": 0.07830927183861737,
+          "celt_quality": 99.38094472172718,
+          "celt_masked_error": 0.4967834962931742,
+          "celt_highband_error": 0.00054665160918819,
+          "stereo_width_error": 0.00713661608673226
         },
         "official": {
           "snr_db": 16.868049241030402,
@@ -428,18 +432,18 @@
           "stereo_width_error": 0.01716464618902287
         },
         "margins": {
-          "snr_db": 3.90958153168663,
-          "segmental_snr_db": 3.7794552356081006,
-          "rms_error": 0.010369274271465417,
-          "mean_abs_error": 0.0075683491723699,
-          "pesq_style": 0.28711950583345036,
-          "visqol_style": 0.06401196289806865,
-          "logband_corr": 0.00818429915160801,
-          "logband_error": 0.056938828559585875,
-          "celt_quality": 0.21212408089809287,
-          "celt_masked_error": 0.1708702152045698,
-          "celt_highband_error": 0.00041324331048943005,
-          "stereo_width_error": 0.006970785576928288
+          "snr_db": 6.677407922842434,
+          "segmental_snr_db": 6.923514329330047,
+          "rms_error": 0.015346619045321459,
+          "mean_abs_error": 0.01133299369973003,
+          "pesq_style": 0.5246110306357732,
+          "visqol_style": 0.103276977752083,
+          "logband_corr": 0.012067530407961713,
+          "logband_error": 0.09074488778027968,
+          "celt_quality": 0.17225548797473778,
+          "celt_masked_error": 0.13878309979742665,
+          "celt_highband_error": 8.193072050567002e-05,
+          "stereo_width_error": 0.010028030102290609
         },
         "tolerances": {
           "snr_db": 0.0,
@@ -457,17 +461,17 @@
         },
         "rates": {
           "current": {
-            "primary_payload_bytes": 243668,
+            "primary_payload_bytes": 243834,
             "eof_payload_bytes": 126,
-            "full_payload_bytes": 243794,
-            "primary_bps_at_60_seconds": 32489.066666666666,
-            "with_drain_bps_at_60_seconds": 32505.866666666665,
-            "with_drain_bps_at_60_02_coded_seconds": 32495.034988337222,
+            "full_payload_bytes": 243960,
+            "primary_bps_at_60_seconds": 32511.2,
+            "with_drain_bps_at_60_seconds": 32528.0,
+            "with_drain_bps_at_60_02_coded_seconds": 32517.160946351218,
             "charged_eof_bps_at_60_seconds": 16.8,
-            "primary_bps_minus_request": 489.0666666666657,
+            "primary_bps_minus_request": 511.2000000000007,
             "drain_bps_at_20_ms": 50400,
-            "with_drain_bps_minus_request_at_source_duration": 505.86666666666497,
-            "with_drain_bps_minus_request_at_coded_duration": 495.0349883372219
+            "with_drain_bps_minus_request_at_source_duration": 528.0,
+            "with_drain_bps_minus_request_at_coded_duration": 517.1609463512177
           },
           "official": {
             "primary_payload_bytes": 243842,
@@ -483,24 +487,25 @@
             "with_drain_bps_minus_request_at_coded_duration": 513.2955681439526
           }
         },
-        "evidence_sha256": "3f7f9576fa1649d5224f50e7435b395acb1d62830223e1dec657f0b025a38421"
+        "failures": {},
+        "evidence_sha256": "1b87fd7af705b8dd1eaec4304a7a758a6ade1383c3b1a19bea2ece32d27478ca"
       },
       {
         "id": "audio_48000",
         "request_bps": 48000,
         "current": {
-          "snr_db": 29.03337525238833,
-          "segmental_snr_db": 29.394038522807538,
-          "rms_error": 0.0070509185177596,
-          "mean_abs_error": 0.00506168270734663,
-          "pesq_style": 3.933393546052,
-          "visqol_style": 4.950665904042416,
-          "logband_corr": 0.9987380565142076,
-          "logband_error": 0.04127562344971928,
-          "celt_quality": 99.92661349615197,
-          "celt_masked_error": 0.05873075593944684,
-          "celt_highband_error": 1.302375752168e-05,
-          "stereo_width_error": 0.0039568719782797
+          "snr_db": 32.900415390352215,
+          "segmental_snr_db": 33.397434416911416,
+          "rms_error": 0.00451745348027222,
+          "mean_abs_error": 0.00316734745704326,
+          "pesq_style": 4.2338930584964105,
+          "visqol_style": 4.970102041441408,
+          "logband_corr": 0.999496044587192,
+          "logband_error": 0.02493357704868227,
+          "celt_quality": 99.92723648325901,
+          "celt_masked_error": 0.05823200178917631,
+          "celt_highband_error": 1.29475998174e-05,
+          "stereo_width_error": 0.00240035996600719
         },
         "official": {
           "snr_db": 23.354557426086284,
@@ -517,18 +522,18 @@
           "stereo_width_error": 0.00804222747498187
         },
         "margins": {
-          "snr_db": 5.678817826302044,
-          "segmental_snr_db": 5.811058014434117,
-          "rms_error": 0.0065067991963595395,
-          "mean_abs_error": 0.00486925598188108,
-          "pesq_style": 0.438035866555158,
-          "visqol_style": 0.04646410971311976,
-          "logband_corr": 0.0034919655666848515,
-          "logband_error": 0.038971169405814444,
-          "celt_quality": 0.07622055122421045,
-          "celt_masked_error": 0.061044506596910166,
-          "celt_highband_error": 0.00025429872618704997,
-          "stereo_width_error": 0.00408535549670217
+          "snr_db": 9.545857964265931,
+          "segmental_snr_db": 9.814453908537995,
+          "rms_error": 0.00904026423384692,
+          "mean_abs_error": 0.00676359123218445,
+          "pesq_style": 0.7385353789995683,
+          "visqol_style": 0.06590024711211218,
+          "logband_corr": 0.0042499536396692905,
+          "logband_error": 0.05531321580685146,
+          "celt_quality": 0.07684353833124646,
+          "celt_masked_error": 0.061543260747180695,
+          "celt_highband_error": 0.00025437488389133,
+          "stereo_width_error": 0.00564186750897468
         },
         "tolerances": {
           "snr_db": 0.0,
@@ -572,24 +577,25 @@
             "with_drain_bps_minus_request_at_coded_duration": 406.39786737754184
           }
         },
-        "evidence_sha256": "7c84e22dce398748ed0d3dacd664582ef358a9cf6643686fa46d6fb2feafdb77"
+        "failures": {},
+        "evidence_sha256": "410cd9f645bac8f8ee718b954883dd435f437159b4e59823d49ba59df75ca035"
       },
       {
         "id": "audio_64000",
         "request_bps": 64000,
         "current": {
-          "snr_db": 35.36027941253738,
-          "segmental_snr_db": 34.68085936472401,
-          "rms_error": 0.00340330199163024,
-          "mean_abs_error": 0.0024318523089643,
-          "pesq_style": 4.33040414304671,
-          "visqol_style": 4.977024207712528,
-          "logband_corr": 0.9997156542152131,
-          "logband_error": 0.01917553994500936,
-          "celt_quality": 99.94683238448928,
-          "celt_masked_error": 0.04254540359936795,
-          "celt_highband_error": 1.2539439834e-06,
-          "stereo_width_error": 0.00179137014304125
+          "snr_db": 35.71839866471909,
+          "segmental_snr_db": 34.73089321123363,
+          "rms_error": 0.00326583715221724,
+          "mean_abs_error": 0.00233819047546099,
+          "pesq_style": 4.334191544724518,
+          "visqol_style": 4.977927740845639,
+          "logband_corr": 0.9997386302847403,
+          "logband_error": 0.01842184365280024,
+          "celt_quality": 99.94822191933727,
+          "celt_masked_error": 0.04143319211191686,
+          "celt_highband_error": 1.25394469207e-06,
+          "stereo_width_error": 0.00175386596992729
         },
         "official": {
           "snr_db": 25.487146385242188,
@@ -606,18 +612,18 @@
           "stereo_width_error": 0.00614669284781793
         },
         "margins": {
-          "snr_db": 9.873133027295193,
-          "segmental_snr_db": 8.996265807080935,
-          "rms_error": 0.00720283272792661,
-          "mean_abs_error": 0.005355163730675591,
-          "pesq_style": 0.6769286058570825,
-          "visqol_style": 0.05116418859661209,
-          "logband_corr": 0.0026711089238391494,
-          "logband_error": 0.04277356582384091,
-          "celt_quality": 0.06313913557984563,
-          "celt_masked_error": 0.050554148306085796,
-          "celt_highband_error": 4.0819238574569995e-05,
-          "stereo_width_error": 0.00435532270477668
+          "snr_db": 10.231252279476902,
+          "segmental_snr_db": 9.046299653590555,
+          "rms_error": 0.00734029756733961,
+          "mean_abs_error": 0.005448825564178901,
+          "pesq_style": 0.6807160075348899,
+          "visqol_style": 0.05206772172972318,
+          "logband_corr": 0.002694084993366319,
+          "logband_error": 0.04352726211605003,
+          "celt_quality": 0.06452867042783339,
+          "celt_masked_error": 0.051666359793536884,
+          "celt_highband_error": 4.0819237865899995e-05,
+          "stereo_width_error": 0.00439282687789064
         },
         "tolerances": {
           "snr_db": 0.0,
@@ -661,7 +667,8 @@
             "with_drain_bps_minus_request_at_coded_duration": 409.19693435521185
           }
         },
-        "evidence_sha256": "75988688e11cbae09da44c6f9bf1d3d9c16307375929fc3423aa2325ec9188c5"
+        "failures": {},
+        "evidence_sha256": "8b3e689fd3e6b0c08af5b4eaa25efd1d6d883f01f79f1bc77c04996329153829"
       },
       {
         "id": "audio_96000",
@@ -750,7 +757,8 @@
             "with_drain_bps_minus_request_at_coded_duration": 416.92769076974946
           }
         },
-        "evidence_sha256": "b97c2a23f203483feb20615c73c6e9f5fc0817241cab73b2fbff1a6c2e4349b0"
+        "failures": {},
+        "evidence_sha256": "c0b61da6f3f0ecdcd25d5f27d6c8afd1198624197c623adb9d0e95374523736e"
       },
       {
         "id": "audio_128000",
@@ -839,7 +847,8 @@
             "with_drain_bps_minus_request_at_coded_duration": 425.32489170276676
           }
         },
-        "evidence_sha256": "54ac0ef74ce88efbe6d448330b212dcee412b7aa91af7682184ed8f96ba2b6b3"
+        "failures": {},
+        "evidence_sha256": "fcd9833f49c1581e9676b4e9d9db975e8a204f1a73f5f10253e34b1d22c27590"
       },
       {
         "id": "audio_192000",
@@ -928,7 +937,8 @@
             "with_drain_bps_minus_request_at_coded_duration": 449.71676107964595
           }
         },
-        "evidence_sha256": "17a44aaf6f53c340352530f3d1160477d6fcfa3087db46c2ab0eedc09b4992a2"
+        "failures": {},
+        "evidence_sha256": "47ef9c20a907fc0913c18fba7f14261ac86444b3a6662c2bd2324d69bcadffd6"
       },
       {
         "id": "audio_256000",
@@ -1017,10 +1027,11 @@
             "with_drain_bps_minus_request_at_coded_duration": 484.77174275240395
           }
         },
-        "evidence_sha256": "05c2c0930113ee777aee7a172cb2fb5786c7fab37e45c9263a051a762b93e256"
+        "failures": {},
+        "evidence_sha256": "9c82dbbb36ab63426c0e67a073257ac9ab30e822104dfb8a89e43982dfbd1e1c"
       }
     ],
     "fields_checked": 108,
-    "fields_below_frozen_tolerance": 0
+    "fields_below_frozen_tolerance": 1
   }
 }

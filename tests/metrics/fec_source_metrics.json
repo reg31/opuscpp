@@ -16,7 +16,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -24,24 +24,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,29,34,29,31,30,28,34,31,31,28,28,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.199981103 next_ref=0.185155485 fidelity_fec=0.213176154 fidelity_ref=0.164461976 fidelity_plc=0.233064463 transition_fec=0.149974654 transition_ref=0.131843014 step_fec=897.000 step_ref=989.000 self_consistency=0.112975563\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=23,29,34,30,28,36,30,26,34,28,31,25,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.212857697 next_ref=0.214140656 fidelity_fec=0.157798011 fidelity_ref=0.145041363 fidelity_plc=0.293675757 transition_fec=0.134806745 transition_ref=0.121873927 step_fec=893.000 step_ref=976.000 self_consistency=0.072181796\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.213176154,
-          "next_fec": 0.199981103,
-          "transition_fec": 0.149974654,
-          "fidelity_ref": 0.164461976,
-          "next_ref": 0.185155485,
-          "transition_ref": 0.131843014,
-          "fidelity_plc": 0.233064463,
-          "self_consistency": 0.112975563,
-          "step_fec": 897.0,
-          "step_ref": 989.0
+          "fidelity_fec": 0.157798011,
+          "next_fec": 0.212857697,
+          "transition_fec": 0.134806745,
+          "fidelity_ref": 0.145041363,
+          "next_ref": 0.214140656,
+          "transition_ref": 0.121873927,
+          "fidelity_plc": 0.293675757,
+          "self_consistency": 0.072181796,
+          "step_fec": 893.0,
+          "step_ref": 976.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -81,7 +81,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -89,24 +89,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,40,38,44,41,38,40,40,40,43,40,33,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.183846938 next_ref=0.187877633 fidelity_fec=0.179077348 fidelity_ref=0.159963213 fidelity_plc=0.327910900 transition_fec=0.155046642 transition_ref=0.134861929 step_fec=-253.000 step_ref=-297.000 self_consistency=0.081290234\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,40,38,45,37,37,40,42,39,38,47,37,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=0 vbr=1 lookahead=312 next_fec=0.194623100 next_ref=0.194623100 fidelity_fec=0.174056668 fidelity_ref=0.174056668 fidelity_plc=0.349817844 transition_fec=0.181362428 transition_ref=0.181362428 step_fec=-314.000 step_ref=-314.000 self_consistency=0.000000000\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.179077348,
-          "next_fec": 0.183846938,
-          "transition_fec": 0.155046642,
-          "fidelity_ref": 0.159963213,
-          "next_ref": 0.187877633,
-          "transition_ref": 0.134861929,
-          "fidelity_plc": 0.3279109,
-          "self_consistency": 0.081290234,
-          "step_fec": -253.0,
-          "step_ref": -297.0
+          "fidelity_fec": 0.174056668,
+          "next_fec": 0.1946231,
+          "transition_fec": 0.181362428,
+          "fidelity_ref": 0.174056668,
+          "next_ref": 0.1946231,
+          "transition_ref": 0.181362428,
+          "fidelity_plc": 0.349817844,
+          "self_consistency": 0.0,
+          "step_fec": -314.0,
+          "step_ref": -314.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -146,7 +146,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -154,24 +154,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=58,48,63,63,66,50,63,68,48,61,71,57,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.171676927 next_ref=0.171676927 fidelity_fec=0.196384770 fidelity_ref=0.196384770 fidelity_plc=0.718314424 transition_fec=0.157449927 transition_ref=0.157449927 step_fec=-338.000 step_ref=-338.000 self_consistency=0.000000000\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=59,61,52,57,70,52,62,65,61,54,60,61,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=0 vbr=1 lookahead=312 next_fec=0.207897156 next_ref=0.185636110 fidelity_fec=0.191628450 fidelity_ref=0.162046023 fidelity_plc=0.694412955 transition_fec=0.197030387 transition_ref=0.153243973 step_fec=-212.000 step_ref=-185.000 self_consistency=0.103550003\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.19638477,
-          "next_fec": 0.171676927,
-          "transition_fec": 0.157449927,
-          "fidelity_ref": 0.19638477,
-          "next_ref": 0.171676927,
-          "transition_ref": 0.157449927,
-          "fidelity_plc": 0.718314424,
-          "self_consistency": 0.0,
-          "step_fec": -338.0,
-          "step_ref": -338.0
+          "fidelity_fec": 0.19162845,
+          "next_fec": 0.207897156,
+          "transition_fec": 0.197030387,
+          "fidelity_ref": 0.162046023,
+          "next_ref": 0.18563611,
+          "transition_ref": 0.153243973,
+          "fidelity_plc": 0.694412955,
+          "self_consistency": 0.103550003,
+          "step_fec": -212.0,
+          "step_ref": -185.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -211,7 +211,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -219,24 +219,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,83,91,89,86,85,89,87,80,81,85,76,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.187247511 next_ref=0.188582535 fidelity_fec=0.182248340 fidelity_ref=0.179106895 fidelity_plc=0.600028036 transition_fec=0.160087866 transition_ref=0.192314735 step_fec=-151.000 step_ref=680.000 self_consistency=0.136092595\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=86,83,91,92,82,86,92,94,88,79,80,72,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=0 vbr=1 lookahead=312 next_fec=0.182439701 next_ref=0.185640615 fidelity_fec=0.194986601 fidelity_ref=0.186984749 fidelity_plc=0.580618392 transition_fec=0.157347780 transition_ref=0.183456526 step_fec=-461.000 step_ref=-58.000 self_consistency=0.136353290\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.18224834,
-          "next_fec": 0.187247511,
-          "transition_fec": 0.160087866,
-          "fidelity_ref": 0.179106895,
-          "next_ref": 0.188582535,
-          "transition_ref": 0.192314735,
-          "fidelity_plc": 0.600028036,
-          "self_consistency": 0.136092595,
-          "step_fec": -151.0,
-          "step_ref": 680.0
+          "fidelity_fec": 0.194986601,
+          "next_fec": 0.182439701,
+          "transition_fec": 0.15734778,
+          "fidelity_ref": 0.186984749,
+          "next_ref": 0.185640615,
+          "transition_ref": 0.183456526,
+          "fidelity_plc": 0.580618392,
+          "self_consistency": 0.13635329,
+          "step_fec": -461.0,
+          "step_ref": -58.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -276,7 +276,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -284,24 +284,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=304107888.500000 ms_lf_side=26937873.500000 ms_fec_mid=348161521.750000 ms_fec_side=28332229.750000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.179680651 next_ref=0.190177316 fidelity_fec=0.200038487 fidelity_ref=0.187576614 fidelity_plc=0.647813639 transition_fec=0.144065964 transition_ref=0.145964871 step_fec=-292.000 step_ref=-115.000 self_consistency=0.087967743\n",
+        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=9408722302.500000 ms_lf_mid=311389272.500000 ms_lf_side=26111973.500000 ms_fec_mid=384623043.500000 ms_fec_side=28167273.500000 ch=2 ms=20 br=32000 p=0 vbr=0 lookahead=312 next_fec=0.191957812 next_ref=0.176796166 fidelity_fec=0.209459193 fidelity_ref=0.189396681 fidelity_plc=0.661031532 transition_fec=0.171357062 transition_ref=0.152154747 step_fec=-202.500 step_ref=37.500 self_consistency=0.102606420\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.200038487,
-          "next_fec": 0.179680651,
-          "transition_fec": 0.144065964,
-          "fidelity_ref": 0.187576614,
-          "next_ref": 0.190177316,
-          "transition_ref": 0.145964871,
-          "fidelity_plc": 0.647813639,
-          "self_consistency": 0.087967743,
-          "step_fec": -292.0,
-          "step_ref": -115.0
+          "fidelity_fec": 0.209459193,
+          "next_fec": 0.191957812,
+          "transition_fec": 0.171357062,
+          "fidelity_ref": 0.189396681,
+          "next_ref": 0.176796166,
+          "transition_ref": 0.152154747,
+          "fidelity_plc": 0.661031532,
+          "self_consistency": 0.10260642,
+          "step_fec": -202.5,
+          "step_ref": 37.5
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -341,7 +341,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -349,24 +349,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=117,127,137,136,130,133,138,138,128,118,112,97,\nms_src=9408722302.500000 ms_lf_mid=266939348.500000 ms_lf_side=27291295.500000 ms_fec_mid=295641137.750000 ms_fec_side=34669137.750000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.162469243 next_ref=0.178903832 fidelity_fec=0.187368128 fidelity_ref=0.176839234 fidelity_plc=0.661402693 transition_fec=0.138982730 transition_ref=0.139289681 step_fec=-285.000 step_ref=578.000 self_consistency=0.142071239\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=117,127,137,137,130,133,137,135,124,124,117,91,\nms_src=9408722302.500000 ms_lf_mid=272427576.250000 ms_lf_side=26786349.250000 ms_fec_mid=274908730.000000 ms_fec_side=33783218.000000 ch=2 ms=20 br=48000 p=0 vbr=1 lookahead=312 next_fec=0.168171904 next_ref=0.178538776 fidelity_fec=0.181132894 fidelity_ref=0.178330479 fidelity_plc=0.622130291 transition_fec=0.167718996 transition_ref=0.159921756 step_fec=-288.500 step_ref=-518.000 self_consistency=0.142388290\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.187368128,
-          "next_fec": 0.162469243,
-          "transition_fec": 0.13898273,
-          "fidelity_ref": 0.176839234,
-          "next_ref": 0.178903832,
-          "transition_ref": 0.139289681,
-          "fidelity_plc": 0.661402693,
-          "self_consistency": 0.142071239,
-          "step_fec": -285.0,
-          "step_ref": 578.0
+          "fidelity_fec": 0.181132894,
+          "next_fec": 0.168171904,
+          "transition_fec": 0.167718996,
+          "fidelity_ref": 0.178330479,
+          "next_ref": 0.178538776,
+          "transition_ref": 0.159921756,
+          "fidelity_plc": 0.622130291,
+          "self_consistency": 0.14238829,
+          "step_fec": -288.5,
+          "step_ref": -518.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -406,7 +406,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -414,14 +414,14 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,30,30,31,34,31,30,28,31,32,27,29,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.351450250 next_ref=0.289102026 fidelity_fec=0.227581415 fidelity_ref=0.223708891 fidelity_plc=0.758988325 transition_fec=0.211387714 transition_ref=0.181621440 step_fec=494.000 step_ref=454.000 self_consistency=0.100548271\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,30,30,31,34,31,30,28,31,31,28,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.351321491 next_ref=0.290225761 fidelity_fec=0.227581415 fidelity_ref=0.223708891 fidelity_plc=0.758988325 transition_fec=0.211387714 transition_ref=0.181621440 step_fec=494.000 step_ref=454.000 self_consistency=0.100548271\n",
         "stderr": "",
         "fields": {
           "fidelity_fec": 0.227581415,
-          "next_fec": 0.35145025,
+          "next_fec": 0.351321491,
           "transition_fec": 0.211387714,
           "fidelity_ref": 0.223708891,
-          "next_ref": 0.289102026,
+          "next_ref": 0.290225761,
           "transition_ref": 0.18162144,
           "fidelity_plc": 0.758988325,
           "self_consistency": 0.100548271,
@@ -431,7 +431,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -471,7 +471,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -479,24 +479,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,44,40,33,46,41,37,42,34,42,44,33,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.302989215 next_ref=0.302989215 fidelity_fec=0.286881588 fidelity_ref=0.286881588 fidelity_plc=0.848615569 transition_fec=0.321807400 transition_ref=0.321807400 step_fec=-148.000 step_ref=-148.000 self_consistency=0.000000000\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=34,44,40,33,46,39,38,44,38,34,43,40,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=1 vbr=1 lookahead=312 next_fec=0.285505833 next_ref=0.281796148 fidelity_fec=0.287533440 fidelity_ref=0.282139596 fidelity_plc=0.850914140 transition_fec=0.280348399 transition_ref=0.265126726 step_fec=-142.000 step_ref=-177.000 self_consistency=0.090079508\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.286881588,
-          "next_fec": 0.302989215,
-          "transition_fec": 0.3218074,
-          "fidelity_ref": 0.286881588,
-          "next_ref": 0.302989215,
-          "transition_ref": 0.3218074,
-          "fidelity_plc": 0.848615569,
-          "self_consistency": 0.0,
-          "step_fec": -148.0,
-          "step_ref": -148.0
+          "fidelity_fec": 0.28753344,
+          "next_fec": 0.285505833,
+          "transition_fec": 0.280348399,
+          "fidelity_ref": 0.282139596,
+          "next_ref": 0.281796148,
+          "transition_ref": 0.265126726,
+          "fidelity_plc": 0.85091414,
+          "self_consistency": 0.090079508,
+          "step_fec": -142.0,
+          "step_ref": -177.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -536,7 +536,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -544,24 +544,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,61,62,60,51,70,60,55,62,60,59,53,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.271041840 next_ref=0.269129714 fidelity_fec=0.241877729 fidelity_ref=0.226476229 fidelity_plc=0.852887112 transition_fec=0.192950326 transition_ref=0.204163229 step_fec=-222.000 step_ref=-202.000 self_consistency=0.104369073\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,50,59,71,54,69,49,63,69,58,58,53,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=1 vbr=1 lookahead=312 next_fec=0.264913403 next_ref=0.266513109 fidelity_fec=0.251958198 fidelity_ref=0.233584240 fidelity_plc=0.873571680 transition_fec=0.209761057 transition_ref=0.200731426 step_fec=-109.000 step_ref=-166.000 self_consistency=0.112257068\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.241877729,
-          "next_fec": 0.27104184,
-          "transition_fec": 0.192950326,
-          "fidelity_ref": 0.226476229,
-          "next_ref": 0.269129714,
-          "transition_ref": 0.204163229,
-          "fidelity_plc": 0.852887112,
-          "self_consistency": 0.104369073,
-          "step_fec": -222.0,
-          "step_ref": -202.0
+          "fidelity_fec": 0.251958198,
+          "next_fec": 0.264913403,
+          "transition_fec": 0.209761057,
+          "fidelity_ref": 0.23358424,
+          "next_ref": 0.266513109,
+          "transition_ref": 0.200731426,
+          "fidelity_plc": 0.87357168,
+          "self_consistency": 0.112257068,
+          "step_fec": -109.0,
+          "step_ref": -166.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -601,7 +601,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -626,7 +626,7 @@
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -666,7 +666,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -674,24 +674,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=81853207.250000 ms_lf_side=5694475.250000 ms_fec_mid=100345608.250000 ms_fec_side=26138152.250000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.306038876 next_ref=0.272335311 fidelity_fec=0.331829143 fidelity_ref=0.276070161 fidelity_plc=0.857295480 transition_fec=0.269079032 transition_ref=0.211731682 step_fec=-145.500 step_ref=169.000 self_consistency=0.221103758\n",
+        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=1148697612.000000 ms_lf_mid=74367557.500000 ms_lf_side=5772167.500000 ms_fec_mid=93921475.750000 ms_fec_side=23141096.750000 ch=2 ms=20 br=32000 p=1 vbr=0 lookahead=312 next_fec=0.379180157 next_ref=0.288303338 fidelity_fec=0.319231819 fidelity_ref=0.264132027 fidelity_plc=0.892901913 transition_fec=0.201549805 transition_ref=0.204842772 step_fec=-128.000 step_ref=-2.000 self_consistency=0.207703944\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.331829143,
-          "next_fec": 0.306038876,
-          "transition_fec": 0.269079032,
-          "fidelity_ref": 0.276070161,
-          "next_ref": 0.272335311,
-          "transition_ref": 0.211731682,
-          "fidelity_plc": 0.85729548,
-          "self_consistency": 0.221103758,
-          "step_fec": -145.5,
-          "step_ref": 169.0
+          "fidelity_fec": 0.319231819,
+          "next_fec": 0.379180157,
+          "transition_fec": 0.201549805,
+          "fidelity_ref": 0.264132027,
+          "next_ref": 0.288303338,
+          "transition_ref": 0.204842772,
+          "fidelity_plc": 0.892901913,
+          "self_consistency": 0.207703944,
+          "step_fec": -128.0,
+          "step_ref": -2.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -731,7 +731,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -739,24 +739,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=107,115,114,105,107,117,114,114,115,102,115,112,\nms_src=1148697612.000000 ms_lf_mid=71059674.500000 ms_lf_side=8520693.500000 ms_fec_mid=76770483.500000 ms_fec_side=23948158.500000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.280527995 next_ref=0.274985529 fidelity_fec=0.296109316 fidelity_ref=0.263208623 fidelity_plc=0.754731678 transition_fec=0.208269470 transition_ref=0.211418737 step_fec=4.500 step_ref=704.000 self_consistency=0.218685167\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=111,114,113,103,109,115,115,115,112,109,115,105,\nms_src=1148697612.000000 ms_lf_mid=70893652.750000 ms_lf_side=8857650.750000 ms_fec_mid=71477994.000000 ms_fec_side=25749917.000000 ch=2 ms=20 br=48000 p=1 vbr=1 lookahead=312 next_fec=0.278987275 next_ref=0.277777146 fidelity_fec=0.290932754 fidelity_ref=0.263491152 fidelity_plc=0.785128408 transition_fec=0.220946877 transition_ref=0.223937579 step_fec=-178.500 step_ref=70.000 self_consistency=0.231520844\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.296109316,
-          "next_fec": 0.280527995,
-          "transition_fec": 0.20826947,
-          "fidelity_ref": 0.263208623,
-          "next_ref": 0.274985529,
-          "transition_ref": 0.211418737,
-          "fidelity_plc": 0.754731678,
-          "self_consistency": 0.218685167,
-          "step_fec": 4.5,
-          "step_ref": 704.0
+          "fidelity_fec": 0.290932754,
+          "next_fec": 0.278987275,
+          "transition_fec": 0.220946877,
+          "fidelity_ref": 0.263491152,
+          "next_ref": 0.277777146,
+          "transition_ref": 0.223937579,
+          "fidelity_plc": 0.785128408,
+          "self_consistency": 0.231520844,
+          "step_fec": -178.5,
+          "step_ref": 70.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "48000",
@@ -796,7 +796,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "10",
           "24000",
@@ -804,24 +804,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,30,30,34,31,28,30,28,34,29,32,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.457647097 next_ref=0.453244034 fidelity_fec=0.418124129 fidelity_ref=0.404573354 fidelity_plc=1.477949407 transition_fec=0.375585457 transition_ref=0.361980609 step_fec=2291.000 step_ref=2175.000 self_consistency=0.098121756\n",
+        "stdout": "pkt_toc=20,20,20,20,20,20,20,20,20,20,20,20,\npkt_bytes=22,32,30,30,34,31,30,28,33,28,28,30,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=10 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.469786162 next_ref=0.450593481 fidelity_fec=0.449951099 fidelity_ref=0.414407278 fidelity_plc=1.214891552 transition_fec=0.434102605 transition_ref=0.391336535 step_fec=2100.000 step_ref=2179.000 self_consistency=0.203734927\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.418124129,
-          "next_fec": 0.457647097,
-          "transition_fec": 0.375585457,
-          "fidelity_ref": 0.404573354,
-          "next_ref": 0.453244034,
-          "transition_ref": 0.361980609,
-          "fidelity_plc": 1.477949407,
-          "self_consistency": 0.098121756,
-          "step_fec": 2291.0,
-          "step_ref": 2175.0
+          "fidelity_fec": 0.449951099,
+          "next_fec": 0.469786162,
+          "transition_fec": 0.434102605,
+          "fidelity_ref": 0.414407278,
+          "next_ref": 0.450593481,
+          "transition_ref": 0.391336535,
+          "fidelity_plc": 1.214891552,
+          "self_consistency": 0.203734927,
+          "step_fec": 2100.0,
+          "step_ref": 2179.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "10",
           "24000",
@@ -861,7 +861,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "16000",
@@ -869,24 +869,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,40,37,44,36,45,39,39,41,39,40,37,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.505077426 next_ref=0.501238970 fidelity_fec=0.465922237 fidelity_ref=0.453584065 fidelity_plc=0.813082779 transition_fec=0.421179402 transition_ref=0.408610990 step_fec=-745.000 step_ref=-772.000 self_consistency=0.145114874\n",
+        "stdout": "pkt_toc=08,08,08,08,08,08,08,08,08,08,08,08,\npkt_bytes=36,39,43,41,33,45,38,44,39,38,37,39,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=16000 p=2 vbr=1 lookahead=312 next_fec=0.508900275 next_ref=0.497966097 fidelity_fec=0.466932135 fidelity_ref=0.449823454 fidelity_plc=0.959863621 transition_fec=0.466431695 transition_ref=0.410559621 step_fec=-624.000 step_ref=-642.000 self_consistency=0.136765973\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.465922237,
-          "next_fec": 0.505077426,
-          "transition_fec": 0.421179402,
-          "fidelity_ref": 0.453584065,
-          "next_ref": 0.50123897,
-          "transition_ref": 0.40861099,
-          "fidelity_plc": 0.813082779,
-          "self_consistency": 0.145114874,
-          "step_fec": -745.0,
-          "step_ref": -772.0
+          "fidelity_fec": 0.466932135,
+          "next_fec": 0.508900275,
+          "transition_fec": 0.466431695,
+          "fidelity_ref": 0.449823454,
+          "next_ref": 0.497966097,
+          "transition_ref": 0.410559621,
+          "fidelity_plc": 0.959863621,
+          "self_consistency": 0.136765973,
+          "step_fec": -624.0,
+          "step_ref": -642.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "16000",
@@ -926,7 +926,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "24000",
@@ -934,24 +934,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,53,69,57,63,58,60,55,65,59,65,55,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.480154514 next_ref=0.475652975 fidelity_fec=0.484182130 fidelity_ref=0.451564567 fidelity_plc=0.935603135 transition_fec=0.429856274 transition_ref=0.413542321 step_fec=-593.000 step_ref=-1092.000 self_consistency=0.267055811\n",
+        "stdout": "pkt_toc=48,48,48,48,48,48,48,48,48,48,48,48,\npkt_bytes=55,53,69,63,55,59,65,61,57,57,61,54,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=24000 p=2 vbr=1 lookahead=312 next_fec=0.484852340 next_ref=0.482623360 fidelity_fec=0.497310515 fidelity_ref=0.448843540 fidelity_plc=0.683075739 transition_fec=0.449169203 transition_ref=0.406888553 step_fec=-646.000 step_ref=-328.000 self_consistency=0.262246737\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.48418213,
-          "next_fec": 0.480154514,
-          "transition_fec": 0.429856274,
-          "fidelity_ref": 0.451564567,
-          "next_ref": 0.475652975,
-          "transition_ref": 0.413542321,
-          "fidelity_plc": 0.935603135,
-          "self_consistency": 0.267055811,
-          "step_fec": -593.0,
-          "step_ref": -1092.0
+          "fidelity_fec": 0.497310515,
+          "next_fec": 0.48485234,
+          "transition_fec": 0.449169203,
+          "fidelity_ref": 0.44884354,
+          "next_ref": 0.48262336,
+          "transition_ref": 0.406888553,
+          "fidelity_plc": 0.683075739,
+          "self_consistency": 0.262246737,
+          "step_fec": -646.0,
+          "step_ref": -328.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "24000",
@@ -991,7 +991,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "1",
           "20",
           "32000",
@@ -999,24 +999,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,86,83,79,71,72,76,75,76,73,70,79,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.542235879 next_ref=0.525195829 fidelity_fec=0.495924112 fidelity_ref=0.502635184 fidelity_plc=0.971094597 transition_fec=0.417252986 transition_ref=0.536250227 step_fec=-664.000 step_ref=-568.000 self_consistency=0.364824548\n",
+        "stdout": "pkt_toc=78,78,78,78,78,78,78,78,78,78,78,78,\npkt_bytes=79,86,83,79,71,71,75,80,77,70,71,78,\nms_src=0.000000 ms_lf_mid=0.000000 ms_lf_side=0.000000 ms_fec_mid=0.000000 ms_fec_side=0.000000 ch=1 ms=20 br=32000 p=2 vbr=1 lookahead=312 next_fec=0.557196378 next_ref=0.535144772 fidelity_fec=0.475286099 fidelity_ref=0.506367275 fidelity_plc=0.944898920 transition_fec=0.476433145 transition_ref=0.541870643 step_fec=-867.000 step_ref=-1054.000 self_consistency=0.370908465\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.495924112,
-          "next_fec": 0.542235879,
-          "transition_fec": 0.417252986,
-          "fidelity_ref": 0.502635184,
-          "next_ref": 0.525195829,
-          "transition_ref": 0.536250227,
-          "fidelity_plc": 0.971094597,
-          "self_consistency": 0.364824548,
-          "step_fec": -664.0,
-          "step_ref": -568.0
+          "fidelity_fec": 0.475286099,
+          "next_fec": 0.557196378,
+          "transition_fec": 0.476433145,
+          "fidelity_ref": 0.506367275,
+          "next_ref": 0.535144772,
+          "transition_ref": 0.541870643,
+          "fidelity_plc": 0.94489892,
+          "self_consistency": 0.370908465,
+          "step_fec": -867.0,
+          "step_ref": -1054.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "1",
           "20",
           "32000",
@@ -1056,7 +1056,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "32000",
@@ -1064,24 +1064,24 @@
           "0"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=1376849316.750000 ms_lf_side=8841908.750000 ms_fec_mid=1720759153.250000 ms_fec_side=31710542.250000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.552243024 next_ref=0.527557619 fidelity_fec=0.515822561 fidelity_ref=0.458678421 fidelity_plc=0.876402854 transition_fec=0.466339791 transition_ref=0.394048127 step_fec=-1022.000 step_ref=676.000 self_consistency=0.301785704\n",
+        "stdout": "pkt_toc=6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,6c,\npkt_bytes=80,80,80,80,80,80,80,80,80,80,80,80,\nms_src=6586426492.500000 ms_lf_mid=1375654153.250000 ms_lf_side=8758070.250000 ms_fec_mid=1728855441.750000 ms_fec_side=31163037.750000 ch=2 ms=20 br=32000 p=2 vbr=0 lookahead=312 next_fec=0.531796859 next_ref=0.506672087 fidelity_fec=0.516932324 fidelity_ref=0.458466691 fidelity_plc=0.877335956 transition_fec=0.464905490 transition_ref=0.393032238 step_fec=-1000.000 step_ref=674.500 self_consistency=0.303170980\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.515822561,
-          "next_fec": 0.552243024,
-          "transition_fec": 0.466339791,
-          "fidelity_ref": 0.458678421,
-          "next_ref": 0.527557619,
-          "transition_ref": 0.394048127,
-          "fidelity_plc": 0.876402854,
-          "self_consistency": 0.301785704,
-          "step_fec": -1022.0,
-          "step_ref": 676.0
+          "fidelity_fec": 0.516932324,
+          "next_fec": 0.531796859,
+          "transition_fec": 0.46490549,
+          "fidelity_ref": 0.458466691,
+          "next_ref": 0.506672087,
+          "transition_ref": 0.393032238,
+          "fidelity_plc": 0.877335956,
+          "self_consistency": 0.30317098,
+          "step_fec": -1000.0,
+          "step_ref": 674.5
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "32000",
@@ -1121,7 +1121,7 @@
       ],
       "current": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_quality.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_quality.exe",
           "2",
           "20",
           "48000",
@@ -1129,24 +1129,24 @@
           "1"
         ],
         "exit": 0,
-        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=114,123,123,109,109,97,105,104,105,114,121,119,\nms_src=6586426492.500000 ms_lf_mid=1566195040.500000 ms_lf_side=7999085.500000 ms_fec_mid=1593304917.250000 ms_fec_side=60770504.250000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.467397277 next_ref=0.514746838 fidelity_fec=0.501132685 fidelity_ref=0.488882193 fidelity_plc=0.944875357 transition_fec=0.450250184 transition_ref=0.423065099 step_fec=-692.500 step_ref=-687.000 self_consistency=0.411705209\n",
+        "stdout": "pkt_toc=7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,7c,\npkt_bytes=116,124,118,109,109,101,102,103,110,116,125,115,\nms_src=6586426492.500000 ms_lf_mid=1533638975.250000 ms_lf_side=7323027.250000 ms_fec_mid=1574001054.750000 ms_fec_side=65144751.750000 ch=2 ms=20 br=48000 p=2 vbr=1 lookahead=312 next_fec=0.483992470 next_ref=0.514086108 fidelity_fec=0.498865958 fidelity_ref=0.483694379 fidelity_plc=1.030683462 transition_fec=0.415137996 transition_ref=0.408933589 step_fec=-732.000 step_ref=471.000 self_consistency=0.395734800\n",
         "stderr": "",
         "fields": {
-          "fidelity_fec": 0.501132685,
-          "next_fec": 0.467397277,
-          "transition_fec": 0.450250184,
-          "fidelity_ref": 0.488882193,
-          "next_ref": 0.514746838,
-          "transition_ref": 0.423065099,
-          "fidelity_plc": 0.944875357,
-          "self_consistency": 0.411705209,
-          "step_fec": -692.5,
-          "step_ref": -687.0
+          "fidelity_fec": 0.498865958,
+          "next_fec": 0.48399247,
+          "transition_fec": 0.415137996,
+          "fidelity_ref": 0.483694379,
+          "next_ref": 0.514086108,
+          "transition_ref": 0.408933589,
+          "fidelity_plc": 1.030683462,
+          "self_consistency": 0.3957348,
+          "step_fec": -732.0,
+          "step_ref": 471.0
         }
       },
       "official": {
         "command": [
-          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\clean_release_20261123\\repo\\build\\official_compare_report\\clean-current-full\\fec_source_official.exe",
+          "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\fec_source_official.exe",
           "2",
           "20",
           "48000",
