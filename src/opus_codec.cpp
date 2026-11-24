@@ -14834,8 +14834,16 @@ void silk_control_SNR(silk_encoder_state* psEncC, opus_int32 TargetRate_bps) {
   const std::span<const unsigned char> snr_table = psEncC->fs_kHz == 8    ? std::span<const unsigned char>{silk_TargetRate_NB_21}
                                                    : psEncC->fs_kHz == 12 ? std::span<const unsigned char>{silk_TargetRate_MB_21}
                                                                           : std::span<const unsigned char>{silk_TargetRate_WB_21};
-  const int id = std::min((TargetRate_bps + 200) / 400 - 10, static_cast<int>(snr_table.size()) - 1);
-  psEncC->SNR_dB_Q7 = id <= 0 ? 0 : snr_table[static_cast<std::size_t>(id)] * 21;
+  if (TargetRate_bps < 4400) {
+    psEncC->SNR_dB_Q7 = TargetRate_bps < 4200 ? 0 : snr_table[1] * 21;
+    return;
+  }
+  const auto last = static_cast<opus_int32>(snr_table.size()) - 1;
+  const auto position = std::min(TargetRate_bps - 4000, last * 400);
+  const auto id = position / 400;
+  const auto lower = snr_table[static_cast<std::size_t>(id)] * 21;
+  const auto upper = snr_table[static_cast<std::size_t>(std::min(id + 1, last))] * 21;
+  psEncC->SNR_dB_Q7 = lower + ((upper - lower) * (position % 400) + 200) / 400;
 }
 
 namespace {
