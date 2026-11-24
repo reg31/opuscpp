@@ -17413,7 +17413,7 @@ OPUSCPP_LEANA OPUSCPP_SMALL static void silk_find_pred_coefs_FLP(silk_encoder_st
     auto* xXLTP = XXLTP + psEnc->sCmn.nb_subfr * silk_ltp_matrix_values;
     const auto* res_pitch = pitch_scratch.data() + psEnc->sCmn.ltp_mem_length;
     silk_find_LTP_FLP(XXLTP, xXLTP, res_pitch, psEncCtrl->pitchL, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr,
-                     scratch.ltp.basis);
+                      scratch.ltp.basis);
     silk_quant_LTP_gains_FLP(psEncCtrl->LTPCoef, LTPCoef_Q14, psEnc->sCmn.indices.LTPIndex, &psEnc->sCmn.indices.PERIndex, &psEnc->sCmn.sum_log_gain_Q7,
                              &psEncCtrl->LTPredCodGain, XXLTP, xXLTP, psEnc->sCmn.subfr_length, psEnc->sCmn.nb_subfr);
     silk_LTP_scale_ctrl_FLP(psEnc, psEncCtrl, condCoding);
