@@ -5096,7 +5096,14 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
 template <bool Encode>
 static void process_energy_finalise(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* fine_quant, const int* fine_priority, int bits_left, ec_ctx* coder, int C);
 static void unquant_coarse_energy(int start, int end, celt_glog* oldEBands, int intra, ec_dec* dec, int C, int LM);
-static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth);
+struct celt_band_distortion {
+  float weight, spike_square;
+  int first_pulse_q3;
+  float inverse_dimension_q3;
+  std::array<celt_glog,2> residual;
+  float left_fraction;
+};
+static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth, const celt_band_distortion* distortion = nullptr);
 
 struct celt_rotation_cache {
   std::uint64_t key{};
@@ -8236,8 +8243,48 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   stereo_tf_basis_choice tf_basis_choice;
   int tf_basis_dual_stereo = analyzed_dual_stereo;
   bool tf_basis_reselected = false;
+  std::array<celt_band_distortion, nbEBands> distortion;
+  const bool plan_tail = signal_bw_main && !hybrid && !silence && shortBlocks == 0 && funded_bytes == 0;
+  if (plan_tail) {
+    std::array<float, nbEBands> power;
+    for (int i = start; i < end; ++i) {
+      auto p = bandE[i] * bandE[i];
+      if (C == 2)
+        p += bandE[nbEBands + i] * bandE[nbEBands + i];
+      power[i] = p;
+    }
+    for (int i = start; i < end; ++i) {
+      const int width = (eBands[i+1] - eBands[i]) << LM;
+      const auto* first = X + (eBands[i] << LM);
+      float peak_square = 0.f;
+      for (int channel = 0; channel < C; ++channel) {
+        float peak = 0.f, norm = 0.f;
+        const auto* v = first + channel * N;
+        for (int bin = 0; bin < width; ++bin) {
+          peak = std::max(peak, std::abs(v[bin]));
+          norm += v[bin] * v[bin];
+        }
+        if (norm > 0.f)
+          peak_square += std::min(1.f, peak * peak / norm);
+      }
+      auto mask = 1.f + power[i];
+      if (i > start)
+        mask += .20f * power[i-1];
+      if (i + 1 < end)
+        mask += .08f * power[i+1];
+      const int entry = width == 1 ? 8 : celt_mode()->cache_bits[celt_mode()->cache_index[(LM + 1) * nbEBands + i] + 1] + 1;
+      const auto left = C == 1 || power[i] == 0.f ? 1.f : bandE[i] * bandE[i] / power[i];
+      distortion[i] = {power[i] / mask, peak_square / C, entry, .125f / std::max(width - 1, 1), {}, left};
+    }
+  }
   const auto allocate_bands = [&](int trim, int* intensity, int* dual, opus_int32 bits_budget, opus_int32* balance_out, int* pulses_out, int* fine_out, int* priority_out, ec_enc* coder) __attribute__((noinline)) {
-    return clt_compute_allocation(start, end, offsets.data(), cap.data(), trim, intensity, dual, bits_budget, balance_out, pulses_out, fine_out, priority_out, C, LM, coder, 1, st->lastCodedBands, signal_bandwidth);
+    if (plan_tail)
+      for (int i=start;i<end;++i) {
+        distortion[i].residual[0]=error[i];
+        if (C==2)
+          distortion[i].residual[1]=error[nbEBands+i];
+      }
+    return clt_compute_allocation(start, end, offsets.data(), cap.data(), trim, intensity, dual, bits_budget, balance_out, pulses_out, fine_out, priority_out, C, LM, coder, 1, st->lastCodedBands, signal_bandwidth, plan_tail ? distortion.data() : nullptr);
   };
   for (int energy_round = 0; energy_round < 2; ++energy_round) {
     quant_coarse_energy(start, end, bandLogE, oldBandE, total_bits, error, enc, C, LM, nbAvailableBytes, st->prediction_disabled,
@@ -12180,7 +12227,7 @@ static inline int celt_base_fine_bits(int band, int bits, int C, int LM, int int
   return fine;
 }
 
-static int interp_bits2pulses(int start, int end, int skip_start, const int* bits1, const int* bits2, const int* thresh, const int* cap, opus_int32 total, opus_int32* _balance, int skip_rsv, int* intensity, int intensity_rsv, int* dual_stereo, int dual_stereo_rsv, int* bits, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
+static int interp_bits2pulses(int start, int end, int skip_start, const int* bits1, const int* bits2, const int* thresh, const int* cap, opus_int32 total, opus_int32* _balance, int skip_rsv, int* intensity, int intensity_rsv, int* dual_stereo, int dual_stereo_rsv, int* bits, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth, const celt_band_distortion* distortion) {
   const int alloc_floor = C << 3;
   const int stereo = C > 1;
   const auto interpolate = [&]<bool Store>(int fraction) {
@@ -12234,7 +12281,75 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
         const int retained_bits = std::min(band_bits, cap[band]);
         const int retained_fine = depth_eligible ? celt_base_fine_bits(band, retained_bits, C, LM, *intensity, *intensity <= start ? 0 : *dual_stereo, nullptr) : 0;
         const int funded_shape = depth_eligible ? retained_bits - (C * retained_fine << 3) : band_bits;
-        if (codedBands <= start + 2 || (funded_shape > (depth_threshold * band_width << LM << 3) >> 4 && (band <= signalBandwidth || codedBands > 17))) {
+        bool keep = codedBands <= start + 2 ||
+            (funded_shape > ((depth_threshold * band_width << LM << 3) >> 4) && (band <= signalBandwidth || codedBands > 17));
+        if (distortion != nullptr && keep && codedBands > start + 2) {
+          const auto band_loss = [&](int i, int shape_q3, int fine, int right_edge) {
+            const auto& p = distortion[i];
+            const int shape_channels = C == 2 && i < right_edge ? 2 : 1;
+            const float rate = static_cast<float>(shape_q3) / shape_channels - p.first_pulse_q3;
+            const auto direction_loss = rate < 0.f ? 1.f : (1.f - p.spike_square) * std::exp2(-2.f * rate * p.inverse_dimension_q3);
+            const auto gain_loss = [&](float residual) {
+              float requantised = 0.f;
+              if (fine > 0) {
+                const int count = 1 << fine;
+                const int q = floor_to_int_reference<true>((residual + .5f) * count - fine_power_decision_bias[fine], fine);
+                requantised = ((q + .5f) / count) - .5f;
+              }
+              const auto delta = std::exp2(std::clamp(requantised-residual,-8.f,8.f)) - 1.f;
+              return delta * delta;
+            };
+            auto amplitude_loss = p.left_fraction * gain_loss(p.residual[0]);
+            if (C==2)
+              amplitude_loss += (1.f-p.left_fraction) * gain_loss(p.residual[1]);
+            return p.weight * (direction_loss + amplitude_loss);
+          };
+          const auto loss = [&](int cut, int active, int distributed, int remaining) {
+            const int available = active - distributed;
+            if (available < 0)
+              return std::pair{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()};
+            const auto* edges = celt_mode()->eBands;
+            const int coefficients = edges[cut] - edges[start];
+            const int average = available / coefficients;
+            int extra = available - average * coefficients;
+            int carry = 0;
+            float sum = 0.f, worst = 0.f;
+            const int right_edge = remaining > 0 ? std::min(*intensity, cut) : 0;
+            const int dual = right_edge > start ? *dual_stereo : 0;
+            for (int i = start; i < cut; ++i) {
+              const int n = edges[i+1] - edges[i];
+              const int residue = std::min(extra, n);
+              extra -= residue;
+              const int requested = bits[i] + average * n + residue + carry;
+              const bool angular = (n << LM) > 1;
+              const auto ceiling = angular ? cap[i] : alloc_floor;
+              const int given = std::min(requested, ceiling);
+              int fine = angular ? celt_base_fine_bits(i, given, C, LM, right_edge, dual, nullptr) : 0;
+              const auto shape = given - ((C * fine) << 3);
+              carry = requested - given;
+              const int add_fine = std::min(carry >> (stereo + 3), 8 - fine);
+              fine += add_fine;
+              carry -= (add_fine * C) << 3;
+              const auto band_error = band_loss(i, shape, fine, right_edge);
+              sum += band_error;
+              worst = std::max(worst, band_error);
+            }
+            return std::pair{sum, worst};
+          };
+          const int next_intensity = intensity_rsv > 0 ? LOG2_FRAC_TABLE[band - start] : 0;
+          const int retained_floor = band_bits - (1 << 3) >= alloc_floor ? alloc_floor : 0;
+          const int skip_cost = psum + (1 << 3) - bits[band] - intensity_rsv + next_intensity + retained_floor;
+          const int reclaimed = band - 1 <= skip_start ? skip_rsv : 0;
+          const auto [kept, worst_kept] = loss(codedBands, total, psum, intensity_rsv);
+          const auto omitted = band_loss(band, 0, retained_floor != 0, 0);
+          if (std::isfinite(kept) && omitted <= worst_kept) {
+            const auto [distributed, worst_distributed] = loss(band, total + reclaimed, skip_cost, next_intensity);
+            const auto skipped = distributed + omitted;
+            if (std::isfinite(skipped) && skipped < kept)
+              keep = worst_distributed > worst_kept;
+          }
+        }
+        if (keep) {
           ec_enc_bit_logp(ec, 1, 1);
           break;
         }
@@ -12318,7 +12433,7 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
   return codedBands;
 }
 
-OPUSCPP_LEANA static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth) {
+OPUSCPP_LEANA static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth, const celt_band_distortion* distortion) {
   total = std::max(total, 0);
   constexpr int len = celt_default_nb_ebands;
   int skip_start = start;
@@ -12391,7 +12506,7 @@ OPUSCPP_LEANA static int clt_compute_allocation(int start, int end, const int* o
   }
   return interp_bits2pulses(start, end, skip_start, bits1.data(), bits2.data(), thresh.data(), cap, total, balance, skip_rsv, intensity,
                             intensity_rsv, dual_stereo, dual_stereo_rsv, pulses, ebits, fine_priority, C, LM, ec, encode, prev,
-                            signalBandwidth);
+                            signalBandwidth, distortion);
 }
 
 static opus_int32 stereo_itheta(const celt_norm* X, const celt_norm* Y, int stereo, int N) {
