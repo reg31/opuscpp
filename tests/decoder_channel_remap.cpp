@@ -103,6 +103,12 @@ int main() {
   ok &= expect(stereo_nonzero > 0, "mono packet duplicate has signal");
   ok &= expect(stereo_abs_difference(stereo_out) == 0, "mono packet duplicated equally to stereo");
   ok &= expect(opus_decode(stereo_decoder.get(), nullptr, 0, stereo_out.data(), 320, 0) == 320, "packet loss produces one concealed frame");
+  auto loss_decoder = make_opus_decoder(16000, 2, &err);
+  std::array<opus_int16, 320 * 2> loss_out{};
+  if (!loss_decoder || opus_decode(loss_decoder.get(), mono_payload, std::span{loss_out}) != 320)
+    return 1;
+  ok &= expect(opus_decode(loss_decoder.get(), nullptr, mono_bytes, loss_out.data(), 320, 0) == 320 && loss_out == stereo_out,
+               "a null packet with a nonzero length produces the same concealment");
 
   for (int channels : {1, 2}) {
     auto transition_encoder = make_opus_encoder(16000, channels, OPUS_APPLICATION_VOIP, &err);

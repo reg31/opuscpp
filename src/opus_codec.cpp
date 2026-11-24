@@ -1732,7 +1732,7 @@ template <typename Sample>
 }
 
 int opus_decode(OpusDecoder* st, const unsigned char* data, int len, opus_int16* pcm, int frame_size, int decode_fec) noexcept {
-  return st == nullptr || !has_required_storage(data, len) || !has_required_storage(pcm, frame_size)
+  return st == nullptr || !has_required_storage(pcm, frame_size)
              ? OPUS_BAD_ARG
              : decode_to_output(st, data, len, pcm, frame_size, decode_fec);
 }
@@ -1747,7 +1747,7 @@ int opus_decode(OpusDecoder* st, std::span<const unsigned char> packet, std::spa
 }
 
 int opus_decode_float(OpusDecoder* st, const unsigned char* data, int len, float* pcm, int frame_size, int decode_fec) noexcept {
-  return st == nullptr || !has_required_storage(data, len) || !has_required_storage(pcm, frame_size)
+  return st == nullptr || !has_required_storage(pcm, frame_size)
              ? OPUS_BAD_ARG
              : decode_to_output(st, data, len, pcm, frame_size, decode_fec);
 }
