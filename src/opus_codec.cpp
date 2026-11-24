@@ -9823,9 +9823,79 @@ static celt_generated_tables celt_tables;
   return celt_tables.comb_fade.data();
 }
 
+struct fft_stage_planes {
+  const float* real;
+  const float* imag;
+  float* out_real;
+  float* out_imag;
+  int input_stride;
+  int output_stride;
+};
+
+static void fft_three_lanes(const fft_stage_planes& planes, kiss_twiddle_cpx first, kiss_twiddle_cpx second) {
+  constexpr float s3 = 0.8660254037844386f;
+  float real[3][4], imag[3][4];
+  for (int lane = 0; lane < 4; ++lane) {
+    const int step = planes.input_stride;
+    const auto r0 = planes.real[lane], r1 = planes.real[step + lane], r2 = planes.real[2 * step + lane];
+    const auto i0 = planes.imag[lane], i1 = planes.imag[step + lane], i2 = planes.imag[2 * step + lane];
+    const float sum_r = r1 + r2, sum_i = i1 + i2;
+    const float dif_r = (r1 - r2) * s3, dif_i = (i1 - i2) * s3;
+    const float mid_r = r0 - .5f * sum_r, mid_i = i0 - .5f * sum_i;
+    real[0][lane] = r0 + sum_r;
+    imag[0][lane] = i0 + sum_i;
+    real[1][lane] = mid_r + dif_i;
+    imag[1][lane] = mid_i - dif_r;
+    real[2][lane] = mid_r - dif_i;
+    imag[2][lane] = mid_i + dif_r;
+  }
+  std::ranges::copy(real[0], planes.out_real);
+  std::ranges::copy(imag[0], planes.out_imag);
+  const kiss_twiddle_cpx weights[]{first, second};
+  for (int digit = 1; digit < 3; ++digit) {
+    const auto phase = weights[digit - 1];
+    const int offset = digit * planes.output_stride;
+    for (int lane = 0; lane < 4; ++lane) {
+      const auto r = real[digit][lane], i = imag[digit][lane];
+      planes.out_real[offset + lane] = r * phase.r - i * phase.i;
+      planes.out_imag[offset + lane] = r * phase.i + i * phase.r;
+    }
+  }
+}
+
+static void fft_five_lanes(const fft_stage_planes& planes) {
+  constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
+  float out_r[5][4], out_i[5][4];
+  for (int lane = 0; lane < 4; ++lane) {
+    const auto r = [&](int k) { return planes.real[k * planes.input_stride + lane]; };
+    const auto i = [&](int k) { return planes.imag[k * planes.input_stride + lane]; };
+    const float s14r = r(1) + r(4), s14i = i(1) + i(4), d14r = r(1) - r(4), d14i = i(1) - i(4);
+    const float s23r = r(2) + r(3), s23i = i(2) + i(3), d23r = r(2) - r(3), d23i = i(2) - i(3);
+    out_r[0][lane] = r(0) + s14r + s23r;
+    out_i[0][lane] = i(0) + s14i + s23i;
+    const float e1r = r(0) + c1 * s14r + c2 * s23r, e1i = i(0) + c1 * s14i + c2 * s23i;
+    const float f1r = s1 * d14r + s2 * d23r, f1i = s1 * d14i + s2 * d23i;
+    const float e2r = r(0) + c2 * s14r + c1 * s23r, e2i = i(0) + c2 * s14i + c1 * s23i;
+    const float f2r = s2 * d14r - s1 * d23r, f2i = s2 * d14i - s1 * d23i;
+    out_r[1][lane] = e1r + f1i;
+    out_i[1][lane] = e1i - f1r;
+    out_r[4][lane] = e1r - f1i;
+    out_i[4][lane] = e1i + f1r;
+    out_r[2][lane] = e2r + f2i;
+    out_i[2][lane] = e2i - f2r;
+    out_r[3][lane] = e2r - f2i;
+    out_i[3][lane] = e2i + f2r;
+  }
+  for (int digit = 0; digit < 5; ++digit) {
+    std::ranges::copy(out_r[digit], planes.out_real + digit * planes.output_stride);
+    std::ranges::copy(out_i[digit], planes.out_imag + digit * planes.output_stride);
+  }
+}
+
 template <int R, int L, bool LP>
 static inline void fft_block(const float* x, float* y, int total, int xi, int xs, int yi, int ys, int ysu,
                              const kiss_twiddle_cpx* tw, int p, int ts) {
+  static_assert(R == 2 || R == 4);
   float xr[R][L], xm[R][L];
   for (int j = 0; j < R; ++j) {
     std::copy_n(x + xi + j * xs, L, xr[j]);
@@ -9844,18 +9914,7 @@ static inline void fft_block(const float* x, float* y, int total, int xi, int xs
       ci[0][u] = ai(0) + ai(1);
       cr[1][u] = ar(0) - ar(1);
       ci[1][u] = ai(0) - ai(1);
-    } else if constexpr (R == 3) {
-      constexpr float s3 = 0.8660254037844386f;
-      const float sr = ar(1) + ar(2), si = ai(1) + ai(2);
-      const float dr = (ar(1) - ar(2)) * s3, di = (ai(1) - ai(2)) * s3;
-      const float mr = ar(0) - .5f * sr, mi = ai(0) - .5f * si;
-      cr[0][u] = ar(0) + sr;
-      ci[0][u] = ai(0) + si;
-      cr[1][u] = mr + di;
-      ci[1][u] = mi - dr;
-      cr[2][u] = mr - di;
-      ci[2][u] = mi + dr;
-    } else if constexpr (R == 4) {
+    } else {
       const float t0r = ar(0) + ar(2), t0i = ai(0) + ai(2), t1r = ar(0) - ar(2), t1i = ai(0) - ai(2);
       const float t2r = ar(1) + ar(3), t2i = ai(1) + ai(3), t3r = ar(1) - ar(3), t3i = ai(1) - ai(3);
       cr[0][u] = t0r + t2r;
@@ -9866,24 +9925,6 @@ static inline void fft_block(const float* x, float* y, int total, int xi, int xs
       ci[1][u] = t1i - t3r;
       cr[3][u] = t1r - t3i;
       ci[3][u] = t1i + t3r;
-    } else {
-      constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
-      const float s14r = ar(1) + ar(4), s14i = ai(1) + ai(4), d14r = ar(1) - ar(4), d14i = ai(1) - ai(4);
-      const float s23r = ar(2) + ar(3), s23i = ai(2) + ai(3), d23r = ar(2) - ar(3), d23i = ai(2) - ai(3);
-      cr[0][u] = ar(0) + s14r + s23r;
-      ci[0][u] = ai(0) + s14i + s23i;
-      const float e1r = ar(0) + c1 * s14r + c2 * s23r, e1i = ai(0) + c1 * s14i + c2 * s23i;
-      const float f1r = s1 * d14r + s2 * d23r, f1i = s1 * d14i + s2 * d23i;
-      const float e2r = ar(0) + c2 * s14r + c1 * s23r, e2i = ai(0) + c2 * s14i + c1 * s23i;
-      const float f2r = s2 * d14r - s1 * d23r, f2i = s2 * d14i - s1 * d23i;
-      cr[1][u] = e1r + f1i;
-      ci[1][u] = e1i - f1r;
-      cr[4][u] = e1r - f1i;
-      ci[4][u] = e1i + f1r;
-      cr[2][u] = e2r + f2i;
-      ci[2][u] = e2i - f2r;
-      cr[3][u] = e2r - f2i;
-      ci[3][u] = e2i + f2r;
     }
   }
   float* const yr = y + yi;
@@ -9895,14 +9936,9 @@ static inline void fft_block(const float* x, float* y, int total, int xi, int xs
   for (int j = 1; j < R; ++j) {
     for (int u = 0; u < L; ++u) {
       const int offset = u * ysu + j * ys;
-      if constexpr (R == 5) {
-        yr[offset] = cr[j][u];
-        ym[offset] = ci[j][u];
-      } else {
-        const auto phase = tw[(p + (LP ? u : 0)) * j * ts];
-        yr[offset] = cr[j][u] * phase.r - ci[j][u] * phase.i;
-        ym[offset] = cr[j][u] * phase.i + ci[j][u] * phase.r;
-      }
+      const auto phase = tw[(p + (LP ? u : 0)) * j * ts];
+      yr[offset] = cr[j][u] * phase.r - ci[j][u] * phase.i;
+      ym[offset] = cr[j][u] * phase.i + ci[j][u] * phase.r;
     }
   }
 }
@@ -9922,9 +9958,24 @@ static void fft_stage(const float* x, float* y, int total, int m, int s, int ts)
       return;
     }
   }
-  for (int p = 0; p < m; ++p) {
-    for (int q = 0; q < s; q += 4) {
-      fft_block<R, 4, false>(x, y, total, q + s * p, s * m, q + s * R * p, s, 1, tw, p, ts);
+  if constexpr (R == 2) {
+    for (int p = 0; p < m; ++p)
+      fft_block<2, 4, false>(x, y, total, 4 * p, 4 * m, 8 * p, 4, 1, tw, p, ts);
+  } else if constexpr (R == 5) {
+    for (int q = 0; q < s; q += 4)
+      fft_five_lanes({x + q, x + total + q, y + q, y + total + q, s, s});
+  } else {
+    for (int p = 0; p < m; ++p) {
+      for (int q = 0; q < s; q += 4) {
+        if constexpr (R == 3) {
+          const int in = q + s * p;
+          const int out = q + s * R * p;
+          const fft_stage_planes planes{x + in, x + total + in, y + out, y + total + out, 5 * s, s};
+          fft_three_lanes(planes, tw[p * 32], tw[p * 64]);
+        } else {
+          fft_block<R, 4, false>(x, y, total, q + s * p, s * m, q + s * R * p, s, 1, tw, p, ts);
+        }
+      }
     }
   }
 }
@@ -9935,31 +9986,46 @@ static constexpr unsigned char fft_radices[4][6] = {{4, 2, 4, 3, 5, 0}, {4, 4, 3
   return shift == 1 || shift == 2 ? scratch : work;
 }
 
-static float* celt_fft(float* a, float* b, int shift) {
-  static constexpr std::array stages{fft_stage<2>, fft_stage<3>, fft_stage<4>, fft_stage<5>};
-  const int total = 480 >> shift;
-  struct StageGeometry {
-    unsigned char radix, twiddle_step;
-    unsigned short remaining, stride;
-  };
-  static constexpr auto plans = [] {
-    std::array<std::array<StageGeometry, 6>, 4> plans{};
-    for (int size = 0; size < 4; ++size) {
-      int n = 480 >> size, stride = 1;
-      for (int i = 0; const auto radix = fft_radices[size][i]; ++i) {
-        plans[size][i] = {radix, static_cast<unsigned char>(480 / n),
-                          static_cast<unsigned short>(n / radix), static_cast<unsigned short>(stride)};
-        n /= radix;
-        stride *= radix;
-      }
+static void celt_fft_tail15(float* buffer, std::span<float, 120> scratch, const int total, const int stride) {
+  constexpr int width = 4;
+  const auto* twiddles = celt_tables.fft_twiddles.data();
+  auto* imaginary = buffer + total;
+  auto* real = scratch.data();
+  auto* imag = real + 60;
+  for (int column = 0; column < stride; column += width) {
+    for (int p = 0; p < 5; ++p) {
+      const int in = column + p * stride;
+      const int out = p * width;
+      fft_three_lanes({buffer + in, imaginary + in, real + out, imag + out, 5 * stride, 5 * width},
+                      twiddles[p * 32], twiddles[p * 64]);
     }
-    return plans;
-  }();
-  for (const auto& stage : plans[shift]) {
-    if (stage.radix == 0)
-      break;
-    stages[stage.radix - 2](a, b, total, stage.remaining, stage.stride, stage.twiddle_step);
+    for (int group = 0; group < 3; ++group) {
+      const int in = group * 5 * width;
+      const int out = column + group * stride;
+      fft_five_lanes({real + in, imag + in, buffer + out, imaginary + out, width, 3 * stride});
+    }
+  }
+}
+
+template <bool Held = false>
+static float* celt_fft(float* a, float* b, int shift) {
+  const int total = 480 >> shift;
+  fft_stage<4>(a, b, total, total / 4, 1, 1 << shift);
+  std::swap(a, b);
+  if ((shift & 1) == 0) {
+    fft_stage<2>(a, b, total, total / 8, 4, 4 << shift);
     std::swap(a, b);
+  }
+  if (shift < 2) {
+    fft_stage<4>(a, b, total, 15, 8 >> shift, 8);
+    std::swap(a, b);
+  }
+  const int tail_stride = 32 >> shift;
+  if constexpr (Held && FLT_EVAL_METHOD == 0) {
+    celt_fft_tail15(a, std::span<float, 120>{b, 120}, total, tail_stride);
+  } else {
+    fft_stage<3>(a, b, total, 5, tail_stride, 32);
+    fft_stage<5>(b, a, total, 1, 3 * tail_stride, 96);
   }
   return a;
 }
@@ -10132,7 +10198,7 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
     spectrum[i] = i < 240 ? x[i] * factor_x : 0.f;
     spectrum[480 + i] = y[i] * factor_y;
   }
-  const float* freq = celt_fft(spectrum.data(), product.data(), 0);
+  const float* freq = celt_fft<true>(spectrum.data(), product.data(), 0);
   const float scale = 1.f / 480;
   spectrum[0] = freq[0] * freq[480] * scale;
   spectrum[480] = 0.f;
@@ -10151,7 +10217,7 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
     spectrum[480 - k] = real;
     spectrum[960 - k] = imaginary;
   }
-  float* res = celt_fft(spectrum.data(), product.data(), 0);
+  float* res = celt_fft<true>(spectrum.data(), product.data(), 0);
 
   for (int lag = 0; lag < 240; ++lag) {
     const auto bits = magnitude(res[lag]);
