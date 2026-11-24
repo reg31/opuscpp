@@ -5100,7 +5100,7 @@ struct celt_band_distortion {
   float weight, spike_square;
   int first_pulse_q3;
   float inverse_dimension_q3;
-  std::array<celt_glog,2> residual;
+  std::array<celt_glog, 2> residual;
   float left_fraction;
 };
 static int clt_compute_allocation(int start, int end, const int* offsets, const int* cap, int alloc_trim, int* intensity, int* dual_stereo, opus_int32 total, opus_int32* balance, int* pulses, int* ebits, int* fine_priority, int C, int LM, ec_ctx* ec, int encode, int prev, int signalBandwidth, const celt_band_distortion* distortion = nullptr);
@@ -8254,7 +8254,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       power[i] = p;
     }
     for (int i = start; i < end; ++i) {
-      const int width = (eBands[i+1] - eBands[i]) << LM;
+      const int width = (eBands[i + 1] - eBands[i]) << LM;
       const auto* first = X + (eBands[i] << LM);
       float peak_square = 0.f;
       for (int channel = 0; channel < C; ++channel) {
@@ -8269,9 +8269,9 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       }
       auto mask = 1.f + power[i];
       if (i > start)
-        mask += .20f * power[i-1];
+        mask += .20f * power[i - 1];
       if (i + 1 < end)
-        mask += .08f * power[i+1];
+        mask += .08f * power[i + 1];
       const int entry = width == 1 ? 8 : celt_mode()->cache_bits[celt_mode()->cache_index[(LM + 1) * nbEBands + i] + 1] + 1;
       const auto left = C == 1 || power[i] == 0.f ? 1.f : bandE[i] * bandE[i] / power[i];
       distortion[i] = {power[i] / mask, peak_square / C, entry, .125f / std::max(width - 1, 1), {}, left};
@@ -8279,10 +8279,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   }
   const auto allocate_bands = [&](int trim, int* intensity, int* dual, opus_int32 bits_budget, opus_int32* balance_out, int* pulses_out, int* fine_out, int* priority_out, ec_enc* coder) __attribute__((noinline)) {
     if (plan_tail)
-      for (int i=start;i<end;++i) {
-        distortion[i].residual[0]=error[i];
-        if (C==2)
-          distortion[i].residual[1]=error[nbEBands+i];
+      for (int i = start; i < end; ++i) {
+        distortion[i].residual[0] = error[i];
+        if (C == 2)
+          distortion[i].residual[1] = error[nbEBands + i];
       }
     return clt_compute_allocation(start, end, offsets.data(), cap.data(), trim, intensity, dual, bits_budget, balance_out, pulses_out, fine_out, priority_out, C, LM, coder, 1, st->lastCodedBands, signal_bandwidth, plan_tail ? distortion.data() : nullptr);
   };
@@ -12282,7 +12282,7 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
         const int retained_fine = depth_eligible ? celt_base_fine_bits(band, retained_bits, C, LM, *intensity, *intensity <= start ? 0 : *dual_stereo, nullptr) : 0;
         const int funded_shape = depth_eligible ? retained_bits - (C * retained_fine << 3) : band_bits;
         bool keep = codedBands <= start + 2 ||
-            (funded_shape > ((depth_threshold * band_width << LM << 3) >> 4) && (band <= signalBandwidth || codedBands > 17));
+                    (funded_shape > ((depth_threshold * band_width << LM << 3) >> 4) && (band <= signalBandwidth || codedBands > 17));
         if (distortion != nullptr && keep && codedBands > start + 2) {
           const auto band_loss = [&](int i, int shape_q3, int fine, int right_edge) {
             const auto& p = distortion[i];
@@ -12296,12 +12296,12 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
                 const int q = floor_to_int_reference<true>((residual + .5f) * count - fine_power_decision_bias[fine], fine);
                 requantised = ((q + .5f) / count) - .5f;
               }
-              const auto delta = std::exp2(std::clamp(requantised-residual,-8.f,8.f)) - 1.f;
+              const auto delta = std::exp2(std::clamp(requantised - residual, -8.f, 8.f)) - 1.f;
               return delta * delta;
             };
             auto amplitude_loss = p.left_fraction * gain_loss(p.residual[0]);
-            if (C==2)
-              amplitude_loss += (1.f-p.left_fraction) * gain_loss(p.residual[1]);
+            if (C == 2)
+              amplitude_loss += (1.f - p.left_fraction) * gain_loss(p.residual[1]);
             return p.weight * (direction_loss + amplitude_loss);
           };
           const auto loss = [&](int cut, int active, int distributed, int remaining) {
@@ -12317,7 +12317,7 @@ static int interp_bits2pulses(int start, int end, int skip_start, const int* bit
             const int right_edge = remaining > 0 ? std::min(*intensity, cut) : 0;
             const int dual = right_edge > start ? *dual_stereo : 0;
             for (int i = start; i < cut; ++i) {
-              const int n = edges[i+1] - edges[i];
+              const int n = edges[i + 1] - edges[i];
               const int residue = std::min(extra, n);
               extra -= residue;
               const int requested = bits[i] + average * n + residue + carry;
