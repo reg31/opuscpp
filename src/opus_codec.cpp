@@ -1752,21 +1752,31 @@ static bool pitch_fine_correlation_lookup(const pitch_fine_correlations* fine, i
 }
 
 static opus_val16 refine_pitch(const opus_val16*, int, int*, int, opus_val16, pitch_window_power&, const pitch_fine_correlations&);
-static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len);
+static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len, celt_sig* const* tail = nullptr, int split = 0);
 static void xcorr_kernel_c(const opus_val16* x, const opus_val16* y, std::span<opus_val32, 4> sum, int len) {
   if (len <= 0)
     return;
-  opus_val32 y0 = y[0], y1 = y[1], y2 = y[2];
-  for (int index = 0; index < len; ++index) {
-    const opus_val32 y3 = y[index + 3];
-    const opus_val32 sample = x[index];
-    sum[0] += sample * y0;
-    sum[1] += sample * y1;
-    sum[2] += sample * y2;
-    sum[3] += sample * y3;
-    y0 = y1;
-    y1 = y2;
-    y2 = y3;
+  if constexpr (FLT_EVAL_METHOD == 0) {
+    std::array<opus_val32, 4> accum{sum[0], sum[1], sum[2], sum[3]};
+    for (int i = 0; i < len; ++i) {
+      const auto sample = x[i];
+      for (int lane = 0; lane < 4; ++lane)
+        accum[lane] += sample * y[i + lane];
+    }
+    std::ranges::copy(accum, sum.begin());
+  } else {
+    opus_val32 y0 = y[0], y1 = y[1], y2 = y[2];
+    for (int index = 0; index < len; ++index) {
+      const opus_val32 y3 = y[index + 3];
+      const opus_val32 sample = x[index];
+      sum[0] += sample * y0;
+      sum[1] += sample * y1;
+      sum[2] += sample * y2;
+      sum[3] += sample * y3;
+      y0 = y1;
+      y1 = y2;
+      y2 = y3;
+    }
   }
 }
 
@@ -7475,10 +7485,14 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
   const int overlap = celt_default_overlap;
   pre[0] = prefilter_scratch;
   pre[1] = pre[0] + N + max_period;
-  for (int c = 0; c < CC; ++c) {
-    copy_n_items(prefilter_mem + c * max_period, static_cast<std::size_t>(max_period), pre[c]);
-    copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), pre[c] + max_period);
-  }
+  const auto collect = [&] {
+    for (int c = 0; c < CC; ++c) {
+      copy_n_items(prefilter_mem + c * max_period, static_cast<std::size_t>(max_period), pre[c]);
+      copy_n_items(in + c * (N + overlap) + overlap, static_cast<std::size_t>(N), pre[c] + max_period);
+    }
+  };
+  if constexpr (FLT_EVAL_METHOD != 0)
+    collect();
   if (enabled && toneishness > (.99f)) {
     int multiple = 1;
     if ((tone_freq) >= (3.1416f)) {
@@ -7495,7 +7509,16 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
   } else if (enabled && complexity >= 5) {
     std::array<opus_val16, (celt_max_pitch_period + celt_max_frame_samples) / 2> pitch_storage;
     auto* pitch_buf = pitch_storage.data();
-    pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1);
+    if constexpr (FLT_EVAL_METHOD == 0) {
+      std::array<celt_sig*, celt_max_channels> history, samples;
+      for (int c = 0; c < CC; ++c) {
+        history[c] = prefilter_mem + c * max_period;
+        samples[c] = in + c * (N + overlap) + overlap;
+      }
+      pitch_downsample(history.data(), CC, pitch_buf, (max_period + N) >> 1, samples.data(), max_period >> 1);
+    } else {
+      pitch_downsample(pre.data(), CC, pitch_buf, (max_period + N) >> 1);
+    }
     pitch_window_power shared_power;
     pitch_fine_correlations fine_correlations;
     pitch_index = max_period - pitch_search(pitch_buf, max_period / 2, N, max_period - 3 * min_period, &shared_power, &fine_correlations);
@@ -7546,6 +7569,14 @@ static int run_prefilter_active_for_channels(CeltEncoderInternal* st, celt_sig* 
     gain1 = (0.09375f) * (qg + 1);
     pf_on = 1;
   }
+  if (st->prefilter_gain == 0.f && gain1 == 0.f) {
+    st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
+    celt_prefilter_passthrough(st, in, prefilter_mem, CC, N, pitch, gain, qgain);
+    *pitch = pitch_index;
+    return 0;
+  }
+  if constexpr (FLT_EVAL_METHOD == 0)
+    collect();
   for (int c = 0; c < CC; ++c) {
     st->prefilter_period = std::max<opus_uint16>(st->prefilter_period, 15);
     copy_n_items(celt_encoder_storage(st) + c * overlap, static_cast<std::size_t>(overlap), in + c * (N + overlap));
@@ -9795,20 +9826,12 @@ static celt_generated_tables celt_tables;
 template <int R, int L, bool LP>
 static inline void fft_block(const float* x, float* y, int total, int xi, int xs, int yi, int ys, int ysu,
                              const kiss_twiddle_cpx* tw, int p, int ts) {
-  float wr[R], wi[R];
-  if constexpr (!LP) {
-    for (int j = 0; j < R; ++j) {
-      wr[j] = tw[j * p * ts].r;
-      wi[j] = tw[j * p * ts].i;
-    }
-  }
   float xr[R][L], xm[R][L];
   for (int j = 0; j < R; ++j) {
     std::copy_n(x + xi + j * xs, L, xr[j]);
     std::copy_n(x + total + xi + j * xs, L, xm[j]);
   }
-  float* const yr = y + yi;
-  float* const ym = y + total + yi;
+  float cr[R][L], ci[R][L];
   for (int u = 0; u < L; ++u) {
     const auto ar = [&](int k) {
       return xr[k][u];
@@ -9816,70 +9839,69 @@ static inline void fft_block(const float* x, float* y, int total, int xi, int xs
     const auto ai = [&](int k) {
       return xm[k][u];
     };
-    float cr[R], ci[R];
     if constexpr (R == 2) {
-      cr[0] = ar(0) + ar(1);
-      ci[0] = ai(0) + ai(1);
-      cr[1] = ar(0) - ar(1);
-      ci[1] = ai(0) - ai(1);
+      cr[0][u] = ar(0) + ar(1);
+      ci[0][u] = ai(0) + ai(1);
+      cr[1][u] = ar(0) - ar(1);
+      ci[1][u] = ai(0) - ai(1);
     } else if constexpr (R == 3) {
       constexpr float s3 = 0.8660254037844386f;
       const float sr = ar(1) + ar(2), si = ai(1) + ai(2);
       const float dr = (ar(1) - ar(2)) * s3, di = (ai(1) - ai(2)) * s3;
       const float mr = ar(0) - .5f * sr, mi = ai(0) - .5f * si;
-      cr[0] = ar(0) + sr;
-      ci[0] = ai(0) + si;
-      cr[1] = mr + di;
-      ci[1] = mi - dr;
-      cr[2] = mr - di;
-      ci[2] = mi + dr;
+      cr[0][u] = ar(0) + sr;
+      ci[0][u] = ai(0) + si;
+      cr[1][u] = mr + di;
+      ci[1][u] = mi - dr;
+      cr[2][u] = mr - di;
+      ci[2][u] = mi + dr;
     } else if constexpr (R == 4) {
       const float t0r = ar(0) + ar(2), t0i = ai(0) + ai(2), t1r = ar(0) - ar(2), t1i = ai(0) - ai(2);
       const float t2r = ar(1) + ar(3), t2i = ai(1) + ai(3), t3r = ar(1) - ar(3), t3i = ai(1) - ai(3);
-      cr[0] = t0r + t2r;
-      ci[0] = t0i + t2i;
-      cr[2] = t0r - t2r;
-      ci[2] = t0i - t2i;
-      cr[1] = t1r + t3i;
-      ci[1] = t1i - t3r;
-      cr[3] = t1r - t3i;
-      ci[3] = t1i + t3r;
+      cr[0][u] = t0r + t2r;
+      ci[0][u] = t0i + t2i;
+      cr[2][u] = t0r - t2r;
+      ci[2][u] = t0i - t2i;
+      cr[1][u] = t1r + t3i;
+      ci[1][u] = t1i - t3r;
+      cr[3][u] = t1r - t3i;
+      ci[3][u] = t1i + t3r;
     } else {
       constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
       const float s14r = ar(1) + ar(4), s14i = ai(1) + ai(4), d14r = ar(1) - ar(4), d14i = ai(1) - ai(4);
       const float s23r = ar(2) + ar(3), s23i = ai(2) + ai(3), d23r = ar(2) - ar(3), d23i = ai(2) - ai(3);
-      cr[0] = ar(0) + s14r + s23r;
-      ci[0] = ai(0) + s14i + s23i;
+      cr[0][u] = ar(0) + s14r + s23r;
+      ci[0][u] = ai(0) + s14i + s23i;
       const float e1r = ar(0) + c1 * s14r + c2 * s23r, e1i = ai(0) + c1 * s14i + c2 * s23i;
       const float f1r = s1 * d14r + s2 * d23r, f1i = s1 * d14i + s2 * d23i;
       const float e2r = ar(0) + c2 * s14r + c1 * s23r, e2i = ai(0) + c2 * s14i + c1 * s23i;
       const float f2r = s2 * d14r - s1 * d23r, f2i = s2 * d14i - s1 * d23i;
-      cr[1] = e1r + f1i;
-      ci[1] = e1i - f1r;
-      cr[4] = e1r - f1i;
-      ci[4] = e1i + f1r;
-      cr[2] = e2r + f2i;
-      ci[2] = e2i - f2r;
-      cr[3] = e2r - f2i;
-      ci[3] = e2i + f2r;
+      cr[1][u] = e1r + f1i;
+      ci[1][u] = e1i - f1r;
+      cr[4][u] = e1r - f1i;
+      ci[4][u] = e1i + f1r;
+      cr[2][u] = e2r + f2i;
+      ci[2][u] = e2i - f2r;
+      cr[3][u] = e2r - f2i;
+      ci[3][u] = e2i + f2r;
     }
-    yr[u * ysu] = cr[0];
-    ym[u * ysu] = ci[0];
-    for (int j = 1; j < R; ++j) {
+  }
+  float* const yr = y + yi;
+  float* const ym = y + total + yi;
+  for (int u = 0; u < L; ++u) {
+    yr[u * ysu] = cr[0][u];
+    ym[u * ysu] = ci[0][u];
+  }
+  for (int j = 1; j < R; ++j) {
+    for (int u = 0; u < L; ++u) {
+      const int offset = u * ysu + j * ys;
       if constexpr (R == 5) {
-        yr[u * ysu + j * ys] = cr[j];
-        ym[u * ysu + j * ys] = ci[j];
+        yr[offset] = cr[j][u];
+        ym[offset] = ci[j][u];
       } else {
-        float tr, ti;
-        if constexpr (LP) {
-          tr = tw[(p + u) * j * ts].r;
-          ti = tw[(p + u) * j * ts].i;
-        } else {
-          tr = wr[j];
-          ti = wi[j];
-        }
-        yr[u * ysu + j * ys] = cr[j] * tr - ci[j] * ti;
-        ym[u * ysu + j * ys] = cr[j] * ti + ci[j] * tr;
+        const auto phase = tw[(p + (LP ? u : 0)) * j * ts];
+        yr[offset] = cr[j][u] * phase.r - ci[j][u] * phase.i;
+        ym[offset] = cr[j][u] * phase.i + ci[j][u] * phase.r;
       }
     }
   }
@@ -9891,10 +9913,8 @@ static void fft_stage(const float* x, float* y, int total, int m, int s, int ts)
   if constexpr (R == 4) {
     if (s == 1) {
       int p = 0;
-      if (m % 4 == 0) {
-        for (; p < m; p += 4) {
-          fft_block<R, 4, true>(x, y, total, p, m, R * p, 1, R, tw, p, ts);
-        }
+      for (; p + 4 <= m; p += 4) {
+        fft_block<R, 4, true>(x, y, total, p, m, R * p, 1, R, tw, p, ts);
       }
       for (; p < m; ++p) {
         fft_block<R, 1, false>(x, y, total, p, m, R * p, 1, 0, tw, p, ts);
@@ -9918,13 +9938,28 @@ static constexpr unsigned char fft_radices[4][6] = {{4, 2, 4, 3, 5, 0}, {4, 4, 3
 static float* celt_fft(float* a, float* b, int shift) {
   static constexpr std::array stages{fft_stage<2>, fft_stage<3>, fft_stage<4>, fft_stage<5>};
   const int total = 480 >> shift;
-  int n = total, s = 1;
-  for (const unsigned char* r = fft_radices[shift]; *r; ++r) {
-    const int m = n / *r;
-    stages[*r - 2](a, b, total, m, s, 480 / n);
+  struct StageGeometry {
+    unsigned char radix, twiddle_step;
+    unsigned short remaining, stride;
+  };
+  static constexpr auto plans = [] {
+    std::array<std::array<StageGeometry, 6>, 4> plans{};
+    for (int size = 0; size < 4; ++size) {
+      int n = 480 >> size, stride = 1;
+      for (int i = 0; const auto radix = fft_radices[size][i]; ++i) {
+        plans[size][i] = {radix, static_cast<unsigned char>(480 / n),
+                          static_cast<unsigned short>(n / radix), static_cast<unsigned short>(stride)};
+        n /= radix;
+        stride *= radix;
+      }
+    }
+    return plans;
+  }();
+  for (const auto& stage : plans[shift]) {
+    if (stage.radix == 0)
+      break;
+    stages[stage.radix - 2](a, b, total, stage.remaining, stage.stride, stage.twiddle_step);
     std::swap(a, b);
-    n = m;
-    s *= *r;
   }
   return a;
 }
@@ -11721,7 +11756,7 @@ static constexpr CeltModeInternal mode48000_960_120 = {
   return &mode48000_960_120;
 }
 
-static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len) {
+static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp, int len, celt_sig* const* tail, int split) {
   if constexpr (FLT_EVAL_METHOD != 0) {
 
     constexpr int factor = 2, offset = 1;
@@ -11739,26 +11774,29 @@ static void pitch_downsample(celt_sig* const* x, int channels, opus_val16* x_lp,
 
     return;
   }
-  if (len > 1) {
-    opus_val16 previous_odd = .25f * x[0][1];
-    for (int i = 1; i < len; ++i) {
-      const opus_val16 next_odd = .25f * x[0][2 * i + 1];
-      x_lp[i] = previous_odd + next_odd + .5f * x[0][2 * i];
-      previous_odd = next_odd;
-    }
-  }
-  x_lp[0] = .25f * x[0][1] + .5f * x[0][0];
-  if (channels == 2) {
-    if (len > 1) {
-      opus_val16 previous_odd = .25f * x[1][1];
-      for (int i = 1; i < len; ++i) {
-        const opus_val16 next_odd = .25f * x[1][2 * i + 1];
-        x_lp[i] += previous_odd + next_odd + .5f * x[1][2 * i];
+  const int head_len = tail ? split : len;
+  const auto lowpass_channel = [&](int channel, auto store) {
+    const auto* head = x[channel];
+    const auto segment = [&](const celt_sig* data, int first, int last, int base, opus_val16 previous_odd) {
+      for (int i = first; i < last; ++i) {
+        const opus_val16 next_odd = .25f * data[2 * i + 1];
+        store(x_lp[base + i], previous_odd + next_odd + .5f * data[2 * i]);
         previous_odd = next_odd;
       }
-    }
-    x_lp[0] += .25f * x[1][1] + .5f * x[1][0];
-  }
+      return previous_odd;
+    };
+    const auto previous_odd = segment(head, 1, head_len, 0, .25f * head[1]);
+    if (tail)
+      segment(tail[channel], 0, len - head_len, head_len, previous_odd);
+    store(x_lp[0], .25f * head[1] + .5f * head[0]);
+  };
+  lowpass_channel(0, [](float& out, float value) {
+    out = value;
+  });
+  if (channels == 2)
+    lowpass_channel(1, [](float& out, float value) {
+      out += value;
+    });
   pitch_whiten(x_lp, len);
 }
 
@@ -12008,8 +12046,8 @@ static inline opus_val32 loss_distortion(const celt_glog* eBands, celt_glog* old
   return std::min(200.0f, dist);
 }
 
-template <bool Encode, bool FullBudget = false>
-static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel, const celt_glog* rounding_bias) {
+template <bool Encode>
+static int process_coarse_energy(int start, int end, const celt_glog* eBands, celt_glog* oldEBands, opus_int32 budget, opus_int32 tell, const unsigned char* prob_model, celt_glog* error, ec_ctx* coder, int C, int LM, int intra, celt_glog max_decay, const bool* empty_channel, const celt_glog* rounding_bias, bool full_budget = false) {
   std::array<opus_val32, 2> prev{};
   int badness = 0;
   if constexpr (Encode) {
@@ -12019,38 +12057,6 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
   }
   const opus_val16 coef = intra ? 0 : pred_coef[LM];
   const opus_val16 beta = intra ? beta_intra : beta_coef[LM];
-  if constexpr (Encode && FullBudget) {
-    opus_val32 previous0 = 0;
-    opus_val32 previous1 = 0;
-    for (int i = start; i < end; ++i) {
-      const auto consume_channel = [&]<int Channel>(opus_val32 previous) {
-        constexpr int c = Channel;
-        const int index = i + c * celt_default_nb_ebands;
-        const celt_glog old_energy = std::max(-9.f, oldEBands[index]);
-        int qi;
-        int qi0;
-        const celt_glog input_energy = eBands[index];
-        const opus_val32 residual = input_energy - coef * old_energy - previous;
-        qi = floor_to_int_reference((rounding_bias == nullptr ? .3390359525563189f : rounding_bias[index]) + residual);
-        const auto decay_bound = std::max(-28.f, oldEBands[index]) - max_decay;
-        if (qi < 0 && input_energy < decay_bound && !empty_channel[c]) {
-          qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
-        }
-        qi0 = qi;
-        const int probability_index = 2 * std::min(i, 20);
-        ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
-        error[index] = residual - qi;
-        badness += std::abs(qi0 - qi);
-        const auto quantized = static_cast<opus_val32>(qi);
-        oldEBands[index] = coef * old_energy + previous + quantized;
-        previous += quantized - beta * quantized;
-        return previous;
-      };
-      previous0 = consume_channel.template operator()<0>(previous0);
-      previous1 = consume_channel.template operator()<1>(previous1);
-    }
-    return badness;
-  }
   for (int i = start; i < end; ++i) {
     for (int c = 0; c < C; ++c) {
       const int index = i + c * celt_default_nb_ebands;
@@ -12066,8 +12072,8 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
           qi = std::min(0, qi + static_cast<int>(decay_bound - input_energy));
         }
         qi0 = qi;
-        tell = ec_tell(coder);
-        const int bits_left = budget - tell - 3 * C * (end - i);
+        const auto available = full_budget ? std::numeric_limits<opus_int32>::max() : budget - static_cast<opus_int32>(ec_tell(coder));
+        const int bits_left = available - 3 * C * (end - i);
         if (i != start && bits_left < 30) {
           if (bits_left < 24) {
             qi = std::min(1, qi);
@@ -12076,13 +12082,13 @@ static int process_coarse_energy(int start, int end, const celt_glog* eBands, ce
             qi = std::max(-1, qi);
           }
         }
-        if (budget - tell >= 15) {
+        if (available >= 15) {
           const int probability_index = 2 * std::min(i, 20);
           ec_laplace_encode(coder, &qi, prob_model[probability_index] << 7, prob_model[probability_index + 1] << 6);
-        } else if (budget - tell >= 2) {
+        } else if (available >= 2) {
           qi = std::clamp(qi, -1, 1);
           ec_enc_icdf(coder, 2 * qi ^ -(qi < 0), shared_three_step_icdf.data(), 2);
-        } else if (budget - tell >= 1) {
+        } else if (available >= 1) {
           qi = std::min(0, qi);
           ec_enc_bit_logp(coder, -qi, 1);
         } else {
@@ -12131,10 +12137,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
   int badness1;
   if (two_pass || intra) {
     std::copy_n(oldEBands, C * celt_default_nb_ebands, old_intra.data());
-    badness1 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, old_intra.data(), budget, tell,
-                                                               e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
-                           : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
-                                                         e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
+    badness1 = process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
+                                           e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1,
+                                           max_decay, empty_channel, rounding_bias, full_budget);
     if (const auto count = enc->offs - nstart_bytes; !intra && count != 0)
       std::memcpy(intra_bytes.data(), enc->buf + nstart_bytes, count);
   }
@@ -12142,10 +12147,9 @@ static void quant_coarse_energy(int start, int end, const celt_glog* eBands, cel
     const ec_enc enc_intra = *enc;
     const int tell_intra = static_cast<int>(ec_tell_frac(enc));
     *enc = enc_start;
-    const int badness2 = full_budget ? process_coarse_energy<true, true>(start, end, eBands, oldEBands, budget, tell,
-                                                                         e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias)
-                                     : process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
-                                                                   e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0, max_decay, empty_channel, rounding_bias);
+    const int badness2 = process_coarse_energy<true>(start, end, eBands, oldEBands, budget, tell,
+                                                     e_prob_model[static_cast<std::size_t>(LM * 2 + 0)].data(), error, enc, C, LM, 0,
+                                                     max_decay, empty_channel, rounding_bias, full_budget);
     if (two_pass && (badness1 < badness2 || (badness1 == badness2 && static_cast<int>(ec_tell_frac(enc)) + intra_bias > tell_intra))) {
       const opus_uint32 nintra_bytes = enc_intra.offs;
       *enc = enc_intra;
@@ -14225,8 +14229,13 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       newest_xq[RDmax_ind] = newest_xq[RDmin_ind];
       dst.set_lpc_sample(i + 15, newest_xq[RDmax_ind]);
       constexpr auto ring_offset = offsetof(NSQ_del_dec_struct, RandState);
-      const auto copy_end = keep_ar ? offsetof(NSQ_del_dec_struct, LF_AR_Q14) : offsetof(NSQ_del_dec_struct, sAR2_Q14);
-      std::memcpy(reinterpret_cast<std::byte*>(&dst) + ring_offset, reinterpret_cast<const std::byte*>(&src) + ring_offset, copy_end - ring_offset);
+      auto* destination = reinterpret_cast<std::byte*>(&dst) + ring_offset;
+      const auto* history = reinterpret_cast<const std::byte*>(&src) + ring_offset;
+      if (keep_ar) {
+        std::memcpy(destination, history, offsetof(NSQ_del_dec_struct, LF_AR_Q14) - ring_offset);
+      } else {
+        std::memcpy(destination, history, offsetof(NSQ_del_dec_struct, sAR2_Q14) - ring_offset);
+      }
       dst.Seed = src.Seed;
       dst.SeedInit = src.SeedInit;
       if (use_float)
