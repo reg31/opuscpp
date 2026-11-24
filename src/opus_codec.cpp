@@ -5221,6 +5221,7 @@ static void denormalise_bands(std::array<const celt_norm*, Channels> normalized,
 static void anti_collapse(celt_norm* X_, unsigned char* collapse_masks, int LM, int C, int size, int start, int end, const celt_glog* logE, const celt_glog* prev1logE, const celt_glog* prev2logE, const int* pulses, opus_uint32 seed) {
   const auto* eBands = celt_mode()->eBands;
   const int nbEBands = celt_default_nb_ebands;
+  const auto block_mask = low_bits_mask(1u << LM);
   for (int i = start; i < end; i++) {
     const int band_start = eBands[i];
     const int N0 = eBands[i + 1] - band_start;
@@ -5243,17 +5244,16 @@ static void anti_collapse(celt_norm* X_, unsigned char* collapse_masks, int LM, 
       }
       r = std::min(thresh, r) * sqrt_1;
       celt_norm* X = X_ + c * size + (band_start << LM);
-      int renormalize = 0;
-      for (int k = 0; k < 1 << LM; k++) {
-        if (!(collapse_masks[i * C + c] & 1 << k)) {
+      auto missing = block_mask & ~static_cast<opus_uint32>(collapse_masks[i * C + c]);
+      if (missing != 0) {
+        do {
+          const int k = std::countr_zero(missing);
           for (int j = 0; j < N0; j++) {
             seed = celt_lcg_rand(seed);
             X[(j << LM) + k] = (seed & 0x8000 ? r : -r);
           }
-          renormalize = 1;
-        }
-      }
-      if (renormalize) {
+          missing &= missing - 1;
+        } while (missing != 0);
         renormalise_vector(X, N0 << LM, 1.0f);
       }
     }
@@ -6228,6 +6228,31 @@ static unsigned quant_band_stereo(band_ctx* ctx, celt_norm* X, celt_norm* Y, int
   return cm;
 }
 
+constexpr std::array<opus_int16, 22> eband5ms =
+    numeric_blob_array<opus_int16>(R"blob(000000010002000300040005000600070008000A000C000E001000140018001C002200280030003C004E0064)blob");
+
+static constexpr auto celt_band_for_bin = [] consteval {
+  std::array<unsigned char, eband5ms.back()> bands{};
+  for (std::size_t band = 0; band + 1 < eband5ms.size(); ++band) {
+    for (int bin = eband5ms[band]; bin < eband5ms[band + 1]; ++bin) {
+      bands[bin] = static_cast<unsigned char>(band);
+    }
+  }
+  return bands;
+}();
+
+struct celt_fold_range {
+  int begin;
+  int first_band;
+  int end_band;
+};
+
+[[nodiscard]] static constexpr auto celt_lookup_fold_range(int start, int band, int fold_offset) noexcept -> celt_fold_range {
+  const int width = eband5ms[band + 1] - eband5ms[band];
+  const int begin = std::max<int>(eband5ms[start], eband5ms[fold_offset] - width);
+  return {begin, celt_band_for_bin[begin], std::min(band, celt_band_for_bin[begin + width - 1] + 1)};
+}
+
 static void special_hybrid_folding(celt_norm* norm, celt_norm* norm2, int start, int M, int dual_stereo) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int n1 = M * (eBands[start + 1] - eBands[start]);
@@ -6279,14 +6304,11 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.rotation_cache = encode ? &rotation_cache : nullptr;
   int lowband_offset = 0, fold_offset = 0, update_lowband = 1;
   const int process_end = encode ? std::min(end, codedBands) : end;
-  const auto mark_fold_sources = [&](int band, int width, unsigned& mask) {
+  const auto mark_fold_sources = [&](int band, unsigned& mask) {
     if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
-      const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - width);
-      const int finish = begin + width;
-      for (int source = start; source < band; ++source)
-        if (M * eBands[source] < finish && M * eBands[source + 1] > begin)
-          mask |= 1U << source;
-      if (M * (eBands[start + 2] - eBands[start + 1]) > M * (eBands[start + 1] - eBands[start]) && begin < M * eBands[start + 2])
+      const auto [begin, first_band, end_band] = celt_lookup_fold_range(start, band, fold_offset);
+      mask |= (1U << end_band) - (1U << first_band);
+      if (eBands[start + 2] - eBands[start + 1] > eBands[start + 1] - eBands[start] && begin < eBands[start + 2])
         mask |= 1U << start;
     }
   };
@@ -6315,7 +6337,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       if (foldable && (update_lowband || fold_offset == 0))
         fold_offset = i;
       mono_plan->fold_mask = 0;
-      mark_fold_sources(i, N, mono_plan->fold_mask);
+      mark_fold_sources(i, mono_plan->fold_mask);
     }
     if (resynth) {
       if (foldable && (update_lowband || lowband_offset == 0)) {
@@ -6331,10 +6353,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       lowband_scratch = nullptr;
     }
     if (lowband_offset != 0 && (spread != 3 || B > 1 || tf_change < 0)) {
-      effective_lowband = std::max(0, M * eBands[lowband_offset] - norm_offset - N);
-      int fold_start = lowband_offset, fold_end = lowband_offset - 1;
-      for (; M * eBands[--fold_start] > effective_lowband + norm_offset;) {}
-      for (; ++fold_end < i && M * eBands[fold_end] < effective_lowband + norm_offset + N;) {}
+      const auto [begin, fold_start, fold_end] = celt_lookup_fold_range(start, i, lowband_offset);
+      effective_lowband = M * begin - norm_offset;
       x_cm = y_cm = 0;
       for (int fold_i = fold_start; fold_i < fold_end; ++fold_i) {
         x_cm |= collapse_masks[fold_i * C];
@@ -6395,7 +6415,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       const int width = M * (eBands[band + 1] - eBands[band]);
       if ((M * eBands[band] - width >= norm_offset || band == start + 1) && (update_lowband || fold_offset == 0))
         fold_offset = band;
-      mark_fold_sources(band, width, mono_plan->used_mask);
+      mark_fold_sources(band, mono_plan->used_mask);
       update_lowband = 0;
     }
   }
@@ -9708,8 +9728,6 @@ static int ec_laplace_decode(ec_dec* dec, unsigned fs, int decay) {
   return val;
 }
 
-constexpr std::array<opus_int16, 22> eband5ms =
-    numeric_blob_array<opus_int16>(R"blob(000000010002000300040005000600070008000A000C000E001000140018001C002200280030003C004E0064)blob");
 constexpr std::array<unsigned char, 231> band_allocation = numeric_blob_array<unsigned char>(
     R"blob(0000000000000000000000000000000000000000005A504B453F383128221D14120A00000000000000006E645A544E47413A332D27201A140C000000000000766E675D56504B46413B352F281F170F04000000007E7770685F59534E48423C362F272019110C010000867F787267615B554E48423C362F29231D17100A019089827C716B655F58524C464039332D27211A0F0198918A847B756F69625C56504A433D37312B241401A29B948E857F79736C66605A544D47413B352E1E01ACA59E988F89837D76706A645E57514B453F382D14C8C8C8C8C8C8C8C8C6C1BCB7B2ADA8A39E99948168)blob");
 constexpr std::array<opus_int16, 21> logN400 =
@@ -12280,10 +12298,10 @@ constexpr std::array<float, 9> fine_power_decision_bias{0.f, 0.08496250212192535
 
 template <bool Encode>
 static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_glog* error, const int* prev_quant, const int* extra_quant, ec_ctx* coder, int C) {
-  int fine_bits_left = Encode ? static_cast<opus_int32>(coder->storage * 8) - ec_tell(coder) : 0;
+  int fine_bits_left = static_cast<opus_int32>(coder->storage * 8) - ec_tell(coder);
   for (int i = start; i < end; ++i) {
     const auto extra_bits = extra_quant[i];
-    if (extra_bits <= 0 || (Encode ? C * extra_bits > fine_bits_left : ec_tell(coder) + C * extra_bits > static_cast<opus_int32>(coder->storage * 8))) {
+    if (extra_bits <= 0 || C * extra_bits > fine_bits_left) {
       continue;
     }
     const auto prev = prev_quant == nullptr ? 0 : prev_quant[i];
@@ -12303,8 +12321,7 @@ static void process_fine_energy(int start, int end, celt_glog* oldEBands, celt_g
         error[i + c * celt_default_nb_ebands] -= offset;
       }
     }
-    if constexpr (Encode)
-      fine_bits_left -= C * extra_bits;
+    fine_bits_left -= C * extra_bits;
   }
 }
 
