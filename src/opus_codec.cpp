@@ -2489,8 +2489,7 @@ OPUSCPP_NOINLINE static void silk_encode_index_body(ec_ctx* coder, SideInfoIndic
                                                     int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
                                                     decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
                                                     decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
-template <bool Encode, typename Pulse, bool ReconstructSigns = true>
-static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks = 0);
+static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks);
 constexpr int silk_ltp_order = 5;
 constexpr int silk_ltp_matrix_values = silk_ltp_order * (silk_ltp_order + 1) / 2;
 constexpr int silk_ltp_row_offset(int row) noexcept {
@@ -5404,16 +5403,6 @@ struct mono_fold_plan {
   unsigned fold_mask = 0;
 };
 
-struct c2_consumer_plan {
-  int band = -1;
-  int round = 0;
-  int horizon = 0;
-  bool replay = false;
-  double error = 0;
-  double alternative_first_error = 0;
-  double incumbent_error = 0;
-};
-
 struct band_ctx {
   int encode, resynth, i, intensity, spread, tf_change, disable_inv, avoid_split_noise;
   bool rdo;
@@ -6298,12 +6287,12 @@ static void compute_channel_weights(celt_ener Ex, celt_ener Ey, opus_val16* w) {
   w[1] = Ey;
 }
 
-OPUSCPP_LEANA static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr, bool mono_resynth = false, c2_consumer_plan* = nullptr) {
+OPUSCPP_LEANA static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_norm* Y_, unsigned char* collapse_masks, const celt_ener* bandE, int* pulses, int shortBlocks, int spread, int dual_stereo, int intensity, int* tf_res, opus_int32 total_bits, opus_int32 balance, ec_ctx* ec, int LM, int codedBands, opus_uint32* seed, int disable_inv, const celt_glog* coded_log_energy = nullptr, mono_fold_plan* mono_plan = nullptr) {
   const opus_int16* eBands = celt_mode()->eBands;
   constexpr int nbEBands = celt_default_nb_ebands;
   const int C = Y_ != nullptr ? 2 : 1;
   const int theta_rdo = encode && Y_ != nullptr && !dual_stereo;
-  const int resynth = !encode || theta_rdo || mono_resynth;
+  const int resynth = !encode || theta_rdo;
   const int M = 1 << LM;
   const int B = shortBlocks ? M : 1;
   const int norm_offset = M * eBands[start];
@@ -6330,7 +6319,7 @@ OPUSCPP_LEANA static void quant_all_bands(int encode, int start, int end, celt_n
   ctx.avoid_split_noise = B > 1;
   ctx.rotation_cache = encode ? &rotation_cache : nullptr;
   int lowband_offset = 0, fold_offset = 0, update_lowband = 1;
-  const int process_end = encode && !mono_resynth ? std::min(end, codedBands) : end;
+  const int process_end = encode ? std::min(end, codedBands) : end;
   const auto mark_fold_sources = [&](int band, int width, unsigned& mask) {
     if (fold_offset != 0 && (spread != 3 || B > 1 || tf_res[band] < 0)) {
       const int begin = norm_offset + std::max(0, M * eBands[fold_offset] - norm_offset - width);
@@ -7153,7 +7142,7 @@ static celt_glog celt_roex_demand_reduction(int start, int end, int band, const 
   return static_cast<celt_glog>(.5 * std::log2(excitation / (amplitude * amplitude)));
 }
 
-static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, opus_val32 toneishness, const celt_ener* source_energy = nullptr, bool common_follower_source = false) {
+static inline celt_glog dynalloc_analysis(const CeltEncoderInternal* st, const celt_glog* bandLogE, celt_glog* bandLogE2, const celt_glog* oldBandE, int* offsets, int isTransient, int LM, int effectiveBytes, opus_int32* tot_boost_, const celt_ener* source_energy = nullptr, bool common_follower_source = false) {
   constexpr int nbEBands = celt_default_nb_ebands;
   const int start = st->start;
   const int end = st->end;
@@ -8161,7 +8150,7 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
       ec_enc_bit_logp(enc, isTransient, 3);
     enable_tf_analysis = effectiveBytes >= 15 * C && !hybrid && st->complexity >= 2 && toneishness < .98f;
     maxDepth = dynalloc_analysis(st, bandLogE, bandLogE2, oldBandE, offsets.data(), isTransient, LM, effectiveBytes,
-                                 &tot_boost, toneishness, C == 1 ? bandE : nullptr, common_source && !second_mdct && LM > 0);
+                                 &tot_boost, C == 1 ? bandE : nullptr, common_source && !second_mdct && LM > 0);
   }
   auto* X = freq;
 
@@ -8439,10 +8428,10 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
   std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
-  const auto quantise_bands = [&](celt_norm* Y, mono_fold_plan* mono_plan, c2_consumer_plan* c2_plan) __attribute__((noinline)) {
+  const auto quantise_bands = [&](celt_norm* Y, mono_fold_plan* mono_plan) __attribute__((noinline)) {
     quant_all_bands(1, start, end, X, Y, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
                     st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
-                    0, oldBandE, mono_plan, false, c2_plan);
+                    0, oldBandE, mono_plan);
   };
   if (C == 1) {
     const auto saved_coder = *enc;
@@ -8458,17 +8447,14 @@ OPUSCPP_NOINLINE static int celt_encode_with_ec(CeltEncoderInternal* st, const o
         copy_n_items(X + N, static_cast<std::size_t>(N), X);
       }
       mono_fold_plan plan{protect_mask};
-      quantise_bands(nullptr, &plan, nullptr);
+      quantise_bands(nullptr, &plan);
       const unsigned needed = plan.changed_mask & plan.used_mask;
       if (needed == 0)
         break;
       protect_mask = pass == 0 ? protect_mask | needed : (1U << end) - 1;
     }
-  } else if (shortBlocks > 1 && !dual_stereo) {
-    c2_consumer_plan plan;
-    quantise_bands(X + N, nullptr, &plan);
   } else {
-    quantise_bands(X + N, nullptr, nullptr);
+    quantise_bands(X + N, nullptr);
   }
   if (anti_collapse_rsv > 0) {
     ec_enc_bits(enc, st->consec_transient < 2, 1);
@@ -12105,7 +12091,7 @@ OPUSCPP_LEANO static void quant_coarse_energy(int start, int end, const celt_glo
                                                                e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias)
                            : process_coarse_energy<true>(start, end, eBands, old_intra.data(), budget, tell,
                                                          e_prob_model[static_cast<std::size_t>(LM * 2 + 1)].data(), err_intra.data(), enc, C, LM, 1, max_decay, empty_channel, rounding_bias);
-    if (const auto count = enc->offs - nstart_bytes; count != 0)
+    if (const auto count = enc->offs - nstart_bytes; !intra && count != 0)
       std::memcpy(intra_bytes.data(), enc->buf + nstart_bytes, count);
   }
   if (!intra) {
@@ -13187,20 +13173,16 @@ static void silk_shell_encode_tree(ec_ctx* coder, const opus_uint8* magnitudes, 
   }
 }
 
-template <bool Encode, typename Pulse, bool ReconstructSigns>
-OPUSCPP_LEANA static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks) {
+OPUSCPP_LEANA static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks) {
   const int block_count = (frame_length + 15) >> 4;
   std::array<int, silk_max_frame_length / 16> pulse_sums;
   std::array<int, silk_max_frame_length / 16> shifts;
-  std::array<opus_uint8, Encode ? silk_max_frame_length : 1> magnitudes;
-  std::array<silk_shell_tree, Encode ? silk_max_frame_length / 16 : 1> shell_trees;
-  int rate_level;
+  std::array<opus_uint8, silk_max_frame_length> magnitudes;
+  std::array<silk_shell_tree, silk_max_frame_length / 16> shell_trees;
+  int rate_level = 0;
 
-  static_assert(Encode && std::is_same_v<Pulse, opus_int8>);
+  std::ranges::fill(pulses.subspan(static_cast<std::size_t>(frame_length)), opus_int8{0});
   {
-    if ((frame_length & 15) != 0) {
-      zero_n_items(pulses.data() + frame_length, 16);
-    }
     for (int index = 0; index < block_count * 16; ++index) {
       magnitudes[index] = static_cast<opus_uint8>(std::abs(static_cast<int>(pulses[index])));
     }
@@ -13270,7 +13252,7 @@ OPUSCPP_LEANA static void silk_process_pulses(ec_ctx* coder, std::span<Pulse> pu
     }
   }
   const auto sums = std::span<const int>{pulse_sums.data(), static_cast<std::size_t>(block_count)};
-  silk_process_signs<Encode, ec_ctx, std::span<Pulse>, ReconstructSigns>(coder, pulses.first(static_cast<std::size_t>(block_count * 16)), signal_type, quant_offset_type, sums);
+  silk_process_signs<true>(coder, pulses, signal_type, quant_offset_type, sums);
 }
 
 [[gnu::cold]] static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type) {
@@ -16006,9 +15988,8 @@ struct silk_entropy_context {
 template <class State>
 OPUSCPP_LEANO static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
   silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
-  silk_process_pulses<true>(psRangeEnc,
-                            std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
-                            indices.signalType, indices.quantOffsetType, psEncC->frame_length, zero_padding_blocks);
+  silk_process_pulses(psRangeEnc, std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
+                      indices.signalType, indices.quantOffsetType, psEncC->frame_length, zero_padding_blocks);
 }
 
 struct silk_gain_search_bound {
@@ -16186,7 +16167,7 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1
                                                                                                                 : 0;
         SideInfoIndices scratch_indices;
-        std::array<opus_int8, silk_max_frame_length + 16> scratch_pulses{};
+        std::array<opus_int8, silk_max_frame_length> scratch_pulses;
         auto* coded_indices = &indices;
         auto* coded_pulses = channel.pulses[static_cast<std::size_t>(frame)].data();
         if (price) {
