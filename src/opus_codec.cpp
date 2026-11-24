@@ -9867,8 +9867,12 @@ static void fft_five_lanes(const fft_stage_planes& planes) {
   constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
   float out_r[5][4], out_i[5][4];
   for (int lane = 0; lane < 4; ++lane) {
-    const auto r = [&](int k) { return planes.real[k * planes.input_stride + lane]; };
-    const auto i = [&](int k) { return planes.imag[k * planes.input_stride + lane]; };
+    const auto r = [&](int k) {
+      return planes.real[k * planes.input_stride + lane];
+    };
+    const auto i = [&](int k) {
+      return planes.imag[k * planes.input_stride + lane];
+    };
     const float s14r = r(1) + r(4), s14i = i(1) + i(4), d14r = r(1) - r(4), d14i = i(1) - i(4);
     const float s23r = r(2) + r(3), s23i = i(2) + i(3), d23r = r(2) - r(3), d23i = i(2) - i(3);
     out_r[0][lane] = r(0) + s14r + s23r;
