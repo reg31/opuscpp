@@ -8998,14 +8998,9 @@ static void celt_shift_pitch_history(CeltDecoderInternal* st, int N, const std::
   st->prefix_head = static_cast<opus_uint8>(head);
 }
 
-static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int channels, int N, bool from_stored = false, bool postfilter_history = true, int target_period = celt_max_pitch_period, bool update_pitch_cache = true) {
+static void celt_slide_decode_history(CeltDecoderInternal* st, const celt_decoder_views& decoder, int channels, int N,
+                                      int source, bool from_stored, bool update_pitch_cache = true) {
   const auto* decode_mem = decoder.decode_mem.data();
-  const int raw_start = celt_decoder_raw_start - decoder.raw_offset;
-  int source = from_stored && (!postfilter_history || (decoder.raw_offset != 0 && N <= 240)) ? N + raw_start : std::max(N, raw_start);
-  if (from_stored && (N == 960 || (N == 480 && decoder.raw_offset != 0 && update_pitch_cache && st->start == 0))) {
-    const int period_span = postfilter_history ? std::max({15, static_cast<int>(st->postfilter_period_old), static_cast<int>(st->postfilter_period), target_period}) + 2 : 0;
-    source = std::max(N, std::min(N + raw_start, decoder.history_size - period_span));
-  }
   const auto count = static_cast<std::size_t>(decoder.history_size - source + celt_decoder_retained_overlap);
   if (update_pitch_cache)
     celt_shift_pitch_history(st, N, decoder.cache_backup, decoder.cache_backup_start);
@@ -9183,7 +9178,8 @@ static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_
   if (use_noise_fill) {
     const int end = st->end;
     const int effEnd = std::max(start, std::min(end, celt_default_nb_ebands));
-    celt_slide_decode_history(st, decoder, C, N);
+    const int source = std::max(N, celt_decoder_raw_start - decoder.raw_offset);
+    celt_slide_decode_history(st, decoder, C, N, source, false);
     auto decay = static_cast<celt_glog>((1 << LM) * .0625f);
     if (st->last_frame_type != 2)
       decay += std::max<celt_glog>(1.f, std::min(160, loss_duration) * .0625f);
@@ -9370,9 +9366,14 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
     }
     backup = update_pitch_cache && decoder.cache_backup_count != 0;
   }
-  if (N == 480 && decoder.raw_offset != 0 && update_pitch_cache && start == 0) {
-    const int source = std::max(N, std::min(N + celt_decoder_raw_start - decoder.raw_offset, decoder.history_size - (postfilter_history ? period_span : 0)));
-    decoder.cache_backup_start = source - N;
+  const int raw_start = celt_decoder_raw_start - decoder.raw_offset;
+  const bool half_frame_backup = N == 480 && decoder.raw_offset != 0 && update_pitch_cache && start == 0;
+  const bool skip_old_history = !postfilter_history || (decoder.raw_offset != 0 && N <= 240);
+  const int history_source = N == 960 || half_frame_backup
+                                 ? std::max(N, std::min(N + raw_start, decoder.history_size - (postfilter_history ? period_span : 0)))
+                                 : skip_old_history ? N + raw_start : std::max(N, raw_start);
+  if (half_frame_backup) {
+    decoder.cache_backup_start = history_source - N;
     decoder.cache_backup_count = celt_decoder_prefix_storage - decoder.cache_backup_start;
     backup = decoder.cache_backup_count != 0;
   }
@@ -9382,7 +9383,7 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
   for (int channel = 0; channel < CC; ++channel) {
     decoder.cache_backup[channel] = backup ? view_workspace + channel * N : nullptr;
   }
-  celt_slide_decode_history(st, decoder, CC, N, true, postfilter_history, postfilter_pitch, update_pitch_cache);
+  celt_slide_decode_history(st, decoder, CC, N, history_source, true, update_pitch_cache);
   std::array<unsigned char, celt_max_channels * celt_default_nb_ebands> collapse_masks;
   quant_all_bands(0, start, end, spectrum.data(), C == 2 ? spectrum.data() + N : nullptr, collapse_masks.data(), nullptr, pulses.data(),
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
