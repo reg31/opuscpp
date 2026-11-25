@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo",
-  "source_commit": "96ef72d19446079c8647178f32591f00fe149d64",
-  "source_blob": "1006fea676e73171e5d09066942c7ac8320e2aea",
-  "source_sha256": "0b743e0f1cb5b796cebb17dc93e8d17829e59a0acc447727adb5bf8d021dbee1",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo",
+  "source_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
+  "source_blob": "cc8337e28d0530d16b92abf3cfed7c21df7545d4",
+  "source_sha256": "604a7c106002c910369f42d9cc461966b4e91afa2069b49e490480a221411c2a",
   "header_blob": "418470e6268c04ce5b4993f0f6dd1d1d4fefbd5e",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
-  "tests_commit": "96ef72d19446079c8647178f32591f00fe149d64",
+  "tests_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
   "tests_sha256": {
     "tests/bench/bench17.cpp": "e43eff507b3957c56ca5ee4a8cecdba383bb139c5663efee4caa50920e12518c",
     "tests/bench/bench17.py": "996c5ea5b520da659a151080c6c35de45f7df1bba4e517a5930279d8f888e847",
@@ -71,14 +71,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\build\\official_compare_report\\audit-full\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\build\\official_compare_report\\production-refresh\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\build\\official_compare_report\\production-refresh\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "7bfc8298e3d27e25de5ff1632c9f39de1b95ddd8bc8b9efd45f45a3534858d77",
+  "quality_binary_sha256": "afc20cbdb56a1301e208ba4dba3d4e5bff695b8ee68837245dc780065c49fd06",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -91,7 +91,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\library_audit_20261124\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -103,7 +103,7 @@
   "executor": "Codex root",
   "sanitizers": false,
   "metrics_only": true,
-  "quality_negative_fields": 658,
+  "quality_negative_fields": 650,
   "acceptance_status": "pass",
   "acceptance_counts": [
     18,
@@ -112,14 +112,14 @@
     18
   ],
   "standard_fec_acceptance": "PASS",
-  "measurement_date": "2026-11-24",
-  "completed_utc": "2026-11-24T17:12:47.800631+00:00",
-  "root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
-  "phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
-  "input_manifest_sha256": "b5c6ea5d129045cb162445c34ae9bfd9dbe97be8e2844349693f29d13a25e8fc",
-  "resume_provenance_sha256": "dff1855815baeedff5ae3791ef722ffeb126d0a580fe78502ef2ed5cdcff198b",
-  "pre_resume_root_runner_sha256": "b8f43eab51ad6c5ec9280f7558710fb6df264d74025c2554bc0357ecfc850fc9",
-  "pre_resume_phase_runner_sha256": "eb12eee771f6fabe9430f66c2d7bc048d374e98e6fc799844b753215e6be6298",
+  "measurement_date": "2026-11-25",
+  "completed_utc": "2026-11-25T00:27:22.555715+00:00",
+  "root_runner_sha256": "52e35e365771bde88fd8e717d3bf0a1cfe3aac52077004923ce20c0049196d72",
+  "phase_runner_sha256": "97547adb7c81adbaf861e606bb17eaecd1bad8003d296b368c0d9162725848e7",
+  "input_manifest_sha256": "c50cb23843260ec7a16cae4ae30f18a16dfddb248279eda0cd4b11f4e331aab4",
+  "resume_provenance_sha256": "371645984b0d4b17b1c684495fc7984a25e440cb2a95c5b1b6dea1dd8f42989f",
+  "pre_resume_root_runner_sha256": "52e35e365771bde88fd8e717d3bf0a1cfe3aac52077004923ce20c0049196d72",
+  "pre_resume_phase_runner_sha256": "97547adb7c81adbaf861e606bb17eaecd1bad8003d296b368c0d9162725848e7",
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
@@ -164,19 +164,19 @@
     "logband_error": 47,
     "celt_quality": 103,
     "celt_masked_error": 103,
-    "celt_highband_error": 169,
+    "celt_highband_error": 161,
     "stereo_width_error": 25
   },
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
   "nominal_s17_music_eof_v1": {
     "version": "S17_MUSIC_EOF_V1",
-    "source_commit": "96ef72d19446079c8647178f32591f00fe149d64",
-    "source_sha256": "0b743e0f1cb5b796cebb17dc93e8d17829e59a0acc447727adb5bf8d021dbee1",
+    "source_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
+    "source_sha256": "604a7c106002c910369f42d9cc461966b4e91afa2069b49e490480a221411c2a",
     "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
     "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
     "official_scalar_archive_sha256": "ec84527b88e31bf4166d7b2b23af1c154d20fceb07ba7e856a4ac2967fa79e3f",
     "freeze_sha256": "89251a31107476afb817fe28b3988d74e892e2cc9557857c1dbd40b62d6f7e5d",
-    "result_sha256": "ec4a57c483e82fd37d7d835069dbc9441acc3b08ca56139a1d581484109938c9",
+    "result_sha256": "6d2f4e33220f69761c96cc5d1d59a818aca242b752713962c9fce9d535a5b4f4",
     "geometry": {
       "requests_bps": [
         16000,
@@ -308,7 +308,7 @@
         "failures": {
           "celt_highband_error": -0.00021527892843020997
         },
-        "evidence_sha256": "62230a9fcf1f59f869fac97b46e623c4447389c6d117e4f106af817c4a133299"
+        "evidence_sha256": "1a46cb146b0508569ee6f099ff986325b5e72a6c7612e3bf2dec8a17177bb358"
       },
       {
         "id": "audio_24000",
@@ -398,7 +398,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "942faba3b1362516a98fee76d494bd4c12078db9b387c3bc9a06cf96014a8a35"
+        "evidence_sha256": "7a347b398384298025d3929857f75ec9cbed9506da0bb74226f4170582afa2e3"
       },
       {
         "id": "audio_32000",
@@ -488,7 +488,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "1b87fd7af705b8dd1eaec4304a7a758a6ade1383c3b1a19bea2ece32d27478ca"
+        "evidence_sha256": "b260361b135a7f05ff28f277dabda12908c809fc420d99e0ab763f05512638ed"
       },
       {
         "id": "audio_48000",
@@ -578,7 +578,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "410cd9f645bac8f8ee718b954883dd435f437159b4e59823d49ba59df75ca035"
+        "evidence_sha256": "f13b2a7d9984a7319f6400d73971ea0523ec05d13f99f1c480198e449c896c13"
       },
       {
         "id": "audio_64000",
@@ -668,7 +668,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "8b3e689fd3e6b0c08af5b4eaa25efd1d6d883f01f79f1bc77c04996329153829"
+        "evidence_sha256": "0c3ebf009182ab8a264027ef17f93b3811da6553a46cf1cad84372ba7f819288"
       },
       {
         "id": "audio_96000",
@@ -758,7 +758,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "c0b61da6f3f0ecdcd25d5f27d6c8afd1198624197c623adb9d0e95374523736e"
+        "evidence_sha256": "fb528293f3a95f27284ac363685ea1e96ada2539494b54d5d8208b040bcdca00"
       },
       {
         "id": "audio_128000",
@@ -848,7 +848,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "fcd9833f49c1581e9676b4e9d9db975e8a204f1a73f5f10253e34b1d22c27590"
+        "evidence_sha256": "0d3f881af5c8dc9f06dc58775f268c430a2f0377784352087ae9041a6399a432"
       },
       {
         "id": "audio_192000",
@@ -938,7 +938,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "47ef9c20a907fc0913c18fba7f14261ac86444b3a6662c2bd2324d69bcadffd6"
+        "evidence_sha256": "19203397017724aa24d59354b6ea45930459a4101b5cc7897ddc1787342caf5f"
       },
       {
         "id": "audio_256000",
@@ -1028,7 +1028,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "9c82dbbb36ab63426c0e67a073257ac9ab30e822104dfb8a89e43982dfbd1e1c"
+        "evidence_sha256": "8326e1e22d85d96189d00f6e08d11e4cb30b7de186a220da3aba694de9fce0eb"
       }
     ],
     "fields_checked": 108,
