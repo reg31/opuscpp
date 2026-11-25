@@ -4921,13 +4921,16 @@ static void apply_voice_denoise(OpusEncoder* st, opus_res* pcm, int frame_size, 
   }
 }
 
+static int replace_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes) noexcept;
+
 template <std::size_t Capacity>
 static int encode_pcm16_input(OpusEncoder* st, const opus_int16* pcm, int frame_size, unsigned char* data, int max_data_bytes) noexcept {
   std::array<opus_res, Capacity> input_storage;
   for (int index = 0; index < frame_size * st->channels; ++index) {
     input_storage[index] = pcm[index] * (1.0f / 32768.0f);
   }
-  return encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
+  const int bytes = encode_native(st, input_storage.data(), frame_size, data, max_data_bytes, 16, false);
+  return replace_sealed_silk_backup(st, data, bytes);
 }
 
 int opus_encode(OpusEncoder* st, const opus_int16* pcm, int analysis_frame_size, unsigned char* data, int max_data_bytes) noexcept {
@@ -4960,7 +4963,8 @@ int opus_encode_float(OpusEncoder* st, const float* pcm, int analysis_frame_size
   if (frame_size <= 0) {
     return -1;
   }
-  return encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
+  const int bytes = encode_native(st, pcm, frame_size, data, out_data_bytes, 24, true);
+  return replace_sealed_silk_backup(st, data, bytes);
 }
 
 static void reset_ref_encoder_state(OpusEncoder* st, CeltEncoderInternal* celt_enc) {
@@ -16142,6 +16146,163 @@ static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indic
                       indices.signalType, indices.quantOffsetType, psEncC->frame_length, zero_padding_blocks);
 }
 
+struct silk_sealed_frame {
+  SideInfoIndices indices;
+  std::array<opus_int8, silk_max_frame_length> pulses;
+};
+
+struct silk_sealed_packet {
+  opus_uint8 vad_code;
+  std::array<silk_sealed_frame, 3> primary;
+};
+
+static_assert(std::is_trivially_copyable_v<silk_sealed_packet>);
+static_assert(offsetof(silk_sealed_packet, vad_code) == 0);
+struct silk_sealed_range {
+  opus_uint32 range;
+  int bits;
+};
+
+static_assert(sizeof(silk_sealed_packet) + sizeof(silk_sealed_range) <= sizeof(silk_nsq_history));
+
+static auto sealed_silk_storage(silk_lbrr_channel_state& side) noexcept {
+  return std::as_writable_bytes(std::span{&side.nsq, 1});
+}
+
+static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, const SideInfoIndices& indices,
+                                      const opus_int8* pulses, const ec_enc& encoder) noexcept {
+  if (frame < 0 || frame >= 3 || encoder.error)
+    return;
+  side.indices[frame] = indices;
+  std::copy_n(pulses, silk_max_frame_length, side.pulses[frame].data());
+  side.flags[frame] = 1;
+  if (frame == 2) {
+    const silk_sealed_range sealed{encoder.rng, ec_tell(&encoder)};
+    std::memcpy(sealed_silk_storage(side).data() + sizeof(silk_sealed_packet), &sealed, sizeof(sealed));
+  }
+}
+
+[[nodiscard]] static bool read_sealed_silk_primary(unsigned char* body, int bytes, opus_uint32 range, silk_sealed_packet& packet) noexcept {
+  ec_dec decoder;
+  ec_dec_init(&decoder, body, static_cast<opus_uint32>(bytes));
+  silk_decoder_state state{};
+  state.nb_subfr = 4;
+  state.fs_kHz = 16;
+  state.frame_length = silk_max_frame_length;
+  state.psNLSF_CB = silk_nlsf_codebook_for_fs(16);
+  unsigned vad = 0;
+  for (int frame = 0; frame < 3; ++frame) {
+    state.VAD_flags[frame] = static_cast<opus_int8>(ec_dec_bit_logp(&decoder, 1));
+    vad = (vad << 1) | static_cast<unsigned>(state.VAD_flags[frame]);
+  }
+  const int backup_mask = ec_dec_bit_logp(&decoder, 1) ? 1 + ec_dec_icdf8(&decoder, silk_LBRR_flags_3_iCDF.data()) : 0;
+  std::array<opus_int16, silk_max_frame_length> pulses;
+  for (int frame = 0; frame < 3; ++frame) {
+    if (backup_mask & (1 << frame)) {
+      const int conditional = frame > 0 && (backup_mask & (1 << (frame - 1))) ? 2 : 0;
+      silk_decode_symbols(&state, &decoder, frame, 1, conditional, pulses, false);
+    }
+  }
+  for (int frame = 0; frame < 3; ++frame) {
+    silk_decode_symbols(&state, &decoder, frame, 0, frame == 0 ? 0 : 2, pulses, true);
+    auto& recorded = packet.primary[frame];
+    recorded.indices = state.indices;
+    for (int i = 0; i < silk_max_frame_length; ++i) {
+      if (pulses[i] < -128 || pulses[i] > 127)
+        return false;
+      recorded.pulses[i] = static_cast<opus_int8>(pulses[i]);
+    }
+  }
+  packet.vad_code = static_cast<opus_uint8>(vad + 1);
+  return decoder.error == 0 && decoder.rng == range && ec_tell(&decoder) + 17 > bytes * 8;
+}
+
+[[nodiscard]] static int write_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes,
+                                                  silk_sealed_packet& previous, silk_sealed_packet& current) noexcept {
+  std::array<unsigned char, 1275> staged;
+  ec_enc encoder;
+  ec_enc_init(&encoder, staged.data(), static_cast<opus_uint32>(bytes - 1));
+  constexpr std::array<opus_uint8, 2> placeholder{240, 0};
+  ec_enc_icdf(&encoder, 0, placeholder.data(), 8);
+  ec_enc_icdf(&encoder, 6, silk_LBRR_flags_3_iCDF.data(), 8);
+  struct {
+    int nb_subfr = 4;
+    int fs_kHz = 16;
+    int frame_length = silk_max_frame_length;
+    const silk_NLSF_CB_struct* psNLSF_CB = silk_nlsf_codebook_for_fs(16);
+    decltype(silk_encoder_state::ec_prevLagIndex) ec_prevLagIndex = 0;
+    decltype(silk_encoder_state::ec_prevSignalType) ec_prevSignalType = 0;
+  } context;
+  for (int frame = 0; frame < 3; ++frame) {
+    auto& entry = previous.primary[frame];
+    entry.indices.signalType = std::max<opus_uint8>(entry.indices.signalType, 1);
+    silk_encode_indices_and_pulses(&context, entry.indices, &encoder, frame == 0 ? 0 : 2, entry.pulses.data(), true);
+  }
+  const int cap_bits = (bytes - 1) * 8;
+  if (encoder.error || ec_tell(&encoder) > cap_bits)
+    return bytes;
+  for (int frame = 0; frame < 3; ++frame) {
+    auto& entry = current.primary[frame];
+    silk_encode_indices_and_pulses(&context, entry.indices, &encoder, frame == 0 ? 0 : 2, entry.pulses.data(), false);
+    if (encoder.error || ec_tell(&encoder) > cap_bits)
+      return bytes;
+  }
+  ec_enc_patch_initial_bits(&encoder, ((current.vad_code - 1U) << 1) | 1U, 4);
+  const int body_bytes = (ec_tell(&encoder) + 7) >> 3;
+  if (encoder.error || body_bytes <= 0 || body_bytes >= bytes)
+    return bytes;
+  ec_enc_done(&encoder);
+  if (encoder.error || encoder.end_offs != 0 || encoder.offs > static_cast<unsigned>(body_bytes))
+    return bytes;
+  std::copy_n(staged.data(), body_bytes, data + 1);
+  st->rangeFinal = encoder.rng;
+  return body_bytes + 1;
+}
+
+static int replace_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes) noexcept {
+  if (st->channels != 1 || !encoder_uses_silk(st->application))
+    return bytes;
+  auto* encoder = static_cast<silk_encoder*>(encoder_silk_state(st));
+  if (encoder->lbrr == nullptr)
+    return bytes;
+  auto& side = encoder->lbrr->channels[1];
+  auto saved = sealed_silk_storage(side);
+  const bool compatible = bytes > 2 && bytes <= 1276 && data[0] == (11 << 3) && st->rangeFinal &&
+                          st->use_vbr && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0;
+  const bool retain = compatible && (data[1] & 0xe0) != 0xe0;
+  const bool offer = compatible && (data[1] & 0x10) != 0 && saved[0] != std::byte{};
+  if (!retain && !offer) {
+    saved[0] = std::byte{};
+    side.flags.fill(0);
+    return bytes;
+  }
+  silk_sealed_packet current;
+  silk_sealed_range captured_range;
+  std::memcpy(&captured_range, saved.data() + sizeof(current), sizeof(captured_range));
+  const int body_bits = (bytes - 1) * 8;
+  const bool captured = side.flags[0] && side.flags[1] && side.flags[2] && captured_range.range == st->rangeFinal &&
+                        captured_range.bits <= body_bits && captured_range.bits + 17 > body_bits;
+  side.flags.fill(0);
+  if (captured) {
+    current.vad_code = static_cast<opus_uint8>((data[1] >> 5) + 1U);
+    for (int frame = 0; frame < 3; ++frame) {
+      current.primary[frame].indices = side.indices[frame];
+      current.primary[frame].pulses = side.pulses[frame];
+    }
+  } else if (!read_sealed_silk_primary(data + 1, bytes - 1, st->rangeFinal, current)) {
+    saved[0] = std::byte{};
+    return bytes;
+  }
+  silk_sealed_packet previous;
+  if (offer)
+    std::memcpy(&previous, saved.data(), sizeof(previous));
+  if (retain && current.vad_code < 8)
+    std::memcpy(saved.data(), &current, sizeof(current));
+  else
+    saved[0] = std::byte{};
+  return offer ? write_sealed_silk_backup(st, data, bytes, previous, current) : bytes;
+}
+
 struct silk_gain_search_bound {
   opus_int32 bits{}, multiplier{}, id{-1};
 };
@@ -17848,7 +18009,7 @@ static void silk_NSQ_prepare_FLP(silk_nsq_preparation& prepared, const silk_enco
   prepared.ltp_scale = psIndices->signalType == 2 ? silk_LTPScales_table_Q14[psIndices->LTP_scaleIndex] : 0;
 }
 
-static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer) {
+static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_state* lbrr, opus_int32* pnBytesOut, ec_enc* psRangeEnc, int condCoding, int maxBits, int useCBR, int lbrr_gain_reduction, bool protect_quiet_lbrr, opus_int16* input_buffer, silk_lbrr_channel_state* sealed) {
   silk_encoder_control_FLP sEncCtrl;
   const auto lbrr_pre_frame_nlsf = psEnc->sCmn.prev_NLSFq_Q15;
   psEnc->sCmn.indices.Seed = psEnc->sCmn.frameCounter++ & 3;
@@ -17954,6 +18115,10 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
   const auto lower_tuple = std::as_writable_bytes(std::span{x_buffer});
   static_assert(decltype(lower_tuple)::extent >= sizeof(SideInfoIndices) + silk_max_frame_length);
   const int bits_margin = useCBR ? 5 : maxBits / 4;
+  const auto capture_regular = [&] {
+    if (sealed != nullptr)
+      capture_sealed_silk_frame(*sealed, psEnc->sCmn.nFramesEncoded, psEnc->sCmn.indices, frame_pulses.data(), *psRangeEnc);
+  };
   for (int iter = 0;; ++iter) {
     opus_int32 nBits;
     if (gainsID == lower.id) {
@@ -18078,6 +18243,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         }
       }
       if (!useCBR && iter == 0 && nBits <= maxBits) {
+        capture_regular();
         break;
       }
     }
@@ -18089,6 +18255,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
         std::memcpy(&psEnc->sCmn.indices, lower_tuple.data(), sizeof(SideInfoIndices));
         std::memcpy(frame_pulses.data(), lower_tuple.data() + sizeof(SideInfoIndices), frame);
         psEnc->sShape.LastGainIndex = LastGainIndex_copy2;
+        capture_regular();
       }
       break;
     }
@@ -18112,6 +18279,7 @@ static void silk_encode_frame_FLP(silk_encoder_state_FLP* psEnc, silk_lbrr_chann
       }
       lower = {nBits, gainMult_Q8, gainsID};
     } else {
+      capture_regular();
       break;
     }
     if (lower.id < 0 && nBits > maxBits) {
@@ -18495,8 +18663,13 @@ static bool silk_Encode(void* encState, silk_EncControlStruct* encControl, const
                   : (encControl->nChannelsInternal == 1
                          ? (state_Fxx[n].sCmn.nFramesPerPacket == 3 ? -2 : 2)
                          : (side_coded && n == 0 && !encControl->packet_cbr ? 0 : (encControl->packet_cbr ? 2 : 0)));
+          auto* sealed = lbrr != nullptr && encControl->nChannelsAPI == 1 && state0.nFramesPerPacket == 3 &&
+                                 state0.fs_kHz == 16 && encControl->useInBandFEC && encControl->packetLossPercentage > 0 &&
+                                 !prefillFlag && !encControl->useCBR
+                             ? &psEnc->lbrr->channels[1]
+                             : nullptr;
           silk_encode_frame_FLP(&state_Fxx[n], lbrr, nBytesOut, psRangeEnc, condCoding, maxBits, useCBR, lbrr_gain_reduction,
-                                n == 0 || (n == 1 && side_worth_protecting), input_buffers[n].data());
+                                n == 0 || (n == 1 && side_worth_protecting), input_buffers[n].data(), sealed);
         }
         state_Fxx[n].sCmn.nFramesEncoded++;
       }
