@@ -613,19 +613,16 @@ static bool classical_leak_ensure_pending(classical_leak_state* state) noexcept 
   return state->pending_pcm != nullptr;
 }
 
-struct CeltEncoderInternal;
 static void classical_leak_reset(classical_leak_state* s);
 static void classical_leak_ingest_pcm(classical_leak_state* s, const opus_res* pcm, int frame_size, int channels, int Fs, int lsb_depth);
 static void classical_leak_get_info(classical_leak_state* s, classical_leak_info* info_out, int Fs, int len);
 struct CeltEncoderInternal {
-  bool classical_leak_valid = false;
-  opus_uint8 classical_leak_boost[19]{};
   opus_uint8 channels, stream_channels, complexity, upsample, start, end;
   bool prefilter_history_valid = false;
   opus_int32 bitrate, midrate_quality_boost_bps;
   bool vbr, constrained_vbr;
   opus_uint8 lsb_depth, loss_rate;
-  bool prediction_disabled, audio_application, stereo_policy_celt;
+  bool prediction_disabled, stereo_policy_celt;
   opus_uint8 stereo_coherence_Q8;
   opus_uint32 rng;
   opus_uint16 prefilter_period;
