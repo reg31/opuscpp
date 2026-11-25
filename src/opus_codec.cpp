@@ -14073,6 +14073,32 @@ static auto silk_nsq_noise_shape_feedback(opus_int32 diff, opus_int32* state, co
   return wrap_shift_left(out, 1);
 }
 
+static void silk_nsq_advance_warped_history(const opus_int32* diff, opus_int32* state, int order, opus_int16 warping) noexcept {
+  const auto warp = [warping](opus_int32 delta) {
+    const auto low = static_cast<opus_int32>(static_cast<opus_uint16>(delta));
+    return (delta >> 16) * warping + ((low * warping) >> 16);
+  };
+  opus_int32 odd[4], even[4];
+  for (int lane = 0; lane < 4; ++lane) {
+    const auto old = state[lane];
+    even[lane] = wrap_add(diff[lane], warp(old));
+    odd[lane] = wrap_add(old, warp(wrap_subtract(state[4 + lane], even[lane])));
+    state[lane] = even[lane];
+  }
+  for (int index = 2; index < order; index += 2) {
+    for (int lane = 0; lane < 4; ++lane) {
+      even[lane] = wrap_add(state[(index - 1) * 4 + lane], warp(wrap_subtract(state[index * 4 + lane], odd[lane])));
+      state[(index - 1) * 4 + lane] = odd[lane];
+    }
+    for (int lane = 0; lane < 4; ++lane) {
+      odd[lane] = wrap_add(state[index * 4 + lane], warp(wrap_subtract(state[(index + 1) * 4 + lane], even[lane])));
+      state[index * 4 + lane] = even[lane];
+    }
+  }
+  for (int lane = 0; lane < 4; ++lane)
+    state[(order - 1) * 4 + lane] = odd[lane];
+}
+
 static auto silk_nsq_noise_shape_float(const opus_int32* diff, float* state, const float* coefficients, int order, float warping) noexcept {
   float even[4], odd[4], out[4], ahead[4], difference[4], carried[4];
   const auto warping_squared = warping * warping;
@@ -14243,16 +14269,25 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
   const bool use_float = float_environment && std::any_of(b.AR_Q13, b.AR_Q13 + ar_order, [](opus_int16 c) {
                            return c != 0;
                          });
-  const auto fixed_feedback = float_environment && !use_float ? silk_nsq_noise_shape_feedback<false> : silk_nsq_noise_shape_feedback<>;
-  float float_ar[24 * 4], float_coefficients[24];
+  const bool advance_only = keep_ar && N == 4 && float_environment && !use_float;
+  const auto warping = static_cast<opus_int16>(warping_Q16);
+  union {
+    float float_ar[24 * 4];
+    opus_int32 integer_ar[24 * 4];
+  };
+  float float_coefficients[24];
   float float_warping;
   if (use_float) {
-    float_warping = static_cast<opus_int16>(warping_Q16) * (1.f / 65536.f);
+    float_warping = warping * (1.f / 65536.f);
     for (int index = 0; index < ar_order; ++index) {
       float_coefficients[index] = b.AR_Q13[index] * (1.f / 65536.f);
       for (int state = 0; state < 4; ++state)
         float_ar[index * 4 + state] = static_cast<float>(psDelDec[state].sAR2_Q14[index]);
     }
+  } else if (advance_only) {
+    for (int index = 0; index < ar_order; ++index)
+      for (int state = 0; state < 4; ++state)
+        integer_ar[index * 4 + state] = psDelDec[state].sAR2_Q14[index];
   }
   silk_nsq_lpc_taps lpc_taps;
   opus_int32 newest_xq[4];
@@ -14284,6 +14319,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
     if (use_float) {
       const opus_int32 differences[4]{psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14};
       n_AR_lane = silk_nsq_noise_shape_float(differences, float_ar, float_coefficients, ar_order, float_warping);
+    } else if (advance_only) {
+      const opus_int32 differences[4]{psDelDec[0].Diff_Q14, psDelDec[1].Diff_Q14, psDelDec[2].Diff_Q14, psDelDec[3].Diff_Q14};
+      silk_nsq_advance_warped_history(differences, integer_ar, ar_order, warping);
     }
     for (int k = 0; k < N; k++) {
       auto* psDD = &psDelDec[k];
@@ -14292,8 +14330,8 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       LPC_pred_Q14 = saturating_left_shift<4>(
           wrap_add(wrap_add(b.order >> 1, silk_mul_wb(newest_xq[k], b.a_Q12[0])), silk_nsq_lpc_prediction(psDD->lpc_high.data() + i, psDD->lpc_low.data() + i, lpc_taps)));
       opus_int32 n_AR_Q14 = use_float  ? n_AR_lane[k]
-                            : !keep_ar ? (ar_order >> 1) << 1
-                                       : fixed_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
+                            : !keep_ar || advance_only ? (ar_order >> 1) << 1
+                                                      : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
       n_AR_Q14 = static_cast<opus_int32>(n_AR_Q14 + ((psDD->LF_AR_Q14 * static_cast<opus_int64>(tilt_i16)) >> 16));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
       opus_int32 n_LF_Q14 = static_cast<opus_int32>((psDD->Shape_Q14[*smpl_buf_idx] * static_cast<opus_int64>(lf_i16)) >> 16);
@@ -14393,6 +14431,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       if (use_float)
         for (int index = 0; index < ar_order; ++index)
           float_ar[index * 4 + RDmax_ind] = float_ar[index * 4 + RDmin_ind];
+      if (advance_only)
+        for (int index = 0; index < ar_order; ++index)
+          integer_ar[index * 4 + RDmax_ind] = integer_ar[index * 4 + RDmin_ind];
     }
     const auto* winner = &psDelDec[Winner_ind];
     if (subfr > 0 || i >= decisionDelay) {
@@ -14428,6 +14469,10 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
     for (int index = 0; index < ar_order; ++index)
       for (int state = 0; state < 4; ++state)
         psDelDec[state].sAR2_Q14[index] = silk_nsq_shaping_integer(float_ar[index * 4 + state]);
+  } else if (advance_only) {
+    for (int index = 0; index < ar_order; ++index)
+      for (int state = 0; state < 4; ++state)
+        psDelDec[state].sAR2_Q14[index] = integer_ar[index * 4 + state];
   }
 }
 
