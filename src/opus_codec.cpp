@@ -9371,7 +9371,8 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
   const bool skip_old_history = !postfilter_history || (decoder.raw_offset != 0 && N <= 240);
   const int history_source = N == 960 || half_frame_backup
                                  ? std::max(N, std::min(N + raw_start, decoder.history_size - (postfilter_history ? period_span : 0)))
-                                 : skip_old_history ? N + raw_start : std::max(N, raw_start);
+                             : skip_old_history ? N + raw_start
+                                                : std::max(N, raw_start);
   if (half_frame_backup) {
     decoder.cache_backup_start = history_source - N;
     decoder.cache_backup_count = celt_decoder_prefix_storage - decoder.cache_backup_start;
