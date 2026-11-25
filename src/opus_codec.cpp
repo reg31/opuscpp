@@ -14329,9 +14329,9 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       opus_int32 LPC_pred_Q14;
       LPC_pred_Q14 = saturating_left_shift<4>(
           wrap_add(wrap_add(b.order >> 1, silk_mul_wb(newest_xq[k], b.a_Q12[0])), silk_nsq_lpc_prediction(psDD->lpc_high.data() + i, psDD->lpc_low.data() + i, lpc_taps)));
-      opus_int32 n_AR_Q14 = use_float  ? n_AR_lane[k]
+      opus_int32 n_AR_Q14 = use_float                  ? n_AR_lane[k]
                             : !keep_ar || advance_only ? (ar_order >> 1) << 1
-                                                      : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
+                                                       : silk_nsq_noise_shape_feedback(psDD->Diff_Q14, psDD->sAR2_Q14, b.AR_Q13, ar_order, warping_Q16);
       n_AR_Q14 = static_cast<opus_int32>(n_AR_Q14 + ((psDD->LF_AR_Q14 * static_cast<opus_int64>(tilt_i16)) >> 16));
       n_AR_Q14 = wrap_shift_left(n_AR_Q14, 2);
       opus_int32 n_LF_Q14 = static_cast<opus_int32>((psDD->Shape_Q14[*smpl_buf_idx] * static_cast<opus_int64>(lf_i16)) >> 16);
