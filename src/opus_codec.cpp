@@ -16708,8 +16708,8 @@ static bool silk_control_encoder(silk_encoder_state_FLP* psEnc, silk_EncControlS
 }
 
 constexpr bool silk_binary32_gains = FLT_EVAL_METHOD == 0 && std::numeric_limits<float>::is_iec559 &&
-                                    std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits == 24 &&
-                                    std::numeric_limits<float>::min_exponent == -125 && std::numeric_limits<float>::max_exponent == 128;
+                                     std::numeric_limits<float>::radix == 2 && std::numeric_limits<float>::digits == 24 &&
+                                     std::numeric_limits<float>::min_exponent == -125 && std::numeric_limits<float>::max_exponent == 128;
 
 static void silk_NSQ_wrapper_FLP(silk_encoder_state_FLP* psEnc, const silk_encoder_control_FLP* psEncCtrl, SideInfoIndices* psIndices, silk_nsq_state* psNSQ, opus_int8 pulses[], const opus_int16 samples[], const silk_nsq_preparation& prepared, const opus_int32 gains[4], silk_nsq_role role = silk_nsq_role::ordinary) {
   silk_NSQ(&psEnc->sCmn, psNSQ, psIndices, samples, pulses, prepared, gains, psEncCtrl->pitchL, float2int(psEncCtrl->Lambda * 1024.0f), role);
