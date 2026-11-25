@@ -8323,9 +8323,9 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
   constexpr auto rollback_floats = (1275 + sizeof(celt_sig) - 1) / sizeof(celt_sig);
   const auto coarse_trial_bytes = std::as_writable_bytes(std::span{input_storage}.subspan<live_band_floats + rollback_floats>()).first<1275>();
   std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
-  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> energy_stage_old{}, energy_rounding{};
+  std::array<celt_glog, celt_max_channels * celt_default_nb_ebands> energy_stage_old, energy_rounding;
   std::copy_n(oldBandE, C * nbEBands, energy_stage_old.data());
-  std::array<int, celt_default_nb_ebands> energy_stage_tf{}, energy_stage_offsets{};
+  std::array<int, celt_default_nb_ebands> energy_stage_tf, energy_stage_offsets;
   std::copy_n(tf_res.data(), end, energy_stage_tf.data());
   std::copy_n(offsets.data(), end, energy_stage_offsets.data());
   const auto restore_energy_stage = [&]() {
@@ -8335,6 +8335,10 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     std::copy_n(energy_stage_old.data(), C * nbEBands, oldBandE);
     std::copy_n(energy_stage_tf.data(), end, tf_res.data());
     std::copy_n(energy_stage_offsets.data(), end, offsets.data());
+    nbCompressedBytes = energy_stage_bytes;
+    nbAvailableBytes = energy_stage_available;
+    total_bits = energy_stage_total_bits;
+    tell = energy_stage_tell;
   };
   int spread_decision, dual_stereo, anti_collapse_rsv, codedBands;
   opus_int32 balance;
@@ -8414,10 +8418,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
           tf_basis_dual_stereo = dual_stereo;
           tf_select = tf_analysis(end, isTransient, energy_stage_tf.data(), X, N, LM, tf_estimate, tf_chan, tf_basis_dual_stereo == 0 ? analyzed_intensity : 0, bandE, analyzed_intensity);
           restore_energy_stage();
-          nbCompressedBytes = energy_stage_bytes;
-          nbAvailableBytes = energy_stage_available;
-          total_bits = energy_stage_total_bits;
-          tell = energy_stage_tell;
           tf_basis_reselected = true;
           energy_round = -1;
           continue;
@@ -8528,10 +8528,6 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
     if (!energy_needs_refinement)
       break;
     restore_energy_stage();
-    nbCompressedBytes = energy_stage_bytes;
-    nbAvailableBytes = energy_stage_available;
-    total_bits = energy_stage_total_bits;
-    tell = energy_stage_tell;
   }
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
