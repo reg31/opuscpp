@@ -684,7 +684,7 @@ struct vbr_frame_budget final {
   constexpr opus_int32 max_credit_spend_num = 1;
   constexpr opus_int32 max_credit_spend_den = 5;
   const opus_int32 max_spend_bits = target_bits * max_credit_spend_num / max_credit_spend_den;
-  const opus_int32 spend_credit_bits = std::min(std::clamp(credit_bits, opus_int32{0}, target_bits * 25), max_spend_bits);
+  const opus_int32 spend_credit_bits = std::clamp(credit_bits, opus_int32{0}, max_spend_bits);
   const opus_int32 max_bytes = std::max<opus_int32>(2, (target_bits + spend_credit_bits) / 8);
   constexpr opus_int32 packet_rounding_credit_bits = 4 * 8;
   const bool useful_credit = spend_credit_bits > packet_rounding_credit_bits && spend_credit_bits >= max_spend_bits / 4;
@@ -1342,10 +1342,11 @@ static int opus_decode_frame_slice(OpusDecoder* st, const unsigned char* data, o
   if (frame_size < F2_5) {
     return -2;
   }
-  frame_size = std::min(frame_size, st->Fs / 25 * 3);
   if (len <= 1) {
     data = nullptr;
-    frame_size = std::min(frame_size, st->frame_size);
+    frame_size = std::min({frame_size, st->Fs / 25 * 3, st->frame_size});
+  } else if (data == nullptr) {
+    frame_size = std::min(frame_size, st->Fs / 25 * 3);
   }
   int audiosize = data != nullptr ? st->frame_size : frame_size;
   const int mode = data != nullptr ? st->mode : st->prev_redundancy ? opus_mode_celt_only
@@ -1498,23 +1499,25 @@ static int opus_decode_frame_slice(OpusDecoder* st, const unsigned char* data, o
 }
 
 static int opus_decode_frame(OpusDecoder* st, const unsigned char* data, opus_int32 len, opus_res* pcm, int frame_size, int decode_fec) {
-  const int F20 = st->Fs / 50;
-  if (frame_size > F20 && (data == nullptr || len <= 1)) {
-    int limit = std::min(frame_size, st->Fs / 25 * 3);
-    if (len <= 1) {
-      limit = std::min(limit, st->frame_size);
-    }
-    if (limit > F20 && (st->prev_redundancy || st->prev_mode != 0)) {
-      int remaining = limit;
-      while (remaining > 0) {
-        const int ret = opus_decode_frame_slice(st, nullptr, 0, pcm, std::min(remaining, F20), 0);
-        if (ret < 0) {
-          return ret;
-        }
-        pcm += ret * st->channels;
-        remaining -= ret;
+  if (data == nullptr || len <= 1) {
+    const int F20 = st->Fs / 50;
+    if (frame_size > F20) {
+      int limit = std::min(frame_size, st->Fs / 25 * 3);
+      if (len <= 1) {
+        limit = std::min(limit, st->frame_size);
       }
-      return limit;
+      if (limit > F20 && (st->prev_redundancy || st->prev_mode != 0)) {
+        int remaining = limit;
+        while (remaining > 0) {
+          const int ret = opus_decode_frame_slice(st, nullptr, 0, pcm, std::min(remaining, F20), 0);
+          if (ret < 0) {
+            return ret;
+          }
+          pcm += ret * st->channels;
+          remaining -= ret;
+        }
+        return limit;
+      }
     }
   }
   return opus_decode_frame_slice(st, data, len, pcm, frame_size, decode_fec);
