@@ -5717,12 +5717,7 @@ static void exp_rotation(celt_norm* X, int len, int dir, int stride, int K, int 
   }
 }
 
-struct celt_pvq_quant_result {
-  unsigned collapse_mask;
-  opus_uint32 index;
-};
-
-static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, opus_val32 gain, int resynth, bool refine_mono, bool protect_blocks, bool* changed_blocks) -> celt_pvq_quant_result {
+static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, bool refine_mono, bool protect_blocks, bool* changed_blocks) -> opus_uint32 {
   std::array<celt_norm, celt_max_band_samples> y;
   for (int j = 0; j < N; ++j) {
     iy[j] = X[j] < 0;
@@ -5784,8 +5779,8 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, opus_val
     y[best_id] += 2;
     iy[best_id] += 2;
   }
-  const int block_size = B <= 1 ? N : celt_udiv(N, B);
   if (refine_mono) {
+    const int block_size = B <= 1 ? N : celt_udiv(N, B);
     const int blocks = B <= 1 ? 1 : B;
     std::array<int, 1 << (celt_max_lm + 1)> block_pulses;
     for (int block = 0; block < blocks && B > 1; ++block) {
@@ -5881,12 +5876,8 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, opus_val
       }
       iy[donor] -= 2 * moved;
       iy[receiver] += 2 * moved;
-      yy = static_cast<opus_val16>(best_norm);
     }
   }
-  const opus_val32 g = resynth ? (1.f / std::sqrt(yy)) * gain : 0.f;
-  unsigned collapse_mask = B <= 1;
-  const int collapse_limit = B <= 1 ? 0 : B * block_size;
   opus_uint32 index = 0;
   int k = 0;
   for (int j = N - 1; j >= 0; --j) {
@@ -5896,34 +5887,21 @@ static auto op_pvq_search_c(celt_norm* X, int K, int N, int B, int* iy, opus_val
       index += celt_pvq_u_entry(N - j, k);
     }
     k += pulse;
-    if (pulse != 0) {
-      if (j < collapse_limit) {
-        collapse_mask |= 1U << celt_udiv(j, block_size);
-      }
-      if ((packed_pulse & 1) != 0) {
-        index += celt_pvq_u_entry(N - j, k + (j < N - 1));
-      }
-    }
-    if (resynth) {
-      const opus_val32 reconstructed = static_cast<opus_val32>(pulse);
-      X[j] = (packed_pulse & 1) ? -reconstructed * g : reconstructed * g;
+    if (pulse != 0 && (packed_pulse & 1) != 0) {
+      index += celt_pvq_u_entry(N - j, k + (j < N - 1));
     }
   }
-  return {collapse_mask, index};
+  return index;
 }
 
-static unsigned alg_quant(band_ctx* ctx, celt_norm* X, int N, int K, int B, opus_val32 gain) {
+static void alg_quant(band_ctx* ctx, celt_norm* X, int N, int K, int B) {
   const bool rotate = 2 * K < N && ctx->spread != 0;
   if (rotate)
     exp_rotation(X, N, 1, B, K, ctx->spread, ctx->rotation_cache);
   std::array<int, celt_max_band_samples> iy;
   const auto* plan = ctx->mono_plan;
-  const auto quant = op_pvq_search_c(X, K, N, B, iy.data(), gain, ctx->resynth, ctx->refine_mono, plan == nullptr || (plan->protect_mask & (1U << ctx->i)) != 0, plan != nullptr ? &ctx->changed_blocks : nullptr);
-  ec_enc_uint(ctx->ec, quant.index, celt_pvq_v_entry(N, K));
-  if (ctx->resynth && rotate) {
-    exp_rotation(X, N, -1, B, K, ctx->spread, ctx->rotation_cache);
-  }
-  return quant.collapse_mask;
+  const auto index = op_pvq_search_c(X, K, N, B, iy.data(), ctx->refine_mono, plan == nullptr || (plan->protect_mask & (1U << ctx->i)) != 0, plan != nullptr ? &ctx->changed_blocks : nullptr);
+  ec_enc_uint(ctx->ec, index, celt_pvq_v_entry(N, K));
 }
 
 static unsigned alg_unquant(band_ctx* ctx, celt_norm* X, int N, int K, int B, opus_val32 gain) {
@@ -6046,7 +6024,11 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
     ctx->mono_plan->used_mask |= ctx->mono_plan->fold_mask;
   if (q != 0) {
     const int K = q < 8 ? q : (8 + (q & 7)) << ((q >> 3) - 1);
-    return ctx->encode ? alg_quant(ctx, X, N, K, B, gain) : alg_unquant(ctx, X, N, K, B, gain);
+    if (ctx->encode) {
+      alg_quant(ctx, X, N, K, B);
+      return 0;
+    }
+    return alg_unquant(ctx, X, N, K, B, gain);
   }
   if (ctx->resynth) {
     const auto cm_mask = static_cast<unsigned>(1UL << B) - 1;
