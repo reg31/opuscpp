@@ -6279,7 +6279,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   constexpr int nbEBands = celt_default_nb_ebands;
   const int C = Y_ != nullptr ? 2 : 1;
   const int theta_rdo = encode && Y_ != nullptr && !dual_stereo;
-  const int resynth = !encode || theta_rdo;
+  const bool resynth = !encode;
   const int M = 1 << LM;
   const int B = shortBlocks ? M : 1;
   const int norm_offset = M * eBands[start];
@@ -6296,7 +6296,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
   ctx.ec = ec;
   ctx.encode = encode;
   ctx.intensity = intensity;
-  ctx.seed = *seed;
+  if (resynth)
+    ctx.seed = *seed;
   ctx.spread = spread;
   ctx.disable_inv = disable_inv;
   ctx.resynth = resynth;
@@ -6319,7 +6320,6 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
     int effective_lowband = -1;
     unsigned x_cm, y_cm;
     ctx.i = i;
-    ctx.changed_blocks = false;
     const int last = i == end - 1;
     celt_norm* const X = X_ + M * eBands[i];
     celt_norm* const Y = Y_ != nullptr ? Y_ + M * eBands[i] : nullptr;
@@ -6337,6 +6337,7 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
     }
     const bool foldable = M * eBands[i] - N >= M * eBands[start] || i == start + 1;
     if (mono_plan != nullptr) {
+      ctx.changed_blocks = false;
       if (foldable && (update_lowband || fold_offset == 0))
         fold_offset = i;
       mono_plan->fold_mask = 0;
@@ -6422,7 +6423,8 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
       update_lowband = 0;
     }
   }
-  *seed = ctx.seed;
+  if (resynth)
+    *seed = ctx.seed;
 }
 
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
@@ -8552,22 +8554,19 @@ static int celt_encode_with_ec(CeltEncoderInternal* st, const opus_res* pcm, int
 
   process_fine_energy<true>(start, end, oldBandE, error, nullptr, fine_quant.data(), enc, C);
 
-  std::array<unsigned char, 2 * celt_default_nb_ebands> collapse_masks_storage;
   const auto quantise_bands = [&](celt_norm* Y, mono_fold_plan* mono_plan) {
-    quant_all_bands(1, start, end, X, Y, collapse_masks_storage.data(), bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
-                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, &st->rng,
+    quant_all_bands(1, start, end, X, Y, nullptr, bandE, pulses.data(), shortBlocks, spread_decision, dual_stereo,
+                    st->intensity, tf_res.data(), nbCompressedBytes * (8 << 3) - anti_collapse_rsv, balance, enc, LM, codedBands, nullptr,
                     0, oldBandE, mono_plan);
   };
   if (C == 1) {
     const auto saved_coder = *enc;
-    const auto saved_seed = st->rng;
     std::memcpy(energy_stage_buffer.data(), enc->buf, enc->storage);
     copy_n_items(X, static_cast<std::size_t>(N), X + N);
     unsigned protect_mask = 0;
     for (int pass = 0; pass < 3; ++pass) {
       if (pass != 0) {
         *enc = saved_coder;
-        st->rng = saved_seed;
         std::memcpy(enc->buf, energy_stage_buffer.data(), enc->storage);
         copy_n_items(X + N, static_cast<std::size_t>(N), X);
       }

@@ -132,16 +132,15 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
 
 [[nodiscard]] auto quant_encode_once(const QuantCase& test, int LM, const std::vector<celt_norm>& source,
                                      const std::vector<celt_ener>& band_energy, std::vector<int>& pulses, std::vector<int>& tf_res,
-                                     unsigned char* packet, int packet_bytes, opus_uint32 seed) -> int {
+                                     unsigned char* packet, int packet_bytes) -> int {
   const int N = (1 << LM) * celt_default_overlap;
   auto work = source;
-  std::array<unsigned char, 2 * 64> collapse_masks{};
   ec_enc enc{};
   ec_enc_init(&enc, packet, static_cast<opus_uint32>(packet_bytes));
   const auto total_bits = static_cast<opus_int32>(packet_bytes * (8 << 3) - 1);
-  quant_all_bands(1, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, collapse_masks.data(),
+  quant_all_bands(1, 0, celt_default_nb_ebands, work.data(), test.channels == 2 ? work.data() + N : nullptr, nullptr,
                   band_energy.data(), pulses.data(), 0, 2, 0, celt_default_nb_ebands, tf_res.data(), total_bits, 0, &enc, LM,
-                  celt_default_nb_ebands, &seed, 0);
+                  celt_default_nb_ebands, nullptr, 0);
   ec_enc_done(&enc);
   return (ec_tell(&enc) + 7) >> 3;
 }
@@ -172,13 +171,12 @@ void prepare_case(const CeltModeInternal* mode, const QuantCase& test, int LM, s
   std::array<unsigned char, 1275> packet{};
   const int packet_bytes = static_cast<int>(packet.size());
   auto result = BenchResult{};
-  result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes, 0x12345678u);
+  result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes);
   result.checksum = checksum_bytes(packet.data(), result.bytes, 0);
 
   const auto encode_begin = std::chrono::steady_clock::now();
   for (int i = 0; i < bench_iterations; ++i) {
-    result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes,
-                                     0x12345678u + static_cast<opus_uint32>(i));
+    result.bytes = quant_encode_once(test, LM, source, band_energy, pulses, tf_res, packet.data(), packet_bytes);
     result.checksum = checksum_bytes(packet.data(), result.bytes, result.checksum);
   }
   const auto encode_end = std::chrono::steady_clock::now();
