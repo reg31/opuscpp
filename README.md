@@ -59,21 +59,21 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Measured codec: `3cf1f0d74ce038256b65953e2932cea7f79d7ddc`; Source/header and all raw results are bound in the metrics metadata.
+Measured codec: `a71f806b8df492f10945f41e81cf868941809020`; Source/header and all raw results are bound in the metrics metadata.
 
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
-| 16&nbsp;kbps | 0.950x | 1.443x | +0.5554 | +0.3132 | 16.772 kbps | 17.065 kbps |
-| 24&nbsp;kbps | 1.025x | 1.074x | +0.6136 | +0.1478 | 25.103 kbps | 25.229 kbps |
-| 32&nbsp;kbps | 0.996x | 1.066x | +0.5208 | +0.0905 | 33.604 kbps | 33.613 kbps |
-| 48&nbsp;kbps | 0.996x | 1.058x | +0.6595 | +0.0648 | 48.457 kbps | 48.560 kbps |
-| 64&nbsp;kbps | 1.008x | 1.065x | +0.6615 | +0.0498 | 64.485 kbps | 64.613 kbps |
-| 96&nbsp;kbps | 1.041x | 1.111x | +0.3992 | +0.0383 | 96.408 kbps | 96.697 kbps |
-| 128&nbsp;kbps | 1.048x | 1.112x | +0.2716 | +0.0293 | 128.407 kbps | 128.759 kbps |
-| 192&nbsp;kbps | 1.024x | 1.111x | +0.0753 | +0.0182 | 192.404 kbps | 192.900 kbps |
-| 256&nbsp;kbps | 1.030x | 1.027x | +0.0359 | +0.0139 | 256.400 kbps | 256.737 kbps |
+| 16&nbsp;kbps | 0.943x | 1.434x | +0.5554 | +0.3132 | 16.772 kbps | 17.065 kbps |
+| 24&nbsp;kbps | 1.013x | 1.104x | +0.6136 | +0.1478 | 25.103 kbps | 25.229 kbps |
+| 32&nbsp;kbps | 0.986x | 1.062x | +0.5208 | +0.0905 | 33.604 kbps | 33.613 kbps |
+| 48&nbsp;kbps | 1.011x | 1.044x | +0.6595 | +0.0648 | 48.457 kbps | 48.560 kbps |
+| 64&nbsp;kbps | 1.013x | 1.071x | +0.6615 | +0.0498 | 64.485 kbps | 64.613 kbps |
+| 96&nbsp;kbps | 1.086x | 1.085x | +0.3992 | +0.0383 | 96.408 kbps | 96.697 kbps |
+| 128&nbsp;kbps | 1.090x | 1.101x | +0.2716 | +0.0293 | 128.407 kbps | 128.759 kbps |
+| 192&nbsp;kbps | 1.051x | 1.074x | +0.0753 | +0.0182 | 192.404 kbps | 192.900 kbps |
+| 256&nbsp;kbps | 1.061x | 1.035x | +0.0359 | +0.0139 | 256.400 kbps | 256.737 kbps |
 
 VOIP mono speech-like quality spot check (phase-integrated voiced/formant fixture with 30 dB breath-noise SNR):
 
@@ -96,10 +96,10 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 
 | State | opuscpp | official Opus | Difference |
 |---:|---:|---:|---:|
-| Encoder mono | 20,464 B | 31,824 B | -35.7% |
+| Encoder mono | 20,448 B | 31,824 B | -35.7% |
 | Encoder stereo | 30,528 B | 48,928 B | -37.6% |
 | Decoder mono | 8,432 B | 18,496 B | -54.4% |
-| Decoder stereo | 17,536 B | 27,088 B | -35.3% |
+| Decoder stereo | 17,536 B | 27,072 B | -35.2% |
 
 ## Compatibility coverage
 

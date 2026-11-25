@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `3cf1f0d74ce038256b65953e2932cea7f79d7ddc`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+Measured: `a71f806b8df492f10945f41e81cf868941809020`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
 
 ## Quality
 
@@ -32,7 +32,7 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.95x to 1.05x | 1.03x to 1.44x |
+| AUDIO | 0.94x to 1.09x | 1.04x to 1.43x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -42,14 +42,14 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20464 | 20784 | Not exposed |
-| official_encoder_ch1 | 31824 | 31872 | 31668 |
+| current_encoder_ch1 | 20448 | 20768 | Not exposed |
+| official_encoder_ch1 | 31824 | 31936 | 31668 |
 | current_decoder_ch1 | 8432 | 8304 | Not exposed |
 | official_decoder_ch1 | 18496 | 18560 | 18468 |
 | current_encoder_ch2 | 30528 | 30480 | Not exposed |
 | official_encoder_ch2 | 48928 | 48736 | 48684 |
-| current_decoder_ch2 | 17536 | 16208 | Not exposed |
-| official_decoder_ch2 | 27088 | 27248 | 27236 |
+| current_decoder_ch2 | 17536 | 16224 | Not exposed |
+| official_decoder_ch2 | 27072 | 27248 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -59,8 +59,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 389092 | 0 | 19712 | 408804 |
-| android | 381747 | 152 | 19664 | 401563 |
+| host | 386960 | 0 | 19712 | 406672 |
+| android | 380831 | 152 | 19664 | 400647 |
 
 [Object-size data](binary_size.csv).
 

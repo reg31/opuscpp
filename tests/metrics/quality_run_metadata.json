@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo",
-  "source_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
-  "source_blob": "cc8337e28d0530d16b92abf3cfed7c21df7545d4",
-  "source_sha256": "604a7c106002c910369f42d9cc461966b4e91afa2069b49e490480a221411c2a",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo",
+  "source_commit": "a71f806b8df492f10945f41e81cf868941809020",
+  "source_blob": "0085f4b436946cb5c81b2497bd2b41901ad15477",
+  "source_sha256": "7cf50f0eee18cd8837ad870eec236762902108ab1239802a039ef876cbb045b1",
   "header_blob": "418470e6268c04ce5b4993f0f6dd1d1d4fefbd5e",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
-  "tests_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
+  "tests_commit": "a71f806b8df492f10945f41e81cf868941809020",
   "tests_sha256": {
     "tests/bench/bench17.cpp": "e43eff507b3957c56ca5ee4a8cecdba383bb139c5663efee4caa50920e12518c",
     "tests/bench/bench17.py": "996c5ea5b520da659a151080c6c35de45f7df1bba4e517a5930279d8f888e847",
@@ -41,7 +41,7 @@
     "tests/perceptual_alignment.cpp": "4852383b1caf41242c7528913e4a6160ce3307c9b6dace429ca23c80d6c5bf9a",
     "tests/perceptual_memory_validation.cpp": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
     "tests/postfilter_bypass.cpp": "8710f468a28e73f0317edf56e9cfeb0f3662bbd646f9488eb94b816435b27f71",
-    "tests/quant_all_bands_microbench.cpp": "888091ef22cbad08beaec53effb479e18fdadcd5f1e6bf285c52d2fff1d1427d",
+    "tests/quant_all_bands_microbench.cpp": "44656c2f6a4d281b30f61ad9571869c7e5d4ccee7eb4ee3ceb2a03e79cf192ae",
     "tests/rfc_silk_concealment_range.cpp": "b659c6db65926c0741b1838844b5938e5cde03ce870f1352748061de5304aab6",
     "tests/scripts/check_fec_source_quality.py": "736d9b7d55c272da8c791f9ed369a9dcfc63fefb903cedba1bcf52d69dc3e7cd",
     "tests/scripts/run_voice_denoise_quality.py": "5c45d7241f8f7a2fca30c430bb54b0895bcf868be4baec6662a3cc8e7b398d88",
@@ -71,14 +71,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\build\\official_compare_report\\production-refresh\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\build\\official_compare_report\\production-refresh\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\build\\official_compare_report\\production-refresh\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\build\\official_compare_report\\production-refresh\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "afc20cbdb56a1301e208ba4dba3d4e5bff695b8ee68837245dc780065c49fd06",
+  "quality_binary_sha256": "fb73973ff208646dd0e9a4c8392123146d024b9177dce00d66faadd6c02c9721",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -91,7 +91,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_refresh\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -113,13 +113,10 @@
   ],
   "standard_fec_acceptance": "PASS",
   "measurement_date": "2026-11-25",
-  "completed_utc": "2026-11-25T00:27:22.555715+00:00",
+  "completed_utc": "2026-11-25T12:30:24.234161+00:00",
   "root_runner_sha256": "52e35e365771bde88fd8e717d3bf0a1cfe3aac52077004923ce20c0049196d72",
   "phase_runner_sha256": "97547adb7c81adbaf861e606bb17eaecd1bad8003d296b368c0d9162725848e7",
-  "input_manifest_sha256": "c50cb23843260ec7a16cae4ae30f18a16dfddb248279eda0cd4b11f4e331aab4",
-  "resume_provenance_sha256": "371645984b0d4b17b1c684495fc7984a25e440cb2a95c5b1b6dea1dd8f42989f",
-  "pre_resume_root_runner_sha256": "52e35e365771bde88fd8e717d3bf0a1cfe3aac52077004923ce20c0049196d72",
-  "pre_resume_phase_runner_sha256": "97547adb7c81adbaf861e606bb17eaecd1bad8003d296b368c0d9162725848e7",
+  "input_manifest_sha256": "023c4146884ed29b2f8b0c3737808cb44beba935bae4b14e552eca51e0c189dc",
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
@@ -170,13 +167,13 @@
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
   "nominal_s17_music_eof_v1": {
     "version": "S17_MUSIC_EOF_V1",
-    "source_commit": "3cf1f0d74ce038256b65953e2932cea7f79d7ddc",
-    "source_sha256": "604a7c106002c910369f42d9cc461966b4e91afa2069b49e490480a221411c2a",
+    "source_commit": "a71f806b8df492f10945f41e81cf868941809020",
+    "source_sha256": "7cf50f0eee18cd8837ad870eec236762902108ab1239802a039ef876cbb045b1",
     "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
     "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
     "official_scalar_archive_sha256": "ec84527b88e31bf4166d7b2b23af1c154d20fceb07ba7e856a4ac2967fa79e3f",
     "freeze_sha256": "89251a31107476afb817fe28b3988d74e892e2cc9557857c1dbd40b62d6f7e5d",
-    "result_sha256": "6d2f4e33220f69761c96cc5d1d59a818aca242b752713962c9fce9d535a5b4f4",
+    "result_sha256": "3af11dbc62971199072c64ef8af600cff6ffb15897784b3dceb1c2951b4cd7b9",
     "geometry": {
       "requests_bps": [
         16000,
@@ -308,7 +305,7 @@
         "failures": {
           "celt_highband_error": -0.00021527892843020997
         },
-        "evidence_sha256": "1a46cb146b0508569ee6f099ff986325b5e72a6c7612e3bf2dec8a17177bb358"
+        "evidence_sha256": "41b2c1491799a55bb8c8f530d05cdff47fc4f9008a4b80d15d726cc6adb0d74e"
       },
       {
         "id": "audio_24000",
@@ -398,7 +395,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "7a347b398384298025d3929857f75ec9cbed9506da0bb74226f4170582afa2e3"
+        "evidence_sha256": "da16bdc5e28980794a06a024ac8924cb14e7bac647861e418fc89b94ee15c341"
       },
       {
         "id": "audio_32000",
@@ -488,7 +485,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "b260361b135a7f05ff28f277dabda12908c809fc420d99e0ab763f05512638ed"
+        "evidence_sha256": "f18fa810a7b8dcd91bd69ebff63b345fd9eb6af01665becf54455cbfc6e9c94a"
       },
       {
         "id": "audio_48000",
@@ -578,7 +575,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "f13b2a7d9984a7319f6400d73971ea0523ec05d13f99f1c480198e449c896c13"
+        "evidence_sha256": "3b5198b65283ae530a2c60359081399594e6f72fda3baa2e1bf6b828c9535df9"
       },
       {
         "id": "audio_64000",
@@ -668,7 +665,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "0c3ebf009182ab8a264027ef17f93b3811da6553a46cf1cad84372ba7f819288"
+        "evidence_sha256": "0081692e9991eb9f0806cac00a5221a08787cf712e2c7010cac24f7b879a010a"
       },
       {
         "id": "audio_96000",
@@ -758,7 +755,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "fb528293f3a95f27284ac363685ea1e96ada2539494b54d5d8208b040bcdca00"
+        "evidence_sha256": "61524c26e2d154ac1891f69573e474562d0d5d10e1e3f0e9d30c2e9f76dad2ca"
       },
       {
         "id": "audio_128000",
@@ -848,7 +845,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "0d3f881af5c8dc9f06dc58775f268c430a2f0377784352087ae9041a6399a432"
+        "evidence_sha256": "cf67e1e7327a3c1d161573a5ee93e7f915259302319e9dd4337c393f057b7fd2"
       },
       {
         "id": "audio_192000",
@@ -938,7 +935,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "19203397017724aa24d59354b6ea45930459a4101b5cc7897ddc1787342caf5f"
+        "evidence_sha256": "6e58e6d7f04a089a89044b97367ceb81e2f6e674a82a6458edb034e268afc3dd"
       },
       {
         "id": "audio_256000",
@@ -1028,7 +1025,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "8326e1e22d85d96189d00f6e08d11e4cb30b7de186a220da3aba694de9fce0eb"
+        "evidence_sha256": "ac3f637626860c0647e86ca53dc4a7e2769b899c94d1806fe77c1bdb889070b3"
       }
     ],
     "fields_checked": 108,
