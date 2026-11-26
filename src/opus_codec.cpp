@@ -1212,21 +1212,28 @@ struct silk_CNG_struct {
   opus_int16 CNG_smth_NLSF_Q15[16];
 };
 
-struct silk_decoder_state {
+struct silk_symbol_state {
+  const silk_NLSF_CB_struct* psNLSF_CB;
+  SideInfoIndices indices;
+  opus_int16 ec_prevLagIndex;
+  opus_uint16 frame_length;
+  opus_uint8 fs_kHz, nb_subfr, ec_prevSignalType;
+  opus_int8 VAD_flags[3];
+};
+
+struct silk_decoder_state : silk_symbol_state {
   opus_int32 prev_gain_Q16;
   opus_uint16 exc_low[((5 * 4) * 16)];
   opus_int8 exc_high[((5 * 4) * 16)];
   opus_int32 sLPC_Q14_buf[16];
-  opus_int16 outBuf[((5 * 4) * 16)], prevNLSF_Q15[16], ec_prevLagIndex;
-  SideInfoIndices indices;
+  opus_int16 outBuf[((5 * 4) * 16)], prevNLSF_Q15[16];
   int nFramesDecoded, nFramesPerPacket, lossCnt;
-  opus_uint16 lagPrev, frame_length, ltp_mem_length;
-  opus_uint8 fs_kHz, nb_subfr, subfr_length, LPC_order, first_frame_after_reset, ec_prevSignalType, prevSignalType;
-  opus_int8 VAD_flags[3], LBRR_flags[3], LastGainIndex;
-  const silk_NLSF_CB_struct* psNLSF_CB;
+  opus_uint16 lagPrev, ltp_mem_length;
+  opus_uint8 subfr_length, LPC_order, first_frame_after_reset, prevSignalType;
+  opus_int8 LBRR_flags[3], LastGainIndex;
+  silk_PLC_struct sPLC;
   silk_CNG_struct* sCNG;
   silk_resampler_state_struct resampler_state;
-  silk_PLC_struct sPLC;
 };
 
 struct silk_decoder {
@@ -13160,7 +13167,7 @@ static void silk_encode_index_body(ec_ctx* coder, const SideInfoIndices& indices
   ec_enc_icdf(coder, indices.Seed, silk_uniform4_iCDF.data(), 8);
 }
 
-static void silk_decode_index_body(silk_decoder_state* state, ec_ctx* coder, int condCoding) {
+static void silk_decode_index_body(silk_symbol_state* state, ec_ctx* coder, int condCoding) {
   auto& indices = state->indices;
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(state->nb_subfr), 4);
@@ -13394,7 +13401,7 @@ static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int*
 }
 
 static void
-silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding,
+silk_decode_symbols(silk_symbol_state* psDec, ec_dec* psRangeDec, int FrameIndex, int decode_LBRR, int condCoding,
                     std::span<opus_int16> pulses, bool reconstruct_signs) {
   const bool vad = decode_LBRR || psDec->VAD_flags[FrameIndex];
   const int type_offset =
@@ -16170,7 +16177,7 @@ static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, 
                                                    silk_sealed_prefix* prefix = nullptr) noexcept {
   ec_dec decoder;
   ec_dec_init(&decoder, body, static_cast<opus_uint32>(bytes));
-  silk_decoder_state state{};
+  silk_symbol_state state{};
   state.nb_subfr = 4;
   state.fs_kHz = 16;
   state.frame_length = silk_max_frame_length;
