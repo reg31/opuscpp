@@ -2282,20 +2282,21 @@ static opus_int32 silk_log2lin(const opus_int32 inLog_Q7) {
   return out;
 }
 
+[[nodiscard]] static constexpr auto silk_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
+  int next;
+  if (!conditional) {
+    next = std::max<int>(symbol, previous - 16);
+  } else {
+    const int step = symbol - 4;
+    const int threshold = 8 + previous;
+    next = previous + (step > threshold ? 2 * step - threshold : step);
+  }
+  return static_cast<opus_int8>(std::clamp(next, 0, 63));
+}
+
 static void silk_gains_dequant(opus_int32 gain_Q16[4], const opus_int8 ind[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
   for (int k = 0; k < nb_subfr; k++) {
-    if (k == 0 && conditional == 0) {
-      *prev_ind = std::max(ind[k], static_cast<opus_int8>(*prev_ind - 16));
-    } else {
-      const int ind_tmp = ind[k] + -4;
-      const int double_step_size_threshold = 2 * 36 - 64 + *prev_ind;
-      if (ind_tmp > double_step_size_threshold) {
-        *prev_ind += wrap_shift_left(ind_tmp, 1) - double_step_size_threshold;
-      } else {
-        *prev_ind += ind_tmp;
-      }
-    }
-    *prev_ind = static_cast<opus_int8>(std::clamp<int>(*prev_ind, 0, 64 - 1));
+    *prev_ind = silk_gain_index(*prev_ind, ind[k], k != 0 || conditional != 0);
     gain_Q16[k] = silk_log2lin(static_cast<opus_int32>((1907825LL * static_cast<opus_int16>(*prev_ind) >> 16) + 2090));
   }
 }
@@ -2447,10 +2448,6 @@ static int silk_stereo_decode_mid_only(ec_dec* psRangeDec) {
 }
 static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, int total_pulses);
 static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type);
-static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
-                                   int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
-                                   decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
-                                   decltype(silk_encoder_state::ec_prevSignalType)& previous_signal);
 static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks);
 constexpr int silk_ltp_order = 5;
 constexpr int silk_ltp_matrix_values = silk_ltp_order * (silk_ltp_order + 1) / 2;
@@ -13132,11 +13129,6 @@ static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_contr
   }
 }
 
-[[nodiscard]] static inline int silk_encode_index_symbol(ec_ctx* coder, int value, const opus_uint8* icdf) {
-  ec_enc_icdf(coder, value, icdf, 8);
-  return value;
-}
-
 static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
                                    int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
                                    decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
@@ -13144,82 +13136,63 @@ static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int 
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(frame_subframes), 4);
   if (condCoding == 2) {
-    indices.GainsIndices[0] =
-        static_cast<opus_int8>(silk_encode_index_symbol(coder, indices.GainsIndices[0], silk_delta_gain_iCDF.data()));
+    ec_enc_icdf(coder, indices.GainsIndices[0], silk_delta_gain_iCDF.data(), 8);
   } else {
-    const auto gain_high = silk_encode_index_symbol(coder, indices.GainsIndices[0] >> 3, silk_gain_iCDF[indices.signalType].data());
-    const auto gain_low = silk_encode_index_symbol(coder, indices.GainsIndices[0] & 7, silk_uniform8_iCDF.data());
-    indices.GainsIndices[0] = static_cast<opus_int8>((gain_high << 3) + gain_low);
+    ec_enc_icdf(coder, indices.GainsIndices[0] >> 3, silk_gain_iCDF[indices.signalType].data(), 8);
+    ec_enc_icdf(coder, indices.GainsIndices[0] & 7, silk_uniform8_iCDF.data(), 8);
   }
-  for (int i = 1; i < nb_subfr; ++i) {
-    indices.GainsIndices[i] =
-        static_cast<opus_int8>(silk_encode_index_symbol(coder, indices.GainsIndices[i], silk_delta_gain_iCDF.data()));
-  }
-  indices.NLSFIndices[0] = static_cast<opus_int8>(
-      silk_encode_index_symbol(coder, indices.NLSFIndices[0], silk_nlsf_cb1_icdf(codebook, indices.signalType)));
+  for (int i = 1; i < nb_subfr; ++i)
+    ec_enc_icdf(coder, indices.GainsIndices[i], silk_delta_gain_iCDF.data(), 8);
+  ec_enc_icdf(coder, indices.NLSFIndices[0], silk_nlsf_cb1_icdf(codebook, indices.signalType), 8);
   {
     opus_uint8 pred_Q8[16];
     silk_NLSF_unpack(ec_ix, pred_Q8, codebook, indices.NLSFIndices[0]);
   }
   for (int i = 0; i < codebook->order; ++i) {
     const int index = indices.NLSFIndices[i + 1];
-    int base = silk_encode_index_symbol(coder, std::clamp(index + 4, 0, 8), &codebook->ec_iCDF[ec_ix[i]]);
+    const int base = std::clamp(index + 4, 0, 8);
+    ec_enc_icdf(coder, base, &codebook->ec_iCDF[ec_ix[i]], 8);
     if (base == 0) {
-      base -= silk_encode_index_symbol(coder, -index - 4, silk_NLSF_EXT_iCDF.data());
+      ec_enc_icdf(coder, -index - 4, silk_NLSF_EXT_iCDF.data(), 8);
     } else if (base == 8) {
-      base += silk_encode_index_symbol(coder, index - 4, silk_NLSF_EXT_iCDF.data());
+      ec_enc_icdf(coder, index - 4, silk_NLSF_EXT_iCDF.data(), 8);
     }
-    indices.NLSFIndices[i + 1] = static_cast<opus_int8>(base - 4);
   }
   if (frame_subframes == 4) {
-    indices.NLSFInterpCoef_Q2 =
-        static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.NLSFInterpCoef_Q2, silk_NLSF_interpolation_factor_iCDF.data()));
+    ec_enc_icdf(coder, indices.NLSFInterpCoef_Q2, silk_NLSF_interpolation_factor_iCDF.data(), 8);
   } else {
     indices.NLSFInterpCoef_Q2 = 4;
   }
   if (indices.signalType == 2) {
     bool absolute_lag = true;
     if (condCoding == 2 && previous_signal == 2) {
-      int delta_lag = 0;
-      delta_lag = indices.lagIndex - previous_lag;
-      delta_lag = delta_lag < -8 || delta_lag > 11 ? 0 : delta_lag + 9;
-      delta_lag = silk_encode_index_symbol(coder, delta_lag, silk_pitch_delta_iCDF.data());
-      if (delta_lag > 0) {
-        absolute_lag = false;
-      }
+      const int delta = indices.lagIndex - previous_lag;
+      const int symbol = delta < -8 || delta > 11 ? 0 : delta + 9;
+      ec_enc_icdf(coder, symbol, silk_pitch_delta_iCDF.data(), 8);
+      absolute_lag = symbol == 0;
     }
     if (absolute_lag) {
       const int divisor = fs_kHz >> 1;
-      const auto high = silk_encode_index_symbol(coder, indices.lagIndex / divisor, silk_pitch_lag_iCDF.data());
-      const auto low =
-          silk_encode_index_symbol(coder, indices.lagIndex - high * divisor, silk_pitch_lag_low_bits_icdf(fs_kHz));
-      indices.lagIndex = static_cast<opus_int16>(high * divisor + low);
+      ec_enc_icdf(coder, indices.lagIndex / divisor, silk_pitch_lag_iCDF.data(), 8);
+      ec_enc_icdf(coder, indices.lagIndex % divisor, silk_pitch_lag_low_bits_icdf(fs_kHz), 8);
     }
     previous_lag = indices.lagIndex;
-    indices.contourIndex = static_cast<opus_uint8>(
-        silk_encode_index_symbol(coder, indices.contourIndex, silk_pitch_contour_icdf(fs_kHz, frame_subframes).data()));
-    indices.PERIndex = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.PERIndex, silk_LTP_per_index_iCDF.data()));
-    for (int k = 0; k < nb_subfr; ++k) {
-      indices.LTPIndex[k] = static_cast<opus_uint8>(
-          silk_encode_index_symbol(coder, indices.LTPIndex[k], silk_LTP_codebook(indices.PERIndex).gain_icdf.data()));
-    }
+    ec_enc_icdf(coder, indices.contourIndex, silk_pitch_contour_icdf(fs_kHz, frame_subframes).data(), 8);
+    ec_enc_icdf(coder, indices.PERIndex, silk_LTP_per_index_iCDF.data(), 8);
+    for (int k = 0; k < nb_subfr; ++k)
+      ec_enc_icdf(coder, indices.LTPIndex[k], silk_LTP_codebook(indices.PERIndex).gain_icdf.data(), 8);
     if (condCoding == 0) {
-      indices.LTP_scaleIndex = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.LTP_scaleIndex, silk_LTPscale_iCDF.data()));
+      ec_enc_icdf(coder, indices.LTP_scaleIndex, silk_LTPscale_iCDF.data(), 8);
     } else {
       indices.LTP_scaleIndex = 0;
     }
   }
   previous_signal = indices.signalType;
-  indices.Seed = static_cast<opus_uint8>(silk_encode_index_symbol(coder, indices.Seed, silk_uniform4_iCDF.data()));
+  ec_enc_icdf(coder, indices.Seed, silk_uniform4_iCDF.data(), 8);
 }
 
-template <bool Encode, typename State>
-static void silk_process_indices(State* state, SideInfoIndices& indices, ec_ctx* coder, int condCoding) {
-  if constexpr (Encode) {
-    silk_encode_index_body(coder, indices, condCoding, static_cast<int>(state->nb_subfr), state->fs_kHz, state->psNLSF_CB,
-                           state->ec_prevLagIndex, state->ec_prevSignalType);
-    return;
-  }
+static void silk_decode_index_body(silk_decoder_state* state, ec_ctx* coder, int condCoding) {
+  auto& indices = state->indices;
   opus_int16 ec_ix[16];
   const int nb_subfr = std::min(static_cast<int>(state->nb_subfr), 4);
   if (condCoding == 2) {
@@ -13455,7 +13428,7 @@ silk_decode_symbols(silk_decoder_state* psDec, ec_dec* psRangeDec, int FrameInde
       ec_dec_icdf8(psRangeDec, vad ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data()) + 2 * vad;
   psDec->indices.signalType = static_cast<opus_uint8>(type_offset >> 1);
   psDec->indices.quantOffsetType = static_cast<opus_uint8>(type_offset & 1);
-  silk_process_indices<false>(psDec, psDec->indices, psRangeDec, condCoding);
+  silk_decode_index_body(psDec, psRangeDec, condCoding);
   const int signal_type = psDec->indices.signalType;
   const int quant_offset_type = psDec->indices.quantOffsetType;
   const int block_count = (psDec->frame_length + 15) >> 4;
@@ -13863,7 +13836,8 @@ static void silk_encode_indices(State* psEncC, SideInfoIndices& indices, ec_enc*
   const int type_offset = 2 * indices.signalType + indices.quantOffsetType;
   const bool use_vad_table = lbrr || type_offset >= 2;
   ec_enc_icdf(psRangeEnc, use_vad_table ? type_offset - 2 : type_offset, use_vad_table ? silk_type_offset_VAD_iCDF.data() : silk_type_offset_no_VAD_iCDF.data(), 8);
-  silk_process_indices<true>(psEncC, indices, psRangeEnc, condCoding);
+  silk_encode_index_body(psRangeEnc, indices, condCoding, psEncC->nb_subfr, psEncC->fs_kHz, psEncC->psNLSF_CB,
+                         psEncC->ec_prevLagIndex, psEncC->ec_prevSignalType);
 }
 
 static void silk_gains_quant(opus_int8 ind[4], opus_int32 gain_Q16[4], opus_int8* prev_ind, const int conditional, const int nb_subfr) {
@@ -16899,18 +16873,6 @@ static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const Si
   return first_cost < second_cost;
 }
 
-[[nodiscard]] static auto silk_lbrr_gain_index(opus_int8 previous, opus_int8 symbol, bool conditional) noexcept -> opus_int8 {
-  int next;
-  if (!conditional) {
-    next = std::max<int>(symbol, previous - 16);
-  } else {
-    const int step = symbol - 4;
-    const int threshold = 8 + previous;
-    next = previous + (step > threshold ? 2 * step - threshold : step);
-  }
-  return static_cast<opus_int8>(std::clamp(next, 0, 63));
-}
-
 [[nodiscard]] static auto silk_lbrr_model_gain_index(opus_int32 gain_Q16) noexcept -> opus_int8 {
   return static_cast<opus_int8>(std::clamp<opus_int64>(
       ((static_cast<opus_int64>(silk_lin2log(gain_Q16)) - 2090) * 65536 + 1907825 / 2) / 1907825, 0, 63));
@@ -16947,19 +16909,19 @@ static void silk_generate_lbrr(silk_encoder_state_FLP* psEnc, silk_lbrr_channel_
     indices.GainsIndices[0] =
         static_cast<opus_int8>(std::min<int>(indices.GainsIndices[0] + std::max(lbrr->gain_increase - gain_reduction, 2), 63));
   }
-  const auto first_model_index = silk_lbrr_gain_index(model_gain_index, indices.GainsIndices[0], condCoding == 2);
+  const auto first_model_index = silk_gain_index(model_gain_index, indices.GainsIndices[0], condCoding == 2);
   std::array<opus_int32, 4> gains_Q16;
   silk_gains_dequant(gains_Q16.data(), indices.GainsIndices, &model_gain_index, condCoding == 2, psEnc->sCmn.nb_subfr);
   const bool resumed_lbrr = frame > 0 && !conditional_lbrr;
   if (resumed_lbrr) {
     indices.GainsIndices[0] = first_model_index;
   }
-  auto wire_gain_index = silk_lbrr_gain_index(lbrr->previous_gain_index, indices.GainsIndices[0], conditional_lbrr);
+  auto wire_gain_index = silk_gain_index(lbrr->previous_gain_index, indices.GainsIndices[0], conditional_lbrr);
   if (resumed_lbrr && wire_gain_index != first_model_index) {
     silk_gains_dequant(gains_Q16.data(), indices.GainsIndices, &lbrr->previous_gain_index, false, psEnc->sCmn.nb_subfr);
   } else {
     for (int k = 1; k < psEnc->sCmn.nb_subfr; ++k) {
-      wire_gain_index = silk_lbrr_gain_index(wire_gain_index, indices.GainsIndices[k], true);
+      wire_gain_index = silk_gain_index(wire_gain_index, indices.GainsIndices[k], true);
     }
     lbrr->previous_gain_index = wire_gain_index;
   }
