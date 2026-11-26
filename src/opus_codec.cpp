@@ -784,7 +784,7 @@ struct mdct_lookup {
 
 static void clt_mdct_forward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, float* scratch);
 static void clt_mdct_forward_energy_prefix(float*, float*, float*, float*, int);
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, int live_bins = -1);
 static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, float* out0, float* out1, const celt_coef* window, int overlap, int shift, int stride);
 struct CeltModeInternal {
   const opus_int16* eBands;
@@ -5165,7 +5165,7 @@ static void compute_band_energies_and_normalise(celt_sig* X, celt_ener* bandE, c
 }
 
 template <std::size_t Channels>
-static void denormalise_bands(std::array<const celt_norm*, Channels> normalized, std::array<celt_sig*, Channels> frequency, std::array<const celt_glog*, Channels> band_log_energy, int start, int end, int M, int downsample, int silence) {
+static int denormalise_bands(std::array<const celt_norm*, Channels> normalized, std::array<celt_sig*, Channels> frequency, std::array<const celt_glog*, Channels> band_log_energy, int start, int end, int M, int downsample, int silence) {
   const opus_int16* eBands = celt_mode()->eBands;
   const int N = M * celt_short_mdct_size;
   int bound = M * eBands[end];
@@ -5176,7 +5176,7 @@ static void denormalise_bands(std::array<const celt_norm*, Channels> normalized,
     for (auto* channel : frequency) {
       zero_n_items(channel, static_cast<std::size_t>(N));
     }
-    return;
+    return 0;
   }
   const int prefix = M * eBands[start];
   for (auto* channel : frequency) {
@@ -5201,6 +5201,7 @@ static void denormalise_bands(std::array<const celt_norm*, Channels> normalized,
   for (auto* channel : frequency) {
     zero_n_items(channel + bound, static_cast<std::size_t>(N - bound));
   }
+  return bound;
 }
 
 static void anti_collapse(celt_norm* X_, unsigned char* collapse_masks, int LM, int C, int size, int start, int end, const celt_glog* logE, const celt_glog* prev1logE, const celt_glog* prev2logE, const int* pulses, opus_uint32 seed) {
@@ -8649,10 +8650,10 @@ static void celt_synthesis(celt_norm* X, celt_sig* const* out_syn, celt_glog* ol
   const int shift = isTransient ? celt_max_lm : celt_max_lm - LM;
   if (CC == C && C == 2) {
     auto* freq1 = X + N;
-    denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
+    const int live_bins = denormalise_bands<2>({X, freq1}, {X, freq1}, {oldBandE, oldBandE + celt_default_nb_ebands}, start, effEnd, M, downsample, silence);
     for (b = 0; b < B; b++) {
-      clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
-      clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B);
+      clt_mdct_backward_c(&celt_mode()->mdct, &X[b], out_syn[0] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, live_bins);
+      clt_mdct_backward_c(&celt_mode()->mdct, &freq1[b], out_syn[1] + celt_short_mdct_size * b, celt_mode()->window, overlap, shift, B, live_bins);
     }
   } else {
     denormalise_bands<1>({X}, {X}, {oldBandE}, start, effEnd, M, downsample, silence);
@@ -9886,14 +9887,19 @@ static void fft_five_lanes(const fft_stage_planes& planes) {
   }
 }
 
-template <int R, int L, bool LP>
+template <int R, int L, bool LP, unsigned ZeroLegs = 0>
 static inline void fft_block(const float* x, float* y, int total, int xi, int xs, int yi, int ys, int ysu,
-                             const kiss_twiddle_cpx* tw, int p, int ts) {
+                             const kiss_twiddle_cpx* tw, int p, int ts, kiss_twiddle_cpx zeros = {}) {
   static_assert(R == 2 || R == 4);
   float xr[R][L], xm[R][L];
   for (int j = 0; j < R; ++j) {
-    std::copy_n(x + xi + j * xs, L, xr[j]);
-    std::copy_n(x + total + xi + j * xs, L, xm[j]);
+    if ((ZeroLegs & (1u << j)) != 0) {
+      std::fill_n(xr[j], L, zeros.r);
+      std::fill_n(xm[j], L, zeros.i);
+    } else {
+      std::copy_n(x + xi + j * xs, L, xr[j]);
+      std::copy_n(x + total + xi + j * xs, L, xm[j]);
+    }
   }
   float cr[R][L], ci[R][L];
   for (int u = 0; u < L; ++u) {
@@ -10001,10 +10007,42 @@ static void celt_fft_tail15(float* buffer, std::span<float, 120> scratch, const 
   }
 }
 
+static void fft_first_radix4_sparse(const float* a, float* b, int live_bins) {
+  constexpr int total = 480;
+  constexpr int quarter = total / 4;
+  constexpr int lanes = 4;
+  const int begin = (live_bins + 1) / 2;
+  const int end = (2 * total + 1 - live_bins) / 2;
+  const kiss_twiddle_cpx zeros{a[begin], a[total + begin]};
+  const auto* twiddles = celt_tables.fft_twiddles.data();
+  const auto block = [&]<unsigned mask>(int p) {
+    fft_block<4, lanes, true, mask>(a, b, total, p, quarter, 4 * p, 1, 4, twiddles, p, 1, zeros);
+  };
+  for (int p = 0; p < quarter; p += lanes) {
+    const int last_leg = p + 3 * quarter;
+    const bool split_first = p < begin && begin < p + lanes;
+    const bool split_last = last_leg < end && end < last_leg + lanes;
+    if (split_first || split_last)
+      block.template operator()<0>(p);
+    else if (p >= begin) {
+      if (last_leg + lanes <= end)
+        block.template operator()<15>(p);
+      else
+        block.template operator()<7>(p);
+    } else if (last_leg + lanes <= end)
+      block.template operator()<14>(p);
+    else
+      block.template operator()<6>(p);
+  }
+}
+
 template <bool Held = false>
-static float* celt_fft(float* a, float* b, int shift) {
+static float* celt_fft(float* a, float* b, int shift, int live_bins = -1) {
   const int total = 480 >> shift;
-  fft_stage<4>(a, b, total, total / 4, 1, 1 << shift);
+  if (shift == 0 && live_bins >= 0 && live_bins <= 240)
+    fft_first_radix4_sparse(a, b, live_bins);
+  else
+    fft_stage<4>(a, b, total, total / 4, 1, 1 << shift);
   std::swap(a, b);
   if ((shift & 1) == 0) {
     fft_stage<2>(a, b, total, total / 8, 4, 4 << shift);
@@ -10075,18 +10113,37 @@ static void clt_mdct_forward_energy_prefix(float* in, float* out, float* scratch
   }
 }
 
-static void clt_mdct_backward_transform(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride, float* scratch) {
+static void clt_mdct_backward_transform(const mdct_lookup* l, const float* in, float* out, int overlap, int shift, int stride, float* scratch, int live_bins = -1) {
   const int N = l->n >> shift, N2 = N >> 1, N4 = N >> 2;
   const float* trig = l->trig + l->n - N;
   float* work = out + (overlap >> 1);
   float* first = fft_input(work, scratch, shift);
-  for (int i = 0; i < N4; ++i) {
-    const float x1 = in[2 * i * stride], x2 = in[(N2 - 1 - 2 * i) * stride];
-    const float t0 = trig[i], t1 = trig[N4 + i];
-    first[i] = x1 * t0 - x2 * t1;
-    first[N4 + i] = x2 * t0 + x1 * t1;
+  const auto prerotate = [&](int begin, int end) {
+    for (int i = begin; i < end; ++i) {
+      const float x1 = in[2 * i * stride], x2 = in[(N2 - 1 - 2 * i) * stride];
+      const float t0 = trig[i], t1 = trig[N4 + i];
+      first[i] = x1 * t0 - x2 * t1;
+      first[N4 + i] = x2 * t0 + x1 * t1;
+    }
+  };
+  int live_tail = 0;
+  if (live_bins >= 0 && shift == 0 && stride == 1 && std::numeric_limits<float>::is_iec559) {
+    const int zero_begin = (live_bins + 1) / 2;
+    const int zero_end = (N2 + 1 - live_bins) / 2;
+    if (zero_begin < zero_end) {
+      prerotate(0, zero_begin);
+      const float x1 = in[2 * zero_begin], x2 = in[N2 - 1 - 2 * zero_begin];
+      const float t0 = trig[zero_begin], t1 = trig[N4 + zero_begin];
+      const float real = x1 * t0 - x2 * t1, imaginary = x2 * t0 + x1 * t1;
+      for (int i = zero_begin; i < zero_end; ++i) {
+        first[i] = real;
+        first[N4 + i] = imaginary;
+      }
+      live_tail = zero_end;
+    }
   }
-  const float* res = celt_fft(first, first == work ? scratch : work, shift);
+  prerotate(live_tail, N4);
+  const float* res = celt_fft(first, first == work ? scratch : work, shift, live_tail != 0 ? live_bins : -1);
   float* yp0 = work;
   float* yp1 = yp0 + N2 - 2;
   for (int i = 0; i < (N4 + 1) >> 1; ++i) {
@@ -10106,9 +10163,9 @@ static void clt_mdct_backward_short(const mdct_lookup* l, const float* in, float
   clt_mdct_backward_transform(l, in, out, overlap, shift, stride, scratch);
 }
 
-static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride) {
+static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float* out, int overlap, int shift, int stride, int live_bins = -1) {
   if (shift == 0) {
-    clt_mdct_backward_transform(l, in, out, overlap, shift, stride, in);
+    clt_mdct_backward_transform(l, in, out, overlap, shift, stride, in, live_bins);
   } else {
     clt_mdct_backward_short(l, in, out, overlap, shift, stride);
   }
@@ -10123,8 +10180,8 @@ static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int
   }
 }
 
-static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride) {
-  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride);
+static void clt_mdct_backward_c(const mdct_lookup* l, float* in, float* out, const celt_coef* window, int overlap, int shift, int stride, int live_bins) {
+  clt_mdct_backward_transform_c(l, in, out, overlap, shift, stride, live_bins);
   clt_mdct_backward_overlap_c(out, window, overlap);
 }
 
