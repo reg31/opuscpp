@@ -16201,7 +16201,7 @@ static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, 
 }
 
 [[nodiscard]] static bool read_sealed_silk_primary(unsigned char* body, int bytes, opus_uint32 range, silk_sealed_packet& packet,
-                                                  silk_sealed_prefix* prefix = nullptr) noexcept {
+                                                   silk_sealed_prefix* prefix = nullptr) noexcept {
   ec_dec decoder;
   ec_dec_init(&decoder, body, static_cast<opus_uint32>(bytes));
   silk_decoder_state state{};
