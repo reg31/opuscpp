@@ -16113,7 +16113,7 @@ struct silk_entropy_context {
 
 template <class State>
 static void silk_write_indices_and_pulses(State* psEncC, const SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
-                                         const opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
+                                          const opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
   silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
   silk_process_pulses(psRangeEnc, std::span<const opus_int8>{pulses, static_cast<std::size_t>(psEncC->frame_length)},
                       indices.signalType, indices.quantOffsetType, zero_padding_blocks);
