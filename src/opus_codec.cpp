@@ -2456,7 +2456,7 @@ constexpr int silk_ltp_row_offset(int row) noexcept {
 
 static void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rate_dist_Q8, int* gain_Q7, const opus_int32* XX_Q17, const opus_int32* xX_Q17, const opus_int8* cb_Q7, const opus_uint8* cb_gain_Q7, const opus_uint8* cl_Q5, const int subfr_len, const opus_int32 max_gain_Q7, const int L);
 static void silk_NLSF_VQ(opus_int32 err_Q26[], const opus_int16 in_Q15[], const opus_uint8 pCB_Q8[], const opus_int16 pWght_Q9[], const int K, const int LPC_order);
-static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
+static opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, const opus_uint16* minimum_remaining_rate, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order);
 static opus_int32 silk_lin2log(const opus_int32 inLin);
 static void silk_control_SNR(silk_encoder_state* psEncC, opus_int32 TargetRate_bps);
 struct silk_shape_state_FLP {
@@ -14800,6 +14800,29 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
   }
 }
 
+template <std::size_t Order, std::size_t Size>
+consteval auto silk_nlsf_minimum_rate_rows(const std::array<opus_uint8,Size>& select,
+                                          const std::array<opus_uint8,72>& rates) {
+  std::array<opus_uint16,8> lowest{};
+  for (std::size_t context=0; context<lowest.size(); ++context) {
+    lowest[context] = 280;
+    for (std::size_t symbol=1; symbol<=7; ++symbol)
+      lowest[context] = std::min<opus_uint16>(lowest[context], rates[9*context+symbol]);
+  }
+  std::array<std::array<opus_uint16,Order+1>,Size/(Order/2)> rows{};
+  for (std::size_t row=0; row<rows.size(); ++row) {
+    for (std::size_t coefficient=0; coefficient<Order; ++coefficient) {
+      const auto packed = select[row*(Order/2)+coefficient/2];
+      const auto context = (packed >> (coefficient%2 == 0 ? 1 : 5)) & 7;
+      rows[row][coefficient+1] = rows[row][coefficient]+lowest[context];
+    }
+  }
+  return rows;
+}
+
+constexpr auto silk_nlsf_minimum_rate_nb = silk_nlsf_minimum_rate_rows<10>(silk_NLSF_CB2_SELECT_NB_MB, silk_NLSF_CB2_BITS_NB_MB_Q5);
+constexpr auto silk_nlsf_minimum_rate_wb = silk_nlsf_minimum_rate_rows<16>(silk_NLSF_CB2_SELECT_WB, silk_NLSF_CB2_BITS_WB_Q5);
+
 static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opus_int16, 16> pNLSF_Q15, const silk_NLSF_CB_struct* psNLSF_CB, std::span<const opus_int16, 16> pW_Q2, const int NLSF_mu_Q20, const int nSurvivors, const int signalType) {
   int bestIndex;
   opus_int16 ec_ix[16];
@@ -14818,9 +14841,13 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
     const int bits_q7 = (8 << 7) - silk_lin2log(prob_Q8);
     const opus_int32 penalty = static_cast<opus_int16>(bits_q7) * static_cast<opus_int16>(NLSF_mu_Q20 >> 2);
     RD_Q25[s] = opus_int32_max;
+    const auto* minimum_remaining_rate = psNLSF_CB->order == 16
+        ? silk_nlsf_minimum_rate_wb[ind1].data() : silk_nlsf_minimum_rate_nb[ind1].data();
+    if (best_RD_Q25 - penalty <= static_cast<opus_int16>(NLSF_mu_Q20)*minimum_remaining_rate[psNLSF_CB->order])
+      continue;
     silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, ind1);
     const opus_int32 rd = silk_NLSF_del_dec_quant(tempIndices2[s], pNLSF_Q15, psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order,
-                                                  psNLSF_CB->CB1_Wght_Q9 + ind1 * psNLSF_CB->order, pW_Q2, best_RD_Q25 - penalty, pred_Q8,
+                                                  psNLSF_CB->CB1_Wght_Q9 + ind1 * psNLSF_CB->order, pW_Q2, best_RD_Q25 - penalty, minimum_remaining_rate, pred_Q8,
                                                   ec_ix, psNLSF_CB->ec_Rates_Q5, psNLSF_CB->quantStepSize_Q16,
                                                   psNLSF_CB->invQuantStepSize_Q6, NLSF_mu_Q20, psNLSF_CB->order);
     if (rd != opus_int32_max) {
@@ -14904,7 +14931,7 @@ constexpr auto silk_nlsf_del_dec_out_tables_wb = make_silk_nlsf_del_dec_out_tabl
          static_cast<opus_int32>(static_cast<opus_int16>(mu_Q20)) * static_cast<opus_int32>(static_cast<opus_int16>(rate_Q5));
 }
 
-opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order) {
+opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<const opus_int16, 16> nlsf_Q15, const opus_uint8* cb_Q8, const opus_int16* cb_wght_Q9, std::span<const opus_int16, 16> w_Q2, const opus_int32 bound, const opus_uint16* minimum_remaining_rate, std::span<const opus_uint8, 16> pred_coef_Q8, std::span<const opus_int16, 16> ec_ix, const opus_uint8 ec_rates_Q5[], const int quant_step_size_Q16, const opus_int16 inv_quant_step_size_Q6, const opus_int32 mu_Q20, const opus_int16 order) {
   constexpr int state_count = 4;
   std::array<int, state_count> ind_sort;
   std::array<std::array<opus_int8, 16>, state_count> ind;
@@ -14965,7 +14992,8 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
           ind_sort[j] = j;
         }
       }
-      if (*std::ranges::min_element(RD_min_Q25) >= bound) {
+      if (*std::ranges::min_element(RD_min_Q25) >=
+          bound - static_cast<opus_int16>(mu_Q20)*minimum_remaining_rate[i]) {
         return opus_int32_max;
       }
       while (true) {
