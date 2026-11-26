@@ -1,6 +1,6 @@
 # Complete production metrics
 
-Measured: `a71f806b8df492f10945f41e81cf868941809020`; pinned official Opus: `51bd2e649f4516d103ab9a7f22a768595621e847`.
+The [measured Opuscpp revision](https://github.com/reg31/opuscpp/commit/916753c04d94530056a46bf8e3d75d5d3af91770) is compared with [pinned official Opus](https://github.com/xiph/opus/commit/51bd2e649f4516d103ab9a7f22a768595621e847).
 
 ## Quality
 
@@ -32,7 +32,7 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.94x to 1.09x | 1.04x to 1.43x |
+| AUDIO | 0.95x to 1.07x | 1.04x to 1.44x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -43,13 +43,13 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20448 | 20768 | Not exposed |
-| official_encoder_ch1 | 31824 | 31936 | 31668 |
-| current_decoder_ch1 | 8432 | 8304 | Not exposed |
-| official_decoder_ch1 | 18496 | 18560 | 18468 |
-| current_encoder_ch2 | 30528 | 30480 | Not exposed |
+| official_encoder_ch1 | 31824 | 31952 | 31668 |
+| current_decoder_ch1 | 8432 | 8320 | Not exposed |
+| official_decoder_ch1 | 18496 | 18576 | 18468 |
+| current_encoder_ch2 | 30528 | 30464 | Not exposed |
 | official_encoder_ch2 | 48928 | 48736 | 48684 |
 | current_decoder_ch2 | 17536 | 16224 | Not exposed |
-| official_decoder_ch2 | 27072 | 27248 | 27236 |
+| official_decoder_ch2 | 27088 | 27248 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -59,8 +59,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 386960 | 0 | 19712 | 406672 |
-| android | 380831 | 152 | 19664 | 400647 |
+| host | 392992 | 0 | 19712 | 412704 |
+| android | 386955 | 152 | 19664 | 406771 |
 
 [Object-size data](binary_size.csv).
 

@@ -1,11 +1,11 @@
 {
-  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo",
-  "source_commit": "a71f806b8df492f10945f41e81cf868941809020",
-  "source_blob": "0085f4b436946cb5c81b2497bd2b41901ad15477",
-  "source_sha256": "7cf50f0eee18cd8837ad870eec236762902108ab1239802a039ef876cbb045b1",
+  "publication_repo": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261126_916753c\\repo",
+  "source_commit": "916753c04d94530056a46bf8e3d75d5d3af91770",
+  "source_blob": "c069201691e3e714041cf499397eecdb2e754ccd",
+  "source_sha256": "855c99cbc1d113f6e426b293a0ec44470c005de8d95bcf1ad3f98b41bac3ea44",
   "header_blob": "418470e6268c04ce5b4993f0f6dd1d1d4fefbd5e",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
-  "tests_commit": "a71f806b8df492f10945f41e81cf868941809020",
+  "tests_commit": "916753c04d94530056a46bf8e3d75d5d3af91770",
   "tests_sha256": {
     "tests/bench/bench17.cpp": "e43eff507b3957c56ca5ee4a8cecdba383bb139c5663efee4caa50920e12518c",
     "tests/bench/bench17.py": "996c5ea5b520da659a151080c6c35de45f7df1bba4e517a5930279d8f888e847",
@@ -71,14 +71,14 @@
     "-std=c++23",
     "-O2",
     "-DNDEBUG",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\build\\official_compare_report\\production-refresh\\src",
-    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\build\\official_compare_report\\production-refresh\\tests"
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261126_916753c\\repo\\build\\official_compare_report\\production-refresh\\src",
+    "-IC:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261126_916753c\\repo\\build\\official_compare_report\\production-refresh\\tests"
   ],
   "quality_driver_parent_sha256": "ddf1f9f221687de239c07a682bc7bcc929abfa0ddd402a2bd1dd6e95ef944421",
   "quality_driver_sha256": "6662b8eaf9dc8d69a6d87c1143c4138cf2523460cb864843bbbe82bab3b32708",
   "quality_driver_diff_sha256": "958d818e92ac2fa7e27fc54be90ec304ec10b0f90b6fc1266aa6bd5248b80c2f",
   "quality_driver_transformation": "two precision replacements plus Source-supported untimed actual factory getter assertions/logs for both current/OFF; pinned public test copy unchanged; all codec/quality/timed frame work unchanged",
-  "quality_binary_sha256": "fb73973ff208646dd0e9a4c8392123146d024b9177dce00d66faadd6c02c9721",
+  "quality_binary_sha256": "7a4626ae437aa01a59d3f8d0c5efa205391d50428d4038a0ee11f6273db17f48",
   "quality_baseline_hashes": {
     "quality.json": "8c4e13753d440f46d8f00711c4223b0632e9c15501ee0bfe5cb133b25e07f7e9",
     "quality_extra.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
@@ -91,7 +91,7 @@
   "executor_helpers": {
     "refresh_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\build\\official_compare_report\\run_current_refresh.py",
     "refresh_sha256": "24e912444d0421b491c6d5071c2a3d30ec57df929f1b93c9c7f6d1b264bcf094",
-    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261125_postfilter\\repo\\tests\\scripts\\setup_official_compare.py",
+    "setup_source": "C:\\Users\\regis\\Documents\\Codex\\2026-09-14\\continue-the-work-on-c-users-2\\work\\production_benchmark_20261126_916753c\\repo\\tests\\scripts\\setup_official_compare.py",
     "setup_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
     "support_setup_source": "C:\\Users\\regis\\Documents\\New project\\Github\\opuscpp\\tests\\scripts\\setup_official_compare.py",
     "support_setup_sha256": "9e020d855daa1f17db3ad7c914895b0bb7ae247457d27b2b1ad35def050ae594"
@@ -112,11 +112,11 @@
     18
   ],
   "standard_fec_acceptance": "PASS",
-  "measurement_date": "2026-11-25",
-  "completed_utc": "2026-11-25T12:30:24.234161+00:00",
+  "measurement_date": "2026-11-26",
+  "completed_utc": "2026-11-26T14:33:41.358716+00:00",
   "root_runner_sha256": "52e35e365771bde88fd8e717d3bf0a1cfe3aac52077004923ce20c0049196d72",
   "phase_runner_sha256": "97547adb7c81adbaf861e606bb17eaecd1bad8003d296b368c0d9162725848e7",
-  "input_manifest_sha256": "023c4146884ed29b2f8b0c3737808cb44beba935bae4b14e552eca51e0c189dc",
+  "input_manifest_sha256": "35f05e8abfadf70c54da3d029dce9e6288fcaff33fd70bac656a94b498771b42",
   "official_version": "libopus 1.6.1-81-g51bd2e64",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
   "official_compare_sha256": "f5e69a567e24968da5d4cbe0612960c3fab6f27a4ba4d203cd9842a0eab69903",
@@ -167,13 +167,13 @@
   "metric_type": "Custom objective proxies, not certified PESQ or official ViSQOL",
   "nominal_s17_music_eof_v1": {
     "version": "S17_MUSIC_EOF_V1",
-    "source_commit": "a71f806b8df492f10945f41e81cf868941809020",
-    "source_sha256": "7cf50f0eee18cd8837ad870eec236762902108ab1239802a039ef876cbb045b1",
+    "source_commit": "916753c04d94530056a46bf8e3d75d5d3af91770",
+    "source_sha256": "855c99cbc1d113f6e426b293a0ec44470c005de8d95bcf1ad3f98b41bac3ea44",
     "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
     "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
     "official_scalar_archive_sha256": "ec84527b88e31bf4166d7b2b23af1c154d20fceb07ba7e856a4ac2967fa79e3f",
     "freeze_sha256": "89251a31107476afb817fe28b3988d74e892e2cc9557857c1dbd40b62d6f7e5d",
-    "result_sha256": "3af11dbc62971199072c64ef8af600cff6ffb15897784b3dceb1c2951b4cd7b9",
+    "result_sha256": "43e65a45d36009036c6a5ade8c4c5030ca2bcdfeb193a9039bd69f5122588dbc",
     "geometry": {
       "requests_bps": [
         16000,
@@ -305,7 +305,7 @@
         "failures": {
           "celt_highband_error": -0.00021527892843020997
         },
-        "evidence_sha256": "41b2c1491799a55bb8c8f530d05cdff47fc4f9008a4b80d15d726cc6adb0d74e"
+        "evidence_sha256": "f70dcecf6f72574d153b7791852906856c21355a78946f6a33196a2fec6cc16b"
       },
       {
         "id": "audio_24000",
@@ -395,7 +395,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "da16bdc5e28980794a06a024ac8924cb14e7bac647861e418fc89b94ee15c341"
+        "evidence_sha256": "ee54047ab2d8122f86dbc291a2cbb32ec1799cab79dfd9e404616a8d33fece65"
       },
       {
         "id": "audio_32000",
@@ -485,7 +485,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "f18fa810a7b8dcd91bd69ebff63b345fd9eb6af01665becf54455cbfc6e9c94a"
+        "evidence_sha256": "3dcbfd748c636a7dfdce00815ba7eee0a1e1c65afb7f0577b581408ee8c5134a"
       },
       {
         "id": "audio_48000",
@@ -575,7 +575,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "3b5198b65283ae530a2c60359081399594e6f72fda3baa2e1bf6b828c9535df9"
+        "evidence_sha256": "fdd8ea6fca9c7acfa54ad1157e730cba453182816731eeea8a3b9ea0022159a2"
       },
       {
         "id": "audio_64000",
@@ -665,7 +665,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "0081692e9991eb9f0806cac00a5221a08787cf712e2c7010cac24f7b879a010a"
+        "evidence_sha256": "10f1487afea0aac7e00076b5f9433b9a26615ebdbd82eba650635c9a5254adca"
       },
       {
         "id": "audio_96000",
@@ -755,7 +755,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "61524c26e2d154ac1891f69573e474562d0d5d10e1e3f0e9d30c2e9f76dad2ca"
+        "evidence_sha256": "517b26b98e6a4960124bd17574a1098d312ec8e63564e31bbef44bab96be7f77"
       },
       {
         "id": "audio_128000",
@@ -845,7 +845,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "cf67e1e7327a3c1d161573a5ee93e7f915259302319e9dd4337c393f057b7fd2"
+        "evidence_sha256": "c4aaf2ce0abc718b4c0cdbafd88569ed1ac98e0dda96ef8a91f5638c1281c306"
       },
       {
         "id": "audio_192000",
@@ -935,7 +935,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "6e58e6d7f04a089a89044b97367ceb81e2f6e674a82a6458edb034e268afc3dd"
+        "evidence_sha256": "ab3491b196fc7435c71b6b26eeae81fb546a11aa224f3facaf677c3228e85fe7"
       },
       {
         "id": "audio_256000",
@@ -1025,7 +1025,7 @@
           }
         },
         "failures": {},
-        "evidence_sha256": "ac3f637626860c0647e86ca53dc4a7e2769b899c94d1806fe77c1bdb889070b3"
+        "evidence_sha256": "e2dfab09a299d9afc5de7ae00aad198b618f830b69df3e827bad7106ced64520"
       }
     ],
     "fields_checked": 108,
