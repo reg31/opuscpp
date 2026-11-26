@@ -129,8 +129,6 @@ Denoiser comparisons and boundary coverage are listed in [`tests/metrics/README.
 
 ## In-band FEC
 
-Benchmarks use [this Opuscpp revision](https://github.com/reg31/opuscpp/commit/916753c04d94530056a46bf8e3d75d5d3af91770). Source and header hashes are recorded in the metrics metadata.
-
 In-band FEC is optional and disabled by default. When enabled for SILK or hybrid packets, the
 encoder can place a lower-rate copy of the previous speech frame in the next packet. CELT-only
 packets cannot carry this redundancy. Its extra encoder state is allocated lazily on first enable

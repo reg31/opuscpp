@@ -183,8 +183,6 @@ recorded in [run metadata](metrics/run_metadata.json).
 
 ## Speed metrics vs official Opus with x86 intrinsics
 
-Benchmarks use [this Opuscpp revision](https://github.com/reg31/opuscpp/commit/916753c04d94530056a46bf8e3d75d5d3af91770). Source and header hashes are recorded in the metrics metadata.
-
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS and nine 60-second stereo runs. Ratios above `1.00x` indicate faster processing.
 
 | Bitrate | Encode speed vs official intrinsics | Decode speed vs official intrinsics | opuscpp encode real-time | Official encode real-time | opuscpp decode real-time | Official decode real-time |

@@ -59,8 +59,6 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Benchmarks use [this Opuscpp revision](https://github.com/reg31/opuscpp/commit/916753c04d94530056a46bf8e3d75d5d3af91770). Source and header hashes are recorded in the metrics metadata.
-
 Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
 
 | Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
@@ -107,7 +105,7 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 
 ## License
 
-This project is derived from Opus 1.6.1 (tracked [upstream source](https://github.com/xiph/opus/commit/503d81b138d76621aae4b12786e90de48aa8db3a)) and retains the upstream Opus license text in `LICENSE`. The comparator is [the pinned official Opus revision](https://github.com/xiph/opus/commit/51bd2e649f4516d103ab9a7f22a768595621e847).
+This project is derived from Opus 1.6.1 and retains the upstream Opus license text in `LICENSE`.
 
 ## Real-world use: Melo
 

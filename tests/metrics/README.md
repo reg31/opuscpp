@@ -1,6 +1,6 @@
 # Complete production metrics
 
-The [measured Opuscpp revision](https://github.com/reg31/opuscpp/commit/916753c04d94530056a46bf8e3d75d5d3af91770) is compared with [pinned official Opus](https://github.com/xiph/opus/commit/51bd2e649f4516d103ab9a7f22a768595621e847).
+These benchmarks compare Opuscpp with official Opus.
 
 ## Quality
 
