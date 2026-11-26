@@ -14801,20 +14801,20 @@ void silk_VQ_WMat_EC_c(opus_uint8* ind, opus_int32* res_nrg_Q15, opus_int32* rat
 }
 
 template <std::size_t Order, std::size_t Size>
-consteval auto silk_nlsf_minimum_rate_rows(const std::array<opus_uint8,Size>& select,
-                                          const std::array<opus_uint8,72>& rates) {
-  std::array<opus_uint16,8> lowest{};
-  for (std::size_t context=0; context<lowest.size(); ++context) {
+consteval auto silk_nlsf_minimum_rate_rows(const std::array<opus_uint8, Size>& select,
+                                           const std::array<opus_uint8, 72>& rates) {
+  std::array<opus_uint16, 8> lowest{};
+  for (std::size_t context = 0; context < lowest.size(); ++context) {
     lowest[context] = 280;
-    for (std::size_t symbol=1; symbol<=7; ++symbol)
-      lowest[context] = std::min<opus_uint16>(lowest[context], rates[9*context+symbol]);
+    for (std::size_t symbol = 1; symbol <= 7; ++symbol)
+      lowest[context] = std::min<opus_uint16>(lowest[context], rates[9 * context + symbol]);
   }
-  std::array<std::array<opus_uint16,Order+1>,Size/(Order/2)> rows{};
-  for (std::size_t row=0; row<rows.size(); ++row) {
-    for (std::size_t coefficient=0; coefficient<Order; ++coefficient) {
-      const auto packed = select[row*(Order/2)+coefficient/2];
-      const auto context = (packed >> (coefficient%2 == 0 ? 1 : 5)) & 7;
-      rows[row][coefficient+1] = rows[row][coefficient]+lowest[context];
+  std::array<std::array<opus_uint16, Order + 1>, Size / (Order / 2)> rows{};
+  for (std::size_t row = 0; row < rows.size(); ++row) {
+    for (std::size_t coefficient = 0; coefficient < Order; ++coefficient) {
+      const auto packed = select[row * (Order / 2) + coefficient / 2];
+      const auto context = (packed >> (coefficient % 2 == 0 ? 1 : 5)) & 7;
+      rows[row][coefficient + 1] = rows[row][coefficient] + lowest[context];
     }
   }
   return rows;
@@ -14842,8 +14842,9 @@ static void silk_NLSF_encode(std::span<opus_int8, 17> NLSFIndices, std::span<opu
     const opus_int32 penalty = static_cast<opus_int16>(bits_q7) * static_cast<opus_int16>(NLSF_mu_Q20 >> 2);
     RD_Q25[s] = opus_int32_max;
     const auto* minimum_remaining_rate = psNLSF_CB->order == 16
-        ? silk_nlsf_minimum_rate_wb[ind1].data() : silk_nlsf_minimum_rate_nb[ind1].data();
-    if (best_RD_Q25 - penalty <= static_cast<opus_int16>(NLSF_mu_Q20)*minimum_remaining_rate[psNLSF_CB->order])
+                                             ? silk_nlsf_minimum_rate_wb[ind1].data()
+                                             : silk_nlsf_minimum_rate_nb[ind1].data();
+    if (best_RD_Q25 - penalty <= static_cast<opus_int16>(NLSF_mu_Q20) * minimum_remaining_rate[psNLSF_CB->order])
       continue;
     silk_NLSF_unpack(ec_ix, pred_Q8, psNLSF_CB, ind1);
     const opus_int32 rd = silk_NLSF_del_dec_quant(tempIndices2[s], pNLSF_Q15, psNLSF_CB->CB1_NLSF_Q8 + ind1 * psNLSF_CB->order,
@@ -14993,7 +14994,7 @@ opus_int32 silk_NLSF_del_dec_quant(std::span<opus_int8, 16> indices, std::span<c
         }
       }
       if (*std::ranges::min_element(RD_min_Q25) >=
-          bound - static_cast<opus_int16>(mu_Q20)*minimum_remaining_rate[i]) {
+          bound - static_cast<opus_int16>(mu_Q20) * minimum_remaining_rate[i]) {
         return opus_int32_max;
       }
       while (true) {
