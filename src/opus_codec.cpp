@@ -2448,7 +2448,6 @@ static int silk_stereo_decode_mid_only(ec_dec* psRangeDec) {
 }
 static void silk_shell_code_node(ec_ctx* coder, std::span<opus_int16> pulses, int total_pulses);
 static void silk_decode_pulse_magnitudes(ec_ctx* coder, opus_int16* pulses, int* pulse_sums, int block_count, int signal_type);
-static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks);
 constexpr int silk_ltp_order = 5;
 constexpr int silk_ltp_matrix_values = silk_ltp_order * (silk_ltp_order + 1) / 2;
 constexpr int silk_ltp_row_offset(int row) noexcept {
@@ -12749,7 +12748,8 @@ void silk_process_signs(Coder* coder, PulseSpan pulses, const int signalType, co
       continue;
     }
     const auto cutoff = icdf_ptr[std::min(pulse_count & 0x1F, 6)];
-    auto pulse_block = pulses.subspan(block_index * 16, 16);
+    const auto offset = block_index * 16;
+    auto pulse_block = pulses.subspan(offset, Encode ? std::min<std::size_t>(16, pulses.size() - offset) : 16);
     for (auto pulse_index = std::size_t{}; pulse_index < pulse_block.size(); ++pulse_index) {
       auto& pulse = pulse_block[pulse_index];
       if constexpr (Encode) {
@@ -13129,7 +13129,7 @@ static void silk_decode_parameters(silk_decoder_state& state, silk_decoder_contr
   }
 }
 
-static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int condCoding,
+static void silk_encode_index_body(ec_ctx* coder, const SideInfoIndices& indices, int condCoding,
                                    int frame_subframes, int fs_kHz, const silk_NLSF_CB_struct* codebook,
                                    decltype(silk_encoder_state::ec_prevLagIndex)& previous_lag,
                                    decltype(silk_encoder_state::ec_prevSignalType)& previous_signal) {
@@ -13158,11 +13158,8 @@ static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int 
       ec_enc_icdf(coder, index - 4, silk_NLSF_EXT_iCDF.data(), 8);
     }
   }
-  if (frame_subframes == 4) {
+  if (frame_subframes == 4)
     ec_enc_icdf(coder, indices.NLSFInterpCoef_Q2, silk_NLSF_interpolation_factor_iCDF.data(), 8);
-  } else {
-    indices.NLSFInterpCoef_Q2 = 4;
-  }
   if (indices.signalType == 2) {
     bool absolute_lag = true;
     if (condCoding == 2 && previous_signal == 2) {
@@ -13181,11 +13178,8 @@ static void silk_encode_index_body(ec_ctx* coder, SideInfoIndices& indices, int 
     ec_enc_icdf(coder, indices.PERIndex, silk_LTP_per_index_iCDF.data(), 8);
     for (int k = 0; k < nb_subfr; ++k)
       ec_enc_icdf(coder, indices.LTPIndex[k], silk_LTP_codebook(indices.PERIndex).gain_icdf.data(), 8);
-    if (condCoding == 0) {
+    if (condCoding == 0)
       ec_enc_icdf(coder, indices.LTP_scaleIndex, silk_LTPscale_iCDF.data(), 8);
-    } else {
-      indices.LTP_scaleIndex = 0;
-    }
   }
   previous_signal = indices.signalType;
   ec_enc_icdf(coder, indices.Seed, silk_uniform4_iCDF.data(), 8);
@@ -13303,7 +13297,8 @@ static void silk_shell_encode_tree(ec_ctx* coder, const opus_uint8* magnitudes, 
   }
 }
 
-static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int signal_type, int quant_offset_type, int frame_length, int zero_padding_blocks) {
+static void silk_process_pulses(ec_ctx* coder, std::span<const opus_int8> pulses, int signal_type, int quant_offset_type, int zero_padding_blocks) {
+  const auto frame_length = static_cast<int>(pulses.size());
   const int block_count = (frame_length + 15) >> 4;
   std::array<int, silk_max_frame_length / 16> pulse_sums;
   std::array<int, silk_max_frame_length / 16> shifts;
@@ -13312,11 +13307,10 @@ static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int 
   std::array<silk_shell_tree, silk_max_frame_length / 16> shell_trees;
   int rate_level = 0;
 
-  std::ranges::fill(pulses.subspan(static_cast<std::size_t>(frame_length)), opus_int8{0});
   {
-    for (int index = 0; index < block_count * 16; ++index) {
+    for (int index = 0; index < frame_length; ++index)
       magnitudes[index] = static_cast<opus_uint8>(std::abs(static_cast<int>(pulses[index])));
-    }
+    std::fill(magnitudes.begin() + frame_length, magnitudes.begin() + block_count * 16, opus_uint8{0});
     for (int block_index = 0; block_index < block_count; ++block_index) {
       auto& tree = shell_trees[block_index];
       shifts[block_index] = 0;
@@ -13376,13 +13370,17 @@ static void silk_process_pulses(ec_ctx* coder, std::span<opus_int8> pulses, int 
     if (shifts[block_index] == 0) {
       continue;
     }
-    auto block_pulses = pulses.subspan(static_cast<std::size_t>(block_index * 16), 16);
-    for (const auto pulse : block_pulses) {
-      const auto magnitude = std::abs(static_cast<int>(pulse));
+    const auto offset = block_index * 16;
+    const auto write_lsb = [&](int magnitude) {
       for (int shift = shifts[block_index] - 1; shift >= 0; --shift) {
         ec_enc_binary_icdf8(coder, (magnitude >> shift) & 1, silk_lsb_iCDF[0]);
       }
-    }
+    };
+    const auto count = std::min(16, frame_length - offset);
+    for (int i = 0; i < count; ++i)
+      write_lsb(std::abs(static_cast<int>(pulses[offset + i])));
+    for (int i = count; i < 16; ++i)
+      write_lsb(0);
   }
   const auto sums = std::span<const int>{pulse_sums.data(), static_cast<std::size_t>(block_count)};
   silk_process_signs<true>(coder, pulses, signal_type, quant_offset_type, sums);
@@ -13831,7 +13829,7 @@ static auto silk_short2float_array(float* out, const opus_int16* in, opus_int32 
 }
 
 template <class State>
-static void silk_encode_indices(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
+static void silk_encode_indices(State* psEncC, const SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
                                 bool lbrr = false) {
   const int type_offset = 2 * indices.signalType + indices.quantOffsetType;
   const bool use_vad_table = lbrr || type_offset >= 2;
@@ -16114,10 +16112,22 @@ struct silk_entropy_context {
 };
 
 template <class State>
-static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
+static void silk_write_indices_and_pulses(State* psEncC, const SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding,
+                                         const opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
   silk_encode_indices(psEncC, indices, psRangeEnc, condCoding, lbrr);
-  silk_process_pulses(psRangeEnc, std::span<opus_int8>{pulses, static_cast<std::size_t>((psEncC->frame_length + 16 - 1) & ~(16 - 1))},
-                      indices.signalType, indices.quantOffsetType, psEncC->frame_length, zero_padding_blocks);
+  silk_process_pulses(psRangeEnc, std::span<const opus_int8>{pulses, static_cast<std::size_t>(psEncC->frame_length)},
+                      indices.signalType, indices.quantOffsetType, zero_padding_blocks);
+}
+
+template <class State>
+static void silk_encode_indices_and_pulses(State* psEncC, SideInfoIndices& indices, ec_enc* psRangeEnc, int condCoding, opus_int8* pulses, bool lbrr, int zero_padding_blocks = 0) {
+  if (psEncC->nb_subfr != 4)
+    indices.NLSFInterpCoef_Q2 = 4;
+  if (indices.signalType == 2 && condCoding != 0)
+    indices.LTP_scaleIndex = 0;
+  const auto frame_length = psEncC->frame_length;
+  std::fill(pulses + frame_length, pulses + ((frame_length + 15) & ~15), opus_int8{0});
+  silk_write_indices_and_pulses(psEncC, indices, psRangeEnc, condCoding, pulses, lbrr, zero_padding_blocks);
 }
 
 struct silk_sealed_frame {
@@ -16451,19 +16461,12 @@ static void silk_encode_pending_lbrr(silk_encoder* encoder, silk_encoder_state_F
         auto& indices = channel.indices[static_cast<std::size_t>(frame)];
         const int zero_padding_blocks = frames == 1 && (channel.enabled & 8) ? 3 : sparse_padding && frame == 2 ? 1
                                                                                                                 : 0;
-        SideInfoIndices scratch_indices;
-        std::array<opus_int8, silk_max_frame_length> scratch_pulses;
-        auto* coded_indices = &indices;
         auto* coded_pulses = channel.pulses[static_cast<std::size_t>(frame)].data();
-        if (price) {
-          scratch_indices = indices;
-          std::copy_n(coded_pulses, state.frame_length, scratch_pulses.data());
-          coded_indices = &scratch_indices;
-          coded_pulses = scratch_pulses.data();
-        }
         silk_entropy_context context{state};
-        silk_encode_indices_and_pulses(&context, *coded_indices, range_encoder, cond_coding, coded_pulses, true, zero_padding_blocks);
-        if (!price) {
+        if (price) {
+          silk_write_indices_and_pulses(&context, indices, range_encoder, cond_coding, coded_pulses, true, zero_padding_blocks);
+        } else {
+          silk_encode_indices_and_pulses(&context, indices, range_encoder, cond_coding, coded_pulses, true, zero_padding_blocks);
           state.ec_prevLagIndex = context.ec_prevLagIndex;
           state.ec_prevSignalType = context.ec_prevSignalType;
         }
@@ -16851,7 +16854,6 @@ static inline void silk_process_NLSFs_FLP(State*, float[2][16], opus_int16[16], 
 static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const SideInfoIndices& first_indices,
                                       const opus_int8* first_pulses, const SideInfoIndices& second_indices,
                                       const opus_int8* second_pulses) {
-  silk_entropy_context state{common};
   std::array<unsigned char, 1275> storage{};
   ec_enc prefix;
   ec_enc_init(&prefix, storage.data(), storage.size());
@@ -16859,13 +16861,9 @@ static bool silk_lbrr_frame_cost_less(const silk_encoder_state& common, const Si
   ec_enc_icdf(&prefix, 0, flags.data(), 8);
   const int start = ec_tell(&prefix);
   const auto price = [&](const SideInfoIndices& frame_indices, const opus_int8* pulses) {
-    state.ec_prevLagIndex = common.ec_prevLagIndex;
-    state.ec_prevSignalType = common.ec_prevSignalType;
-    auto indices = frame_indices;
+    silk_entropy_context state{common};
     auto coder = prefix;
-    std::array<opus_int8, silk_max_frame_length> coded_pulses;
-    std::copy_n(pulses, common.frame_length, coded_pulses.begin());
-    silk_encode_indices_and_pulses(&state, indices, &coder, 0, coded_pulses.data(), true);
+    silk_write_indices_and_pulses(&state, frame_indices, &coder, 0, pulses, true);
     return ec_tell(&coder) - start;
   };
   const int first_cost = price(first_indices, first_pulses);
