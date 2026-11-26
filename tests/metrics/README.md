@@ -32,7 +32,7 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.95x to 1.07x | 1.04x to 1.44x |
+| AUDIO | 0.92x to 1.09x | 0.98x to 1.39x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -43,13 +43,13 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
 | current_encoder_ch1 | 20448 | 20768 | Not exposed |
-| official_encoder_ch1 | 31824 | 31952 | 31668 |
-| current_decoder_ch1 | 8432 | 8320 | Not exposed |
-| official_decoder_ch1 | 18496 | 18576 | 18468 |
+| official_encoder_ch1 | 31824 | 31920 | 31668 |
+| current_decoder_ch1 | 8400 | 8320 | Not exposed |
+| official_decoder_ch1 | 18448 | 18560 | 18468 |
 | current_encoder_ch2 | 30528 | 30464 | Not exposed |
-| official_encoder_ch2 | 48928 | 48736 | 48684 |
-| current_decoder_ch2 | 17536 | 16224 | Not exposed |
-| official_decoder_ch2 | 27088 | 27248 | 27236 |
+| official_encoder_ch2 | 48880 | 48736 | 48684 |
+| current_decoder_ch2 | 17600 | 16240 | Not exposed |
+| official_decoder_ch2 | 27168 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -59,8 +59,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 392992 | 0 | 19712 | 412704 |
-| android | 386955 | 152 | 19664 | 406771 |
+| host | 396684 | 0 | 19712 | 416396 |
+| android | 387827 | 152 | 19664 | 407643 |
 
 [Object-size data](binary_size.csv).
 
