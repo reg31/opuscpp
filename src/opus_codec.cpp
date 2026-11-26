@@ -16169,6 +16169,11 @@ struct silk_sealed_packet {
   std::array<silk_sealed_frame, 3> primary;
 };
 
+struct silk_sealed_prefix {
+  std::array<silk_sealed_frame, 3> frames;
+  int mask;
+};
+
 static_assert(std::is_trivially_copyable_v<silk_sealed_packet>);
 static_assert(offsetof(silk_sealed_packet, vad_code) == 0);
 struct silk_sealed_range {
@@ -16195,7 +16200,8 @@ static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, 
   }
 }
 
-[[nodiscard]] static bool read_sealed_silk_primary(unsigned char* body, int bytes, opus_uint32 range, silk_sealed_packet& packet) noexcept {
+[[nodiscard]] static bool read_sealed_silk_primary(unsigned char* body, int bytes, opus_uint32 range, silk_sealed_packet& packet,
+                                                  silk_sealed_prefix* prefix = nullptr) noexcept {
   ec_dec decoder;
   ec_dec_init(&decoder, body, static_cast<opus_uint32>(bytes));
   silk_decoder_state state{};
@@ -16210,34 +16216,42 @@ static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, 
   }
   const int backup_mask = ec_dec_bit_logp(&decoder, 1) ? 1 + ec_dec_icdf8(&decoder, silk_LBRR_flags_3_iCDF.data()) : 0;
   std::array<opus_int16, silk_max_frame_length> pulses;
+  const auto capture = [&](silk_sealed_frame& frame) {
+    frame.indices = state.indices;
+    for (int i = 0; i < silk_max_frame_length; ++i) {
+      if (pulses[i] < -128 || pulses[i] > 127)
+        return false;
+      frame.pulses[i] = static_cast<opus_int8>(pulses[i]);
+    }
+    return true;
+  };
+  if (prefix != nullptr)
+    prefix->mask = backup_mask;
   for (int frame = 0; frame < 3; ++frame) {
     if (backup_mask & (1 << frame)) {
       const int conditional = frame > 0 && (backup_mask & (1 << (frame - 1))) ? 2 : 0;
-      silk_decode_symbols(&state, &decoder, frame, 1, conditional, pulses, false);
+      silk_decode_symbols(&state, &decoder, frame, 1, conditional, pulses, prefix != nullptr);
+      if (prefix != nullptr && !capture(prefix->frames[frame]))
+        return false;
     }
   }
   for (int frame = 0; frame < 3; ++frame) {
     silk_decode_symbols(&state, &decoder, frame, 0, frame == 0 ? 0 : 2, pulses, true);
-    auto& recorded = packet.primary[frame];
-    recorded.indices = state.indices;
-    for (int i = 0; i < silk_max_frame_length; ++i) {
-      if (pulses[i] < -128 || pulses[i] > 127)
-        return false;
-      recorded.pulses[i] = static_cast<opus_int8>(pulses[i]);
-    }
+    if (!capture(packet.primary[frame]))
+      return false;
   }
   packet.vad_code = static_cast<opus_uint8>(vad + 1);
   return decoder.error == 0 && decoder.rng == range && ec_tell(&decoder) + 17 > bytes * 8;
 }
 
-[[nodiscard]] static int write_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes,
-                                                  silk_sealed_packet& previous, silk_sealed_packet& current) noexcept {
-  std::array<unsigned char, 1275> staged;
+[[nodiscard]] static int stage_sealed_silk_payload(std::span<unsigned char> staged, std::array<silk_sealed_frame, 3>& backup,
+                                                   int mask, silk_sealed_packet& current, opus_uint32& range) noexcept {
   ec_enc encoder;
-  ec_enc_init(&encoder, staged.data(), static_cast<opus_uint32>(bytes - 1));
+  ec_enc_init(&encoder, staged.data(), static_cast<opus_uint32>(staged.size()));
   constexpr std::array<opus_uint8, 2> placeholder{240, 0};
   ec_enc_icdf(&encoder, 0, placeholder.data(), 8);
-  ec_enc_icdf(&encoder, 6, silk_LBRR_flags_3_iCDF.data(), 8);
+  if (mask)
+    ec_enc_icdf(&encoder, mask - 1, silk_LBRR_flags_3_iCDF.data(), 8);
   struct {
     int nb_subfr = 4;
     int fs_kHz = 16;
@@ -16247,29 +16261,50 @@ static void capture_sealed_silk_frame(silk_lbrr_channel_state& side, int frame, 
     decltype(silk_encoder_state::ec_prevSignalType) ec_prevSignalType = 0;
   } context;
   for (int frame = 0; frame < 3; ++frame) {
-    auto& entry = previous.primary[frame];
-    entry.indices.signalType = std::max<opus_uint8>(entry.indices.signalType, 1);
-    silk_encode_indices_and_pulses(&context, entry.indices, &encoder, frame == 0 ? 0 : 2, entry.pulses.data(), true);
+    if (!(mask & (1 << frame)))
+      continue;
+    auto& entry = backup[frame];
+    const int conditional = frame > 0 && (mask & (1 << (frame - 1))) ? 2 : 0;
+    silk_encode_indices_and_pulses(&context, entry.indices, &encoder, conditional, entry.pulses.data(), true);
   }
-  const int cap_bits = (bytes - 1) * 8;
+  const int cap_bits = static_cast<int>(staged.size()) * 8;
   if (encoder.error || ec_tell(&encoder) > cap_bits)
-    return bytes;
+    return 0;
   for (int frame = 0; frame < 3; ++frame) {
     auto& entry = current.primary[frame];
     silk_encode_indices_and_pulses(&context, entry.indices, &encoder, frame == 0 ? 0 : 2, entry.pulses.data(), false);
     if (encoder.error || ec_tell(&encoder) > cap_bits)
-      return bytes;
+      return 0;
   }
-  ec_enc_patch_initial_bits(&encoder, ((current.vad_code - 1U) << 1) | 1U, 4);
+  ec_enc_patch_initial_bits(&encoder, ((current.vad_code - 1U) << 1) | (mask != 0), 4);
   const int body_bytes = (ec_tell(&encoder) + 7) >> 3;
-  if (encoder.error || body_bytes <= 0 || body_bytes >= bytes)
-    return bytes;
+  if (encoder.error || body_bytes <= 0 || body_bytes > static_cast<int>(staged.size()))
+    return 0;
   ec_enc_done(&encoder);
   if (encoder.error || encoder.end_offs != 0 || encoder.offs > static_cast<unsigned>(body_bytes))
+    return 0;
+  range = encoder.rng;
+  return body_bytes;
+}
+
+[[nodiscard]] static int omit_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes) noexcept {
+  silk_sealed_packet current;
+  silk_sealed_prefix backup;
+  if (!read_sealed_silk_primary(data + 1, bytes - 1, st->rangeFinal, current, &backup) || backup.mask == 0)
     return bytes;
-  std::copy_n(staged.data(), body_bytes, data + 1);
-  st->rangeFinal = encoder.rng;
-  return body_bytes + 1;
+  std::array<unsigned char, 1275> scratch;
+  const auto staged = std::span{scratch}.first(static_cast<std::size_t>(bytes - 1));
+  auto check = current;
+  opus_uint32 range;
+  if (stage_sealed_silk_payload(staged, backup.frames, backup.mask, check, range) != bytes - 1 ||
+      range != st->rangeFinal || std::memcmp(staged.data(), data + 1, bytes - 1) != 0)
+    return bytes;
+  const int body = stage_sealed_silk_payload(staged, backup.frames, 0, current, range);
+  if (body == 0)
+    return bytes;
+  std::copy_n(staged.data(), body, data + 1);
+  st->rangeFinal = range;
+  return body + 1;
 }
 
 static int replace_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int bytes) noexcept {
@@ -16280,12 +16315,18 @@ static int replace_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int 
     return bytes;
   auto& side = encoder->lbrr->channels[1];
   auto saved = sealed_silk_storage(side);
+  constexpr auto omitted_media = std::byte{0xff};
+  const bool fec = st->use_vbr && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0;
   const bool compatible = bytes > 2 && bytes <= 1276 && data[0] == (11 << 3) && st->rangeFinal &&
-                          st->use_vbr && st->silk_mode.useInBandFEC && st->silk_mode.packetLossPercentage > 0;
+                          fec;
   const bool retain = compatible && (data[1] & 0xe0) != 0xe0;
-  const bool offer = compatible && (data[1] & 0x10) != 0 && saved[0] != std::byte{};
-  if (!retain && !offer) {
-    saved[0] = std::byte{};
+  const bool backup_present = compatible && (data[1] & 0x10) != 0;
+  const bool omit = backup_present && saved[0] == omitted_media;
+  const bool offer = backup_present && !omit && saved[0] != std::byte{};
+  if (!retain && !offer && !omit) {
+    const bool empty_packet = fec && bytes == 2 && st->rangeFinal == 0 && data[0] == (11 << 3) && data[1] == 0 &&
+                              encoder->lbrr->frames_per_packet == 3 && encoder->lbrr->channels_in_packet == 1;
+    saved[0] = empty_packet ? omitted_media : std::byte{};
     side.flags.fill(0);
     return bytes;
   }
@@ -16313,7 +16354,21 @@ static int replace_sealed_silk_backup(OpusEncoder* st, unsigned char* data, int 
     std::memcpy(saved.data(), &current, sizeof(current));
   else
     saved[0] = std::byte{};
-  return offer ? write_sealed_silk_backup(st, data, bytes, previous, current) : bytes;
+  if (omit)
+    return omit_sealed_silk_backup(st, data, bytes);
+  if (!offer)
+    return bytes;
+  for (auto& entry : previous.primary)
+    entry.indices.signalType = std::max<opus_uint8>(entry.indices.signalType, 1);
+  std::array<unsigned char, 1275> scratch;
+  const auto staged = std::span{scratch}.first(static_cast<std::size_t>(bytes - 1));
+  opus_uint32 range;
+  const int body = stage_sealed_silk_payload(staged, previous.primary, 7, current, range);
+  if (body == 0)
+    return bytes;
+  std::copy_n(staged.data(), body, data + 1);
+  st->rangeFinal = range;
+  return body + 1;
 }
 
 struct silk_gain_search_bound {
