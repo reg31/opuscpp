@@ -8758,6 +8758,36 @@ template <typename Sample> [[nodiscard]] static inline auto deemphasis_output(ce
 }
 
 template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* pcm, int N, int C, int downsample, celt_sig* mem) {
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  if (C == 2
+#if defined(OPUSCPP_SIMD_NEON)
+      && opuscpp_simd::finite_samples(mem, 2)
+      && opuscpp_simd::finite_samples(in[0], N)
+      && opuscpp_simd::finite_samples(in[1], N)
+#endif
+  ) {
+    celt_sig left_mem = mem[0], right_mem = mem[1];
+    const auto* left = in[0];
+    const auto* right = in[1];
+    int output = 0;
+    int next_output = 0;
+    for (int j = 0; j < N; ++j) {
+      const celt_sig left_sample = left[j] + 1e-30f + left_mem;
+      const celt_sig right_sample = right[j] + 1e-30f + right_mem;
+      left_mem = celt_preemphasis[0] * left_sample;
+      right_mem = celt_preemphasis[0] * right_sample;
+      if (j == next_output) {
+        pcm[output] = deemphasis_output<Sample>(left_sample);
+        pcm[output + 1] = deemphasis_output<Sample>(right_sample);
+        output += 2;
+        next_output += downsample;
+      }
+    }
+    mem[0] = zero_tiny_float_mem(left_mem);
+    mem[1] = zero_tiny_float_mem(right_mem);
+    return;
+  }
+#endif
   for (int c = 0; c < C; ++c) {
     celt_sig m = mem[c];
     const auto* x = in[c];
