@@ -1131,7 +1131,7 @@
   "checks": {
     "documents": {
       "README.md": {
-        "sha256": "944dade8f98d1ff6997c359b025fcff334ca039064b4a66e1c76898bdf5929bb",
+        "sha256": "d85062d17c641037f29c7168133ceb5b1a26959249628f2a9b5525ee3db8b4bd",
         "utf8": true,
         "lf_only": true
       },
@@ -1146,7 +1146,7 @@
         "lf_only": true
       },
       "tests/metrics/README.md": {
-        "sha256": "9f28d72f49a66b83ad33cb4f830cc440d2233645c7e5f8cd800ac6c1bc9a7a63",
+        "sha256": "3b91d87f1bc044ebcde66c0edd838581958677377bc2f717bc44438077d604c3",
         "utf8": true,
         "lf_only": true
       }

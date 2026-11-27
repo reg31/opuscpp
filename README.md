@@ -17,6 +17,8 @@ Minimal integration looks like:
 ## Highlights
 
 - C++23 source embedding with no separate library.
+- AVX2 intrinsics on x86-64 and NEON intrinsics on AArch64 by default.
+  Define `OPUSCPP_NO_SIMD` to select the portable C++ paths.
 - Standard Opus packet format and a focused single-stream API/CTL subset.
 - Optional in-band FEC, guarded DTX and a mono-VOIP denoiser, each disabled by default.
 
@@ -100,6 +102,11 @@ Memory uses 256 instances per group across three fresh processes with FEC and de
 | Decoder stereo | 17,584 B | 27,168 B | -35.3% |
 
 ## Compatibility coverage
+
+**RFC 8251 decode conformance — PASS (24/24).**
+
+In the legacy RFC 6716 comparison, opuscpp and pinned official Opus both scored
+14/24 and missed the same 10 cases.
 
 [Build and run instructions](tests/README.md) · [Detailed metrics](tests/metrics/README.md).
 

@@ -106,10 +106,11 @@ In the retained scalar S17 checkpoint, music EOF quality met the frozen toleranc
 
 | Measurement | Result |
 |---|---:|
-| RFC 8251 decode configurations | 24/24 |
+| RFC 8251 decode conformance | PASS (24/24) |
 | Encode interoperability cases | 96/96 |
 
-The original RFC 6716 vector set passed 14/24 comparisons.
+In the legacy RFC 6716 comparison, opuscpp and pinned official Opus both scored
+14/24 and missed the same 10 cases.
 
 [API and compatibility data](compatibility_validation.json).
 
