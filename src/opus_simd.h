@@ -460,15 +460,20 @@ inline void pitch_xcorr(const float* x, const float* y, float* out, int length, 
   else
     _mm256_storeu_ps(out, sum);
 #else
-  static_assert(!Masked);
+  const int second_offset = Masked ? lags - 4 : 4;
   auto first = vdupq_n_f32(0.f), second = first;
   for (int i = 0; i < length; ++i) {
     const auto sample = vdupq_n_f32(x[i]);
     first = vaddq_f32(first, vmulq_f32(sample, vld1q_f32(y + i)));
-    second = vaddq_f32(second, vmulq_f32(sample, vld1q_f32(y + i + 4)));
+    second = vaddq_f32(second, vmulq_f32(sample, vld1q_f32(y + i + second_offset)));
   }
-  vst1q_f32(out, first);
-  vst1q_f32(out + 4, second);
+  if constexpr (Masked) {
+    vst1q_f32(out + second_offset, second);
+    vst1q_f32(out, first);
+  } else {
+    vst1q_f32(out, first);
+    vst1q_f32(out + 4, second);
+  }
 #endif
 }
 
