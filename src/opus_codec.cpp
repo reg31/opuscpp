@@ -328,9 +328,6 @@ static void silk_lpc_synth_q14(opus_int32* s, const opus_int16* A_Q12, int order
   return prediction;
 }
 
-struct OpusEncoder;
-struct CeltEncoderInternal;
-struct CeltDecoderInternal;
 struct CeltModeInternal;
 [[nodiscard]] static constexpr auto celt_mode() noexcept -> const CeltModeInternal*;
 using opus_val16 = float;
@@ -355,10 +352,6 @@ using ec_dec = ec_ctx;
 [[nodiscard]] inline auto ec_tell(const ec_ctx* state) noexcept -> int {
   return state->nbits_total - std::bit_width(state->rng);
 }
-[[nodiscard]] static auto ec_tell_out(const ec_ctx* state) noexcept -> int {
-  return ec_tell(state);
-}
-
 static opus_uint32 ec_tell_frac(const ec_ctx* _this) {
   constexpr std::array<opus_uint16, 8> corrections{35733, 38967, 42495, 46340, 50535, 55109, 60097, 65535};
   const opus_uint32 nbits = _this->nbits_total << 3;
@@ -390,8 +383,6 @@ static void ec_enc_done(ec_enc* _this);
 static int ec_read_byte(ec_dec* _this) {
   return _this->offs < _this->storage ? _this->buf[_this->offs++] : 0;
 }
-
-static int ec_dec_icdf(ec_dec* _this, const unsigned char* _icdf, unsigned _ftb);
 
 static void ec_dec_normalize_if_needed(ec_dec* _this) {
   while (_this->rng <= ec_code_bot) {
@@ -680,7 +671,6 @@ struct alignas(8) CeltDecoderInternal {
 };
 static_assert(sizeof(CeltDecoderInternal) == 40);
 
-struct OpusDecoder;
 [[nodiscard]] constexpr auto bitrate_to_bits(opus_int32 bitrate, opus_int32 sample_rate, opus_int32 frame_size) noexcept -> opus_int32 {
   return bitrate * 6 / (6 * sample_rate / frame_size);
 }
@@ -1445,16 +1435,16 @@ static int opus_decode_frame_slice(OpusDecoder* st, const unsigned char* data, o
       copy_n_items(auxiliary_storage.data(), static_cast<std::size_t>(frame_size * st->channels), pcm);
     }
   }
-  if (!decode_fec && mode != opus_mode_celt_only && data != nullptr && ec_tell_out(&dec) + 17 + 20 * (mode == opus_mode_hybrid) <= 8 * len) {
+  if (!decode_fec && mode != opus_mode_celt_only && data != nullptr && ec_tell(&dec) + 17 + 20 * (mode == opus_mode_hybrid) <= 8 * len) {
     if (mode == opus_mode_hybrid) {
       redundancy = ec_dec_bit_logp(&dec, 12);
     } else
       redundancy = 1;
     if (redundancy) {
       celt_to_silk = ec_dec_bit_logp(&dec, 1);
-      redundancy_bytes = mode == opus_mode_hybrid ? static_cast<opus_int32>(ec_dec_uint(&dec, 256)) + 2 : len - ((ec_tell_out(&dec) + 7) >> 3);
+      redundancy_bytes = mode == opus_mode_hybrid ? static_cast<opus_int32>(ec_dec_uint(&dec, 256)) + 2 : len - ((ec_tell(&dec) + 7) >> 3);
       len -= redundancy_bytes;
-      if (len * 8 < ec_tell_out(&dec)) {
+      if (len * 8 < ec_tell(&dec)) {
         len = 0;
         redundancy_bytes = 0;
         redundancy = 0;
@@ -6442,7 +6432,6 @@ static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt
 
 static void comb_filter_const_tiled(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
   int i = 0;
-#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
   constexpr int width = 8;
   if (T >= 18 && N >= width) {
     const auto before = std::less<const opus_val32*>{};
@@ -6463,7 +6452,6 @@ static void comb_filter_const_tiled(opus_val32* y, opus_val32* x, int T, int N, 
       }
     }
   }
-#endif
   if (i < N)
     comb_filter_const_c(y + i, x + i, T, N - i, g10, g11, g12);
 }
@@ -6505,7 +6493,6 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
                                       : opuscpp_simd::finite_samples(oldest, overlap + 4) &&
                                             opuscpp_simd::finite_samples(x - near - 2, overlap + 4);
       if (finite_history && opuscpp_simd::finite_samples(x, overlap)) {
-        // Each delayed read precedes the entire in-place tile.
         for (; i + width <= overlap; i += width) {
           std::array<opus_val32, width> samples;
           for (int lane = 0; lane < width; ++lane) {
@@ -6599,10 +6586,6 @@ static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
 #if defined(OPUSCPP_ENABLE_TEST_HOOKS)
 int opuscpp_test_hybrid_target(int base_target, int LM, int silk_offset, float tf_estimate) noexcept {
   return celt_hybrid_target(base_target, LM, silk_offset, static_cast<opus_val16>(tf_estimate));
-}
-
-int opuscpp_test_preprocess_filter_state(const OpusEncoder* st) noexcept {
-  return st->preprocess_filter_state;
 }
 #endif
 
@@ -9430,12 +9413,12 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
     }
   }
   opus_int32 total_bits = len * 8;
-  opus_int32 tell = ec_tell_out(dec);
+  opus_int32 tell = ec_tell(dec);
   const int silence = tell >= total_bits ? 1 : tell == 1 ? ec_dec_bit_logp(dec, 15)
                                                          : 0;
   if (silence) {
     tell = len * 8;
-    dec->nbits_total += tell - ec_tell_out(dec);
+    dec->nbits_total += tell - ec_tell(dec);
   }
   opus_val16 postfilter_gain = 0;
   int postfilter_pitch = 0;
@@ -9445,14 +9428,14 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
       const int octave = ec_dec_uint(dec, 6);
       postfilter_pitch = (16 << octave) + ec_dec_bits(dec, 4 + octave) - 1;
       const int qg = ec_dec_bits(dec, 3);
-      if (ec_tell_out(dec) + 2 <= total_bits) {
+      if (ec_tell(dec) + 2 <= total_bits) {
         postfilter_tapset = ec_dec_icdf(dec, shared_three_step_icdf.data(), 2);
       }
       postfilter_gain = (.09375f) * (qg + 1);
     }
   }
-  const int isTransient = LM > 0 && ec_tell_out(dec) + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
-  tell = ec_tell_out(dec);
+  const int isTransient = LM > 0 && ec_tell(dec) + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
+  tell = ec_tell(dec);
   const int shortBlocks = isTransient ? M : 0;
   const int intra_ener = tell + 3 <= total_bits ? ec_dec_bit_logp(dec, 3) : 0;
   if (!intra_ener && st->loss_duration != 0) {
@@ -9483,7 +9466,7 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
   auto& [tf_res, offsets, fine_quant, pulses, fine_priority] = band_workspace;
   const auto& cap = celt_caps_for(LM, C);
   process_tf_changes<false>(start, end, isTransient, tf_res.data(), LM, 0, dec);
-  tell = ec_tell_out(dec);
+  tell = ec_tell(dec);
   const int spread_decision = tell + 4 <= total_bits ? ec_dec_icdf(dec, spread_icdf.data(), 5) : 2;
   int total_boost;
   tell = process_celt_dynalloc<false>(dec, {eBands, static_cast<std::size_t>(nbEBands + 1)}, offsets, cap, start, end, C, LM, total_bits,
@@ -9535,7 +9518,7 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
                   shortBlocks, spread_decision, dual_stereo, intensity, tf_res.data(), len * (8 << 3) - anti_collapse_rsv, balance, dec, LM,
                   codedBands, &st->rng, st->channels == 1);
   const int anti_collapse_on = anti_collapse_rsv > 0 ? ec_dec_bits(dec, 1) : 0;
-  process_energy_finalise<false>(start, end, oldBandE, nullptr, fine_quant.data(), fine_priority.data(), len * 8 - ec_tell_out(dec), dec, C);
+  process_energy_finalise<false>(start, end, oldBandE, nullptr, fine_quant.data(), fine_priority.data(), len * 8 - ec_tell(dec), dec, C);
   if (anti_collapse_on) {
     anti_collapse(spectrum.data(), collapse_masks.data(), LM, C, N, start, end, oldBandE, oldLogE, oldLogE2, pulses.data(), st->rng);
   }
@@ -9558,7 +9541,7 @@ static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char
   st->loss_duration = 0;
   st->last_frame_type = 1;
   celt_store_decode_history(st, decoder);
-  return ec_tell_out(dec) > 8 * len ? -3 : frame_size / st->downsample;
+  return ec_tell(dec) > 8 * len ? -3 : frame_size / st->downsample;
 }
 
 static int celt_decode_pitch_480(CeltDecoderInternal* st, opus_res* pcm, int frame_size) {

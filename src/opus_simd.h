@@ -207,7 +207,6 @@ struct DecoderLpcTaps {
 inline DecoderLpcTaps prepare_decoder_lpc(const std::int16_t* coefficients) noexcept {
   DecoderLpcTaps taps;
 #if defined(OPUSCPP_SIMD_AVX2)
-  // Each 128-bit half of VPACKSSDW interleaves the two input groups.
   constexpr int slots[]{0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7};
   for (int i = 0; i < 12; ++i)
     taps.older[slots[i]] = coefficients[15 - i];
@@ -236,7 +235,6 @@ inline DecoderLpcTaps prepare_decoder_lpc(const std::int16_t* coefficients) noex
   const auto l = _mm256_packs_epi32(_mm256_srai_epi32(_mm256_slli_epi32(a, 16), 16), _mm256_srai_epi32(_mm256_slli_epi32(b, 16), 16));
   const auto older = sum_words(lpc_terms(h, l, _mm256_loadu_si256(reinterpret_cast<const __m256i*>(taps.older.data()))));
 #endif
-  // Preserve four independent 32-bit loads at the recurrent end of the history.
   const volatile std::int32_t* newest = end;
   const auto tap = [&](int i) {
     const auto h = static_cast<std::int64_t>(newest[-1 - i]);
