@@ -9928,6 +9928,9 @@ struct celt_generated_tables {
   std::array<celt_coef, 1800> mdct_trig;
   std::array<celt_coef, 120> window;
   std::array<std::array<celt_coef, 2>, 120> comb_fade;
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+  std::array<std::array<float,120>,2> pitch_twiddles;
+#endif
 };
 
 constexpr auto celt_sine(double angle) noexcept -> double {
@@ -9973,6 +9976,12 @@ static bool fill_celt_tables(celt_generated_tables& tables) noexcept {
       const double phase = -2.0 * pi * static_cast<double>(index) / 480.0;
       tables.fft_twiddles[index] = {static_cast<float>(celt_cosine(phase)), static_cast<float>(celt_sine(phase))};
     }
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+    for (std::size_t k = 0; k < tables.pitch_twiddles[0].size(); ++k) {
+      tables.pitch_twiddles[0][k] = tables.fft_twiddles[2*k].r;
+      tables.pitch_twiddles[1][k] = tables.fft_twiddles[2*k].i;
+    }
+#endif
     std::size_t offset = 0;
     for (int size = 1920; size >= 240; size >>= 1) {
       for (int index = 0; index < size / 2; ++index) {
@@ -10376,6 +10385,247 @@ static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, fl
   clt_mdct_backward_overlap_c(out1, window, overlap);
 }
 
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+template<int Count>
+[[nodiscard]] static bool pitch_fft_bounds(const float* input, opus_uint32& peak, int& minimum) noexcept {
+  static_assert(Count % 8 == 0);
+  const auto mask = _mm256_set1_epi32(0x7fffffff);
+  const auto bound = _mm256_set1_epi32(std::bit_cast<int>(1e12f));
+  const auto zero = _mm256_setzero_si256();
+  const auto unused_exp = _mm256_set1_epi32(255);
+  auto peak8 = zero, min8 = unused_exp, invalid = zero;
+  for (int i = 0; i < Count; i += 8) {
+    const auto bits = _mm256_castps_si256(_mm256_loadu_ps(input + i));
+    const auto abs_bits = _mm256_and_si256(bits, mask);
+    const auto exp = _mm256_srli_epi32(abs_bits, 23);
+    const auto iszero = _mm256_cmpeq_epi32(abs_bits, zero);
+    const auto denormal = _mm256_andnot_si256(iszero, _mm256_cmpeq_epi32(exp, zero));
+    invalid = _mm256_or_si256(invalid, _mm256_or_si256(denormal, _mm256_cmpgt_epi32(abs_bits, bound)));
+    peak8 = _mm256_max_epi32(peak8, abs_bits);
+    min8 = _mm256_min_epi32(min8, _mm256_blendv_epi8(exp, unused_exp, iszero));
+  }
+  if (!_mm256_testz_si256(invalid, invalid))
+    return false;
+  std::array<opus_int32,8> peaks, mins;
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(peaks.data()), peak8);
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(mins.data()), min8);
+  peak = static_cast<opus_uint32>(std::ranges::max(peaks));
+  minimum = std::ranges::min(mins);
+  return true;
+}
+
+[[nodiscard]] static bool pitch_fft_restore(float* output, int undo_shift) noexcept {
+  const auto lower = _mm256_set1_epi32(std::max(1, 1 - undo_shift));
+  const auto upper = _mm256_set1_epi32(std::min(254, 254 - undo_shift));
+  const auto mask = _mm256_set1_epi32(0x7fffffff);
+  const auto zero = _mm256_setzero_si256();
+  const auto delta = _mm256_set1_epi32(std::bit_cast<opus_int32>(static_cast<opus_uint32>(undo_shift) << 23));
+  auto invalid = zero;
+  for (int plane : {0, 240}) {
+    for (int i = 0; i < 120; i += 8) {
+      const auto bits = _mm256_castps_si256(_mm256_loadu_ps(output + plane + i));
+      const auto abs_bits = _mm256_and_si256(bits, mask);
+      const auto exp = _mm256_srli_epi32(abs_bits, 23);
+      const auto outside = _mm256_or_si256(_mm256_cmpgt_epi32(lower, exp), _mm256_cmpgt_epi32(exp, upper));
+      const auto iszero = _mm256_cmpeq_epi32(abs_bits, zero);
+      invalid = _mm256_or_si256(invalid, _mm256_andnot_si256(iszero, outside));
+      const auto scaled_bits = _mm256_add_epi32(bits, _mm256_andnot_si256(iszero, delta));
+      _mm256_storeu_ps(output + plane + i, _mm256_castsi256_ps(scaled_bits));
+    }
+  }
+  return _mm256_testz_si256(invalid, invalid) != 0;
+}
+#endif
+
+
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+struct pitch_fft_complex8 {
+  __m256 r, i;
+};
+
+struct pitch_fft_complex_pair {
+  __m256 real, imag;
+};
+
+static inline pitch_fft_complex_pair operator+(pitch_fft_complex_pair a, pitch_fft_complex_pair b) {
+  return {_mm256_add_ps(a.real, b.real), _mm256_add_ps(a.imag, b.imag)};
+}
+
+static inline pitch_fft_complex_pair operator-(pitch_fft_complex_pair a, pitch_fft_complex_pair b) {
+  return {_mm256_sub_ps(a.real, b.real), _mm256_sub_ps(a.imag, b.imag)};
+}
+
+static inline pitch_fft_complex_pair operator*(pitch_fft_complex_pair a, float b) {
+  const auto scale = _mm256_set1_ps(b);
+  return {_mm256_mul_ps(a.real, scale), _mm256_mul_ps(a.imag, scale)};
+}
+
+static inline pitch_fft_complex_pair pitch_fft_rotate(pitch_fft_complex_pair a, __m256 real, __m256 imag) {
+  return {_mm256_sub_ps(_mm256_mul_ps(a.real, real), _mm256_mul_ps(a.imag, imag)),
+          _mm256_add_ps(_mm256_mul_ps(a.real, imag), _mm256_mul_ps(a.imag, real))};
+}
+
+static inline pitch_fft_complex_pair pitch_fft_rotate(pitch_fft_complex_pair a, kiss_twiddle_cpx phase) {
+  return pitch_fft_rotate(a, _mm256_set1_ps(phase.r), _mm256_set1_ps(phase.i));
+}
+
+static inline std::array<pitch_fft_complex_pair, 4> pitch_fft_radix4(
+    pitch_fft_complex_pair a, pitch_fft_complex_pair b, pitch_fft_complex_pair c, pitch_fft_complex_pair d) {
+  const auto t0 = a + c, t1 = a - c, t2 = b + d, t3 = b - d;
+  return {t0 + t2,
+          pitch_fft_complex_pair{_mm256_add_ps(t1.real, t3.imag), _mm256_sub_ps(t1.imag, t3.real)},
+          t0 - t2,
+          pitch_fft_complex_pair{_mm256_sub_ps(t1.real, t3.imag), _mm256_add_ps(t1.imag, t3.real)}};
+}
+
+static inline void pitch_fft_transpose4(float* dst, __m256 a, __m256 b, __m256 c, __m256 d) {
+  const auto ab_low = _mm256_unpacklo_ps(a, b), cd_low = _mm256_unpacklo_ps(c, d);
+  const auto ab_high = _mm256_unpackhi_ps(a, b), cd_high = _mm256_unpackhi_ps(c, d);
+  _mm256_storeu_ps(dst, _mm256_shuffle_ps(ab_low, cd_low, 0x44));
+  _mm256_storeu_ps(dst + 8, _mm256_shuffle_ps(ab_low, cd_low, 0xee));
+  _mm256_storeu_ps(dst + 16, _mm256_shuffle_ps(ab_high, cd_high, 0x44));
+  _mm256_storeu_ps(dst + 24, _mm256_shuffle_ps(ab_high, cd_high, 0xee));
+}
+
+static void pitch_fft_forward_pair(const float* x, const float* y, float factor_x, float factor_y,
+                                   std::span<float, 960> frequency, std::span<float, 960> workspace) {
+  constexpr int half = 240, plane = 2 * half;
+  const auto* twiddles = celt_tables.fft_twiddles.data();
+  const auto join = [](__m128 a, __m128 b) {
+    return _mm256_insertf128_ps(_mm256_castps128_ps256(a), b, 1);
+  };
+
+  // Each YMM has four consecutive positions of X below the same four of Y.
+  const auto read_input = [&](int p, bool zero_x) -> pitch_fft_complex_pair {
+    const auto xl = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2*p);
+    const auto xh = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2*p + 4);
+    const auto yl = _mm_loadu_ps(y + 2*p), yh = _mm_loadu_ps(y + 2*p + 4);
+    const auto scale = join(_mm_set1_ps(factor_x), _mm_set1_ps(factor_y));
+    return {_mm256_mul_ps(join(_mm_shuffle_ps(xl, xh, 0x88), _mm_shuffle_ps(yl, yh, 0x88)), scale),
+            _mm256_mul_ps(join(_mm_shuffle_ps(xl, xh, 0xdd), _mm_shuffle_ps(yl, yh, 0xdd)), scale)};
+  };
+  float* const first = frequency.data();
+  for (int p = 0; p < 60; p += 4) {
+    auto z = pitch_fft_radix4(read_input(p, false), read_input(p + 60, false),
+                              read_input(p + 120, true), read_input(p + 180, true));
+    for (int digit = 1; digit < 4; ++digit) {
+      const auto a = twiddles[2 * digit * p], b = twiddles[2 * digit * (p + 1)];
+      const auto c = twiddles[2 * digit * (p + 2)], d = twiddles[2 * digit * (p + 3)];
+      const auto real = _mm_setr_ps(a.r, b.r, c.r, d.r), imag = _mm_setr_ps(a.i, b.i, c.i, d.i);
+      z[digit] = pitch_fft_rotate(z[digit], join(real, real), join(imag, imag));
+    }
+    pitch_fft_transpose4(first + 8*p, z[0].real, z[1].real, z[2].real, z[3].real);
+    pitch_fft_transpose4(first + plane + 8*p, z[0].imag, z[1].imag, z[2].imag, z[3].imag);
+  }
+
+  const auto load = [](const float* data, int stride, int pos) -> pitch_fft_complex_pair {
+    return {_mm256_loadu_ps(data + pos), _mm256_loadu_ps(data + stride + pos)};
+  };
+  const auto store = [](float* data, int stride, int pos, pitch_fft_complex_pair value) {
+    _mm256_storeu_ps(data + pos, value.real);
+    _mm256_storeu_ps(data + stride + pos, value.imag);
+  };
+  float* const second = workspace.data();
+  for (int p = 0; p < 15; ++p) {
+    const int in = 8*p, out = 32*p;
+    const auto z = pitch_fft_radix4(load(first, plane, in), load(first, plane, in + 120),
+                                   load(first, plane, in + 240), load(first, plane, in + 360));
+    store(second, plane, out, z[0]);
+    for (int digit = 1; digit < 4; ++digit)
+      store(second, plane, out + 8*digit, pitch_fft_rotate(z[digit], twiddles[8*p*digit]));
+  }
+
+  alignas(32) std::array<float, 240> tail;
+  for (int column = 0; column < 32; column += 8) {
+    for (int p = 0; p < 5; ++p) {
+      const int in = column + 32*p, out = 8*p;
+      const auto a = load(second, plane, in), b = load(second, plane, in + 160), c = load(second, plane, in + 320);
+      const auto sum = b + c, dif = (b - c) * 0.8660254037844386f;
+      const auto mid = a - sum * .5f;
+      store(tail.data(), 120, out, a + sum);
+      store(tail.data(), 120, out + 40,
+            pitch_fft_rotate({_mm256_add_ps(mid.real, dif.imag), _mm256_sub_ps(mid.imag, dif.real)}, twiddles[32*p]));
+      store(tail.data(), 120, out + 80,
+            pitch_fft_rotate({_mm256_sub_ps(mid.real, dif.imag), _mm256_add_ps(mid.imag, dif.real)}, twiddles[64*p]));
+    }
+    const auto store_frequency = [&](int pos, pitch_fft_complex_pair value) {
+      _mm_storeu_ps(frequency.data() + pos, _mm256_castps256_ps128(value.real));
+      _mm_storeu_ps(frequency.data() + half + pos, _mm256_castps256_ps128(value.imag));
+      _mm_storeu_ps(frequency.data() + plane + pos, _mm256_extractf128_ps(value.real, 1));
+      _mm_storeu_ps(frequency.data() + plane + half + pos, _mm256_extractf128_ps(value.imag, 1));
+    };
+    for (int group = 0; group < 3; ++group) {
+      const int in = 40*group, out = column/2 + 16*group;
+      const auto a = load(tail.data(), 120, in);
+      const auto b = load(tail.data(), 120, in + 8), c = load(tail.data(), 120, in + 16);
+      const auto d = load(tail.data(), 120, in + 24), e = load(tail.data(), 120, in + 32);
+      const auto s14 = b + e, s23 = c + d, d14 = b - e, d23 = c - d;
+      constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f;
+      constexpr float c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
+      const auto e1 = a + s14*c1 + s23*c2, f1 = d14*s1 + d23*s2;
+      const auto e2 = a + s14*c2 + s23*c1, f2 = d14*s2 - d23*s1;
+      store_frequency(out, a + s14 + s23);
+      store_frequency(out + 48, {_mm256_add_ps(e1.real, f1.imag), _mm256_sub_ps(e1.imag, f1.real)});
+      store_frequency(out + 96, {_mm256_add_ps(e2.real, f2.imag), _mm256_sub_ps(e2.imag, f2.real)});
+      store_frequency(out + 144, {_mm256_sub_ps(e2.real, f2.imag), _mm256_add_ps(e2.imag, f2.real)});
+      store_frequency(out + 192, {_mm256_sub_ps(e1.real, f1.imag), _mm256_add_ps(e1.imag, f1.real)});
+    }
+  }
+}
+
+
+[[nodiscard]] static int pitch_fft_pack_spectrum(float* spectrum, const float* x, const float* y) noexcept {
+  constexpr int half = 240;
+  const auto reverse = _mm256_setr_epi32(7, 6, 5, 4, 3, 2, 1, 0);
+  const auto unpack_scale = _mm256_set1_ps(.5f);
+  const auto spectrum_scale = _mm256_set1_ps(1.f / half);
+  const auto sign = _mm256_castsi256_ps(_mm256_set1_epi32(std::numeric_limits<int>::min()));
+  const auto reversed = [&](const float* p) {
+    return _mm256_permutevar8x32_ps(_mm256_loadu_ps(p), reverse);
+  };
+  const auto unpack = [&](const float* frequency, int k) {
+    const auto ar = _mm256_loadu_ps(frequency + k);
+    const auto ai = _mm256_loadu_ps(frequency + half + k);
+    const auto br = reversed(frequency + half - k - 7);
+    const auto bi = reversed(frequency + 2 * half - k - 7);
+    return std::array{
+      pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ar, br)),
+                         _mm256_mul_ps(unpack_scale, _mm256_sub_ps(ai, bi))},
+      pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ai, bi)),
+                         _mm256_mul_ps(unpack_scale, _mm256_sub_ps(br, ar))}
+    };
+  };
+  const auto correlate = [](pitch_fft_complex8 a, pitch_fft_complex8 b) {
+    return pitch_fft_complex8{_mm256_add_ps(_mm256_mul_ps(a.r, b.r), _mm256_mul_ps(a.i, b.i)),
+                              _mm256_sub_ps(_mm256_mul_ps(a.r, b.i), _mm256_mul_ps(a.i, b.r))};
+  };
+  int k = 1;
+  for (; k + 8 <= half / 2; k += 8) {
+    const auto [xe, xo] = unpack(x, k);
+    const auto [ye, yo] = unpack(y, k);
+    const auto a = correlate(xe, ye);
+    const auto b = correlate(xo, yo);
+    const auto even_r = _mm256_add_ps(a.r, b.r);
+    const auto even_i = _mm256_add_ps(a.i, b.i);
+    const auto c = correlate(xe, yo);
+    const auto d = correlate(xo, ye);
+    const auto wr = _mm256_loadu_ps(celt_tables.pitch_twiddles[0].data() + k);
+    const auto wi = _mm256_loadu_ps(celt_tables.pitch_twiddles[1].data() + k);
+    const auto odd_r = _mm256_add_ps(c.r,_mm256_add_ps(_mm256_mul_ps(d.r,wr),_mm256_mul_ps(d.i,wi)));
+    const auto odd_i = _mm256_add_ps(c.i,_mm256_sub_ps(_mm256_mul_ps(d.i,wr),_mm256_mul_ps(d.r,wi)));
+    const auto v0 = _mm256_mul_ps(_mm256_sub_ps(even_r,odd_i),spectrum_scale);
+    const auto v1 = _mm256_mul_ps(_mm256_xor_ps(_mm256_add_ps(even_i,odd_r),sign),spectrum_scale);
+    const auto v2 = _mm256_mul_ps(_mm256_add_ps(even_r,odd_i),spectrum_scale);
+    const auto v3 = _mm256_mul_ps(_mm256_sub_ps(even_i,odd_r),spectrum_scale);
+    _mm256_storeu_ps(spectrum + k,v0);
+    _mm256_storeu_ps(spectrum + half + k,v1);
+    _mm256_storeu_ps(spectrum + half - k - 7,_mm256_permutevar8x32_ps(v2,reverse));
+    _mm256_storeu_ps(spectrum + 2 * half - k - 7,_mm256_permutevar8x32_ps(v3,reverse));
+  }
+  return k;
+}
+#endif
+
 static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<const opus_val16, 484> y,
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation) {
   static_assert(sizeof(opus_val16) == sizeof(opus_uint32));
@@ -10386,6 +10636,15 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   constexpr auto bound = std::bit_cast<opus_uint32>(1e12f);
   opus_uint32 peak_x = 0, peak_y = 0;
   int minimum_x = 255, minimum_y = 255;
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+  if (!pitch_fft_bounds<240>(x.data(), peak_x, minimum_x) || !pitch_fft_bounds<480>(y.data(), peak_y, minimum_y))
+    return false;
+  for (int i = 480; i < 484; ++i) {
+    const auto bits = magnitude(y[i]);
+    if (bits > bound || (bits != 0 && (bits >> 23) == 0))
+      return false;
+  }
+#else
   for (int i = 0; i < 240; ++i) {
     const auto bits = magnitude(x[i]);
     const int exponent = static_cast<int>(bits >> 23);
@@ -10406,6 +10665,7 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
         minimum_y = std::min(minimum_y, exponent);
     }
   }
+#endif
   if (peak_x == 0 || peak_y == 0 || std::fegetround() != FE_TONEAREST)
     return false;
   const int shift_x = 127 - static_cast<int>(peak_x >> 23);
@@ -10418,7 +10678,9 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   };
   const float factor_x = power_of_two(shift_x);
   const float factor_y = power_of_two(shift_y);
+#if !defined(OPUSCPP_SIMD_AVX2) || FLT_EVAL_METHOD != 0
   const float restore = power_of_two(undo_shift);
+#endif
   std::fenv_t original_environment, held_environment;
   if (std::fegetenv(&original_environment) != 0)
     return false;
@@ -10428,6 +10690,13 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   }
 
   constexpr int half = 240;
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+  std::array<float, 4 * half> frequency, workspace;
+  pitch_fft_forward_pair(x.data(), y.data(), factor_x, factor_y, frequency, workspace);
+  auto* x_frequency = frequency.data();
+  auto* y_frequency = x_frequency + 2 * half;
+  auto* spectrum = workspace.data();
+#else
   std::array<float, 2 * half> x_buffer, y_buffer, scratch;
   for (int i = 0; i < half; ++i) {
     x_buffer[i] = i < half / 2 ? x[2 * i] * factor_x : 0.f;
@@ -10439,6 +10708,8 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   auto* free_buffer = x_frequency == x_buffer.data() ? scratch.data() : x_buffer.data();
   auto* y_frequency = celt_fft<true>(y_buffer.data(), free_buffer, 1);
   auto* spectrum = y_frequency == y_buffer.data() ? free_buffer : y_buffer.data();
+
+#endif
 
   constexpr float scale = 1.f / half;
   for (const int k : {0, half / 2}) {
@@ -10457,7 +10728,11 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   const auto correlate = [](kiss_twiddle_cpx a, kiss_twiddle_cpx b) -> kiss_twiddle_cpx {
     return {a.r * b.r + a.i * b.i, a.r * b.i - a.i * b.r};
   };
-  for (int k = 1; k < half / 2; ++k) {
+  int k = 1;
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+  k = pitch_fft_pack_spectrum(spectrum, x_frequency, y_frequency);
+#endif
+  for (; k < half / 2; ++k) {
     const auto [xe, xo] = unpack(x_frequency, k);
     const auto [ye, yo] = unpack(y_frequency, k);
     const auto even_first = correlate(xe, ye);
@@ -10476,6 +10751,12 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
   }
   float* res = celt_fft<true>(spectrum, x_frequency, 1);
 
+#if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
+  if (!pitch_fft_restore(res, undo_shift)) {
+    std::fesetenv(&original_environment);
+    return false;
+  }
+#else
   for (int lag = 0; lag < 240; ++lag) {
     const auto bits = magnitude(res[lag / 2 + (lag % 2) * half]);
     const int exponent = static_cast<int>(bits >> 23);
@@ -10484,12 +10765,15 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
       return false;
     }
   }
+#endif
   if (std::fetestexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW | FE_DIVBYZERO) != 0) {
     std::fesetenv(&original_environment);
     return false;
   }
+#if !defined(OPUSCPP_SIMD_AVX2) || FLT_EVAL_METHOD != 0
   for (int lag = 0; lag < 240; ++lag)
     res[lag / 2 + (lag % 2) * half] *= restore;
+#endif
   if (std::feupdateenv(&original_environment) != 0) {
     std::fesetenv(&original_environment);
     return false;
