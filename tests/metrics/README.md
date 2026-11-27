@@ -32,8 +32,8 @@ In the retained scalar S17 checkpoint, music EOF quality met the frozen toleranc
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 1.08x to 1.19x | 1.16x to 2.08x |
-| Speech and FEC60 | 1.03x to 1.35x | 1.46x to 1.89x |
+| AUDIO | 1.15x to 1.25x | 1.24x to 2.04x |
+| Speech and FEC60 | 1.05x to 1.34x | 1.48x to 1.90x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -43,14 +43,14 @@ In the retained scalar S17 checkpoint, music EOF quality met the frozen toleranc
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20448 | 20784 | Not exposed |
-| official_encoder_ch1 | 31824 | 31904 | 31668 |
-| current_decoder_ch1 | 8384 | 8288 | Not exposed |
-| official_decoder_ch1 | 18464 | 18560 | 18468 |
-| current_encoder_ch2 | 30528 | 30464 | Not exposed |
+| current_encoder_ch1 | 20480 | 20784 | Not exposed |
+| official_encoder_ch1 | 31808 | 31872 | 31668 |
+| current_decoder_ch1 | 8384 | 8304 | Not exposed |
+| official_decoder_ch1 | 18480 | 18592 | 18468 |
+| current_encoder_ch2 | 30512 | 30464 | Not exposed |
 | official_encoder_ch2 | 48880 | 48720 | 48684 |
-| current_decoder_ch2 | 17648 | 16256 | Not exposed |
-| official_decoder_ch2 | 27120 | 27264 | 27236 |
+| current_decoder_ch2 | 17664 | 16256 | Not exposed |
+| official_decoder_ch2 | 27104 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -60,8 +60,8 @@ In the retained scalar S17 checkpoint, music EOF quality met the frozen toleranc
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 416796 | 0 | 19712 | 436508 |
-| android | 382411 | 152 | 19664 | 402227 |
+| host | 425988 | 0 | 20672 | 446660 |
+| android | 393951 | 152 | 20624 | 414727 |
 
 [Object-size data](binary_size.csv).
 

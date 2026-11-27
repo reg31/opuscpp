@@ -1,12 +1,12 @@
 {
-  "source_commit": "363419926744cacacc81df53b4a3c37f0cff0fec",
-  "source_blob": "61d9eafe386d0d8ea49eaf8a60610ce91d62dca1",
-  "source_sha256": "7659714b968d0c1dedba8d118a7b7521507f3c7d748952681ca471e3c3d5b067",
+  "source_commit": "e9a7be76e128d69b46f929726f506a94375a1bb9",
+  "source_blob": "9d897108e006b72fb429a17adb1432d1be188436",
+  "source_sha256": "5a94ec925c3993910bd7fda1606c32c9b2b894c27b2cecdee908568cdda6bd9e",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "5efb534268e063b20dd8de9b16df18da587e8c94fd6403c73623b0af13c74a25",
   "harness_sha256": "7c934cb1b7bfd959d5ffb51a01e62cad1b20bc90ab750c6608983343271268eb",
-  "binary_sha256": "ed99823b67fc510dfd4f88e67157a8f88da2fff4d9e34cd12c55b48aba294d56",
+  "binary_sha256": "ebaca137607770e2cc1b544853a364f743f8ea67627500549cc352554a4c9350",
   "application": "AUDIO",
   "channels": 2,
   "complexity": 10,
@@ -17,5 +17,229 @@
   "isolated": true,
   "decoder_packets": "Same official packets for both decoders",
   "official_source_tree": "40b491d5e2ffd34f7b22c7592fb92ff2c66eb688",
-  "official_flags": "CMake Release -O2 -DNDEBUG with SIMD enabled; upstream AVX2 runtime selection"
+  "official_flags": "CMake Release -O2 -DNDEBUG with SIMD enabled; upstream AVX2 runtime selection",
+  "audio_timing_attempts": {
+    "selection": "Published the complete second AUDIO sweep from the same executable, compiler, affinity and priority",
+    "reason": "In the first 192 kbps sweep both implementations shifted timing regimes between repetitions 3 and 5. The separately sorted medians came from different regimes.",
+    "first_medians": [
+      {
+        "bitrate": "16000",
+        "encode_speedx": "1.150353",
+        "current_encode_ms": "214.928700",
+        "official_encode_ms": "247.243900",
+        "opuscpp_effective_kbps": "16.434533",
+        "official_effective_kbps": "16.461867",
+        "decode_speedx": "2.112801",
+        "current_decode_ms": "31.563500",
+        "official_decode_ms": "66.687400"
+      },
+      {
+        "bitrate": "24000",
+        "encode_speedx": "1.228624",
+        "current_encode_ms": "218.488000",
+        "official_encode_ms": "268.439500",
+        "opuscpp_effective_kbps": "24.463600",
+        "official_effective_kbps": "24.476533",
+        "decode_speedx": "1.531650",
+        "current_decode_ms": "49.427300",
+        "official_decode_ms": "75.705300"
+      },
+      {
+        "bitrate": "32000",
+        "encode_speedx": "1.201705",
+        "current_encode_ms": "221.887100",
+        "official_encode_ms": "266.642900",
+        "opuscpp_effective_kbps": "32.511200",
+        "official_effective_kbps": "32.512267",
+        "decode_speedx": "1.527258",
+        "current_decode_ms": "50.310900",
+        "official_decode_ms": "76.837700"
+      },
+      {
+        "bitrate": "48000",
+        "encode_speedx": "1.167219",
+        "current_encode_ms": "249.066800",
+        "official_encode_ms": "290.715500",
+        "opuscpp_effective_kbps": "48.400667",
+        "official_effective_kbps": "48.402267",
+        "decode_speedx": "1.387022",
+        "current_decode_ms": "63.698700",
+        "official_decode_ms": "88.351500"
+      },
+      {
+        "bitrate": "64000",
+        "encode_speedx": "1.199833",
+        "current_encode_ms": "191.179500",
+        "official_encode_ms": "229.383500",
+        "opuscpp_effective_kbps": "64.401067",
+        "official_effective_kbps": "64.402000",
+        "decode_speedx": "1.326580",
+        "current_decode_ms": "53.956700",
+        "official_decode_ms": "71.577900"
+      },
+      {
+        "bitrate": "96000",
+        "encode_speedx": "1.203503",
+        "current_encode_ms": "236.558900",
+        "official_encode_ms": "284.699400",
+        "opuscpp_effective_kbps": "96.400000",
+        "official_effective_kbps": "96.403733",
+        "decode_speedx": "1.332556",
+        "current_decode_ms": "68.080500",
+        "official_decode_ms": "90.721100"
+      },
+      {
+        "bitrate": "128000",
+        "encode_speedx": "1.219821",
+        "current_encode_ms": "267.558800",
+        "official_encode_ms": "326.373800",
+        "opuscpp_effective_kbps": "128.400000",
+        "official_effective_kbps": "128.405200",
+        "decode_speedx": "1.317500",
+        "current_decode_ms": "82.573600",
+        "official_decode_ms": "108.790700"
+      },
+      {
+        "bitrate": "192000",
+        "encode_speedx": "0.862120",
+        "current_encode_ms": "438.383700",
+        "official_encode_ms": "377.939200",
+        "opuscpp_effective_kbps": "192.400000",
+        "official_effective_kbps": "192.415600",
+        "decode_speedx": "1.311431",
+        "current_decode_ms": "135.161400",
+        "official_decode_ms": "177.254900"
+      },
+      {
+        "bitrate": "256000",
+        "encode_speedx": "1.175388",
+        "current_encode_ms": "439.957000",
+        "official_encode_ms": "517.120000",
+        "opuscpp_effective_kbps": "256.400000",
+        "official_effective_kbps": "256.436000",
+        "decode_speedx": "1.230906",
+        "current_decode_ms": "157.397300",
+        "official_decode_ms": "193.741300"
+      }
+    ],
+    "selected_medians": [
+      {
+        "bitrate": "16000",
+        "encode_speedx": "1.152836",
+        "current_encode_ms": "153.292900",
+        "official_encode_ms": "176.721500",
+        "opuscpp_effective_kbps": "16.434533",
+        "official_effective_kbps": "16.461867",
+        "decode_speedx": "2.041297",
+        "current_decode_ms": "23.287300",
+        "official_decode_ms": "47.536300"
+      },
+      {
+        "bitrate": "24000",
+        "encode_speedx": "1.225001",
+        "current_encode_ms": "156.362900",
+        "official_encode_ms": "191.544700",
+        "opuscpp_effective_kbps": "24.463600",
+        "official_effective_kbps": "24.476533",
+        "decode_speedx": "1.526217",
+        "current_decode_ms": "36.033600",
+        "official_decode_ms": "54.995100"
+      },
+      {
+        "bitrate": "32000",
+        "encode_speedx": "1.172741",
+        "current_encode_ms": "159.090600",
+        "official_encode_ms": "186.572100",
+        "opuscpp_effective_kbps": "32.511200",
+        "official_effective_kbps": "32.512267",
+        "decode_speedx": "1.472823",
+        "current_decode_ms": "36.462900",
+        "official_decode_ms": "53.703400"
+      },
+      {
+        "bitrate": "48000",
+        "encode_speedx": "1.197040",
+        "current_encode_ms": "173.576500",
+        "official_encode_ms": "207.778100",
+        "opuscpp_effective_kbps": "48.400667",
+        "official_effective_kbps": "48.402267",
+        "decode_speedx": "1.402034",
+        "current_decode_ms": "45.437500",
+        "official_decode_ms": "63.704900"
+      },
+      {
+        "bitrate": "64000",
+        "encode_speedx": "1.191893",
+        "current_encode_ms": "193.644000",
+        "official_encode_ms": "230.803000",
+        "opuscpp_effective_kbps": "64.401067",
+        "official_effective_kbps": "64.402000",
+        "decode_speedx": "1.346262",
+        "current_decode_ms": "53.836400",
+        "official_decode_ms": "72.477900"
+      },
+      {
+        "bitrate": "96000",
+        "encode_speedx": "1.235426",
+        "current_encode_ms": "231.601900",
+        "official_encode_ms": "286.127000",
+        "opuscpp_effective_kbps": "96.400000",
+        "official_effective_kbps": "96.403733",
+        "decode_speedx": "1.352579",
+        "current_decode_ms": "68.063900",
+        "official_decode_ms": "92.061800"
+      },
+      {
+        "bitrate": "128000",
+        "encode_speedx": "1.246625",
+        "current_encode_ms": "261.078400",
+        "official_encode_ms": "325.466800",
+        "opuscpp_effective_kbps": "128.400000",
+        "official_effective_kbps": "128.405200",
+        "decode_speedx": "1.267137",
+        "current_decode_ms": "83.002100",
+        "official_decode_ms": "105.175000"
+      },
+      {
+        "bitrate": "192000",
+        "encode_speedx": "1.189658",
+        "current_encode_ms": "294.205900",
+        "official_encode_ms": "350.004300",
+        "opuscpp_effective_kbps": "192.400000",
+        "official_effective_kbps": "192.415600",
+        "decode_speedx": "1.270895",
+        "current_decode_ms": "96.723300",
+        "official_decode_ms": "122.925200"
+      },
+      {
+        "bitrate": "256000",
+        "encode_speedx": "1.181683",
+        "current_encode_ms": "306.710400",
+        "official_encode_ms": "362.434400",
+        "opuscpp_effective_kbps": "256.400000",
+        "official_effective_kbps": "256.436000",
+        "decode_speedx": "1.238451",
+        "current_decode_ms": "112.401200",
+        "official_decode_ms": "139.203400"
+      }
+    ],
+    "first_raw": "timing_speed_first",
+    "selected_raw": "timing_speed",
+    "first_command": {
+      "argv": [
+        "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-171724\\speed.exe"
+      ],
+      "started_utc": "2026-11-27T17:20:39.678377+00:00",
+      "elapsed_seconds": 66.21039279992692,
+      "exit": 0
+    },
+    "selected_command": {
+      "argv": [
+        "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-171724\\speed.exe"
+      ],
+      "started_utc": "2026-11-27T17:23:49.030756+00:00",
+      "elapsed_seconds": 60.43576829996891,
+      "exit": 0
+    }
+  }
 }

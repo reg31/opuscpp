@@ -25,7 +25,12 @@ floating-point results across builds.
 On Windows AVX2, the combined options improved Short64 and FEC24_60 encoding
 throughput by about 4–5% and accelerated the Music48 packet-loss replay. Ordinary
 Music48 playback averaged about 0.3% slower with results overlapping the
-identical-build control spread. Native NEON timing remains unmeasured.
+identical-build control spread.
+
+Separate A9 Pro tests measured 4.13% / 4.66% / 4.05% less encoding CPU time for the NEON
+paired forward pitch FFT and 0.96% / 1.04% / 1.14% less for the 5–7-lag correlation tail
+at 16, 24 and 48 kbps, respectively. Both variants matched the ARM baseline on packet
+bytes and decoded PCM.
 
 The CELT decode body's 128-byte alignment controls code placement in GCC and
 Clang AVX2 builds. The subframe call boundary preserves

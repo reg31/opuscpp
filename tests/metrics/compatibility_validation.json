@@ -1,11 +1,11 @@
 {
-  "source_commit": "363419926744cacacc81df53b4a3c37f0cff0fec",
-  "source_blob": "61d9eafe386d0d8ea49eaf8a60610ce91d62dca1",
-  "source_sha256": "7659714b968d0c1dedba8d118a7b7521507f3c7d748952681ca471e3c3d5b067",
+  "source_commit": "e9a7be76e128d69b46f929726f506a94375a1bb9",
+  "source_blob": "9d897108e006b72fb429a17adb1432d1be188436",
+  "source_sha256": "5a94ec925c3993910bd7fda1606c32c9b2b894c27b2cecdee908568cdda6bd9e",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "5efb534268e063b20dd8de9b16df18da587e8c94fd6403c73623b0af13c74a25",
-  "source_root": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-143108\\snapshot",
+  "source_root": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-171724\\snapshot",
   "setup_helper_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
   "opus_compare_sha256": "a4889f7bbb082167e895723d0155090d8901faa3b70ae2d5f740cb915fca7c2c",
   "vector_file_hashes": {
@@ -228,7 +228,7 @@
     },
     "native_off_waveform": {
       "status": "MEASURED",
-      "reference_library": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-143108\\official\\libopus.a",
+      "reference_library": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-171724\\official\\libopus.a",
       "configured_official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
       "scope": "Independent fresh 48kHz Float32 Native/OFF decoder defaults per case, continuous same packets, decode_fec=0, raw frame support without lookahead crop; numeric errors exclude reported nonfinite pairs.",
       "acceptance_threshold": null,
