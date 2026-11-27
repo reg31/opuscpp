@@ -6431,6 +6431,45 @@ static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt
   }
 }
 
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+[[nodiscard]] static inline auto comb_filter_sample(opus_val32 center, const opus_val32* delayed, celt_coef g10,
+                                                  celt_coef g11, celt_coef g12) noexcept -> opus_val32 {
+  const opus_val32 delayed_0 = delayed[0];
+  const opus_val32 delayed_1 = delayed[1] + delayed[-1];
+  const opus_val32 delayed_2 = delayed[2] + delayed[-2];
+  return center + g10 * delayed_0 + g11 * delayed_1 + g12 * delayed_2;
+}
+
+static void comb_filter_const_tiled(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
+  int i = 0;
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  constexpr int width = 8;
+  if (T >= 18 && N >= width) {
+    const auto before = std::less<const opus_val32*>{};
+    const bool disjoint = !before(y, x + N) || !before(x - T - 2, y + N);
+    if ((x == y || disjoint) && std::isfinite(g10) && std::isfinite(g11) && std::isfinite(g12)) {
+      const auto* delayed = x - T - 2;
+      const bool joined = T <= N + 2;
+      const int delayed_length = joined ? N + T + 2 : N + 4;
+      if (opuscpp_simd::finite_samples(delayed, delayed_length) &&
+          (joined || opuscpp_simd::finite_samples(x, N))) {
+        const auto* history = x - T;
+        for (; i + width <= N; i += width) {
+          std::array<opus_val32, width> samples;
+          for (int lane = 0; lane < width; ++lane)
+            samples[lane] = comb_filter_sample(x[i + lane], history + i + lane, g10, g11, g12);
+          std::ranges::copy(samples, y + i);
+        }
+      }
+    }
+  }
+#endif
+  if (i < N)
+    comb_filter_const_c(y + i, x + i, T, N - i, g10, g11, g12);
+}
+
+#endif
+
 static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opus_val16 g0, opus_val16 g1, int tapset0, int tapset1, int overlap) {
   int i;
   celt_coef g00, g01, g02, g10, g11, g12;
@@ -6451,7 +6490,41 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
   if (g0 == g1 && T0 == T1 && tapset0 == tapset1) {
     overlap = 0;
   }
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  i = 0;
+  constexpr int width = 8;
+  if (overlap >= width && T0 >= 18 && T1 >= 18) {
+    const auto [near, far] = std::minmax(T0, T1);
+    const auto before = std::less<const opus_val32*>{};
+    const bool disjoint = !before(y, x + overlap) || !before(x - far - 2, y + overlap);
+    if ((x == y || disjoint) && std::isfinite(g0) && std::isfinite(g1)) {
+      const int distance = far - near;
+      const auto* oldest = x - far - 2;
+      const bool finite_history = distance <= overlap + 4
+                                       ? opuscpp_simd::finite_samples(oldest, overlap + 4 + distance)
+                                       : opuscpp_simd::finite_samples(oldest, overlap + 4) &&
+                                             opuscpp_simd::finite_samples(x - near - 2, overlap + 4);
+      if (finite_history && opuscpp_simd::finite_samples(x, overlap)) {
+        // Each delayed read precedes the entire in-place tile.
+        for (; i + width <= overlap; i += width) {
+          std::array<opus_val32, width> samples;
+          for (int lane = 0; lane < width; ++lane) {
+            const int j = i + lane;
+            const celt_coef f = celt_comb_fade()[j][0];
+            const celt_coef complement = celt_comb_fade()[j][1];
+            const opus_val32 old_period = g00 * x[j - T0] + g01 * (x[j - T0 + 1] + x[j - T0 - 1]) + g02 * (x[j - T0 + 2] + x[j - T0 - 2]);
+            const opus_val32 new_period = g10 * x[j - T1] + g11 * (x[j - T1 + 1] + x[j - T1 - 1]) + g12 * (x[j - T1 + 2] + x[j - T1 - 2]);
+            samples[lane] = x[j] + complement * old_period + f * new_period;
+          }
+          std::ranges::copy(samples, y + i);
+        }
+      }
+    }
+  }
+  for (; i < overlap; i++) {
+#else
   for (i = 0; i < overlap; i++) {
+#endif
     const celt_coef f = celt_comb_fade()[i][0];
     const celt_coef complement = celt_comb_fade()[i][1];
     const opus_val32 old_period = g00 * x[i - T0] + g01 * (x[i - T0 + 1] + x[i - T0 - 1]) + g02 * (x[i - T0 + 2] + x[i - T0 - 2]);
@@ -6464,7 +6537,11 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
     }
     return;
   }
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  comb_filter_const_tiled(y + i, x + i, T1, N - i, g10, g11, g12);
+#else
   comb_filter_const_c(y + i, x + i, T1, N - i, g10, g11, g12);
+#endif
 }
 
 static constexpr std::array<std::array<signed char, 8>, 4> tf_select_table =
