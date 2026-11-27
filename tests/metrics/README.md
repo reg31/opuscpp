@@ -24,7 +24,7 @@ These benchmarks compare Opuscpp with official Opus.
 | celt_highband_error | Lower | 161 | 173 |
 | stereo_width_error | Lower | 25 | 13 |
 
-Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields across 9 rates. Music16 high-band error retained its pre-audit miss. Each 60-second stereo clip uses one 20 ms drain. [Music EOF quality and payload rates](quality_run_metadata.json).
+In the retained scalar S17 checkpoint, music EOF quality met the frozen tolerance in 107/108 fields across 9 rates. Music16 high-band error retained its pre-audit miss. Each 60-second stereo clip uses one 20 ms drain. [Music EOF quality and payload rates](quality_run_metadata.json).
 
 [Matrix](production_quality_matrix.csv) · [Publication](production_quality_published.csv) · [Headline controls](quality_official_full_precision.csv) · [Denoising](voice_denoise_broad.csv) · [Boundary rates](voice_denoise_boundary.csv).
 
@@ -32,7 +32,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Workload | Encode ratios | Decode ratios |
 |---|---:|---:|
-| AUDIO | 0.96x to 1.08x | 1.05x to 1.46x |
+| AUDIO | 1.09x to 1.19x | 1.16x to 2.01x |
+| Speech and FEC60 | 1.03x to 1.36x | 1.44x to 1.90x |
 
 [Durations, ratios and payload rates](speed_vs_official_intrinsics_60s.csv) · [Encode](encode_speed_vs_official.csv) · [Decode](decode_speed_vs_official.csv) · [Speech and FEC60 data](voice_speed_vs_official.csv).
 
@@ -42,14 +43,14 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | State | Private bytes/instance | Working-set bytes/instance | Official API bytes |
 |---|---:|---:|---:|
-| current_encoder_ch1 | 20448 | 20784 | Not exposed |
-| official_encoder_ch1 | 31824 | 31920 | 31668 |
-| current_decoder_ch1 | 8400 | 8304 | Not exposed |
-| official_decoder_ch1 | 18448 | 18560 | 18468 |
+| current_encoder_ch1 | 20432 | 20784 | Not exposed |
+| official_encoder_ch1 | 31824 | 31904 | 31668 |
+| current_decoder_ch1 | 8384 | 8288 | Not exposed |
+| official_decoder_ch1 | 18432 | 18560 | 18468 |
 | current_encoder_ch2 | 30528 | 30464 | Not exposed |
-| official_encoder_ch2 | 48880 | 48736 | 48684 |
-| current_decoder_ch2 | 17600 | 16240 | Not exposed |
-| official_decoder_ch2 | 27184 | 27264 | 27236 |
+| official_encoder_ch2 | 48880 | 48720 | 48684 |
+| current_decoder_ch2 | 17584 | 16224 | Not exposed |
+| official_decoder_ch2 | 27168 | 27264 | 27236 |
 
 [Memory data](memory_vs_official.csv).
 
@@ -59,8 +60,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 
 | Object | Text bytes | Data bytes | BSS bytes | Total bytes |
 |---|---:|---:|---:|---:|
-| host | 396684 | 0 | 19712 | 416396 |
-| android | 387827 | 152 | 19664 | 407643 |
+| host | 416796 | 0 | 19712 | 436508 |
+| android | 382411 | 152 | 19664 | 402227 |
 
 [Object-size data](binary_size.csv).
 
@@ -107,6 +108,8 @@ Nominal S17 scalar music EOF quality met the frozen tolerance in 107/108 fields 
 |---|---:|
 | RFC 8251 decode configurations | 24/24 |
 | Encode interoperability cases | 96/96 |
+
+The original RFC 6716 vector set passed 14/24 comparisons.
 
 [API and compatibility data](compatibility_validation.json).
 
