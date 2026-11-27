@@ -3,34 +3,25 @@
 `src/` contains only the embeddable library:
 
 - `opus_codec.h` - public API declarations and constants.
-- `opus_codec.cpp` - self-contained C++23 implementation.
+- `opus_codec.cpp` - C++23 implementation.
+- `opus_simd.h` - internal AVX2 and NEON kernels for the default 64-bit builds.
 
 Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
 This repository intentionally omits a packaged build-system wrapper; the expected integration model is to compile `opus_codec.cpp` directly inside your project.
 
-## Optional SIMD
+## SIMD builds
 
-For an opt-in build, place `opus_simd.h` beside `opus_codec.cpp` and define the
-desired options when compiling `opus_codec.cpp`.
+The codec uses AVX2 on x86-64 and NEON on AArch64 by default. Keep
+`opus_simd.h` beside `opus_codec.cpp`. An x86-64 SIMD build requires AVX2
+support in the CPU and operating system. Selection happens at compile time.
 
-| Option | Kernel |
-| --- | --- |
-| `OPUSCPP_SIMD_NSQ` | SILK encoder fixed-point prediction |
-| `OPUSCPP_SIMD_DECODER_LPC` | SILK decoder fixed-point synthesis |
-| `OPUSCPP_SIMD_RESAMPLER` | SILK output upsampling and interpolation |
-| `OPUSCPP_SIMD_NSQ_QUANTIZE` | SILK encoder four-state delayed-decision quantizer |
-| `OPUSCPP_SIMD_SILK_DOT` | SILK floating-point ordered inner product |
-| `OPUSCPP_SIMD_CELT_PITCH` | CELT pitch cross-correlation |
-
-The options use AVX2 on a suitably targeted x86-64 build or NEON on AArch64.
-Other targets use the portable kernels. An AVX2-targeted codec requires AVX2
-support on the CPU and operating system. Use the regular two-file embedding
-for a single portable binary. The source-level options do not provide runtime
-CPU dispatch.
+Define `OPUSCPP_NO_SIMD` when compiling `opus_codec.cpp` to use only the
+portable codec paths. This build needs just `opus_codec.cpp` and `opus_codec.h`.
+Other architectures use the portable paths automatically.
 
 The qualified SIMD configurations are GCC 16.2 on Windows x86-64 and Clang 21
-from the Android NDK on AArch64. Compile with `-ffp-contract=off` when enabling
-the floating-point options to preserve the scalar arithmetic order.
+from the Android NDK on AArch64. Use `-ffp-contract=off` when comparing
+floating-point results across builds.
 
 On Windows AVX2, the combined options improved Short64 and FEC24_60 encoding
 throughput by about 4–5% and accelerated the Music48 packet-loss replay. Ordinary
@@ -42,9 +33,6 @@ Clang AVX2 builds. The subframe call boundary preserves
 floating-point status in the tested AArch64 Clang build. The cause of the
 inlined build's status difference remains unresolved. Recheck floating-point
 status when qualifying another compiler.
-
-The default embedding continues to use `opus_codec.cpp` and
-`opus_codec.h` without any options.
 
 ## Compatibility goal
 

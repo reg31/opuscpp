@@ -15,15 +15,16 @@ Minimal integration looks like:
 
 ## Highlights
 
-- Portable C++23 source embedding: `src/opus_codec.cpp` and `src/opus_codec.h`; no separate library is required.
+- C++23 source embedding with no separate library.
 - Standard Opus packet format and a focused single-stream API/CTL subset.
 - Optional in-band FEC, guarded DTX and a mono-VOIP denoiser, each disabled by default.
-- No assembly or SIMD-intrinsic dependency.
+- AVX2 on x86-64 and NEON on AArch64 by default. Define `OPUSCPP_NO_SIMD` for the portable codec paths.
 
 ## Quick start
 
-Put `src/opus_codec.h` and `src/opus_codec.cpp` in your project. Include `opus_codec.h` where you
-use the API, and compile `opus_codec.cpp` as part of your normal application build.
+Keep the three files in `src/` together. Include `opus_codec.h` where you use the API and compile
+`opus_codec.cpp` with your application. For x86-64 CPUs without AVX2, define `OPUSCPP_NO_SIMD`
+when compiling the codec. Scalar builds also support embedding just `opus_codec.cpp` and `opus_codec.h`.
 
 Use the normal supported Opus-style API:
 

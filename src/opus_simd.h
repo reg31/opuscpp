@@ -7,14 +7,14 @@
 #include <cstdint>
 #include <cstring>
 
-#if (defined(__aarch64__) && defined(__ARM_NEON)) || (defined(_M_ARM64) && !defined(_M_ARM64EC))
+#if defined(__aarch64__) || defined(_M_ARM64)
 #define OPUSCPP_SIMD_NEON 1
 #if defined(_MSC_VER) && !defined(__clang__)
 #include <arm64_neon.h>
 #else
 #include <arm_neon.h>
 #endif
-#elif defined(__AVX2__) && (defined(__x86_64__) || defined(_M_X64))
+#elif defined(__x86_64__) || defined(_M_X64)
 #define OPUSCPP_SIMD_AVX2 1
 #include <immintrin.h>
 #endif
@@ -69,7 +69,6 @@ inline std::int32_t sum_words(__m256i sum) noexcept {
   return sum_words(lpc_terms(h, l, c));
 #endif
 }
-#if defined(OPUSCPP_SIMD_RESAMPLER)
 inline void resampler_up2_hq(std::int32_t* state, std::int16_t* out, const std::int16_t* in, int length,
                              const std::array<std::int16_t, 3>& early,
                              const std::array<std::int16_t, 3>& late) noexcept {
@@ -199,9 +198,7 @@ struct FirThreePhases {
   }
 };
 #endif
-#endif
 
-#if defined(OPUSCPP_SIMD_DECODER_LPC)
 struct DecoderLpcTaps {
   std::array<std::int16_t, 16> older{};
   std::array<std::int16_t, 4> newest{};
@@ -247,9 +244,7 @@ inline DecoderLpcTaps prepare_decoder_lpc(const std::int16_t* coefficients) noex
   };
   return std::bit_cast<std::int32_t>(8u + static_cast<std::uint32_t>(older) + tap(0) + tap(1) + tap(2) + tap(3));
 }
-#endif
 
-#if defined(OPUSCPP_SIMD_SILK_DOT) || defined(OPUSCPP_SIMD_CELT_PITCH)
 inline bool finite_samples(const float* input, int count) noexcept {
   int i = 0;
 #if defined(OPUSCPP_SIMD_AVX2)
@@ -276,10 +271,7 @@ inline bool finite_samples(const float* input, int count) noexcept {
       return false;
   return true;
 }
-#endif
 
-
-#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE)
 namespace nsq {
 #if defined(OPUSCPP_SIMD_AVX2)
 using Vector = __m128i;
@@ -356,9 +348,7 @@ inline bool select_four(std::int32_t* selected_levels, std::int32_t* selected_co
   return true;
 }
 }
-#endif
 
-#if defined(OPUSCPP_SIMD_SILK_DOT)
 inline int silk_dot_groups(double& result, const float* a, const float* b, int length) noexcept {
   int i = 0;
   for (; i < length - 3; i += 4) {
@@ -383,10 +373,7 @@ inline int silk_dot_groups(double& result, const float* a, const float* b, int l
   }
   return i;
 }
-#endif
 
-
-#if defined(OPUSCPP_SIMD_CELT_PITCH)
 #if defined(OPUSCPP_SIMD_AVX2)
 inline void pitch_xcorr_partial(const float* x, const float* y, float* out, int length, int lags) noexcept {
   const auto mask = _mm256_cmpgt_epi32(_mm256_set1_epi32(lags), _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7));
@@ -418,8 +405,6 @@ inline void pitch_xcorr_eight(const float* x, const float* y, float* out, int le
   vst1q_f32(out + 4, second);
 #endif
 }
-#endif
-
 
 }
 #endif

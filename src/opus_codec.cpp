@@ -1,8 +1,5 @@
 #include "opus_codec.h"
 
-#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER) || defined(OPUSCPP_SIMD_NSQ_QUANTIZE) || defined(OPUSCPP_SIMD_SILK_DOT) || defined(OPUSCPP_SIMD_CELT_PITCH)
-#include "opus_simd.h"
-#endif
 #include <functional>
 
 #include <algorithm>
@@ -26,6 +23,24 @@
 #include <span>
 #include <type_traits>
 #include <utility>
+
+#if !defined(OPUSCPP_NO_SIMD) && !defined(_M_ARM64EC)
+#if defined(__x86_64__) || defined(_M_X64)
+#include <immintrin.h>
+#if !defined(__AVX2__) && (defined(__clang__) || defined(__GNUC__))
+#define OPUSCPP_X86_TARGET_SCOPE
+#if defined(__clang__)
+#pragma clang attribute push(__attribute__((target("avx2"))), apply_to = function)
+#else
+#pragma GCC push_options
+#pragma GCC target("avx2")
+#endif
+#endif
+#include "opus_simd.h"
+#elif defined(__aarch64__) || defined(_M_ARM64)
+#include "opus_simd.h"
+#endif
+#endif
 
 using opus_int8 = std::int8_t;
 using opus_uint8 = std::uint8_t;
@@ -262,14 +277,14 @@ template <typename Source>
   requires std::is_invocable_r_v<opus_int32, Source&, int>
 static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
   const auto synthesize = [&]<int Order>() noexcept {
-#if defined(OPUSCPP_SIMD_DECODER_LPC) && defined(OPUSCPP_HAS_SIMD)
+#if defined(OPUSCPP_HAS_SIMD)
     opuscpp_simd::DecoderLpcTaps taps;
     if constexpr (Order == 16)
       taps = opuscpp_simd::prepare_decoder_lpc(A_Q12);
 #endif
     for (int i = 0; i < length; ++i) {
       const auto pred_Q10 = [&] {
-#if defined(OPUSCPP_SIMD_DECODER_LPC) && defined(OPUSCPP_HAS_SIMD)
+#if defined(OPUSCPP_HAS_SIMD)
         if constexpr (Order == 16)
           return opuscpp_simd::decoder_lpc16(sLPC_Q14 + 16 + i, taps);
 #endif
@@ -7397,7 +7412,7 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
 
 
 static inline void celt_pitch_xcorr(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
-#if defined(OPUSCPP_SIMD_CELT_PITCH) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
 #if defined(OPUSCPP_SIMD_AVX2)
   constexpr int minimum_vector_lags = 5;
 #else
@@ -9264,7 +9279,7 @@ static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_
   return from_retained;
 }
 
-#if defined(OPUSCPP_SIMD_CELT_PITCH) && defined(OPUSCPP_SIMD_AVX2) && (defined(__GNUC__) || defined(__clang__))
+#if defined(OPUSCPP_SIMD_AVX2) && (defined(__GNUC__) || defined(__clang__))
 [[gnu::aligned(128)]]
 #endif
 static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, celt_sig* workspace, bool inplace, bool update_pitch_cache) {
@@ -14196,7 +14211,7 @@ static void silk_nsq_make_lpc_taps(silk_nsq_lpc_taps& taps, const opus_int16* a_
 }
 
 [[nodiscard]] static auto silk_nsq_lpc_prediction(const opus_int16* high, const opus_uint16* low, const silk_nsq_lpc_taps& taps) noexcept -> opus_int32 {
-#if defined(OPUSCPP_SIMD_NSQ) && defined(OPUSCPP_HAS_SIMD)
+#if defined(OPUSCPP_HAS_SIMD)
   return opuscpp_simd::lpc16(high, low, taps.coefficient);
 #else
   opus_uint32 sum = 0;
@@ -14297,7 +14312,7 @@ enum class silk_nsq_role : unsigned char {
   terminal_redundancy
 };
 
-#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_HAS_SIMD) && (defined(__GNUC__) || defined(__clang__))
+#if defined(OPUSCPP_HAS_SIMD) && (defined(__GNUC__) || defined(__clang__))
 [[gnu::noinline]]
 #endif
 static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* psDelDec, const int N, opus_int32* delayedGain_Q10, silk_nsq_role role,
@@ -14385,7 +14400,7 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       alternate_levels[k] = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
       alternate_costs[k] = psDD->RD_Q10;
     }
-#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_HAS_SIMD)
+#if defined(OPUSCPP_HAS_SIMD)
     if (N != 4 || b.fixed ||
         !opuscpp_simd::nsq::select_four(selected_levels, selected_costs, alternate_levels, alternate_costs,
                                        b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
@@ -15709,7 +15724,7 @@ static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], cons
 }
 
 namespace {
-#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_HAS_SIMD)
 constexpr auto silk_resampler_frac_FIR_packed = [] {
   std::array<std::array<opus_int16, 8>, 12> rows{};
   for (std::size_t phase = 0; phase < rows.size(); ++phase)
@@ -15859,7 +15874,7 @@ static void silk_resampler_joint(silk_resampler_state_struct* state, opus_int16*
 }
 
 static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16* buf, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
-#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_HAS_SIMD)
   constexpr int index_per_pair = 1 << 17;
   if (index_increment_Q16 == 43691 && max_index_Q16 > 0 &&
       max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
@@ -15896,7 +15911,7 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
     const opus_int32 table_index =
         static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(static_cast<opus_int16>(12))) >> 16);
     const auto* buf_ptr = &buf[index_Q16 >> 16];
-#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_HAS_SIMD)
     const auto& weights = silk_resampler_frac_FIR_packed[table_index];
     opus_int32 res_Q15 = 0;
     for (std::size_t tap = 0; tap < weights.size(); ++tap)
@@ -15934,7 +15949,7 @@ static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const 
   if (len <= 0) {
     return;
   }
-#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_HAS_SIMD)
   const auto before = std::less<const opus_int16*>{};
   if (!before(out, in + len) || !before(in, out + 2 * static_cast<std::ptrdiff_t>(len))) {
     opuscpp_simd::resampler_up2_hq(S, out, in, len, silk_resampler_up2_hq_0, silk_resampler_up2_hq_1);
@@ -17269,7 +17284,7 @@ static double silk_ordered_inner_product(double result, const Left* data1, const
 }
 
 static double silk_inner_product_FLP_c(const float* data1, const float* data2, int dataSize) {
-#if defined(OPUSCPP_SIMD_SILK_DOT) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+#if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
   if (dataSize >= 16 && opuscpp_simd::finite_samples(data1, dataSize) &&
       (data1 == data2 || opuscpp_simd::finite_samples(data2, dataSize))) {
     double result = 0.0;
@@ -19209,3 +19224,12 @@ int opus_decoder_ctl(OpusDecoder* st, int request, ...) noexcept {
   const auto index = (error <= 0 && error >= -7) ? static_cast<unsigned>(-error) : 8U;
   return messages + offsets[index];
 }
+
+#if defined(OPUSCPP_X86_TARGET_SCOPE)
+#if defined(__clang__)
+#pragma clang attribute pop
+#else
+#pragma GCC pop_options
+#endif
+#undef OPUSCPP_X86_TARGET_SCOPE
+#endif
