@@ -1,4 +1,8 @@
 #include "opus_codec.h"
+
+#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER)
+#include "opus_simd.h"
+#endif
 #include <functional>
 
 #include <algorithm>
@@ -258,8 +262,19 @@ template <typename Source>
   requires std::is_invocable_r_v<opus_int32, Source&, int>
 static inline void silk_decode_lpc_subframe_q14(opus_int32* sLPC_Q14, Source&& source, opus_int16* pxq, const int length, const opus_int16* A_Q12, const opus_int32 gain_Q10, const bool order16) noexcept {
   const auto synthesize = [&]<int Order>() noexcept {
+#if defined(OPUSCPP_SIMD_DECODER_LPC) && defined(OPUSCPP_HAS_SIMD)
+    opuscpp_simd::DecoderLpcTaps taps;
+    if constexpr (Order == 16)
+      taps = opuscpp_simd::prepare_decoder_lpc(A_Q12);
+#endif
     for (int i = 0; i < length; ++i) {
-      const auto pred_Q10 = silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
+      const auto pred_Q10 = [&] {
+#if defined(OPUSCPP_SIMD_DECODER_LPC) && defined(OPUSCPP_HAS_SIMD)
+        if constexpr (Order == 16)
+          return opuscpp_simd::decoder_lpc16(sLPC_Q14 + 16 + i, taps);
+#endif
+        return silk_lpc_prediction_q10_fixed<Order>(sLPC_Q14 + 16 + i, A_Q12);
+      }();
       sLPC_Q14[16 + i] = saturating_add_int32(source(i), saturating_left_shift<4>(pred_Q10));
       pxq[i] = scale_and_saturate_q14<8>(sLPC_Q14[16 + i], gain_Q10);
     }
@@ -1672,11 +1687,12 @@ static int decode_to_output(OpusDecoder* st, const unsigned char* data, opus_int
     const bool steady_silk = std::numeric_limits<float>::is_iec559 && sizeof(float) == sizeof(opus_int32) &&
                              !decode_fec && len > 2 && data != nullptr && data[0] < 96 && (data[0] & 3) == 0 &&
                              st->prev_mode == opus_mode_silk_only && !st->prev_redundancy;
-    if (output_bound <= OPUS_FRAME_SIZE_5MS) {
+    const int pcm16_capacity_scale = st->channels == 1 ? celt_max_channels : 1;
+    if (output_bound <= OPUS_FRAME_SIZE_5MS * pcm16_capacity_scale) {
       return steady_silk ? decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels, true>(st, data, len, pcm, frame_size, decode_fec)
                          : decode_pcm16_fallback<OPUS_FRAME_SIZE_5MS * celt_max_channels, false>(st, data, len, pcm, frame_size, decode_fec);
     }
-    if (output_bound <= celt_max_frame_samples) {
+    if (output_bound <= celt_max_frame_samples * pcm16_capacity_scale) {
       return steady_silk ? decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels, true>(st, data, len, pcm, frame_size, decode_fec)
                          : decode_pcm16_fallback<celt_max_frame_samples * celt_max_channels, false>(st, data, len, pcm, frame_size, decode_fec);
     }
@@ -14150,6 +14166,9 @@ static void silk_nsq_make_lpc_taps(silk_nsq_lpc_taps& taps, const opus_int16* a_
 }
 
 [[nodiscard]] static auto silk_nsq_lpc_prediction(const opus_int16* high, const opus_uint16* low, const silk_nsq_lpc_taps& taps) noexcept -> opus_int32 {
+#if defined(OPUSCPP_SIMD_NSQ) && defined(OPUSCPP_HAS_SIMD)
+  return opuscpp_simd::lpc16(high, low, taps.coefficient);
+#else
   opus_uint32 sum = 0;
   for (int m = 0; m < 16; ++m) {
     const auto c = taps.coefficient[m];
@@ -14157,6 +14176,7 @@ static void silk_nsq_make_lpc_taps(silk_nsq_lpc_taps& taps, const opus_int16* a_
     sum += static_cast<opus_uint32>(static_cast<opus_int32>(high[m]) * c + floor_term);
   }
   return std::bit_cast<opus_int32>(sum);
+#endif
 }
 
 struct NSQ_del_dec_struct {
@@ -15438,7 +15458,7 @@ constinit const std::array<opus_int16, 2 + 36 / 2> silk_Resampler_1_6_COEFS =
     numeric_blob_array<opus_int16>(R"blob(6B94C4670011000C00080001FFF6FFEAFFE2FFE0FFEA0003002C006400A800F3013D017D01AD01C7)blob");
 constinit const std::array<opus_int16, 2 + 2 * 2> silk_Resampler_2_3_COEFS_LQ =
     numeric_blob_array<opus_int16>(R"blob(F513E695125929F3061F2054)blob");
-constinit const std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_frac_FIR_12 = numeric_blob_matrix<opus_int16, 4>(
+constexpr std::array<std::array<opus_int16, 8 / 2>, 12> silk_resampler_frac_FIR_12 = numeric_blob_matrix<opus_int16, 4>(
     R"blob(00BDFDA8026977670075FF61FBD27408003400DDF6A86E74FFFC0211F2EA66E5FFD002F6F08C5DA5FFB00389EF755306FF9D03CCEF824766FF9503C7F08B3B27FF990380F2612EAEFFA50305F4CF225EFFB90263F7A11698FFD201A9FAA10BB4)blob");
 }
 
@@ -15651,6 +15671,27 @@ static void silk_resampler_private_AR2(opus_int32 S[], opus_int32 out_Q8[], cons
 }
 
 namespace {
+#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+constexpr auto silk_resampler_frac_FIR_packed = [] {
+  std::array<std::array<opus_int16, 8>, 12> rows{};
+  for (std::size_t phase = 0; phase < rows.size(); ++phase)
+    for (std::size_t tap = 0; tap < 4; ++tap) {
+      rows[phase][tap] = silk_resampler_frac_FIR_12[phase][tap];
+      rows[phase][4 + tap] = silk_resampler_frac_FIR_12[11 - phase][3 - tap];
+    }
+  return rows;
+}();
+static_assert([] {
+  for (const auto& row : silk_resampler_frac_FIR_packed) {
+    opus_int64 bound = 0;
+    for (const auto coefficient : row)
+      bound += coefficient < 0 ? -coefficient : coefficient;
+    if (bound * 32768 > opus_int32_max)
+      return false;
+  }
+  return true;
+}());
+#else
 [[nodiscard]] constexpr auto resampler_frac_fir_12_q15(std::span<const opus_int16, 8> buffer, std::span<const opus_int16, 4> leading, std::span<const opus_int16, 4> trailing) noexcept -> opus_int32 {
   auto acc = opus_int32{0};
   for (auto tap = std::size_t{}; tap < 4; ++tap) {
@@ -15661,6 +15702,7 @@ namespace {
   }
   return acc;
 }
+#endif
 
 }
 
@@ -15779,13 +15821,53 @@ static void silk_resampler_joint(silk_resampler_state_struct* state, opus_int16*
 }
 
 static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16* buf, opus_int32 max_index_Q16, opus_int32 index_increment_Q16) noexcept -> opus_int16* {
+#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+  constexpr int index_per_pair = 1 << 17;
+  if (index_increment_Q16 == 43691 && max_index_Q16 > 0 &&
+      max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
+    const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
+                                               silk_resampler_frac_FIR_packed[8].data(),
+                                               silk_resampler_frac_FIR_packed[4].data());
+    const int input_count = max_index_Q16 / index_per_pair;
+    for (int input = 0; input < input_count; ++input) {
+      const auto dots = phases(buf + 2 * input);
+      out[0] = rounded_rshift_to_int16<15>(dots[0]);
+      out[1] = rounded_rshift_to_int16<15>(dots[1]);
+      out[2] = rounded_rshift_to_int16<15>(dots[2]);
+      out += 3;
+    }
+    return out;
+  }
+  if (index_increment_Q16 == 21846 && max_index_Q16 > 0 &&
+      max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
+    const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
+                                               silk_resampler_frac_FIR_packed[4].data(),
+                                               silk_resampler_frac_FIR_packed[8].data());
+    const int input_count = max_index_Q16 >> 16;
+    for (int input = 0; input < input_count; ++input) {
+      const auto dots = phases.template operator()<false>(buf + input);
+      out[0] = rounded_rshift_to_int16<15>(dots[0]);
+      out[1] = rounded_rshift_to_int16<15>(dots[1]);
+      out[2] = rounded_rshift_to_int16<15>(dots[2]);
+      out += 3;
+    }
+    return out;
+  }
+#endif
   for (opus_int32 index_Q16 = 0; index_Q16 < max_index_Q16; index_Q16 += index_increment_Q16) {
     const opus_int32 table_index =
         static_cast<opus_int32>(((index_Q16 & 0xFFFF) * static_cast<opus_int64>(static_cast<opus_int16>(12))) >> 16);
     const auto* buf_ptr = &buf[index_Q16 >> 16];
+#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+    const auto& weights = silk_resampler_frac_FIR_packed[table_index];
+    opus_int32 res_Q15 = 0;
+    for (std::size_t tap = 0; tap < weights.size(); ++tap)
+      res_Q15 += static_cast<opus_int32>(buf_ptr[tap]) * weights[tap];
+#else
     const auto leading = std::span<const opus_int16, 4>{silk_resampler_frac_FIR_12[table_index]};
     const auto trailing = std::span<const opus_int16, 4>{silk_resampler_frac_FIR_12[11 - table_index]};
     const opus_int32 res_Q15 = resampler_frac_fir_12_q15(std::span<const opus_int16, 8>{buf_ptr, 8}, leading, trailing);
+#endif
     *out++ = rounded_rshift_to_int16<15>(res_Q15);
   }
   return out;
@@ -15814,6 +15896,13 @@ static void silk_resampler_private_up2_HQ(opus_int32* S, opus_int16* out, const 
   if (len <= 0) {
     return;
   }
+#if defined(OPUSCPP_HAS_SIMD) && defined(OPUSCPP_SIMD_RESAMPLER)
+  const auto before = std::less<const opus_int16*>{};
+  if (!before(out, in + len) || !before(in, out + 2 * static_cast<std::ptrdiff_t>(len))) {
+    opuscpp_simd::resampler_up2_hq(S, out, in, len, silk_resampler_up2_hq_0, silk_resampler_up2_hq_1);
+    return;
+  }
+#endif
   for (int branch = 0; branch < 2; ++branch) {
     const auto& coefs = branch ? silk_resampler_up2_hq_1 : silk_resampler_up2_hq_0;
     auto* state = S + 3 * branch;
