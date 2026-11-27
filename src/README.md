@@ -8,7 +8,7 @@
 Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
 This repository intentionally omits a packaged build-system wrapper; the expected integration model is to compile `opus_codec.cpp` directly inside your project.
 
-## Optional integer SIMD
+## Optional SIMD
 
 For an opt-in build, place `opus_simd.h` beside `opus_codec.cpp` and define the
 desired options when compiling `opus_codec.cpp`.
@@ -18,6 +18,9 @@ desired options when compiling `opus_codec.cpp`.
 | `OPUSCPP_SIMD_NSQ` | SILK encoder fixed-point prediction |
 | `OPUSCPP_SIMD_DECODER_LPC` | SILK decoder fixed-point synthesis |
 | `OPUSCPP_SIMD_RESAMPLER` | SILK output upsampling and interpolation |
+| `OPUSCPP_SIMD_NSQ_QUANTIZE` | SILK encoder four-state delayed-decision quantizer |
+| `OPUSCPP_SIMD_SILK_DOT` | SILK floating-point ordered inner product |
+| `OPUSCPP_SIMD_CELT_PITCH` | CELT pitch cross-correlation |
 
 The options use AVX2 on a suitably targeted x86-64 build or NEON on AArch64.
 Other targets use the portable kernels. An AVX2-targeted codec requires AVX2
@@ -26,9 +29,21 @@ for a single portable binary. The source-level options do not provide runtime
 CPU dispatch.
 
 The qualified SIMD configurations are GCC 16.2 on Windows x86-64 and Clang 21
-from the Android NDK on AArch64. The options select integer kernels. The
-ordinary floating-point pitch correlation and CELT comb filter are used on
-all targets. The default embedding continues to use `opus_codec.cpp` and
+from the Android NDK on AArch64. Compile with `-ffp-contract=off` when enabling
+the floating-point options to preserve the scalar arithmetic order.
+
+On Windows AVX2, the combined options improved Short64 and FEC24_60 encoding
+throughput by about 4–5% and accelerated the Music48 packet-loss replay. Ordinary
+Music48 playback averaged about 0.3% slower with results overlapping the
+identical-build control spread. Native NEON timing remains unmeasured.
+
+The CELT decode body's 128-byte alignment controls code placement in GCC and
+Clang AVX2 builds. The subframe call boundary preserves
+floating-point status in the tested AArch64 Clang build. The cause of the
+inlined build's status difference remains unresolved. Recheck floating-point
+status when qualifying another compiler.
+
+The default embedding continues to use `opus_codec.cpp` and
 `opus_codec.h` without any options.
 
 ## Compatibility goal

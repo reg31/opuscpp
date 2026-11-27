@@ -1,6 +1,6 @@
 #include "opus_codec.h"
 
-#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER) || defined(OPUSCPP_SIMD_NSQ_QUANTIZE) || defined(OPUSCPP_SIMD_SILK_DOT) || defined(OPUSCPP_SIMD_CELT_PITCH)
 #include "opus_simd.h"
 #endif
 #include <functional>
@@ -7395,6 +7395,34 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
   }
 }
 
+
+static inline void celt_pitch_xcorr(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
+#if defined(OPUSCPP_SIMD_CELT_PITCH) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+#if defined(OPUSCPP_SIMD_AVX2)
+  constexpr int minimum_vector_lags = 5;
+#else
+  constexpr int minimum_vector_lags = 8;
+#endif
+  if (len > 0 && max_pitch >= minimum_vector_lags &&
+      (x == y || opuscpp_simd::finite_samples(x, len)) &&
+      opuscpp_simd::finite_samples(y, len + max_pitch - 1)) {
+    int i = 0;
+    for (; i < max_pitch - 7; i += 8)
+      opuscpp_simd::pitch_xcorr_eight(x, y + i, xcorr + i, len);
+#if defined(OPUSCPP_SIMD_AVX2)
+    if (max_pitch - i >= minimum_vector_lags) {
+      opuscpp_simd::pitch_xcorr_partial(x, y + i, xcorr + i, len, max_pitch - i);
+      return;
+    }
+#endif
+    if (i < max_pitch)
+      celt_pitch_xcorr_c(x, y + i, xcorr + i, len, max_pitch - i);
+    return;
+  }
+#endif
+  celt_pitch_xcorr_c(x, y, xcorr, len, max_pitch);
+}
+
 static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<const opus_val16, 484> y,
                                 std::span<opus_val32, celt_max_pitch_period / 2> correlation);
 
@@ -7412,7 +7440,7 @@ static int pitch_search(const opus_val16* y, int current_offset, int len, int ma
   std::array<opus_val32, celt_max_pitch_period / 2> xcorr;
   if (len != 960 || max_pitch != 979 ||
       !pitch_coarse_fft480(std::span<const opus_val16, 240>{x_coarse, 240}, std::span<const opus_val16, 484>{coarse.data(), 484}, xcorr))
-    celt_pitch_xcorr_c(x_coarse, coarse.data(), xcorr.data(), coarse_length, coarse_count);
+    celt_pitch_xcorr(x_coarse, coarse.data(), xcorr.data(), coarse_length, coarse_count);
   find_best_pitch(xcorr.data(), coarse.data(), coarse_length, coarse_count, best_pitch.data());
   const int fine_count = max_pitch >> 1;
   std::fill_n(xcorr.begin(), fine_count, 0.0f);
@@ -7438,7 +7466,7 @@ static int pitch_search(const opus_val16* y, int current_offset, int len, int ma
   for (const auto [begin, end] : fine_intervals) {
     if (begin >= end)
       continue;
-    celt_pitch_xcorr_c(x_lp, y + begin, xcorr.data() + begin, len >> 1, end - begin);
+    celt_pitch_xcorr(x_lp, y + begin, xcorr.data() + begin, len >> 1, end - begin);
     for (int i = begin; i < end; ++i) {
       if (fine != nullptr && fine->active) {
         fine->raw[raw_offset++] = xcorr[i];
@@ -8809,7 +8837,7 @@ static opus_val32 celt_iir(Source&& _x, const opus_val16* den, opus_val32* _y, i
 static void _celt_autocorr(const opus_val16* x, opus_val32* ac, const celt_coef* window, int overlap, int lag, int n) {
   const int fastN = n - lag;
   auto accumulate = [&](const opus_val16* input) {
-    celt_pitch_xcorr_c(input, input, ac, fastN, lag + 1);
+    celt_pitch_xcorr(input, input, ac, fastN, lag + 1);
     for (int k = 0; k <= lag; ++k) {
       opus_val32 tail = 0;
       for (int i = k + fastN; i < n; ++i) {
@@ -9236,6 +9264,9 @@ static bool celt_decode_lost(CeltDecoderInternal* st, int N, int LM, const celt_
   return from_retained;
 }
 
+#if defined(OPUSCPP_SIMD_CELT_PITCH) && defined(OPUSCPP_SIMD_AVX2) && (defined(__GNUC__) || defined(__clang__))
+[[gnu::aligned(128)]]
+#endif
 static int celt_decode_with_ec_body(CeltDecoderInternal* st, const unsigned char* data, int len, opus_res* pcm, int frame_size, ec_dec* dec, opus_int16* pcm16, celt_sig* workspace, bool inplace, bool update_pitch_cache) {
   ec_dec _dec;
   const int CC = st->channels;
@@ -10326,7 +10357,7 @@ static bool pitch_coarse_fft480(std::span<const opus_val16, 240> x, std::span<co
     std::fesetenv(&original_environment);
     return false;
   }
-  celt_pitch_xcorr_c(x.data(), y.data() + 240, correlation.data() + 240, 240, 4);
+  celt_pitch_xcorr(x.data(), y.data() + 240, correlation.data() + 240, 240, 4);
   for (int k = 0; k < half / 2; ++k) {
     correlation[2 * k] = res[k];
     correlation[2 * k + 1] = -res[half + k];
@@ -14266,6 +14297,9 @@ enum class silk_nsq_role : unsigned char {
   terminal_redundancy
 };
 
+#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_HAS_SIMD) && (defined(__GNUC__) || defined(__clang__))
+[[gnu::noinline]]
+#endif
 static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* psDelDec, const int N, opus_int32* delayedGain_Q10, silk_nsq_role role,
                                    int subfr, int warping_Q16, int* smpl_buf_idx, int decisionDelay, bool float_environment) {
   const bool keep_ar = role != silk_nsq_role::terminal_redundancy;
@@ -14351,6 +14385,11 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       alternate_levels[k] = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
       alternate_costs[k] = psDD->RD_Q10;
     }
+#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_HAS_SIMD)
+    if (N != 4 || b.fixed ||
+        !opuscpp_simd::nsq::select_four(selected_levels, selected_costs, alternate_levels, alternate_costs,
+                                       b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
+#endif
     for (int k = 0; k < N; ++k) {
       const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
                                                   b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
@@ -17230,6 +17269,14 @@ static double silk_ordered_inner_product(double result, const Left* data1, const
 }
 
 static double silk_inner_product_FLP_c(const float* data1, const float* data2, int dataSize) {
+#if defined(OPUSCPP_SIMD_SILK_DOT) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  if (dataSize >= 16 && opuscpp_simd::finite_samples(data1, dataSize) &&
+      (data1 == data2 || opuscpp_simd::finite_samples(data2, dataSize))) {
+    double result = 0.0;
+    const int i = opuscpp_simd::silk_dot_groups(result, data1, data2, dataSize);
+    return silk_ordered_inner_product(result, data1 + i, data2 + i, dataSize - i);
+  }
+#endif
   return silk_ordered_inner_product(0.0, data1, data2, dataSize);
 }
 
@@ -17279,7 +17326,7 @@ static auto silk_pitch_search_stage3(const float frame[], const int lag, const i
     const int lag_high = lag_ranges.high(k);
     const int lag_count = lag_high - lag_low + 1;
     std::array<opus_val32, 22> xcorr;
-    celt_pitch_xcorr_c(target_ptr, target_ptr - start_lag - lag_high, xcorr.data(), sf_length, lag_count);
+    celt_pitch_xcorr(target_ptr, target_ptr - start_lag - lag_high, xcorr.data(), sf_length, lag_count);
     std::array<float, 22> energies;
     const float* basis_ptr = target_ptr - (start_lag + lag_low);
     double energy = silk_energy_FLP(basis_ptr, sf_length) + 1e-3;
@@ -17351,7 +17398,7 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
     auto* target_4k = &frame_4kHz[wrap_shift_left(sf_length_4kHz, 2)];
     for (int k = 0; k < nb_subfr >> 1; ++k) {
       auto* basis = target_4k - min_lag_4kHz;
-      celt_pitch_xcorr_c(target_4k, target_4k - max_lag_4kHz, coarse_cross_correlations.data(), sf_length_8kHz,
+      celt_pitch_xcorr(target_4k, target_4k - max_lag_4kHz, coarse_cross_correlations.data(), sf_length_8kHz,
                          max_lag_4kHz - min_lag_4kHz + 1);
       auto cross_corr = static_cast<double>(coarse_cross_correlations[max_lag_4kHz - min_lag_4kHz]);
       auto normalizer = silk_pitch_energy_40_FLP(target_4k) + silk_pitch_energy_40_FLP(basis) + sf_length_8kHz * 4000.0f;
