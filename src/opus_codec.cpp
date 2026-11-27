@@ -5958,6 +5958,17 @@ static unsigned quant_band_n1(band_ctx* ctx, celt_norm* X, celt_norm* Y, celt_no
   return 1;
 }
 
+[[nodiscard]] static constexpr auto celt_pulse_index_for_bits(const unsigned char* cache, int bits) noexcept -> int {
+  int lo = 0, hi = cache[0];
+  for (int step = 0; step < 6; ++step) {
+    const int mid = (lo + hi + 1) >> 1;
+    (static_cast<int>(cache[mid]) >= bits ? hi : lo) = mid;
+  }
+  return bits - (lo == 0 ? -1 : static_cast<int>(cache[lo])) <= static_cast<int>(cache[hi]) - bits ? lo : hi;
+}
+
+[[nodiscard]] static inline auto celt_decode_pulse_index(const unsigned char* cache, int b) noexcept -> int;
+
 static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B, celt_norm* lowband, int LM, opus_val32 gain, int fill, const unsigned char* cache) {
   const int B0 = B;
   unsigned cm = 0;
@@ -6006,16 +6017,7 @@ static unsigned quant_partition(band_ctx* ctx, celt_norm* X, int N, int b, int B
   const auto pulse_cost = [cache](int pulses) {
     return pulses == 0 ? 0 : cache[pulses] + 1;
   };
-  int q = 0;
-  {
-    int lo = 0, hi = cache[0];
-    const int bits = b - 1;
-    for (int step = 0; step < 6; ++step) {
-      const int mid = (lo + hi + 1) >> 1;
-      (static_cast<int>(cache[mid]) >= bits ? hi : lo) = mid;
-    }
-    q = bits - (lo == 0 ? -1 : static_cast<int>(cache[lo])) <= static_cast<int>(cache[hi]) - bits ? lo : hi;
-  }
+  int q = ctx->encode ? celt_pulse_index_for_bits(cache, b - 1) : celt_decode_pulse_index(cache, b);
   int curr_bits = pulse_cost(q);
   ctx->remaining_bits -= curr_bits;
   while (ctx->remaining_bits < 0 && q > 0) {
@@ -9846,6 +9848,39 @@ constexpr std::array<opus_int16, 105> cache_index50 = numeric_blob_array<opus_in
     R"blob(FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000000000290029002900520052007B00A400C800DE000000000000000000000000000000000029002900290029007B007B007B00A400A400F0010A011B012700290029002900290029002900290029007B007B007B007B00F000F000F0010A010A0131013E01480150007B007B007B007B007B007B007B007B00F000F000F000F0013101310131013E013E0157015F0166016C00F000F000F000F000F000F000F000F00131013101310131015701570157015F015F01720178017E0183)blob");
 constexpr std::array<unsigned char, 392> cache_bits50 = numeric_blob_array<unsigned char>(
     R"blob(2807070707070707070707070707070707070707070707070707070707070707070707070707070707280F171C1F22242627292A2B2C2D2E2F2F3132333435363737393A3B3C3D3E3F3F4142434445464747281421293035393D40424547494B4C4E50525557595B5C5E60626567696B6C6E70727577797B7C7E80281727333C43494F53575B5E616466696B6F7376797C7E8183878B8E919496999B9FA3A6A9ACAEB1B3231C31414E59636B72787E84888D9195999FA5ABB0B4B9BDC0C7CDD3D8DCE1E5E8EFF5FB15213A4F61707D89949DA6AEB6BDC3C9CFD9E3EBF3FB11233F566A7B8B98A5B1BBC5CED6DEE6EDFA191F374B5B6975808A929AA1A8AEB4B9BEC8D0D7DEE5EBF0F5FF102441596E80909FADB9C4CFD9E2EAF2FA0B294A678097ACBFD1E1F1FF092B4F6E8AA3BACFE3F60C2747637B90A4B6C6D6E4F1FD092C51718EA8C0D6EBFF07315A7FA0BFDCF706335F86AACBEA072F577B9BB8D4ED06346189AED0F005396A97C0E7053B6F9ECAF305376793BBE0053C71A1CEF804417AAFE004437FB6EA)blob");
+static constexpr auto celt_decode_pulse_map = [] consteval {
+  constexpr auto entries = [] consteval {
+    std::size_t count = 0;
+    for (std::size_t start = 0; start < cache_bits50.size();) {
+      const auto* row = cache_bits50.data() + start;
+      count += row[row[0]] + 3;
+      start += row[0] + 1;
+    }
+    return count;
+  }();
+  static_assert(entries <= std::numeric_limits<opus_uint16>::max());
+  struct PulseMap {
+    std::array<opus_uint16, cache_bits50.size()> start{};
+    std::array<opus_uint8, entries> q{};
+  } result;
+  std::size_t position = 0;
+  for (std::size_t start = 0; start < cache_bits50.size();) {
+    const auto* cache = cache_bits50.data() + start;
+    const int last_budget = static_cast<int>(cache[cache[0]]) + 2;
+    result.start[start] = static_cast<opus_uint16>(position);
+    for (int b = 0; b <= last_budget; ++b) {
+      result.q[position++] = static_cast<opus_uint8>(celt_pulse_index_for_bits(cache, b - 1));
+    }
+    start += cache[0] + 1;
+  }
+  return result;
+}();
+
+[[nodiscard]] static inline auto celt_decode_pulse_index(const unsigned char* cache, int b) noexcept -> int {
+  const int budget = std::clamp(b, 0, static_cast<int>(cache[cache[0]]) + 2);
+  return celt_decode_pulse_map.q[celt_decode_pulse_map.start[static_cast<std::size_t>(cache - cache_bits50.data())] + budget];
+}
+
 constexpr std::array<unsigned char, 168> cache_caps50 = numeric_blob_array<unsigned char>(
     R"blob(E0E0E0E0E0E0E0E0A0A0A0A0B9B9B9B2B2A8863D25E0E0E0E0E0E0E0E0F0F0F0F0CFCFCFC6C6B7904228A0A0A0A0A0A0A0A0B9B9B9B9C1C1C1B7B7AC8A4026F0F0F0F0F0F0F0F0CFCFCFCFCCCCCCC1C1B48F4228B9B9B9B9B9B9B9B9C1C1C1C1C1C1C1B7B7AC8A4127CFCFCFCFCFCFCFCFCCCCCCCCC9C9C9BCBCB08D4228C1C1C1C1C1C1C1C1C1C1C1C1C2C2C2B8B8AD8B4127CCCCCCCCCCCCCCCCC9C9C9C9C6C6C6BBBBAF8C4228)blob");
 
