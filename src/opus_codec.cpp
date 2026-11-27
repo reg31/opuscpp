@@ -1,6 +1,6 @@
 #include "opus_codec.h"
 
-#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER)
+#if defined(OPUSCPP_SIMD_NSQ) || defined(OPUSCPP_SIMD_DECODER_LPC) || defined(OPUSCPP_SIMD_RESAMPLER) || defined(OPUSCPP_SIMD_CELT_MDCT) || defined(OPUSCPP_SIMD_CELT_COMB) || defined(OPUSCPP_SIMD_CELT_FFT) || defined(OPUSCPP_SIMD_NSQ_QUANTIZE)
 #include "opus_simd.h"
 #endif
 #include <functional>
@@ -6409,7 +6409,13 @@ static void quant_all_bands(int encode, int start, int end, celt_norm* X_, celt_
 }
 
 static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt_coef g10, celt_coef g11, celt_coef g12) {
-  for (int i = 0; i < N; ++i) {
+  int i = 0;
+#if defined(OPUSCPP_SIMD_CELT_COMB) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  const auto less = std::less<const float*>{};
+  if (N >= opuscpp_simd::comb_width && (y == x ? T >= 18 : !less(x - T - 2, y + N) || !less(y, x + N)))
+    i = opuscpp_simd::comb_filter_prefix(y, x, T, N, g10, g11, g12);
+#endif
+  for (; i < N; ++i) {
     const opus_val32 delayed_0 = x[i - T];
     const opus_val32 delayed_1 = x[i - T + 1] + x[i - T - 1];
     const opus_val32 delayed_2 = x[i - T + 2] + x[i - T - 2];
@@ -9839,10 +9845,11 @@ struct fft_stage_planes {
   int output_stride;
 };
 
+template <int L = 4>
 static void fft_three_lanes(const fft_stage_planes& planes, kiss_twiddle_cpx first, kiss_twiddle_cpx second) {
   constexpr float s3 = 0.8660254037844386f;
-  float real[3][4], imag[3][4];
-  for (int lane = 0; lane < 4; ++lane) {
+  float real[3][L], imag[3][L];
+  for (int lane = 0; lane < L; ++lane) {
     const int step = planes.input_stride;
     const auto r0 = planes.real[lane], r1 = planes.real[step + lane], r2 = planes.real[2 * step + lane];
     const auto i0 = planes.imag[lane], i1 = planes.imag[step + lane], i2 = planes.imag[2 * step + lane];
@@ -9862,7 +9869,7 @@ static void fft_three_lanes(const fft_stage_planes& planes, kiss_twiddle_cpx fir
   for (int digit = 1; digit < 3; ++digit) {
     const auto phase = weights[digit - 1];
     const int offset = digit * planes.output_stride;
-    for (int lane = 0; lane < 4; ++lane) {
+    for (int lane = 0; lane < L; ++lane) {
       const auto r = real[digit][lane], i = imag[digit][lane];
       planes.out_real[offset + lane] = r * phase.r - i * phase.i;
       planes.out_imag[offset + lane] = r * phase.i + i * phase.r;
@@ -9870,10 +9877,11 @@ static void fft_three_lanes(const fft_stage_planes& planes, kiss_twiddle_cpx fir
   }
 }
 
+template <int L = 4>
 static void fft_five_lanes(const fft_stage_planes& planes) {
   constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f, c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
-  float out_r[5][4], out_i[5][4];
-  for (int lane = 0; lane < 4; ++lane) {
+  float out_r[5][L], out_i[5][L];
+  for (int lane = 0; lane < L; ++lane) {
     const auto r = [&](int k) {
       return planes.real[k * planes.input_stride + lane];
     };
@@ -9974,6 +9982,26 @@ static void fft_stage(const float* x, float* y, int total, int m, int s, int ts)
       return;
     }
   }
+#if defined(OPUSCPP_SIMD_AVX2) && defined(OPUSCPP_SIMD_CELT_FFT)
+  if constexpr (R == 3 || R == 5) {
+    if (s >= 8 && s % 8 == 0) {
+      if constexpr (R == 5) {
+        for (int q = 0; q < s; q += 8)
+          fft_five_lanes<8>({x + q, x + total + q, y + q, y + total + q, s, s});
+      } else {
+        for (int p = 0; p < m; ++p) {
+          for (int q = 0; q < s; q += 8) {
+            const int in = q + s * p;
+            const int out = q + s * R * p;
+            fft_three_lanes<8>({x + in, x + total + in, y + out, y + total + out, 5 * s, s},
+                               tw[p * 32], tw[p * 64]);
+          }
+        }
+      }
+      return;
+    }
+  }
+#endif
   if constexpr (R == 2) {
     for (int p = 0; p < m; ++p)
       fft_block<2, 4, false>(x, y, total, 4 * p, 4 * m, 8 * p, 4, 1, tw, p, ts);
@@ -10135,6 +10163,10 @@ static void clt_mdct_backward_transform(const mdct_lookup* l, const float* in, f
   float* work = out + (overlap >> 1);
   float* first = fft_input(work, scratch, shift);
   const auto prerotate = [&](int begin, int end) {
+#if defined(OPUSCPP_SIMD_CELT_MDCT) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+    if (stride == 1)
+      begin = opuscpp_simd::mdct::pre(first, in, trig, N4, begin, end);
+#endif
     for (int i = begin; i < end; ++i) {
       const float x1 = in[2 * i * stride], x2 = in[(N2 - 1 - 2 * i) * stride];
       const float t0 = trig[i], t1 = trig[N4 + i];
@@ -10160,9 +10192,13 @@ static void clt_mdct_backward_transform(const mdct_lookup* l, const float* in, f
   }
   prerotate(live_tail, N4);
   const float* res = celt_fft(first, first == work ? scratch : work, shift, live_tail != 0 ? live_bins : -1);
-  float* yp0 = work;
-  float* yp1 = yp0 + N2 - 2;
-  for (int i = 0; i < (N4 + 1) >> 1; ++i) {
+  int start = 0;
+#if defined(OPUSCPP_SIMD_CELT_MDCT) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  start = opuscpp_simd::mdct::post(work, res, trig, N4);
+#endif
+  float* yp0 = work + 2 * start;
+  float* yp1 = work + N2 - 2 - 2 * start;
+  for (int i = start; i < (N4 + 1) >> 1; ++i) {
     const int mirror = N4 - i - 1;
     const float fr = res[i], fi = res[N4 + i], lr = res[mirror], li = res[N4 + mirror];
     yp0[0] = fi * trig[i] + fr * trig[N4 + i];
@@ -10188,7 +10224,11 @@ static void clt_mdct_backward_transform_c(const mdct_lookup* l, float* in, float
 }
 
 static void clt_mdct_backward_overlap_c(float* out, const celt_coef* window, int overlap) {
-  for (int i = 0; i < overlap / 2; ++i) {
+  int i = 0;
+#if defined(OPUSCPP_SIMD_CELT_MDCT) && defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
+  i = opuscpp_simd::mdct::overlap(out, window, overlap);
+#endif
+  for (; i < overlap / 2; ++i) {
     const int mirror = overlap - 1 - i;
     const float low = out[i], high = out[mirror], a = window[i], b = window[mirror];
     out[i] = low * b - high * a;
@@ -14352,6 +14392,11 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
       alternate_levels[k] = silk_signed_clamped_residual(input_Q10 - tmp1, psDD->Seed);
       alternate_costs[k] = psDD->RD_Q10;
     }
+#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_SIMD_AVX2)
+    if (N != 4 || b.fixed ||
+        !opuscpp_simd::nsq::select_four(selected_levels, selected_costs, alternate_levels, alternate_costs,
+                               b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
+#endif
     for (int k = 0; k < N; ++k) {
       const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
                                                   b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);

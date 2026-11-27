@@ -217,6 +217,186 @@ inline DecoderLpcTaps prepare_decoder_lpc(const std::int16_t* coefficients) noex
   return std::bit_cast<std::int32_t>(8u+static_cast<std::uint32_t>(older)+tap(0)+tap(1)+tap(2)+tap(3));
 }
 #endif
+
+#if defined(OPUSCPP_SIMD_CELT_MDCT)
+namespace mdct {
+#if defined(OPUSCPP_SIMD_AVX2)
+using Vector = __m256;
+constexpr int width = 8;
+struct Split { Vector even, odd; };
+inline auto load(const float* x) { return _mm256_loadu_ps(x); }
+inline void store(float* x, Vector v) { _mm256_storeu_ps(x,v); }
+inline auto add(Vector a, Vector b) { return _mm256_add_ps(a,b); }
+inline auto sub(Vector a, Vector b) { return _mm256_sub_ps(a,b); }
+inline auto mul(Vector a, Vector b) { return _mm256_mul_ps(a,b); }
+inline auto reverse(Vector x) {
+  return _mm256_permutevar8x32_ps(x,_mm256_setr_epi32(7,6,5,4,3,2,1,0));
+}
+inline void store_pair(float* dst, Vector left, Vector right) {
+  const auto a = _mm256_unpacklo_ps(left,right);
+  const auto b = _mm256_unpackhi_ps(left,right);
+  store(dst,_mm256_permute2f128_ps(a,b,0x20));
+  store(dst+8,_mm256_permute2f128_ps(a,b,0x31));
+}
+inline Split split(const float* src) {
+  const auto order = _mm256_setr_epi32(0,2,4,6,1,3,5,7);
+  const auto a = _mm256_permutevar8x32_ps(load(src),order);
+  const auto b = _mm256_permutevar8x32_ps(load(src+8),order);
+  return {_mm256_permute2f128_ps(a,b,0x20),_mm256_permute2f128_ps(a,b,0x31)};
+}
+#else
+using Vector = float32x4_t;
+constexpr int width = 4;
+struct Split { Vector even, odd; };
+inline auto load(const float* x) { return vld1q_f32(x); }
+inline void store(float* x, Vector v) { vst1q_f32(x,v); }
+inline auto add(Vector a, Vector b) { return vaddq_f32(a,b); }
+inline auto sub(Vector a, Vector b) { return vsubq_f32(a,b); }
+inline auto mul(Vector a, Vector b) { return vmulq_f32(a,b); }
+inline auto reverse(Vector x) {
+  const auto a = vrev64q_f32(x);
+  return vextq_f32(a,a,2);
+}
+inline void store_pair(float* dst, Vector left, Vector right) {
+  const float32x4x2_t pair{{left,right}};
+  vst2q_f32(dst,pair);
+}
+inline Split split(const float* src) {
+  const auto lanes = vld2q_f32(src);
+  return {lanes.val[0],lanes.val[1]};
+}
+#endif
+
+// The two input planes and two output halves occupy different FFT buffers.
+inline int post(float* work, const float* res, const float* trig, int N4) {
+  int i=0;
+  for (; i+width <= N4/2; i+=width) {
+    const int back=N4-i-width;
+    const auto fr=load(res+i), fi=load(res+N4+i);
+    const auto lr=reverse(load(res+back)), li=reverse(load(res+N4+back));
+    const auto fa=load(trig+i), fb=load(trig+N4+i);
+    const auto la=reverse(load(trig+back)), lb=reverse(load(trig+N4+back));
+    store_pair(work+2*i,add(mul(fi,fa),mul(fr,fb)),sub(mul(li,lb),mul(lr,la)));
+    store_pair(work+2*back,reverse(add(mul(li,la),mul(lr,lb))),reverse(sub(mul(fi,fb),mul(fr,fa))));
+  }
+  return i;
+}
+
+inline int pre(float* dst, const float* in, const float* trig, int N4, int from, int end) {
+  for (; from+width<=end; from+=width) {
+    const auto a=split(in+2*from).even;
+    const auto b=reverse(split(in+2*(N4-from-width)).odd);
+    const auto t0=load(trig+from), t1=load(trig+N4+from);
+    store(dst+from,sub(mul(a,t0),mul(b,t1)));
+    store(dst+N4+from,add(mul(b,t0),mul(a,t1)));
+  }
+  return from;
+}
+
+inline int overlap(float* out, const float* window, int n) {
+  int i=0;
+  for (; i+width<=n/2; i+=width) {
+    const int back=n-i-width;
+    const auto low=load(out+i), high=reverse(load(out+back));
+    const auto a=load(window+i), b=reverse(load(window+back));
+    store(out+i,sub(mul(low,b),mul(high,a)));
+    store(out+back,reverse(add(mul(low,a),mul(high,b))));
+  }
+  return i;
+}
+}
+#endif
+
+#if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_SIMD_AVX2)
+namespace nsq {
+using Vector = __m128i;
+inline auto load(const std::int32_t* x) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(x)); }
+inline void store(std::int32_t* x, Vector y) { _mm_storeu_si128(reinterpret_cast<__m128i*>(x), y); }
+inline auto set(int x) { return _mm_set1_epi32(x); }
+inline auto add(Vector a, Vector b) { return _mm_add_epi32(a,b); }
+inline auto sub(Vector a, Vector b) { return _mm_sub_epi32(a,b); }
+inline auto mul(Vector a, Vector b) { return _mm_mullo_epi32(a,b); }
+inline auto minimum(Vector a, Vector b) { return _mm_min_epi32(a,b); }
+inline auto maximum(Vector a, Vector b) { return _mm_max_epi32(a,b); }
+inline auto abs(Vector a) { return _mm_abs_epi32(a); }
+inline auto eq(Vector a, Vector b) { return _mm_cmpeq_epi32(a,b); }
+inline auto gt(Vector a, Vector b) { return _mm_cmpgt_epi32(a,b); }
+inline auto vand(Vector a, Vector b) { return _mm_and_si128(a,b); }
+inline auto vor(Vector a, Vector b) { return _mm_or_si128(a,b); }
+inline auto select(Vector mask, Vector yes, Vector no) { return _mm_blendv_epi8(no,yes,mask); }
+inline auto any(Vector a) { return !_mm_testz_si128(a,a); }
+template<int N> inline auto shr(Vector a) { return _mm_srai_epi32(a,N); }
+template<int N> inline auto shl(Vector a) { return _mm_slli_epi32(a,N); }
+
+inline bool select_four(std::int32_t* selected_levels, std::int32_t* selected_costs,
+                        std::int32_t* alternate_levels, std::int32_t* alternate_costs,
+                        int lambda, int offset, bool exact_retry_ties) {
+  const auto zero = set(0);
+  const auto residual = load(alternate_levels);
+  const auto shifted = sub(residual,set(offset));
+  auto bin = shr<10>(shifted);
+  if (lambda > 2048) {
+    const auto deadzone = set(lambda / 2 - 512);
+    const auto positive = maximum(sub(shifted,deadzone),zero);
+    const auto negative = minimum(add(shifted,deadzone),set(-1));
+    bin = shr<10>(select(gt(zero,shifted),negative,positive));
+  }
+  const auto sign = minimum(maximum(bin,set(-1)),set(1));
+  const auto first = add(sub(shl<10>(bin),mul(sign,set(80))),set(offset));
+  const auto narrow = vor(eq(bin,zero),eq(bin,set(-1)));
+  const auto second = add(add(first,set(1024)),vand(narrow,set(-80)));
+  const auto difference1 = shr<16>(shl<16>(sub(residual,first)));
+  const auto difference2 = shr<16>(shl<16>(sub(residual,second)));
+  const auto rate = set(static_cast<std::int16_t>(lambda));
+  const auto cost1 = add(mul(difference1,difference1),mul(abs(first),rate));
+  const auto cost2 = add(mul(difference2,difference2),mul(abs(second),rate));
+  if (exact_retry_ties && any(eq(cost1,cost2)))
+    return false;
+  const auto candidate1 = shr<10>(cost1);
+  const auto candidate2 = shr<10>(cost2);
+  const auto choose_first = gt(candidate2,candidate1);
+  const auto prior = load(alternate_costs);
+  store(selected_levels,select(choose_first,first,second));
+  store(alternate_levels,select(choose_first,second,first));
+  store(selected_costs,add(prior,select(choose_first,candidate1,candidate2)));
+  store(alternate_costs,add(prior,select(choose_first,candidate2,candidate1)));
+  return true;
+}
+}
+#endif
+
+#if defined(OPUSCPP_SIMD_CELT_COMB)
+#if defined(OPUSCPP_SIMD_AVX2)
+inline constexpr int comb_width = 8;
+#else
+inline constexpr int comb_width = 4;
+#endif
+inline int comb_filter_prefix(float* y, const float* x, int T, int count, float g10, float g11, float g12) {
+  int i = 0;
+#if defined(OPUSCPP_SIMD_AVX2)
+    const auto a = _mm256_set1_ps(g10), b = _mm256_set1_ps(g11), c = _mm256_set1_ps(g12);
+    for (; i + comb_width <= count; i += comb_width) {
+      const auto* delayed = x + i - T;
+      const auto pair1 = _mm256_add_ps(_mm256_loadu_ps(delayed + 1), _mm256_loadu_ps(delayed - 1));
+      const auto pair2 = _mm256_add_ps(_mm256_loadu_ps(delayed + 2), _mm256_loadu_ps(delayed - 2));
+      const auto first = _mm256_add_ps(_mm256_loadu_ps(x + i), _mm256_mul_ps(a, _mm256_loadu_ps(delayed)));
+      const auto second = _mm256_add_ps(first, _mm256_mul_ps(b, pair1));
+      _mm256_storeu_ps(y + i, _mm256_add_ps(second, _mm256_mul_ps(c, pair2)));
+    }
+#else
+    for (; i + comb_width <= count; i += comb_width) {
+      const auto* delayed = x + i - T;
+      const auto pair1 = vaddq_f32(vld1q_f32(delayed + 1), vld1q_f32(delayed - 1));
+      const auto pair2 = vaddq_f32(vld1q_f32(delayed + 2), vld1q_f32(delayed - 2));
+      const auto first = vaddq_f32(vld1q_f32(x + i), vmulq_n_f32(vld1q_f32(delayed), g10));
+      const auto second = vaddq_f32(first, vmulq_n_f32(pair1, g11));
+      vst1q_f32(y + i, vaddq_f32(second, vmulq_n_f32(pair2, g12)));
+    }
+#endif
+  return i;
+}
+#endif
+
 }
 #endif
 #endif
