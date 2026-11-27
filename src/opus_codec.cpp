@@ -15826,8 +15826,8 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
   if (index_increment_Q16 == 43691 && max_index_Q16 > 0 &&
       max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
     const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
-                                               silk_resampler_frac_FIR_packed[8].data(),
-                                               silk_resampler_frac_FIR_packed[4].data());
+                                              silk_resampler_frac_FIR_packed[8].data(),
+                                              silk_resampler_frac_FIR_packed[4].data());
     const int input_count = max_index_Q16 / index_per_pair;
     for (int input = 0; input < input_count; ++input) {
       const auto dots = phases(buf + 2 * input);
@@ -15841,8 +15841,8 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
   if (index_increment_Q16 == 21846 && max_index_Q16 > 0 &&
       max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
     const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
-                                               silk_resampler_frac_FIR_packed[4].data(),
-                                               silk_resampler_frac_FIR_packed[8].data());
+                                              silk_resampler_frac_FIR_packed[4].data(),
+                                              silk_resampler_frac_FIR_packed[8].data());
     const int input_count = max_index_Q16 >> 16;
     for (int input = 0; input < input_count; ++input) {
       const auto dots = phases.template operator()<false>(buf + input);
