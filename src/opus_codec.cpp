@@ -6433,7 +6433,7 @@ static void comb_filter_const_c(opus_val32* y, opus_val32* x, int T, int N, celt
 
 #if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
 [[nodiscard]] static inline auto comb_filter_sample(opus_val32 center, const opus_val32* delayed, celt_coef g10,
-                                                  celt_coef g11, celt_coef g12) noexcept -> opus_val32 {
+                                                    celt_coef g11, celt_coef g12) noexcept -> opus_val32 {
   const opus_val32 delayed_0 = delayed[0];
   const opus_val32 delayed_1 = delayed[1] + delayed[-1];
   const opus_val32 delayed_2 = delayed[2] + delayed[-2];
@@ -6501,9 +6501,9 @@ static void comb_filter(opus_val32* y, opus_val32* x, int T0, int T1, int N, opu
       const int distance = far - near;
       const auto* oldest = x - far - 2;
       const bool finite_history = distance <= overlap + 4
-                                       ? opuscpp_simd::finite_samples(oldest, overlap + 4 + distance)
-                                       : opuscpp_simd::finite_samples(oldest, overlap + 4) &&
-                                             opuscpp_simd::finite_samples(x - near - 2, overlap + 4);
+                                      ? opuscpp_simd::finite_samples(oldest, overlap + 4 + distance)
+                                      : opuscpp_simd::finite_samples(oldest, overlap + 4) &&
+                                            opuscpp_simd::finite_samples(x - near - 2, overlap + 4);
       if (finite_history && opuscpp_simd::finite_samples(x, overlap)) {
         // Each delayed read precedes the entire in-place tile.
         for (; i + width <= overlap; i += width) {
@@ -7486,7 +7486,6 @@ static void celt_pitch_xcorr_c(const opus_val16* x, const opus_val16* y, opus_va
     xcorr[i] = sum;
   }
 }
-
 
 static inline void celt_pitch_xcorr(const opus_val16* x, const opus_val16* y, opus_val32* xcorr, int len, int max_pitch) {
 #if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
@@ -8761,9 +8760,7 @@ template <typename Sample> static void deemphasis(celt_sig* const* in, Sample* p
 #if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
   if (C == 2
 #if defined(OPUSCPP_SIMD_NEON)
-      && opuscpp_simd::finite_samples(mem, 2)
-      && opuscpp_simd::finite_samples(in[0], N)
-      && opuscpp_simd::finite_samples(in[1], N)
+      && opuscpp_simd::finite_samples(mem, 2) && opuscpp_simd::finite_samples(in[0], N) && opuscpp_simd::finite_samples(in[1], N)
 #endif
   ) {
     celt_sig left_mem = mem[0], right_mem = mem[1];
@@ -14527,35 +14524,35 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
 #if defined(OPUSCPP_HAS_SIMD)
     if (N != 4 || b.fixed ||
         !opuscpp_simd::nsq::select_four(selected_levels, selected_costs, alternate_levels, alternate_costs,
-                                       b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
+                                        b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
 #endif
-    for (int k = 0; k < N; ++k) {
-      const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
-                                                  b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
-      const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
-      const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
-      const auto candidate0 = full_cost0_Q20 >> 10;
-      const auto candidate1 = full_cost1_Q20 >> 10;
-      bool first_is_q0 = candidate0 < candidate1;
-      if (role == silk_nsq_role::cap_retry && full_cost0_Q20 == full_cost1_Q20) {
-        const auto target_Q14 = wrap_shift_left(input_Q10, 4);
-        const auto prediction_Q14 = wrap_add(LTP_pred_Q14, lpc_predictions[k]);
-        const auto error = [&](opus_int32 q_Q10) {
-          const auto excitation_Q14 = wrap_shift_left(q_Q10, 4);
-          const auto sample_Q14 = wrap_add(prediction_Q14, psDelDec[k].Seed < 0 ? -excitation_Q14 : excitation_Q14);
-          const auto sample_bits = static_cast<opus_uint32>(sample_Q14);
-          const auto target_bits = static_cast<opus_uint32>(target_Q14);
-          return sample_Q14 < target_Q14 ? target_bits - sample_bits : sample_bits - target_bits;
-        };
-        first_is_q0 = error(c.q1_Q10) < error(c.q2_Q10);
+      for (int k = 0; k < N; ++k) {
+        const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
+                                                    b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
+        const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
+        const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
+        const auto candidate0 = full_cost0_Q20 >> 10;
+        const auto candidate1 = full_cost1_Q20 >> 10;
+        bool first_is_q0 = candidate0 < candidate1;
+        if (role == silk_nsq_role::cap_retry && full_cost0_Q20 == full_cost1_Q20) {
+          const auto target_Q14 = wrap_shift_left(input_Q10, 4);
+          const auto prediction_Q14 = wrap_add(LTP_pred_Q14, lpc_predictions[k]);
+          const auto error = [&](opus_int32 q_Q10) {
+            const auto excitation_Q14 = wrap_shift_left(q_Q10, 4);
+            const auto sample_Q14 = wrap_add(prediction_Q14, psDelDec[k].Seed < 0 ? -excitation_Q14 : excitation_Q14);
+            const auto sample_bits = static_cast<opus_uint32>(sample_Q14);
+            const auto target_bits = static_cast<opus_uint32>(target_Q14);
+            return sample_Q14 < target_Q14 ? target_bits - sample_bits : sample_bits - target_bits;
+          };
+          first_is_q0 = error(c.q1_Q10) < error(c.q2_Q10);
+        }
+        const auto swap_mask = -static_cast<opus_int32>(first_is_q0);
+        const auto level_delta = (c.q1_Q10 ^ c.q2_Q10) & swap_mask, cost_delta = (candidate0 ^ candidate1) & swap_mask;
+        selected_levels[k] = c.q2_Q10 ^ level_delta;
+        selected_costs[k] = alternate_costs[k] + (candidate1 ^ cost_delta);
+        alternate_levels[k] = c.q1_Q10 ^ level_delta;
+        alternate_costs[k] += candidate0 ^ cost_delta;
       }
-      const auto swap_mask = -static_cast<opus_int32>(first_is_q0);
-      const auto level_delta = (c.q1_Q10 ^ c.q2_Q10) & swap_mask, cost_delta = (candidate0 ^ candidate1) & swap_mask;
-      selected_levels[k] = c.q2_Q10 ^ level_delta;
-      selected_costs[k] = alternate_costs[k] + (candidate1 ^ cost_delta);
-      alternate_levels[k] = c.q1_Q10 ^ level_delta;
-      alternate_costs[k] += candidate0 ^ cost_delta;
-    }
     *smpl_buf_idx = *smpl_buf_idx == 0 ? 39 : *smpl_buf_idx - 1;
     const int delayed_slot = *smpl_buf_idx + decisionDelay;
     const int last_smple_idx = delayed_slot < 0 ? delayed_slot % 40 : delayed_slot - 40 * (delayed_slot >= 40);
@@ -17538,7 +17535,7 @@ static auto silk_pitch_analysis_core_FLP(const float* frame, float previous_corr
     for (int k = 0; k < nb_subfr >> 1; ++k) {
       auto* basis = target_4k - min_lag_4kHz;
       celt_pitch_xcorr(target_4k, target_4k - max_lag_4kHz, coarse_cross_correlations.data(), sf_length_8kHz,
-                         max_lag_4kHz - min_lag_4kHz + 1);
+                       max_lag_4kHz - min_lag_4kHz + 1);
       auto cross_corr = static_cast<double>(coarse_cross_correlations[max_lag_4kHz - min_lag_4kHz]);
       auto normalizer = silk_pitch_energy_40_FLP(target_4k) + silk_pitch_energy_40_FLP(basis) + sf_length_8kHz * 4000.0f;
       lag_correlations[min_lag_4kHz] += static_cast<float>(2 * cross_corr / normalizer);

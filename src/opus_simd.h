@@ -275,42 +275,110 @@ inline bool finite_samples(const float* input, int count) noexcept {
 namespace nsq {
 #if defined(OPUSCPP_SIMD_AVX2)
 using Vector = __m128i;
-inline auto load(const std::int32_t* x) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(x)); }
-inline void store(std::int32_t* x, Vector y) { _mm_storeu_si128(reinterpret_cast<__m128i*>(x), y); }
-inline auto set(int x) { return _mm_set1_epi32(x); }
-inline auto add(Vector a, Vector b) { return _mm_add_epi32(a,b); }
-inline auto sub(Vector a, Vector b) { return _mm_sub_epi32(a,b); }
-inline auto mul(Vector a, Vector b) { return _mm_mullo_epi32(a,b); }
-inline auto minimum(Vector a, Vector b) { return _mm_min_epi32(a,b); }
-inline auto maximum(Vector a, Vector b) { return _mm_max_epi32(a,b); }
-inline auto abs(Vector a) { return _mm_abs_epi32(a); }
-inline auto eq(Vector a, Vector b) { return _mm_cmpeq_epi32(a,b); }
-inline auto gt(Vector a, Vector b) { return _mm_cmpgt_epi32(a,b); }
-inline auto vand(Vector a, Vector b) { return _mm_and_si128(a,b); }
-inline auto vor(Vector a, Vector b) { return _mm_or_si128(a,b); }
-inline auto select(Vector mask, Vector yes, Vector no) { return _mm_blendv_epi8(no,yes,mask); }
-inline auto any(Vector a) { return !_mm_testz_si128(a,a); }
-template<int N> inline auto shr(Vector a) { return _mm_srai_epi32(a,N); }
-template<int N> inline auto shl(Vector a) { return _mm_slli_epi32(a,N); }
+inline auto load(const std::int32_t* x) {
+  return _mm_loadu_si128(reinterpret_cast<const __m128i*>(x));
+}
+inline void store(std::int32_t* x, Vector y) {
+  _mm_storeu_si128(reinterpret_cast<__m128i*>(x), y);
+}
+inline auto set(int x) {
+  return _mm_set1_epi32(x);
+}
+inline auto add(Vector a, Vector b) {
+  return _mm_add_epi32(a, b);
+}
+inline auto sub(Vector a, Vector b) {
+  return _mm_sub_epi32(a, b);
+}
+inline auto mul(Vector a, Vector b) {
+  return _mm_mullo_epi32(a, b);
+}
+inline auto minimum(Vector a, Vector b) {
+  return _mm_min_epi32(a, b);
+}
+inline auto maximum(Vector a, Vector b) {
+  return _mm_max_epi32(a, b);
+}
+inline auto abs(Vector a) {
+  return _mm_abs_epi32(a);
+}
+inline auto eq(Vector a, Vector b) {
+  return _mm_cmpeq_epi32(a, b);
+}
+inline auto gt(Vector a, Vector b) {
+  return _mm_cmpgt_epi32(a, b);
+}
+inline auto vand(Vector a, Vector b) {
+  return _mm_and_si128(a, b);
+}
+inline auto vor(Vector a, Vector b) {
+  return _mm_or_si128(a, b);
+}
+inline auto select(Vector mask, Vector yes, Vector no) {
+  return _mm_blendv_epi8(no, yes, mask);
+}
+inline auto any(Vector a) {
+  return !_mm_testz_si128(a, a);
+}
+template <int N> inline auto shr(Vector a) {
+  return _mm_srai_epi32(a, N);
+}
+template <int N> inline auto shl(Vector a) {
+  return _mm_slli_epi32(a, N);
+}
 #else
 using Vector = int32x4_t;
-inline auto load(const std::int32_t* x) { return vld1q_s32(x); }
-inline void store(std::int32_t* x, Vector y) { vst1q_s32(x,y); }
-inline auto set(int x) { return vdupq_n_s32(x); }
-inline auto add(Vector a, Vector b) { return vaddq_s32(a,b); }
-inline auto sub(Vector a, Vector b) { return vsubq_s32(a,b); }
-inline auto mul(Vector a, Vector b) { return vmulq_s32(a,b); }
-inline auto minimum(Vector a, Vector b) { return vminq_s32(a,b); }
-inline auto maximum(Vector a, Vector b) { return vmaxq_s32(a,b); }
-inline auto abs(Vector a) { return vabsq_s32(a); }
-inline auto eq(Vector a, Vector b) { return vreinterpretq_s32_u32(vceqq_s32(a,b)); }
-inline auto gt(Vector a, Vector b) { return vreinterpretq_s32_u32(vcgtq_s32(a,b)); }
-inline auto vand(Vector a, Vector b) { return vandq_s32(a,b); }
-inline auto vor(Vector a, Vector b) { return vorrq_s32(a,b); }
-inline auto select(Vector mask, Vector yes, Vector no) { return vbslq_s32(vreinterpretq_u32_s32(mask),yes,no); }
-inline auto any(Vector a) { return vmaxvq_u32(vreinterpretq_u32_s32(a)) != 0; }
-template<int N> inline auto shr(Vector a) { return vshrq_n_s32(a,N); }
-template<int N> inline auto shl(Vector a) { return vshlq_n_s32(a,N); }
+inline auto load(const std::int32_t* x) {
+  return vld1q_s32(x);
+}
+inline void store(std::int32_t* x, Vector y) {
+  vst1q_s32(x, y);
+}
+inline auto set(int x) {
+  return vdupq_n_s32(x);
+}
+inline auto add(Vector a, Vector b) {
+  return vaddq_s32(a, b);
+}
+inline auto sub(Vector a, Vector b) {
+  return vsubq_s32(a, b);
+}
+inline auto mul(Vector a, Vector b) {
+  return vmulq_s32(a, b);
+}
+inline auto minimum(Vector a, Vector b) {
+  return vminq_s32(a, b);
+}
+inline auto maximum(Vector a, Vector b) {
+  return vmaxq_s32(a, b);
+}
+inline auto abs(Vector a) {
+  return vabsq_s32(a);
+}
+inline auto eq(Vector a, Vector b) {
+  return vreinterpretq_s32_u32(vceqq_s32(a, b));
+}
+inline auto gt(Vector a, Vector b) {
+  return vreinterpretq_s32_u32(vcgtq_s32(a, b));
+}
+inline auto vand(Vector a, Vector b) {
+  return vandq_s32(a, b);
+}
+inline auto vor(Vector a, Vector b) {
+  return vorrq_s32(a, b);
+}
+inline auto select(Vector mask, Vector yes, Vector no) {
+  return vbslq_s32(vreinterpretq_u32_s32(mask), yes, no);
+}
+inline auto any(Vector a) {
+  return vmaxvq_u32(vreinterpretq_u32_s32(a)) != 0;
+}
+template <int N> inline auto shr(Vector a) {
+  return vshrq_n_s32(a, N);
+}
+template <int N> inline auto shl(Vector a) {
+  return vshlq_n_s32(a, N);
+}
 #endif
 
 inline bool select_four(std::int32_t* selected_levels, std::int32_t* selected_costs,
@@ -318,33 +386,33 @@ inline bool select_four(std::int32_t* selected_levels, std::int32_t* selected_co
                         int lambda, int offset, bool exact_retry_ties) {
   const auto zero = set(0);
   const auto residual = load(alternate_levels);
-  const auto shifted = sub(residual,set(offset));
+  const auto shifted = sub(residual, set(offset));
   auto bin = shr<10>(shifted);
   if (lambda > 2048) {
     const auto deadzone = set(lambda / 2 - 512);
-    const auto positive = maximum(sub(shifted,deadzone),zero);
-    const auto negative = minimum(add(shifted,deadzone),set(-1));
-    bin = shr<10>(select(gt(zero,shifted),negative,positive));
+    const auto positive = maximum(sub(shifted, deadzone), zero);
+    const auto negative = minimum(add(shifted, deadzone), set(-1));
+    bin = shr<10>(select(gt(zero, shifted), negative, positive));
   }
-  const auto sign = minimum(maximum(bin,set(-1)),set(1));
-  const auto first = add(sub(shl<10>(bin),mul(sign,set(80))),set(offset));
-  const auto narrow = vor(eq(bin,zero),eq(bin,set(-1)));
-  const auto second = add(add(first,set(1024)),vand(narrow,set(-80)));
-  const auto difference1 = shr<16>(shl<16>(sub(residual,first)));
-  const auto difference2 = shr<16>(shl<16>(sub(residual,second)));
+  const auto sign = minimum(maximum(bin, set(-1)), set(1));
+  const auto first = add(sub(shl<10>(bin), mul(sign, set(80))), set(offset));
+  const auto narrow = vor(eq(bin, zero), eq(bin, set(-1)));
+  const auto second = add(add(first, set(1024)), vand(narrow, set(-80)));
+  const auto difference1 = shr<16>(shl<16>(sub(residual, first)));
+  const auto difference2 = shr<16>(shl<16>(sub(residual, second)));
   const auto rate = set(static_cast<std::int16_t>(lambda));
-  const auto cost1 = add(mul(difference1,difference1),mul(abs(first),rate));
-  const auto cost2 = add(mul(difference2,difference2),mul(abs(second),rate));
-  if (exact_retry_ties && any(eq(cost1,cost2)))
+  const auto cost1 = add(mul(difference1, difference1), mul(abs(first), rate));
+  const auto cost2 = add(mul(difference2, difference2), mul(abs(second), rate));
+  if (exact_retry_ties && any(eq(cost1, cost2)))
     return false;
   const auto candidate1 = shr<10>(cost1);
   const auto candidate2 = shr<10>(cost2);
-  const auto choose_first = gt(candidate2,candidate1);
+  const auto choose_first = gt(candidate2, candidate1);
   const auto prior = load(alternate_costs);
-  store(selected_levels,select(choose_first,first,second));
-  store(alternate_levels,select(choose_first,second,first));
-  store(selected_costs,add(prior,select(choose_first,candidate1,candidate2)));
-  store(alternate_costs,add(prior,select(choose_first,candidate2,candidate1)));
+  store(selected_levels, select(choose_first, first, second));
+  store(alternate_levels, select(choose_first, second, first));
+  store(selected_costs, add(prior, select(choose_first, candidate1, candidate2)));
+  store(alternate_costs, add(prior, select(choose_first, candidate2, candidate1)));
   return true;
 }
 }
@@ -354,7 +422,7 @@ inline int silk_dot_groups(double& result, const float* a, const float* b, int l
   for (; i < length - 3; i += 4) {
 #if defined(OPUSCPP_SIMD_AVX2)
     const auto products = _mm256_mul_pd(_mm256_cvtps_pd(_mm_loadu_ps(a + i)),
-                                       _mm256_cvtps_pd(_mm_loadu_ps(b + i)));
+                                        _mm256_cvtps_pd(_mm_loadu_ps(b + i)));
     const auto low = _mm256_castpd256_pd128(products);
     const auto high = _mm256_extractf128_pd(products, 1);
     const auto first = _mm_cvtsd_f64(_mm_add_sd(low, _mm_unpackhi_pd(low, low)));
@@ -374,7 +442,7 @@ inline int silk_dot_groups(double& result, const float* a, const float* b, int l
   return i;
 }
 
-template<bool Masked = false>
+template <bool Masked = false>
 inline void pitch_xcorr(const float* x, const float* y, float* out, int length, [[maybe_unused]] int lags = 8) noexcept {
 #if defined(OPUSCPP_SIMD_AVX2)
   __m256i mask;
@@ -413,21 +481,21 @@ inline void ltp_prediction_5tap8(const std::int32_t* history, const std::int16_t
   for (int tap = 0; tap < 5; ++tap) {
     const auto state = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(history - tap));
     const auto tap_q14 = _mm256_set1_epi32(coefficients[tap]);
-    const auto upper = _mm256_mullo_epi32(_mm256_srai_epi32(state, 16),tap_q14);
-    const auto lower = _mm256_srai_epi32(_mm256_mullo_epi32(_mm256_and_si256(state,mask),tap_q14),16);
-    sum = _mm256_add_epi32(sum, _mm256_add_epi32(upper,lower));
+    const auto upper = _mm256_mullo_epi32(_mm256_srai_epi32(state, 16), tap_q14);
+    const auto lower = _mm256_srai_epi32(_mm256_mullo_epi32(_mm256_and_si256(state, mask), tap_q14), 16);
+    sum = _mm256_add_epi32(sum, _mm256_add_epi32(upper, lower));
   }
-  _mm256_storeu_si256(reinterpret_cast<__m256i*>(prediction),sum);
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(prediction), sum);
 #elif defined(OPUSCPP_SIMD_NEON)
   auto lo = vdupq_n_s32(2);
   auto hi = lo;
   for (int tap = 0; tap < 5; ++tap) {
     const auto coefficient = vdupq_n_s32(static_cast<std::int32_t>(coefficients[tap]) * 32768);
-    lo = vaddq_s32(lo,vqdmulhq_s32(vld1q_s32(history-tap),coefficient));
-    hi = vaddq_s32(hi,vqdmulhq_s32(vld1q_s32(history+4-tap),coefficient));
+    lo = vaddq_s32(lo, vqdmulhq_s32(vld1q_s32(history - tap), coefficient));
+    hi = vaddq_s32(hi, vqdmulhq_s32(vld1q_s32(history + 4 - tap), coefficient));
   }
-  vst1q_s32(prediction,lo);
-  vst1q_s32(prediction+4,hi);
+  vst1q_s32(prediction, lo);
+  vst1q_s32(prediction + 4, hi);
 #endif
 }
 
