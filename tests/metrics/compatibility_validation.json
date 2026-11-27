@@ -1,11 +1,11 @@
 {
-  "source_commit": "5d2d3dc409f72d40476e78e01d0ae30cb691298e",
-  "source_blob": "b136225efab8c911df4ab1ac8f2382df25dc829c",
-  "source_sha256": "d67054c6ed5864c95f010c8759995f86c6beef47b9b3b66ed418a58414d8d129",
+  "source_commit": "363419926744cacacc81df53b4a3c37f0cff0fec",
+  "source_blob": "61d9eafe386d0d8ea49eaf8a60610ce91d62dca1",
+  "source_sha256": "7659714b968d0c1dedba8d118a7b7521507f3c7d748952681ca471e3c3d5b067",
   "header_sha256": "d804f0d92d8c420860d08bd422d457361d72146aa06281f2d0ffa2ac429bf1e1",
   "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
   "official_archive_sha256": "5efb534268e063b20dd8de9b16df18da587e8c94fd6403c73623b0af13c74a25",
-  "source_root": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-133822\\snapshot",
+  "source_root": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-143108\\snapshot",
   "setup_helper_sha256": "49cba93e41462cc308edbb98cfb4a234af31e17676cddb1e8b15f49669c77aab",
   "opus_compare_sha256": "a4889f7bbb082167e895723d0155090d8901faa3b70ae2d5f740cb915fca7c2c",
   "vector_file_hashes": {
@@ -59,124 +59,166 @@
       {
         "case": "rfc6716_testvector01_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.339100\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.339100\n",
+        "pcm_sha256": "a38f2c0b8dfa1f7a9d78c9ed344cb6ff944cf068cd85b7a739c6a5dae80fe660"
       },
       {
         "case": "rfc6716_testvector02_1ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 96.2 % (internal weighted error is 0.009403)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 96.2 % (internal weighted error is 0.009403)\n",
+        "pcm_sha256": "94367ca9d7cb8b43ba973ebe5668242c3fd5bc1922d457b3a1192fcdaae47718"
       },
       {
         "case": "rfc6716_testvector03_1ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 96.7 % (internal weighted error is 0.008038)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 96.7 % (internal weighted error is 0.008038)\n",
+        "pcm_sha256": "2048ec5ddc2e562912a5f0cb7a01c5fe13312116013757faf73992c07420f30e"
       },
       {
         "case": "rfc6716_testvector04_1ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 96.5 % (internal weighted error is 0.008508)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 96.5 % (internal weighted error is 0.008508)\n",
+        "pcm_sha256": "7c14e250c4bee2b25527a3af31fb67643e7a3dd17bab11f3a6595d4cd90bfb9d"
       },
       {
         "case": "rfc6716_testvector05_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 8.863722\n"
+        "output": "Test vector FAILS\nInternal weighted error is 8.863722\n",
+        "pcm_sha256": "b9dba86d1dafc6d1168b3305e48ad85dc82509945e37dcaeaabc9aa20428c3c5"
       },
       {
         "case": "rfc6716_testvector06_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 4.073627\n"
+        "output": "Test vector FAILS\nInternal weighted error is 4.073627\n",
+        "pcm_sha256": "80e192b39185d239b5608c47597df03509638f4ba5af6ea9cff928c8a9596a6c"
       },
       {
         "case": "rfc6716_testvector07_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 2.722261\n"
+        "output": "Test vector FAILS\nInternal weighted error is 2.722261\n",
+        "pcm_sha256": "a047fb86d3d0a7d754bb6ed982204e0eaebba018cf1d0d42ec388c066e008fa9"
       },
       {
         "case": "rfc6716_testvector08_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 7.313437\n"
+        "output": "Test vector FAILS\nInternal weighted error is 7.313437\n",
+        "pcm_sha256": "cf1ad699d91b28ff8a905936b422eaddb8dad0af7f19e89f8682c5e6ac67aece"
       },
       {
         "case": "rfc6716_testvector09_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.809555\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.809555\n",
+        "pcm_sha256": "50434773f7d681c6287531fa46928c9c466e89d0900dfad324cbb3d7a6e3fa3e"
       },
       {
         "case": "rfc6716_testvector10_1ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 87.4 % (internal weighted error is 0.031346)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 87.4 % (internal weighted error is 0.031346)\n",
+        "pcm_sha256": "e6ee9bdb7fd196bf5d872443fd6d2619d5e2e27c1e73771f4d921253c0b499f1"
       },
       {
         "case": "rfc6716_testvector11_1ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 93.5 % (internal weighted error is 0.015941)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 93.5 % (internal weighted error is 0.015941)\n",
+        "pcm_sha256": "ac8e0789f88d64d9b4ea2845e419dc9e68960d69734c9d6741a86ab55e8cd9be"
       },
       {
         "case": "rfc6716_testvector12_1ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.393743\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.393743\n",
+        "pcm_sha256": "0cbcd677ce859837d4252dd84f4838659a5ac4fe8e49798b5d280551f4b5954d"
       },
       {
         "case": "rfc6716_testvector01_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 86.2 % (internal weighted error is 0.034302)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 86.2 % (internal weighted error is 0.034302)\n",
+        "pcm_sha256": "ec8203e403699da4ea02e331e10c4db24b47020f0989a3a58848436a5e1ca9c5"
       },
       {
         "case": "rfc6716_testvector02_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n",
+        "pcm_sha256": "4ad3b7aeaea242acc96cafebee69edb0914abc2e46c0c884f812ce10bbee4dbc"
       },
       {
         "case": "rfc6716_testvector03_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n",
+        "pcm_sha256": "e00f4ee27f007d849fb67f4386db93254631d2ff31b580394d854819560f1bc7"
       },
       {
         "case": "rfc6716_testvector04_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 100.0 % (internal weighted error is 0.000000)\n",
+        "pcm_sha256": "ce7450716f4911284332e76dab66518dcfd5c84e320c0a8a54014e658f5c6908"
       },
       {
         "case": "rfc6716_testvector05_2ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.379218\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.379218\n",
+        "pcm_sha256": "0f6c859158a5c8a9d83563c6f5fca8ff0e2dd62e25c9de7f632ea27484c54c7d"
       },
       {
         "case": "rfc6716_testvector06_2ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.432803\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.432803\n",
+        "pcm_sha256": "95781bd1a485423c057d043bcd54c61ddf159e51cc51a9e4b4bf653b79f6a930"
       },
       {
         "case": "rfc6716_testvector07_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 88.5 % (internal weighted error is 0.028527)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 88.5 % (internal weighted error is 0.028527)\n",
+        "pcm_sha256": "11e9663088bdfa60b0b55412e179c67caf1c4718700976a15da65591e977cba2"
       },
       {
         "case": "rfc6716_testvector08_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 83.6 % (internal weighted error is 0.040971)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 83.6 % (internal weighted error is 0.040971)\n",
+        "pcm_sha256": "211677bca6a8dec836affe737d38870f48c8b7aa5d161f1ded3ea836e7db3334"
       },
       {
         "case": "rfc6716_testvector09_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 85.7 % (internal weighted error is 0.035550)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 85.7 % (internal weighted error is 0.035550)\n",
+        "pcm_sha256": "e28aece23fba62ad33c7c6e7778b840835a6545f4a3d9576df61fd1e3a704bdc"
       },
       {
         "case": "rfc6716_testvector10_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 87.4 % (internal weighted error is 0.031175)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 87.4 % (internal weighted error is 0.031175)\n",
+        "pcm_sha256": "15af858c0e1cc59d033f4614519605cf042fa78e43f94b4c20c9a4a037052a26"
       },
       {
         "case": "rfc6716_testvector11_2ch",
         "pass_": true,
-        "output": "Test vector PASSES\nOpus quality metric: 95.4 % (internal weighted error is 0.011327)\n"
+        "output": "Test vector PASSES\nOpus quality metric: 95.4 % (internal weighted error is 0.011327)\n",
+        "pcm_sha256": "b1c22786f31672d0f7eca886f16a4490e6d494e867d65075c6aaaaa8ff95dd6d"
       },
       {
         "case": "rfc6716_testvector12_2ch",
         "pass_": false,
-        "output": "Test vector FAILS\nInternal weighted error is 0.391529\n"
+        "output": "Test vector FAILS\nInternal weighted error is 0.391529\n",
+        "pcm_sha256": "c4aaea41bd8ccf0888630ad032f479952c5139ed8b0d86e9b39833fafa590ba4"
       }
-    ]
+    ],
+    "official_control": {
+      "passed": 14,
+      "misses": [
+        "testvector01_1ch",
+        "testvector05_1ch",
+        "testvector05_2ch",
+        "testvector06_1ch",
+        "testvector06_2ch",
+        "testvector07_1ch",
+        "testvector08_1ch",
+        "testvector09_1ch",
+        "testvector12_1ch",
+        "testvector12_2ch"
+      ],
+      "official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
+      "audit_sha256": "c46ee8be6ac1a6143073da4206c41f8276b46f064b083b95cf6238f836d89735"
+    },
+    "same_misses": true
   },
   "encode_interoperability": {
     "passed": "96",
@@ -186,7 +228,7 @@
     },
     "native_off_waveform": {
       "status": "MEASURED",
-      "reference_library": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-133822\\official\\libopus.a",
+      "reference_library": "C:\\Users\\regis\\Documents\\codex project\\opuscpp\\build\\refresh-20261127-143108\\official\\libopus.a",
       "configured_official_commit": "51bd2e649f4516d103ab9a7f22a768595621e847",
       "scope": "Independent fresh 48kHz Float32 Native/OFF decoder defaults per case, continuous same packets, decode_fec=0, raw frame support without lookahead crop; numeric errors exclude reported nonfinite pairs.",
       "acceptance_threshold": null,
