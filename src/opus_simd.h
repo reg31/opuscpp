@@ -406,6 +406,31 @@ inline void pitch_xcorr_eight(const float* x, const float* y, float* out, int le
 #endif
 }
 
+inline void ltp_prediction_5tap8(const std::int32_t* history, const std::int16_t* coefficients, std::int32_t* prediction) noexcept {
+#if defined(OPUSCPP_SIMD_AVX2)
+  auto sum = _mm256_set1_epi32(2);
+  const auto mask = _mm256_set1_epi32(65535);
+  for (int tap = 0; tap < 5; ++tap) {
+    const auto state = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(history - tap));
+    const auto tap_q14 = _mm256_set1_epi32(coefficients[tap]);
+    const auto upper = _mm256_mullo_epi32(_mm256_srai_epi32(state, 16),tap_q14);
+    const auto lower = _mm256_srai_epi32(_mm256_mullo_epi32(_mm256_and_si256(state,mask),tap_q14),16);
+    sum = _mm256_add_epi32(sum, _mm256_add_epi32(upper,lower));
+  }
+  _mm256_storeu_si256(reinterpret_cast<__m256i*>(prediction),sum);
+#elif defined(OPUSCPP_SIMD_NEON)
+  auto lo = vdupq_n_s32(2);
+  auto hi = lo;
+  for (int tap = 0; tap < 5; ++tap) {
+    const auto coefficient = vdupq_n_s32(static_cast<std::int32_t>(coefficients[tap]) * 32768);
+    lo = vaddq_s32(lo,vqdmulhq_s32(vld1q_s32(history-tap),coefficient));
+    hi = vaddq_s32(hi,vqdmulhq_s32(vld1q_s32(history+4-tap),coefficient));
+  }
+  vst1q_s32(prediction,lo);
+  vst1q_s32(prediction+4,hi);
+#endif
+}
+
 }
 #endif
 #endif

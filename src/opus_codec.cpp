@@ -13159,7 +13159,24 @@ static void silk_decode_core(silk_decoder_state& state, silk_decoder_control& co
         }
       }
       auto* pred_lag_ptr = &sLTP_Q15[sLTP_buf_idx - lag + 5 / 2];
-      for (int i = 0; i < state.subfr_length; ++i) {
+      int i = 0;
+#if defined(OPUSCPP_HAS_SIMD)
+      if (lag >= 10) {
+        for (; i + 8 <= state.subfr_length; i += 8) {
+          std::array<opus_int32, 8> predictions;
+          opuscpp_simd::ltp_prediction_5tap8(pred_lag_ptr, B_Q14, predictions.data());
+          for (int lane = 0; lane < 8; ++lane) {
+            const auto residual = wrap_add(decode_excitation(subframe_offset + i + lane),
+                                           wrap_shift_left(predictions[lane], 1));
+            sLTP_Q15[sLTP_buf_idx + lane] = wrap_shift_left(residual, 1);
+            sLPC_Q14[16 + i + lane] = residual;
+          }
+          sLTP_buf_idx += 8;
+          pred_lag_ptr += 8;
+        }
+      }
+#endif
+      for (; i < state.subfr_length; ++i) {
         const opus_int32 LTP_pred_Q13 = silk_ltp_prediction_5tap(pred_lag_ptr, B_Q14);
         ++pred_lag_ptr;
         const auto residual = wrap_add(decode_excitation(subframe_offset + i), wrap_shift_left(LTP_pred_Q13, 1));
