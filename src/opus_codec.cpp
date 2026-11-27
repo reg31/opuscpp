@@ -14395,35 +14395,35 @@ static void silk_nsq_del_dec_block(const silk_nsq_block& b, NSQ_del_dec_struct* 
 #if defined(OPUSCPP_SIMD_NSQ_QUANTIZE) && defined(OPUSCPP_SIMD_AVX2)
     if (N != 4 || b.fixed ||
         !opuscpp_simd::nsq::select_four(selected_levels, selected_costs, alternate_levels, alternate_costs,
-                               b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
+                                        b.lambda_Q10, b.offset_Q10, role == silk_nsq_role::cap_retry))
 #endif
-    for (int k = 0; k < N; ++k) {
-      const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
-                                                  b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
-      const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
-      const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
-      const auto candidate0 = full_cost0_Q20 >> 10;
-      const auto candidate1 = full_cost1_Q20 >> 10;
-      bool first_is_q0 = candidate0 < candidate1;
-      if (role == silk_nsq_role::cap_retry && full_cost0_Q20 == full_cost1_Q20) {
-        const auto target_Q14 = wrap_shift_left(input_Q10, 4);
-        const auto prediction_Q14 = wrap_add(LTP_pred_Q14, lpc_predictions[k]);
-        const auto error = [&](opus_int32 q_Q10) {
-          const auto excitation_Q14 = wrap_shift_left(q_Q10, 4);
-          const auto sample_Q14 = wrap_add(prediction_Q14, psDelDec[k].Seed < 0 ? -excitation_Q14 : excitation_Q14);
-          const auto sample_bits = static_cast<opus_uint32>(sample_Q14);
-          const auto target_bits = static_cast<opus_uint32>(target_Q14);
-          return sample_Q14 < target_Q14 ? target_bits - sample_bits : sample_bits - target_bits;
-        };
-        first_is_q0 = error(c.q1_Q10) < error(c.q2_Q10);
+      for (int k = 0; k < N; ++k) {
+        const auto c = silk_quantize_candidate_pair(b.fixed, alternate_levels[k], b.lambda_Q10, b.offset_Q10,
+                                                    b.fixed ? b.pulses[i + (subfr > 0 ? decisionDelay : 0)] : 0);
+        const auto full_cost0_Q20 = c.rate1_Q20 + c.dist1_Q20;
+        const auto full_cost1_Q20 = c.rate2_Q20 + c.dist2_Q20;
+        const auto candidate0 = full_cost0_Q20 >> 10;
+        const auto candidate1 = full_cost1_Q20 >> 10;
+        bool first_is_q0 = candidate0 < candidate1;
+        if (role == silk_nsq_role::cap_retry && full_cost0_Q20 == full_cost1_Q20) {
+          const auto target_Q14 = wrap_shift_left(input_Q10, 4);
+          const auto prediction_Q14 = wrap_add(LTP_pred_Q14, lpc_predictions[k]);
+          const auto error = [&](opus_int32 q_Q10) {
+            const auto excitation_Q14 = wrap_shift_left(q_Q10, 4);
+            const auto sample_Q14 = wrap_add(prediction_Q14, psDelDec[k].Seed < 0 ? -excitation_Q14 : excitation_Q14);
+            const auto sample_bits = static_cast<opus_uint32>(sample_Q14);
+            const auto target_bits = static_cast<opus_uint32>(target_Q14);
+            return sample_Q14 < target_Q14 ? target_bits - sample_bits : sample_bits - target_bits;
+          };
+          first_is_q0 = error(c.q1_Q10) < error(c.q2_Q10);
+        }
+        const auto swap_mask = -static_cast<opus_int32>(first_is_q0);
+        const auto level_delta = (c.q1_Q10 ^ c.q2_Q10) & swap_mask, cost_delta = (candidate0 ^ candidate1) & swap_mask;
+        selected_levels[k] = c.q2_Q10 ^ level_delta;
+        selected_costs[k] = alternate_costs[k] + (candidate1 ^ cost_delta);
+        alternate_levels[k] = c.q1_Q10 ^ level_delta;
+        alternate_costs[k] += candidate0 ^ cost_delta;
       }
-      const auto swap_mask = -static_cast<opus_int32>(first_is_q0);
-      const auto level_delta = (c.q1_Q10 ^ c.q2_Q10) & swap_mask, cost_delta = (candidate0 ^ candidate1) & swap_mask;
-      selected_levels[k] = c.q2_Q10 ^ level_delta;
-      selected_costs[k] = alternate_costs[k] + (candidate1 ^ cost_delta);
-      alternate_levels[k] = c.q1_Q10 ^ level_delta;
-      alternate_costs[k] += candidate0 ^ cost_delta;
-    }
     *smpl_buf_idx = *smpl_buf_idx == 0 ? 39 : *smpl_buf_idx - 1;
     const int delayed_slot = *smpl_buf_idx + decisionDelay;
     const int last_smple_idx = delayed_slot < 0 ? delayed_slot % 40 : delayed_slot - 40 * (delayed_slot >= 40);
@@ -15871,8 +15871,8 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
   if (index_increment_Q16 == 43691 && max_index_Q16 > 0 &&
       max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
     const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
-                                               silk_resampler_frac_FIR_packed[8].data(),
-                                               silk_resampler_frac_FIR_packed[4].data());
+                                              silk_resampler_frac_FIR_packed[8].data(),
+                                              silk_resampler_frac_FIR_packed[4].data());
     const int input_count = max_index_Q16 / index_per_pair;
     for (int input = 0; input < input_count; ++input) {
       const auto dots = phases(buf + 2 * input);
@@ -15886,8 +15886,8 @@ static auto silk_resampler_private_IIR_FIR_INTERPOL(opus_int16* out, opus_int16*
   if (index_increment_Q16 == 21846 && max_index_Q16 > 0 &&
       max_index_Q16 <= silk_max_frame_length * index_per_pair && max_index_Q16 % index_per_pair == 0) {
     const opuscpp_simd::FirThreePhases phases(silk_resampler_frac_FIR_packed[0].data(),
-                                               silk_resampler_frac_FIR_packed[4].data(),
-                                               silk_resampler_frac_FIR_packed[8].data());
+                                              silk_resampler_frac_FIR_packed[4].data(),
+                                              silk_resampler_frac_FIR_packed[8].data());
     const int input_count = max_index_Q16 >> 16;
     for (int input = 0; input < input_count; ++input) {
       const auto dots = phases.template operator()<false>(buf + input);
