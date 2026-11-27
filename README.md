@@ -1,11 +1,12 @@
 # opuscpp
 
-`opuscpp` is a pure portable C++23 implementation of the standard Opus single-stream codec API,
-derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1. It is
-designed for source embedding: add `src/opus_codec.cpp` to your build, include `src/opus_codec.h`,
-and ship no separate DLL or static library.
+`opuscpp` is a C++23 implementation of the standard Opus single-stream codec API,
+derived from [Xiph's official Opus project](https://github.com/xiph/opus) version 1.6.1.
+It uses AVX2 intrinsics on x86-64 and NEON intrinsics on AArch64 by default.
 
-`opuscpp` is a portable C++23 implementation of the standard Opus single-stream API, derived from Xiph Opus 1.6.1. It is source-embeddable, uses standard Opus packets, and supports the documented single-stream API/CTL subset in `src/README.md`. Custom Opus is unsupported.
+To embed the codec, compile `src/opus_codec.cpp` with your application and include
+`src/opus_codec.h`. See the [source guide](src/README.md) for build options and the
+supported API and CTLs.
 
 Minimal integration looks like:
 
@@ -18,13 +19,12 @@ Minimal integration looks like:
 - C++23 source embedding with no separate library.
 - Standard Opus packet format and a focused single-stream API/CTL subset.
 - Optional in-band FEC, guarded DTX and a mono-VOIP denoiser, each disabled by default.
-- AVX2 on x86-64 and NEON on AArch64 by default. Define `OPUSCPP_NO_SIMD` for the portable codec paths.
 
 ## Quick start
 
 Keep the three files in `src/` together. Include `opus_codec.h` where you use the API and compile
 `opus_codec.cpp` with your application. For x86-64 CPUs without AVX2, define `OPUSCPP_NO_SIMD`
-when compiling the codec. Scalar builds also support embedding just `opus_codec.cpp` and `opus_codec.h`.
+when compiling the codec. Portable builds also support embedding just `opus_codec.cpp` and `opus_codec.h`.
 
 Use the normal supported Opus-style API:
 
@@ -60,9 +60,9 @@ APIs, and unsupported CTLs not listed in `src/README.md`.
 
 ## Published benchmark snapshot vs official Opus
 
-Both builds use `-O2 -DNDEBUG`; official Opus enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
+Both builds use `-O2 -DNDEBUG`. The official Opus build enables x86 intrinsics. Measurements use Windows MinGW GCC 16.2 / AMD Ryzen 7 8840HS, nine 60-second stereo AUDIO runs. Ratios above `1.00x` indicate faster processing. [Complete metrics](tests/metrics/README.md).
 
-| Bitrate | AUDIO encode speed vs official intrinsics | AUDIO decode speed vs official intrinsics | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
+| Bitrate | AUDIO encode speed vs official | AUDIO decode speed vs official | PESQ-style delta | ViSQOL-style delta | opuscpp effective bitrate | official Opus effective bitrate |
 |---:|---:|---:|---:|---:|---:|---:|
 | 16&nbsp;kbps | 0.959x | 1.458x | +0.5554 | +0.3132 | 16.772 kbps | 17.065 kbps |
 | 24&nbsp;kbps | 1.021x | 1.113x | +0.6136 | +0.1478 | 25.103 kbps | 25.229 kbps |

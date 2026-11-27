@@ -6,18 +6,17 @@
 - `opus_codec.cpp` - C++23 implementation.
 - `opus_simd.h` - internal AVX2 and NEON kernels for the default 64-bit builds.
 
-Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
-This repository intentionally omits a packaged build-system wrapper; the expected integration model is to compile `opus_codec.cpp` directly inside your project.
+Compile `opus_codec.cpp` directly in your application and include `opus_codec.h`.
 
 ## SIMD builds
 
-The codec uses AVX2 on x86-64 and NEON on AArch64 by default. Keep
-`opus_simd.h` beside `opus_codec.cpp`. An x86-64 SIMD build requires AVX2
-support in the CPU and operating system. Selection happens at compile time.
+The default build selects AVX2 intrinsics on x86-64 and NEON intrinsics on
+AArch64 at compile time. Keep `opus_simd.h` beside `opus_codec.cpp`. The
+x86-64 SIMD build requires AVX2 support in the CPU and operating system.
 
-Define `OPUSCPP_NO_SIMD` when compiling `opus_codec.cpp` to use only the
-portable codec paths. This build needs just `opus_codec.cpp` and `opus_codec.h`.
-Other architectures use the portable paths automatically.
+Define `OPUSCPP_NO_SIMD` when compiling `opus_codec.cpp` to select the portable
+C++ paths. This build needs only `opus_codec.cpp` and `opus_codec.h`. ARM64EC
+and other targets select the portable paths automatically.
 
 The qualified SIMD configurations are GCC 16.2 on Windows x86-64 and Clang 21
 from the Android NDK on AArch64. Use `-ffp-contract=off` when comparing
