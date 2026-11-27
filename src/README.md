@@ -8,7 +8,7 @@
 Add `opus_codec.cpp` to your build and include `opus_codec.h`. There is no required DLL, shared library, static library, runtime data file, assembly object, or platform-specific dependency.
 This repository intentionally omits a packaged build-system wrapper; the expected integration model is to compile `opus_codec.cpp` directly inside your project.
 
-## Optional SIMD
+## Optional integer SIMD
 
 For an opt-in build, place `opus_simd.h` beside `opus_codec.cpp` and define the
 desired options when compiling `opus_codec.cpp`.
@@ -18,10 +18,6 @@ desired options when compiling `opus_codec.cpp`.
 | `OPUSCPP_SIMD_NSQ` | SILK encoder fixed-point prediction |
 | `OPUSCPP_SIMD_DECODER_LPC` | SILK decoder fixed-point synthesis |
 | `OPUSCPP_SIMD_RESAMPLER` | SILK output upsampling and interpolation |
-| `OPUSCPP_SIMD_CELT_MDCT` | CELT inverse MDCT rotations and overlap |
-| `OPUSCPP_SIMD_CELT_COMB` | CELT steady comb filter |
-| `OPUSCPP_SIMD_CELT_FFT` | CELT radix-3 and radix-5 FFT stages (AVX2) |
-| `OPUSCPP_SIMD_NSQ_QUANTIZE` | SILK four-state quantizer cost selection (AVX2) |
 
 The options use AVX2 on a suitably targeted x86-64 build or NEON on AArch64.
 Other targets use the portable kernels. An AVX2-targeted codec requires AVX2
@@ -30,9 +26,9 @@ for a single portable binary. The source-level options do not provide runtime
 CPU dispatch.
 
 The qualified SIMD configurations are GCC 16.2 on Windows x86-64 and Clang 21
-from the Android NDK on AArch64. For the floating-point CELT options,
-compile with `-ffp-contract=off` to preserve separate multiply and add operations.
-The default embedding continues to use `opus_codec.cpp` and
+from the Android NDK on AArch64. The options select integer kernels. The
+ordinary floating-point pitch correlation and CELT comb filter are used on
+all targets. The default embedding continues to use `opus_codec.cpp` and
 `opus_codec.h` without any options.
 
 ## Compatibility goal
