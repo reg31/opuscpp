@@ -9923,7 +9923,7 @@ struct celt_generated_tables {
   std::array<celt_coef, 120> window;
   std::array<std::array<celt_coef, 2>, 120> comb_fade;
 #if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
-  std::array<std::array<float,120>,2> pitch_twiddles;
+  std::array<std::array<float, 120>, 2> pitch_twiddles;
 #endif
 };
 
@@ -9972,8 +9972,8 @@ static bool fill_celt_tables(celt_generated_tables& tables) noexcept {
     }
 #if defined(OPUSCPP_HAS_SIMD) && FLT_EVAL_METHOD == 0
     for (std::size_t k = 0; k < tables.pitch_twiddles[0].size(); ++k) {
-      tables.pitch_twiddles[0][k] = tables.fft_twiddles[2*k].r;
-      tables.pitch_twiddles[1][k] = tables.fft_twiddles[2*k].i;
+      tables.pitch_twiddles[0][k] = tables.fft_twiddles[2 * k].r;
+      tables.pitch_twiddles[1][k] = tables.fft_twiddles[2 * k].i;
     }
 #endif
     std::size_t offset = 0;
@@ -10380,7 +10380,7 @@ static void clt_mdct_backward_dual_history_c(const mdct_lookup* l, float* in, fl
 }
 
 #if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
-template<int Count>
+template <int Count>
 [[nodiscard]] static bool pitch_fft_bounds(const float* input, opus_uint32& peak, int& minimum) noexcept {
   static_assert(Count % 8 == 0);
   const auto mask = _mm256_set1_epi32(0x7fffffff);
@@ -10400,7 +10400,7 @@ template<int Count>
   }
   if (!_mm256_testz_si256(invalid, invalid))
     return false;
-  std::array<opus_int32,8> peaks, mins;
+  std::array<opus_int32, 8> peaks, mins;
   _mm256_storeu_si256(reinterpret_cast<__m256i*>(peaks.data()), peak8);
   _mm256_storeu_si256(reinterpret_cast<__m256i*>(mins.data()), min8);
   peak = static_cast<opus_uint32>(std::ranges::max(peaks));
@@ -10430,7 +10430,6 @@ template<int Count>
   return _mm256_testz_si256(invalid, invalid) != 0;
 }
 #endif
-
 
 #if defined(OPUSCPP_SIMD_AVX2) && FLT_EVAL_METHOD == 0
 struct pitch_fft_complex8 {
@@ -10491,9 +10490,9 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
 
   // Each YMM has four consecutive positions of X below the same four of Y.
   const auto read_input = [&](int p, bool zero_x) -> pitch_fft_complex_pair {
-    const auto xl = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2*p);
-    const auto xh = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2*p + 4);
-    const auto yl = _mm_loadu_ps(y + 2*p), yh = _mm_loadu_ps(y + 2*p + 4);
+    const auto xl = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2 * p);
+    const auto xh = zero_x ? _mm_setzero_ps() : _mm_loadu_ps(x + 2 * p + 4);
+    const auto yl = _mm_loadu_ps(y + 2 * p), yh = _mm_loadu_ps(y + 2 * p + 4);
     const auto scale = join(_mm_set1_ps(factor_x), _mm_set1_ps(factor_y));
     return {_mm256_mul_ps(join(_mm_shuffle_ps(xl, xh, 0x88), _mm_shuffle_ps(yl, yh, 0x88)), scale),
             _mm256_mul_ps(join(_mm_shuffle_ps(xl, xh, 0xdd), _mm_shuffle_ps(yl, yh, 0xdd)), scale)};
@@ -10508,8 +10507,8 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
       const auto real = _mm_setr_ps(a.r, b.r, c.r, d.r), imag = _mm_setr_ps(a.i, b.i, c.i, d.i);
       z[digit] = pitch_fft_rotate(z[digit], join(real, real), join(imag, imag));
     }
-    pitch_fft_transpose4(first + 8*p, z[0].real, z[1].real, z[2].real, z[3].real);
-    pitch_fft_transpose4(first + plane + 8*p, z[0].imag, z[1].imag, z[2].imag, z[3].imag);
+    pitch_fft_transpose4(first + 8 * p, z[0].real, z[1].real, z[2].real, z[3].real);
+    pitch_fft_transpose4(first + plane + 8 * p, z[0].imag, z[1].imag, z[2].imag, z[3].imag);
   }
 
   const auto load = [](const float* data, int stride, int pos) -> pitch_fft_complex_pair {
@@ -10521,26 +10520,26 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
   };
   float* const second = workspace.data();
   for (int p = 0; p < 15; ++p) {
-    const int in = 8*p, out = 32*p;
+    const int in = 8 * p, out = 32 * p;
     const auto z = pitch_fft_radix4(load(first, plane, in), load(first, plane, in + 120),
-                                   load(first, plane, in + 240), load(first, plane, in + 360));
+                                    load(first, plane, in + 240), load(first, plane, in + 360));
     store(second, plane, out, z[0]);
     for (int digit = 1; digit < 4; ++digit)
-      store(second, plane, out + 8*digit, pitch_fft_rotate(z[digit], twiddles[8*p*digit]));
+      store(second, plane, out + 8 * digit, pitch_fft_rotate(z[digit], twiddles[8 * p * digit]));
   }
 
   alignas(32) std::array<float, 240> tail;
   for (int column = 0; column < 32; column += 8) {
     for (int p = 0; p < 5; ++p) {
-      const int in = column + 32*p, out = 8*p;
+      const int in = column + 32 * p, out = 8 * p;
       const auto a = load(second, plane, in), b = load(second, plane, in + 160), c = load(second, plane, in + 320);
       const auto sum = b + c, dif = (b - c) * 0.8660254037844386f;
       const auto mid = a - sum * .5f;
       store(tail.data(), 120, out, a + sum);
       store(tail.data(), 120, out + 40,
-            pitch_fft_rotate({_mm256_add_ps(mid.real, dif.imag), _mm256_sub_ps(mid.imag, dif.real)}, twiddles[32*p]));
+            pitch_fft_rotate({_mm256_add_ps(mid.real, dif.imag), _mm256_sub_ps(mid.imag, dif.real)}, twiddles[32 * p]));
       store(tail.data(), 120, out + 80,
-            pitch_fft_rotate({_mm256_sub_ps(mid.real, dif.imag), _mm256_add_ps(mid.imag, dif.real)}, twiddles[64*p]));
+            pitch_fft_rotate({_mm256_sub_ps(mid.real, dif.imag), _mm256_add_ps(mid.imag, dif.real)}, twiddles[64 * p]));
     }
     const auto store_frequency = [&](int pos, pitch_fft_complex_pair value) {
       _mm_storeu_ps(frequency.data() + pos, _mm256_castps256_ps128(value.real));
@@ -10549,15 +10548,15 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
       _mm_storeu_ps(frequency.data() + plane + half + pos, _mm256_extractf128_ps(value.imag, 1));
     };
     for (int group = 0; group < 3; ++group) {
-      const int in = 40*group, out = column/2 + 16*group;
+      const int in = 40 * group, out = column / 2 + 16 * group;
       const auto a = load(tail.data(), 120, in);
       const auto b = load(tail.data(), 120, in + 8), c = load(tail.data(), 120, in + 16);
       const auto d = load(tail.data(), 120, in + 24), e = load(tail.data(), 120, in + 32);
       const auto s14 = b + e, s23 = c + d, d14 = b - e, d23 = c - d;
       constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f;
       constexpr float c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
-      const auto e1 = a + s14*c1 + s23*c2, f1 = d14*s1 + d23*s2;
-      const auto e2 = a + s14*c2 + s23*c1, f2 = d14*s2 - d23*s1;
+      const auto e1 = a + s14 * c1 + s23 * c2, f1 = d14 * s1 + d23 * s2;
+      const auto e2 = a + s14 * c2 + s23 * c1, f2 = d14 * s2 - d23 * s1;
       store_frequency(out, a + s14 + s23);
       store_frequency(out + 48, {_mm256_add_ps(e1.real, f1.imag), _mm256_sub_ps(e1.imag, f1.real)});
       store_frequency(out + 96, {_mm256_add_ps(e2.real, f2.imag), _mm256_sub_ps(e2.imag, f2.real)});
@@ -10566,7 +10565,6 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
     }
   }
 }
-
 
 [[nodiscard]] static int pitch_fft_pack_spectrum(float* spectrum, const float* x, const float* y) noexcept {
   constexpr int half = 240;
@@ -10583,11 +10581,10 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
     const auto br = reversed(frequency + half - k - 7);
     const auto bi = reversed(frequency + 2 * half - k - 7);
     return std::array{
-      pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ar, br)),
-                         _mm256_mul_ps(unpack_scale, _mm256_sub_ps(ai, bi))},
-      pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ai, bi)),
-                         _mm256_mul_ps(unpack_scale, _mm256_sub_ps(br, ar))}
-    };
+        pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ar, br)),
+                           _mm256_mul_ps(unpack_scale, _mm256_sub_ps(ai, bi))},
+        pitch_fft_complex8{_mm256_mul_ps(unpack_scale, _mm256_add_ps(ai, bi)),
+                           _mm256_mul_ps(unpack_scale, _mm256_sub_ps(br, ar))}};
   };
   const auto correlate = [](pitch_fft_complex8 a, pitch_fft_complex8 b) {
     return pitch_fft_complex8{_mm256_add_ps(_mm256_mul_ps(a.r, b.r), _mm256_mul_ps(a.i, b.i)),
@@ -10605,21 +10602,20 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
     const auto d = correlate(xo, ye);
     const auto wr = _mm256_loadu_ps(celt_tables.pitch_twiddles[0].data() + k);
     const auto wi = _mm256_loadu_ps(celt_tables.pitch_twiddles[1].data() + k);
-    const auto odd_r = _mm256_add_ps(c.r,_mm256_add_ps(_mm256_mul_ps(d.r,wr),_mm256_mul_ps(d.i,wi)));
-    const auto odd_i = _mm256_add_ps(c.i,_mm256_sub_ps(_mm256_mul_ps(d.i,wr),_mm256_mul_ps(d.r,wi)));
-    const auto v0 = _mm256_mul_ps(_mm256_sub_ps(even_r,odd_i),spectrum_scale);
-    const auto v1 = _mm256_mul_ps(_mm256_xor_ps(_mm256_add_ps(even_i,odd_r),sign),spectrum_scale);
-    const auto v2 = _mm256_mul_ps(_mm256_add_ps(even_r,odd_i),spectrum_scale);
-    const auto v3 = _mm256_mul_ps(_mm256_sub_ps(even_i,odd_r),spectrum_scale);
-    _mm256_storeu_ps(spectrum + k,v0);
-    _mm256_storeu_ps(spectrum + half + k,v1);
-    _mm256_storeu_ps(spectrum + half - k - 7,_mm256_permutevar8x32_ps(v2,reverse));
-    _mm256_storeu_ps(spectrum + 2 * half - k - 7,_mm256_permutevar8x32_ps(v3,reverse));
+    const auto odd_r = _mm256_add_ps(c.r, _mm256_add_ps(_mm256_mul_ps(d.r, wr), _mm256_mul_ps(d.i, wi)));
+    const auto odd_i = _mm256_add_ps(c.i, _mm256_sub_ps(_mm256_mul_ps(d.i, wr), _mm256_mul_ps(d.r, wi)));
+    const auto v0 = _mm256_mul_ps(_mm256_sub_ps(even_r, odd_i), spectrum_scale);
+    const auto v1 = _mm256_mul_ps(_mm256_xor_ps(_mm256_add_ps(even_i, odd_r), sign), spectrum_scale);
+    const auto v2 = _mm256_mul_ps(_mm256_add_ps(even_r, odd_i), spectrum_scale);
+    const auto v3 = _mm256_mul_ps(_mm256_sub_ps(even_i, odd_r), spectrum_scale);
+    _mm256_storeu_ps(spectrum + k, v0);
+    _mm256_storeu_ps(spectrum + half + k, v1);
+    _mm256_storeu_ps(spectrum + half - k - 7, _mm256_permutevar8x32_ps(v2, reverse));
+    _mm256_storeu_ps(spectrum + 2 * half - k - 7, _mm256_permutevar8x32_ps(v3, reverse));
   }
   return k;
 }
 #endif
-
 
 #if defined(OPUSCPP_SIMD_NEON) && FLT_EVAL_METHOD == 0
 template <int Count>
@@ -10715,7 +10711,7 @@ static inline auto pitch_fft_rotate(pitch_fft_complex_pair a, kiss_twiddle_cpx p
 }
 
 static inline void pitch_fft_transpose4(float* dst, pitch_fft_neon_pair a, pitch_fft_neon_pair b,
-                                      pitch_fft_neon_pair c, pitch_fft_neon_pair d) {
+                                        pitch_fft_neon_pair c, pitch_fft_neon_pair d) {
   const auto transpose = [](float* output, float32x4_t a, float32x4_t b, float32x4_t c, float32x4_t d) {
     const auto ab0 = vzip1q_f32(a, b), cd0 = vzip1q_f32(c, d);
     const auto ab1 = vzip2q_f32(a, b), cd1 = vzip2q_f32(c, d);
@@ -10758,8 +10754,8 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
       const float real[]{a.r, b.r, c.r, d.r}, imag[]{a.i, b.i, c.i, d.i};
       z[digit] = pitch_fft_rotate(z[digit], vld1q_f32(real), vld1q_f32(imag));
     }
-    pitch_fft_transpose4(first + 8*p, z[0].real, z[1].real, z[2].real, z[3].real);
-    pitch_fft_transpose4(first + plane + 8*p, z[0].imag, z[1].imag, z[2].imag, z[3].imag);
+    pitch_fft_transpose4(first + 8 * p, z[0].real, z[1].real, z[2].real, z[3].real);
+    pitch_fft_transpose4(first + plane + 8 * p, z[0].imag, z[1].imag, z[2].imag, z[3].imag);
   }
 
   const auto load = [](const float* data, int stride, int pos) -> pitch_fft_complex_pair {
@@ -10771,26 +10767,26 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
   };
   float* const second = workspace.data();
   for (int p = 0; p < 15; ++p) {
-    const int in = 8*p, out = 32*p;
+    const int in = 8 * p, out = 32 * p;
     const auto z = pitch_fft_radix4(load(first, plane, in), load(first, plane, in + 120),
-                                   load(first, plane, in + 240), load(first, plane, in + 360));
+                                    load(first, plane, in + 240), load(first, plane, in + 360));
     store(second, plane, out, z[0]);
     for (int digit = 1; digit < 4; ++digit)
-      store(second, plane, out + 8*digit, pitch_fft_rotate(z[digit], twiddles[8*p*digit]));
+      store(second, plane, out + 8 * digit, pitch_fft_rotate(z[digit], twiddles[8 * p * digit]));
   }
 
   alignas(32) std::array<float, 240> tail;
   for (int column = 0; column < 32; column += 8) {
     for (int p = 0; p < 5; ++p) {
-      const int in = column + 32*p, out = 8*p;
+      const int in = column + 32 * p, out = 8 * p;
       const auto a = load(second, plane, in), b = load(second, plane, in + 160), c = load(second, plane, in + 320);
       const auto sum = b + c, dif = (b - c) * 0.8660254037844386f;
       const auto mid = a - sum * .5f;
       store(tail.data(), 120, out, a + sum);
       store(tail.data(), 120, out + 40,
-            pitch_fft_rotate({add_pair(mid.real, dif.imag), sub_pair(mid.imag, dif.real)}, twiddles[32*p]));
+            pitch_fft_rotate({add_pair(mid.real, dif.imag), sub_pair(mid.imag, dif.real)}, twiddles[32 * p]));
       store(tail.data(), 120, out + 80,
-            pitch_fft_rotate({sub_pair(mid.real, dif.imag), add_pair(mid.imag, dif.real)}, twiddles[64*p]));
+            pitch_fft_rotate({sub_pair(mid.real, dif.imag), add_pair(mid.imag, dif.real)}, twiddles[64 * p]));
     }
     const auto store_frequency = [&](int pos, pitch_fft_complex_pair value) {
       vst1q_f32(frequency.data() + pos, value.real.x);
@@ -10799,15 +10795,15 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
       vst1q_f32(frequency.data() + plane + half + pos, value.imag.y);
     };
     for (int group = 0; group < 3; ++group) {
-      const int in = 40*group, out = column/2 + 16*group;
+      const int in = 40 * group, out = column / 2 + 16 * group;
       const auto a = load(tail.data(), 120, in);
       const auto b = load(tail.data(), 120, in + 8), c = load(tail.data(), 120, in + 16);
       const auto d = load(tail.data(), 120, in + 24), e = load(tail.data(), 120, in + 32);
       const auto s14 = b + e, s23 = c + d, d14 = b - e, d23 = c - d;
       constexpr float c1 = 0.30901699437494745f, s1 = 0.9510565162951535f;
       constexpr float c2 = -0.8090169943749475f, s2 = 0.5877852522924731f;
-      const auto e1 = a + s14*c1 + s23*c2, f1 = d14*s1 + d23*s2;
-      const auto e2 = a + s14*c2 + s23*c1, f2 = d14*s2 - d23*s1;
+      const auto e1 = a + s14 * c1 + s23 * c2, f1 = d14 * s1 + d23 * s2;
+      const auto e2 = a + s14 * c2 + s23 * c1, f2 = d14 * s2 - d23 * s1;
       store_frequency(out, a + s14 + s23);
       store_frequency(out + 48, {add_pair(e1.real, f1.imag), sub_pair(e1.imag, f1.real)});
       store_frequency(out + 96, {add_pair(e2.real, f2.imag), sub_pair(e2.imag, f2.real)});
@@ -10817,8 +10813,9 @@ static void pitch_fft_forward_pair(const float* x, const float* y, float factor_
   }
 }
 
-
-struct pitch_fft_complex4 { float32x4_t r, i; };
+struct pitch_fft_complex4 {
+  float32x4_t r, i;
+};
 
 [[nodiscard]] static int pitch_fft_pack_spectrum(float* spectrum, const float* x, const float* y) noexcept {
   constexpr int half = 240;
@@ -10834,11 +10831,10 @@ struct pitch_fft_complex4 { float32x4_t r, i; };
     const auto br = reverse(vld1q_f32(frequency + half - k - 3));
     const auto bi = reverse(vld1q_f32(frequency + 2 * half - k - 3));
     return std::array{
-      pitch_fft_complex4{vmulq_f32(unpack_scale, vaddq_f32(ar, br)),
-                         vmulq_f32(unpack_scale, vsubq_f32(ai, bi))},
-      pitch_fft_complex4{vmulq_f32(unpack_scale, vaddq_f32(ai, bi)),
-                         vmulq_f32(unpack_scale, vsubq_f32(br, ar))}
-    };
+        pitch_fft_complex4{vmulq_f32(unpack_scale, vaddq_f32(ar, br)),
+                           vmulq_f32(unpack_scale, vsubq_f32(ai, bi))},
+        pitch_fft_complex4{vmulq_f32(unpack_scale, vaddq_f32(ai, bi)),
+                           vmulq_f32(unpack_scale, vsubq_f32(br, ar))}};
   };
   const auto correlate = [](pitch_fft_complex4 a, pitch_fft_complex4 b) {
     return pitch_fft_complex4{vaddq_f32(vmulq_f32(a.r, b.r), vmulq_f32(a.i, b.i)),
@@ -10856,16 +10852,16 @@ struct pitch_fft_complex4 { float32x4_t r, i; };
     const auto d = correlate(xo, ye);
     const auto wr = vld1q_f32(celt_tables.pitch_twiddles[0].data() + k);
     const auto wi = vld1q_f32(celt_tables.pitch_twiddles[1].data() + k);
-    const auto odd_r = vaddq_f32(c.r,vaddq_f32(vmulq_f32(d.r,wr),vmulq_f32(d.i,wi)));
-    const auto odd_i = vaddq_f32(c.i,vsubq_f32(vmulq_f32(d.i,wr),vmulq_f32(d.r,wi)));
-    const auto v0 = vmulq_f32(vsubq_f32(even_r,odd_i),spectrum_scale);
-    const auto v1 = vmulq_f32(vnegq_f32(vaddq_f32(even_i,odd_r)),spectrum_scale);
-    const auto v2 = vmulq_f32(vaddq_f32(even_r,odd_i),spectrum_scale);
-    const auto v3 = vmulq_f32(vsubq_f32(even_i,odd_r),spectrum_scale);
-    vst1q_f32(spectrum + k,v0);
-    vst1q_f32(spectrum + half + k,v1);
-    vst1q_f32(spectrum + half - k - 3,reverse(v2));
-    vst1q_f32(spectrum + 2 * half - k - 3,reverse(v3));
+    const auto odd_r = vaddq_f32(c.r, vaddq_f32(vmulq_f32(d.r, wr), vmulq_f32(d.i, wi)));
+    const auto odd_i = vaddq_f32(c.i, vsubq_f32(vmulq_f32(d.i, wr), vmulq_f32(d.r, wi)));
+    const auto v0 = vmulq_f32(vsubq_f32(even_r, odd_i), spectrum_scale);
+    const auto v1 = vmulq_f32(vnegq_f32(vaddq_f32(even_i, odd_r)), spectrum_scale);
+    const auto v2 = vmulq_f32(vaddq_f32(even_r, odd_i), spectrum_scale);
+    const auto v3 = vmulq_f32(vsubq_f32(even_i, odd_r), spectrum_scale);
+    vst1q_f32(spectrum + k, v0);
+    vst1q_f32(spectrum + half + k, v1);
+    vst1q_f32(spectrum + half - k - 3, reverse(v2));
+    vst1q_f32(spectrum + 2 * half - k - 3, reverse(v3));
   }
   return k;
 }
