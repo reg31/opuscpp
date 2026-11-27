@@ -374,27 +374,27 @@ inline int silk_dot_groups(double& result, const float* a, const float* b, int l
   return i;
 }
 
+template<bool Masked = false>
+inline void pitch_xcorr(const float* x, const float* y, float* out, int length, [[maybe_unused]] int lags = 8) noexcept {
 #if defined(OPUSCPP_SIMD_AVX2)
-inline void pitch_xcorr_partial(const float* x, const float* y, float* out, int length, int lags) noexcept {
-  const auto mask = _mm256_cmpgt_epi32(_mm256_set1_epi32(lags), _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7));
+  __m256i mask;
+  if constexpr (Masked)
+    mask = _mm256_cmpgt_epi32(_mm256_set1_epi32(lags), _mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7));
   auto sum = _mm256_setzero_ps();
   for (int i = 0; i < length; ++i) {
-    const auto product = _mm256_mul_ps(_mm256_broadcast_ss(x + i), _mm256_maskload_ps(y + i, mask));
+    __m256 product;
+    if constexpr (Masked)
+      product = _mm256_mul_ps(_mm256_broadcast_ss(x + i), _mm256_maskload_ps(y + i, mask));
+    else
+      product = _mm256_mul_ps(_mm256_set1_ps(x[i]), _mm256_loadu_ps(y + i));
     sum = _mm256_add_ps(sum, product);
   }
-  _mm256_maskstore_ps(out, mask, sum);
-}
-#endif
-
-inline void pitch_xcorr_eight(const float* x, const float* y, float* out, int length) noexcept {
-#if defined(OPUSCPP_SIMD_AVX2)
-  auto sum = _mm256_setzero_ps();
-  for (int i = 0; i < length; ++i) {
-    const auto product = _mm256_mul_ps(_mm256_set1_ps(x[i]), _mm256_loadu_ps(y + i));
-    sum = _mm256_add_ps(sum, product);
-  }
-  _mm256_storeu_ps(out, sum);
+  if constexpr (Masked)
+    _mm256_maskstore_ps(out, mask, sum);
+  else
+    _mm256_storeu_ps(out, sum);
 #else
+  static_assert(!Masked);
   auto first = vdupq_n_f32(0.f), second = first;
   for (int i = 0; i < length; ++i) {
     const auto sample = vdupq_n_f32(x[i]);

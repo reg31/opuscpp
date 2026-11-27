@@ -7500,10 +7500,10 @@ static inline void celt_pitch_xcorr(const opus_val16* x, const opus_val16* y, op
       opuscpp_simd::finite_samples(y, len + max_pitch - 1)) {
     int i = 0;
     for (; i < max_pitch - 7; i += 8)
-      opuscpp_simd::pitch_xcorr_eight(x, y + i, xcorr + i, len);
+      opuscpp_simd::pitch_xcorr<>(x, y + i, xcorr + i, len);
 #if defined(OPUSCPP_SIMD_AVX2)
     if (max_pitch - i >= minimum_vector_lags) {
-      opuscpp_simd::pitch_xcorr_partial(x, y + i, xcorr + i, len, max_pitch - i);
+      opuscpp_simd::pitch_xcorr<true>(x, y + i, xcorr + i, len, max_pitch - i);
       return;
     }
 #endif
